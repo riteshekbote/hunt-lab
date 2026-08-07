@@ -247,3 +247,4 @@ evidence_needed: principal B executes a turn or subscribes (with Last-Event-ID) 
 verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm `*.powerplatform.com` envhost in scope): 1) app A POST start with `StartRequest.conversationId`=attacker-chosen GUID → 2) app B POST `…/conversations/{same GUID}` + GET subscribe with `Last-Event-ID` using its own Bearer → 3) observe whether conversation resumes or guard error returns. Passive: none (Bearer-gated, SSE only).
 impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
 testability: AUTH_HELPED
+## 2026-08-07 18:28:48 UTC [google] (model bigpickle)

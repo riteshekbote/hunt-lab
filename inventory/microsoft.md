@@ -66,3 +66,6 @@
 - NEW `bughunters.google.com` root `/` → HTTP 200, hardened (HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff)
 
 ## 2026-08-07 17:38:33 UTC
+
+## 2026-08-07 18:29:05 UTC
+- NEW NO_DELTA
