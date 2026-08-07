@@ -1,0 +1,48 @@
+programs:
+  google:
+    name: Google Vulnerability Reward Program
+    disclosure_policy: https://bughunters.google.com/about/rules
+    domains:
+      - google.com
+      - "*.google.com"
+    github_orgs:
+      - google
+  microsoft:
+    name: Microsoft Bounty / MSRC
+    disclosure_policy: https://www.microsoft.com/en-us/msrc/bounty
+    domains:
+      - microsoft.com
+      - "*.microsoft.com"
+      - "*.msn.com"
+      - "*.live.com"
+      - "*.office.com"
+      - "*.bing.com"
+      - "*.azure.com"
+      - "*.azurewebsites.net"
+      - "*.windows.net"
+      - "*.sharepoint.com"
+      - "*.onmicrosoft.com"
+      - "*.outlook.com"
+      - "*.hotmail.com"
+      - "*.xbox.com"
+      - "*.dynamics.com"
+      - "*.powerapps.com"
+    github_orgs:
+      - microsoft
+
+rules:
+  # Both programs require passive, non-disruptive testing.
+  passive_only: true          # GET/HEAD reads only; no scanners, no fuzzers, no auth-bypass attempts on live infra
+  max_requests_per_second: 1  # never hammer
+  no_account_creation: true   # no mass signups (MSRC: banned; Google InTENT: restricted)
+  no_data_modification: true  # no writes, deletes, state changes
+  no_pre_disclosure: true     # never disclose before program response
+  redact_secrets_in_commits: true  # commit sha256 of secrets, never raw values
+
+# Multi-model ensemble: every hunt run picks a rotation of the 5 models.
+models:
+  - { id: opencode/big-pickle, name: bigpickle }
+  - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+  - { id: opencode/longcat-2.0-free, name: longcat }
+  - { id: opencode/ling-3.0-flash-free, name: ling3 }
+  - { id: opencode/laguna-s-2.1-free, name: laguna }
