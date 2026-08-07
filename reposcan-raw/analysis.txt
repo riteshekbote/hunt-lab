@@ -1,87 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls reposcan-raw/google/android-emulator-container-scripts/
-CONTRIBUTING.md
-LICENSE
-MANIFEST.in
-README.md
-REGISTRY.MD
-TROUBLESHOOTING.md
-aemu-container.code-workspace
-cloud-init
-configure.sh
-create_web_container.sh
-emu
-gateway
-js
-pyproject.toml
-run-in-script-example.sh
-run-with-gpu.sh
-run.sh
-setup.cfg
-tests
-tox.ini
-versioneer.py
-[0m
-[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run.sh
-[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
-[0m→ [0mRead reposcan-raw/google/trillian/testonly/keys.go
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py
-Now I have enough context to classify all hits. Here's the triage:
-
----
-
 ### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No hardcoded live credentials found |
-
----
+| File | Line | Classification | SHA256 (secret material) |
+|------|------|----------------|--------------------------|
+| *(none found)* | | | |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | TEST — test fixtures |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | `testpassword` | TEST — test fixtures |
-| google/trillian/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` (package `testonly`, comment: "KEYS IN THIS FILE ARE ONLY FOR TESTING") | TEST — explicit test-only keys |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` | TEST — placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | TEST — placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented) | TEST — placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQL injection test string | TEST — red-team dataset fixture |
-
----
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` | Fuzz test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword` | Test server password |
+| google/trillian/testonly/keys.go | 24 | `BEGIN EC PRIVATE KEY` | Test-only key in `testonly/` dir |
+| google/libnss-cache/.github/workflows/automerge.yml | 33, 59 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | Placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `your-key` | Placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQL injection payload | Red-team test data |
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint | Verdict |
-|------|------|----------|---------|
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal Google artifact registry) | LEAK — internal corp URL |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 108-109 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` | LEAK — staging/sandbox endpoints |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `rfc3161.gtm.corp.microsoft.com` (internal timestamp server) | LEAK — internal corp URL |
-
----
+| File | Line | Endpoint / URL | Type |
+|------|------|----------------|------|
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | `pantheon.corp.google.com` | Internal Google URL (comment) |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` | Internal Google URL (comment) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 108-109 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` | GCP sandbox endpoints |
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `metadata.google.internal` | GCP IMDS |
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | AWS/Azure/GCP/Alibaba IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183-184 | Same IMDS endpoints | Multi-cloud IMDS allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13-14 | Same IMDS endpoints | Multi-cloud IMDS allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8, 11, 13 | Same IMDS endpoints | Multi-cloud IMDS allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27, 29-30 | Azure IMDS (`169.254.169.254/metadata/identity/oauth2/token`), AWS IMDS/token | Cloud identity endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39-40 | Cloud metadata endpoints | Advisory allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102-103 | AWS/GCP metadata endpoints | Safe HTTP client allowlist |
 
 ### INTERESTING
-| File | Line | Finding | Verdict |
-|------|------|---------|---------|
-| google/android-emulator-container-scripts/run.sh / run-with-gpu.sh | 22, 28 | `-e TOKEN="$(cat ~/.emulator_console_auth_token)"` | INTERESTING — local file reference pattern (not hardcoded); reads user's local auth token at runtime |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` for Codecov token | INTERESTING — proper Secret Manager usage (good pattern) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` for GitHub bot token | INTERESTING — proper Secret Manager usage (good pattern) |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | Queries `metadata.google.internal` for MTU | INTERESTING — normal GCE metadata usage |
-| microsoft/agent-governance-toolkit (multiple files) | various | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | INTERESTING — well-known cloud IMDS endpoints (Azure, GCP, Alibaba); documented, not leaks |
-| microsoft/agent-governance-toolkit/.github/workflows/*.yml | various | `${{ secrets.GITHUB_TOKEN }}` | INTERESTING — proper GitHub Actions secret reference (good pattern) |
+| File | Line | Finding |
+|------|------|---------|
+| google/trillian/util/election2/k8s/provider.go | 19, 41 | Kubeconfig loading logic (out-of-cluster support) |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `secret_key = <variable>` — codegen for secret handling |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented `smtp_auth_password` placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | Test PyPI publish URL |
 
 ---
 
-### SHORT VERDICT LIST
+### VERDICT LIST
+
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| google/copybara/cloudbuild.yaml:27 (pantheon.corp.google.com) | **yes** | Internal Google corp endpoint exposed in public repo |
-| google/go-tpm-tools/launcher/spec/launch_spec.go:108-109 (sandbox endpoints) | **yes** | Staging/sandbox API endpoints exposed |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 (rfc3161.gtm.corp.microsoft.com) | **yes** | Internal Microsoft timestamp server URL exposed |
-| All TEST_OR_EXAMPLE entries | no | Test fixtures, placeholders, explicit test-only packages |
-| All INTERESTING entries | no | Legitimate patterns (secret managers, IMDS endpoints, local file refs) — no secret material |
-
-**Summary:** 3 reportable ENDPOINT_LEAK candidates (internal corp/staging URLs). No REAL_SECRET findings.
+| All hits | **no** | Zero live credentials. All hits are: secret-manager references (gcloud/GH Actions), test fixtures, placeholders, internal endpoint documentation, or multi-cloud IMDS allowlists. No hardcoded API keys, tokens, or passwords with signs of life.
