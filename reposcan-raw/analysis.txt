@@ -1,35 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-All hits are from `google/osv-scanner` and fall into two categories: public advisory URLs and test cassettes for the public OSV API. No secrets, tokens, or internal endpoints found.
+[0m$ [0mecho "40150cc2c638b09de8ebbfefd50b80a4" | sha256sum
+cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m
+### REAL_SECRET
+| File | Line | Secret SHA256 |
+|------|------|---------------|
+| reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | 175 | cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130 |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| osv-scanner/internal/ci/testdata/vulns/test-vuln-results-b.json | 68 | Public HashiCorp security advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid-no-call-data.json | 119 | Same public advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid.json | 119 | Same public advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/input-no-call-data.json | 55 | Same public advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/input.json | 55 | Same public advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/output.json | 76 | Same public advisory URL |
-| osv-scanner/internal/sourceanalysis/testdata/json/output-no-call-data.json | 72 | Same public advisory URL |
-| osv-scanner/internal/output/testdata/flattened_vulns.json | 64 | Same public advisory URL |
-| osv-scanner/cmd/osv-scanner/scan/source/testdata/cassettes/*.yaml | 27+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
-| osv-scanner/cmd/osv-scanner/scan/testdata/cassettes/*.yaml | 34+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
-| osv-scanner/cmd/osv-scanner/scan/image/testdata/cassettes/*.yaml | 118+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
+| File | Line | Note |
+|------|------|------|
+| reposcan-raw/google/xrblocks/src/ai/AI.ts | 304 | `YOUR_GEMINI_API_KEY_HERE` placeholder |
+| reposcan-raw/google/xrblocks/src/ai/AI.ts | 305 | `YOUR_OPENAI_API_KEY_HERE` placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Truncated test private key `-----BEGIN PRIVATE KEY-----...` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Test credentials `username="user", password="password"` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Test token `eyAkaknabna....` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` |
+| reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | Reference format `PASSWORD_HASH_LM_FORMAT` |
+| reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | Documentation comment |
+| reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go | 40 | Documentation comment |
+| reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | 126 | Test PyPI URL |
 
 ### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| osv-scanner/cmd/osv-scanner/fix/command.go | 291 | Public GCS bucket: `osv-vulnerabilities.storage.googleapis.com` |
+| File | Line | Note |
+|------|------|------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | Cloud metadata endpoint `169.254.169.254` |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Cloud metadata endpoint `169.254.169.254` |
 
 ### INTERESTING
-None
-
-### REAL_SECRET
-None
+| File | Line | Note |
+|------|------|------|
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Secret ref pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| reposcan-raw/google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | GitHub Actions secret ref `${{secrets.GITHUB_TOKEN}}` |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | Variable interpolation `GOOGLE_API_KEY={google_api_key}` |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key `_vmaas_access_token` |
 
 ---
 
 **VERDICT**
-- REPORT_CANDIDATE: no (all hits are public URLs or test fixtures)
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| xrblocks/docs/docusaurus.config.ts:175 (32-char hex key) | **yes** — appears live; verify if Algolia/docsearch key with write scope |
+| All TEST_OR_EXAMPLE entries | no |
+| ENDPOINT_LEAK (169.254.169.254) | no — well-known public metadata IP |
+| INTERESTING entries | no — secret refs / internal names, no material |
