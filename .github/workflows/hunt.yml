@@ -96,22 +96,56 @@ jobs:
           PROMPT_EOF
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
           timeout 18m opencode run --model "$MODEL_ID" < analyst-prompt.txt > analyst-out.txt 2>&1 || true
-          grep -E '^\[(NEW|CHANGED|PRIO|HYP|PARKED|FINAL|NEXT|LEARN|RISK)\]|^class:|^confidence:|^asset:|^impact:|^testability:|^verify_steps:|^reasoning:|^evidence_needed:' analyst-out.txt > lead-${MODEL_NAME}.txt || true
+          cp analyst-out.txt analyst-${MODEL_NAME}.out
+          grep -E '^\[(NEW|CHANGED|PRIO|HYP|PARKED|FINAL|NEXT|LEARN|RISK)\]|^class:|^confidence:|^asset:|^impact:|^testability:|^verify_steps:|^reasoning:|^evidence_needed:' analyst-out.txt > lead.txt || true
           {
             echo "## $(date -u +'%Y-%m-%d %H:%M:%S UTC') [$TARGET] (model ${MODEL_NAME})"
-            cat lead-${MODEL_NAME}.txt
-          } >> leads/lead-${MODEL_NAME}.md
-          cp lead-${MODEL_NAME}.txt reports/hypotheses-${MODEL_NAME}.txt
-          {
-            echo "===== ANALYST ${MODEL_NAME} $(date -u +'%Y-%m-%d %H:%M:%S UTC') ====="
-            cat analyst-out.txt
-          } >> reports/analyst-${MODEL_NAME}.log
+            cat lead.txt
+          } > lead_${MODEL_NAME}.txt
+          echo "lead bytes: $(wc -c < lead.txt) | raw bytes: $(wc -c < analyst-out.txt)"
 
-      - name: Merge + rank + inventory update (python)
+      - name: Upload model artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: analyst-${{ matrix.model.name }}
+          path: |
+            lead_${{ matrix.model.name }}.txt
+            analyst-${{ matrix.model.name }}.out
+            ctx.txt
+          if-no-files-found: warn
+
+  aggregate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: analyst
+    concurrency:
+      group: hunt-aggregate
+      cancel-in-progress: false
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all model artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: art
+          merge-multiple: true
+
+      - name: Merge + rank + inventory + knowledge update (single committer)
         run: |
+          mkdir -p leads reports knowledge inventory
+          for f in art/lead_*.txt; do
+            [ -f "$f" ] || continue
+            cat "$f" >> leads/lead-$(basename "$f" | sed -E 's/lead_([a-z0-9]+)\.txt/\1/').md
+          done
           python3 << 'PY_EOF'
           import re, glob, json, os, datetime
-          # gather hypotheses from per-model files
+          stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+          # per-model structured files for the aggregator
+          for f in glob.glob('art/lead_*.txt'):
+              base = os.path.basename(f)
+              model = re.sub(r'^lead_([a-z0-9]+)\.txt$', r'\1', base)
+              open(f'reports/hypotheses-{model}.txt', 'w').write(open(f).read())
           all_h = []
           for f in glob.glob('reports/hypotheses-*.txt'):
               text = open(f).read()
@@ -122,7 +156,6 @@ jobs:
               a = re.search(r'^asset:\s*(\S+)', text, re.M)
               all_h.append((int(c.group(1)) if c else 0, a.group(1) if a else '?', title, f))
           all_h.sort(reverse=True)
-          stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
           with open('reports/hypotheses.md', 'a') as out:
               out.write(f"\n## RANKED HYPOTHESES {stamp}\n")
               seen = set()
@@ -131,11 +164,9 @@ jobs:
                   if key in seen: continue
                   seen.add(key)
                   out.write(f"- [{conf}] {asset}: {title} (from {f})\n")
-              # next actions
               for f in glob.glob('reports/hypotheses-*.txt'):
                   n = re.search(r'^\[NEXT\] (.*)$', open(f).read(), re.M)
                   if n: out.write(f"- NEXT({os.path.basename(f)}): {n.group(1).strip()[:160]}\n")
-              # learnings
               for f in glob.glob('reports/hypotheses-*.txt'):
                   for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):
                       out.write(f"- LEARN: {l.strip()[:160]}\n")
@@ -148,35 +179,44 @@ jobs:
                       line = f"- {stamp[:10]} {l.strip()}"
                       if line not in ktext:
                           k.write(line + "\n")
-          # inventory update
-          target = os.environ.get('TARGET', 'google')
-          inv = f'inventory/{target}.md'
-          with open(inv, 'a') as io:
-              io.write(f"\n## {stamp}\n")
-              for f in glob.glob('reports/hypotheses-*.txt'):
-                  for l in re.findall(r'^\[(NEW|CHANGED)\] (.*)$', open(f).read(), re.M):
-                      io.write(f"- {l[0]} {l[1].strip()[:200]}\n")
-          # state advance
-          sp = f'state_{os.environ["MODEL_NAME"]}.json'
-          st = json.load(open(sp))
-          phases = ['RECON','SURFACE','HYPOTHESIS','POC']
-          if st.get('phase') in phases:
-              st['phase'] = phases[min(phases.index(st['phase'])+1, 3)]
-          json.dump(st, open(sp, 'w'))
+          # inventory update per target
+          for target in ('google', 'microsoft'):
+              inv = f'inventory/{target}.md'
+              with open(inv, 'a') as io:
+                  io.write(f"\n## {stamp}\n")
+                  for f in glob.glob('reports/hypotheses-*.txt'):
+                      for l in re.findall(r'^\[(NEW|CHANGED)\] (.*)$', open(f).read(), re.M):
+                          io.write(f"- {l[0]} {l[1].strip()[:200]}\n")
+          # state advance per model (approximate: each model got its own target)
+          for sp in glob.glob('state_*.json'):
+              try:
+                  st = json.load(open(sp))
+              except Exception:
+                  st = {}
+              phases = ['RECON','SURFACE','HYPOTHESIS','POC']
+              if st.get('phase') in phases:
+                  st['phase'] = phases[min(phases.index(st['phase'])+1, 3)]
+              json.dump(st, open(sp, 'w'))
+          # archive raw logs
+          for f in glob.glob('art/analyst-*.out'):
+              model = re.search(r'art/analyst-([a-z0-9]+)\.out$', f)
+              if model:
+                  with open(f'reports/analyst-{model.group(1)}.log', 'a') as lg:
+                      lg.write(f"===== ANALYST {model.group(1)} {stamp} =====\n")
+                      lg.write(open(f, errors='ignore').read())
           print('merged', len(all_h), 'hypotheses')
           PY_EOF
 
-      - name: Commit
+      - name: Commit (single push, no race)
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add leads reports knowledge inventory state_*.json || true
-          git diff --cached --quiet || git commit -m "analyst $MODEL_NAME $TARGET $(date -u +'%Y-%m-%d-%H-%M')"
+          git diff --cached --quiet || git commit -m "analyst cycle $(date -u +'%Y-%m-%d-%H-%M')"
           git pull --rebase || true
           git push || true
 
       - name: Dispatch reposcan (once per cycle)
-        if: matrix.model.name == 'bigpickle'
         run: |
           curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
