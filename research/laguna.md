@@ -3187,3 +3187,305 @@ except Exception as e:
 [93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
 [0m✗ [0mRead /tmp/msquic_packet.c failed[90m [limit=120, offset=1][0m
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
+
+===== RUN 2026-08-07 12:28:04 UTC | model laguna | target google =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m→ [0mRead scope.yml
+[0m→ [0mRead state_laguna.json
+[0m→ [0mRead leads/lead-laguna.md
+New run detected — target is now **google**. Let me read scope.yml and check current state files.
+[0m→ [0mRead research/laguna.md[90m [limit=60][0m
+[0m% [0mWebFetch https://bughunters.google.com/about/rules
+Fresh run — **target: google**, **phase: RECON** (state reset). The microsoft leads are stale context. Let me start RECON on Google's bounty program: read the disclosure policy, check for prior google journal entries, and start subdomain discovery.
+[0m
+[0m$ [0mecho "=== GitHub: google org public repos (first 50 by stars) ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=50&sort=stars&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    if isinstance(d,list):
+        print(f'repos returned: {len(d)}')
+        for r in d:
+            lang=r.get('language','') or '-'
+            stars=r.get('stargazers_count',0)
+            desc=(r.get('description','') or '')[:60]
+            print(f'  {r[\"name\"]:35s}  lang={lang:8s} stars={stars:>6}  {desc}')
+    else:
+        print('Not list:', d.get('message','?'))
+except Exception as e:
+    print('ERR:',e)
+" 2>&1 | head -55
+=== GitHub: google org public repos (first 50 by stars) ===
+repos returned: 50
+  rust-skills                          lang=Rust     stars=     0  
+  contrails-dispatch                   lang=HCL      stars=     0  
+  google-tlog-witness                  lang=Go       stars=     0  
+  makerspace-pcb2cnc                   lang=Python   stars=     0  
+  cybernetic-agent-governance-engine   lang=Python   stars=    10  
+  bgpr                                 lang=TLA      stars=     1  
+  mantis                               lang=-        stars=   722  A modular, stack-agnostic toolkit of security review skills 
+  multi-cast                           lang=Python   stars=     3  
+  hdmitsuba                            lang=Python   stars=    77  USD Hydra delegate for Mitsuba 3
+  aaos-sdv-telemetry-mcg               lang=Go       stars=     2  
+  seeing_without_pixels                lang=-        stars=     1  
+  data-import-looker-dashboard         lang=Python   stars=     1  
+  doubleml-pipeline                    lang=Python   stars=    11  
+  calligator                           lang=Python   stars=     2  
+  merchant-api-alpha-client            lang=-        stars=     1  Google Merchant API Alpha Client Libraries
+  xtrace                               lang=Shell    stars=     4  
+  aaos-sdv-telemetry-simulator         lang=Go       stars=     5  
+  project-montage                      lang=Python   stars=    12  
+  opencl-kernel-profiler               lang=C++      stars=     2  Perfetto-based profiler for OpenCL kernel
+  vulkan-shader-profiler               lang=C++      stars=     1  Perfetto-based profiler for Vulkan shader
+  esmeralda                            lang=Python   stars=     7  An opinionated, commercial-grade blueprint designed to accel
+  android-telecq                       lang=Python   stars=     2  
+  adk-kotlin                           lang=Kotlin   stars=   172  
+  tpu-raiden                           lang=C++      stars=    33  
+  sysgraph                             lang=TypeScript stars=     7  
+  ai-abap-assistant-eclipse-plugin-sample  lang=Java     stars=     2  
+  dpsynth                              lang=Python   stars=    23  
+  terraform-provider-gh-app-unofficial  lang=Go       stars=     2  
+  prompt-encryption-sdk                lang=Python   stars=    20  
+  go-nvattest-tools                    lang=Go       stars=     2  
+  androidxr-unreal-vendor-plugin       lang=-        stars=     2  
+  sam                                  lang=Go       stars=    29  SAM Sovereign Agent Mesh
+  frankenstein                         lang=Dart     stars=     2  
+  go-testgen                           lang=Go       stars=     3  
+  cc4d                                 lang=-        stars=     1  
+  gemini-moderation                    lang=JavaScript stars=     5  
+  maze-maker                           lang=Swift    stars=     0  
+  android-chrono-tz                    lang=Rust     stars=     2  
+  ninja-to-soong                       lang=Rust     stars=     4  Generate Soong files from Ninja
+  agents-cli                           lang=Python   stars=  5501  The CLI and skills that turn any coding assistant into an ex
+  krdma-unit-test                      lang=-        stars=     1  
+  chrome-enterprise-premium-mcp        lang=JavaScript stars=     9  Reference implementation for a Chrome Enterprise Premium MCP
+  skills                               lang=Python   stars= 15986  Agent Skills for Google products and technologies
+  include-first                        lang=Rust     stars=     3  
+  ax                                   lang=Go       stars=  1940  An open source distributed agent runtime
+  toolchains_chromium                  lang=Starlark stars=     1  
+  agent-shell-tools                    lang=Go       stars=    13  
+  GNM                                  lang=Python   stars=  1370  An open ecosystem of parametric human models and perception 
+  restory                              lang=C#       stars=     0  
+  helpseeking                          lang=Python   stars=     1
+[0m
+[0m$ [0mecho "=== crt.sh: google.com subdomains (limit 50) ==="; sleep 2; curl -sL -m 20 "https://crt.sh/?Identity=%.google.com&output=json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    seen=set()
+    for r in d:
+        name=r.get('name','').strip().lstrip('.')
+        if name and name not in seen and 'google.com' in name:
+            seen.add(name)
+    names=sorted(seen)
+    print(f'total unique subdomains: {len(names)}')
+    for n in names[:50]:
+        print(f'  {n}')
+except Exception as e:
+    print('ERR:',e)
+" 2>&1 | head -60
+=== crt.sh: google.com subdomains (limit 50) ===
+ERR: Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mecho "=== bughunters.google.com rules — fetch raw HTML, grep scope ==="; sleep 1; curl -sL -m 20 "https://bughunters.google.com/about/rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 -c "
+import sys, re, html
+x=sys.stdin.read()
+print('page size:', len(x))
+# Strip tags to plain text
+text = re.sub(r'<script[^>]*>.*?</script>', '', x, flags=re.S|re.I)
+text = re.sub(r'<style[^>]*>.*?</style>', '', text, flags=re.S|re.I)
+text = re.sub(r'<[^>]+>', ' ', text)
+text = html.unescape(text)
+text = re.sub(r'\s+', ' ', text).strip()
+print('text len:', len(text))
+print('--- first 2500 chars of text ---')
+print(text[:2500])
+" 2>&1 | head -70
+=== bughunters.google.com rules — fetch raw HTML, grep scope ===
+page size: 3583
+text len: 26
+--- first 2500 chars of text ---
+Rules | Google Bug Hunters
+[0m
+The webfetch on bughunters.google.com returned minimal content (JS-rendered page), and crt.sh returned empty. Let me retry with adjusted approaches — crt.sh often needs the bare JSON endpoint, and the rules page may need direct raw fetch.
+[0m$ [0mecho "=== GitHub: google org — repo count + top 30 by stars (sort stars desc) ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=30&type=public&sort=stars&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    if isinstance(d,list):
+        langs={}
+        print(f'repos returned: {len(d)}')
+        for r in d:
+            lang=r.get('language','') or '-'
+            langs[lang]=langs.get(lang,0)+1
+            print(f'  {r[\"name\"]:40s} stars={r[\"stargazers_count\"]:>6}  lang={lang:10s}  {r.get(\"description\",\"\")[:50]}')
+        print('lang breakdown:', langs)
+    else:
+        print('Not list:', d.get('message','?'))
+except Exception as e:
+    print('ERR:',e)
+" 2>&1 | head -45
+=== GitHub: google org — repo count + top 30 by stars (sort stars desc) ===
+repos returned: 30
+ERR: 'NoneType' object is not subscriptable
+[0m
+[0m$ [0mecho "=== crt.sh: retry with explicit json output + wildcard ==="; sleep 1; curl -sL -m 20 "https://crt.sh/?q=%.google.com&output=json" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('raw len:', len(raw))
+try:
+    d=json.loads(raw)
+    seen=set()
+    for r in d:
+        name=r.get('name','').strip().rstrip('.')
+        if name.endswith('.google.com') and name not in seen:
+            seen.add(name)
+    names=sorted(seen)
+    print(f'unique subdomains: {len(names)}')
+    for n in names[:60]:
+        print(f'  {n}')
+except Exception as e:
+    print('ERR:',e)
+    print('first 300 chars:', raw[:300])
+" 2>&1 | head -65
+=== crt.sh: retry with explicit json output + wildcard ===
+raw len: 0
+ERR: Expecting value: line 1 column 1 (char 0)
+first 300 chars:
+[0m
+[0m$ [0mecho "=== GitHub: debug repo structure ==="; sleep 1; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=5&sort=stars&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('type:', type(d).__name__)
+if isinstance(d,list):
+    print('count:', len(d))
+    if d:
+        print('keys:', sorted(d[0].keys())[:15])
+        for r in d[:5]:
+            print(f'  name={r.get(\"name\")} stars={r.get(\"stargazers_count\")} lang={r.get(\"language\")}')
+else:
+    print(d)
+" 2>&1 | head -15
+=== GitHub: debug repo structure ===
+type: list
+count: 5
+keys: ['allow_forking', 'archive_url', 'archived', 'assignees_url', 'blobs_url', 'branches_url', 'clone_url', 'collaborators_url', 'comments_url', 'commits_url', 'compare_url', 'contents_url', 'contributors_url', 'created_at', 'custom_properties']
+  name=rust-skills stars=0 lang=Rust
+  name=contrails-dispatch stars=0 lang=HCL
+  name=google-tlog-witness stars=0 lang=Go
+  name=makerspace-pcb2cnc stars=0 lang=Python
+  name=cybernetic-agent-governance-engine stars=10 lang=Python
+[0m
+[0m$ [0mecho "=== bughunters: look for embedded JSON data in raw HTML ==="; sleep 2; curl -sL -m 20 "https://bughunters.google.com/about/rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null > /tmp/bh_rules.html; echo "size: $(wc -c < /tmp/bh_rules.html)"; echo "=== grep for __NEXT_DATA__ or __remix or embedded json ==="; grep -oiE 'window\.__remix\|__NEXT_DATA__|__APOLLO_STATE__\|<script[^>]*type="application/json"' /tmp/bh_rules.html | head -5; echo "=== grep for scope/keyword hints in raw html ==="; grep -oiE "in.scope|out.of.scope|google\.com|\*\.|reward|vulnerability" /tmp/bh_rules.html | sort | uniq -c | head -20; echo "=== any links/href to policy docs ==="; grep -oiE 'href="[^"]*"' /tmp/bh_rules.html | grep -iE "rule|scope|policy|reward|hall" | head -10
+=== bughunters: look for embedded JSON data in raw HTML ===
+size: 3589
+=== grep for __NEXT_DATA__ or __remix or embedded json ===
+=== grep for scope/keyword hints in raw html ===
+      3 google.com
+=== any links/href to policy docs ===
+[0m
+Three issues to debug. Let me fix each approach.
+[0m$ [0mecho "=== crt.sh: try HTTP + different params ==="; sleep 1; curl -sL -m 20 "http://crt.sh/?q=%.google.com&output=json" 2>/dev/null | head -c 500; echo; echo "=== retry https with -k and explicit limit ==="; sleep 2; curl -skL -m 20 "https://crt.sh/?q=%.google.com&output=json&min=2024-01-01" 2>/dev/null | wc -c; echo "=== try crt.sh for exact 'google.com' ==="; sleep 2; curl -sL -m 20 "https://crt.sh/?q=google.com&output=json" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('raw len:', len(raw))
+try:
+    d=json.loads(raw)
+    seen=set()
+    for r in d:
+        name=r.get('name','')
+        if name:
+            seen.add(name.strip().rstrip('.'))
+    print('unique names:', len(seen))
+    for n in sorted(seen)[:40]:
+        print(f'  {n}')
+except Exception as e:
+    print('parse err:',e)
+    print('head:',raw[:200])
+" 2>&1 | head -45
+=== crt.sh: try HTTP + different params ===
+
+=== retry https with -k and explicit limit ===
+0
+=== try crt.sh for exact 'google.com' ===
+raw len: 150
+parse err: Expecting value: line 1 column 1 (char 0)
+head: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mRead /tmp/bh_rules.html failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+crt.sh is returning 502 (transient). Let me read the bughunters HTML shell, retry crt.sh, and get all google repos sorted properly.
+[0m
+[0m$ [0mecho "=== GitHub: ALL google repos, fetch 100, sort by stars locally ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=100&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    repos=sorted(d, key=lambda r: r.get('stargazers_count',0), reverse=True)
+    langs={}
+    for r in d:
+        l=r.get('language') or '-'
+        langs[l]=langs.get(l,0)+1
+    print(f'total repos this page: {len(d)}')
+    print('lang breakdown:', langs)
+    print('--- top 25 by stars ---')
+    for r in repos[:25]:
+        print(f'  {r[\"name\"]:42s} stars={r[\"stargazers_count\"]:>7} lang={r.get(\"language\",\"\")} fork={r.get(\"fork\")}  {r.get(\"description\",\"\")[:55]}')
+else:
+    print(d.get('message','?'))
+" 2>&1 | head -45
+=== GitHub: ALL google repos, fetch 100, sort by stars locally ===
+Traceback (most recent call last):
+  File "<string>", line 14, in <module>
+TypeError: 'NoneType' object is not subscriptable
+total repos this page: 100
+lang breakdown: {'Rust': 13, 'HCL': 2, 'Go': 12, 'Python': 31, 'TLA': 1, '-': 11, 'Shell': 1, 'C++': 6, 'Kotlin': 3, 'TypeScript': 8, 'Java': 2, 'Dart': 1, 'JavaScript': 3, 'Swift': 1, 'Starlark': 1, 'C#': 1, 'Jupyter Notebook': 2, 'HTML': 1}
+--- top 25 by stars ---
+  skills                                     stars=  15986 lang=Python fork=False  Agent Skills for Google products and technologies
+  agents-cli                                 stars=   5501 lang=Python fork=False  The CLI and skills that turn any coding assistant into 
+  mcp                                        stars=   4485 lang=None fork=False  Google 💚 MCP
+  ax                                         stars=   1940 lang=Go fork=False  An open source distributed agent runtime
+  GNM                                        stars=   1370 lang=Python fork=False  An open ecosystem of parametric human models and percep
+  adk-js                                     stars=   1340 lang=TypeScript fork=False  An open-source, code-first Typescript toolkit for build
+  mantis                                     stars=    722 lang=None fork=False  A modular, stack-agnostic toolkit of security review sk
+  xrblocks                                   stars=    456 lang=TypeScript fork=False  XR Blocks is a lightweight WebXR + AI library for rapid
+  torchax                                    stars=    236 lang=Python fork=False  torchax is a PyTorch frontend for JAX. It gives JAX the
+  adk-python-community                       stars=    183 lang=Python fork=False  Community repo for adk-python
+[0m
+[0m$ [0mecho "=== retry crt.sh after delay ==="; sleep 5; curl -sL -m 25 "https://crt.sh/?q=%.google.com&output=json" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('raw len:', len(raw))
+if raw:
+    try:
+        d=json.loads(raw)
+        seen=set()
+        for r in d:
+            name=r.get('name','')
+            if name and name.endswith('.google.com'):
+                seen.add(name.strip().rstrip('.'))
+        print('unique *.google.com subdomains:', len(seen))
+        for n in sorted(seen)[:50]:
+            print(f'  {n}')
+    except Exception as e:
+        print('parse err:',e)
+        print('head:',raw[:300])
+" 2>&1 | head -55
+=== retry crt.sh after delay ===
+raw len: 150
+parse err: Expecting value: line 1 column 1 (char 0)
+head: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[0m
