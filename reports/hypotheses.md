@@ -178,3 +178,22 @@
 - LEARN: ACCEPTED: Hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76cc
 - LEARN: ACCEPTED: All prior ACCEPTED findings remain confirmed live at 22:37 UTC — agentRegistration zero ownership restrictions (5 EntityTypes), v1.0↔v2.0 JWKS kid ove
 - LEARN: REJECTED: No new proving-dead classes — all new passive probes (longcat 22:56) confirmed prior findings unchanged.
+
+## RANKED HYPOTHESES 2026-08-07 23:55:03 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [70] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret is live and redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations with client-set createdBy + owne
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/ag
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict
+- LEARN: ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serv
+- LEARN: ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_to
+- LEARN: ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error cod
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- LEARN: ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Co
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agen
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion preco
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per 

@@ -495,3 +495,31 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Execute the still-unexecuted two-principal test-tenant probe of the top hypothesis — A: POST /beta/copilot/agentRegistrations with client-set createdBy/ownerIds (Bearer scope AgentRegistration.ReadWrite.All) → record 201 body → B: GET /beta/copilot/agentRegistrations with own Bearer (200 array vs 403) → B: PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} (200/204 vs 403). Passive probing is fully exhausted (uniform 401 len=237 / 405 len=0 across 9 endpoints); only a real token resolves or kills the [85] lead.
 [RISK] google: 42 — tokeninfo introspection oracle + public hardening confirmed, but all discovery/control-plane APIs remain API-key/OAuth-gated with no anonymous read path; residual exposure is schema/introspection-level only.
 [RISK] microsoft: 66 — live zero-ownership agent-registration schema + caller-chosen-resourceId consent primitive + two 7MB/35MB public source maps on identity SPAs represent real preconditions; the residual guard is entirely tenant-token enforcement, which passive means cannot disprove.
+## 2026-08-07 23:52:41 UTC [google] (model bigpickle)
+[HYP] Earth Engine OAuth client_secret is live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 (token endpoint login.googleapis.com)
+confidence: 70
+reasoning: reposcan classified REAL_SECRET (non-placeholder, default fallback at oauth.py:99, scopes include cloud-platform). Only residual question is whether the OAuth client is still enabled and the secret accepted at the token endpoint. Passive means cannot answer; the KB holds it ACCEPTED-live as of 22:45 UTC.
+evidence_needed: token endpoint returns 200 access_token (vs 400 invalid_client) for the redeemed secret — proves live credential with full-GCP scope.
+verify_steps: HUMAN_ONLY (reporter, authorized by program rules): client_credentials exchange at https://login.microsoftonline.com/.../token or Google's token endpoint using the non-placeholder secret; log HTTP status + scope claim. Do NOT perform in this sandbox — active use of Google credentials.
+impact: if live, full cloud-platform impersonation of Earth Engine service account / quota + billing abuse. CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: Re-probed this cycle: GET/GET{id}→401 len=237 pure Bearer gate, HEAD→405, $metadata (HEAD 405=live) still carries agentRegistration EntityType with zero OperationRestrictions and client-supplied createdBy/ownerIds/agentCard. Ownership enforcement reachable only with a real token; no pre-auth branch exists.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds → record 201 body; 2) B GET /beta/copilot/agentRegistrations with own Bearer → 200 array vs 403; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: Consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions. Re-probed: 401 len=237, no new gate. Residual guard is tenant-level delegated-admin/consent enforcement, only testable with tokens.
+evidence_needed: principal without delegated-admin rights creates grant {clientId:A, resourceId:AzureStorage, scope:"user_impersonation"} → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure. CVSS 6.5–8.5.
+testability: AUTH_HELPED
