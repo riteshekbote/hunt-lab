@@ -3489,3 +3489,1519 @@ head: <html>
 </body>
 </html>
 [0m
+
+===== RUN 2026-08-07 14:07:31 UTC | model laguna | target google =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mecho "=== GitHub google org repos: exclude forks, top 25 by stars ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=100&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork')]
+    repos.sort(key=lambda r: r.get('stargazers_count',0), reverse=True)
+    langs={}
+    for r in repos:
+        l=r.get('language') or '-'
+        langs[l]=langs.get(l,0)+1
+    print(f'non-fork repos: {len(repos)} / {len(d)} total')
+    print('lang breakdown:', langs)
+    print('--- top 25 non-fork by stars ---')
+    for r in repos[:25]:
+        print(f'  {r[\"name\"]:42s} stars={r[\"stargazers_count\"]:>7} lang={r.get(\"language\",\"\")}  {r.get(\"description\",\"\")[:55]}')
+else:
+    print(d.get('message','?'))
+" 2>&1 | head -40
+=== GitHub google org repos: exclude forks, top 25 by stars ===
+Traceback (most recent call last):
+  File "<string>", line 15, in <module>
+TypeError: 'NoneType' object is not subscriptable
+non-fork repos: 99 / 100 total
+lang breakdown: {'Python': 31, '-': 10, 'Go': 12, 'TypeScript': 8, 'Kotlin': 3, 'Rust': 13, 'Jupyter Notebook': 2, 'HCL': 2, 'C++': 6, 'JavaScript': 3, 'Shell': 1, 'HTML': 1, 'Java': 2, 'Dart': 1, 'TLA': 1, 'Starlark': 1, 'Swift': 1, 'C#': 1}
+--- top 25 non-fork by stars ---
+  skills                                     stars=  16019 lang=Python  Agent Skills for Google products and technologies
+  agents-cli                                 stars=   5502 lang=Python  The CLI and skills that turn any coding assistant into 
+  mcp                                        stars=   4485 lang=None  Google 💚 MCP
+  ax                                         stars=   1940 lang=Go  An open source distributed agent runtime
+  GNM                                        stars=   1373 lang=Python  An open ecosystem of parametric human models and percep
+  adk-js                                     stars=   1340 lang=TypeScript  An open-source, code-first Typescript toolkit for build
+  mantis                                     stars=    722 lang=None  A modular, stack-agnostic toolkit of security review sk
+  xrblocks                                   stars=    456 lang=TypeScript  XR Blocks is a lightweight WebXR + AI library for rapid
+  torchax                                    stars=    236 lang=Python  torchax is a PyTorch frontend for JAX. It gives JAX the
+  adk-python-community                       stars=    183 lang=Python  Community repo for adk-python
+[0m
+[0m$ [0mecho "=== crt.sh retry (HTTP, different query) ==="; sleep 2; curl -sL -m 25 "http://crt.sh/?q=%.google.com" 2>/dev/null | python3 -c "
+import json,sys,re
+raw=sys.stdin.read()
+print('raw len:', len(raw))
+try:
+    d=json.loads(raw)
+    seen=set()
+    for r in d:
+        name=r.get('name','')
+        if name and ('.google.com' in name):
+            for n in name.split('<br>'):
+                n=n.strip().rstrip('.')
+                if n.endswith('.google.com') and n not in seen:
+                    seen.add(n)
+    print('unique *.google.com from certs:', len(seen))
+    for n in sorted(seen)[:50]:
+        print(f'  {n}')
+except Exception as e:
+    print('parse err:',e)
+    print('head:',raw[:300])
+" 2>&1 | head -60
+=== crt.sh retry (HTTP, different query) ===
+raw len: 793498
+parse err: Expecting value: line 1 column 1 (char 0)
+head: <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+  <META http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <TITLE>crt.sh | %.google.com</TITLE>
+  <META name="description" content="Free CT Log Certificate Search Tool from Sectigo (formerly Comodo CA)">
+  <MET
+[0m
+[0m$ [0mecho "=== bughunters rules raw HTML parse ==="; sleep 2; curl -sL -m 20 "https://bughunters.google.com/about/rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 -c "
+import sys,re,html
+x=sys.stdin.read()
+print('html size:', len(x))
+# Find all links
+links=re.findall(r'href=\"(.*?)\"', x)
+print('total hrefs:', len(links))
+ext=[l for l in links if 'bughunters.google' in l or 'google.com' in l][:30]
+print('google links:', ext[:15])
+# Check for embedded JSON
+for pat in ['__NEXT_DATA__', '__remix', 'application/json', 'window.__']:
+    if pat in x:
+        print(f'found marker: {pat}')
+# Try to extract any text content
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('text len:', len(text))
+print('text:', text[:600])
+" 2>&1 | head -30
+=== bughunters rules raw HTML parse ===
+html size: 3583
+total hrefs: 8
+google links: ['https://bughunters.google.com/static/icon-192.png', 'https://bughunters.google.com/static/touch-icon-180.png']
+text len: 26
+text: Rules | Google Bug Hunters
+[0m
+New slot detected — **target: google**, **phase: RECON** (state reset). The microsoft leads are stale context. I need to start fresh RECON on Google's bounty program. Key issues: bughunters rules page is JS-rendered, crt.sh returned 502. Let me retry these and start subdomain + repo inventory in parallel.
+[0m$ [0mecho "=== Google org repos from other github orgs (googleapis, etc) ==="; for org in googleapis googlesamples googlearchive; do sleep 2; echo "--- org: $org ---"; curl -sL -m 15 "https://api.github.com/orgs/$org/repos?per_page=10&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    if isinstance(d,list):
+        nf=[r for r in d if not r.get('fork')]
+        nf.sort(key=lambda r: r.get('stargazers_count',0),reverse=True)
+        print(f'  repos: {len(d)} ({len(nf)} non-fork)')
+        for r in nf[:6]:
+            print(f'    {r[\"name\"]:35s} stars={r[\"stargazers_count\"]:>6}  lang={r.get(\"language\",\"\")}  {r.get(\"description\",\"\")[:45]}')
+    else:
+        print('  err:', d.get('message','?'))
+except Exception as e:
+    print('  ERR:',e)
+" 2>&1; done
+=== Google org repos from other github orgs (googleapis, etc) ===
+--- org: googleapis ---
+  repos: 10 (10 non-fork)
+    google-cloud-swift                  stars=    23  lang=Swift  [EXPERIMENTAL] Google Cloud Client Libraries 
+    kotlin-genai                        stars=    12  lang=Kotlin  Google Gen AI Kotlin SDK provides an interfac
+  ERR: 'NoneType' object is not subscriptable
+--- org: googlesamples ---
+  repos: 10 (10 non-fork)
+  ERR: 'NoneType' object is not subscriptable
+--- org: googlearchive ---
+  repos: 10 (10 non-fork)
+    gamebuilder                         stars=   310  lang=C#  Game Builder is an application that allows us
+    android-DarkTheme                   stars=   298  lang=Java  migrated:
+    background-tasks-samples            stars=   129  lang=Kotlin  Multiple samples showing the best practices i
+  ERR: 'NoneType' object is not subscriptable
+[0m
+[0m$ [0mecho "=== GitHub google org: top 30 NON-FORK by stars (None-safe) ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=100&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork') and r.get('name')]
+    repos.sort(key=lambda r: r.get('stargazers_count',0), reverse=True)
+    print(f'non-fork repos: {len(repos)}')
+    for r in repos[:30]:
+        print(f'  {r[\"name\"]:40s} stars={r[\"stargazers_count\"]:>7} lang={r.get(\"language\",\"\") or \"-\":10s}  {r.get(\"description\",\"\")[:50]}')
+else:
+    print(d.get('message','?'))
+" 2>&1 | head -35
+=== GitHub google org: top 30 NON-FORK by stars (None-safe) ===
+Traceback (most recent call last):
+  File "<string>", line 9, in <module>
+TypeError: 'NoneType' object is not subscriptable
+non-fork repos: 99
+  skills                                   stars=  16020 lang=Python      Agent Skills for Google products and technologies
+  agents-cli                               stars=   5502 lang=Python      The CLI and skills that turn any coding assistant 
+  mcp                                      stars=   4485 lang=-           Google 💚 MCP
+  ax                                       stars=   1940 lang=Go          An open source distributed agent runtime
+  GNM                                      stars=   1373 lang=Python      An open ecosystem of parametric human models and p
+  adk-js                                   stars=   1340 lang=TypeScript  An open-source, code-first Typescript toolkit for 
+  mantis                                   stars=    722 lang=-           A modular, stack-agnostic toolkit of security revi
+  xrblocks                                 stars=    456 lang=TypeScript  XR Blocks is a lightweight WebXR + AI library for 
+  torchax                                  stars=    236 lang=Python      torchax is a PyTorch frontend for JAX. It gives JA
+  adk-python-community                     stars=    183 lang=Python      Community repo for adk-python
+[0m
+Three issues to address: GitHub list truncated (NoneType error on a repo with null name), crt.sh returned HTML instead of JSON (needs `&output=json`), and bughunters rules page is a JS-rendered SPA with no content. Let me fix each.
+[0m$ [0mecho "=== bughunters: probe for API/JSON endpoints ==="; sleep 2; curl -sL -m 15 -H "User-Agent: Mozilla/5.0" "https://bughunters.google.com/api/rules" 2>/dev/null | head -c 500; echo; echo "--- try _data ---"; sleep 1; curl -sL -m 15 -H "User-Agent: Mozilla/5.0" "https://bughunters.google.com/_data/rules" 2>/dev/null | head -c 300; echo; echo "--- try sitemap.xml ---"; sleep 1; curl -sL -m 15 -H "User-Agent: Mozilla/5.0" "https://bughunters.google.com/sitemap.xml" 2>/dev/null | head -c 800; echo; echo "--- extract script src tags from rules page ---"; sleep 2; curl -sL -m 15 -H "User-Agent: Mozilla/5.0" "https://bughunters.google.com/about/rules" 2>/dev/null | grep -oiE 'src="[^"]*\.js"' | head -15
+=== bughunters: probe for API/JSON endpoints ===
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta property="og:title" content="Google Bug Hunters" />
+	<meta name="description" content="Welcome to Google&#39;s Bug Hunting community, learn more about hunting &amp; reporting bugs you’ve found in Google products." />
+	<meta property="og:description" content="Welco
+--- try _data ---
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta property="og:title" content="Google Bug Hunters" />
+	<meta name="d
+--- try sitemap.xml ---
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	<url>
+		<loc>https://bughunters.google.com/blog/no-more-speculation-exploiting-cpu-side-channels-for-real</loc>
+		<changefreq>daily</changefreq>
+	</url>
+	<url>
+		<loc>https://bughunters.google.com/blog/the-tale-of-googles-response-to-reptar-cpu-vulnerability</loc>
+		<changefreq>daily</changefreq>
+	</url>
+	<url>
+		<loc>https://bughunters.google.com/blog/passkeys-are-your-new-best-friend</loc>
+		<changefreq>daily</changefreq>
+	</url>
+	<url>
+		<loc>https://bughunters.google.com/about/rules/other/our-rewards-philosophy</loc>
+		<changefreq>daily</changefreq>
+	</url>
+	<url>
+		<loc>https://bughunters.google.com/learn/invalid-reports/web-platform/csrf-clickjacking/csrf-in-the-logout-handler</loc>
+	
+--- extract script src tags from rules page ---
+src="https://www.gstatic.com/bughunters/960149923/static/js/third_party_js-bundle.js"
+src="https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js"
+[0m
+[0m$ [0mecho "=== crt.sh with output=json param ==="; sleep 2; curl -sL -m 25 "https://crt.sh/?q=%.google.com&output=json&min=2025-01-01" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('raw len:', len(raw))
+try:
+    d=json.loads(raw)
+    seen=set()
+    for r in d:
+        name=r.get('name','')
+        if not name: continue
+        for n in name.replace('<br>',' ').split():
+            n=n.strip().rstrip('.')
+            if n.endswith('.google.com'):
+                seen.add(n)
+    print('unique *.google.com subdomains:', len(seen))
+    for n in sorted(seen)[:60]:
+        print(f'  {n}')
+except Exception as e:
+    print('parse err:',e)
+    print('head:',raw[:200])
+" 2>&1 | head -70
+=== crt.sh with output=json param ===
+raw len: 150
+parse err: Expecting value: line 1 column 1 (char 0)
+head: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[0m
+[0m$ [0mecho "=== Full bughunters sitemap: categorize URLs ==="; sleep 2; curl -sL -m 25 -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "https://bughunters.google.com/sitemap.xml" 2>/dev/null | python3 -c "
+import sys,re,html
+x=sys.stdin.read()
+urls=re.findall(r'<loc>(.*?)</loc>', x)
+print(f'total URLs: {len(urls)}')
+cats={'about':[],'learn':[],'blog':[],'other':[]}
+for u in urls:
+    u=u.strip()
+    if '/about/' in u: cats['about'].append(u)
+    elif '/learn/' in u: cats['learn'].append(u)
+    elif '/blog/' in u: cats['blog'].append(u)
+    else: cats['other'].append(u)
+for c,us in cats.items():
+    print(f'--- {c} ({len(us)} urls) ---')
+    for u in us[:12]:
+        print(f'  {u}')
+    if len(us)>12: print(f'  ... ({len(us)-12} more)')
+" 2>&1 | head -70
+=== Full bughunters sitemap: categorize URLs ===
+total URLs: 488
+--- about (23 urls) ---
+  https://bughunters.google.com/about/rules/android-friends/android-and-google-devices-security-reward-program-rules
+  https://bughunters.google.com/about/rules/other/code-of-conduct-for-our-vulnerability-reward-programs
+  https://bughunters.google.com/about/rules/other/our-rewards-philosophy
+  https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules
+  https://bughunters.google.com/about/rules/chrome-friends/chrome-vulnerability-reward-program-rules
+  https://bughunters.google.com/about/rules/android-friends/google-mobile-vulnerability-reward-program-rules
+  https://bughunters.google.com/about/rules/about-this-section
+  https://bughunters.google.com/about/rules/open-source/osv-scalibr-patch-rewards-program-rules
+  https://bughunters.google.com/about/rules/open-source/patch-rewards-program-rules
+  https://bughunters.google.com/about/frequently-asked-questions
+  https://bughunters.google.com/about/rules/other/vulnerability-research-grant-rules
+  https://bughunters.google.com/about/rules/chrome-friends/chromeos-vulnerability-reward-program-rules
+  ... (11 more)
+--- learn (92 urls) ---
+  https://bughunters.google.com/learn/invalid-reports/web-platform/csrf-clickjacking/xss-or-csrf-that-requires-header-injection
+  https://bughunters.google.com/learn/invalid-reports/ai-products/hallucinated-sandbox-escape
+  https://bughunters.google.com/learn/invalid-reports/web-platform/csrf-clickjacking/csrf-or-clickjacking-with-no-practical-use-to-attackers
+  https://bughunters.google.com/learn/improving-your-reports/how-to-report/use-your-native-language
+  https://bughunters.google.com/learn/videos/bug-hunter-university-videos
+  https://bughunters.google.com/learn/invalid-reports/ai-products/safety-guardrails
+  https://bughunters.google.com/learn/videos/video-writeup/cloud-shell-vulnerability
+  https://bughunters.google.com/learn/presentations/google-bug-hunters
+  https://bughunters.google.com/learn/invalid-reports/google-products/ipport-scanning-via-google-services
+  https://bughunters.google.com/learn/invalid-reports/web-platform/csrf-clickjacking/csrf-that-requires-the-knowledge-of-a-secret
+  https://bughunters.google.com/learn/invalid-reports/ai-products/antigravity-known-issues
+  https://bughunters.google.com/learn/presentations/android-app-hacking-workshop
+  ... (80 more)
+--- blog (74 urls) ---
+  https://bughunters.google.com/blog/project-rainl1tf
+  https://bughunters.google.com/blog/formally-verified-post-quantum-algorithms
+  https://bughunters.google.com/blog/escaping-and-in-attributes-how-it-helps-protect-against-mutation-xss
+  https://bughunters.google.com/blog/googles-commitment-to-a-quantum-safe-future-why-pqc-is-googles-path-forward-and-not-qkd
+  https://bughunters.google.com/blog/exploiting-retbleed-in-the-real-world
+  https://bughunters.google.com/blog/mitigating-url-based-exfiltration-in-gemini
+  https://bughunters.google.com/blog/zen-and-the-art-of-microcode-hacking
+  https://bughunters.google.com/blog/no-more-speculation-exploiting-cpu-side-channels-for-real
+  https://bughunters.google.com/blog/fido
+  https://bughunters.google.com/blog/level-up-your-open-source-karma-and-your-wallet-by-improving-security
+  https://bughunters.google.com/blog/level-up-your-reports-introducing-our-updated-report-quality-framework
+  https://bughunters.google.com/blog/task-injection-exploiting-agency-of-autonomous-ai-agents
+  ... (62 more)
+--- other (299 urls) ---
+  https://bughunters.google.com/
+  https://bughunters.google.com/blog
+  https://bughunters.google.com/report
+  https://bughunters.google.com/report/submit
+  https://bughunters.google.com/report/reports
+  https://bughunters.google.com/reports/vrp/dKFDp95wg
+  https://bughunters.google.com/reports/vrp/dKFDp95wg/report
+  https://bughunters.google.com/reports/vrp/dKFDp95wg/comments
+  https://bughunters.google.com/reports/vrp/RBCty6oHh
+  https://bughunters.google.com/reports/vrp/RBCty6oHh/report
+  https://bughunters.google.com/reports/vrp/RBCty6oHh/comments
+  https://bughunters.google.com/reports/vrp/sJcr1JW4j
+  ... (287 more)
+[0m
+Good — the sitemap works. crt.sh is still returning 502 (transient). Let me fetch the full sitemap to enumerate all Google bounty scope/rules pages, and probe the JS bundle for embedded scope data.
+[0m$ [0mecho "=== bughunters: fetch rules + rewards pages (likely have scope) ==="; sleep 2; for path in "/about/rules" "/about/rules/other/our-rewards-philosophy" "/about/rules/other/in-scope" ""; do [ -z "$path" ] && continue; echo "--- GET $path ---"; sleep 2; curl -sL -m 15 -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "https://bughunters.google.com$path" 2>/dev/null | python3 -c "
+import sys,re,html
+x=sys.stdin.read()
+# Look for embedded JSON data payloads
+for pat in ['__NEXT_DATA__','__remix','application/json']:
+    if pat in x: print('  marker found:', pat)
+# Look for script src
+srcs=re.findall(r'src=\"([^\"]+\.js)\"', x)
+print('  js bundles:', srcs[:3])
+# Extract any readable text
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+if len(text)>50:
+    print('  text:', text[:300])
+else:
+    print('  (no readable text — SPA shell)')
+" 2>&1; done
+=== bughunters: fetch rules + rewards pages (likely have scope) ===
+--- GET /about/rules ---
+  js bundles: ['https://www.gstatic.com/bughunters/960149923/static/js/third_party_js-bundle.js', 'https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js']
+  (no readable text — SPA shell)
+--- GET /about/rules/other/our-rewards-philosophy ---
+  js bundles: ['https://www.gstatic.com/bughunters/960149923/static/js/third_party_js-bundle.js', 'https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js']
+  (no readable text — SPA shell)
+--- GET /about/rules/other/in-scope ---
+  js bundles: ['https://www.gstatic.com/bughunters/960149923/static/js/third_party_js-bundle.js', 'https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js']
+  (no readable text — SPA shell)
+[0m
+[0m$ [0mecho "=== All /about/ URLs from sitemap (extract full list) ==="; sleep 2; curl -sL -m 25 -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "https://bughunters.google.com/sitemap.xml" 2>/dev/null | python3 -c "
+import sys,re
+x=sys.stdin.read()
+urls=[]
+for m in re.findall(r'<loc>(.*?)</loc>', x):
+    u=m.strip()
+    if '/about/' in u:
+        urls.append(u)
+print(f'/about/ URLs: {len(urls)}')
+for u in urls:
+    print(u)
+" 2>&1
+=== All /about/ URLs from sitemap (extract full list) ===
+/about/ URLs: 23
+https://bughunters.google.com/about/rules/other/our-rewards-philosophy
+https://bughunters.google.com/about/rules/chrome-friends/chrome-extensions-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/other/vulnerability-research-grant-rules
+https://bughunters.google.com/about/rules/open-source/tsunami-patch-rewards-program-rules
+https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/open-source/osv-scalibr-patch-rewards-program-rules
+https://bughunters.google.com/about/frequently-asked-questions
+https://bughunters.google.com/about/rules/android-friends/google-mobile-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/other/code-of-conduct-for-our-vulnerability-reward-programs
+https://bughunters.google.com/about/rules/android-friends/android-and-google-devices-security-reward-program-rules
+https://bughunters.google.com/about/rules/google-friends/abuse-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/chrome-friends/chromeos-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/about-this-section
+https://bughunters.google.com/about/rules/open-source/patch-rewards-program-rules
+https://bughunters.google.com/about/rules/chrome-friends/chrome-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/other/bonus-awards-rules
+https://bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules
+https://bughunters.google.com/about/rules/google-friends/cloud-vulnerability-reward-program-rules
+https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules
+https://bughunters.google.com/about/key-stats
+https://bughunters.google.com/about/rules/about-this-section
+https://bughunters.google.com/about/frequently-asked-questions
+https://bughunters.google.com/about/key-stats
+[0m
+Excellent — the sitemap revealed all the rules pages. The rules pages are SPA-rendered, but some `/about/rules/*` URLs may be SSR-rendered. Let me fetch all 23 `/about/` pages from the sitemap and use WebFetch for the main rules page (which waits for JS rendering).
+[0m% [0mWebFetch https://bughunters.google.com/about/rules
+[0m
+[0m$ [0mecho "=== Fetch rules content from each about/rules page (check for SSR scope text) ==="; sleep 3; for url in \
+  "https://bughunters.google.com/about/rules/about-this-section" \
+  "https://bughunters.google.com/about/rules/other/our-rewards-philosophy" \
+  "https://bughunters.google.com/about/frequently-asked-questions" \
+  "https://bughunters.google.com/about/rules/other/vulnerability-research-grant-rules"; do
+  sleep 3; echo "--- $url ---";
+  curl -sL -m 15 -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "$url" 2>/dev/null | python3 -c "
+import sys,re,html
+x=sys.stdin.read()
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('  readable text len:', len(text))
+if len(text)>100: print('  TEXT:', text[:800])
+else: print('  (SPA shell — no content)')
+" 2>&1; echo; done
+=== Fetch rules content from each about/rules page (check for SSR scope text) ===
+--- https://bughunters.google.com/about/rules/about-this-section ---
+  readable text len: 26
+  (SPA shell — no content)
+
+--- https://bughunters.google.com/about/rules/other/our-rewards-philosophy ---
+  readable text len: 43
+  (SPA shell — no content)
+
+--- https://bughunters.google.com/about/frequently-asked-questions ---
+  readable text len: 18
+  (SPA shell — no content)
+
+--- https://bughunters.google.com/about/rules/other/vulnerability-research-grant-rules ---
+  readable text len: 55
+  (SPA shell — no content)
+[0m
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mecho "=== Wayback Machine: Google VRP rules page (SSR snapshot) ==="; sleep 2; curl -sL -m 25 "https://web.archive.org/web/20260701000000*/bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import sys,re
+x=sys.stdin.read()
+# find snapshot URLs
+snaps=re.findall(r'web/(\d{14})https?://bughunters\.google\.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules', x)
+print('snapshots found:', len(snaps))
+for s in snaps[-3:]:
+    print(f'  {s}')
+if snaps:
+    print('latest:', snaps[-1])
+" 2>&1 | head -10
+=== Wayback Machine: Google VRP rules page (SSR snapshot) ===
+snapshots found: 0
+[0m
+[0m✗ [0m failed
+[91m[1mError: [0mThe bash tool was called with invalid arguments: SchemaError(Missing key
+  at ["command"]).
+Please rewrite the input so it satisfies the expected schema.
+All `/about/rules/*` pages are SSR-SPA shells (no content via curl). The content is dynamically loaded. Let me check scope.yml (authoritative for this target) and fetch the Google VRP rules via the Wayback Machine (which has cached SSR-rendered snapshots).
+[0m
+[0m$ [0mecho "=== GitHub google org: full top 30 non-fork by stars (None-safe) ==="; sleep 2; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=100&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 << 'PYEOF'
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork') and r.get('name')]
+    repos.sort(key=lambda r: r.get('stargazers_count',0), reverse=True)
+    langs={}
+    for r in repos:
+        l=r.get('language') or '-'
+        langs[l]=langs.get(l,0)+1
+    print(f'non-fork repos: {len(repos)} | lang breakdown: {langs}')
+    print('--- top 30 ---')
+    for r in repos[:30]:
+        nm=r['name']
+        stars=r.get('stargazers_count',0)
+        lang=r.get('language') or '-'
+        desc=r.get('description','') or ''
+        print(f'  {nm:38s} stars={stars:>7} lang={lang:12s}  {desc[:50]}')
+else:
+    print('ERR:', d.get('message','?'))
+PYEOF
+
+=== GitHub google org: full top 30 non-fork by stars (None-safe) ===
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[0m
+Scope confirmed: `*.google.com`, `google.com`, GitHub org `google`. The rules pages are SPA-rendered. Let me fix the GitHub repos list, retry crt.sh via backup CT sources, and get the Wayback snapshot of the rules page.
+[0m$ [0mecho "=== Backup CT: truffleHog / via GitHub API for google.com hosts ==="; sleep 2; echo "(skipping — use direct subdomain probing)"; echo "=== Google subdomain probe: fetch known Google property list ==="; sleep 2; curl -sL -m 15 -H "User-Agent: msrc-research-recon" "https://transparencyreport.google.com/https/assessment/api/domain/google.com" 2>/dev/null | head -c 200; echo; echo "=== retry crt.sh HTTPS with proper encoding ==="; sleep 3; curl -sL -m 25 "https://crt.sh/?q=%.google.com&output=json&C=US" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('len:', len(raw))
+if raw.startswith('<html'):
+    print('HTML response (502/redirect)')
+    print(raw[:150])
+else:
+    try:
+        d=json.loads(raw)
+        seen=set()
+        for r in d:
+            n=r.get('name','')
+            if n:
+                for part in n.replace('<br>',' ').replace('\\\\n',' ').split():
+                    if part.endswith('.google.com'): seen.add(part)
+        print('subdomains:', len(seen))
+        for s in sorted(seen)[:30]: print(' ',s)
+    except Exception as e:
+        print('err:',e)
+" 2>&1 | head -35
+=== Backup CT: truffleHog / via GitHub API for google.com hosts ===
+(skipping — use direct subdomain probing)
+=== Google subdomain probe: fetch known Google property list ===
+<!DOCTYPE html><html><head><script nonce="JlW7gZQsx4YoBYpub7-7lQ">window['ppConfig'] = {productName: '82ef3d06741dca2c1c122922ae3df080', deleteIsEnforced:  false , sealIsEnforced:  false , heartbeatRa
+=== retry crt.sh HTTPS with proper encoding ===
+len: 150
+HTML response (502/redirect)
+<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[0m
+[0m$ [0mecho "=== Wayback CDX: snapshots of Google VRP rules page ==="; sleep 2; curl -sL -m 20 "https://web.archive.org/cdx/search/cdx?url=bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules&output=text&fl=timestamp,statuscode&limit=10&filter=statuscode:200" -H "User-Agent: msrc-research-recon" 2>/dev/null | head -15; echo "=== also /about/key-stats ==="; sleep 2; curl -sL -m 20 "https://web.archive.org/cdx/search/cdx?url=bughunters.google.com/about/key-stats&output=text&fl=timestamp,statuscode&limit=5&filter=statuscode:200" -H "User-Agent: msrc-research-recon" 2>/dev/null | head -10
+=== Wayback CDX: snapshots of Google VRP rules page ===
+<html><body><h1>503 Service Unavailable</h1>
+No server is available to handle this request.
+</body></html>
+=== also /about/key-stats ===
+20210911100539 200
+20210911115054 200
+20211017060800 200
+20211029201937 200
+20211109192415 200
+[0m
+[0m$ [0mecho "=== GitHub google org: retry with per_page=30 ==="; sleep 10; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=30&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 << 'PYEOF'
+import json,sys
+d=json.load(sys.stdin)
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork') and r.get('name')]
+    repos.sort(key=lambda r: r.get('stargazers_count',0), reverse=True)
+    print(f'non-fork repos: {len(repos)}')
+    for r in repos[:30]:
+        nm=r['name']; stars=r.get('stargazers_count',0); lang=r.get('language') or '-'
+        desc=r.get('description','') or ''
+        print(f'  {nm:38s} stars={stars:>7} lang={lang:12s}  {desc[:50]}')
+else:
+    print('ERR:', d.get('message','?'))
+PYEOF
+
+=== GitHub google org: retry with per_page=30 ===
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mecho "=== Wayback raw archive: Google VRP rules via id_ ==="; sleep 3; curl -sL -m 25 "https://web.archive.org/web/20250101000000id_/https://bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 << 'PYEOF'
+import sys,re,html
+x=sys.stdin.read()
+print('archived size:', len(x))
+# Look for scope keywords
+for kw in ['In scope','in scope','*.google','accounts.google','*.youtube','reward','Severity','out of scope']:
+    cnt=x.lower().count(kw.lower())
+    if cnt>0: print(f'  "{kw}": {cnt} hits')
+# Extract readable text
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('readable text len:', len(text))
+if len(text)>200: print('TEXT:', text[:1200])
+else: print('  (empty/short — no snapshot or SPA)')
+PYEOF
+
+=== Wayback raw archive: Google VRP rules via id_ ===
+archived size: 0
+readable text len: 0
+  (empty/short — no snapshot or SPA)
+[0m
+GitHub API rate-limited on the second hit, Wayback CDX returned 503. Let me slow down, retry GitHub with smaller page, and fetch the Google VRP rules via the Wayback raw-archive endpoint.
+[0m$ [0mecho "=== Wayback raw: key-stats and FAQ (smaller pages) ==="; sleep 3; curl -sL -m 25 "https://web.archive.org/web/20220601000000id_/https://bughunters.google.com/about/key-stats" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 << 'PYEOF'
+import sys,re,html
+x=sys.stdin.read()
+print('key-stats size:', len(x))
+if len(x)>500:
+    text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+    text=re.sub(r'<[^>]+>',' ',text)
+    text=html.unescape(text)
+    text=re.sub(r'\s+',' ',text).strip()
+    print('text:', text[:1500])
+else:
+    print('(empty/spa)')
+PYEOF
+
+=== Wayback raw: key-stats and FAQ (smaller pages) ===
+key-stats size: 0
+(empty/spa)
+[0m
+[0m$ [0mecho "=== Debug GitHub API: show headers + raw body (rate limit check) ==="; sleep 5; curl -sL -m 15 -D /tmp/gh_hdr.txt -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" "https://api.github.com/orgs/google/repos?per_page=5" 2>/dev/null > /tmp/gh_body.txt; echo "rate limit headers:"; grep -iE "ratelimit|github" /tmp/gh_hdr.txt 2>/dev/null | head -8; echo "body size:"; wc -c < /tmp/gh_body.txt; echo "body preview:"; head -c 300 /tmp/gh_body.txt
+=== Debug GitHub API: show headers + raw body (rate limit check) ===
+rate limit headers:
+x-github-media-type: github.v3; format=json
+link: <https://api.github.com/organizations/1342004/repos?per_page=5&page=2>; rel="next", <https://api.github.com/organizations/1342004/repos?per_page=5&page=578>; rel="last"
+x-github-api-version-selected: 2022-11-28
+access-control-expose-headers: ETag, Link, Location, Retry-After, X-GitHub-OTP, X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Used, X-RateLimit-Resource, X-RateLimit-Reset, X-OAuth-Scopes, X-Accepted-OAuth-Scopes, X-Poll-Interval, X-GitHub-Media-Type, X-GitHub-SSO, X-GitHub-Request-Id, Deprecation, Sunset, Warning
+server: github.com
+x-ratelimit-limit: 60
+x-ratelimit-remaining: 45
+x-ratelimit-used: 15
+body size:
+27924
+body preview:
+[{"id":1936771,"node_id":"MDEwOlJlcG9zaXRvcnkxOTM2Nzcx","name":"truth","full_name":"google/truth","private":false,"owner":{"login":"google","id":1342004,"node_id":"MDEyOk9yZ2FuaXphdGlvbjEzNDIwMDQ=","avatar_url":"https://avatars.githubusercontent.com/u/1342004?v=4","gravatar_id":"","url":"https://api
+[0m
+GitHub API returning empty responses (likely rate-limited) and Wayback returning 0-length. Let me debug both: check GitHub headers and use the exact CDX timestamps for Wayback, plus find the bughunters JS API endpoint for rules data.
+[0m$ [0mecho "=== bughunters JS bundle: find API endpoints ==="; sleep 2; curl -sL -m 25 -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js" 2>/dev/null | grep -oiE '"/api/[a-z0-9_/]+"|/api/v[0-9]/[a-z0-9_]+/[a-z0-9_]+|fetch\("[^"]+"\)|\.com/[a-z_-]+/[a-z0-9_-]+' 2>/dev/null | head -30; echo "=== size ==="; curl -sL -m 25 -H "User-Agent: msrc-research-recon" "https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js" 2>/dev/null | wc -c
+=== bughunters JS bundle: find API endpoints ===
+.com/qrcode/faqpatent-e
+.com/feed/en
+.com/markedjs/marked
+.com/highlightjs/highlight
+.com/highlightjs/highlight
+.com/highlightjs/highlight
+.com/presentation/d
+.com/feed/en
+.com/gsi/client
+.com/auth/userinfo
+.com/uservoice/feedback
+.com/uservoice/feedback
+.com/tools/feedback
+.com/tools/feedback
+.com/glue/cookienotificationbar
+.com/payments/v4
+.com/accounts/answer
+.com/chromium/src
+.com/about/rules
+.com/recaptcha/api
+.com/accounts/answer
+.com/accounts/answer
+.com/about/rules
+.com/about/rules
+=== size ===
+2280945
+[0m
+[0m$ [0mecho "=== Wayback: find real snapshots via CDX for rules page ==="; sleep 3; curl -sL -m 20 "https://web.archive.org/cdx/search/cdx?url=bughunters.google.com/about/rules&output=text&fl=timestamp,statuscode&limit=6&filter=statuscode:200" -H "User-Agent: msrc-research-recon" 2>/dev/null | head -10
+=== Wayback: find real snapshots via CDX for rules page ===
+[0m
+[0m$ [0mecho "=== GitHub google org: top 40 non-fork (None-safe, retry) ==="; sleep 5; curl -sL -m 20 "https://api.github.com/orgs/google/repos?per_page=100&direction=desc" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null > /tmp/gh_repos.json; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/gh_repos.json'))
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork') and r.get('name') and r.get('name') is not None]
+    repos.sort(key=lambda r: r.get('stargazers_count',0) or 0, reverse=True)
+    print(f'non-fork repos: {len(repos)}')
+    langs={}
+    for r in repos:
+        l=r.get('language') or '-'
+        langs[l]=langs.get(l,0)+1
+    print('langs:', langs)
+    for r in repos[:40]:
+        nm=r['name']; stars=r.get('stargazers_count',0) or 0; lang=r.get('language') or '-'
+        upd=r.get('updated_at','')[:10]
+        print(f'  {nm:40s} stars={stars:>6} lang={lang:12s} upd={upd}  {r.get("description","").[:45]}')
+else:
+    print('ERR:', d.get('message','?'))
+PYEOF
+
+=== GitHub google org: top 40 non-fork (None-safe, retry) ===
+  File "<stdin>", line 15
+    print(f'  {nm:40s} stars={stars:>6} lang={lang:12s} upd={upd}  {r.get("description","").[:45]}')
+                                                                                           ^
+SyntaxError: f-string: expecting '=', or '!', or ':', or '}'
+[0m
+[0m$ [0mecho "=== Google OIDC discovery (SURFACE: auth mechanisms) ==="; sleep 2; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://accounts.google.com/.well-known/openid-configuration" 2>/dev/null | python3 << 'PYEOF'
+import json,sys
+d=json.load(sys.stdin)
+print('issuer:', d.get('issuer'))
+print('authorization_endpoint:', d.get('authorization_endpoint'))
+print('token_endpoint:', d.get('token_endpoint'))
+print('userinfo_endpoint:', d.get('userinfo_endpoint'))
+print('jwks_uri:', d.get('jwks_uri'))
+print('response_types_supported:', d.get('response_types_supported'))
+print('response_modes_supported:', d.get('response_modes_supported'))
+print('scopes_supported:', d.get('scopes_supported'))
+print('id_token_signing_alg_values_supported:', d.get('id_token_signing_alg_values_supported'))
+print('token_endpoint_auth_methods_supported:', d.get('token_endpoint_auth_methods_supported'))
+print('revocation_endpoint:', d.get('revocation_endpoint'))
+print('introspection_endpoint:', d.get('introspection_endpoint'))
+print('grant_types_supported:', d.get('grant_types_supported'))
+print('token_endpoint_auth_signing_alg_values_supported:', d.get('token_endpoint_auth_signing_alg_values_supported'))
+PYEOF
+
+=== Google OIDC discovery (SURFACE: auth mechanisms) ===
+Traceback (most recent call last):
+  File "<stdin>", line 2, in <module>
+  File "/usr/lib/python3.12/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+           ^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+[0m
+GitHub API works (rate limit 45/60 remaining). Wayback CDX is flaky. JS bundle is 2.2MB with references to `accounts.google.com/auth/userinfo`. Let me retry the repos fetch (None-safe), probe Google's OIDC discovery, and try Wayback auto-snapshot for rules.
+[0m$ [0mecho "=== Wayback auto-snapshot of Google VRP rules ==="; sleep 3; curl -sL -m 25 "https://web.archive.org/web/2024/https://bughunters.google.com/about/rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 << 'PYEOF'
+import sys,re,html
+x=sys.stdin.read()
+print('size:', len(x))
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('readable len:', len(text))
+for kw in ['scope','reward','severity','in-scope','*.google','accounts.google','youtube','bug','severity']:
+    c=text.lower().count(kw.lower())
+    if c>0: print(f'  kw "{kw}": {c}')
+if len(text)>300: print('TEXT:', text[:1800])
+else: print('(spa/no content)')
+PYEOF
+
+=== Wayback auto-snapshot of Google VRP rules ===
+size: 0
+readable len: 0
+(spa/no content)
+[0m
+[0m$ [0mecho "=== Debug: accounts.google.com OIDC discovery raw response ==="; sleep 2; curl -sL -m 20 -D /tmp/oidc_hdr.txt -H "User-Agent: msrc-research-recon" "https://accounts.google.com/.well-known/openid-configuration" -o /tmp/oidc_body.json -w "HTTP=%{http_code} SIZE=%{size_download} CT=%{content_type}\n" 2>/dev/null; echo "headers:"; head -5 /tmp/oidc_hdr.txt; echo "body size:"; wc -c < /tmp/oidc_body.json; echo "body preview:"; head -c 400 /tmp/oidc_body.json
+=== Debug: accounts.google.com OIDC discovery raw response ===
+HTTP=200 SIZE=1399 CT=application/json
+headers:
+HTTP/2 200 
+accept-ranges: bytes
+access-control-allow-origin: *
+content-security-policy-report-only: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/federated-signon-mpm-access
+cross-origin-opener-policy: same-origin; report-to="federated-signon-mpm-access"
+body size:
+1399
+body preview:
+{
+ "issuer": "https://accounts.google.com",
+ "authorization_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+ "device_authorization_endpoint": "https://oauth2.googleapis.com/device/code",
+ "token_endpoint": "https://oauth2.googleapis.com/token",
+ "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+ "revocation_endpoint": "https://oauth2.googleapis.com/revoke",
+ "jwks
+[0m
+[0m$ [0mecho "=== GitHub google org: retry (fix f-string) ==="; sleep 3; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/gh_repos.json'))
+if isinstance(d,list):
+    repos=[r for r in d if not r.get('fork') and r.get('name') is not None]
+    repos.sort(key=lambda r: r.get('stargazers_count') or 0, reverse=True)
+    print(f'non_fort repos: {len(repos)}')
+    langs={}
+    for r in repos:
+        l=r.get('language') or '-'
+        langs[l]=langs.get(l,0)+1
+    print('langs:', langs)
+    for r in repos[:40]:
+        nm=r['name']
+        stars=r.get('stargazers_count') or 0
+        lang=r.get('language') or '-'
+        upd=(r.get('updated_at') or '')[:10]
+        desc=r.get('description') or ''
+        print(f'  {nm:40s} st={stars:>6} {lang:11s} {upd}  {desc[:45]}')
+else:
+    print('ERR:', d.get('message','?'))
+PYEOF
+
+=== GitHub google org: retry (fix f-string) ===
+non_fort repos: 99
+langs: {'Python': 31, '-': 10, 'Go': 12, 'TypeScript': 8, 'Kotlin': 3, 'Rust': 13, 'Jupyter Notebook': 2, 'HCL': 2, 'C++': 6, 'JavaScript': 3, 'Shell': 1, 'HTML': 1, 'Java': 2, 'Dart': 1, 'TLA': 1, 'Starlark': 1, 'Swift': 1, 'C#': 1}
+  skills                                   st= 16021 Python      2026-08-07  Agent Skills for Google products and technolo
+  agents-cli                               st=  5502 Python      2026-08-07  The CLI and skills that turn any coding assis
+  mcp                                      st=  4485 -           2026-08-07  Google 💚 MCP
+  ax                                       st=  1940 Go          2026-08-07  An open source distributed agent runtime
+  GNM                                      st=  1373 Python      2026-08-07  An open ecosystem of parametric human models 
+  adk-js                                   st=  1340 TypeScript  2026-08-06  An open-source, code-first Typescript toolkit
+  mantis                                   st=   722 -           2026-08-06  A modular, stack-agnostic toolkit of security
+  xrblocks                                 st=   456 TypeScript  2026-08-07  XR Blocks is a lightweight WebXR + AI library
+  torchax                                  st=   236 Python      2026-08-07  torchax is a PyTorch frontend for JAX. It giv
+  adk-python-community                     st=   183 Python      2026-07-21  Community repo for adk-python
+  adk-kotlin                               st=   172 Kotlin      2026-08-07  
+  aura-inspector                           st=   103 Python      2026-08-05  
+  hdmitsuba                                st=    77 Python      2026-08-07  USD Hydra delegate for Mitsuba 3
+  dotguides                                st=    71 TypeScript  2026-07-29  
+  capsem                                   st=    67 Rust        2026-08-05  
+  pubmed-rag                               st=    62 Jupyter Notebook 2026-07-27  
+  stellar-engine                           st=    46 HCL         2026-07-31  Framework for management of compliant Google 
+  tpu-raiden                               st=    33 C++         2026-08-07  
+  llm-sidebar-with-context                 st=    30 TypeScript  2026-07-29  
+  sam                                      st=    29 Go          2026-08-07  SAM Sovereign Agent Mesh
+  sommelier-rs                             st=    24 Rust        2026-08-02  Wayland across VM boundaries
+  saferpickle                              st=    24 Python      2026-07-24  
+  dpsynth                                  st=    23 Python      2026-08-07  
+  secure-aggregation                       st=    22 Rust        2026-08-05  
+  prompt-encryption-sdk                    st=    20 Python      2026-08-05  
+  goonami-scanner                          st=    20 Go          2026-08-07  Goonami is a general purpose network security
+  safe-bindings                            st=    19 Rust        2026-08-06  C++ wrappers (using Crubit) for Rust librarie
+  migration-planner                        st=    17 Python      2026-08-07  The Migration Planner is a desktop applicatio
+  myvibe                                   st=    17 -           2026-07-21  
+  dtoolkit                                 st=    16 Rust        2026-07-27  A Rust library for parsing and manipulating F
+  ml-flashpoint                            st=    14 Python      2026-07-21  A memory-first, lightning-fast, ready-to-use 
+  ritm                                     st=    14 Rust        2026-07-21  A reference implementation for enabling hyper
+  agent-shell-tools                        st=    13 Go          2026-07-31  
+  torq                                     st=    13 Python      2026-08-05  
+  project-montage                          st=    12 Python      2026-07-31  
+  doubleml-pipeline                        st=    11 Python      2026-08-05  
+  vera                                     st=    11 Python      2026-07-21  
+  cybernetic-agent-governance-engine       st=    10 Python      2026-08-07  
+  chrome-enterprise-premium-mcp            st=     9 JavaScript  2026-07-31  Reference implementation for a Chrome Enterpr
+  pacevolve                                st=     9 Python      2026-08-03
+[0m
+Python f-string syntax error and OIDC discovery returned non-JSON. Let me debug both raw responses and retry.
+[0m$ [0mecho "=== Google VRP: try google.com/about/security/bounty ==="; sleep 2; curl -sL -m 15 -D /tmp/gb_hdr.txt -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" "https://google.com/about/security/bounty/" -o /tmp/gb_body.html -w "HTTP=%{http_code} SIZE=%{size_download}\n" 2>/dev/null; head -3 /tmp/gb_hdr.txt; python3 << 'PYEOF'
+import re,html
+x=open('/tmp/gb_body.html','r',errors='replace').read()
+print('html size:', len(x))
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+for kw in ['bounty','reward','scope','bug']:
+    c=text.lower().count(kw.lower())
+    if c>0: print(f'  "{kw}": {c}')
+if len(text)>50: print('TEXT:', text[:1500])
+else: print('(short spa)')
+PYEOF
+
+=== Google VRP: try google.com/about/security/bounty ===
+HTTP=404 SIZE=1577
+HTTP/2 301 
+location: https://www.google.com/about/security/bounty/
+cross-origin-resource-policy: cross-origin
+html size: 1573
+  "bounty": 1
+TEXT: Error 404 (Not Found)!!1 404. That’s an error. The requested URL /security/bounty/ was not found on this server. That’s all we know.
+[0m
+[0m$ [0mecho "=== Full Google OIDC discovery (SURFACE) ==="; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/oidc_body.json'))
+for k in ['issuer','authorization_endpoint','token_endpoint','userinfo_endpoint','jwks_uri','revocation_endpoint','introspection_endpoint','device_authorization_endpoint']:
+    print(f'  {k}: {d.get(k)}')
+print()
+print('  response_types_supported:', d.get('response_types_supported'))
+print('  response_modes_supported:', d.get('response_modes_supported'))
+print('  grant_types_supported:', d.get('grant_types_supported'))
+print('  scopes_supported:', d.get('scopes_supported'))
+print('  token_endpoint_auth_methods_supported:', d.get('token_endpoint_auth_methods_supported'))
+print('  id_token_signing_alg_values_supported:', d.get('id_token_signing_alg_values_supported'))
+print('  token_endpoint_auth_signing_alg_values_supported:', d.get('token_endpoint_auth_signing_alg_values_supported'))
+print('  claims_supported (sample):', (d.get('claims_supported') or [])[:20])
+print('  code_challenge_methods_supported:', d.get('code_challenge_methods_supported'))
+print('  userinfo_signing_alg_values_supported:', d.get('userinfo_signing_alg_values_supported'))
+PYEOF
+
+=== Full Google OIDC discovery (SURFACE) ===
+  issuer: https://accounts.google.com
+  authorization_endpoint: https://accounts.google.com/o/oauth2/v2/auth
+  token_endpoint: https://oauth2.googleapis.com/token
+  userinfo_endpoint: https://openidconnect.googleapis.com/v1/userinfo
+  jwks_uri: https://www.googleapis.com/oauth2/v3/certs
+  revocation_endpoint: https://oauth2.googleapis.com/revoke
+  introspection_endpoint: None
+  device_authorization_endpoint: https://oauth2.googleapis.com/device/code
+
+  response_types_supported: ['code', 'token', 'id_token', 'code token', 'code id_token', 'token id_token', 'code token id_token', 'none']
+  response_modes_supported: ['query', 'fragment', 'form_post']
+  grant_types_supported: ['authorization_code', 'refresh_token', 'urn:ietf:params:oauth:grant-type:device_code', 'urn:ietf:params:oauth:grant-type:jwt-bearer']
+  scopes_supported: ['openid', 'email', 'profile']
+  token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic']
+  id_token_signing_alg_values_supported: ['RS256']
+  token_endpoint_auth_signing_alg_values_supported: None
+  claims_supported (sample): ['aud', 'email', 'email_verified', 'exp', 'family_name', 'given_name', 'iat', 'iss', 'name', 'picture', 'sub']
+  code_challenge_methods_supported: ['plain', 'S256']
+  userinfo_signing_alg_values_supported: None
+[0m
+Google OIDC discovery works. Let me read the full discovery output, retry crt.sh (subdomain inventory), and get the bughunters rules via a recent Wayback timestamp.
+[0m$ [0mecho "=== Wayback: bughunters rules via 2025 snapshot ==="; sleep 5; curl -sL -m 25 "https://web.archive.org/web/2025/https://bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null | python3 << 'PYEOF'
+import sys,re,html
+x=sys.stdin.read()
+print('size:', len(x))
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('readable len:', len(text))
+for kw in ['scope','reward','reward','in-scope','out of scope','*.google','youtube','severity','bug class']:
+    c=text.lower().count(kw.lower())
+    if c>0: print(f'  "{kw}": {c}')
+if len(text)>400: print('TEXT:', text[:2000])
+else: print('(spa/snapshot missing)')
+PYEOF
+
+=== Wayback: bughunters rules via 2025 snapshot ===
+size: 0
+readable len: 0
+(spa/snapshot missing)
+[0m
+[0m$ [0mecho "=== crt.sh retry: google.com subdomains ==="; sleep 5; curl -sL -m 25 "https://crt.sh/?q=google.com&output=json" 2>/dev/null | python3 << 'PYEOF'
+import json,sys
+raw=sys.stdin.read()
+print('len:', len(raw))
+if raw.startswith('<html'):
+    print('HTML (502)', raw[:100])
+else:
+    try:
+        d=json.loads(raw)
+        seen=set()
+        for r in d:
+            n=r.get('name','')
+            if not n: continue
+            parts=[p.strip().rstrip('.') for p in n.replace('<br>',' ').split()]
+            for p in parts:
+                if 'google.com' in p and p not in seen:
+                    seen.add(p)
+        print('names total:', len(seen))
+        subs=sorted([s for s in seen if s.endswith('.google.com') and s.count('.')>=2])
+        print('*.google.com subdomains:', len(subs))
+        for s in subs[:50]: print(' ', s)
+    except Exception as e:
+        print('parse err:',e)
+PYEOF
+
+=== crt.sh retry: google.com subdomains ===
+len: 0
+parse err: Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mecho "=== grep bughunters JS bundle for scope/API/reward keywords ==="; sleep 2; curl -sL -m 30 -H "User-Agent: msrc-research-recon" "https://www.gstatic.com/bughunters/960149923/app_bundle_prod.js" 2>/dev/null > /tmp/bh_bundle.js; echo "bundle size: $(wc -c < /tmp/bh_bundle.js)"; echo "=== search for api urls ==="; grep -oiE '"/[a-z0-9_]+/[a-z0-9_]+"' /tmp/bh_bundle.js | sort -u | head -30; echo "=== search for *.google / scope / rewards ==="; grep -oiE 'in.scope|reward|severity|out.of.scope|\*\.[a-z]+' /tmp/bh_bundle.js | sort | uniq -c | sort -rn | head -20
+=== grep bughunters JS bundle for scope/API/reward keywords ===
+bundle size: 2280945
+=== search for api urls ===
+"/articles/search"
+"/blog/tags"
+"/content/pages"
+"/kintaro/form"
+"/learn/search"
+"/payments/parameters"
+"/profiles/ranks"
+"/profiles/search"
+"/report/captcha"
+"/report/reports"
+"/reports/search"
+"/reports/upload"
+=== search for *.google / scope / rewards ===
+    156 reward
+    106 Reward
+     37 severity
+      9 REWARD
+      2 SEVERITY
+      1 Severity
+[0m
+OIDC discovery is rich — key SURFACE finding: Google supports implicit flow (`token`, `id_token` response types), no introspection endpoint. crt.sh still down. Let me retry subdomains via Wayback CDX, and grep the bughunters JS bundle for the in-scope properties list.
+[0m$ [0mecho "=== Wayback CDX: any snapshot of bughunters rules VRP page ==="; sleep 4; curl -sL -m 20 "https://web.archive.org/cdx/search/cdx?url=bughunters.google.com/about/rules/google-friends/*&output=text&fl=timestamp,statuscode&limit=8&filter=statuscode:200" -H "User-Agent: msrc-research-recon" 2>/dev/null | head -12; echo "=== also try the main rules subpath listing ==="; sleep 3; curl -sL -m 20 "https://web.archive.org/cdx/search/cdx?url=bughunters.google.com/about/rules/*&output=text&fl=timestamp,original,statuscode&limit=15&filter=statuscode:200" 2>/dev/null | head -18
+=== Wayback CDX: any snapshot of bughunters rules VRP page ===
+20241027031524 200
+20241114145327 200
+20241126222643 200
+20241217195106 200
+20250307200811 200
+20250308002640 200
+20250313093432 200
+20250313180852 200
+=== also try the main rules subpath listing ===
+[0m
+[0m$ [0mecho "=== crt.sh retry (longer delay) ==="; sleep 15; curl -sL -m 25 "https://crt.sh/?Identity=%.google.com&output=json" 2>/dev/null | python3 -c "
+import json,sys
+raw=sys.stdin.read()
+print('len:', len(raw))
+if raw:
+    try:
+        d=json.loads(raw)
+        seen=set()
+        for r in d:
+            n=r.get('name','') or ''
+            for p in n.replace('<br>',' ').replace(chr(10),' ').split():
+                p=p.strip().rstrip('.')
+                if p.endswith('.google.com') and p not in seen and p.count('.')>=3:
+                    seen.add(p)
+        print('subdomains:', len(seen))
+        for s in sorted(seen)[:40]: print(' ',s)
+    except Exception as e:
+        print('err:',e, raw[:80])
+" 2>&1 | head -45
+=== crt.sh retry (longer delay) ===
+len: 253
+err: Expecting value: line 1 column 1 (char 0) <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html><head>
+<title>404 Not F
+[0m
+[0m$ [0mecho "=== Wayback: fetch VRP rules page content (id_ raw) ==="; sleep 3; curl -sL -m 25 "https://web.archive.org/web/20250313180852id_/https://bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules" -H "User-Agent: Mozilla/5.0 (compatible; msrc-research-recon)" 2>/dev/null > /tmp/wb_vrp.html; echo "size: $(wc -c < /tmp/wb_vrp.html)"; python3 << 'PYEOF'
+import re,html
+x=open('/tmp/wb_vrp.html','r',errors='replace').read()
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('readable len:', len(text))
+if len(text)>200:
+    print('TEXT:', text[:3000])
+else:
+    print('(short)')
+    print(x[:300])
+PYEOF
+
+=== Wayback: fetch VRP rules page content (id_ raw) ===
+size: 2907
+readable len: 81
+(short)
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google and Alphabet Vulnerability Reward Program (VRP) Rules | Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta pro
+[0m
+Wayback CDX works — snapshots exist (latest: 2025-03-13). The JS bundle contains 156 "reward" and 37 "severity" mentions, plus a `/content/pages` API endpoint. Let me fetch the archived rules page and probe that API.
+[0m$ [0mecho "=== Probe bughunters /content/pages API (rules content) ==="; sleep 2; curl -sL -m 15 -D /tmp/cp_hdr.txt -H "User-Agent: msrc-research-recon" "https://bughunters.google.com/content/pages" 2>/dev/null | head -c 500; echo; echo "--- try with slug param ---"; sleep 2; curl -sL -m 15 -H "User-Agent: msrc-research-recon" "https://bughunters.google.com/content/pages?slug=google-and-alphabet-vulnerability-reward-program-vrp-rules" 2>/dev/null | head -c 500; echo; echo "--- try path-based ---"; sleep 2; curl -sL -m 15 -H "User-Agent: msrc-research-recon" "https://bughunters.google.com/content/pages/google-and-alphabet-vulnerability-reward-program-vrp-rules" 2>/dev/null | head -c 600
+=== Probe bughunters /content/pages API (rules content) ===
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta property="og:title" content="Google Bug Hunters" />
+	<meta name="description" content="Welcome to Google&#39;s Bug Hunting community, learn more about hunting &amp; reporting bugs you’ve found in Google products." />
+	<meta property="og:description" content="Welco
+--- try with slug param ---
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta property="og:title" content="Google Bug Hunters" />
+	<meta name="description" content="Welcome to Google&#39;s Bug Hunting community, learn more about hunting &amp; reporting bugs you’ve found in Google products." />
+	<meta property="og:description" content="Welco
+--- try path-based ---
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Google Bug Hunters</title>
+    <meta property="twitter:card" content="summary" />
+    <meta property="twitter:site" content="GoogleVRP" />
+    <meta property="og:title" content="Google Bug Hunters" />
+	<meta name="description" content="Welcome to Google&#39;s Bug Hunting community, learn more about hunting &amp; reporting bugs you’ve found in Google products." />
+	<meta property="og:description" content="Welcome to Google&#39;s Bug Hunting community, learn more about hunting &amp; reporting bugs you’ve fou
+[0m
+[0m$ [0mecho "=== Full Wayback VRP rules HTML (meta tags may have scope/description) ==="; python3 << 'PYEOF'
+x=open('/tmp/wb_vrp.html','r',errors='replace').read()
+import re,html
+# Extract all meta tags
+metas=re.findall(r'<meta[^>]+>', x)
+for m in metas[:15]:
+    print(m)
+print()
+# Extract any text content
+text=re.sub(r'<script.*?</script>','',x,flags=re.S|re.I)
+text=re.sub(r'<style.*?</style>','',text,flags=re.S|re.I)
+text=re.sub(r'<[^>]+>',' ',text)
+text=html.unescape(text)
+text=re.sub(r'\s+',' ',text).strip()
+print('all readable text:', repr(text))
+PYEOF
+
+=== Full Wayback VRP rules HTML (meta tags may have scope/description) ===
+<meta charset="utf-8" />
+<meta property="twitter:card" content="summary" />
+<meta property="twitter:site" content="GoogleVRP" />
+<meta property="og:title" content="Google and Alphabet Vulnerability Reward Program (VRP) Rules | Google Bug Hunters" />
+<meta name="description" content="Get an overview of the rules governing the Google VRP and related programs, including what’s in scope and potential reward amounts." />
+<meta property="og:description" content="Get an overview of the rules governing the Google VRP and related programs, including what’s in scope and potential reward amounts." />
+<meta property="og:image" content="https://storage.googleapis.com/bughunters-social/og_social_image_bughunters.png" />
+<meta property="og:url" content="https://bughunters.google.com/about/rules/google-friends/google-and-alphabet-vulnerability-reward-program-vrp-rules" />
+<meta property="twitter:title" content="Google and Alphabet Vulnerability Reward Program (VRP) Rules | Google Bug Hunters" />
+<meta property="twitter:description" content="Get an overview of the rules governing the Google VRP and related programs, including what’s in scope and potential reward amounts." />
+<meta property="twitter:image" content="https://storage.googleapis.com/bughunters-social/og_social_image_bughunters.png" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+all readable text: 'Google and Alphabet Vulnerability Reward Program (VRP) Rules | Google Bug Hunters'
+[0m
+[0m$ [0mecho "=== Google APIs Discovery (SURFACE: API surface) ==="; sleep 2; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://www.googleapis.com/discovery/v1/apis" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('total APIs:', len(d.get('items',[])))
+print('--- first 25 APIs ---')
+for a in d.get('items',[])[:25]:
+    print(f'  {a[\"name\"]:28s} ver={a[\"version\"]:8s} tit={a.get(\"title\",\"\")[:35]}')
+print('--- auth/api related APIs ---')
+for a in d.get('items',[]):
+    nm=a['name'].lower()
+    if 'oauth' in nm or 'auth' in nm or 'identity' in nm or 'admin' in nm or 'token' in nm:
+        print(f'  {a[\"name\"]:28s} ver={a[\"version\"]:8s}  {a.get(\"title\",\"\")[:45]}')
+" 2>&1 | head -50
+
+=== Google APIs Discovery (SURFACE: API surface) ===
+total APIs: 527
+--- first 25 APIs ---
+  abusiveexperiencereport      ver=v1       tit=Abusive Experience Report API
+  acceleratedmobilepageurl     ver=v1       tit=Accelerated Mobile Pages (AMP) URL 
+  accessapproval               ver=v1       tit=Access Approval API
+  accesscontextmanager         ver=v1       tit=Access Context Manager API
+  addressvalidation            ver=v1       tit=Address Validation API
+  adexchangebuyer2             ver=v2beta1  tit=Ad Exchange Buyer API II
+  adexperiencereport           ver=v1       tit=Ad Experience Report API
+  admin                        ver=datatransfer_v1 tit=Admin SDK API
+  admin                        ver=directory_v1 tit=Admin SDK API
+  admin                        ver=reports_v1 tit=Admin SDK API
+  admob                        ver=v1beta   tit=AdMob API
+  admob                        ver=v1       tit=AdMob API
+  adsense                      ver=v2       tit=AdSense Management API
+  adsenseplatform              ver=v1alpha  tit=AdSense Platform API
+  adsenseplatform              ver=v1       tit=AdSense Platform API
+  advisorynotifications        ver=v1       tit=Advisory Notifications API
+  agentidentity                ver=v1alpha  tit=Agent Identity API
+  agentidentity                ver=v1beta   tit=Agent Identity API
+  agentidentity                ver=v1       tit=Agent Identity API
+  agentidentitycredentials     ver=v1alpha  tit=Agent Identity Credentials API
+  agentidentitycredentials     ver=v1beta   tit=Agent Identity Credentials API
+  agentidentitycredentials     ver=v1       tit=Agent Identity Credentials API
+  agentregistry                ver=v1alpha  tit=Agent Registry API
+  agentregistry                ver=v1       tit=Agent Registry API
+  aiplatform                   ver=v1beta1  tit=Agent Platform API
+--- auth/api related APIs ---
+  admin                        ver=datatransfer_v1  Admin SDK API
+  admin                        ver=directory_v1  Admin SDK API
+  admin                        ver=reports_v1  Admin SDK API
+  agentidentity                ver=v1alpha   Agent Identity API
+  agentidentity                ver=v1beta    Agent Identity API
+  agentidentity                ver=v1        Agent Identity API
+  agentidentitycredentials     ver=v1alpha   Agent Identity Credentials API
+  agentidentitycredentials     ver=v1beta    Agent Identity Credentials API
+  agentidentitycredentials     ver=v1        Agent Identity Credentials API
+  analyticsadmin               ver=v1alpha   Google Analytics Admin API
+  analyticsadmin               ver=v1beta    Google Analytics Admin API
+  authorizedbuyersmarketplace  ver=v1alpha   Authorized Buyers Marketplace API
+  authorizedbuyersmarketplace  ver=v1beta    Authorized Buyers Marketplace API
+  authorizedbuyersmarketplace  ver=v1        Authorized Buyers Marketplace API
+  bigtableadmin                ver=v2        Cloud Bigtable Admin API
+  binaryauthorization          ver=v1beta1   Binary Authorization API
+  binaryauthorization          ver=v1        Binary Authorization API
+  cloudidentity                ver=v1beta1   Cloud Identity API
+  cloudidentity                ver=v1        Cloud Identity API
+  identitytoolkit              ver=v1        Identity Toolkit API
+  identitytoolkit              ver=v2        Identity Toolkit API
+  identitytoolkit              ver=v3        Identity Toolkit API
+[0m
+The Wayback rules page is also JS-rendered (CSR). The content loads via a backend API. Let me read the full Wayback HTML for any meta scope info, try the Google APIs discovery endpoint, and probe the public tokeninfo endpoint for SURFACE.
+[0m$ [0mecho "=== Probe public tokeninfo endpoint (SURFACE: token introspection) ==="; sleep 2; curl -sL -m 15 -H "User-Agent: msrc-research-recon" "https://oauth2.googleapis.com/tokeninfo" -w "\nHTTP=%{http_code}\n" 2>/dev/null | head -20; echo "=== try tokeninfo with dummy ==="; sleep 2; curl -sL -m 15 -H "User-Agent: msrc-research-recon" "https://oauth2.googleapis.com/tokeninfo?access_token=INVALID_DUMMY" -w "\nHTTP=%{http_code}\n" 2>/dev/null | head -20
+=== Probe public tokeninfo endpoint (SURFACE: token introspection) ===
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+HTTP=400
+=== try tokeninfo with dummy ===
+{
+  "error": "invalid_token",
+  "error_description": "Invalid Value"
+}
+
+HTTP=400
+[0m
+[0m$ [0mecho "=== SURFACE: accounts.google.com redirect_uri pre-validation ==="; echo "# v2.0: GET auth with VALID client_id (Google Web Client) + BAD redirect_uri"; sleep 2; curl -s -m 20 -H "User-Agent: msrc-research-recon" "https://accounts.google.com/o/oauth2/v2/auth?client_id=0000000000-000000000000.apps.googleusercontent.com&redirect_uri=https://evil.example.com/cb&response_type=code&scope=openid&access_type=offline" -D /tmp/g_auth_bad_ru.hdr -o /tmp/g_auth_bad_ru.html -w "HTTP=%{http_code} SIZE=%{size_download}\n" 2>/dev/null; echo "--- redirect/location ---"; grep -iE "location|^HTTP/" /tmp/g_auth_bad_ru.hdr | head -3; echo "--- body marker (validation msg vs sign-in form) ---"; grep -oiE "redirect_uri[^<]*|invalid|not allow|client_id|sign in" /tmp/g_auth_bad_ru.html 2>/dev/null | head -5; echo "=== compare: VALID redirect_uri (google.com) ==="; sleep 3; curl -s -m 20 -H "User-Agent: msrc-research-recon" "https://accounts.google.com/o/oauth2/v2/auth?client_id=0000000000-000000000000.apps.googleusercontent.com&redirect_uri=https://developers.google.com/oauthplayground&response_type=code&scope=openid" -D /tmp/g_auth_ok.hdr -o /tmp/g_auth_ok.html -w "HTTP=%{http_code} SIZE=%{size_download}\n" 2>/dev/null; grep -iE "location|^HTTP/" /tmp/g_auth_ok.hdr | head -3
+=== SURFACE: accounts.google.com redirect_uri pre-validation ===
+# v2.0: GET auth with VALID client_id (Google Web Client) + BAD redirect_uri
+HTTP=302 SIZE=468
+--- redirect/location ---
+HTTP/2 302 
+location: https://accounts.google.com/signin/oauth/error?authError=Cg5pbnZhbGlkX2NsaWVudBIfVGhlIE9BdXRoIGNsaWVudCB3YXMgbm90IGZvdW5kLiCRAw&flowName=GeneralOAuthFlow&client_id=0000000000-000000000000.apps.googleusercontent.com&aes=AVQXgOCDqAOK-lIMa6kIQ4er-a3E
+--- body marker (validation msg vs sign-in form) ---
+client_id
+=== compare: VALID redirect_uri (google.com) ===
+HTTP=302 SIZE=468
+HTTP/2 302 
+location: https://accounts.google.com/signin/oauth/error?authError=Cg5pbnZhbGlkX2NsaWVudBIfVGhlIE9BdXRoIGNsaWVudCB3YXMgbm90IGZvdW5kLiCRAw&flowName=GeneralOAuthFlow&client_id=0000000000-000000000000.apps.googleusercontent.com&aes=AVQXgOCDqAOK-lIMa6kIQ4er-a3E
+[0m
+527 Google APIs discovered, plus the public `tokeninfo` introspection endpoint (returns proper OAuth2 error for invalid tokens — unlike Graph's 405). Let me probe two SURFACE vectors: whether Google's auth validates redirect_uri pre-auth (comparing to microsoft's H5 finding), and the Identity Toolkit v3 endpoints.
+[0m$ [0mecho "=== SURFACE: identitytoolkit discovery + endpoints ==="; sleep 3; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://identitytoolkit.googleapis.com/\$discovery/rest?version=v3" -o /tmp/itkit3.json -w "HTTP=%{http_code} SIZE=%{size_download}\n" 2>/dev/null; python3 << 'PYEOF'
+import json
+try:
+    d=json.load(open('/tmp/itkit3.json'))
+    print('discovery root:', d.get('root'), d.get('servicePath'), d.get('basePath'))
+    print('resources:', list(d.get('resources',{}).keys())[:30])
+    methods=[(rn, mn) for rn,rm in (d.get('resources') or {}).items() for mn in (rm.get('methods') or {})[:5]]
+    print('method count:', sum(len(rm.get('methods') or {}) for rm in (d.get('resources') or {}).values()))
+    # flag auth methods
+    for rn,rm in (d.get('resources') or {}).items():
+        for mn,m in (rm.get('methods') or {}).items():
+            if 'auth' in mn.lower() or 'sign' in mn.lower() or 'token' in mn.lower() or 'verif' in mn.lower() or 'secure' in mn.lower():
+                print(f'  auth-ish: {rn}.{mn} -> {m.get("httpMethod","")} {m.get("path","")}')
+except Exception as e:
+    print('ERR:',e)
+PYEOF
+
+=== SURFACE: identitytoolkit discovery + endpoints ===
+HTTP=200 SIZE=73163
+discovery root: None identitytoolkit/v3/relyingparty/ /identitytoolkit/v3/relyingparty/
+resources: ['relyingparty']
+ERR: slice(None, 5, None)
+[0m
+[0m$ [0mecho "=== identitytoolkit v3 relyingparty methods (fixed) ==="; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/itkit3.json'))
+print('discovery:', d.get('rootUrl'), d.get('basePath'), 'basePath=', d.get('servicePath'))
+res=d.get('resources',{}).get('relyingparty',{})
+methods=res.get('methods',{})
+print(f'methods on relyingparty: {len(methods)}')
+print('--- auth/sensitive methods ---')
+for mn,m in sorted(methods.items()):
+    http=m.get('httpMethod','')
+    path=m.get('path','')
+    auth=m.get('scopes',{})
+    desc=(m.get('description') or '')[:60]
+    sensitive_keywords=['password','token','session','sign','reset','oob','verify','upload','download','delete','remove','account']
+    if any(k in mn.lower() or k in path.lower() for k in sensitive_keywords):
+        print(f'  {mn:28s} {http:6s} {path:40s} {desc}')
+print()
+print('--- ALL methods ---')
+for mn,m in sorted(methods.items()):
+    print(f'  {mn:28s} {m.get("httpMethod",""):6s} {m.get("path","")}')
+PYEOF
+
+=== identitytoolkit v3 relyingparty methods (fixed) ===
+discovery: https://www.googleapis.com/ /identitytoolkit/v3/relyingparty/ basePath= identitytoolkit/v3/relyingparty/
+methods on relyingparty: 20
+--- auth/sensitive methods ---
+  deleteAccount                POST   deleteAccount                            Delete user account.
+  downloadAccount              POST   downloadAccount                          Batch download user accounts.
+  emailLinkSignin              POST   emailLinkSignin                          Reset password for a user.
+  getAccountInfo               POST   getAccountInfo                           Returns the account info.
+  getOobConfirmationCode       POST   getOobConfirmationCode                   Get a code for user action confirmation.
+  resetPassword                POST   resetPassword                            Reset password for a user.
+  setAccountInfo               POST   setAccountInfo                           Set account info for a user.
+  signOutUser                  POST   signOutUser                              Sign out user.
+  signupNewUser                POST   signupNewUser                            Signup new user.
+  uploadAccount                POST   uploadAccount                            Batch upload existing user accounts.
+  verifyAssertion              POST   verifyAssertion                          Verifies the assertion returned by the IdP.
+  verifyCustomToken            POST   verifyCustomToken                        Verifies the developer asserted ID token.
+  verifyPassword               POST   verifyPassword                           Verifies the user entered password.
+  verifyPhoneNumber            POST   verifyPhoneNumber                        Verifies ownership of a phone number and creates/updates the
+
+--- ALL methods ---
+  createAuthUri                POST   createAuthUri
+  deleteAccount                POST   deleteAccount
+  downloadAccount              POST   downloadAccount
+  emailLinkSignin              POST   emailLinkSignin
+  getAccountInfo               POST   getAccountInfo
+  getOobConfirmationCode       POST   getOobConfirmationCode
+  getProjectConfig             GET    getProjectConfig
+  getPublicKeys                GET    publicKeys
+  getRecaptchaParam            GET    getRecaptchaParam
+  resetPassword                POST   resetPassword
+  sendVerificationCode         POST   sendVerificationCode
+  setAccountInfo               POST   setAccountInfo
+  setProjectConfig             POST   setProjectConfig
+  signOutUser                  POST   signOutUser
+  signupNewUser                POST   signupNewUser
+  uploadAccount                POST   uploadAccount
+  verifyAssertion              POST   verifyAssertion
+  verifyCustomToken            POST   verifyCustomToken
+  verifyPassword               POST   verifyPassword
+  verifyPhoneNumber            POST   verifyPhoneNumber
+[0m
+Google validates client_id pre-auth (302 error for unknown client — unlike microsoft's deferred validation). The `0000...apps.googleusercontent.com` client is fake. Let me fix the identitytoolkit method enumeration (Python bug) and verify the relyingparty endpoints.
+[0m$ [0mecho "=== SURFACE: identitytoolkit endpoints (live HTTP probe, GET only) ==="; sleep 2; for ep in \
+  "https://identitytoolkit.googleapis.com/v1/relyingparty/refreshToken" \
+  "https://identitytoolkit.googleapis.com/v1/relyingparty.getAccountInfo" \
+  "https://identitytoolkit.googleapis.com/v1/relyingparty.sendOobCode" \
+  "https://www.googleapis.com/identitytoolkit/v3/relyingparty/refreshToken" \
+  "https://www.googleapis.com/identitytoolkit/v3/relyingparty/uploadAccount" \
+  "https://www.googleapis.com/identitytoolkit/v3/relyingparty/downloadAccount"; do
+  sleep 1;
+  code=$(curl -sI -m 10 -H "User-Agent: msrc-research-recon" "$ep" 2>/dev/null | head -1 | tr -d '\r')
+  echo "$ep -> $code"
+done; echo "=== check if v1 vs v3 are both live (version proliferation) ==="; sleep 2; curl -sL -m 12 -H "User-Agent: msrc-research-recon" "https://identitytoolkit.googleapis.com/v1/relyingparty/refreshToken" -o /tmp/it_v1.txt -w "v1: HTTP=%{http_code} CT=%{content_type} SIZE=%{size_download}\n" 2>/dev/null; head -c 200 /tmp/it_v1.txt
+=== SURFACE: identitytoolkit endpoints (live HTTP probe, GET only) ===
+https://identitytoolkit.googleapis.com/v1/relyingparty/refreshToken -> HTTP/2 404 
+https://identitytoolkit.googleapis.com/v1/relyingparty.getAccountInfo -> HTTP/2 404 
+https://identitytoolkit.googleapis.com/v1/relyingparty.sendOobCode -> HTTP/2 404 
+https://www.googleapis.com/identitytoolkit/v3/relyingparty/refreshToken -> HTTP/2 404 
+https://www.googleapis.com/identitytoolkit/v3/relyingparty/uploadAccount -> HTTP/2 404 
+https://www.googleapis.com/identitytoolkit/v3/relyingparty/downloadAccount -> HTTP/2 404 
+=== check if v1 vs v3 are both live (version proliferation) ===
+v1: HTTP=404 CT=text/html; charset=UTF-8 SIZE=1589
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 404 (Not Found)!!1</title>
+  <style>
+    *{ma
+[0m
+[0m$ [0mecho "=== leads dir ==="; ls -la /home/runner/work/hunt-lab/hunt-lab/leads/; echo "=== state_laguna.json ==="; cat /home/runner/work/hunt-lab/hunt-lab/state_laguna.json; echo; echo "=== research dir ==="; ls -la /home/runner/work/hunt-lab/hunt-lab/research/; echo "=== journal tail (last 10 lines) ==="; tail -10 /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
+=== leads dir ===
+total 88
+drwxr-xr-x 2 runner runner  4096 Aug  7 13:49 .
+drwxr-xr-x 9 runner runner  4096 Aug  7 13:49 ..
+-rw-r--r-- 1 runner runner 29204 Aug  7 13:49 lead-bigpickle.md
+-rw-r--r-- 1 runner runner  3858 Aug  7 13:49 lead-laguna.md
+-rw-r--r-- 1 runner runner     0 Aug  7 13:49 lead-ling3.md
+-rw-r--r-- 1 runner runner  1781 Aug  7 13:49 lead-longcat.md
+-rw-r--r-- 1 runner runner  8234 Aug  7 13:49 lead-nemotron3.md
+-rw-r--r-- 1 runner runner   250 Aug  7 13:49 reposcan-2026-08-07-08-25.md
+-rw-r--r-- 1 runner runner   355 Aug  7 13:49 reposcan-2026-08-07-08-29.md
+-rw-r--r-- 1 runner runner   290 Aug  7 13:49 reposcan-2026-08-07-08-34.md
+-rw-r--r-- 1 runner runner   301 Aug  7 13:49 reposcan-2026-08-07-08-40.md
+-rw-r--r-- 1 runner runner   301 Aug  7 13:49 reposcan-2026-08-07-08-52.md
+-rw-r--r-- 1 runner runner   343 Aug  7 13:49 reposcan-2026-08-07-09-02.md
+-rw-r--r-- 1 runner runner   343 Aug  7 13:49 reposcan-latest.md
+=== state_laguna.json ===
+{"phase": "RECON", "status": "IN_PROGRESS"}
+=== research dir ===
+total 1384
+drwxr-xr-x 2 runner runner   4096 Aug  7 13:49 .
+drwxr-xr-x 9 runner runner   4096 Aug  7 13:49 ..
+-rw-r--r-- 1 runner runner 440151 Aug  7 13:49 bigpickle.md
+-rw-r--r-- 1 runner runner 261076 Aug  7 13:49 laguna.md
+-rw-r--r-- 1 runner runner   1179 Aug  7 13:49 ling3.md
+-rw-r--r-- 1 runner runner 193862 Aug  7 13:49 longcat.md
+-rw-r--r-- 1 runner runner 500000 Aug  7 13:49 nemotron3.md
+=== journal tail (last 10 lines) ===
+raw len: 150
+parse err: Expecting value: line 1 column 1 (char 0)
+head: <html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+[0m
+[0m
+Identity Toolkit v3 exposes sensitive Firebase Auth endpoints (`uploadAccount`, `downloadAccount`, `getAccountInfo` with `delegatedProjectNumber`, `getOobConfirmationCode`). Now I have solid RECON+SURFACE data. Let me check current state files and the leads directory structure before writing up.
+[0m$ [0mecho "=== Security-relevant google repos ==="; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/gh_repos.json'))
+repos=[r for r in d if not r.get('fork') and r.get('name')]
+repos.sort(key=lambda r: r.get('stargazers_count') or 0, reverse=True)
+kw_relevant=['ssl','crypt','secur','auth','proto','oauth','boring','sso','identity','jwt','token','fuzz','test','sdk','api','cloud','gke','kubernetes','grpc','protobuf','trace','perf','debug','analy']
+print('total non-fork:', len(repos))
+print('--- security/infra-relevant ---')
+seen=set()
+for r in repos:
+    nm=r['name'].lower()
+    desc=((r.get('description') or '')).lower()
+    if any(k in nm or k in desc for k in kw_relevant):
+        print(f'  {r["name"]:40s} st={r.get("stargazers_count") or 0:>6} lang={r.get("language") or "-":10s}  {desc[:40]}')
+        seen.add(r['name'])
+print(f'\n({len(seen)} matched)')
+PYEOF
+
+=== Security-relevant google repos ===
+total non-fork: 99
+--- security/infra-relevant ---
+  agents-cli                               st=  5502 lang=Python      the cli and skills that turn any coding 
+  mantis                                   st=   722 lang=-           a modular, stack-agnostic toolkit of sec
+  xrblocks                                 st=   456 lang=TypeScript  xr blocks is a lightweight webxr + ai li
+  torchax                                  st=   236 lang=Python      torchax is a pytorch frontend for jax. i
+  stellar-engine                           st=    46 lang=HCL         framework for management of compliant go
+  secure-aggregation                       st=    22 lang=Rust        
+  prompt-encryption-sdk                    st=    20 lang=Python      
+  goonami-scanner                          st=    20 lang=Go          goonami is a general purpose network sec
+  graph-renderer                           st=     9 lang=TypeScript  a high-performance lit-based graph rende
+  fingerprinting-risk-measures             st=     6 lang=Jupyter Notebook  this repository contains the analysis co
+  xtrace                                   st=     4 lang=Shell       
+  platform-attestation                     st=     4 lang=Go          
+  go-testgen                               st=     3 lang=Go          
+  opencl-kernel-profiler                   st=     2 lang=C++         perfetto-based profiler for opencl kerne
+  go-nvattest-tools                        st=     2 lang=Go          
+  merchant-api-alpha-client                st=     1 lang=-           google merchant api alpha client librari
+  vulkan-shader-profiler                   st=     1 lang=C++         perfetto-based profiler for vulkan shade
+  krdma-unit-test                          st=     1 lang=-           
+
+(18 matched)
+[0m
+[0m$ [0mecho "=== Check if boringssl / envoy / angular repos exist in google org ==="; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/gh_repos.json'))
+targets=['boringssl','envoy','angular','kubernetes','grpc','protobuf','glog','gperftools','gtest','gmock','jsonnet','cel','pesto','go-cloud','go-metrics','go-genproto','uuid','protobuf.js','grpc-core','proto-plus','cloud-java','cloud-python','cloud-go','auth-library-python','api-core','google-api-python']
+repos={r['name'].lower():r for r in d if not r.get('fork') and r.get('name')}
+for t in targets:
+    if t in repos:
+        r=repos[t]
+        print(f'  FOUND: {r["name"]:20s} stars={r.get("stargazers_count")} lang={r.get("language")}  desc={r.get("description","")[:50]}')
+    else:
+        print(f'  miss:  {t}')
+PYEOF
+
+=== Check if boringssl / envoy / angular repos exist in google org ===
+  miss:  boringssl
+  miss:  envoy
+  miss:  angular
+  miss:  kubernetes
+  miss:  grpc
+  miss:  protobuf
+  miss:  glog
+  miss:  gperftools
+  miss:  gtest
+  miss:  gmock
+  miss:  jsonnet
+  miss:  cel
+  miss:  pesto
+  miss:  go-cloud
+  miss:  go-metrics
+  miss:  go-genproto
+  miss:  uuid
+  miss:  protobuf.js
+  miss:  grpc-core
+  miss:  proto-plus
+  miss:  cloud-java
+  miss:  cloud-python
+  miss:  cloud-go
+  miss:  auth-library-python
+  miss:  api-core
+  miss:  google-api-python
+[0m
+Now I understand the structure: `state_laguna.json` was reset to `{"phase": "RECON", "status": "IN_PROGRESS"}` for the google run. The journal is auto-transcribed. Let me check my saved GitHub repos for security-relevant projects (boringssl, etc.) before writing up.
+Let me verify boringssl isn't hidden in the repo list (it should be ~5k stars), then I'll consolidate and write up.
+[0m$ [0mecho "=== grep /tmp/gh_repos.json for boring/grpc/protoc/security repos ==="; python3 << 'PYEOF'
+import json
+d=json.load(open('/tmp/gh_repos.json'))
+allr=sorted(d, key=lambda r: r.get('stargazers_count') or 0, reverse=True)
+# Any repo with >100 stars that's NOT in top-40 list + check boring
+for r in allr:
+    if (r.get('stargazers_count') or 0) >= 50 and r.get('name'):
+        nm=r['name']
+        if nm not in ['skills','agents-cli','mcp','ax','GNM','adk-js','mantis','xrblocks','torchax','adk-python-community','adk-kotlin','aura-inspector','hdmitsuba','dotguides','capsem','pubmed-rag','stellar-engine','tpu-raiden','llm-sidebar-with-context','sam','sommelier-rs','saferpickle','dpsynth','secure-aggregation','prompt-encryption-sdk','goonami-scanner','safe-bindings','migration-planner','myvibe','dtoolkit','ml-flashpoint','ritm','agent-shell-tools','torq','project-montage','doubleml-pipeline','vera','cybernetic-agent-governance-engine','chrome-enterprise-premium-mcp','pacevolve']:
+            print(f'  {nm:40s} stars={r.get("stargazers_count")} lang={r.get("language")}')
+print('--- boring/grpc check ---')
+for r in d:
+    nm=(r.get('name') or '').lower()
+    if 'boring' in nm or 'grpc' in nm or 'protoc' in nm or 'sec' in nm or 'fuzz' in nm or 'crypto' in nm:
+        print(f'  {r.get("name")} stars={r.get("stargazers_count")} fork={r.get("fork")}')
+PYEOF
+
+=== grep /tmp/gh_repos.json for boring/grpc/protoc/security repos ===
+--- boring/grpc check ---
+  secure-aggregation stars=22 fork=False
+[0m
+Boringssl is on a later GitHub API page (default sort = newest-first, not by stars). Let me do one targeted search for the classic security repos in the google org, then consolidate into deliverables.
+[0m$ [0mecho "=== GitHub search: security/repos in google org ==="; sleep 5; curl -sL -m 15 -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" "https://api.github.com/search/repositories?q=org:google+boringssl" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('boringssl search total:', d.get('total_count'))
+for r in d.get('items',[])[:3]:
+    print(f'  {r[\"full_name\"]} stars={r[\"stargazers_count\"]} fork={r[\"fork\"]} archived={r.get(\"archived\")}  {r.get(\"description\",\"\")[:50]}')
+" 2>&1; echo "=== search grpc/go security ==="; sleep 5; curl -sL -m 15 -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" "https://api.github.com/search/repositories?q=org:google+in:name+grpc+OR+protobuf+OR+crypto+OR+security+OR+fuzz" 2>/dev/null | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('search total:', d.get('total_count'))
+for r in d.get('items',[])[:15]:
+    print(f'  {r[\"name\"]:30s} stars={r[\"stargazers_count\"]:>6} fork={r[\"fork\"]} archived={r.get(\"archived\")}  {r.get(\"description\",\"\")[:40]}')
+" 2>&1
+=== GitHub search: security/repos in google org ===
+boringssl search total: 4
+  google/boringssl stars=2246 fork=False archived=False  Mirror of BoringSSL
+  google/mundane stars=1084 fork=False archived=False  Mundane is a Rust cryptography library backed by B
+  google/openssl-tests stars=14 fork=False archived=True  Running BoringSSL tests against OpenSSL
+=== search grpc/go security ===
+Traceback (most recent call last):
+  File "<string>", line 6, in <module>
+TypeError: 'NoneType' object is not subscriptable
+search total: 34
+  oss-fuzz                       stars= 12496 fork=False archived=False  OSS-Fuzz - continuous fuzzing for open s
+  fuzzing                        stars=  3780 fork=False archived=True  Tutorials, examples, discussions, resear
+  protobuf-gradle-plugin         stars=  1831 fork=False archived=False  Protobuf Plugin for Gradle
+  fuzzbench                      stars=  1204 fork=False archived=False  FuzzBench - Fuzzer benchmarking as a ser
+  protobuf.dart                  stars=   572 fork=False archived=False  Runtime library for Dart protobufs
+  fuzzer-test-suite              stars=  1470 fork=False archived=True  Set of tests for fuzzing engines
+[0m
+[0m→ [0mRead leads/lead-laguna.md
+[0m→ [0mRead state_laguna.json
+[0m
+[0m$ [0mecho "=== tail of research/laguna.md (last 5 lines, exact) ==="; tail -5 /home/runner/work/hunt-lab/hunt-lab/research/laguna.md | cat -A | head -8
+=== tail of research/laguna.md (last 5 lines, exact) ===
+<center><h1>502 Bad Gateway</h1></center>^M$
+<hr><center>nginx</center>^M$
+</body>^M$
+</html>$
+^[[0m$
+[0m
+Found key security repos in the google org: `boringssl` (2246), `mundane` (1084, Rust crypto), `oss-fuzz` (12496, fuzzing infra), `fuzzbench` (1204), `mantis` (722, security review toolkit). crt.sh is down so I have the auth hosts from OIDC discovery. I have comprehensive RECON+SURFACE. Let me read current state files to anchor my write-up edits.
+[0m✗ [0mRead research/laguna.md failed[90m [offset=5000][0m
+[91m[1mError: [0mOffset 5000 is out of range for this file (3491 lines)
+Now I have full context. Let me read the journal's exact end to anchor a clean write-up, then update all three deliverables.
+[0m→ [0mRead research/laguna.md[90m [offset=3485][0m
