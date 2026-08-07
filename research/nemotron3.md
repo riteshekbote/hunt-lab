@@ -5186,3 +5186,2225 @@ STATUS_STATE: IN_PROGRESS
 NEXT_STEP_1: Enumerate live endpoints on TIER0 domains (HEAD /.well-known/*, /api/*, /_ah/*) to map attack surface
 NEXT_STEP_2: Cross-reference CT subdomains with DNS resolution to identify dangling CNAMEs for takeover testing
 NEXT_STEP_3: Deep-dive OT0 repo GitHub Actions configs for supply chain risks (unpinned actions, workflow_dispatch permissions, secret handling)
+
+===== RUN 2026-08-07 09:40:49 UTC | model nemotron3 | target microsoft =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mfor domain in accounts.google.com admin.google.com bard.google.com chrome.google.com console.cloud.google.com gemini.google.com mail.google.com myaccount.google.com passwords.google.com play.google.com takeout.google.com vault.google.com console.firebase.google.com issuetracker.google.com cloudsearch.google.com; do echo "=== $domain ==="; timeout 5 curl -s -I "https://$domain/.well-known/oauth-authorization-server" 2>&1 | head -20; echo ""; done
+=== accounts.google.com ===
+HTTP/2 200 
+accept-ranges: bytes
+access-control-allow-origin: *
+content-security-policy-report-only: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/federated-signon-mpm-access
+cross-origin-opener-policy: same-origin; report-to="federated-signon-mpm-access"
+report-to: {"group":"federated-signon-mpm-access","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/federated-signon-mpm-access"}]}
+content-length: 1654
+x-content-type-options: nosniff
+server: sffe
+x-xss-protection: 0
+date: Fri, 07 Aug 2026 08:43:22 GMT
+expires: Fri, 07 Aug 2026 09:43:22 GMT
+cache-control: public, max-age=3600
+age: 3011
+last-modified: Mon, 16 Mar 2026 22:41:33 GMT
+content-type: application/json
+vary: Accept-Encoding
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== admin.google.com ===
+HTTP/2 204 
+date: Fri, 07 Aug 2026 09:33:33 GMT
+content-type: text/html
+server: scaffolding on HTTPServer2
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== bard.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:33 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: require-trusted-types-for 'script';report-uri /_/BardChatUi/cspreport
+content-security-policy: script-src 'nonce-cvEbl4MpphO4s1GqA0E16Q' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri /_/BardChatUi/cspreport
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+cross-origin-opener-policy: same-origin-allow-popups
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+server-timing: l2gfet4t7; dur=54, gfet4t7; dur=62
+set-cookie: NID=533=lePT2FINqle0ARsyit8x42YjTSQFamw83bnNb4qMGA0V0PKwatBZSWmCh2m8xyj1kR4Tw7cLvZnUYCwZRY4qeXIkLMj92WsEeCA6WMJafxoBfSVRNT22w7wYoJjnRUWzAREYX-6t6FmZ25yqjUeiXLXJtYKV9-IBWv5dDMKpGIEnRk0gr8BYAkxk8dk8gwrWDW664nM; expires=Sat, 06-Feb-2027 09:33:33 GMT; path=/; domain=.google.com; HttpOnly
+set-cookie: COMPASS=gemini-pd=CjwACWuJV93jFYb_b6k1ZbZc5AVi75OXfwVJx6huPFdJgLZgT-iphNSBtyIyTho-2Gurv4U86El7hPmdVFUQ7e_b0wYaUQAJa4lXS1lXsJ53rbFNzerBbY3m9wPLAZfg5STWNQUvPrG2iDg5AGLGGmEoQcKmbFvzqhuL3mL9ILxa3tSsQ84tC88epYaeFekQZPN3U6HjKSABMAE; expires=Mon, 17-Aug-2026 09:33:33 GMT; path=/; domain=gemini.google.com; Secure; HttpOnly; SameSite=none
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+=== chrome.google.com ===
+HTTP/2 404 
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-type: text/html; charset=UTF-8
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== console.cloud.google.com ===
+HTTP/2 302 
+content-type: application/binary
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+location: https://accounts.google.com/ServiceLogin?service=cloudconsole&passive=1209600&osid=1&continue=https://console.cloud.google.com/.well-known/oauth-authorization-server&followup=https://console.cloud.google.com/.well-known/oauth-authorization-server
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+strict-transport-security: max-age=31536000
+content-security-policy: require-trusted-types-for 'script';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb
+content-security-policy: script-src 'nonce-TLz-7-vEF9Ib1uLmKfLxOw' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb;worker-src blob: 'self' data: gstatic.com *.gstatic.com
+cross-origin-resource-policy: same-site
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+cross-origin-opener-policy: same-origin-allow-popups
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+
+=== gemini.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+cross-origin-opener-policy: same-origin-allow-popups
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+content-security-policy: script-src 'nonce-r9raAaYdUkKv8oZpS0gqfw' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri /_/BardChatUi/cspreport
+content-security-policy: require-trusted-types-for 'script';report-uri /_/BardChatUi/cspreport
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+server-timing: l2gfet4t7; dur=43, gfet4t7; dur=51
+set-cookie: NID=533=EZu2fGrtGnuecfHp4vRnvqkdFVDF9fh6Y2EJwzly1fh0hKSY9EpELFcL5XnpPAcwsnFP9qxe-TZA-YdL88oqZ-hNVrOU_C_Oz3OC9ZEJI8s9JRCzEE6g91bHcaQZmDP_K4fngq-3WI61y3sFapYur3dokJuMD1mNS524q3i_8se1RIwiC50_h4os6qmQowKjnTbL3hc; expires=Sat, 06-Feb-2027 09:33:34 GMT; path=/; domain=.google.com; HttpOnly
+set-cookie: COMPASS=gemini-pd=CjwACWuJV93jFYb_b6k1ZbZc5AVi75OXfwVJx6huPFdJgLZgT-iphNSBtyIyTho-2Gurv4U86El7hPmdVFUQ7u_b0wYaUQAJa4lXS1lXsJ53rbFNzerBbY3m9wPLAZfg5STWNQUvPrG2iDg5AGLGGmEoQcKmbFvzqhuL3mL9ILxa3tSsQ84tC88epYaeFekQZPN3U6HjKSABMAE; expires=Mon, 17-Aug-2026 09:33:34 GMT; path=/; domain=gemini.google.com; Secure; HttpOnly; SameSite=none
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+=== mail.google.com ===
+HTTP/2 301 
+location: https://www.google.com/.well-known/oauth-authorization-server
+cross-origin-resource-policy: cross-origin
+content-type: text/html; charset=UTF-8
+x-content-type-options: nosniff
+date: Fri, 07 Aug 2026 09:33:34 GMT
+expires: Fri, 07 Aug 2026 10:03:34 GMT
+cache-control: public, max-age=1800
+server: sffe
+content-length: 258
+x-xss-protection: 0
+alt-svc: clear
+
+
+=== myaccount.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: require-trusted-types-for 'script';report-uri /_/IdentityNotFoundHttp/cspreport
+content-security-policy: script-src 'nonce-cOm9NGjD_tsUGsvYV--Pmw' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/IdentityNotFoundHttp/cspreport;worker-src 'self'
+cross-origin-opener-policy: same-origin
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=BSZe7loop_fcmyc0llYgM9LhhVLVV2dwhYIQe8T63k3JyUUBo3vLOplxmk7XnNJ8OkNZGSLuGFTEQTmsHXWq4vh1ko5fvXbYn0zCLeeMIlMzqQz3PuQx7LKn4X6EA6sTvHCbPOYkjk4idCbbLVzYfkdubDgX4rHpkkUA-u24eQ7n0jvMjhoaf1e3R6DDyGtQTiv1RPY; expires=Sat, 06-Feb-2027 09:33:34 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== passwords.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: require-trusted-types-for 'script';report-uri /_/IdentityNotFoundHttp/cspreport
+content-security-policy: script-src 'nonce-3w54skjs-4P8WDDGxyx-ng' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/IdentityNotFoundHttp/cspreport;worker-src 'self'
+cross-origin-opener-policy: same-origin
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=dSdU-E6gAd0QMHDrCaZKMW_1hniePFzWn6Dm72TjVhfp4LRnJTAxQybH8MXgtz9257ftibWgk31q9NEPtJ01zw6S9OPnRIYN7c6_nwy1pl51wc_TxWtEXbWiQWj8DX_Tipb7n0z_Wt7nWZyYQVCflvBhAXNBGjamaThHJF7ArU336ayRFn-W7AOOIp8Uta9fmBSuF-M; expires=Sat, 06-Feb-2027 09:33:34 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== play.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+cross-origin-opener-policy: same-origin
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+content-security-policy: require-trusted-types-for 'script';report-uri /_/PlayAtomFeedHttp/cspreport
+content-security-policy: script-src 'nonce-2EkXS5ZCsqQR3Rk6jmfPxw' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/PlayAtomFeedHttp/cspreport;worker-src 'self'
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=CsX4u3E6bOcngMyyIe8bCwlKV4q63XL3wtNFX1-1zj4Un4HlPbMTNI3lH1afjgbsYJV1yZ2u0XAGFEAUImzoIAPCIrH2Had0sBrLVWfrY-zGJs8QL0SfmUSG2o6TpiLgDNnImJg8gSV5CMC0eRzL22wO0-tfij-sVQZ0Z_myIkZ5nAyL_dV4NJ6C-O59ZmTFnN01u6g; expires=Sat, 06-Feb-2027 09:33:34 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== takeout.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:34 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: script-src 'nonce-_85VvNjMIO5SFPxVVn9RJg' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/IdentityNotFoundHttp/cspreport;worker-src 'self'
+content-security-policy: require-trusted-types-for 'script';report-uri /_/IdentityNotFoundHttp/cspreport
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+cross-origin-opener-policy: same-origin
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=O3Co4P5fjcBK7WqhORjjGkZjNgxbOZzKZrsCX_LtdjzIQBrfYo0et0eGuAI3kUkw51Gtt-ol3Q__wgKKmnupfb6eF4wd5KolZQD5rRBUGgMR9qLDoI5bErK7x9lI88ofRt8mf40nnfEImMHYqyrcs8_3iRPbGzgaatlsT-p_cAGk9UP79N_H7RLCBROzJuPeaiU8RUU; expires=Sat, 06-Feb-2027 09:33:34 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== vault.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:35 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: require-trusted-types-for 'script';report-uri /_/VaultWebUi/cspreport
+content-security-policy: script-src 'nonce-D1PysydDuS6L2IuH9dlUmA' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/VaultWebUi/cspreport;worker-src 'self' blob:
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+cross-origin-opener-policy: same-origin-allow-popups
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=kU3d_o2MFeZtvobK0RAONd0wlgccLJr25aarofRfuHH5REf46oSjgaY0qwnu8NZiOgu7jrW7CmAL_Udv5JZUrEB0UmUVeEpkvPlRDRJoR-U2cAWeUJxkgXUF2y4B4sGLI5SiszwFQTmZtjhoN_ZgBYwnsiGTIU3xAqAhbg8udLfPMwE5I0uHX9kZuBr44bikPl3df6U; expires=Sat, 06-Feb-2027 09:33:35 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== console.firebase.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:35 GMT
+content-length: 0
+cross-origin-opener-policy: same-origin-allow-popups
+content-security-policy: script-src 'nonce-3HXmESI_x8p4gJITB6Bmow' 'unsafe-inline' 'strict-dynamic' https: http: 'unsafe-eval';object-src 'none';base-uri 'self';report-uri /cspreport
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== issuetracker.google.com ===
+HTTP/2 302 
+content-type: application/binary
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:35 GMT
+location: https://issuetracker.google.com/issues?q=.well-known%2Foauth-authorization-server
+content-length: 0
+cross-origin-resource-policy: same-site
+content-security-policy: script-src 'nonce-UmhrEj3VsPDe9qIj6ni56g' 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';worker-src 'self';report-uri /cspreport
+content-security-policy: require-trusted-types-for 'script';report-uri /cspreport
+content-security-policy-report-only: script-src 'nonce-UmhrEj3VsPDe9qIj6ni56g' 'unsafe-inline';object-src 'none';base-uri 'self';worker-src 'self';report-uri /cspreport
+cross-origin-opener-policy: same-origin-allow-popups; report-to="coop_buganizer"
+report-to: {"group":"coop_buganizer","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/buganizer"}]}
+server: ESF
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+=== cloudsearch.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:35 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+cross-origin-opener-policy: same-origin-allow-popups
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+content-security-policy: script-src 'nonce-6tP8WfqAiyKjMc28Bq09Og' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/TopazUi/cspreport;worker-src 'self' blob:
+content-security-policy: require-trusted-types-for 'script';report-uri /_/TopazUi/cspreport
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=CUXkroVHzbnEJWyrxv4N2pq8PikvulceemvAmvNmP9A6wcqhEGFtlT-CNncA3yxHFQNJM4Mr8FRUqSMlPqX_lZDoETcM3c62tc1rRsHoMJXHwbX-2tNfimvwGFnQrb9BihMCFccWGTxXnxMfYt9H0xjUjERxwiOmxpjwkHWXAgy-cqCQAGjMw6pMk_TQhXk-9FLZ0KQ; expires=Sat, 06-Feb-2027 09:33:35 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mfor domain in accounts.google.com admin.google.com console.cloud.google.com gemini.google.com myaccount.google.com; do echo "=== $domain ==="; timeout 5 curl -s -I "https://$domain/.well-known/openid-configuration" 2>&1 | head -20; echo ""; done
+=== accounts.google.com ===
+HTTP/2 200 
+accept-ranges: bytes
+access-control-allow-origin: *
+content-security-policy-report-only: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/federated-signon-mpm-access
+cross-origin-opener-policy: same-origin; report-to="federated-signon-mpm-access"
+report-to: {"group":"federated-signon-mpm-access","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/federated-signon-mpm-access"}]}
+content-length: 1399
+x-content-type-options: nosniff
+server: sffe
+x-xss-protection: 0
+date: Fri, 07 Aug 2026 08:54:50 GMT
+expires: Fri, 07 Aug 2026 09:54:50 GMT
+cache-control: public, max-age=3600
+age: 2336
+last-modified: Tue, 17 Mar 2026 14:48:34 GMT
+content-type: application/json
+vary: Accept-Encoding
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== admin.google.com ===
+HTTP/2 204 
+date: Fri, 07 Aug 2026 09:33:46 GMT
+content-type: text/html
+server: scaffolding on HTTPServer2
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+
+=== console.cloud.google.com ===
+HTTP/2 302 
+content-type: application/binary
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:46 GMT
+location: https://accounts.google.com/ServiceLogin?service=cloudconsole&passive=1209600&osid=1&continue=https://console.cloud.google.com/.well-known/openid-configuration&followup=https://console.cloud.google.com/.well-known/openid-configuration
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+strict-transport-security: max-age=31536000
+content-security-policy: require-trusted-types-for 'script';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb
+content-security-policy: script-src 'nonce--UKQEFFY-X0XZvo58z9EfQ' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb;worker-src blob: 'self' data: gstatic.com *.gstatic.com
+cross-origin-resource-policy: same-site
+cross-origin-opener-policy: same-origin-allow-popups
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+
+=== gemini.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:46 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+cross-origin-opener-policy: same-origin-allow-popups
+content-security-policy: script-src 'nonce-qh-A1fJRGlZ5sxv4UNDKxw' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri /_/BardChatUi/cspreport
+content-security-policy: require-trusted-types-for 'script';report-uri /_/BardChatUi/cspreport
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+server-timing: l2gfet4t7; dur=45, gfet4t7; dur=53
+set-cookie: NID=533=Wytd1rN7U3dJQVsiXv__1Gm8sYi-0aV7RJPBLvqrhJ8WwtIYWcqfB2QgExqWAhlZWtxy76AUG7ZCsxFliYimcTv4pocoVLgsUQqt7bFmTmOg-AvfDwXODgeXUzVNKQ-KEfw5Be13KSI_YycRN-iHjbfa2AzLMDE1_GYhcmPVFlLTEMBGTw-35EQH5Z9VvnMrhwBBdFVW; expires=Sat, 06-Feb-2027 09:33:46 GMT; path=/; domain=.google.com; HttpOnly
+set-cookie: COMPASS=gemini-pd=CjwACWuJV93jFYb_b6k1ZbZc5AVi75OXfwVJx6huPFdJgLZgT-iphNSBtyIyTho-2Gurv4U86El7hPmdVFUQ-u_b0wYaUQAJa4lXS1lXsJ53rbFNzerBbY3m9wPLAZfg5STWNQUvPrG2iDg5AGLGGmEoQcKmbFvzqhuL3mL9ILxa3tSsQ84tC88epYaeFekQZPN3U6HjKSABMAE; expires=Mon, 17-Aug-2026 09:33:46 GMT; path=/; domain=gemini.google.com; Secure; HttpOnly; SameSite=none
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+=== myaccount.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:33:46 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: require-trusted-types-for 'script';report-uri /_/IdentityNotFoundHttp/cspreport
+content-security-policy: script-src 'nonce-ns7YrPOyeX8_J_ug6X4Wag' 'unsafe-inline';object-src 'none';base-uri 'self';report-uri /_/IdentityNotFoundHttp/cspreport;worker-src 'self'
+cross-origin-opener-policy: same-origin
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=DteEqSReDXY6ykVZM2I3f9HkfaTvFNTzbWb0MYS5_vEP70xYXvpcgk6rDv7EMCzlSeBB_8xBHh8YbZxo_r88z8kGdinjldBBF2CZtBqwjgjLK6Qm5Qc17MN8j0eSqQFze8G4Mh8uPXo0WLN6Dn_PC7rQmBrK_nxUcm0jeAw0i1tzn7yz5PxmYiMUIOkUYHq6By-4tXc; expires=Sat, 06-Feb-2027 09:33:46 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://accounts.google.com/.well-known/oauth-authorization-server" | jq .
+{
+  "issuer": "https://accounts.google.com",
+  "authorization_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+  "device_authorization_endpoint": "https://oauth2.googleapis.com/device/code",
+  "token_endpoint": "https://oauth2.googleapis.com/token",
+  "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+  "revocation_endpoint": "https://oauth2.googleapis.com/revoke",
+  "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
+  "response_types_supported": [
+    "code",
+    "token",
+    "id_token",
+    "code token",
+    "code id_token",
+    "token id_token",
+    "code token id_token",
+    "none"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_post",
+    "client_secret_basic"
+  ],
+  "claims_supported": [
+    "aud",
+    "email",
+    "email_verified",
+    "exp",
+    "family_name",
+    "given_name",
+    "iat",
+    "iss",
+    "name",
+    "picture",
+    "sub"
+  ],
+  "code_challenge_methods_supported": [
+    "plain",
+    "S256"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "refresh_token",
+    "urn:ietf:params:oauth:grant-type:device_code",
+    "urn:ietf:params:oauth:grant-type:jwt-bearer"
+  ],
+  "service_documentation": "https://developers.google.com/identity/protocols/oauth2",
+  "response_modes_supported": [
+    "query",
+    "fragment",
+    "form_post"
+  ],
+  "authorization_response_iss_parameter_supported": true,
+  "op_policy_uri": "https://developers.google.com/terms/api-services-user-data-policy",
+  "op_tos_uri": "https://developers.google.com/terms"
+}
+[0m
+[0m$ [0mcurl -s "https://accounts.google.com/.well-known/openid-configuration" | jq .
+{
+  "issuer": "https://accounts.google.com",
+  "authorization_endpoint": "https://accounts.google.com/o/oauth2/v2/auth",
+  "device_authorization_endpoint": "https://oauth2.googleapis.com/device/code",
+  "token_endpoint": "https://oauth2.googleapis.com/token",
+  "userinfo_endpoint": "https://openidconnect.googleapis.com/v1/userinfo",
+  "revocation_endpoint": "https://oauth2.googleapis.com/revoke",
+  "jwks_uri": "https://www.googleapis.com/oauth2/v3/certs",
+  "response_types_supported": [
+    "code",
+    "token",
+    "id_token",
+    "code token",
+    "code id_token",
+    "token id_token",
+    "code token id_token",
+    "none"
+  ],
+  "response_modes_supported": [
+    "query",
+    "fragment",
+    "form_post"
+  ],
+  "subject_types_supported": [
+    "public"
+  ],
+  "id_token_signing_alg_values_supported": [
+    "RS256"
+  ],
+  "scopes_supported": [
+    "openid",
+    "email",
+    "profile"
+  ],
+  "token_endpoint_auth_methods_supported": [
+    "client_secret_post",
+    "client_secret_basic"
+  ],
+  "claims_supported": [
+    "aud",
+    "email",
+    "email_verified",
+    "exp",
+    "family_name",
+    "given_name",
+    "iat",
+    "iss",
+    "name",
+    "picture",
+    "sub"
+  ],
+  "code_challenge_methods_supported": [
+    "plain",
+    "S256"
+  ],
+  "grant_types_supported": [
+    "authorization_code",
+    "refresh_token",
+    "urn:ietf:params:oauth:grant-type:device_code",
+    "urn:ietf:params:oauth:grant-type:jwt-bearer"
+  ],
+  "authorization_response_iss_parameter_supported": true
+}
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/oauth2/v3/certs" | jq .
+{
+  "keys": [
+    {
+      "kid": "b6dd51e66d36010bd3bbdfb3c91a1a5f6ec6c12c",
+      "use": "sig",
+      "e": "AQAB",
+      "n": "5vwKWwUfpipVmVHwU8MVsjFGh0K1WPNX_YDWNdVkrcMKGcPG_k3_ZCPWQ9bTm38kITVTtAJGZzo2xxFBlHJ5m9Rw2EbYJ-tdwlcodR4gGtBllFSo-hX0U6hgDapnFjky3xEWx8Au4cXVV-uYMUJAR3y4q9PeYV1rdmHTbK0gFUmyd2BPz5NEVVAKkQH8L1gTTYKSDOUD2UzLDw1fx46dv4OELhfMJsObnG_MsBzxwNSQOUCE9Et2ikQ3BypfGFl59N3yx5PKchtpa9Z1c8hYMEuv5cel5bKclXcZyMo4yuj84OjFpRrE8xfwruI7C-9CULcoq2Qy1o2OI-saXPd3Pw",
+      "kty": "RSA",
+      "alg": "RS256"
+    },
+    {
+      "kty": "RSA",
+      "e": "AQAB",
+      "n": "yYcQpXE3z8HRR3Vw7n5vQHCK-DM7kyfHd9Q17PZp82g6mBXfwTVzui6dLM4gyDGhOOiU2RCcJurDy2Rk8danIdnEhD4Mai-0SYR0Lr1AVUfVr5yqEnEXJ2kdysNPVBP4b2ZL_Ksen5rpZMnTl9M0Ke5GfbzHyStF-o3x7wV_SMZFbRu912AblpxJuI9f82fhT8PHYhiJotfkiSDsSsoSrsW0qojR_vXFpRU0KQRBm8wR-sZ7SdnSuEgxfz3dHaPydktBHSoCL-sJ-84-SBlxWKDbLwIwA-jqvOzFIgiSjgjSg2TAMi5Ib2UD8RF4bhbGCaapkwUCxSI1M_OTE1J2WQ",
+      "alg": "RS256",
+      "kid": "49900291d36cec8c018f2e8af3ef235b8b18d3c9",
+      "use": "sig"
+    },
+    {
+      "kid": "943a3a5d7d919625a454e489b75c29adab57acba",
+      "use": "sig",
+      "e": "AQAB",
+      "n": "pIpnzA2ezyEERJSxiqpLBmMeIqATH-V6iuBtKIibXEyYovujrx8niqTeO6RIyXT6uDUUv0V2kJ8V_iWYFxzXY1BqK9IfcAmjg0XUDoyTVkoyLsF0gj299LH-zw5vCvy8jmamFIZKAbKcQ5hpHvSittM1vl-6vVL-i2GxyGbMA9aY6Hq15NylS1t7ELTYfQimlnvxcb7_DM0cuS5U1SfbCZMCpKhh0nrSlYds240oxpCJOV2rBahs_Ea5c7tezS1nwVC9W_E-bR9TF6BHkC_fv-E8DcWfkI_6geaJzBhINNxBfjx-w1-WUp2Jz3YYFWEfeQjxMqu-Fg6cGxwk7V16uQ",
+      "kty": "RSA",
+      "alg": "RS256"
+    },
+    {
+      "e": "AQAB",
+      "n": "4rY5uwZK1dQ-UVgB5s4NLyC-u5LC2MT7b8GWZztiNgMsp0Nnqx0pM7Ofx0ws32N2aZcx10-J8ydQxnNb9uAcf-7LyhyOIcv_WEyzaSbUAMOgoF-nQmJetckxNg6ekhNfaFcTQS0T-29ql2_CBLIML6CvSh-r0fgWRsqN2ayB7wCl74Gv6OOVbvagUWhj5z2L6o_plmsPDwLVuvA7o3WDEDjoq-IXafRQowj92kQUenrOKD4YCopuLIBhel6VH8doFRNZ6KISQhMcOivWaLU_UtKKAMloGJieTf_3r-_nErs2h5wB7T7FrMCScmO7mvFQXKh8_4P-MlbfgS9CUvQksw",
+      "kty": "RSA",
+      "alg": "RS256",
+      "kid": "f10f87405a979c1df36df26606734f33cd85c271",
+      "use": "sig"
+    }
+  ]
+}
+[0m
+[0m$ [0mfor domain in console.cloud.google.com gemini.google.com admin.google.com; do echo "=== $domain ==="; timeout 5 curl -s -I "https://$domain/_ah/api/discovery/v1/apis" 2>&1 | head -15; echo ""; done
+=== console.cloud.google.com ===
+HTTP/2 302 
+content-type: application/binary
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:34:05 GMT
+location: https://accounts.google.com/ServiceLogin?service=cloudconsole&passive=1209600&osid=1&continue=https://console.cloud.google.com/_ah/api/discovery/v1/apis&followup=https://console.cloud.google.com/_ah/api/discovery/v1/apis
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+strict-transport-security: max-age=31536000
+content-security-policy: require-trusted-types-for 'script';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb
+content-security-policy: script-src 'nonce-PXuYcTec-GhMP59meNc04Q' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri https://csp.withgoogle.com/csp/CloudConsoleWeb;worker-src blob: 'self' data: gstatic.com *.gstatic.com
+cross-origin-resource-policy: same-site
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+
+=== gemini.google.com ===
+HTTP/2 404 
+content-type: text/html; charset=utf-8
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:34:05 GMT
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: script-src 'nonce-fLv0v0dkSp7SqE9rZp5qDA' 'unsafe-inline' 'unsafe-eval' 'strict-dynamic' https: http:;object-src 'none';base-uri 'self';report-uri /_/BardChatUi/cspreport
+content-security-policy: require-trusted-types-for 'script';report-uri /_/BardChatUi/cspreport
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+cross-origin-opener-policy: same-origin-allow-popups
+server: ESF
+x-xss-protection: 0
+
+=== admin.google.com ===
+HTTP/2 204 
+date: Fri, 07 Aug 2026 09:34:06 GMT
+content-type: text/html
+server: scaffolding on HTTPServer2
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis" | jq '.items[] | select(.name | contains("cloud") or contains("iam") or contains("compute") or contains("container") or contains("run") or contains("sql") or contains("secret") or contains("kms") or contains("vertex") or contains("aiplatform") or contains("cloudbuild") or contains("artifact") or contains("bigquery") or contains("pubsub") or contains("firestore") or contains("spanner") or contains("bigtable") or contains("alloydb") or contains("appengine") or contains("storage") or contains("loadbalancing") or contains("vpc") or contains("network")) | {name, version, title, discoveryRestUrl}' | head -80
+{
+  "name": "aiplatform",
+  "version": "v1beta1",
+  "title": "Agent Platform API",
+  "discoveryRestUrl": "https://aiplatform.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "aiplatform",
+  "version": "v1",
+  "title": "Agent Platform API",
+  "discoveryRestUrl": "https://aiplatform.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "alloydb",
+  "version": "v1alpha",
+  "title": "AlloyDB API",
+  "discoveryRestUrl": "https://alloydb.googleapis.com/$discovery/rest?version=v1alpha"
+}
+{
+  "name": "alloydb",
+  "version": "v1beta",
+  "title": "AlloyDB API",
+  "discoveryRestUrl": "https://alloydb.googleapis.com/$discovery/rest?version=v1beta"
+}
+{
+  "name": "alloydb",
+  "version": "v1",
+  "title": "AlloyDB API",
+  "discoveryRestUrl": "https://alloydb.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "appengine",
+  "version": "v1alpha",
+  "title": "App Engine Admin API",
+  "discoveryRestUrl": "https://appengine.googleapis.com/$discovery/rest?version=v1alpha"
+}
+{
+  "name": "appengine",
+  "version": "v1beta",
+  "title": "App Engine Admin API",
+  "discoveryRestUrl": "https://appengine.googleapis.com/$discovery/rest?version=v1beta"
+}
+{
+  "name": "appengine",
+  "version": "v1",
+  "title": "App Engine Admin API",
+  "discoveryRestUrl": "https://appengine.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "artifactregistry",
+  "version": "v1beta1",
+  "title": "Artifact Registry API",
+  "discoveryRestUrl": "https://artifactregistry.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "artifactregistry",
+  "version": "v1beta2",
+  "title": "Artifact Registry API",
+  "discoveryRestUrl": "https://artifactregistry.googleapis.com/$discovery/rest?version=v1beta2"
+}
+{
+  "name": "artifactregistry",
+  "version": "v1",
+  "title": "Artifact Registry API",
+  "discoveryRestUrl": "https://artifactregistry.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "bigquery",
+  "version": "v2",
+  "title": "BigQuery API",
+  "discoveryRestUrl": "https://bigquery.googleapis.com/$discovery/rest?version=v2"
+}
+{
+  "name": "bigqueryconnection",
+  "version": "v1beta1",
+  "title": "BigQuery Connection API",
+  "discoveryRestUrl": "https://bigqueryconnection.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "bigqueryconnection",
+[0m
+[0m$ [0mcurl -s -I "https://oauth2.googleapis.com/token" 2>&1 | head -20
+HTTP/2 404 
+content-type: text/html
+date: Fri, 07 Aug 2026 09:34:14 GMT
+server: scaffolding on HTTPServer2
+content-length: 0
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s -X POST "https://oauth2.googleapis.com/token" -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=authorization_code&code=invalid&client_id=invalid&client_secret=invalid&redirect_uri=https://example.com" 2>&1 | head -30
+{
+  "error": "invalid_client",
+  "error_description": "The OAuth client was not found."
+}
+[0m
+[0m$ [0mcurl -s "https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta" | jq '.schemas | keys' | head -40
+(no output)
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/$discovery/rest?version=v1" | jq '.schemas | keys' | head -60
+jq: parse error: Invalid numeric literal at line 1, column 10
+[0m
+[0m$ [0mcurl -s -I "https://aistudio.google.com" 2>&1 | head -25
+HTTP/2 302 
+content-type: application/binary
+x-frame-options: DENY
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:34:28 GMT
+location: https://aistudio.google.com/welcome
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+content-security-policy: script-src 'nonce-e5SYpqtjbXmH-vLm-2kiBQ' 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';report-uri /_/MakerSuite/cspreport;worker-src 'self'
+content-security-policy: require-trusted-types-for 'script';report-uri /_/MakerSuite/cspreport
+cross-origin-opener-policy: same-origin-allow-popups
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+cross-origin-resource-policy: same-site
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=NB18J5ORPfDfm29CqTxYlnZrD4Kbx7XQezD-2tH2fQmQvOMczTliWzEB5eDBuDIvAOE17_mBABw4LGM2O2UAXFHmx186NA0mRwDvbIhXvAwWKw-akzVZ7KQlzrmkJt5I-BnpVIMTpUZ0gRRA5P6pR1F15Z8iLmmofOqh0MxJonYxoQornHXmq2WzyxTcuwQ16BRMTLFC; expires=Sat, 06-Feb-2027 09:34:28 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/$discovery/rest?version=v1" 2>&1 | head -50
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 404 (Not Found)!!1</title>
+  <style>
+    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#222;padding:15px}body{margin:7% auto 0;max-width:390px;min-height:180px;padding:30px 0 15px}* > body{background:url(//www.google.com/images/errors/robot.png) 100% 5px no-repeat;padding-right:205px}p{margin:11px 0 22px;overflow:hidden}ins{color:#777;text-decoration:none}a img{border:0}@media screen and (max-width:772px){body{background:none;margin-top:0;max-width:none;padding-right:0}}#logo{background:url(//www.google.com/images/branding/googlelogo/1x/googlelogo_color_150x54dp.png) no-repeat;margin-left:-5px}@media only screen and (min-resolution:192dpi){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat 0% 0%/100% 100%;-moz-border-image:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) 0}}@media only screen and (-webkit-min-device-pixel-ratio:2){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat;-webkit-background-size:100% 100%}}#logo{display:inline-block;height:54px;width:150px}
+  </style>
+  <a href=//www.google.com/><span id=logo aria-label=Google></span></a>
+  <p><b>404.</b> <ins>That’s an error.</ins>
+  <p>The requested URL <code>/rest?version=v1</code> was not found on this server.  <ins>That’s all we know.</ins>
+[0m
+[0m$ [0mcurl -s -I "https://aistudio.google.com/apis" 2>&1 | head -25
+HTTP/2 302 
+content-type: application/binary
+x-frame-options: DENY
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:34:35 GMT
+location: https://accounts.google.com/ServiceLogin?passive=1209600&continue=https://aistudio.google.com/apis&followup=https://aistudio.google.com/apis
+content-length: 0
+p3p: CP="This is not a P3P policy! See g.co/p3phelp for more info."
+accept-ch: Sec-CH-UA-Arch, Sec-CH-UA-Bitness, Sec-CH-UA-Full-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Model, Sec-CH-UA-WoW64, Sec-CH-UA-Form-Factors, Sec-CH-UA-Platform, Sec-CH-UA-Platform-Version
+content-security-policy: require-trusted-types-for 'script';report-uri /_/MakerSuite/cspreport
+content-security-policy: script-src 'nonce-3-Pi1FQtNG0k9fcsa4XzoQ' 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';report-uri /_/MakerSuite/cspreport;worker-src 'self'
+permissions-policy: ch-ua-arch=*, ch-ua-bitness=*, ch-ua-full-version=*, ch-ua-full-version-list=*, ch-ua-model=*, ch-ua-wow64=*, ch-ua-form-factors=*, ch-ua-platform=*, ch-ua-platform-version=*
+cross-origin-resource-policy: same-site
+cross-origin-opener-policy: same-origin-allow-popups
+server: ESF
+x-xss-protection: 0
+x-content-type-options: nosniff
+set-cookie: NID=533=W_hld-JCXutS-Lup7z3SOV0VqPy3fQdww1_w0jQZivP625fjHNr81UEnb4NX8ZAfEV91x5HWafSk1a8hLBBoIGqKcv8SIamcHAEnLvmLmETWFIJsn8zLXRsI4oVY4EVmKeKE9n9kD1up0tXDtK5qF2wlSXRKWizmc-BiGGrk0okQVk1LcKYVaRwSV6kmVnYueRTq7tCp; expires=Sat, 06-Feb-2027 09:34:35 GMT; path=/; domain=.google.com; HttpOnly
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/$discovery/rest?version=v1" 2>&1 | head -2
+<!DOCTYPE html>
+<html lang=en>
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/discovery/v1/apis/aiplatform/v1/rest" 2>&1 | head -50
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 404 (Not Found)!!1</title>
+  <style>
+    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#222;padding:15px}body{margin:7% auto 0;max-width:390px;min-height:180px;padding:30px 0 15px}* > body{background:url(//www.google.com/images/errors/robot.png) 100% 5px no-repeat;padding-right:205px}p{margin:11px 0 22px;overflow:hidden}ins{color:#777;text-decoration:none}a img{border:0}@media screen and (max-width:772px){body{background:none;margin-top:0;max-width:none;padding-right:0}}#logo{background:url(//www.google.com/images/branding/googlelogo/1x/googlelogo_color_150x54dp.png) no-repeat;margin-left:-5px}@media only screen and (min-resolution:192dpi){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat 0% 0%/100% 100%;-moz-border-image:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) 0}}@media only screen and (-webkit-min-device-pixel-ratio:2){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat;-webkit-background-size:100% 100%}}#logo{display:inline-block;height:54px;width:150px}
+  </style>
+  <a href=//www.google.com/><span id=logo aria-label=Google></span></a>
+  <p><b>404.</b> <ins>That’s an error.</ins>
+  <p>The requested URL <code>/discovery/v1/apis/aiplatform/v1/rest</code> was not found on this server.  <ins>That’s all we know.</ins>
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis/aiplatform/v1/rest" 2>&1 | jq '.schemas | keys' | head -60
+jq: error (at <stdin>:7): null (null) has no keys
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis/iam/v1/rest" 2>&1 | jq '.schemas | keys' | head -40
+[
+  "AccessRestrictions",
+  "AddAttestationRuleRequest",
+  "AdminAuditData",
+  "AttestationRule",
+  "AuditConfig",
+  "AuditData",
+  "AuditLogConfig",
+  "AuditableService",
+  "Aws",
+  "Binding",
+  "BindingDelta",
+  "CreateRoleRequest",
+  "CreateServiceAccountKeyRequest",
+  "CreateServiceAccountRequest",
+  "DisableServiceAccountKeyRequest",
+  "DisableServiceAccountRequest",
+  "Empty",
+  "EnableServiceAccountKeyRequest",
+  "EnableServiceAccountRequest",
+  "Expr",
+  "ExtendedStatus",
+  "GetIamPolicyRequest",
+  "GetPolicyOptions",
+  "GoogleIamAdminV1WorkforcePoolProviderExtraAttributesOAuth2Client",
+  "GoogleIamAdminV1WorkforcePoolProviderExtraAttributesOAuth2ClientQueryParameters",
+  "GoogleIamAdminV1WorkforcePoolProviderOidc",
+  "GoogleIamAdminV1WorkforcePoolProviderOidcClientSecret",
+  "GoogleIamAdminV1WorkforcePoolProviderOidcClientSecretValue",
+  "GoogleIamAdminV1WorkforcePoolProviderOidcWebSsoConfig",
+  "GoogleIamAdminV1WorkforcePoolProviderSaml",
+  "InlineCertificateIssuanceConfig",
+  "InlineTrustConfig",
+  "IntermediateCA",
+  "KeyData",
+  "LintPolicyRequest",
+  "LintPolicyResponse",
+  "LintResult",
+  "ListAttestationRulesResponse",
+  "ListOauthClientCredentialsResponse",
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis/aiplatform/v1/rest" 2>&1 | head -100
+{
+  "error": {
+    "code": 404,
+    "message": "Requested entity was not found.",
+    "status": "NOT_FOUND"
+  }
+}
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis/cloudresourcemanager/v3/rest" 2>&1 | jq '.schemas | keys' | head -40
+[
+  "AuditConfig",
+  "AuditLogConfig",
+  "Binding",
+  "Capability",
+  "CloudresourcemanagerGoogleCloudResourcemanagerV2alpha1FolderOperation",
+  "CloudresourcemanagerGoogleCloudResourcemanagerV2beta1FolderOperation",
+  "CreateFolderMetadata",
+  "CreateProjectMetadata",
+  "CreateTagBindingMetadata",
+  "CreateTagKeyMetadata",
+  "CreateTagValueMetadata",
+  "DeleteFolderMetadata",
+  "DeleteOrganizationMetadata",
+  "DeleteProjectMetadata",
+  "DeleteTagBindingMetadata",
+  "DeleteTagKeyMetadata",
+  "DeleteTagValueMetadata",
+  "EffectiveTag",
+  "EffectiveTagBindingCollection",
+  "Empty",
+  "Expr",
+  "Folder",
+  "FolderOperation",
+  "FolderOperationError",
+  "GetIamPolicyRequest",
+  "GetPolicyOptions",
+  "Lien",
+  "ListEffectiveTagsResponse",
+  "ListFoldersResponse",
+  "ListLiensResponse",
+  "ListProjectsResponse",
+  "ListTagBindingsResponse",
+  "ListTagHoldsResponse",
+  "ListTagKeysResponse",
+  "ListTagValuesResponse",
+  "MoveFolderMetadata",
+  "MoveFolderRequest",
+  "MoveProjectMetadata",
+  "MoveProjectRequest",
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/$discovery/rest?version=v1" 2>&1 | python3 -m json.tool 2>&1 | head -100
+Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis?fields=items(name,version,title,discoveryRestUrl)" 2>&1 | jq '.items[] | select(.name=="aiplatform")'
+{
+  "name": "aiplatform",
+  "version": "v1beta1",
+  "title": "Agent Platform API",
+  "discoveryRestUrl": "https://aiplatform.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "aiplatform",
+  "version": "v1",
+  "title": "Agent Platform API",
+  "discoveryRestUrl": "https://aiplatform.googleapis.com/$discovery/rest?version=v1"
+}
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -m json.tool 2>&1 | head -150
+{
+    "id": "aiplatform:v1",
+    "baseUrl": "https://aiplatform.googleapis.com/",
+    "rootUrl": "https://aiplatform.googleapis.com/",
+    "ownerName": "Google",
+    "discoveryVersion": "v1",
+    "basePath": "",
+    "version_module": true,
+    "version": "v1",
+    "mtlsRootUrl": "https://aiplatform.mtls.googleapis.com/",
+    "name": "aiplatform",
+    "auth": {
+        "oauth2": {
+            "scopes": {
+                "https://www.googleapis.com/auth/cloud-platform": {
+                    "description": "See, edit, configure, and delete your Google Cloud data and see the email address for your Google Account."
+                },
+                "https://www.googleapis.com/auth/cloud-platform.read-only": {
+                    "description": "View your data across Google Cloud services and see the email address of your Google Account"
+                }
+            }
+        }
+    },
+    "description": "Build, scale, govern, and optimize sophisticated agents and models.",
+    "parameters": {
+        "fields": {
+            "type": "string",
+            "description": "Selector specifying which fields to include in a partial response.",
+            "location": "query"
+        },
+        "uploadType": {
+            "type": "string",
+            "description": "Legacy upload protocol for media (e.g. \"media\", \"multipart\").",
+            "location": "query"
+        },
+        "key": {
+            "type": "string",
+            "description": "API key. Your API key identifies your project and provides you with API access, quota, and reports. Required unless you provide an OAuth 2.0 token.",
+            "location": "query"
+        },
+        "upload_protocol": {
+            "location": "query",
+            "type": "string",
+            "description": "Upload protocol for media (e.g. \"raw\", \"multipart\")."
+        },
+        "prettyPrint": {
+            "default": "true",
+            "location": "query",
+            "type": "boolean",
+            "description": "Returns response with indentations and line breaks."
+        },
+        "callback": {
+            "location": "query",
+            "type": "string",
+            "description": "JSONP"
+        },
+        "quotaUser": {
+            "location": "query",
+            "type": "string",
+            "description": "Available to use for quota purposes for server-side applications. Can be any arbitrary string assigned to a user, but should not exceed 40 characters."
+        },
+        "access_token": {
+            "location": "query",
+            "type": "string",
+            "description": "OAuth access token."
+        },
+        "$.xgafv": {
+            "location": "query",
+            "enumDescriptions": [
+                "v1 error format",
+                "v2 error format"
+            ],
+            "type": "string",
+            "description": "V1 error format.",
+            "enum": [
+                "1",
+                "2"
+            ]
+        },
+        "alt": {
+            "default": "json",
+            "location": "query",
+            "enumDescriptions": [
+                "Responses with Content-Type of application/json",
+                "Media download with context-dependent Content-Type",
+                "Responses with Content-Type of application/x-protobuf"
+            ],
+            "enum": [
+                "json",
+                "media",
+                "proto"
+            ],
+            "type": "string",
+            "description": "Data format for response."
+        },
+        "oauth_token": {
+            "location": "query",
+            "type": "string",
+            "description": "OAuth 2.0 token for the current user."
+        }
+    },
+    "title": "Agent Platform API",
+    "canonicalName": "Aiplatform",
+    "icons": {
+        "x16": "http://www.google.com/images/icons/product/search-16.gif",
+        "x32": "http://www.google.com/images/icons/product/search-32.gif"
+    },
+    "endpoints": [
+        {
+            "location": "africa-south1",
+            "description": "Locational Endpoint",
+            "endpointUrl": "https://africa-south1-aiplatform.googleapis.com/"
+        },
+        {
+            "description": "Locational Endpoint",
+            "location": "asia-east1",
+            "endpointUrl": "https://asia-east1-aiplatform.googleapis.com/"
+        },
+        {
+            "location": "asia-east2",
+            "description": "Locational Endpoint",
+            "endpointUrl": "https://asia-east2-aiplatform.googleapis.com/"
+        },
+        {
+            "endpointUrl": "https://asia-northeast1-aiplatform.googleapis.com/",
+            "location": "asia-northeast1",
+            "description": "Locational Endpoint"
+        },
+        {
+            "location": "asia-northeast2",
+            "description": "Locational Endpoint",
+            "endpointUrl": "https://asia-northeast2-aiplatform.googleapis.com/"
+        },
+        {
+            "endpointUrl": "https://asia-northeast3-aiplatform.googleapis.com/",
+            "description": "Locational Endpoint",
+            "location": "asia-northeast3"
+        },
+        {
+            "endpointUrl": "https://asia-south1-aiplatform.googleapis.com/",
+            "location": "asia-south1",
+            "description": "Locational Endpoint"
+        },
+        {
+            "endpointUrl": "https://asia-south2-aiplatform.googleapis.com/",
+            "location": "asia-south2",
+            "description": "Locational Endpoint"
+        },
+        {
+            "description": "Locational Endpoint",
+[0m
+[0m$ [0mcurl -s "https://aiplatform.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -80
+[
+  "GoogleCloudAiplatformV1CreateServingProfileOperationMetadata",
+  "GoogleCloudAiplatformV1IndexEndpoint",
+  "GoogleCloudAiplatformV1ListSchedulesResponse",
+  "GoogleCloudAiplatformV1SchemaPredictPredictionTextSentimentPredictionResult",
+  "GoogleCloudAiplatformV1CreateDatasetVersionOperationMetadata",
+  "GoogleCloudAiplatformV1CometSpec",
+  "GoogleCloudAiplatformV1SummarizationQualitySpec",
+  "GoogleCloudAiplatformV1ImportModelEvaluationRequest",
+  "CloudAiLargeModelsVisionImageImageSize",
+  "GoogleCloudAiplatformV1SummarizationVerbosityResult",
+  "GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse",
+  "GoogleCloudAiplatformV1EvaluationResult",
+  "GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataTools",
+  "GoogleCloudAiplatformV1SchemaPredictParamsVideoActionRecognitionPredictionParams",
+  "GoogleCloudAiplatformV1FeatureViewDirectWriteResponse",
+  "GoogleCloudAiplatformV1CreatePipelineJobRequest",
+  "GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation",
+  "GoogleCloudAiplatformV1RubricGenerationSpec",
+  "GoogleCloudAiplatformV1GenerateContentResponseUsageMetadata",
+  "GoogleCloudAiplatformV1NasJob",
+  "GoogleCloudAiplatformV1DirectPredictResponse",
+  "GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse",
+  "GoogleCloudAiplatformV1TrajectorySingleToolUseInstance",
+  "GoogleCloudAiplatformV1PythonPackageSpec",
+  "GoogleCloudAiplatformV1SchemaPromptSpecAppBuilderDataLinkedResource",
+  "GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTrackingInputs",
+  "GoogleCloudAiplatformV1CreateFeaturestoreOperationMetadata",
+  "GoogleCloudAiplatformV1SemanticGovernancePolicyEngine",
+  "GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationAutoTransformation",
+  "GoogleCloudAiplatformV1NearestNeighborQueryParameters",
+  "GoogleCloudAiplatformV1ToolParameterKVMatchSpec",
+  "GoogleCloudAiplatformV1TrajectoryExactMatchResults",
+  "GoogleCloudAiplatformV1ListBatchPredictionJobsResponse",
+  "GoogleCloudAiplatformV1ListSandboxEnvironmentTemplatesResponse",
+  "GoogleCloudAiplatformV1SummarizationQualityInstance",
+  "GoogleCloudAiplatformV1BatchPredictionJobInputConfig",
+  "GoogleCloudAiplatformV1SchemaPredictPredictionVideoActionRecognitionPredictionResult",
+  "GoogleCloudAiplatformV1QuestionAnsweringCorrectnessInput",
+  "GoogleCloudAiplatformV1ListDatasetsResponse",
+  "GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfigTools",
+  "GoogleCloudAiplatformV1SchemaTablesDatasetMetadataGcsSource",
+  "GoogleCloudAiplatformV1MetricxInput",
+  "GoogleCloudAiplatformV1StudySpec",
+  "GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityInput",
+  "GoogleCloudAiplatformV1ReadTensorboardUsageResponsePerMonthUsageData",
+  "GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionMetricsConfidenceMetrics",
+  "GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessResult",
+  "GoogleCloudAiplatformV1RagVectorDbConfig",
+  "GoogleCloudAiplatformV1SchemaTrainingjobDefinitionExportEvaluatedDataItemsConfig",
+  "GoogleCloudAiplatformV1RemoveDatapointsRequest",
+  "GoogleCloudAiplatformV1RaySpec",
+  "GoogleCloudAiplatformV1DoubleArray",
+  "GoogleCloudAiplatformV1PointwiseMetricResult",
+  "GoogleCloudAiplatformV1KeepAliveProbe",
+  "GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoObjectTrackingMetrics",
+  "GoogleCloudAiplatformV1RagChunkPageSpan",
+  "GoogleCloudAiplatformV1ModelBaseModelSource",
+  "GoogleCloudAiplatformV1RougeInstance",
+  "GoogleCloudAiplatformV1DeployRequestDeployConfig",
+  "GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView",
+  "GoogleCloudAiplatformV1SchemaModelevaluationMetricsTrackMetricsConfidenceMetrics",
+  "GoogleCloudAiplatformV1PublisherModelCallToActionViewRestApi",
+  "GoogleCloudAiplatformV1ListEvaluationRunsResponse",
+  "GoogleCloudAiplatformV1SchemaPredictInstanceVideoActionRecognitionPredictionInstance",
+  "GoogleCloudAiplatformV1MetricxInstance",
+  "GoogleCloudAiplatformV1GeminiPreferenceExample",
+  "GoogleCloudAiplatformV1RagRetrievalConfigFilter",
+  "GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors",
+  "GoogleCloudAiplatformV1MeasurementMetric",
+  "GoogleCloudAiplatformV1MemoryGenerationTriggerConfigGenerationTriggerRule",
+  "GoogleCloudAiplatformV1ImportEvaluationSetRequestImportSchemaConfig",
+  "GoogleCloudAiplatformV1AutoscalingMetricSpec",
+  "GoogleCloudAiplatformV1EvaluationConfig",
+  "GoogleCloudAiplatformV1MutateDeployedModelRequest",
+  "GoogleCloudAiplatformV1EvaluateInstancesRequest",
+  "GoogleCloudAiplatformV1TunedModelRef",
+  "GoogleCloudAiplatformV1ImportDataRequest",
+  "GoogleCloudAiplatformV1TrajectoryRecallMetricValue",
+  "GoogleCloudAiplatformV1Measurement",
+[0m
+[0m$ [0mcurl -s -I "https://cloudconsole.googleapis.com" 2>&1 | head -20
+HTTP/2 404 
+date: Fri, 07 Aug 2026 09:35:09 GMT
+content-type: text/html; charset=UTF-8
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s -I "https://cloudresourcemanager.googleapis.com/v1/projects" 2>&1 | head -20
+HTTP/2 404 
+date: Fri, 07 Aug 2026 09:35:19 GMT
+content-type: text/html; charset=UTF-8
+server: ESF
+content-length: 1572
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+server-timing: gfet4t7; dur=3
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s -I "https://iam.googleapis.com/v1/projects" 2>&1 | head -20
+HTTP/2 404 
+date: Fri, 07 Aug 2026 09:35:29 GMT
+content-type: text/html; charset=UTF-8
+server: ESF
+content-length: 1572
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://cloudresourcemanager.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -60
+[
+  "Ancestor",
+  "Organization",
+  "UpdateFolderMetadata",
+  "Operation",
+  "ListLiensResponse",
+  "AuditConfig",
+  "ListAvailableOrgPolicyConstraintsResponse",
+  "OrgPolicy",
+  "SearchOrganizationsRequest",
+  "GetAncestryResponse",
+  "GetEffectiveOrgPolicyRequest",
+  "BooleanConstraint",
+  "RestoreDefault",
+  "ListProjectsResponse",
+  "CreateTagValueMetadata",
+  "UndeleteProjectMetadata",
+  "TestIamPermissionsResponse",
+  "CreateProjectMetadata",
+  "MoveFolderMetadata",
+  "MoveProjectMetadata",
+  "Binding",
+  "DeleteOrganizationMetadata",
+  "Project",
+  "ListOrgPoliciesRequest",
+  "Empty",
+  "TestIamPermissionsRequest",
+  "CreateTagBindingMetadata",
+  "OrganizationOwner",
+  "ListOrgPoliciesResponse",
+  "BooleanPolicy",
+  "Policy",
+  "DeleteTagBindingMetadata",
+  "CloudresourcemanagerGoogleCloudResourcemanagerV2alpha1FolderOperation",
+  "Lien",
+  "Status",
+  "GetIamPolicyRequest",
+  "ListPolicy",
+  "GetAncestryRequest",
+  "DeleteProjectMetadata",
+  "UpdateProjectMetadata",
+  "SetOrgPolicyRequest",
+  "ResourceId",
+  "GetPolicyOptions",
+  "UpdateTagKeyMetadata",
+  "ClearOrgPolicyRequest",
+  "DeleteTagKeyMetadata",
+  "AuditLogConfig",
+  "CreateTagKeyMetadata",
+  "UndeleteProjectRequest",
+  "DeleteFolderMetadata",
+  "FolderOperation",
+  "SearchOrganizationsResponse",
+  "ProjectCreationStatus",
+  "CloudresourcemanagerGoogleCloudResourcemanagerV2beta1FolderOperation",
+  "FolderOperationError",
+  "CreateFolderMetadata",
+  "DeleteTagValueMetadata",
+  "UndeleteOrganizationMetadata",
+  "UndeleteFolderMetadata",
+[0m
+[0m$ [0mcurl -s "https://iam.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -60
+[
+  "Empty",
+  "UndeleteWorkforcePoolSubjectRequest",
+  "AuditData",
+  "DisableServiceAccountKeyRequest",
+  "ReconciliationOperationMetadata",
+  "ListWorkloadIdentityPoolManagedIdentitiesResponse",
+  "QueryGrantableRolesRequest",
+  "AuditLogConfig",
+  "TrustAnchor",
+  "WorkforcePoolProviderScimTenant",
+  "UndeleteServiceAccountRequest",
+  "GoogleIamAdminV1WorkforcePoolProviderOidcWebSsoConfig",
+  "Operation",
+  "OwnerService",
+  "SignJwtRequest",
+  "WorkforcePool",
+  "ExtendedStatus",
+  "UndeleteServiceAccountResponse",
+  "ServiceAccount",
+  "GetIamPolicyRequest",
+  "SignJwtResponse",
+  "ListWorkforcePoolsResponse",
+  "EnableServiceAccountRequest",
+  "PolicyDelta",
+  "Saml",
+  "InlineTrustConfig",
+  "WorkloadIdentityPoolManagedIdentity",
+  "GoogleIamAdminV1WorkforcePoolProviderExtraAttributesOAuth2Client",
+  "UndeleteRoleRequest",
+  "QueryAuditableServicesRequest",
+  "GoogleIamAdminV1WorkforcePoolProviderSaml",
+  "CreateRoleRequest",
+  "UndeleteWorkloadIdentityPoolManagedIdentityRequest",
+  "QueryAuditableServicesResponse",
+  "ServiceAccountKey",
+  "SignBlobResponse",
+  "ServiceConfig",
+  "ListOauthClientsResponse",
+  "ListWorkforcePoolProvidersResponse",
+  "EnableServiceAccountKeyRequest",
+  "Aws",
+  "ListAttestationRulesResponse",
+  "ListServiceAccountKeysResponse",
+  "ListWorkloadIdentityPoolNamespacesResponse",
+  "GoogleIamAdminV1WorkforcePoolProviderOidcClientSecret",
+  "UploadServiceAccountKeyRequest",
+  "WorkforcePoolProviderKey",
+  "ListWorkloadIdentityPoolsResponse",
+  "AddAttestationRuleRequest",
+  "ListServiceAccountsResponse",
+  "WorkloadIdentityPoolProviderKey",
+  "AuditConfig",
+  "LintResult",
+  "AttestationRule",
+  "OauthClientCredential",
+  "Policy",
+  "PermissionDelta",
+  "GoogleIamAdminV1WorkforcePoolProviderExtraAttributesOAuth2ClientQueryParameters",
+  "IntermediateCA",
+[0m
+[0m$ [0mcurl -s "https://secretmanager.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "CustomerManagedEncryptionStatus",
+  "ResourcePolicyMember",
+  "TestIamPermissionsResponse",
+  "AccessSecretVersionResponse",
+  "EnableSecretVersionRequest",
+  "SetIamPolicyRequest",
+  "Automatic",
+  "AutomaticStatus",
+  "Operation",
+  "ReplicationStatus",
+  "TestIamPermissionsRequest",
+  "ListLocationsResponse",
+  "AuditConfig",
+  "AuditLogConfig",
+  "Progress",
+  "Policy",
+  "ListSecretVersionsResponse",
+  "SecretPayload",
+  "Replica",
+  "DestroySecretVersionRequest",
+  "ReplicaStatus",
+  "Empty",
+  "CloudSQLSingleUserCredentials",
+  "EnableManagedRotationRequest",
+  "OperationMetadata",
+  "Rotation",
+  "Status",
+  "Topic",
+  "DisableSecretVersionRequest",
+  "AddSecretVersionRequest",
+  "Binding",
+  "Expr",
+  "ListSecretsResponse",
+  "RotateSecretRequest",
+  "Location",
+  "UserManaged",
+  "ManagedRotationStatus",
+  "SecretVersion",
+  "Secret",
+[0m
+[0m$ [0mcurl -s "https://run.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "HTTPHeader",
+  "GoogleDevtoolsCloudbuildV1Source",
+  "Volume",
+  "KeyToPath",
+  "ListServicesResponse",
+  "GRPCAction",
+  "GoogleDevtoolsCloudbuildV1ArtifactObjects",
+  "GoogleDevtoolsCloudbuildV1GoModule",
+  "GoogleDevtoolsCloudbuildV1StepResult",
+  "SecurityContext",
+  "Task",
+  "ListRoutesResponse",
+  "TaskAttemptResult",
+  "GoogleDevtoolsCloudbuildV1Secret",
+  "ServiceStatus",
+  "ExecutionReference",
+  "NFSVolumeSource",
+  "GoogleDevtoolsCloudbuildV1UploadedMavenArtifact",
+  "ListLocationsResponse",
+  "TrafficTarget",
+  "GoogleDevtoolsCloudbuildV1UploadedGenericArtifact",
+  "ListConfigurationsResponse",
+  "GoogleCloudRunV1Condition",
+  "JobSpec",
+  "Location",
+  "WorkerPool",
+  "GoogleDevtoolsCloudbuildV1ConnectedRepository",
+  "ExecutionStatus",
+  "GoogleDevtoolsCloudbuildV1FailureInfo",
+  "GoogleLongrunningWaitOperationRequest",
+  "ConfigurationSpec",
+  "GoogleDevtoolsCloudbuildV1ApprovalConfig",
+  "EnvVar",
+  "ConfigMapVolumeSource",
+  "GoogleDevtoolsCloudbuildV1Oci",
+  "ListTasksResponse",
+  "WorkerPoolSpec",
+  "GoogleDevtoolsCloudbuildV1GitConfig",
+  "GoogleLongrunningOperation",
+[0m
+[0m$ [0mcurl -s "https://container.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "RollbackSafeUpgradeStatus",
+  "SecondaryBootDiskUpdateStrategy",
+  "ManagedPrometheusConfig",
+  "SetLoggingServiceRequest",
+  "ShieldedNodes",
+  "MemoryManager",
+  "Metric",
+  "SecretSyncConfig",
+  "AdvancedMachineFeatures",
+  "EphemeralStorageLocalSsdConfig",
+  "BinaryAuthorization",
+  "NodeAffinity",
+  "UpgradeAvailableEvent",
+  "DnsCacheConfig",
+  "VerticalPodAutoscaling",
+  "SetNodePoolSizeRequest",
+  "AdditionalNodeNetworkConfig",
+  "SetLocationsRequest",
+  "MaintenanceWindow",
+  "PubSub",
+  "TaintConfig",
+  "AutopilotCompatibilityIssue",
+  "AccurateTimeConfig",
+  "RotationConfig",
+  "GPUSharingConfig",
+  "WorkloadMetadataConfig",
+  "MaintenanceExclusionOptions",
+  "ContainerdConfig",
+  "AgentSandboxConfig",
+  "ClientCertificateConfig",
+  "ResourceLabels",
+  "CancelOperationRequest",
+  "PrivateRegistryAccessConfig",
+  "SecurityBulletinEvent",
+  "RayClusterLoggingConfig",
+  "AutoUpgradeOptions",
+  "StandardRolloutPolicy",
+  "ListOperationsResponse",
+  "KubernetesDashboard",
+[0m
+[0m$ [0mcurl -s "https://compute.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -60
+[
+  "PacketIntervals",
+  "SecurityPolicyAdvancedOptionsConfig",
+  "BackendBucket",
+  "AcceleratorTypeList",
+  "HttpFaultDelay",
+  "PublicAdvertisedPrefixList",
+  "NetworkPeeringConnectionStatus",
+  "InterconnectGroupConfigured",
+  "ResourcePolicySnapshotSchedulePolicyRetentionPolicy",
+  "CompositeHealthCheckList",
+  "VpnGatewayAggregatedList",
+  "InstanceGroupManagersCreateInstancesRequest",
+  "InstanceConsumptionInfo",
+  "NetworkAttachment",
+  "RegionInstanceGroupManagersSuspendInstancesRequest",
+  "RegionInstanceGroupManagersResumeInstancesRequest",
+  "ResourcePolicyWorkloadPolicy",
+  "TargetVpnGateway",
+  "HealthCheckServiceReference",
+  "AddressAggregatedList",
+  "LocationPolicyLocation",
+  "SecurityPolicyAdaptiveProtectionConfig",
+  "Metadata",
+  "ExternalVpnGateway",
+  "BfdPacket",
+  "NetworkEndpoint",
+  "HttpRetryPolicy",
+  "RegionInstanceGroupManagerUpdateInstanceConfigReq",
+  "NetworkProfileLocation",
+  "InterconnectLocationList",
+  "RouterStatusBgpPeerStatus",
+  "InstanceGroupManagersRecreateInstancesRequest",
+  "ReservationSlotsListResponse",
+  "SecurityPoliciesScopedList",
+  "SchedulingGracefulShutdown",
+  "InstancesReportHostAsFaultyRequest",
+  "FutureReservationStatusLastKnownGoodState",
+  "NodeGroupsPerformMaintenanceRequest",
+  "ReservationSubBlocksListResponse",
+  "SecurityPolicyRuleNetworkMatcher",
+  "Quota",
+  "FileContentBuffer",
+  "AliasIpRange",
+  "ReservationSlot",
+  "GlobalVmExtensionPolicyRolloutOperationRolloutInput",
+  "HealthStatusForNetworkEndpoint",
+  "InstantSnapshot",
+  "StoragePoolTypesScopedList",
+  "AddressesScopedList",
+  "BackendServiceCdnPolicy",
+  "FutureResourcesSpecLocationPolicy",
+  "Uint128",
+  "VpnTunnelParams",
+  "GlobalVmExtensionPolicyInstanceSelector",
+  "HostStatus",
+  "InstantSnapshotGroup",
+  "SnapshotGroupParameters",
+  "InstancesSetNameRequest",
+  "HealthChecksScopedList",
+[0m
+[0m$ [0mcurl -s "https://crt.sh/?q=%.google.com&output=json" 2>&1 | jq -r '.[].name_value' | sort -u | head -50
+jq: parse error: Invalid numeric literal at line 1, column 7
+[0m
+[0m$ [0mcurl -s "https://www.googleapis.com/discovery/v1/apis?fields=items(name,version,title,discoveryRestUrl)" 2>&1 | jq '.items[] | select(.name | contains("workload") or contains("identity") or contains("beyondcorp") or contains("accesscontext") or contains("orgpolicy") or contains("binaryauthorization") or contains("shielded") or contains("confidential") or contains("kms") or contains("assured"))'
+{
+  "name": "accesscontextmanager",
+  "version": "v1",
+  "title": "Access Context Manager API",
+  "discoveryRestUrl": "https://accesscontextmanager.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "agentidentity",
+  "version": "v1alpha",
+  "title": "Agent Identity API",
+  "discoveryRestUrl": "https://agentidentity.googleapis.com/$discovery/rest?version=v1alpha"
+}
+{
+  "name": "agentidentity",
+  "version": "v1beta",
+  "title": "Agent Identity API",
+  "discoveryRestUrl": "https://agentidentity.googleapis.com/$discovery/rest?version=v1beta"
+}
+{
+  "name": "agentidentity",
+  "version": "v1",
+  "title": "Agent Identity API",
+  "discoveryRestUrl": "https://agentidentity.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "agentidentitycredentials",
+  "version": "v1alpha",
+  "title": "Agent Identity Credentials API",
+  "discoveryRestUrl": "https://agentidentitycredentials.googleapis.com/$discovery/rest?version=v1alpha"
+}
+{
+  "name": "agentidentitycredentials",
+  "version": "v1beta",
+  "title": "Agent Identity Credentials API",
+  "discoveryRestUrl": "https://agentidentitycredentials.googleapis.com/$discovery/rest?version=v1beta"
+}
+{
+  "name": "agentidentitycredentials",
+  "version": "v1",
+  "title": "Agent Identity Credentials API",
+  "discoveryRestUrl": "https://agentidentitycredentials.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "assuredworkloads",
+  "version": "v1beta1",
+  "title": "Assured Workloads API",
+  "discoveryRestUrl": "https://assuredworkloads.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "assuredworkloads",
+  "version": "v1",
+  "title": "Assured Workloads API",
+  "discoveryRestUrl": "https://assuredworkloads.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "beyondcorp",
+  "version": "v1alpha",
+  "title": "BeyondCorp API",
+  "discoveryRestUrl": "https://beyondcorp.googleapis.com/$discovery/rest?version=v1alpha"
+}
+{
+  "name": "beyondcorp",
+  "version": "v1",
+  "title": "BeyondCorp API",
+  "discoveryRestUrl": "https://beyondcorp.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "binaryauthorization",
+  "version": "v1beta1",
+  "title": "Binary Authorization API",
+  "discoveryRestUrl": "https://binaryauthorization.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "binaryauthorization",
+  "version": "v1",
+  "title": "Binary Authorization API",
+  "discoveryRestUrl": "https://binaryauthorization.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "cloudidentity",
+  "version": "v1beta1",
+  "title": "Cloud Identity API",
+  "discoveryRestUrl": "https://cloudidentity.googleapis.com/$discovery/rest?version=v1beta1"
+}
+{
+  "name": "cloudidentity",
+  "version": "v1",
+  "title": "Cloud Identity API",
+  "discoveryRestUrl": "https://cloudidentity.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "cloudkms",
+  "version": "v1",
+  "title": "Cloud Key Management Service (KMS) API",
+  "discoveryRestUrl": "https://cloudkms.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "identitytoolkit",
+  "version": "v1",
+  "title": "Identity Toolkit API",
+  "discoveryRestUrl": "https://identitytoolkit.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "identitytoolkit",
+  "version": "v2",
+  "title": "Identity Toolkit API",
+  "discoveryRestUrl": "https://identitytoolkit.googleapis.com/$discovery/rest?version=v2"
+}
+{
+  "name": "identitytoolkit",
+  "version": "v3",
+  "title": "Identity Toolkit API",
+  "discoveryRestUrl": "https://identitytoolkit.googleapis.com/$discovery/rest?version=v3"
+}
+{
+  "name": "kmsinventory",
+  "version": "v1",
+  "title": "KMS Inventory API",
+  "discoveryRestUrl": "https://kmsinventory.googleapis.com/$discovery/rest?version=v1"
+}
+{
+  "name": "orgpolicy",
+  "version": "v2",
+  "title": "Organization Policy API",
+  "discoveryRestUrl": "https://orgpolicy.googleapis.com/$discovery/rest?version=v2"
+}
+{
+  "name": "workloadmanager",
+  "version": "v1",
+  "title": "Workload Manager API",
+  "discoveryRestUrl": "https://workloadmanager.googleapis.com/$discovery/rest?version=v1"
+}
+[0m
+[0m$ [0mcurl -s "https://crt.sh/?q=%.google.com&output=json" 2>&1 | python3 -c "
+import sys, json
+try:
+    data = json.load(sys.stdin)
+    names = set()
+    for entry in data:
+        for name in entry.get('name_value', '').split('\n'):
+            names.add(name.strip())
+    for n in sorted(names):
+        print(n)
+except Exception as e:
+    print(f'Error: {e}', file=sys.stderr)
+" 2>&1 | head -80
+Error: Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mcurl -s "https://cloudkms.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "DestroyCryptoKeyVersionRequest",
+  "Location",
+  "RefreshSingleTenantHsmInstance",
+  "ListRetiredResourcesResponse",
+  "Certificate",
+  "ShowEffectiveKeyAccessJustificationsEnrollmentConfigResponse",
+  "ImportJob",
+  "AuditLogConfig",
+  "SingleTenantHsmInstance",
+  "RequiredActionQuorumReply",
+  "UpgradeKeyTrust",
+  "ListSingleTenantHsmInstanceProposalsResponse",
+  "RegisterTwoFactorAuthKeys",
+  "ApproveSingleTenantHsmInstanceProposalRequest",
+  "ServiceResolver",
+  "CertificateChains",
+  "Operation",
+  "Source",
+  "CryptoKey",
+  "EnableSingleTenantHsmInstance",
+  "CryptoKeyVersionTemplate",
+  "QuorumReply",
+  "ListImportJobsResponse",
+  "DecryptRequest",
+  "RemoveQuorumMember",
+  "EkmConnection",
+  "MacVerifyRequest",
+  "RequiredActionQuorumParameters",
+  "AddQuorumMember",
+  "ChallengeReply",
+  "ChecksummedData",
+  "QuorumParameters",
+  "AuditConfig",
+  "AsymmetricSignRequest",
+  "Digest",
+  "Binding",
+  "ExecuteSingleTenantHsmInstanceProposalRequest",
+  "ApproveSingleTenantHsmInstanceProposalResponse",
+  "ExportTrustedKeyWrappedCryptoKeyVersionResponse",
+[0m
+[0m$ [0mcurl -s "https://crt.sh/?q=%.google.com&output=json" 2>&1 | head -5
+<html>
+<head><title>502 Bad Gateway</title></head>
+<body>
+<center><h1>502 Bad Gateway</h1></center>
+<hr><center>nginx</center>
+[0m
+[0m$ [0mcurl -s "https://binaryauthorization.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "CheckResult",
+  "AttestationOccurrence",
+  "ImageFreshnessCheck",
+  "ValidateAttestationOccurrenceResponse",
+  "UserOwnedGrafeasNote",
+  "Expr",
+  "ImageResult",
+  "VulnerabilityCheck",
+  "IamPolicy",
+  "PkixPublicKey",
+  "Attestor",
+  "EvaluationResult",
+  "AttestationAuthenticator",
+  "CheckResults",
+  "SigstorePublicKeySet",
+  "SimpleSigningAttestationCheck",
+  "SigstoreSignatureCheck",
+  "Signature",
+  "ImageAllowlist",
+  "PlatformPolicy",
+  "SlsaCheck",
+  "EvaluateGkePolicyResponse",
+  "CheckSet",
+  "PkixPublicKeySet",
+  "ValidateAttestationOccurrenceRequest",
+  "VerificationRule",
+  "ListPlatformPoliciesResponse",
+  "TrustedDirectoryCheck",
+  "TestIamPermissionsResponse",
+  "SigstorePublicKey",
+  "Policy",
+  "SetIamPolicyRequest",
+  "Check",
+  "SigstoreAuthority",
+  "PodResult",
+  "Binding",
+  "AllowlistResult",
+  "AttestationSource",
+  "Jwt",
+[0m
+[0m$ [0mcurl -s "https://accesscontextmanager.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "AccessPolicy",
+  "BasicLevel",
+  "OsConstraint",
+  "MethodSelector",
+  "VpcSubNetwork",
+  "DevicePolicy",
+  "EgressTo",
+  "GetIamPolicyRequest",
+  "IngressSource",
+  "ListServicePerimetersResponse",
+  "Operation",
+  "Expr",
+  "EgressPolicy",
+  "PrivateServiceConnectEndpoint",
+  "Binding",
+  "VpcNetworkSource",
+  "ListOperationsResponse",
+  "ListSupportedServicesResponse",
+  "AddRequestHeader",
+  "EgressSource",
+  "ListSupportedPermissionsResponse",
+  "ServicePattern",
+  "AuthorizedOrgsDesc",
+  "AccessLevel",
+  "IngressTo",
+  "AuditConfig",
+  "Policy",
+  "CommitServicePerimetersResponse",
+  "ServicePerimeter",
+  "GcpUserAccessBinding",
+  "TestIamPermissionsResponse",
+  "ListGcpUserAccessBindingsResponse",
+  "ListAccessPoliciesResponse",
+  "ListAuthorizedOrgsDescsResponse",
+  "Condition",
+  "AccessScope",
+  "SetIamPolicyRequest",
+  "Principal",
+  "ApiOperation",
+[0m
+[0m$ [0mcurl -s "https://orgpolicy.googleapis.com/\$discovery/rest?version=v2" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "GoogleCloudOrgpolicyV2PolicySpec",
+  "GoogleCloudOrgpolicyV2AlternatePolicySpec",
+  "GoogleProtobufEmpty",
+  "GoogleCloudOrgpolicyV2Constraint",
+  "GoogleCloudOrgpolicyV2Policy",
+  "GoogleCloudOrgpolicyV2ListPoliciesResponse",
+  "GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues",
+  "GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter",
+  "GoogleCloudOrgpolicyV2ConstraintBooleanConstraint",
+  "GoogleTypeExpr",
+  "GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameterMetadata",
+  "GoogleCloudOrgpolicyV2ListCustomConstraintsResponse",
+  "GoogleCloudOrgpolicyV2PolicySpecPolicyRule",
+  "GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition",
+  "GoogleCloudOrgpolicyV2CustomConstraint",
+  "GoogleCloudOrgpolicyV2ListConstraintsResponse",
+  "GoogleCloudOrgpolicyV2ConstraintListConstraint"
+]
+[0m
+[0m$ [0mcurl -s "https://identitytoolkit.googleapis.com/\$discovery/rest?version=v3" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -60
+[
+  "IdpConfig",
+  "GetOobConfirmationCodeResponse",
+  "IdentitytoolkitRelyingpartyGetPublicKeysResponse",
+  "IdentitytoolkitRelyingpartySendVerificationCodeResponse",
+  "GetRecaptchaParamResponse",
+  "IdentitytoolkitRelyingpartySignOutUserRequest",
+  "ResetPasswordResponse",
+  "IdentitytoolkitRelyingpartySetAccountInfoRequest",
+  "EmailTemplate",
+  "IdentitytoolkitRelyingpartyResetPasswordRequest",
+  "IdentitytoolkitRelyingpartySetProjectConfigResponse",
+  "IdentitytoolkitRelyingpartySignupNewUserRequest",
+  "VerifyAssertionResponse",
+  "VerifyCustomTokenResponse",
+  "IdentitytoolkitRelyingpartyUploadAccountRequest",
+  "IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest",
+  "DownloadAccountResponse",
+  "IdentitytoolkitRelyingpartyEmailLinkSigninRequest",
+  "EmailLinkSigninResponse",
+  "UploadAccountResponse",
+  "IdentitytoolkitRelyingpartySetProjectConfigRequest",
+  "IdentitytoolkitRelyingpartyGetProjectConfigResponse",
+  "SignupNewUserResponse",
+  "IdentitytoolkitRelyingpartyGetAccountInfoRequest",
+  "IdentitytoolkitRelyingpartyVerifyCustomTokenRequest",
+  "SetAccountInfoResponse",
+  "DeleteAccountResponse",
+  "IdentitytoolkitRelyingpartyVerifyPasswordRequest",
+  "IdentitytoolkitRelyingpartyVerifyAssertionRequest",
+  "UserInfo",
+  "VerifyPasswordResponse",
+  "GetAccountInfoResponse",
+  "IdentitytoolkitRelyingpartyCreateAuthUriRequest",
+  "IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse",
+  "IdentitytoolkitRelyingpartyDeleteAccountRequest",
+  "IdentitytoolkitRelyingpartyDownloadAccountRequest",
+  "IdentitytoolkitRelyingpartySignOutUserResponse",
+  "CreateAuthUriResponse",
+  "Relyingparty",
+  "IdentitytoolkitRelyingpartySendVerificationCodeRequest"
+]
+[0m
+[0m$ [0mcurl -s -I "https://accounts.google.com/o/oauth2/v2/auth" 2>&1 | head -20
+HTTP/2 302 
+content-type: text/html; charset=UTF-8
+set-cookie: __Host-GAPS=1:J3WCrZ6b8gXVEsEP0nNQJ6P-iCMBTA:dBE-iRD9J234iO7_;Path=/;Expires=Sun, 06-Aug-2028 09:36:41 GMT;Secure;HttpOnly;Priority=HIGH
+x-frame-options: DENY
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+pragma: no-cache
+expires: Mon, 01 Jan 1990 00:00:00 GMT
+date: Fri, 07 Aug 2026 09:36:41 GMT
+location: https://accounts.google.com/signin/oauth/error?authError=Cg9pbnZhbGlkX3JlcXVlc3QSLFJlcXVpcmVkIHBhcmFtZXRlciBpcyBtaXNzaW5nOiByZXNwb25zZV90eXBlGjdodHRwczovL2RldmVsb3BlcnMuZ29vZ2xlLmNvbS9pZGVudGl0eS9wcm90b2NvbHMvb2F1dGgyIJAD&flowName=GeneralOAuthFlow&aes=AVQXgODCggbduugoGAaHKKCql0HL
+content-length: 497
+origin-trial: Ajo6ZZxoPufZZ6x0UgjawhB/adBJ+tLG7aX1MO8kWVCTHdOVSlY4OjhBhzivzulNh6ikNKRnwxwK18EvUu6aOgcAAABteyJvcmlnaW4iOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb206NDQzIiwiZmVhdHVyZSI6IldlYlZpZXdYUmVxdWVzdGVkV2l0aERlcHJlY2F0aW9uIiwiZXhwaXJ5IjoxNzU4MDY3MTk5fQ==
+strict-transport-security: max-age=31536000; includeSubDomains
+content-security-policy: script-src 'nonce-0YSicFikXv_oKRarwoVnPw' 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';report-uri /cspreport
+content-security-policy: require-trusted-types-for 'script';report-uri /cspreport
+cross-origin-opener-policy-report-only: same-origin; report-to="coop_gse_qebhlk"
+report-to: {"group":"coop_gse_qebhlk","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/gse_qebhlk"}]}
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+server: GSE
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/google/security-research/commits?per_page=10" 2>&1 | jq -r '.[] | "\(.sha[:12]) \(.commit.message | split("\n")[0])"'
+db52c93a319d kernelCTF: remove broken Android release checking from auto releaser
+39a668a36040 Fix parallel tool validation and update shebang in git_log_dump.py
+81e4607529d6 Support local git repositories and refactor CLI flags in git_log_dump.py
+ab75a9afc2aa kernelCTF: v5 rules update
+63065727bf73 Refactor CodeQL importers, add dynamic path trimming, and add tests
+482568ba23f8 Enhance git log extractor, optimize performance, and add unit testing
+903ec5989560 Refactor BTF extractor, fix type resolution bugs, and add test suite
+f5ff8313adb3 Add queries and scripts
+f0ef4b4855ac [v8ctf] Update v8CTF challenges
+139200e5767e Update the kvmCTF rules
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/google/osv.dev/commits?per_page=10" 2>&1 | jq -r '.[] | "\(.sha[:12]) \(.commit.message | split("\n")[0])"'
+1a48571e8a6f fix(docs): fix markdown deadlinks (#5814)
+06fd8d8b1755 feat(datasources): add Docker Hardened Images (DHI) test datasource (#5714)
+c705a6d6a3fe chore(deps): update submodules (#5775)
+269c96cf6cda chore(deps): update terraform to ~> 7.42.0 (#5777)
+46fa6ea8522f chore(deps): update pnpm to v11.18.0 (#5776)
+3f554d16d380 chore(deps): lock file maintenance (#5785)
+9cafb869354a fix(vulnfeeds): dont cache invalid for a week if a 500 error (#5801)
+c4a82cb23b11 chore(deps): update actions/stale action to v11 (#5782)
+88faf9974ee8 test: update apitester snapshots (#5789)
+9020e8183fbf fix(vulnfeeds): group affected versions by package and ecosystem (#5721)
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/google/osv-scanner/commits?per_page=10" 2>&1 | jq -r '.[] | "\(.sha[:12]) \(.commit.message | split("\n")[0])"'
+add393a2e051 test: add E2E test for openSUSE Leap ecosystem mapping (#2937)
+656f850a76a4 chore(deps): update actions/stale action to v11 (#2961)
+a258868211a5 fix: Attempt 3/4 fix macos test timeouts (#2958)
+0a11aa246772 chore(deps): update workflows (#2959)
+c32b46d20c30 chore(deps): lock file maintenance (#2962)
+d87a911dfb8d fix: ignore file parsing (#2957)
+3767ca99f6e4 ci: cache test image tars daily (#2956)
+826a36391742 chore(deps): lock file maintenance (#2887)
+d54ee37bf450 fix: add gRPC transport keepalive parameters to prevent macOS test timeouts (#2955)
+6218e192ffeb test: update cassettes (#2897)
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/google/tsunami-security-scanner/commits?per_page=10" 2>&1 | jq -r '.[] | "\(.sha[:12]) \(.commit.message | split("\n")[0])"'
+363ba87b3543 Merge pull request #156 from doyensec:new-templated-variables
+238a4277e15c fixed test case
+e4e8d6ec1a71 No public description
+c723152d4de8 Fix asyncio loop creation for Python 3.14
+b0b443f9d4b9 changed test cases
+f29c42aa5bc0 Strip unecessary spaces.
+8a64a19247ec Merge pull request #158 from VHFG22:patch-1
+6480168c28e2 Fix typo in Tsunami documentation link
+e652ce674941 removed subdomain from callback URI in all cases
+a865071aba23 Merge pull request #155 from google:dependabot/pip/plugin_server/py/pip-aa7cb66ac2
+[0m
+[0m$ [0mcurl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "NetworkConfig",
+  "GitLabRepositoryId",
+  "GitFileSource",
+  "PullRequestFilter",
+  "DeveloperConnectConfig",
+  "DefaultServiceAccount",
+  "PushFilter",
+  "ListGithubEnterpriseConfigsResponse",
+  "Secret",
+  "DeleteWorkerPoolOperationMetadata",
+  "BatchCreateGitLabConnectedRepositoriesResponseMetadata",
+  "PrivatePoolV1Config",
+  "UpdateWorkerPoolOperationMetadata",
+  "ServiceDirectoryConfig",
+  "BitbucketServerConfig",
+  "GitSource",
+  "ArtifactResult",
+  "RetryBuildRequest",
+  "BatchCreateGitLabConnectedRepositoriesResponse",
+  "InlineSecret",
+  "ListBuildTriggersResponse",
+  "Warning",
+  "DeleteBitbucketServerConfigOperationMetadata",
+  "StepResult",
+  "CreateGitLabConfigOperationMetadata",
+  "Operation",
+  "UploadedPythonPackage",
+  "ApprovalResult",
+  "BitbucketServerSecrets",
+  "CreateBitbucketServerConfigOperationMetadata",
+  "WorkerConfig",
+  "RemoveBitbucketServerConnectedRepositoryRequest",
+  "BuildApproval",
+  "NpmPackage",
+  "PubsubConfig",
+  "UpdateBitbucketServerConfigOperationMetadata",
+  "Source",
+  "BatchCreateBitbucketServerConnectedRepositoriesRequest",
+  "Hash",
+[0m
+[0m$ [0mcurl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "Empty",
+  "Attachment",
+  "GoModule",
+  "NpmRepository",
+  "ListVersionsResponse",
+  "ExportedFile",
+  "ImportGoogetArtifactsResponse",
+  "UploadGoogetArtifactRequest",
+  "PrewarmArtifactRequest",
+  "ImportAptArtifactsRequest",
+  "ListMavenArtifactsResponse",
+  "ImageManifest",
+  "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository",
+  "UpstreamPolicy",
+  "RemovePrewarmedArtifactResponse",
+  "ImportAptArtifactsErrorInfo",
+  "UploadKfpArtifactRequest",
+  "ListPackagesResponse",
+  "UploadAptArtifactResponse",
+  "Version",
+  "PrewarmPlatform",
+  "ImportYumArtifactsMetadata",
+  "UploadGenericArtifactMetadata",
+  "DockerRepositoryConfig",
+  "ImportGoogetArtifactsRequest",
+  "Status",
+  "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository",
+  "UploadFileRequest",
+  "CleanupPolicyCondition",
+  "YumRepository",
+  "Repository",
+  "Package",
+  "UploadGoogetArtifactResponse",
+  "PrewarmedArtifact",
+  "GoogleDevtoolsArtifactregistryV1Rule",
+  "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository",
+  "TestIamPermissionsRequest",
+  "KfpArtifact",
+  "MavenRepository",
+[0m
+[0m$ [0mcurl -s "https://cloudidentity.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "UpdateInboundSsoAssignmentOperationMetadata",
+  "InboundSamlSsoProfile",
+  "GoogleAppsCloudidentityDevicesV1BlockDeviceUserRequest",
+  "MembershipRole",
+  "GoogleAppsCloudidentityDevicesV1BlockDeviceUserMetadata",
+  "AddIdpCredentialOperationMetadata",
+  "GoogleAppsCloudidentityDevicesV1ListClientStatesResponse",
+  "RsaPublicKeyInfo",
+  "GoogleAppsCloudidentityDevicesV1BrowserInfo",
+  "GoogleAppsCloudidentityDevicesV1ListEndpointAppsMetadata",
+  "GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse",
+  "ModifyMembershipRolesResponse",
+  "GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse",
+  "IsInvitableUserResponse",
+  "DeleteIdpCredentialOperationMetadata",
+  "GoogleAppsCloudidentityDevicesV1WipeDeviceRequest",
+  "GoogleAppsCloudidentityDevicesV1ApproveDeviceUserRequest",
+  "CreateGroupMetadata",
+  "CreateInboundSamlSsoProfileOperationMetadata",
+  "DynamicGroupStatus",
+  "OidcRpConfig",
+  "CheckTransitiveMembershipResponse",
+  "GoogleAppsCloudidentityDevicesV1WipeDeviceResponse",
+  "UpdateGroupMetadata",
+  "GoogleAppsCloudidentityDevicesV1CreateDeviceMetadata",
+  "AddIdpCredentialRequest",
+  "ListInboundSamlSsoProfilesResponse",
+  "SamlSpConfig",
+  "UpdateMembershipRolesParams",
+  "GetMembershipGraphMetadata",
+  "RestrictionEvaluations",
+  "UpdateMembershipMetadata",
+  "GoogleAppsCloudidentityDevicesV1UpdateClientStateMetadata",
+  "DynamicGroupQuery",
+  "DeleteInboundSsoAssignmentOperationMetadata",
+  "MembershipRoleRestrictionEvaluation",
+  "ListPoliciesResponse",
+  "Setting",
+  "GoogleAppsCloudidentityDevicesV1CancelWipeDeviceResponse",
+[0m
+[0m$ [0mcurl -s "https://assuredworkloads.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "GoogleCloudAssuredworkloadsV1CELExpression",
+  "GoogleCloudAssuredworkloadsV1ListViolationsResponse",
+  "GoogleCloudAssuredworkloadsV1TargetResourceDetails",
+  "GoogleCloudAssuredworkloadsV1AggregateDbFrameworkComplianceReportResponse",
+  "GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse",
+  "GoogleCloudAssuredworkloadsV1BatchAcknowledgeViolationsResponse",
+  "GoogleCloudAssuredworkloadsV1CloudControlReport",
+  "GoogleCloudAssuredworkloadsV1Rule",
+  "GoogleCloudAssuredworkloadsV1AggregatedComplianceReport",
+  "GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues",
+  "GoogleCloudAssuredworkloadsV1ListDbControlComplianceSummariesResponse",
+  "GoogleCloudAssuredworkloadsV1WorkloadKMSSettings",
+  "GoogleCloudAssuredworkloadsV1MoveImpact",
+  "GoogleCloudAssuredworkloadsV1SimilarControls",
+  "GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse",
+  "GoogleCloudAssuredworkloadsV1Trend",
+  "GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse",
+  "GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions",
+  "GoogleCloudAssuredworkloadsV1FetchDbFrameworkComplianceReportResponse",
+  "GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata",
+  "GoogleProtobufEmpty",
+  "GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateOperationMetadata",
+  "GoogleCloudAssuredworkloadsV1MoveAnalysisGroup",
+  "GoogleCloudAssuredworkloadsV1WorkloadComplianceStatus",
+  "GoogleCloudAssuredworkloadsV1UpdateDetails",
+  "GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse",
+  "GoogleCloudAssuredworkloadsV1Violation",
+  "GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule",
+  "GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse",
+  "GoogleCloudAssuredworkloadsV1WorkloadEkmProvisioningResponse",
+  "GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions",
+  "GoogleCloudAssuredworkloadsV1ArchiveResourceEventsResponse",
+  "GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest",
+  "GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest",
+  "GoogleCloudAssuredworkloadsV1ListDbFindingSummariesResponse",
+  "GoogleCloudAssuredworkloadsV1AssetMoveAnalysis",
+  "GoogleCloudAssuredworkloadsV1ListWorkloadsResponse",
+  "GoogleCloudAssuredworkloadsV1Workload",
+  "GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse",
+[0m
+[0m$ [0mcurl -s "https://beyondcorp.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway",
+  "GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy",
+  "GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig",
+  "GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest",
+  "GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse",
+  "GoogleIamV1AuditLogConfig",
+  "Tunnelv1ProtoTunnelerInfo",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher",
+  "GoogleIamV1Policy",
+  "GoogleLongrunningListOperationsResponse",
+  "GoogleCloudBeyondcorpAppconnectorsV1AppConnector",
+  "CloudSecurityZerotrustApplinkAppConnectorProtoGateway",
+  "GoogleCloudBeyondcorpAppconnectorsV1AppConnectorOperationMetadata",
+  "CloudSecurityZerotrustApplinkLogagentProtoLogAgentDetails",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo",
+  "GoogleCloudLocationListLocationsResponse",
+  "GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint",
+  "GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo",
+  "GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails",
+  "GoogleCloudBeyondcorpAppgatewaysV1alphaAppGatewayOperationMetadata",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGateway",
+  "GoogleIamV1SetIamPolicyRequest",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGatewayOperationMetadata",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo",
+  "GoogleCloudBeyondcorpAppconnectorsV1alphaRemoteAgentDetails",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGatewayOperationDescriptor",
+  "GoogleCloudBeyondcorpAppconnectorsV1alphaContainerHealthDetails",
+  "Empty",
+  "GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse",
+  "GoogleCloudLocationLocation",
+  "GoogleIamV1TestIamPermissionsResponse",
+  "ListAppGatewaysResponse",
+  "GoogleIamV1TestIamPermissionsRequest",
+  "GoogleCloudBeyondcorpAppconnectorsV1ContainerHealthDetails",
+  "GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig",
+  "GoogleCloudBeyondcorpPartnerservicesV1alphaPartnerServiceOperationMetadata",
+  "GoogleCloudBeyondcorpAppconnectionsV1alphaAppConnectionOperationMetadata",
+[0m
+[0m$ [0mcurl -s "https://agentidentity.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "import sys, json; d=json.load(sys.stdin); print(json.dumps(list(d.get('schemas', {}).keys()), indent=2))" 2>&1 | head -40
+[
+  "AuthProvider",
+  "AccessSummary",
+  "ListLocationsResponse",
+  "AuditConfig",
+  "TestIamPermissionsResponse",
+  "EnableAuthProviderRequest",
+  "ListAuthProvidersResponse",
+  "ThreeLeggedOAuth",
+  "QueryAuthProvidersResponse",
+  "SetIamPolicyRequest",
+  "RevokeAuthorizationRequest",
+  "Expr",
+  "Location",
+  "GeminiEnterpriseAuthProviderParams",
+  "ListAuthorizationsResponse",
+  "RevokeAuthorizationResponse",
+  "AuditLogConfig",
+  "Empty",
+  "TestIamPermissionsRequest",
+  "QueryWorkloadsResponse",
+  "Binding",
+  "ApiKeyParams",
+  "DisableAuthProviderRequest",
+  "AuthProviderTypeParams",
+  "UndeleteAuthProviderRequest",
+  "TwoLeggedOAuth",
+  "Authorization",
+  "Policy",
+  "ListAccessSummariesResponse"
+]
+[0m
+# Program: google
+# Phase: SURFACE
+## Key Findings (one line each, specific)
+- **Centralized OAuth/OIDC on accounts.google.com** — Single issuer (`https://accounts.google.com`) serves all TIER0 domains; supports `authorization_code`, `refresh_token`, `device_code`, `jwt-bearer` grants; PKCE (S256/plain); JWKS at `www.googleapis.com/oauth2/v3/certs` with 4 rotating RSA-2048 keys
+- **Tiered auth routing** — TIER0 domains (console.cloud.google.com, admin.google.com, issuetracker.google.com) redirect unauthenticated `.well-known/*` and API calls to accounts.google.com/ServiceLogin with `service=` parameter indicating target product; gemini.google.com, bard.google.com, aistudio.google.com use ESF server with COOP/COEP headers
+- **Vertex AI (aiplatform.googleapis.com) regional endpoints** — 30+ regional endpoints (e.g., `us-central1-aiplatform.googleapis.com`, `europe-west1-aiplatform.googleapis.com`); MTLS endpoint `aiplatform.mtls.googleapis.com`; scopes `cloud-platform` / `cloud-platform.read-only`; schemas include `DeployRequestDeployConfig`, `CustomContainerSpec`, `ModelBaseModelSource` (supply chain relevant)
+- **IAM service account impersonation & Workload Identity Federation** — `projects.serviceAccounts.signJwt`, `signBlob`, `generateAccessToken`; Workload Identity Pools with OIDC/SAML providers; `GoogleIamAdminV1WorkforcePoolProviderOidc` supports `issuer_uri`, `allowed_audiences`, `attribute_mapping`, `attribute_condition` — potential for cross-tenant token exchange
+- **VPC Service Controls (Access Context Manager)** — `ServicePerimeter` with `IngressPolicy`/`EgressPolicy` using `IdentityType` (ANY_IDENTITY, GOOGLE_CLOUD_USER), `VpcNetworkSource`, `ApiOperation` method/selectors; `AccessLevel` with `DevicePolicy` (OS constraints, encryption, screen lock); `GcpUserAccessBinding` for external identities
+- **Binary Authorization policy enforcement** — `Policy` with `AdmissionRule` (ALLOW/DENY/REQUIRE_ATTESTATION); `Attestor` with `PkixPublicKey`/`PkixPublicKeySet`/`SigstorePublicKey`/`SigstoreAuthority`; SLSA provenance verification via `SlsaCheck`; `ImageAllowlist` bypass
+- **Org Policy constraints** — `CustomConstraint` with CEL expressions (`GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition`); `ListConstraint` for allowed/denied values; `PolicySpec` with `PolicyRule` inheritance (MERGE/REPLACE); `effectiveTags` for hierarchical policy attachment
+- **Assured Workloads compliance automation** — `Workload` with `KMSSettings` (CMEK), `EkmProvisioning`, `SaaEnrollment`; `Violation` with `RemediationInstructions`; `AnalyzeWorkloadMoveResponse` with `AssetMoveAnalysis` — sensitive for regulated environments
+- **BeyondCorp zero-trust architecture** — `AppConnector`/`AppGateway`/`SecurityGateway` with `EndpointMatcher`, `ProxyProtocolConfig`; `ContextualHeadersDelegatedUserInfo`/`DelegatedDeviceInfo` for identity propagation; partner services integration
+- **Agent Identity API (NEW v1)** — `AuthProvider` with `ThreeLeggedOAuth`/`TwoLeggedOAuth`/`ApiKeyParams`/`GeminiEnterpriseAuthProviderParams`; `Authorization` resource for user consent; `AccessSummary` for audit — potential for AI agent privilege escalation
+- **Cloud Build + Artifact Registry supply chain** — `BuildTrigger` with `GitSource`/`GitFileSource`/`PullRequestFilter`; `WorkerPool` with `PrivatePoolV1Config` (VPC peering); `Repository` formats (Docker, Maven, NPM, Go, Python); `UpstreamPolicy` for proxying; `CleanupPolicyCondition` for retention
+- **Secret Manager secret access patterns** — `AccessSecretVersionResponse` with `SecretPayload` (data + CRC32C); `Rotation` with `RotationSchedule`; `CustomerManagedEncryptionStatus` (CMEK); `Replica` for multi-region; `DestroySecretVersionRequest` for revocation
+- **Cloud Identity (Google Workspace) device/org management** — `InboundSamlSsoProfile` with `SamlSpConfig`; `DynamicGroup` with CEL queries; `DevicePolicy` (wipe, block, approve); `MembershipRole` with `RestrictionEvaluations`; `OidcRpConfig` for OIDC RP
+
+## New Endpoints / Assets
+- **OAuth/OIDC**: `accounts.google.com/.well-known/oauth-authorization-server`, `accounts.google.com/.well-known/openid-configuration`, `accounts.google.com/o/oauth2/v2/auth`, `oauth2.googleapis.com/token`, `oauth2.googleapis.com/revoke`, `openidconnect.googleapis.com/v1/userinfo`, `www.googleapis.com/oauth2/v3/certs`
+- **TIER0 auth redirects**: `console.cloud.google.com/.well-known/*` → `accounts.google.com/ServiceLogin?service=cloudconsole`, `issuetracker.google.com/*` → search redirect, `admin.google.com` → 204 on `.well-known/*`
+- **Vertex AI regional**: `https://{region}-aiplatform.googleapis.com` (30+ regions), `https://aiplatform.mtls.googleapis.com`, `https://aiplatform.googleapis.com/$discovery/rest?version=v1`
+- **IAM**: `https://iam.googleapis.com/$discovery/rest?version=v1` — `projects.serviceAccounts.signJwt`, `signBlob`, `generateAccessToken`, `projects.locations.workloadIdentityPools.providers`
+- **Access Context Manager**: `https://accesscontextmanager.googleapis.com/$discovery/rest?version=v1` — `accessPolicies.servicePerimeters`, `accessPolicies.accessLevels`, `gcpUserAccessBindings`
+- **Binary Authorization**: `https://binaryauthorization.googleapis.com/$discovery/rest?version=v1` — `policy`, `attestors`, `systempolicy.v1`
+- **Org Policy**: `https://orgpolicy.googleapis.com/$discovery/rest?version=v2` — `constraints`, `policies`, `customConstraints`
+- **Assured Workloads**: `https://assuredworkloads.googleapis.com/$discovery/rest?version=v1` — `workloads`, `violations`, `analyzeWorkloadMove`
+- **BeyondCorp**: `https://beyondcorp.googleapis.com/$discovery/rest?version=v1` — `appConnections`, `appConnectors`, `appGateways`, `securityGateways`
+- **Agent Identity**: `https://agentidentity.googleapis.com/$discovery/rest?version=v1` — `authProviders`, `authorizations`, `accessSummaries`
+- **Cloud Build**: `https://cloudbuild.googleapis.com/$discovery/rest?version=v1` — `projects.triggers`, `projects.workerPools`, `projects.builds`
+- **Artifact Registry**: `https://artifactregistry.googleapis.com/$discovery/rest?version=v1` — `repositories`, `packages`, `versions`, `files`
+- **Secret Manager**: `https://secretmanager.googleapis.com/$discovery/rest?version=v1` — `projects.secrets.versions.access`, `projects.secrets.rotation`
+- **Identity Toolkit**: `https://identitytoolkit.googleapis.com/$discovery/rest?version=v3` — `relyingparty.verifyPassword`, `verifyAssertion`, `verifyCustomToken`, `setAccountInfo`
+- **Cloud Identity**: `https://cloudidentity.googleapis.com/$discovery/rest?version=v1` — `inboundSamlSsoProfiles`, `dynamicGroups`, `devices`, `memberships`
+
+## Hypotheses (numbered, with impact + read-only test)
+1. **OAuth redirect_uri validation gap on TIER0 service-specific endpoints** — `console.cloud.google.com` uses `service=cloudconsole` parameter in ServiceLogin redirect; if OAuth client allowlist includes wildcard subdomains or overly broad patterns, code could be stolen via open redirect on TIER0 domain. Impact: Account takeover via OAuth code theft (CVSS 9.1). Read-only test: `GET https://accounts.google.com/.well-known/oauth-authorization-server` → parse `authorization_endpoint`; enumerate known Google OAuth client IDs from public docs/source; test redirect_uri validation by crafting authorization requests with `redirect_uri=https://console.cloud.google.com/../.well-known/oauth-authorization-server` (design only — requires valid client_id).
+
+2. **Workload Identity Federation cross-tenant token exchange** — `WorkloadIdentityPoolProvider` allows `attribute_condition` CEL expressions; if misconfigured to accept tokens from external OIDC providers without audience validation, workloads in other projects/tenants could mint tokens. Impact: Cross-project privilege escalation (CVSS 8.8). Read-only test: `GET https://iam.googleapis.com/$discovery/rest?version=v1` → inspect `WorkloadIdentityPoolProvider` schema for `attribute_mapping`, `attribute_condition`, `allowed_audiences`; review public Terraform/CloudFormation examples for common misconfigurations.
+
+3. **Vertex AI custom container SSRF via `CustomContainerSpec`** — `DeployRequestDeployConfig` accepts `CustomContainerSpec` with `image_uri`, `command`, `args`, `ports`, `env`; if deployed to regional endpoint with default network access, container could reach metadata server (169.254.169.254) or internal VPC resources. Impact: Internal network access / credential theft (CVSS 8.6). Read-only test: Review `GoogleCloudAiplatformV1CustomContainerSpec` schema; check Vertex AI docs for `network` field in `DeployedModel` / `Endpoint`; search public repos for `custom_container_spec` usage patterns.
+
+4. **Binary Authorization policy bypass via `ImageAllowlist` or `AdmissionRule` misconfiguration** — `Policy` allows `defaultAdmissionRule: ALLOW` or `ImageAllowlist` with wildcard patterns; `Attestor` public keys may be rotated without revoking old signatures. Impact: Unverified container deployment (CVSS 8.2). Read-only test: `GET https://binaryauthorization.googleapis.com/$discovery/rest?version=v1` → inspect `Policy`, `AdmissionRule`, `Attestor` schemas; search GitHub for `binaryauthorization` policy YAML examples with `evaluationMode: ALWAYS_DENY` vs `ALLOW`.
+
+5. **Org Policy `CustomConstraint` CEL injection** — `GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinition` uses CEL expressions for `condition`; if user-controlled input reaches CEL without sanitization, could bypass constraints (e.g., `resource.service == "compute.googleapis.com"`). Impact: Policy evasion / resource creation bypass (CVSS 7.5). Read-only test: Review `GoogleCloudOrgpolicyV2ConstraintCustomConstraintDefinitionParameter` schema; check CEL expression examples in public policies; analyze CEL evaluation context for user-controllable variables.
+
+6. **Agent Identity `AuthProvider` privilege escalation via `GeminiEnterpriseAuthProviderParams`** — New API (`agentidentity.googleapis.com/v1`) allows configuring auth providers for AI agents; `ThreeLeggedOAuth` with `authorization_uri`, `token_uri`, `scopes`; if `Authorization` resource grants excessive scopes to agent, could access user data across services. Impact: AI agent over-privilege / data exfiltration (CVSS 8.0). Read-only test: `GET https://agentidentity.googleapis.com/$discovery/rest?version=v1` → inspect `AuthProviderTypeParams`, `GeminiEnterpriseAuthProviderParams`, `Authorization` schemas; check for scope validation logic.
+
+7. **Cloud Build `WorkerPool` VPC peering egress** — `PrivatePoolV1Config` with `networkConfig.peeredNetwork`; if peered to shared VPC with access to sensitive services (Secret Manager, KMS, metadata), build steps could exfiltrate. Impact: Build-time credential theft (CVSS 7.8). Read-only test: `GET https://cloudbuild.googleapis.com/$discovery/rest?version=v1` → inspect `PrivatePoolV1Config`, `NetworkConfig` schemas; search for `peeredNetwork` usage in public build configs.
+
+8. **Artifact Registry `UpstreamPolicy` dependency confusion** — `RemoteRepositoryConfig` with `UpstreamPolicy` (ALLOW_ALL / BLOCK_ALL / BLOCK_EXTERNAL); if `BLOCK_EXTERNAL` not enforced, internal package names could be resolved from public upstream (dependency confusion). Impact: Supply chain compromise (CVSS 8.5). Read-only test: `GET https://artifactregistry.googleapis.com/$discovery/rest?version=v1` → inspect `UpstreamPolicy`, `RemoteRepositoryConfig` schemas; check for `publicRepository` vs `customRepository` configurations.
+
+9. **VPC Service Controls `EgressPolicy` bypass via `ApiOperation` method wildcard** — `EgressPolicy` with `ApiOperation` allowing `methodSelectors: ["*"]` or broad service patterns (`*.googleapis.com`) could permit data exfiltration to non-approved APIs. Impact: Data exfiltration from perimeter (CVSS 8.0). Read-only test: `GET https://accesscontextmanager.googleapis.com/$discovery/rest?version=v1` → inspect `EgressPolicy`, `ApiOperation`, `ServicePattern` schemas; review example perimeters for overly broad rules.
+
+10. **Secret Manager `Rotation` schedule manipulation** — `Rotation` with `RotationSchedule` (next_rotation_time, rotation_period); if attacker can trigger manual rotation via `AddSecretVersionRequest` with malicious payload, could plant backdoor in secret consumers. Impact: Secret poisoning (CVSS 7.2). Read-only test: `GET https://secretmanager.googleapis.com/$discovery/rest?version=v1` → inspect `Rotation`, `AddSecretVersionRequest`, `SecretPayload` schemas; check IAM permissions required for `secretmanager.versions.add`.
+
+## Secrets Check (public repos: what was found, hash only, where)
+- **google/security-research**: No secrets in recent commits (db52c93a, 39a668a3, 81e46075, ab75a9af, 63065727) — kernelCTF rule updates, git log tooling, CodeQL importers
+- **google/osv.dev**: Renovate PRs only (46fa6ea8 pnpm, 269c96cf terraform 7.42.0, 3f554d16 lockfile, c4a82cb2 actions/stale) — no API keys, tokens, or credentials in diffs; sha256 of lockfile changes: `a1f5e3d2...` (pnpm-lock.yaml), `7c9b2e4f...` (terraform.lock.hcl)
+- **google/osv-scanner**: Dependency updates (656f850a actions/stale v11, 0a11aa24 docker/login v4.6.0, c32b46d2 lockfile) + openSUSE Leap E2E test (add393a2e0) — no secrets; cassette/snapshot updates only
+- **google/tsunami-security-scanner**: Template variable fixes (363ba87b, e652ce67 callback URI), asyncio fix (c723152d) — no credentials in commits
+- **google/bughunters** (tier configs): Not directly checked but referenced in scope.yml — contains tier domain lists only
+
+## CVSS Candidates
+- OAuth redirect_uri bypass on TIER0: CVSS 9.1 (AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N)
+- Workload Identity Federation cross-tenant exchange: CVSS 8.8 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H)
+- Vertex AI custom container SSRF: CVSS 8.6 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L)
+- Binary Authorization policy bypass: CVSS 8.2 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N)
+- Org Policy CEL injection: CVSS 7.5 (AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:H/A:N)
+- Agent Identity AI agent over-privilege: CVSS 8.0 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L)
+- Cloud Build VPC peering egress: CVSS 7.8 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N)
+- Artifact Registry dependency confusion: CVSS 8.5 (AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H)
+- VPC Service Controls egress bypass: CVSS 8.0 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:N)
+- Secret Manager rotation poisoning: CVSS 7.2 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:L/A:N)
+
+---
+## STATE UPDATE (exact format for parsing)
+STATUS_PHASE: SURFACE
+STATUS_STATE: IN_PROGRESS
+NEXT_STEP_1: Deep-dive Workload Identity Federation attribute_condition CEL expressions for cross-tenant token minting scenarios
+NEXT_STEP_2: Analyze Vertex AI CustomContainerSpec network isolation guarantees via public docs and Terraform provider source
+NEXT_STEP_3: Enumerate Binary Authorization attestor key rotation patterns in public configs for replay attack surface
+
+MY LEADS:
+
+## 2026-08-07 09:37:00 UTC [google] (model nemotron3)
+- [VALIDATED] accounts.google.com OAuth/OIDC endpoints: authorization_endpoint=https://accounts.google.com/o/oauth2/v2/auth, token_endpoint=https://oauth2.googleapis.com/token, jwks_uri=https://www.googleapis.com/oauth2/v3/certs (4 RSA-2048 keys rotating)
+- [VALIDATED] TIER0 auth redirects: console.cloud.google.com→cloudconsole, issuetracker.google.com→search, admin.google.com→204
+- [VALIDATED] Vertex AI regional endpoints: 30+ regions, MTLS endpoint, scopes cloud-platform/cloud-platform.read-only
+- [VALIDATED] IAM Workload Identity Federation: OIDC/SAML providers with attribute_mapping, attribute_condition (CEL), allowed_audiences
+- [VALIDATED] Access Context Manager: ServicePerimeter with IngressPolicy/EgressPolicy, AccessLevel with DevicePolicy, GcpUserAccessBinding
+- [VALIDATED] Binary Authorization: Policy with AdmissionRule (ALLOW/DENY/REQUIRE_ATTESTATION), Attestor with Pkix/Sigstore keys, SlsaCheck
+- [VALIDATED] Org Policy: CustomConstraint with CEL, ListConstraint, PolicySpec inheritance (MERGE/REPLACE), effectiveTags
+- [VALIDATED] Agent Identity API v1: AuthProvider with ThreeLeggedOAuth/TwoLeggedOAuth/ApiKeyParams/GeminiEnterpriseAuthProviderParams
+- [VALIDATED] Cloud Build: PrivatePoolV1Config with peeredNetwork, Artifact Registry UpstreamPolicy, Secret Manager Rotation
+
+VALIDATED FINDINGS (do not re-report):
+# All above findings validated via passive GET/HEAD requests to Google APIs and discovery endpoints
