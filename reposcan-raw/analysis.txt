@@ -1,38 +1,35 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at these hits, they're all from `google/osv-scanner` and fall into clear categories:
+All hits are from `google/osv-scanner` and fall into two categories: public advisory URLs and test cassettes for the public OSV API. No secrets, tokens, or internal endpoints found.
 
-**TEST_OR_EXAMPLE** (test fixtures, sample data):
+### TEST_OR_EXAMPLE
 | File | Line | Context |
 |------|------|---------|
-| reposcan-raw/google/osv-scanner/internal/ci/testdata/vulns/test-vuln-results-b.json | 68 | HashiCorp discuss URL in test vuln data |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid-no-call-data.json | 119 | Same HashiCorp URL in test input |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid.json | 119 | Same HashiCorp URL in test input |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/input-no-call-data.json | 55 | Same HashiCorp URL in test input |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/input.json | 55 | Same HashiCorp URL in test input |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/output.json | 76 | Same HashiCorp URL in test output |
-| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/output-no-call-data.json | 72 | Same HashiCorp URL in test output |
-| reposcan-raw/google/osv-scanner/internal/output/testdata/flattened_vulns.json | 64 | Same HashiCorp URL in test output |
-| reposcan-raw/google/osv-scanner/cmd/osv-scanner/scan/source/testdata/cassettes/*.yaml | 27-3400 | `https://api.osv.dev/v1/querybatch` in 60+ test cassettes |
+| osv-scanner/internal/ci/testdata/vulns/test-vuln-results-b.json | 68 | Public HashiCorp security advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid-no-call-data.json | 119 | Same public advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid.json | 119 | Same public advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/input-no-call-data.json | 55 | Same public advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/input.json | 55 | Same public advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/output.json | 76 | Same public advisory URL |
+| osv-scanner/internal/sourceanalysis/testdata/json/output-no-call-data.json | 72 | Same public advisory URL |
+| osv-scanner/internal/output/testdata/flattened_vulns.json | 64 | Same public advisory URL |
+| osv-scanner/cmd/osv-scanner/scan/source/testdata/cassettes/*.yaml | 27+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
+| osv-scanner/cmd/osv-scanner/scan/testdata/cassettes/*.yaml | 34+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
+| osv-scanner/cmd/osv-scanner/scan/image/testdata/cassettes/*.yaml | 118+ | Test cassettes for public `api.osv.dev/v1/querybatch` |
 
-**ENDPOINT_LEAK** (production/internal endpoints):
+### ENDPOINT_LEAK
 | File | Line | Context |
 |------|------|---------|
-| reposcan-raw/google/osv-scanner/cmd/osv-scanner/fix/command.go | 291 | `RemoteHost: "https://osv-vulnerabilities.storage.googleapis.com"` - production GCS bucket endpoint |
+| osv-scanner/cmd/osv-scanner/fix/command.go | 291 | Public GCS bucket: `osv-vulnerabilities.storage.googleapis.com` |
 
-**REAL_SECRET**: None found - no API keys, tokens, or credentials with signs of life.
+### INTERESTING
+None
 
-**INTERESTING**: None beyond the above.
+### REAL_SECRET
+None
 
 ---
 
-### VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| HashiCorp discuss URLs in testdata | no |
-| api.osv.dev/v1/querybatch in test cassettes | no |
-| osv-vulnerabilities.storage.googleapis.com in command.go | no (public production endpoint) |
-
-**Summary**: No reportable secrets. All hits are test fixtures, example data, or public production endpoints.
+**VERDICT**
+- REPORT_CANDIDATE: no (all hits are public URLs or test fixtures)
