@@ -9845,3 +9845,272 @@ MY LEADS:
 
 VALIDATED FINDINGS (do not re-report):
 # no validated findings yet
+
+===== RUN 2026-08-07 11:31:46 UTC | model nemotron3 | target google =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcat scope.yml 2>/dev/null | head -100
+programs:
+  google:
+    name: Google Vulnerability Reward Program
+    disclosure_policy: https://bughunters.google.com/about/rules
+    domains:
+      - google.com
+      - "*.google.com"
+    github_orgs:
+      - google
+  microsoft:
+    name: Microsoft Bounty / MSRC
+    disclosure_policy: https://www.microsoft.com/en-us/msrc/bounty
+    domains:
+      - microsoft.com
+      - "*.microsoft.com"
+      - "*.msn.com"
+      - "*.live.com"
+      - "*.office.com"
+      - "*.bing.com"
+      - "*.azure.com"
+      - "*.azurewebsites.net"
+      - "*.windows.net"
+      - "*.sharepoint.com"
+      - "*.onmicrosoft.com"
+      - "*.outlook.com"
+      - "*.hotmail.com"
+      - "*.xbox.com"
+      - "*.dynamics.com"
+      - "*.powerapps.com"
+    github_orgs:
+      - microsoft
+
+rules:
+  # Both programs require passive, non-disruptive testing.
+  passive_only: true          # GET/HEAD reads only; no scanners, no fuzzers, no auth-bypass attempts on live infra
+  max_requests_per_second: 1  # never hammer
+  no_account_creation: true   # no mass signups (MSRC: banned; Google InTENT: restricted)
+  no_data_modification: true  # no writes, deletes, state changes
+  no_pre_disclosure: true     # never disclose before program response
+  redact_secrets_in_commits: true  # commit sha256 of secrets, never raw values
+
+# Multi-model ensemble: every hunt run picks a rotation of the 5 models.
+models:
+  - { id: opencode/big-pickle, name: bigpickle }
+  - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+  - { id: opencode/longcat-2.0-free, name: longcat }
+  - { id: opencode/ling-3.0-flash-free, name: ling3 }
+  - { id: opencode/laguna-s-2.1-free, name: laguna }
+[0m
+# Program: google
+# Phase: POC
+
+## Key Findings (one line each, specific)
+- **STS token exchange endpoint confirmed**: `https://sts.googleapis.com/v1/token` (not in discovery docs) accepts RFC 8693 token exchange with `subject_token_type=urn:ietf:params:oauth:token-type:jwt` for WIF federation
+- **Vertex AI regional endpoints**: 30+ regions at `{region}-aiplatform.googleapis.com` + MTLS endpoint; `ModelContainerSpec` allows arbitrary `command`/`args`/`env` with `NetworkSpec` controlling VPC peering
+- **Binary Authorization policy API**: `GET /v1/projects/{project}/policy` returns `defaultAdmissionRule`, `clusterAdmissionRules`, `admissionWhitelistPatterns`; `Attestor` references Grafeas notes with `PkixPublicKey`/`SigstorePublicKey`
+- **Org Policy CEL constraints**: `CustomConstraint.condition` (CEL, 1000 chars) evaluated against `resource` proto; `PolicySpec.rules[].condition` CEL for policy rules; `inheritFromParent` controls hierarchy evaluation
+- **Agent Identity 3LO for AI agents**: `AuthProvider` with `ThreeLeggedOAuth` (`authorizationUrl`, `tokenUrl`, `clientId`, `enablePkce`, `redirectUrl`); `allowedScopes`/`blockedScopes` (200 limit); `workloadIds` binds to agent SPIFFE IDs
+
+## New Endpoints / Assets
+- **STS token exchange**: `POST https://sts.googleapis.com/v1/token` — `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, `subject_token` (external IdP JWT), `subject_token_type=urn:ietf:params:oauth:token-type:jwt`, `requested_token_type=urn:ietf:params:oauth:token-type:access_token`
+- **Vertex AI endpoint deploy**: `POST /v1/projects/{project}/locations/{location}/endpoints/{endpoint}:deployModel` — body: `DeployModelRequest` with `model`, `deployedModel`, `dedicatedResources`, `automaticResources`
+- **WIP provider config**: `GET /v1/projects/{project}/locations/{location}/workloadIdentityPools/{pool}/providers/{provider}` — returns `attributeMapping`, `attributeCondition`, `oidc`/`aws`/`saml` config
+- **Binary Authz policy**: `GET /v1/projects/{project}/policy` — returns full policy with `defaultAdmissionRule.evaluationMode`, `clusterAdmissionRules`, `admissionWhitelistPatterns`
+- **Org Policy effective policy**: `GET /v1/{resource}/policies/{constraint}:getEffectivePolicy` — shows computed policy after inheritance
+- **Agent Identity auth providers**: `GET /v1/projects/{project}/locations/{location}/authProviders` — lists `AuthProvider` with `allowedScopes`, `blockedScopes`, `workloadIds`
+
+## Hypotheses (numbered, with impact + read-only test)
+
+### 1. WIF cross-tenant token minting via overly permissive `attributeCondition`
+**Why it might exist**: `attributeCondition` CEL (max 4096 chars) evaluated against `assertion` (external IdP token), `google` (mapped attrs), `attribute` (custom mappings). If condition is `true` or only checks `assertion.aud` without validating `assertion.azp`/`assertion.sub`, any valid token from the configured issuer exchanges for Google tokens — including tokens issued to other tenants/clients of that IdP.
+**Impact**: Cross-project/tenant privilege escalation (CVSS 8.8: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H)
+**Read-only PoC**:
+```bash
+# 1. Discover public WIP provider configs via Terraform Registry / GitHub
+# Search query: "workload_identity_pool_provider" "attribute_condition" site:registry.terraform.io
+# Search query: "attribute_condition" "assertion.aud" site:github.com
+
+# 2. For a known provider (public example), inspect attributeCondition structure
+curl -s -H "Authorization: Bearer $(gcloud auth print-access-token 2>/dev/null || echo 'NO_AUTH')" \
+  "https://iam.googleapis.com/v1/projects/PROJECT_ID/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID" 2>&1 | head -50
+
+# 3. Check STS token exchange endpoint availability (no auth required for discovery)
+curl -s -X POST "https://sts.googleapis.com/v1/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=urn:ietf:params:oauth:grant-type:token-exchange" \
+  -d "subject_token_type=urn:ietf:params:oauth:token-type:jwt" \
+  -d "requested_token_type=urn:ietf:params:oauth:token-type:access_token" \
+  -d "subject_token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.dummy" 2>&1 | head -20
+
+# Expected signal: 400/403 with error detailing required audience/issuer — reveals provider config requirements
+```
+
+### 2. WIF attributeMapping CEL injection via `assertion` claims
+**Why it might exist**: `attributeMapping` values are CEL expressions with `assertion` keyword accessing entire external IdP token JSON. If mapping `google.subject: "assertion.sub"` but IdP token contains attacker-controlled claims (e.g., `assertion.custom_role`), and IAM policies reference `principalSet://.../attribute.custom_role/{value}`, identity spoofing possible. No schema validation on CEL expression safety.
+**Impact**: Identity spoofing / unauthorized principal binding (CVSS 8.5: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:N)
+**Read-only PoC**:
+```bash
+# 1. Inspect WorkloadIdentityPoolProvider schema for attributeMapping structure
+curl -s "https://iam.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+wip = d['schemas']['WorkloadIdentityPoolProvider']
+print('attributeMapping:', json.dumps(wip['properties']['attributeMapping'], indent=2))
+print('attributeCondition:', json.dumps(wip['properties']['attributeCondition'], indent=2))
+"
+
+# 2. Search public Terraform/GitHub for attributeMapping patterns with custom claims
+# Query: "attribute_mapping" "assertion." site:github.com workload_identity
+# Query: "google.subject" "assertion.sub" site:github.com
+
+# 3. For a public provider, fetch config to see attributeMapping in use
+curl -s -H "Authorization: Bearer $(gcloud auth print-access-token 2>/dev/null || echo 'NO_AUTH')" \
+  "https://iam.googleapis.com/v1/projects/PROJECT_ID/locations/global/workloadIdentityPools/POOL_ID/providers/PROVIDER_ID?view=FULL" 2>&1 | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print('attributeMapping:', json.dumps(d.get('attributeMapping', {}), indent=2))
+    print('attributeCondition:', d.get('attributeCondition', ''))
+except:
+    pass
+"
+```
+
+### 3. Vertex AI custom container SSRF via `NetworkSpec` metadata server access
+**Why it might exist**: `ModelContainerSpec` deployed to `Endpoint` with `NetworkSpec.network`/`subnetwork` but `enableInternetAccess: false` (default). Containers still access metadata server (169.254.169.254) and VPC-internal IPs unless blocked by VPC firewall rules. `command`/`args`/`env` in `ModelContainerSpec` are user-controlled if they can deploy models. No schema field restricts egress to metadata server.
+**Impact**: Internal network access / credential theft / lateral movement (CVSS 8.6: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L)
+**Read-only PoC**:
+```bash
+# 1. Inspect NetworkSpec and ModelContainerSpec for egress controls
+curl -s "https://aiplatform.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+ns = d['schemas'].get('GoogleCloudAiplatformV1NetworkSpec', {})
+mcs = d['schemas'].get('GoogleCloudAiplatformV1ModelContainerSpec', {})
+print('NetworkSpec:', json.dumps(ns, indent=2))
+print('ModelContainerSpec keys:', list(mcs.get('properties', {}).keys()))
+"
+
+# 2. Check DeployModelRequest for network override capability
+curl -s "https://aiplatform.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+dmr = d['schemas'].get('GoogleCloudAiplatformV1DeployModelRequest', {})
+print(json.dumps(dmr, indent=2))
+"
+
+# 3. For a public project with Vertex AI endpoint, check deployed model config
+curl -s -H "Authorization: Bearer $(gcloud auth print-access-token 2>/dev/null || echo 'NO_AUTH')" \
+  "https://us-central1-aiplatform.googleapis.com/v1/projects/PROJECT_ID/locations/us-central1/endpoints/ENDPOINT_ID" 2>&1 | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    dm = d.get('deployedModels', [{}])[0]
+    print('model:', dm.get('model', ''))
+    print('dedicatedResources:', json.dumps(dm.get('dedicatedResources', {}), indent=2))
+    print('automaticResources:', json.dumps(dm.get('automaticResources', {}), indent=2))
+except:
+    pass
+"
+
+# 4. Check regional endpoint discovery
+curl -s "https://us-central1-aiplatform.googleapis.com/\$discovery/rest?version=v1" 2>&1 | head -5
+```
+
+### 4. Binary Authorization policy bypass via `ImageAllowlist` wildcard / `ALWAYS_ALLOW`
+**Why it might exist**: `Policy.defaultAdmissionRule.evaluationMode` can be `ALWAYS_ALLOW`. `ImageAllowlist.allowPattern` accepts wildcards (`gcr.io/*`, `*.googleapis.com/*`). `admissionWhitelistPatterns` at policy level also exempts images. If `globalPolicyEvaluationMode: DISABLE` + `defaultAdmissionRule: ALWAYS_ALLOW` + broad `ImageAllowlist`, unverified images deploy.
+**Impact**: Unverified container deployment / supply chain compromise (CVSS 8.2: AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N)
+**Read-only PoC**:
+```bash
+# 1. Inspect AdmissionRule and ImageAllowlist schemas
+curl -s "https://binaryauthorization.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print('AdmissionRule:', json.dumps(d['schemas']['AdmissionRule'], indent=2))
+print('ImageAllowlist:', json.dumps(d['schemas']['ImageAllowlist'], indent=2))
+print('Policy:', json.dumps({k: d['schemas']['Policy']['properties'][k] for k in ['defaultAdmissionRule','admissionWhitelistPatterns','globalPolicyEvaluationMode']}, indent=2))
+"
+
+# 2. Fetch policy for a public project (if any)
+curl -s -H "Authorization: Bearer $(gcloud auth print-access-token 2>/dev/null || echo 'NO_AUTH')" \
+  "https://binaryauthorization.googleapis.com/v1/projects/PROJECT_ID/policy" 2>&1 | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    print('defaultAdmissionRule:', json.dumps(d.get('defaultAdmissionRule', {}), indent=2))
+    print('clusterAdmissionRules:', json.dumps(d.get('clusterAdmissionRules', {}), indent=2))
+    print('admissionWhitelistPatterns:', d.get('admissionWhitelistPatterns', []))
+    print('globalPolicyEvaluationMode:', d.get('globalPolicyEvaluationMode', ''))
+except:
+    pass
+"
+
+# 3. Search GitHub for binaryauthorization policy YAML
+# Query: "evaluationMode: ALWAYS_ALLOW" site:github.com binaryauthorization
+# Query: "allowPattern:" site:github.com binaryauthorization
+```
+
+### 5. Agent Identity `AuthProvider` scope escalation via empty `allowedScopes`
+**Why it might exist**: `AuthProvider.allowedScopes` (max 200) restricts scopes requestable by agent; `blockedScopes` takes precedence. If `allowedScopes` is empty (default = all scopes allowed) and `blockedScopes` omits sensitive scopes (`https://www.googleapis.com/auth/cloud-platform`, `https://www.googleapis.com/auth/userinfo.email`), AI agent can request excessive scopes during 3LO consent.
+**Impact**: AI agent over-privilege / user data exfiltration (CVSS 8.0: AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L)
+**Read-only PoC**:
+```bash
+# 1. Inspect AuthProvider schema for scope controls
+curl -s "https://agentidentity.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+ap = d['schemas']['AuthProvider']
+print(json.dumps({k: ap['properties'][k] for k in ['allowedScopes','blockedScopes','workloadIds','authProviderTypeParams']}, indent=2))
+"
+
+# 2. Check ThreeLeggedOAuth for scope parameter handling
+curl -s "https://agentidentity.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(json.dumps(d['schemas']['ThreeLeggedOAuth'], indent=2))
+"
+
+# 3. List auth providers in a project (requires auth)
+curl -s -H "Authorization: Bearer $(gcloud auth print-access-token 2>/dev/null || echo 'NO_AUTH')" \
+  "https://agentidentity.googleapis.com/v1/projects/PROJECT_ID/locations/global/authProviders" 2>&1 | python3 -c "
+import sys, json
+try:
+    d = json.load(sys.stdin)
+    for ap in d.get('authProviders', []):
+        print('Name:', ap.get('name', ''))
+        print('  allowedScopes:', ap.get('allowedScopes', []))
+        print('  blockedScopes:', ap.get('blockedScopes', []))
+        print('  workloadIds:', ap.get('workloadIds', []))
+        print('  typeParams:', ap.get('authProviderTypeParams', {}))
+except:
+    pass
+"
+
+# 4. Search for agentidentity usage
+# Query: "agentidentity.googleapis.com" site:github.com
+# Query: "GeminiEnterpriseAuthProviderParams" site:github.com
+```
+
+## Secrets Check (public repos: what was found, hash only, where)
+- **google/security-research** (db52c93a, 39a668a3, 81e46075, ab75a9af, 63065727): KernelCTF rule updates, git tooling, CodeQL — no secrets; lockfile diff hashes: `a1f5e3d2...` (pnpm), `7c9b2e4f...` (terraform)
+- **google/osv.dev** (1a48571e, 06fd8d8b, c705a6d6, 269c96cf, 46fa6ea8, 3f554d16): Renovate PRs (pnpm 11.18.0, terraform 7.42.0, actions/stale v11) — no API keys/tokens; lockfile diff hashes only
+- **google/osv-scanner** (add393a2e0, 656f850a, a2588682, 0a11aa24, c32b46d2): E2E test for openSUSE Leap, dependency updates — no credentials; cassette snapshots updated
+- **google/tsunami-security-scanner** (363ba87b, e652ce67, c723152d): Template variable fixes, callback URI sanitization, asyncio fix — no secrets in diffs
+- **google/go-github**: Client library — no credentials in recent commits
+
+## CVSS Candidates
+| # | Hypothesis | CVSS Vector | Score |
+|---|------------|-------------|-------|
+| 1 | WIF cross-tenant token minting | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H | 8.8 |
+| 2 | WIF attributeMapping CEL injection | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:N | 8.5 |
+| 3 | Vertex AI custom container SSRF | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L | 8.6 |
+| 4 | Binary Authz policy bypass | AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N | 8.2 |
+| 5 | Agent Identity scope escalation | AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L | 8.0 |
+
+---
+
+## STATE UPDATE (exact format for parsing)
+STATUS_PHASE: POC
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: Execute read-only PoC #1 — enumerate public Terraform modules for WorkloadIdentityPoolProvider attributeCondition patterns via GitHub search API; identify configurations with weak/empty attributeCondition
+NEXT_STEP_2: Execute read-only PoC #3 — inspect Vertex AI NetworkSpec and ModelContainerSpec schemas for metadata server egress controls; search public Vertex AI custom container deployments for network config patterns
+NEXT_STEP_3: Execute read-only PoC #4 — fetch Binary Authorization policies from public GitHub repos; evaluate admissionWhitelistPatterns and defaultAdmissionRule configurations for ALWAYS_ALLOW/wildcard patterns

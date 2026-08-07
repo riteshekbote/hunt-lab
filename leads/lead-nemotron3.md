@@ -26,3 +26,11 @@
 - [UNVALIDATED] Org Policy custom constraint**: `POST /v1/organizations/{org}/customConstraints` with CEL `condition`; `POST /v1/{resource}/policies/{constraint}` with `PolicySpec.rules[].condition` (CEL)
 - [UNVALIDATED] Agent Identity auth provider**: `POST /v1/projects/{project}/locations/{location}/authProviders` with `ThreeLeggedOAuth`/`TwoLeggedOAuth`/`ApiKeyParams`/`GeminiEnterpriseAuthProviderParams`
 - [UNVALIDATED] Secret Manager rotation trigger**: `POST /v1/projects/{project}/secrets/{secret}/versions:add` — manual version addition bypasses rotation schedule
+
+## 2026-08-07 11:31:46 UTC [google] (model nemotron3)
+- [UNVALIDATED] STS token exchange**: `POST https://sts.googleapis.com/v1/token` — `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, `subject_token` (external IdP JWT), `subject_token_type=urn:ietf:params:oauth:token-type:jwt`, `requested_token_type=urn:ietf:params:oauth:token-type:access_token`
+- [UNVALIDATED] Vertex AI endpoint deploy**: `POST /v1/projects/{project}/locations/{location}/endpoints/{endpoint}:deployModel` — body: `DeployModelRequest` with `model`, `deployedModel`, `dedicatedResources`, `automaticResources`
+- [UNVALIDATED] WIP provider config**: `GET /v1/projects/{project}/locations/{location}/workloadIdentityPools/{pool}/providers/{provider}` — returns `attributeMapping`, `attributeCondition`, `oidc`/`aws`/`saml` config
+- [UNVALIDATED] Binary Authz policy**: `GET /v1/projects/{project}/policy` — returns full policy with `defaultAdmissionRule.evaluationMode`, `clusterAdmissionRules`, `admissionWhitelistPatterns`
+- [UNVALIDATED] Org Policy effective policy**: `GET /v1/{resource}/policies/{constraint}:getEffectivePolicy` — shows computed policy after inheritance
+- [UNVALIDATED] Agent Identity auth providers**: `GET /v1/projects/{project}/locations/{location}/authProviders` — lists `AuthProvider` with `allowedScopes`, `blockedScopes`, `workloadIds`
