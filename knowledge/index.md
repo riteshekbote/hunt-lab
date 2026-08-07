@@ -51,3 +51,7 @@
 - 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET returns proper 401 with WWW-Authenticate: Bearer — verified 3×HEAD + 1×GET passively
 - 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with 23836-byte HTML body containing iErrorCode=900144, iHttpErrorCode=400, "We received a bad request" — violates RFC 6749 §3; verified via live GET probe
 - 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
+- 2026-08-07 No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.

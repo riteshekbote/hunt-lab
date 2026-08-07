@@ -319,3 +319,31 @@ testability: AUTH_HELPED
 [LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
 [RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only; no-token→400); all GCP control-plane reads consumer-identity gated; dual-JWKS verified clean; no exploitable unauth branch.
 [RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB, HTTP 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all re-confirmed 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.
+## 2026-08-07 19:31:53 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite
+class: IDOR
+asset: POST/GET/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 55
+reasoning: $metadata types this a contains-target collection with zero OperationRestrictions; create accepts client-supplied createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard. Converged with laguna [82]/nemotron3 [75]. Re-probed 401 this cycle, alive.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumeration; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST start w/ chosen GUID; 2) B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[HYP] Verified ID employee-credential mint via caller-chosen claims
+class: BUSLOGIC
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: backend gates only on GuestIsNot/Tenant flags (per source-map analysis); claims/fields otherwise caller-supplied; Bearer scope = SPA clientId 8c59ead7-...; endpoint alive 401. Business value highest of program (verified-credential mint = identity trust root).
+evidence_needed: test-tenant principal with a legit token mints a credential with attacker-modified claim fields → accepted vs claim-schema rejection.
+verify_steps: AUTH_HELPED (test-tenant): 1) obtain Bearer via SPA clientId flow; 2) POST /api/issueVerifiedEmployeeCredential with modified employee claims; 3) observe issued-credential acceptance vs field-level rejection.
+impact: forged Verified Employee credentials → downstream RP trust compromise / account takeover at relying parties. CVSS 7.5–9.5.
+testability: AUTH_HELPED

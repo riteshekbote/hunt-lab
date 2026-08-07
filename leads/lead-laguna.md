@@ -339,3 +339,44 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
 [RISK] google: 35 | GCP control-plane discovery APIs all auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; ADK /run_sse issues are SDK-level GitHub PRs (KNOWN-DUP #2128, #5154 WIP — not live Google service vulns); tokeninfo oracle is rate-limited public introspection (no-reward category); bughunters.google.com SPA hardened with HSTS+XFO+nosniff; reposcan found 0 real secrets (all TEST_ORAMPLE). No new unauthenticated attack surface discovered; passive Google probes (tokeninfo, bughunters, v2.0 authorize, JWKS) confirmed existing ACCEPTED findings but no new exploitable gap.
 [RISK] microsoft: 85 | PASSIVE-VERIFIED preconditions for all top hypotheses this cycle: (1) agentRegistration metadata confirms zero ownership restrictions on client-supplied createdBy/ownerIds/agentCard/agentIdentityId with no OperationRestrictions (IDOR 8.55); (2) JWKS kid overlap + dual issuer namespaces + v1.0-only implicit/hybrid flows verified for issuer-confusion (8.25, $100k ceiling); (3) Verified ID minting backend contract shows no admin-role check (7.80); (4) Graph 405 anomaly + v2.0 HTTP-200 error rendering are RFC violations verified live. All in active GA/preview transition (Agent 365, Entra Verified ID), test-tenant reachable, Entra/Copilot identity plane = crown jewels.
+## 2026-08-07 19:33:43 UTC [google] (model laguna)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] login.microsoftonline.com v1↔v2.0 issuer-confusion, 8.25, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, 7.80, attack=8 business=9 tech=8 gate=5 cloud=7 fresh=9
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 82
+reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch: agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied properties with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions annotations in the entity block. Scope AgentRegistration.ReadWrite.All (admin consent); ContainsTarget=true on copilotRoot/agentRegistrations navigation.
+evidence_needed: PATCH /beta/copilot/agentRegistrations/{foreign_id} with modified ownerIds/agentCard/createdBy returns 200/204 and mutation persists (cross-user within same tenant).
+verify_steps: AUTH_HELPED: In test tenant, create registration A as User1, note ID; as User2 (same tenant, different identity), PATCH that ID with attacker-controlled agentCard + ownerIds + createdBy; GET to confirm mutation persists. PASSIVE: GET /beta/copilot/agentRegistrations (Collection type) with valid Bearer to test cross-principal enumeration.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution (createdBy), supply-chain compromise of any Copilot registration in tenant; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ issuer + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 issuer + 8-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED via live JWKS/issuer probes: v1.0 /discovery/keys = 5 RSA kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…); v2.0 /discovery/v2.0/keys = 8 RSA kids — all 5 v1.0 kids ⊂ v2.0. Two distinct issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) serve same tenant. v1.0 response_types include pure `token` (implicit) + `token id_token` (hybrid) — excluded from v2.0. If any token-accepting resource validates signature+kid but not strict iss claim, v1.0-issued token is replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: Acquire v1.0 id_token (iss=sts.windows.net/{tid}/); send to a v2.0-only endpoint/resource that enforces issuer strictly; observe acceptance vs rejection. PASSIVE: kid overlap already verified (5/5); v1.0-only response_types verified (token, token id_token).
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100,000)
+testability: AUTH_HELPED
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 75
+reasoning: SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2 scopes token to itself; source map main.4e6e3dc6.js.map (35MB, 4922 paths) confirms request schema is body-less POST with Bearer token and accepts jobTitle/department/employeeId fields; backend gates ONLY on GuestIsNotAllowedToIssueVerifiedId / TenantIsNotInAllowedToIssueVerifiedId / feature-on — no per-caller employee verification, no admin-role check visible in client contract. Entra Verified ID = high-value DID-signed employee credential.
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential.
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST /api/issueVerifiedEmployeeCredential (empty body); observe response. Passive: download source map main.4e6e3dc6.js.map → extract full request schema.
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, access to Verified ID-gated resources; CVSS 7.1–9.1
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps.
+[FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 82, priority 8.55)
+[FINAL] 2. v1.0↔v2.0 issuer-confusion token replay (AUTH, login.microsoftonline.com, confidence 60, priority 8.25)
+[FINAL] 3. Verified ID minting without admin role — backend gates only on Guest/Tenant flags (AUTH, api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, confidence 75, priority 7.80)
+[NEXT] HUMAN: Two-principal test-tenant probe of the top-ranked hypothesis (agentRegistration IDOR). A POST /beta/copilot/agentRegistrations (client-set createdBy + ownerIds) → B GET /beta/copilot/agentRegistrations (collection enumeration with scope AgentRegistration.ReadWrite.All) → B PATCH /beta/copilot/agentRegistrations/{A-id} with attacker-controlled agentCard/ownerIds/createdBy → record 200/204 vs 403. Simultaneously prepare v1.0 id_token issuer-confusion test against v2.0-only Graph resources. Request MSRC program confirmation for Copilot Studio D2E envhost inclusion.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+[LEARN] ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+[RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; no new unauthenticated surface. Passive phase exhausted.
+[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Copilot Studio D2E conversation-ID non-validation. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.

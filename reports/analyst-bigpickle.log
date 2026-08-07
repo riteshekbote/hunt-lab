@@ -1350,3 +1350,92 @@ STEP 7 — RISK SCORE:
 [RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB, HTTP 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all re-confirmed 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.
 
 (Appended to `reports/hypotheses-bigpickle.txt`.)
+===== ANALYST bigpickle 2026-08-07 19:36:42 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "agentRegistrations: %{http_code}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "agentRegistrations HEAD: %{http_code}\n" -I "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "srcmap: %{http_code} %{size_download}\n" "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map"; curl -s -o /dev/null -w "tokeninfo: %{http_code}\n" "https://oauth2.googleapis.com/tokeninfo"
+agentRegistrations: 401
+agentRegistrations HEAD: 405
+srcmap: 200 6976576
+tokeninfo: 400
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "graph-me: %{http_code} len=%{size_download}\n" -X HEAD "https://graph.microsoft.com/v1.0/me"; curl -s -o /dev/null -w "graph-me-GET: %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/v1.0/me"; curl -s -o /dev/null -w "agentSignInSessions: %{http_code}\n" "https://graph.microsoft.com/beta/me/agentSignInSessions"; curl -s -o /dev/null -w "keys: %{http_code}\n" "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+graph-me: 405 len=0
+graph-me-GET: 401 len=237
+agentSignInSessions: 401
+keys: 200
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "verifiedID-mint: %{http_code}\n" "https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential"; curl -s -o /dev/null -w "permGrants: %{http_code}\n" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants"; curl -s -o /dev/null -w "myaccount-shell: %{http_code}\n" "https://api.myaccount.microsoft.com/api/shell/getshellinfo"; curl -s -o /dev/null -w "copilotStudioD2E: %{http_code}\n" "https://copilotstudio.dataverse-backed.authenticated.microsoft.com"
+verifiedID-mint: 401
+permGrants: 401
+myaccount-shell: 401
+copilotStudioD2E: 000
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "v2authorize: %{http_code}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=19db86c3-b2b9-44cc-b339-36da233a3be2&scope=openid"; curl -s -o /dev/null -w "mgmt: %{http_code}\n" "https://accounts.accesscontrol.windows.net/mgmt/delegation/1"; curl -s -o /dev/null -w "bughunters-root: %{http_code}\n" "https://bughunters.google.com/"
+v2authorize: 200
+mgmt: 200
+bughunters-root: 200
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "v1-agentSignInSessions: %{http_code}\n" "https://graph.microsoft.com/v1.0/me/agentSignInSessions"; curl -s -o /dev/null -w "catalog-packages: %{http_code}\n" "https://graph.microsoft.com/beta/copilot/admin/catalog/packages"; curl -s -o /dev/null -w "tokeninfo-at: %{http_code}\n" "https://oauth2.googleapis.com/tokeninfo?access_token=abc"; curl -s -o /dev/null -w "agents-beta: %{http_code}\n" "https://graph.microsoft.com/beta/agents"
+v1-agentSignInSessions: 401
+catalog-packages: 401
+tokeninfo-at: 400
+agents-beta: 401
+[0m
+All prior alive surface re-confirmed via live probes this cycle (agentRegistrations 401, agentSignInSessions 401 both versions, Verified ID mint 401, permGrants 401, source map 200 6.9MB, v2.0 authorize 200, tokeninfo 400, Graph HEAD 405/GET 401). No new or changed surface items.
+
+STEP 1 — DELTA
+- NO_DELTA (all alive surface re-confirmed; D2E envhost unresolvable from anonymous vantage — tenant-specific, prereq MSRC scope confirm)
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations: 7.00 = attack 8 / business 9 / tech 7 / gate 2 / cloud 8 / fresh 6
+- [PRIO] {envhost}/copilotstudio/.../bots/{schema}/conversations: 6.20 = attack 7 / business 8 / tech 7 / gate 2 / cloud 6 / fresh 5
+- [PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: 6.15 = attack 6 / business 9 / tech 6 / gate 2 / cloud 7 / fresh 5
+- (carry) graph.microsoft.com/v1.0/oauth2PermissionGrants: 6.05 = attack 7 / business 8 / tech 6 / gate 2 / cloud 7 / fresh 4
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite
+class: IDOR
+asset: POST/GET/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 55
+reasoning: $metadata types this a contains-target collection with zero OperationRestrictions; create accepts client-supplied createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard. Converged with laguna [82]/nemotron3 [75]. Re-probed 401 this cycle, alive.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumeration; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST start w/ chosen GUID; 2) B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[HYP] Verified ID employee-credential mint via caller-chosen claims
+class: BUSLOGIC
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: backend gates only on GuestIsNot/Tenant flags (per source-map analysis); claims/fields otherwise caller-supplied; Bearer scope = SPA clientId 8c59ead7-...; endpoint alive 401. Business value highest of program (verified-credential mint = identity trust root).
+evidence_needed: test-tenant principal with a legit token mints a credential with attacker-modified claim fields → accepted vs claim-schema rejection.
+verify_steps: AUTH_HELPED (test-tenant): 1) obtain Bearer via SPA clientId flow; 2) POST /api/issueVerifiedEmployeeCredential with modified employee claims; 3) observe issued-credential acceptance vs field-level rejection.
+impact: forged Verified Employee credentials → downstream RP trust compromise / account takeover at relying parties. CVSS 7.5–9.5.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [PARKED] oauth2PermissionGrants caller-chosen resourceId (confidence 52): retained but NOT re-filed — superseded in ranking by agentRegistrations/Verified-ID; needs a two-principal AUTH_HELPED test identical in shape to the agentRegistrations probe, so fold into that execution batch rather than split test budget.
+- [PARKED] bare GET enumeration sub-claim (agentRegistrations): merged into HYP 1 — no longer a differentiated claim.
+- [FINAL] 1. agentRegistrations ownership/PATCH bypass (IDOR) — confidence 55, priority 7.00
+- [FINAL] 2. D2E conversation-ID resumption (IDOR) — confidence 55, priority 6.20
+- [FINAL] 3. Verified ID employee-credential mint (BUSLOGIC) — confidence 50, priority 6.15
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: two-principal test-tenant probe of top hypothesis (unexecuted, blocks both #1 and parked consent-grant): A POST /beta/copilot/agentRegistrations (client-set createdBy/ownerIds, Bearer scope AgentRegistration.ReadWrite.All) → B GET /beta/copilot/agentRegistrations (own Bearer, collection enumeration) → B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 per hop; same session then run the oauth2PermissionGrants resourceId=AzureStorage probe.
+
+STEP 6 — LEARNING
+- [LEARN] No new proving-dead classes this cycle; alive surface fully re-confirmed (agentRegistrations 401, agentSignInSessions 401 v1.0+beta, Verified-ID mint 401, permGrants 401, source map 200, v2.0 authorize 200, tokeninfo 400, Graph HEAD 405/GET 401).
+
+STEP 7 — RISK SCORE
+- [RISK] google: 35 — tokeninfo oracle is sole anonymous branch (info-only, malformed→400); all GCP control-plane reads consumer-identity gated; dual-JWKS verified clean; no exploitable unauth path.
+- [RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 6.9MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.

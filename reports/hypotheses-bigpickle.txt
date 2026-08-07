@@ -1,70 +1,28 @@
-## 2026-08-07 19:17:28 UTC [google] (model bigpickle)
-[HYP] Agent Registration ownership boundary / collection enumeration (carry-forward, differentiated sub-claim = enumeration)
+## 2026-08-07 19:31:53 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite
 class: IDOR
-asset: GET/POST/PATCH/DELETE https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
-confidence: 50
-reasoning: create accepts CLIENT-SUPPLIED createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard; metadata types collection (contains-target) with no OperationRestrictions; converged with nemotron3 [75] — differentiated sub-claim is bare GET enumeration, not PATCH.
-evidence_needed: principal B (no ownership) GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403.
-verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration; 2) B GET /beta/copilot/agentRegistrations (enumeration); 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; 4) observe 200/204 vs 403. Passive: none (401, re-confirmed).
-impact: cross-app agent registration tamper → impersonation/supply-chain/forged audit attribution. CVSS 7.5–9.0.
-testability: AUTH_HELPED
-[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId (carry-forward)
-class: BUSLOGIC
-asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
-confidence: 52
-reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked list; passive 401 re-confirmed this cycle, no new gate.
-evidence_needed: principal without delegated-admin/consent rights creates grant {clientId:A, resourceId:AzureStorage, scope:"user_impersonation"} → 201/204 vs 403.
-verify_steps: AUTH_HELPED (test-tenant): 1) app A + app B; 2) owner of A POSTs grant as above; 3) observe 201/204 vs 403; 4) if accepted, AAD client_credentials for that resource.
-impact: unapproved cross-resource consent grants → tenant storage/data exposure. CVSS 6.5–8.5.
-testability: AUTH_HELPED
-[HYP] D2E conversation-ID resumption / cross-app session hijack (carry-forward)
-class: IDOR
-asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+asset: POST/GET/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
 confidence: 55
-reasoning: RAG PROVES JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards.
-evidence_needed: principal B executes turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard error.
-verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) app A POST start w/ chosen GUID; 2) app B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; 3) observe resume vs guard.
-impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
-testability: AUTH_HELPED
-[PARKED] Verified ID employee-credential mint hypothesis (confidence 50, carry-forward) — retained but NOT re-filed this cycle: already flagged as aggregate NEXT (hypotheses-bigpickle.txt 18:48), business_value 9 highest, human test queued, no new passive evidence this cycle.
-[FINAL] 1. agentRegistrations ownership/enumeration (IDOR, merged with nemotron3 [75]) — priority 6.55
-[FINAL] 2. D2E conversation-ID resumption (IDOR) — priority 6.50
-[FINAL] 3. oauth2PermissionGrants caller-chosen resourceId (BUSLOGIC) — priority 6.50
-[NEXT] HUMAN: two-principal test-tenant probe (top-ranked, unexecuted): A POST /beta/copilot/agentRegistrations (createdBy/ownerIds client-set) → B GET /beta/copilot/agentRegistrations (collection enumeration, Bearer scope AgentRegistration.ReadWrite.All) → B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":...} → record 200/204 vs 403 for each hop.
-[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
-[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only, no-token→400); all GCP control-plane reads consumer-identity gated; keys dual-endpoint verified clean; no exploitable unauth branch.
-[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401 but Bearer-gated behind authorized-token tests; exposure surface unchanged, exploit status pending test-tenant.
-[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
-[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only, no-token→400); all GCP control-plane reads consumer-identity gated; keys dual-endpoint verified clean; no exploitable unauth branch.
-[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401 but Bearer-gated behind authorized-token tests; exposure surface unchanged, exploit status pending test-tenant.
-[HYP] Agent Registration ownership boundary / collection enumeration (carry-forward; differentiated sub-claim = bare GET enumeration)
-class: IDOR
-asset: GET/POST/PATCH/DELETE https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
-confidence: 50
-reasoning: create accepts client-supplied `createdBy`; PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard`; metadata types it a contains-target collection with zero OperationRestrictions; converged with nemotron3 [75]. Re-probed: endpoint 401 `InvalidAuthenticationToken`, alive.
-evidence_needed: principal B (no ownership) GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403.
-verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration; 2) B GET `/beta/copilot/agentRegistrations` (enumeration); 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; 4) observe 200/204 vs 403. Passive: none (401, confirmed).
+reasoning: $metadata types this a contains-target collection with zero OperationRestrictions; create accepts client-supplied createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard. Converged with laguna [82]/nemotron3 [75]. Re-probed 401 this cycle, alive.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumeration; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 at each hop.
 impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
 testability: AUTH_HELPED
-[HYP] D2E conversation-ID resumption / cross-app session hijack (carry-forward)
+[HYP] D2E conversation-ID resumption / cross-app session hijack
 class: IDOR
 asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
 confidence: 55
-reasoning: RAG proves JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL remains.
-evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error (CallerIdentityMismatch/D2EAccessDenied).
-verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) app A POST start with chosen GUID; 2) app B POST `/conversations/{same GUID}` + GET subscribe with `Last-Event-ID` using its own Bearer; 3) observe resume vs guard.
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST start w/ chosen GUID; 2) B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; observe resume vs guard.
 impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
 testability: AUTH_HELPED
-[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId (carry-forward)
+[HYP] Verified ID employee-credential mint via caller-chosen claims
 class: BUSLOGIC
-asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
-confidence: 52
-reasoning: consent primitive accepts caller-chosen `resourceId` spanning Graph or Azure Storage `user_impersonation` (e406a681-…); `Application.Read.All` absent from agent blocked-permissions; endpoint re-probed 401, no new gate.
-evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
-verify_steps: AUTH_HELPED (test-tenant): 1) app A + app B; 2) owner of A POSTs grant as above; 3) observe 201/204 vs 403; 4) if accepted, AAD client_credentials for that resource.
-impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: backend gates only on GuestIsNot/Tenant flags (per source-map analysis); claims/fields otherwise caller-supplied; Bearer scope = SPA clientId 8c59ead7-...; endpoint alive 401. Business value highest of program (verified-credential mint = identity trust root).
+evidence_needed: test-tenant principal with a legit token mints a credential with attacker-modified claim fields → accepted vs claim-schema rejection.
+verify_steps: AUTH_HELPED (test-tenant): 1) obtain Bearer via SPA clientId flow; 2) POST /api/issueVerifiedEmployeeCredential with modified employee claims; 3) observe issued-credential acceptance vs field-level rejection.
+impact: forged Verified Employee credentials → downstream RP trust compromise / account takeover at relying parties. CVSS 7.5–9.5.
 testability: AUTH_HELPED
-[NEXT] HUMAN: two-principal test-tenant probe of the top-ranked hypothesis (unexecuted): A POST `/beta/copilot/agentRegistrations` (client-set `createdBy`/`ownerIds`) → B GET `/beta/copilot/agentRegistrations` with its own Bearer (scope `AgentRegistration.ReadWrite.All`) to test collection enumeration → B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":...}` → record 200/204 vs 403 at each hop.
-[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
-[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only; no-token→400); all GCP control-plane reads consumer-identity gated; dual-JWKS verified clean; no exploitable unauth branch.
-[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB, HTTP 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all re-confirmed 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.

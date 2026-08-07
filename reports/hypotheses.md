@@ -78,3 +78,15 @@
 - LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET ret
 - LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not
 - LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either ac
+
+## RANKED HYPOTHESES 2026-08-07 19:36:42 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [70] login.microsoftonline.com/{tid}/oauth2/v2.0/token: Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation (from reports/hypotheses-nemotron3.txt)
+- [55] POST/GET/PATCH: Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/agentRegistry/agentInstances` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All` or `Cop
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of the top-ranked hypothesis (agentRegistration IDOR). A POST /beta/copilot/agentRegistrations (client-set createdBy + ow
+- LEARN: No new proving-dead classes this cycle
+- LEARN: No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
