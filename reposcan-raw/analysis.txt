@@ -1,34 +1,74 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results carefully. I need to classify each hit into one of the categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+[0m$ [0msha256sum <<< "injected-token-probe"
+ed37fcd603a8d8169c112325d45462c50e4c4997d85c61d86f66a05cc03898d6  -
+[0m
+[0m$ [0msha256sum <<< "40150cc2c638b09de8ebbfefd50b80a4"
+cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m
+[0m$ [0msha256sum <<< "YOUR_GEMINI_API_KEY_HERE" && sha256sum <<< "YOUR_OPENAI_API_KEY_HERE" && sha256sum <<< "beeblebrox" && sha256sum <<< "password" && sha256sum <<< "your_client_secret"
+51408d68dbacad473c942538a1dd08f56eb2008832dc531d9603613912567453  -
+c40fd5eeed2701d90e373f9fd496ff800f69f05ecea4bc3eac336007e08f1fbf  -
+d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651  -
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+[0m
+### Classification Tables
 
-First, let me go through the hits:
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | 49 | `ed37fcd603a8d8169c112325d45462c50e4c4997d85c61d86f66a05cc03898d6` | Test const `injected-token-probe` in `jvmTest` path |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130` | Algolia DocSearch key — **public by design** (RAG: REJECTED) |
+| google/xrblocks/src/ai/AI.ts | 304 | `51408d68dbacad473c942538a1dd08f56eb2008832dc531d9603613912567453` | Placeholder `YOUR_GEMINI_API_KEY_HERE` |
+| google/xrblocks/src/ai/AI.ts | 305 | `c40fd5eeed2701d90e373f9fd496ff800f69f05ecea4bc3eac336007e08f1fbf` | Placeholder `YOUR_OPENAI_API_KEY_HERE` |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | — | Secret reference `GOOGLE_API_KEY:latest`, not value |
+| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | `d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651` | Test DB password `beeblebrox` |
+| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651` | Test DB password `beeblebrox` |
+| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | — | Test-only EC key in `testonly` package |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | — | Example private key placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Example credentials `user`/`password` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | — | Example JWT `eyAkaknabna....` (truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | Placeholder `your_client_secret` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 49 | — | State key name `_vmaas_access_token`, not token |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | — | Code template writing `GOOGLE_API_KEY={var}` |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | — | — | Minified build artifacts (source maps) |
+| google/adk-python/src/google/adk/cli/browser/*.js | — | — | Minified build artifacts (source maps) |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | — | Minified build artifact (source map) |
 
-1. `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246: "--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",`
-   - This is a Cloud Run deployment config that references a secret named GOOGLE_API_KEY. It's not the actual secret value, just a reference to a secret in Google Secret Manager. This is INTERESTING (cloud config pattern) but not a real secret.
+#### ENDPOINT_LEAK (internal/ref references, not secrets)
+| File | Line | Details |
+|------|------|---------|
+| google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | Internal Google source URL `cs.corp.google.com/piper///depot/google3/...` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` (well-known, not secret) |
 
-2. The JavaScript files in `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/` and `reposcan-raw/google/adk-python/src/google/adk/cli/browser/` - these are all minified/bundled JS files with parser error messages. These are TEST_OR_EXAMPLE (build artifacts).
+#### INTERESTING (debug/config, no secrets)
+| File | Line | Details |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig params (optional, not secrets) |
+| google/adk-python/src/google/adk/cli/browser/*.js | — | Source maps (4359+ paths) — already tracked in RAG as live |
 
-3. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:49: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`
-   - This is a constant for a state key name, not an actual token. TEST_OR_EXAMPLE.
+---
 
-4. `reposcan-raw/google/certificate-transparency-go/scripts/resetctdb.sh:37: [ -z ${MYSQL_PASSWORD+x} ] && MYSQL_PASSWORD="beeblebrox"`
-   - This is a test/default password in a database reset script. The password "beeblebrox" is a Hitchhiker's Guide reference. This is TEST_OR_EXAMPLE (test fixture).
+### Verdict List
 
-5. `reposcan-raw/google/certificate-transparency-go/scripts/resetpgctdb.sh:41: [ -z ${POSTGRESQL_PASSWORD+x} ] && POSTGRESQL_PASSWORD="beeblebrox"`
-   - Same as above, test password. TEST_OR_EXAMPLE.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-kotlin `INJECTED_TOKEN` | **no** | Test fixture in `jvmTest` |
+| xrblocks Algolia `apiKey` | **no** | Public-by-design search key (RAG REJECTED) |
+| xrblocks `YOUR_GEMINI_API_KEY_HERE` | **no** | Explicit placeholder |
+| xrblocks `YOUR_OPENAI_API_KEY_HERE` | **no** | Explicit placeholder |
+| adk-go Cloud Run secret ref | **no** | References secret name, not value |
+| certificate-transparency `beeblebrox` | **no** | Test DB password in `scripts/` |
+| certificate-transparency test EC key | **no** | In `testonly` package |
+| adk-python auth_credential examples | **no** | Example/placeholder values in auth library |
+| adk-python `PASSWORD = "password"` | **no** | Example constant |
+| adk-python `your_client_secret` | **no** | Explicit placeholder |
+| adk-python `_vmaas_access_token` | **no** | State key name, not token |
+| libultrahdr internal Google URL | **no** | Source reference, not credential |
+| container_code_executor metadata IP | **no** | Well-known cloud metadata endpoint |
+| All minified JS / source maps | **no** | Build artifacts, already inventoried |
 
-6. `reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go:24: -----BEGIN EC PRIVATE KEY-----`
-   - File is in `testonly` package, explicitly for testing. TEST_OR_EXAMPLE.
-
-7. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"`
-   - Commented out placeholder. TEST_OR_EXAMPLE.
-
-8. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"`
-   - Same, commented placeholder. TEST_OR_EXAMPLE.
-
-9. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")`
-   - Setting KUBECONFIG path, not a secret. INTERESTING (cloud config).
-
-10. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+**No REAL_SECRET findings in this delta.** All hits are test fixtures, placeholders, example code, or previously-inventoried build artifacts.
