@@ -4077,3 +4077,715 @@ STATUS_STATE: HIGH_POTENTIAL
 NEXT_STEP_1: POC on highest-value read-only signals: (a) confirm no cross-issuer key reuse between accounts.accesscontrol.windows.net JWKS and AAD `/common/discovery/v2.0/keys`; (b) one bounded GET of `policyfiles` data shape on a test tenant for the IDOR design.
 NEXT_STEP_2: Enumerate first-party redirect_uri registrations from public sources and build the normalization matrix against reply-url rules; mark which encodings are safe to validate live vs require test tenant.
 NEXT_STEP_3: If HYPOTHESIS exhausts, open new RECON surface: crt.sh CT inventory for the Jul-2025 identity hosts + `*.activedirectory.windowsazure.com` (note: out-of-scope, adjacent only) and Graph `/v1.0/$metadata` service-document crawl for new agent/identity types.
+
+## RUN 2026-08-07 10:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC (read-only)
+
+### POC-1: Source-map exposure characterization (LIVE, in-scope)
+- HEAD/GET reconfirmed: api.myaccount /bundle/main.4e6e3dc6.js.map (35,340,363 B) and mysignins /bundle/main.caa6a456.js.map (6,976,576 B) both 200, Content-Type text/plain, NO Cache-Control header on either; Last-Modified 2026-07-24 / 2026-07-28; ETags present. Hashed filenames = immutable-content pattern, so exposure is deliberate-cacheable (supporting asset for chains; not standalone-reportable per triage 10-16).
+- mysignins SPA shell: real CSP `script-src 'self' amcdn.msftauth.net js.monitor.azure.com`, meta app-version 4.0.2233. myaccount shell: CSP-Report-Only + HSTS max-age=2592000 + no-store. Both shells are minimal (no config block in HTML); myaccount loads /bundle/main.shim.js (17,936 B, trivial loader + Azure Code Signing Authenticode block, ETag 1dd1b7e6aa49110) which loads main.4e6e3dc6.js.
+- Artifact hashes (this run): graph_v1_meta.xml 9d84e451..., graph_beta_meta.xml ca304859..., acs.json 504f3df2..., main.shim.js 88dc286e..., mysignins.html ba400c19..., myaccount.html de5a0b99...
+
+### POC-2: ACS /metadata/json/1 — full JWKS reconciliation (LIVE, in-scope *.windows.net)
+- Response shape CHANGED vs SURFACE run: now keyValue{type:x509Certificate,value,keyInfo{x5t,cloud_instance_name}}; allowedAudiences/Audience/Issuer fields ABSENT (tenant-enum patch reconfirmed).
+- 5 self-signed signing certs, rotation-active (notBefore Jun-08 / Jun-17 / Jul-04 2026 for the 3 prod keys; Jul-01 / Jul-26 2026 for the 2 US-cloud keys), all notAfter 2031. Per-key: x5t aFkmKVFc-4WV6sXCBvNZkXI505Y (microsoftonline.com), AahUf1bCXvx0JTRcXLrr0U4SluY, fEtqrhKT1bXAGafSdQoN1vXTRpI, then jvm_-TtaqTCRrkpnmePvwb75nWE + 6hXLaIYNSJ0o7zu09dMyI0ji3ug (BOTH cloud_instance_name=microsoftonline.us, CN=login.microsoftonline.us). DER sha256: 05d17f72...d9c6, 34d09425...bd5b, 93a64915...d47, 1b499ff9...3d85, a73ca1f9...67b9 (match SURFACE-run colon-hex FPs).
+- Signal: the JWKS now explicitly co-serves microsoftonline.us signing keys tagged cloud_instance_name. Not a vuln by itself (est-aggregation design); it is a design signal for the cross-cloud-token acceptance hypothesis (test-tenant-only to prove).
+
+### POC-3: Graph $metadata service-document crawl for agent/identity types (LIVE, in-scope graph.microsoft.com)
+- v1.0 $metadata (2,931,817 B) + beta $metadata (7,298,965 B) fetched. agentSignInSession: 0 references in BOTH — the /me/agentSignInSessions surface used by My Sign-Ins (/recent-activity/agentic-sessions) is entirely off-metadata (internal/partner surface). Confirms earlier finding.
+- Agent ID entity model IS in public metadata: v1 EntityTypes agentIdentity (BaseType graph.servicePrincipal, props agentIdentityBlueprintId + createdDateTime, nav sponsors), agentIdentityBlueprint (BaseType graph.application, nav inheritablePermissions ContainsTarget + sponsors), agentIdentityBlueprintPrincipal (BaseType graph.servicePrincipal), agentUser (BaseType graph.user). Beta adds agentIdentity nav inheritedAppRoleAssignments + inheritedOauth2PermissionGrants. user entity has nav sponsorOf + sponsors.
+- Public docs confirm (learn.microsoft.com/en-us/entra/agent-id; create-blueprint.md): Agent ID preview (admin center Nov-17-2025; Dataverse GA announcement 2026-08-06). Creation endpoints POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint, /servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal, /servicePrincipals/microsoft.graph.agentIdentity, beta /users (agentUser). Scopes: AgentIdentityBlueprint.Create / .AddRemoveCreds.All / .UpdateAuthProperties.All / AgentIdentityBlueprintPrincipal.Create; dir roles Agent ID Developer / Agent ID Administrator. Hardening confirmed by independent tests: agent identities are always single-tenant; interactive OAuth flows (code/device/implicit/ROPC) BLOCKED; addPassword to agentIdentity service principal BLOCKED (403); isFallbackPublicClient not flippable; no RFC7591 dynamic registration.
+- My Account agent hooks map onto this model: useHasOwnedAgents GET /users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999 filtered servicePrincipalType==ServiceIdentity (=agentIdentity); getSponsoredAgentsUrl GET /users/{userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999.
+
+### POC designs (no live sends; test-tenant only)
+- PD-A agentSignInSessions scope/IDOR: token on own tenant (AgentIdentity.Read.All) → GET /v1.0/me/agentSignInSessions and GET /v1.0/users/{arbitrary-oid}/agentSignInSessions; signal if second resolves caller-agnostic → cross-user session disclosure. CVSS 6.5–8.8.
+- PD-B agent-identity privilege inheritance: user sponsors self-created blueprint → creates agentIdentity inheriting blueprint oauth2PermissionGrants/appRoleAssignments (beta nav) → compare agent's effective perms vs user's own; signal if inherited grants exceed sponsor's. CVSS 7.0–9.0. (Blocked-flow hardening partially mitigates; OBO/jwt-bearer minting still possible.)
+- PD-C Verified ID mint: POST /api/issueVerifiedEmployeeCredential (Bearer, scope=SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2, no body); compare no-role vs GlobalAdmin; signal both-204 → authz gap. CVSS 7.1–9.1.
+- PD-D policyfile IDOR: GET /api/termsofuse/agreements/{a}/policyfiles/{p}/data with cross-tenant GUID pairs (token required). CVSS 5.3–7.5.
+- PD-E redirect_uri normalization matrix vs reply-url doc (RFC6749 §3.1.2 + RFC9700): trailing-slash, case, fragment, percent-encoding, response_mode form_post/fragment, wctx; live-check only on in-scope login.live.com fast-fail echo (1 req per variant, documented cases only). CVSS 7.4–9.0 if any first-party registration accepts a non-exact match.
+
+===== RUN 2026-08-07 10:35:22 UTC | model bigpickle | target microsoft =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/ && cat /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json 2>/dev/null
+total 264
+drwxr-xr-x 9 runner runner  4096 Aug  7 10:31 .
+drwxr-xr-x 3 runner runner  4096 Aug  7 10:30 ..
+drwxr-xr-x 7 runner runner  4096 Aug  7 10:31 .git
+drwxr-xr-x 3 runner runner  4096 Aug  7 10:30 .github
+-rw-r--r-- 1 runner runner  1022 Aug  7 10:30 README.md
+-rw-r--r-- 1 runner runner 11447 Aug  7 10:31 ctx-leads.txt
+-rw-r--r-- 1 runner runner 82108 Aug  7 10:31 ctx-research.txt
+-rw-r--r-- 1 runner runner    28 Aug  7 10:31 ctx-valid.txt
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 leads
+-rw-r--r-- 1 runner runner    32 Aug  7 10:31 raw_bigpickle.txt
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 reports
+drwxr-xr-x 4 runner runner  4096 Aug  7 10:30 reposcan-raw
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 research
+-rw-r--r-- 1 runner runner 96380 Aug  7 10:31 research-prompt.txt
+-rw-r--r-- 1 runner runner  1650 Aug  7 10:30 scope.yml
+-rw-r--r-- 1 runner runner    51 Aug  7 10:30 state_bigpickle.json
+-rw-r--r-- 1 runner runner    51 Aug  7 10:30 state_laguna.json
+-rw-r--r-- 1 runner runner    43 Aug  7 10:30 state_ling3.json
+-rw-r--r-- 1 runner runner    44 Aug  7 10:30 state_longcat.json
+-rw-r--r-- 1 runner runner    45 Aug  7 10:30 state_nemotron3.json
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 triage
+{"phase": "HYPOTHESIS", "status": "HIGH_POTENTIAL"}
+[0m
+[0m✱ [0mGlob "**/scope.yml"[90m 1 match[0m
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/ctx-valid.txt; echo "---RAW---"; cat /home/runner/work/hunt-lab/hunt-lab/raw_bigpickle.txt
+# no validated findings yet
+---RAW---
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/ && cat /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json 2>/dev/null
+total 264
+drwxr-xr-x 9 runner runner  4096 Aug  7 10:31 .
+drwxr-xr-x 3 runner runner  4096 Aug  7 10:30 ..
+drwxr-xr-x 7 runner runner  4096 Aug  7 10:31 .git
+drwxr-xr-x 3 runner runner  4096 Aug  7 10:30 .github
+-rw-r--r-- 1 runner runner  1022 Aug  7 10:30 README.md
+-rw-r--r-- 1 runner runner 11447 Aug  7 10:31 ctx-leads.txt
+-rw-r--r-- 1 runner runner 82108 Aug  7 10:31 ctx-research.txt
+-rw-r--r-- 1 runner runner    28 Aug  7 10:31 ctx-valid.txt
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 leads
+-rw-r--r-- 1 runner runner    32 Aug  7 10:31 raw_bigpickle.txt
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 reports
+drwxr-xr-x 4 runner runner  4096 Aug  7 10:30 reposcan-raw
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 research
+-rw-r--r-- 1 runner runner 96380 Aug  7 10:31 research-prompt.txt
+-rw-r--r-- 1 runner runner  1650 Aug  7 10:30 scope.yml
+-rw-r--r-- 1 runner runner    51 Aug  7 10:30 state_bigpickle.json
+-rw-r--r-- 1 runner runner    51 Aug  7 10:30 state_laguna.json
+-rw-r--r-- 1 runner runner    43 Aug  7 10:30 state_ling3.json
+-rw-r--r-- 1 runner runner    44 Aug  7 10:30 state_longcat.json
+-rw-r--r-- 1 runner runner    45 Aug  7 10:30 state_nemotron3.json
+drwxr-xr-x 2 runner runner  4096 Aug  7 10:30 triage
+{"phase": "HYPOTHESIS", "status": "HIGH_POTENTIAL"}
+[0m
+[0m✱ [0mGlob "**/scope.yml"[90m 1 match[0m
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mls /tmp/opencode/myaccount-src 2>/dev/null | wc -l; ls /tmp/opencode/*.map 2>/dev/null; ls /tmp/opencode/portal-lib 2>/dev/null
+0
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && git log --oneline -5 2>/dev/null; echo "---"; ls research/ reports/ triage/ 2>/dev/null
+05652f8 triage 2026-08-07-10-16
+---
+reports/:
+valid-bugs.md
+
+research/:
+bigpickle.md
+laguna.md
+ling3.md
+longcat.md
+nemotron3.md
+
+triage/:
+run-2026-08-07-10-16.md
+[0m
+[0m$ [0mls -la /tmp/opencode/ 2>/dev/null; echo "---"; du -sh /tmp/opencode/* 2>/dev/null
+total 16
+drwxr-xr-x  2 runner runner  4096 Aug  7 10:30 .
+drwxrwxrwt 14 root   root   12288 Aug  7 10:31 ..
+---
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/triage/run-2026-08-07-10-16.md 2>/dev/null | head -80; echo "===VALID==="; cat /home/runner/work/hunt-lab/hunt-lab/reports/valid-bugs.md 2>/dev/null | head -40
+===== TRIAGE 2026-08-07 10:16:52 UTC =====
+# Triage Report — 2026-08-07
+
+Scope: Google VRP (`google.com`, `*.google.com`) · MSRC (`microsoft.com`, `*.microsoft.com`, `*.windows.net`, `*.azure.com`, etc.)
+Rules: passive GET/HEAD only · no auth-bypass on live infra · no writes.
+
+Leads below are **deduplicated** across the 5 models. Each unique finding is run through the 7-Question Gate.
+
+---
+
+## LEAD 1 — Google VRP / MSRC scope metadata (not a vuln)
+**Q1–Q7**: Not a vulnerability; program-scope reference only.
+**Verdict**: INVALID — not a finding, just program info.
+
+---
+
+## LEAD 2 — "NEW AI VRP" program news (not a vuln)
+**Q1–Q7**: Not a vulnerability; reward-program announcement.
+**Verdict**: INVALID — not a finding.
+
+---
+
+## LEAD 3 — Google ADK as "new high-value attack surface"
+**Q1** Yes (github.com/google, in-scope org). **Q2** Yes (open-sourc[0m
+[0m← [0mWrite triage-output.txt
+Wrote file successfully.
+[0m
+Now I have full context. Let me produce the structured triage report.
+## Triage Complete — 0 VALID, 3 HOLD, 33 INVALID
+
+Full report written to `triage-output.txt`.
+
+**Key findings:**
+
+| Verdict | Count | Notes |
+|---------|-------|-------|
+| VALID | 0 | No lead clears the 7-Question Gate |
+| HOLD | 3 | ADK PR #5154 (in-progress fix), source maps (chain only), Verified ID/ToS IDOR (need active testing) |
+| INVALID | 33 | Breakdown below |
+
+**Invalid by reason:**
+- **Already public/fixed** (Leads 4–7, 10–12): ADK issues/commits, CVE-2026-47391, Benchikh OAuth, Tenable SSRF
+- **Auth-gated / by-design** (Leads 13, 24–29, 35–36): Graph 401s, ACS JWKS, login.live.com redirect error
+- **Recon noise, not vulns** (Leads 1–3, 9, 23, 31, 37–44): scope metadata, product lists, API discovery URLs, repo lists
+- **No demonstrated impact** (Leads 27, 30): internal hostnames in SPA config, /health metadata
+
+**Recommendations:**
+1. Drop all INVALID leads.
+2. Keep source maps as a supporting asset for any future mysignins/myaccount vuln chain.
+3. Verified ID minting and ToS IDOR are interesting but blocked by passive-only rule — queue for test-tenant engagement if available.
+4. Tighten the hunt bot's pre-filter to reject already-public issues, fixed commits, auth-gated 401s without bypass, and pure discovery URLs.
+port. **Q6** Yes (patched). **Q7** No.
+**Verdict**: INVALID — already fixed; no bounty for historical patch.
+
+---
+
+## LEAD 7 — ADK commit 33012e6: fixed cross-user credential leaks (hash() key)
+**Q1** Yes. **Q2** Yes. **Q3** Was real, now fixed. **Q4** Yes. **Q5** No — fixed. **Q6** Yes. **Q7** No.
+**Verdict**: INVALID — already fixed.
+
+---
+
+## LEAD 8 — ADK PR #5154: migrating credential storage to `secret:` scope
+**Q1** Yes. **Q2** Yes. **Q3** Tokens persist in session backends (design weakness). **Q4** Yes (PR diff). **Q5** No — already being fixed publicly. **Q6** Yes (WIP fix). **Q7** No — in-progress open-source PR, no live Google service.
+**Verdict**: HOLD → likely INVALID; re-check only if merged-then-regressed on live Google surface.
+
+---
+
+## LEAD 9 — A2A protocol attack surface (webhook SSRF, unsigned AgentCards, unauth endpoints)
+**Q1** Partial (A2A is a Google-published protocol). **Q2** Unclear — no specific vulnerable endpoint pinned down. **Q3** Hypothetical only. **Q4** No — no PoC URL. **Q5** N/A. **Q6** N/A. **Q7** No — no concrete target.
+**Verdict**: INVALID — architectural observation, no demonstrable vuln.
+
+---
+
+## LEAD 10 — CVE-2026-47391 (PraisonAI A2A example: unauth + eval() = RCE)
+**Q1** No — PraisonAI is a third-party example repo, not a Google/MSFT service. **Q2** N/A. **Q3** Yes (RCE). **Q4** N/A. **Q5** No — CVE-assigned, fully public. **Q6** N/A. **Q7** No — intentionally vuln example; no real target.
+**Verdict**: INVALID — third-party example; CVE already public; no in-scope target.
+
+---
+===VALID===
+
+- 1 lead(s) marked VALID at 2026-08-07 10:16:52 UTC
+[0m
+Triage from last run: 0 VALID, source maps + Verified ID/ToS held, ACS JWKS standalone invalid. Moving one phase deeper to **POC** — read-only, in-scope only (`.microsoft.com`, `.windows.net`, `.azure.com`, `.live.com`). First, re-establish the SPA HTML shells (headers + chunk inventory).
+[0m$ [0mcd /tmp/opencode && curl -s -D /tmp/opencode/hdr_mysignins.txt -o /tmp/opencode/mysignins.html "https://mysignins.microsoft.com/" --max-time 30 && sleep 1 && curl -s -D /tmp/opencode/hdr_myaccount.txt -o /tmp/opencode/myaccount.html "https://api.myaccount.microsoft.com/" --max-time 30 && echo "=== mysignins headers ===" && grep -iE "cache-control|expires|strict-transport|x-frame|x-content|content-security|set-cookie|x-ms" /tmp/opencode/hdr_mysignins.txt | head -15 && echo "=== myaccount headers ===" && grep -iE "cache-control|expires|strict-transport|x-frame|x-content|content-security|set-cookie|x-ms" /tmp/opencode/hdr_myaccount.txt | head -15 && echo "=== chunk refs mysignins ===" && grep -oE 'src="[^"]+\.js[^"]*"' /tmp/opencode/mysignins.html | head -10 && echo "=== chunk refs myaccount ===" && grep -oE 'src="[^"]+\.js[^"]*"' /tmp/opencode/myaccount.html | head -10
+=== mysignins headers ===
+x-ms-correlation-id: 92b5058e-670d-4198-934a-8d4e190bb381
+x-ms-mysignins-region: westus2
+x-ms-gateway-requestid: 8758f1f0-d783-4e8d-9b65-d4027b22a181
+X-Content-Type-Options: nosniff
+=== myaccount headers ===
+Cache-Control: no-store
+Strict-Transport-Security: max-age=2592000
+X-Content-Type-Options: nosniff
+Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
+=== chunk refs mysignins ===
+src="/bundle/main.caa6a456.js"
+=== chunk refs myaccount ===
+src="/bundle/main.shim.js"
+[0m
+[0m$ [0mcd /tmp/opencode && echo "=== myaccount.html size ===" && wc -c myaccount.html mysignins.html && echo "=== config/script refs in myaccount ===" && grep -oE '"[a-zA-Z0-9_./:-]*\.js[^"]*"|[a-zA-Z0-9_]+:"[^"]{5,80}"|data-[a-z-]+="[^"]{3,120}"' myaccount.html | head -40
+=== myaccount.html size ===
+ 468 myaccount.html
+ 793 mysignins.html
+1261 total
+=== config/script refs in myaccount ===
+"/bundle/main.shim.js"
+[0m
+Both SPAs use dynamic chunk loading. Let me inspect the myaccount HTML config block (it previously leaked internal endpoints) and mysignins HTML.
+[0m→ [0mRead /tmp/opencode/myaccount.html
+[0m→ [0mRead /tmp/opencode/mysignins.html
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s -D /tmp/opencode/hdr_shim.txt -o /tmp/opencode/main.shim.js "https://api.myaccount.microsoft.com/bundle/main.shim.js" --max-time 30 && wc -c main.shim.js && grep -oE 'main\.[a-f0-9]{8}\.js|[a-zA-Z0-9_./-]+\.chunk\.js|src:"[^"]+"|".{5,40}\.js"' main.shim.js | head -20
+17936 main.shim.js
+"script");e.src="/bundle/main.4e6e3dc6.js"
+[0m
+[0m$ [0mcd /tmp/opencode && grep -oE '"[a-zA-Z0-9_./:-]{3,80}"' main.shim.js | sort -u | head -40; echo "=== cache headers shim ==="; grep -iE "cache-control|expires|etag|last-modified|content-encoding|content-type" hdr_shim.txt
+"/bundle/main.4e6e3dc6.js"
+"script"
+"text/javascript"
+=== cache headers shim ===
+Cache-Control: must-revalidate, no-cache
+Content-Type: text/javascript
+Last-Modified: Fri, 24 Jul 2026 15:09:26 GMT
+ETag: "1dd1b7e6aa49110"
+X-Content-Type-Options: nosniff
+[0m
+Now the key POC signal: cacheability/reproducibility of the two live source maps (determines if exposure is deliberate cache-busted artifact or a leak), then ACS JWKS cert analysis.
+[0m$ [0mcd /tmp/opencode && curl -s -I "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" --max-time 30 | grep -iE "^HTTP|cache-control|expires|etag|last-modified|content-length|content-encoding|content-type|x-ms|age" ; sleep 1; curl -s -I "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" --max-time 30 | grep -iE "^HTTP|cache-control|expires|etag|last-modified|content-length|content-encoding|content-type|x-ms|age"
+HTTP/1.1 200 OK
+Content-Length: 35340363
+Content-Type: text/plain
+Last-Modified: Fri, 24 Jul 2026 15:09:28 GMT
+ETag: "1dd1b7e69cd444b"
+Strict-Transport-Security: max-age=2592000
+X-Content-Type-Options: nosniff
+HTTP/1.1 200 OK
+Content-Length: 6976576
+Content-Type: text/plain
+Last-Modified: Tue, 28 Jul 2026 09:48:44 GMT
+ETag: "1dd1e764741d240"
+x-ms-correlation-id: 652f623e-7c35-4172-92bc-75ae5a7dd559
+x-ms-mysignins-region: westus2
+x-ms-gateway-requestid: 5b9ad7d1-13ac-483f-b9ea-b4763abe4cd2
+X-Content-Type-Options: nosniff
+[0m
+No `Cache-Control` on either map (immutable-hashed filenames, `text/plain`). Now ACS JWKS — full cert fingerprints, SPKI hashing, rotation analysis (in-scope `*.windows.net`).
+[0m$ [0mcd /tmp/opencode && curl -s -D hdr_acs.txt -o acs.json "https://accounts.accesscontrol.windows.net/metadata/json/1" --max-time 30 && python3 - << 'EOF'
+import json,hashlib,base64
+d=json.load(open('acs.json'))
+keys=d.get('keys',[])
+print('keys:',len(keys))
+for k in keys:
+    x5c=k.get('x5c',[])
+    print('--- kid:',k.get('kid'),'| use:',k.get('use'),'| alg:',k.get('alg'),'| x5c len:',len(x5c))
+    for cert in x5c:
+        der=base64.b64decode(cert)
+        fp=hashlib.sha256(der).hexdigest()
+        spki=hashlib.sha256(der).hexdigest()  # placeholder; real SPKI below
+        print('   cert DER sha256:',fp)
+# Now decode x509 via openssl for subject/issuer/validity/SPKI
+import subprocess,tempfile
+for i,k in enumerate(keys):
+    for j,cert in enumerate(k.get('x5c',[])):
+        der=base64.b64decode(cert)
+        f=tempfile.NamedTemporaryFile(delete=False,suffix='.cer');f.write(der);f.close()
+        out=subprocess.run(['openssl','x509','-inform','DER','-in',f.name,'-noout','-subject','-issuer','-dates','-fingerprint','-sha256','-pubkey'],capture_output=True,text=True)
+        lines=[l for l in out.stdout.splitlines() if l.strip()]
+        print(f'key{i} cert{j}:', ' | '.join(lines))
+EOF
+echo "=== acs response headers ==="; grep -iE "^HTTP|content-type|server|x-ms-ests|x-powered|strict" hdr_acs.txt
+keys: 5
+--- kid: None | use: None | alg: None | x5c len: 0
+--- kid: None | use: None | alg: None | x5c len: 0
+--- kid: None | use: None | alg: None | x5c len: 0
+--- kid: None | use: None | alg: None | x5c len: 0
+--- kid: None | use: None | alg: None | x5c len: 0
+=== acs response headers ===
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+x-ms-ests-server: 2.1.24997.11 - NCUS ProdSlices
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import json
+d=json.load(open('acs.json'))
+print('top-level keys:', list(d.keys()))
+print('sample (truncated):')
+s=json.dumps(d,indent=1)
+print(s[:2500])
+EOF
+top-level keys: ['keys', 'endpoints', 'version', 'serviceName']
+sample (truncated):
+{
+ "keys": [
+  {
+   "usage": "signing",
+   "keyValue": {
+    "type": "x509Certificate",
+    "value": "MIIC/TCCAeWgAwIBAgIICR+ICKYVUk0wDQYJKoZIhvcNAQELBQAwLTErMCkGA1UEAxMiYWNjb3VudHMuYWNjZXNzY29udHJvbC53aW5kb3dzLm5ldDAeFw0yNjA2MDgxMjA0MjZaFw0zMTA2MDgxMjA0MjZaMC0xKzApBgNVBAMTImFjY291bnRzLmFjY2Vzc2NvbnRyb2wud2luZG93cy5uZXQwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCiRib1VTdFuJsx7EW4W2G4Evu8blrZRS0dpSkFk4s6iBWGlZlgiId50A6Fvah5m91RUdyqxJyRkudQGqfMr5R+NYb196n+Fj6M9BGCmwXlJSnwzx35+9sCqfbk7RJN8YUEHaXPq9W6ud3syySSEP8rxrQ5/IrMTDTedw3i9d6Sfv5Kf7IIdCgdBjEogcloKPEGU/omPeQzAzL3c/PqBJ6ngJu0Z0hEaqbMNNzS0DP0w0Sd6em1NM6Q2Bc7hr/9sgT6mpEIUK5Tu0sdskLFtV72QT9C2tkbsRHOywkIdYoiEKbIHy/ctbHzNkhiuK02nfhpX/xRlVKp/4lWwmB9CLE5AgMBAAGjITAfMB0GA1UdDgQWBBQcHjvDRt+O89oZbJZ/B4ANuFy9XDANBgkqhkiG9w0BAQsFAAOCAQEAlqWkldYDJ0DiXHQrtE6SJsZEAX91IohfWWgA7FnJr3d2o2BtRL5BIFaWC2epZ0nmVOGA/nBo5NZ+5AQ+puqgI7QJSX5rVBS0R3G1dGt8eTta0f1cyqRO63yIWeN2yv9mJpg9//fNCISf/LURVaOOSp08vRLNhuMUqzHqHCMlY7XihinKf6H8NY5Yh+m2RmL9BK+mf1nUA+GFRDy2KGr3usb8VqN8ODr3e//rAMbkjaKT8B60rgjSvE6DdCZ7CxNdse28E+vbDXSFlM7SVYs7DfoM+U1xAR2OWf/ZvW6I4bo3G09oDYIumA1QS0doYA+b86d/Y9bsW9WScM8zt02uOw==",
+    "keyInfo": {
+     "x5t": "aFkmKVFc-4WV6sXCBvNZkXI505Y",
+     "cloud_instance_name": "microsoftonline.com"
+    }
+   }
+  },
+  {
+   "usage": "signing",
+   "keyValue": {
+    "type": "x509Certificate",
+    "value": "MIIC/jCCAeagAwIBAgIJAMu0IASrR6UHMA0GCSqGSIb3DQEBCwUAMC0xKzApBgNVBAMTImFjY291bnRzLmFjY2Vzc2NvbnRyb2wud2luZG93cy5uZXQwHhcNMjYwNjE3MTUwMjIyWhcNMzEwNjE3MTUwMjIyWjAtMSswKQYDVQQDEyJhY2NvdW50cy5hY2Nlc3Njb250cm9sLndpbmRvd3MubmV0MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAn0silOudntxwkXPPDyWnJh/V6A9pzQFadTX5m2gMmHkNLYJWgGYwXP36l9YYiN8Btit4aaAcibCwGi6cApwCxe1kR4L5dpGyQpNdKz0BMzLB3kncNdoo0JG8D6O3Lk+IMeStyIpiz1htkgAmXSSMl5Et9exh9Rib1/OllS8pvkScKCQhpxVQriRE8mEop8wOX68tD1rt5YOulAysynJ8a/1URPvrMf0TtpGwYTsSnyyz0a7i/ZwYsxauzh82xVJwrJYUnReyTAScCm5RtiEJDIcno73D8WUwaeT7NBh8h9gTbxVU7PAOf20+EDm/v27r/w6h8fmkEl6b8ombjCd/1QIDAQABoyEwHzAdBgNVHQ4EFgQU/IkWuenK4i/3pqx93d7CH04c7/AwDQYJKoZIhvcNAQELBQADggEBACo2Dfwo1A4VHol8L2Xb4XRuz/x7UExweYdF1aCgoD5PRyTmwmIMyQ7JgPdn5TWs4bgtVxGRMP+PoRcKJr4vlkzgaUuOhuQW6uLtvK25Z/XwkXXQwgw/z2Hg3tMgqHmM7riq00UnWYtl0uuvKFlDAbpPUbfs2QYG5TGgh9buVbUfI66tKTWgs3nOL1OKHIUyuYNGYTkkNMTegSa8RmF3ZpDrTGyqo4DFdAgxE9bRRC6YbG6dmOOF6SmcfhoakasOJkMP7d7NaxA0lUvqI23sfavXkSAc/iDd+rxvpoIlqL8r+w+8G0R0q4BrIdLwgDBBrPlXAmP318v49woBsbVp8Sw=",
+    "keyInfo": {
+     "x5t": "AahUf1bCXvx0JTRcXLrr0U4SluY",
+     "cloud_instance_name": "microsoftonline.com"
+    }
+   }
+[0m
+JWKS shape differs from expectation — let me dump the actual response structure.
+Response format changed vs prior run (now `keyValue.type=x509Certificate` + `keyInfo.x5t`/`cloud_instance_name`). Full cert parse + endpoint/service metadata:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import json,base64,subprocess,tempfile,hashlib
+d=json.load(open('acs.json'))
+print('serviceName:',d.get('serviceName'),'| version:',d.get('version'))
+print('endpoints:')
+for e in d.get('endpoints',[]): print('  ',e)
+print()
+for i,k in enumerate(d.get('keys',[])):
+    kv=k['keyValue']; info=k.get('keyInfo',{})
+    der=base64.b64decode(kv['value'])
+    f=tempfile.NamedTemporaryFile(delete=False,suffix='.cer');f.write(der);f.close()
+    out=subprocess.run(['openssl','x509','-inform','DER','-in',f.name,'-noout','-subject','-issuer','-dates','-serial'],capture_output=True,text=True)
+    print(f'--- key[{i}] usage={k.get("usage")} x5t={info.get("x5t")} cloud={info.get("cloud_instance_name")}')
+    for l in out.stdout.splitlines(): print('   ',l.strip())
+    print('    DER sha256:',hashlib.sha256(der).hexdigest())
+EOF
+serviceName: 00000001-0000-0000-c000-000000000000 | version: 1.0
+endpoints:
+   {'location': 'https://accounts.accesscontrol.windows.net/tokens/OAuth/2', 'protocol': 'OAuth2', 'usage': 'issuance'}
+   {'location': 'https://accounts.accesscontrol.windows.net/tokens/delegation/1', 'protocol': 'DelegationIssuance1.0', 'usage': 'issuance'}
+   {'location': 'https://accounts.accesscontrol.windows.net/mgmt/delegation/1', 'protocol': 'DelegationManagement1.0', 'usage': 'management'}
+
+--- key[0] usage=signing x5t=None cloud=None
+    subject=CN = accounts.accesscontrol.windows.net
+    issuer=CN = accounts.accesscontrol.windows.net
+    notBefore=Jun  8 12:04:26 2026 GMT
+    notAfter=Jun  8 12:04:26 2031 GMT
+    serial=091F8808A615524D
+    DER sha256: 05d17f723cf310767174bb9fbaf3f86d72860a5a4c11d70c359a463a6404d9c6
+--- key[1] usage=signing x5t=None cloud=None
+    subject=CN = accounts.accesscontrol.windows.net
+    issuer=CN = accounts.accesscontrol.windows.net
+    notBefore=Jun 17 15:02:22 2026 GMT
+    notAfter=Jun 17 15:02:22 2031 GMT
+    serial=CBB42004AB47A507
+    DER sha256: 34d094252b14b033d362116b3009119ca8cd13f99edabcd1106e2d70c484bd5b
+--- key[2] usage=signing x5t=None cloud=None
+    subject=CN = accounts.accesscontrol.windows.net
+    issuer=CN = accounts.accesscontrol.windows.net
+    notBefore=Jul  4 00:05:05 2026 GMT
+    notAfter=Jul  4 00:05:05 2031 GMT
+    serial=EE1B38F6C643172C
+    DER sha256: 93a64915a920db8f50a8a91260aaf0ff5b65219d815bb84e78da84c77d364d47
+--- key[3] usage=signing x5t=None cloud=None
+    subject=CN = login.microsoftonline.us
+    issuer=CN = login.microsoftonline.us
+    notBefore=Jul  1 16:00:54 2026 GMT
+    notAfter=Jul  1 16:00:54 2031 GMT
+    serial=A0068BC318132137
+    DER sha256: 1b499ff9ee4960a675e9c6f67357c90c6d085001ad7ea71f89da5bf0a84e3d85
+--- key[4] usage=signing x5t=None cloud=None
+    subject=CN = login.microsoftonline.us
+    issuer=CN = login.microsoftonline.us
+    notBefore=Jul 26 16:01:26 2026 GMT
+    notAfter=Jul 26 16:01:26 2031 GMT
+    serial=EDCC26443B43D063
+    DER sha256: a73ca1f9db027fe93963bd18080e571efd492a6da8743b4ad15919f05cb567b9
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import json
+d=json.load(open('acs.json'))
+for i,k in enumerate(d['keys']):
+    kv=k['keyValue']; info=kv.get('keyInfo',{})
+    print(f'key[{i}] usage={k.get("usage")} type={kv.get("type")} x5t={info.get("x5t")} cloud={info.get("cloud_instance_name")}')
+# also check for allowAllUriOrigins / legacy fields anywhere in JSON
+s=json.dumps(d)
+for probe in ['allowedAudiences','Audience','Issuer','uri','Uri','legacy','maxIdleTime','allowedOrigins']:
+    print(probe, 'present:', probe in s)
+EOF
+key[0] usage=signing type=x509Certificate x5t=aFkmKVFc-4WV6sXCBvNZkXI505Y cloud=microsoftonline.com
+key[1] usage=signing type=x509Certificate x5t=AahUf1bCXvx0JTRcXLrr0U4SluY cloud=microsoftonline.com
+key[2] usage=signing type=x509Certificate x5t=fEtqrhKT1bXAGafSdQoN1vXTRpI cloud=microsoftonline.com
+key[3] usage=signing type=x509Certificate x5t=jvm_-TtaqTCRrkpnmePvwb75nWE cloud=microsoftonline.us
+key[4] usage=signing type=x509Certificate x5t=6hXLaIYNSJ0o7zu09dMyI0ji3ug cloud=microsoftonline.us
+allowedAudiences present: False
+Audience present: False
+Issuer present: False
+uri present: False
+Uri present: False
+legacy present: False
+maxIdleTime present: False
+allowedOrigins present: False
+[0m
+`keyInfo` nests inside `keyValue` — re-extract x5t/cloud_instance_name correctly (relevant to the mixed-issuer question):
+`allowedAudiences` absent (patch confirmed); JWKS now co-serves `cloud_instance_name`-tagged keys for both `microsoftonline.com` and `microsoftonline.us`. Next POC signal: Graph `$metadata` service-document crawl for the undocumented agent session/identity types (in-scope `graph.microsoft.com`).
+[0m$ [0mcd /tmp/opencode && curl -s -D hdr_graph_v1.txt -o graph_v1_meta.xml "https://graph.microsoft.com/v1.0/\$metadata" --max-time 60 && wc -c graph_v1_meta.xml && grep -iE "^HTTP|content-type" hdr_graph_v1.txt | head -3
+2931817 graph_v1_meta.xml
+HTTP/1.1 200 OK
+Content-Type: application/xml;charset=utf-8
+[0m
+[0m$ [0mcd /tmp/opencode && sleep 1 && curl -s -D hdr_graph_beta.txt -o graph_beta_meta.xml "https://graph.microsoft.com/beta/\$metadata" --max-time 90 && wc -c graph_beta_meta.xml && echo "=== agent types v1 ===" && grep -oiE 'name="[a-zA-Z.]*[aA]gent[a-zA-Z]*"' graph_v1_meta.xml | sort -u | head -20 && echo "=== agent types beta ===" && grep -oiE 'name="[a-zA-Z.]*[aA]gent[a-zA-Z]*"' graph_beta_meta.xml | sort -u | head -40
+7298965 graph_beta_meta.xml
+=== agent types v1 ===
+Name="AIInvokeAgent"
+Name="AgentAdminActivity"
+Name="AgentSettingsAdminActivity"
+Name="CopilotAgentManagement"
+Name="IsSynchronizationAgentAssignmentRequired"
+Name="IsSynchronizationAgentRequired"
+Name="MosAgentInfoRecord"
+Name="PurviewPostureAgent"
+Name="RTIOperationsAgent"
+Name="SecurityCopilotAgentIdentityManagement"
+Name="SensitiveInfoRemediationAgentData"
+Name="SubmissionAgenticGradingResult"
+Name="SyncAgentADContainer"
+Name="SyncAgentCompatibilityKey"
+Name="VivaGlintAgenticCampaign"
+Name="agentAdminActivityRecord"
+Name="agentId"
+Name="agentIdentity"
+Name="agentIdentityBlueprint"
+Name="agentIdentityBlueprintId"
+=== agent types beta ===
+Name="AIInvokeAgent"
+Name="AgentAdminActivity"
+Name="AgentSettingsAdminActivity"
+Name="CopilotAgentManagement"
+Name="IsSynchronizationAgentAssignmentRequired"
+Name="MosAgentInfoRecord"
+Name="PurviewPostureAgent"
+Name="RTIOperationsAgent"
+Name="SecurityCopilotAgentIdentityManagement"
+Name="SensitiveInfoRemediationAgentData"
+Name="SubmissionAgenticGradingResult"
+Name="SyncAgentADContainer"
+Name="SyncAgentCompatibilityKey"
+Name="VivaGlintAgenticCampaign"
+Name="adminAgent"
+Name="adminAgentSoftwareUpdateStatus"
+Name="adminAgentSoftwareVersion"
+Name="adminConfirmedAgentCompromised"
+Name="adminConfirmedAgentSafe"
+Name="adminDismissedRiskForAgent"
+Name="agent"
+Name="agentAdminActivityRecord"
+Name="agentBlueprintId"
+Name="agentBlueprintName"
+Name="agentCapabilities"
+Name="agentCard"
+Name="agentCardManifest"
+Name="agentCardManifests"
+Name="agentCardSignature"
+Name="agentCheckHeartbeatLost"
+Name="agentCheckNotExisted"
+Name="agentCheckNotRunning"
+Name="agentCheckOldVersion"
+Name="agentCollection"
+Name="agentCollections"
+Name="agentDisplayName"
+Name="agentExtension"
+Name="agentExtensionParams"
+Name="agentFailure"
+Name="agentGroups"
+[0m
+v1 metadata exposes `agentIdentity` + `agentIdentityBlueprint`. Let me extract the full entity-type (not property) inventory for agent/identity/session types and look for `agentSignInSession`.
+[0m$ [0mcd /tmp/opencode && echo "=== EntityType names with agent/Agent ===" && grep -oE 'EntityType Name="[^"]*"' graph_v1_meta.xml | grep -iE "agent" | sort -u | head -30 && echo "=== v1 agentSignInSession refs ===" && grep -c "agentSignInSession" graph_v1_meta.xml; echo "=== v1 agentIdentity entity ===" && grep -oE 'EntityType Name="microsoft.graph.agentIdentity[^"]*"' graph_v1_meta.xml | sort -u; echo "=== beta agentSignInSession refs ===" && grep -c "agentSignInSession" graph_beta_meta.xml; echo "=== beta agentIdentity/blueprint entities ===" && grep -oE 'EntityType Name="microsoft.graph.agent[A-Za-z]*"' graph_beta_meta.xml | sort -u | head -20
+=== EntityType names with agent/Agent ===
+EntityType Name="agentIdentity"
+EntityType Name="agentIdentityBlueprint"
+EntityType Name="agentIdentityBlueprintPrincipal"
+EntityType Name="agentUser"
+=== v1 agentSignInSession refs ===
+0
+=== v1 agentIdentity entity ===
+=== beta agentSignInSession refs ===
+0
+=== beta agentIdentity/blueprint entities ===
+[0m
+`agentSignInSession` absent from both metadata files (consistent with undocumented/partner-only surface), but `agentIdentity`/`agentIdentityBlueprint`/`agentUser` are real v1 entity types. Extract their full definitions + the `agent` relationship on signIn:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+for f in ['graph_v1_meta.xml','graph_beta_meta.xml']:
+    print('========',f)
+    x=open(f).read()
+    for name in ['agentIdentity','agentIdentityBlueprint','agentIdentityBlueprintPrincipal','agentUser','agentSignIn']:
+        m=re.search(r'<EntityType Name="'+name+r'"[^>]*>.*?</EntityType>',x,re.S)
+        if m:
+            body=re.sub(r'\s+',' ',m.group(0))
+            print('---',name)
+            print(body[:1500])
+        else:
+            print('---',name,'NOT FOUND')
+EOF
+======== graph_v1_meta.xml
+--- agentIdentity
+<EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true"><Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentIdentityBlueprint
+<EntityType Name="agentIdentityBlueprint" BaseType="graph.application" OpenType="true"><NavigationProperty Name="inheritablePermissions" Type="Collection(graph.inheritablePermission)" ContainsTarget="true" /><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentIdentityBlueprintPrincipal
+<EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true"><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentUser
+<EntityType Name="agentUser" BaseType="graph.user" OpenType="true" /><EntityType Name="allowedValue" BaseType="graph.entity"><Property Name="isActive" Type="Edm.Boolean" /></EntityType>
+--- agentSignIn NOT FOUND
+======== graph_beta_meta.xml
+--- agentIdentity
+<EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true"><Property Name="agentIdentityBlueprintId" Type="Edm.String" Nullable="false" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><NavigationProperty Name="inheritedAppRoleAssignments" Type="Collection(graph.appRoleAssignment)" /><NavigationProperty Name="inheritedOauth2PermissionGrants" Type="Collection(graph.oAuth2PermissionGrant)" /><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentIdentityBlueprint
+<EntityType Name="agentIdentityBlueprint" BaseType="graph.application" OpenType="true"><NavigationProperty Name="inheritablePermissions" Type="Collection(graph.inheritablePermission)" ContainsTarget="true" /><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentIdentityBlueprintPrincipal
+<EntityType Name="agentIdentityBlueprintPrincipal" BaseType="graph.servicePrincipal" OpenType="true"><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /></EntityType>
+--- agentUser
+<EntityType Name="agentUser" BaseType="graph.user" OpenType="true" /><EntityType Name="allowedDataLocation" BaseType="graph.entity" OpenType="true"><Property Name="appId" Type="Edm.String" /><Property Name="domain" Type="Edm.String" /><Property Name="isDefault" Type="Edm.Boolean" /><Property Name="location" Type="Edm.String" /></EntityType>
+--- agentSignIn NOT FOUND
+[0m
+Full agent-identity model recovered: `agentIdentity` (BaseType `servicePrincipal`) with `sponsors`, and beta-only `inheritedAppRoleAssignments`/`inheritedOauth2PermissionGrants`. Search for agent-related Functions/Actions and sponsorship endpoints:
+[0m$ [0mcd /tmp/opencode && echo "=== v1 functions/actions w/ agent ===" && grep -oiE '<(Function|Action) Name="[^"]*[aA]gent[^"]*"' graph_v1_meta.xml | sort -u | head -20 && echo "=== v1 sponsor related nav/endpoints ===" && grep -oiE '(Function|Action) Name="[^"]*[Ss]ponsor[^"]*"' graph_v1_meta.xml | sort -u | head -10 && echo "=== v1 sponsoredObjects/sponsorOf refs ===" && grep -c "sponsorOf" graph_v1_meta.xml; grep -c "sponsoredObjects" graph_v1_meta.xml; echo "=== beta agent actions ===" && grep -oiE '<(Function|Action) Name="[^"]*[aA]gent[^"]*"' graph_beta_meta.xml | sort -u | head -25
+=== v1 functions/actions w/ agent ===
+=== v1 sponsor related nav/endpoints ===
+=== v1 sponsoredObjects/sponsorOf refs ===
+1
+0
+=== beta agent actions ===
+<Action Name="configureAgent"
+<Action Name="deployAgent"
+<Action Name="getUnhealthyDefenderAgentsReport"
+<Action Name="retryPartnerAgentInstallation"
+<Function Name="retrieveDeployAgentActionResults"
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_v1_meta.xml').read()
+for pat in [r'<NavigationProperty Name="sponsorOf"[^/>]*/?>', r'<NavigationProperty Name="sponsoredObjects"[^/>]*/?>', r'<NavigationProperty Name="sponsoredUsers"[^/>]*/?>']:
+    m=re.findall(pat,x)
+    print(pat.split('"')[1], '->', m[:3] if m else 'none')
+# find context lines around sponsorOf for ContainsTarget / type
+i=x.find('sponsorOf')
+print('context:', re.sub(r'\s+',' ',x[i-200:i+300]))
+EOF
+sponsorOf -> ['<NavigationProperty Name="sponsorOf" Type="Collection(graph.directoryObject)" />']
+sponsoredObjects -> none
+sponsoredUsers -> none
+context: steredDevices" Type="Collection(graph.directoryObject)" /><NavigationProperty Name="scopedRoleMemberOf" Type="Collection(graph.scopedRoleMembership)" ContainsTarget="true" /><NavigationProperty Name="sponsorOf" Type="Collection(graph.directoryObject)" /><NavigationProperty Name="sponsors" Type="Collection(graph.directoryObject)" /><NavigationProperty Name="transitiveMemberOf" Type="Collection(graph.directoryObject)" /><NavigationProperty Name="calendar" Type="graph.calendar" ContainsTarget="true
+[0m
+[0m$ [0mcd /tmp/opencode && echo "=== shim config strings ===" && grep -oE 'https://[a-zA-Z0-9.-]+/[a-zA-Z0-9/._-]*|clientId[^,}]{0,60}|[a-zA-Z]+Endpoint[^,}]{0,60}' main.shim.js | sort -u | head -25
+=== shim config strings ===
+[0m
+Sponsorship model (`sponsorOf`/`sponsors` nav props) confirmed on `user`. Let me mine the already-downloaded shim for the config block (clientId/authority/internal URLs), then check whether the graph v1 $metadata contains the internal-only scopes used by My Account.
+[0m$ [0mcd /tmp/opencode && echo "=== shim first 40 lines ===" && sed -n '1,40p' main.shim.js | tr ';' '\n' | head -40
+=== shim first 40 lines ===
+!function(){"use strict"
+var e=document.createElement("script")
+e.src="/bundle/main.4e6e3dc6.js",e.type="text/javascript",document.body.appendChild(e)}()
+
+// SIG // Begin signature block
+// SIG // MIIovQYJKoZIhvcNAQcCoIIorjCCKKoCAQExDzANBglg
+// SIG // hkgBZQMEAgEFADB3BgorBgEEAYI3AgEEoGkwZzAyBgor
+// SIG // BgEEAYI3AgEeMCQCAQEEEBDgyQbOONQRoqMAEEvTUJAC
+// SIG // AQACAQACAQACAQACAQAwMTANBglghkgBZQMEAgEFAAQg
+// SIG // 9IlLu3SKT/dH6Bf07Zz8Xgq3LjR6pLEPmk7ppo+zZmqg
+// SIG // gg3DMIIGrTCCBJWgAwIBAgITMwAAANMCiNhpvd8CCQAA
+// SIG // AAAA0zANBgkqhkiG9w0BAQwFADBiMQswCQYDVQQGEwJV
+// SIG // UzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9u
+// SIG // MTMwMQYDVQQDEypBenVyZSBSU0EgUHVibGljIFNlcnZp
+// SIG // Y2VzIENvZGUgU2lnbmluZyBQQ0EwHhcNMjYwMzA1MTkw
+// SIG // NjE5WhcNMjcwMzAzMTkwNjE5WjCBgjELMAkGA1UEBhMC
+// SIG // VVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcT
+// SIG // B1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jw
+// SIG // b3JhdGlvbjEsMCoGA1UEAxMjQXp1cmUgUHVibGljIFNl
+// SIG // cnZpY2VzIFJTQSBDb2RlIFNpZ24wggGiMA0GCSqGSIb3
+// SIG // DQEBAQUAA4IBjwAwggGKAoIBgQDJrDsZxGHNBYj5RPkR
+// SIG // yGEIGZlcCQkqE7SdGa6c2FPAMGu1JLqHur8qNWjR5swe
+// SIG // kMMn0WSz2+QE0c848wHvqVVLpWV+Un3Q01Dnyzjifae4
+// SIG // h+kzhQTUIhX2rKQbGHdqBe7LXyCgkfDrTNLXsI1xAXAw
+// SIG // A42Ar+PpVd1ktqLSsM6pwqrM/FFfEizl9h5gtrEIZODp
+// SIG // +jo9vESxKvHGp/Ifca7e/IluDeJffP4ME/fFtUzUCLH/
+// SIG // IweugiUcsaTmewSny4odYLtmZK/zpBuPjGTLpUnn4HMy
+// SIG // WXLUSOFlgvFrLKCPZxbNxXxBo5EUquzrFbpg9NmQVipJ
+// SIG // QsKDSKNHluTwNicItFpZpiPMc7Y2LG11dNAil3yJEBLF
+// SIG // MQ/5RqQptcWmgSKoG8Tx7x+RCYQj4Sjl2yJt+4OykVn9
+// SIG // /kQ5wo6v6TmIHHZsKdmgIkMCKBuIRcB2FaGwLY+UGMP1
+// SIG // xmiwIaekgjUgVwXX8Kv/2SYI9XXrjyUME4NLj0JTBIO7
+// SIG // YX201gYYOL8CAwEAAaOCAbkwggG1MA4GA1UdDwEB/wQE
+// SIG // AwIHgDAfBgNVHSUEGDAWBggrBgEFBQcDAwYKKwYBBAGC
+// SIG // N1sBATAdBgNVHQ4EFgQU6DIfaqBAAm33/QFJGYifZUeQ
+// SIG // B3AwRQYDVR0RBD4wPKQ6MDgxHjAcBgNVBAsTFU1pY3Jv
+// SIG // c29mdCBDb3Jwb3JhdGlvbjEWMBQGA1UEBRMNNDY5OTgx
+// SIG // KzUwNzE4MTAfBgNVHSMEGDAWgBTxL7qRFnzefVInMfV6
+// SIG // +9VYWWk6PTBvBgNVHR8EaDBmMGSgYqBghl5odHRwOi8v
+// SIG // d3d3Lm1pY3Jvc29mdC5jb20vcGtpb3BzL2NybC9BenVy
+[0m
+Shim is trivial (loader + Authenticode sig block); config lives in the main bundle (already recovered). Let me verify the agent-identity sponsorship model is publicly documented (for accurate citing), then finalize.
+[0m◈ [0mParallel Web Search "Microsoft Entra "agentIdentityBlueprint" agent identity sponsorship documentation servicePrincipal"
+[0m
+[0m$ [0mcd /tmp/opencode && sha256sum graph_v1_meta.xml graph_beta_meta.xml acs.json main.shim.js mysignins.html myaccount.html 2>/dev/null
+9d84e4510aa8d6bc95f14ae0bde05ea01c967fcd29478269b58e7cfdd2bdc16a  graph_v1_meta.xml
+ca3048596553b16c06004d1dacfae221de85b8e58878d7228feb15a7aeda2ebe  graph_beta_meta.xml
+504f3df26b27ccd29250fb91702bad17fb912f2a8bf646da0f77135772128c38  acs.json
+88dc286e367a6ed40111c93792c3110e5e041198b52f4efb75f219ac4a6be348  main.shim.js
+ba400c191bdbd25958097cf569b26d01a1270c96953a3080608dda368c4dd29e  mysignins.html
+de5a0b996352917a16af6569493edb7169df820b1a94ef66cd6b87d277317544  myaccount.html
+[0m
+Public docs confirm the full Agent ID model (preview since Nov 2025, shipping to Dataverse Aug 2026): `agentIdentityBlueprint`/`agentIdentityBlueprintPrincipal`/`agentIdentity` (`servicePrincipalType=ServiceIdentity`)/`agentUser`, sponsor-gated creation, blocked interactive/ROPC/client-secret flows. Let me hash this run's artifacts (hashes only, no raw content in commits) and write the POC journal.
+[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/research/bigpickle.md <<'EOF'
+
+## RUN 2026-08-07 10:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC (read-only)
+
+### POC-1: Source-map exposure characterization (LIVE, in-scope)
+- HEAD/GET reconfirmed: api.myaccount /bundle/main.4e6e3dc6.js.map (35,340,363 B) and mysignins /bundle/main.caa6a456.js.map (6,976,576 B) both 200, Content-Type text/plain, NO Cache-Control header on either; Last-Modified 2026-07-24 / 2026-07-28; ETags present. Hashed filenames = immutable-content pattern, so exposure is deliberate-cacheable (supporting asset for chains; not standalone-reportable per triage 10-16).
+- mysignins SPA shell: real CSP `script-src 'self' amcdn.msftauth.net js.monitor.azure.com`, meta app-version 4.0.2233. myaccount shell: CSP-Report-Only + HSTS max-age=2592000 + no-store. Both shells are minimal (no config block in HTML); myaccount loads /bundle/main.shim.js (17,936 B, trivial loader + Azure Code Signing Authenticode block, ETag 1dd1b7e6aa49110) which loads main.4e6e3dc6.js.
+- Artifact hashes (this run): graph_v1_meta.xml 9d84e451..., graph_beta_meta.xml ca304859..., acs.json 504f3df2..., main.shim.js 88dc286e..., mysignins.html ba400c19..., myaccount.html de5a0b99...
+
+### POC-2: ACS /metadata/json/1 — full JWKS reconciliation (LIVE, in-scope *.windows.net)
+- Response shape CHANGED vs SURFACE run: now keyValue{type:x509Certificate,value,keyInfo{x5t,cloud_instance_name}}; allowedAudiences/Audience/Issuer fields ABSENT (tenant-enum patch reconfirmed).
+- 5 self-signed signing certs, rotation-active (notBefore Jun-08 / Jun-17 / Jul-04 2026 for the 3 prod keys; Jul-01 / Jul-26 2026 for the 2 US-cloud keys), all notAfter 2031. Per-key: x5t aFkmKVFc-4WV6sXCBvNZkXI505Y (microsoftonline.com), AahUf1bCXvx0JTRcXLrr0U4SluY, fEtqrhKT1bXAGafSdQoN1vXTRpI, then jvm_-TtaqTCRrkpnmePvwb75nWE + 6hXLaIYNSJ0o7zu09dMyI0ji3ug (BOTH cloud_instance_name=microsoftonline.us, CN=login.microsoftonline.us). DER sha256: 05d17f72...d9c6, 34d09425...bd5b, 93a64915...d47, 1b499ff9...3d85, a73ca1f9...67b9 (match SURFACE-run colon-hex FPs).
+- Signal: the JWKS now explicitly co-serves microsoftonline.us signing keys tagged cloud_instance_name. Not a vuln by itself (est-aggregation design); it is a design signal for the cross-cloud-token acceptance hypothesis (test-tenant-only to prove).
+
+### POC-3: Graph $metadata service-document crawl for agent/identity types (LIVE, in-scope graph.microsoft.com)
+- v1.0 $metadata (2,931,817 B) + beta $metadata (7,298,965 B) fetched. agentSignInSession: 0 references in BOTH — the /me/agentSignInSessions surface used by My Sign-Ins (/recent-activity/agentic-sessions) is entirely off-metadata (internal/partner surface). Confirms earlier finding.
+- Agent ID entity model IS in public metadata: v1 EntityTypes agentIdentity (BaseType graph.servicePrincipal, props agentIdentityBlueprintId + createdDateTime, nav sponsors), agentIdentityBlueprint (BaseType graph.application, nav inheritablePermissions ContainsTarget + sponsors), agentIdentityBlueprintPrincipal (BaseType graph.servicePrincipal), agentUser (BaseType graph.user). Beta adds agentIdentity nav inheritedAppRoleAssignments + inheritedOauth2PermissionGrants. user entity has nav sponsorOf + sponsors.
+- Public docs confirm (learn.microsoft.com/en-us/entra/agent-id; create-blueprint.md): Agent ID preview (admin center Nov-17-2025; Dataverse GA announcement 2026-08-06). Creation endpoints POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint, /servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal, /servicePrincipals/microsoft.graph.agentIdentity, beta /users (agentUser). Scopes: AgentIdentityBlueprint.Create / .AddRemoveCreds.All / .UpdateAuthProperties.All / AgentIdentityBlueprintPrincipal.Create; dir roles Agent ID Developer / Agent ID Administrator. Hardening confirmed by independent tests: agent identities are always single-tenant; interactive OAuth flows (code/device/implicit/ROPC) BLOCKED; addPassword to agentIdentity service principal BLOCKED (403); isFallbackPublicClient not flippable; no RFC7591 dynamic registration.
+- My Account agent hooks map onto this model: useHasOwnedAgents GET /users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999 filtered servicePrincipalType==ServiceIdentity (=agentIdentity); getSponsoredAgentsUrl GET /users/{userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999.
+
+### POC designs (no live sends; test-tenant only)
+- PD-A agentSignInSessions scope/IDOR: token on own tenant (AgentIdentity.Read.All) → GET /v1.0/me/agentSignInSessions and GET /v1.0/users/{arbitrary-oid}/agentSignInSessions; signal if second resolves caller-agnostic → cross-user session disclosure. CVSS 6.5–8.8.
+- PD-B agent-identity privilege inheritance: user sponsors self-created blueprint → creates agentIdentity inheriting blueprint oauth2PermissionGrants/appRoleAssignments (beta nav) → compare agent's effective perms vs user's own; signal if inherited grants exceed sponsor's. CVSS 7.0–9.0. (Blocked-flow hardening partially mitigates; OBO/jwt-bearer minting still possible.)
+- PD-C Verified ID mint: POST /api/issueVerifiedEmployeeCredential (Bearer, scope=SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2, no body); compare no-role vs GlobalAdmin; signal both-204 → authz gap. CVSS 7.1–9.1.
+- PD-D policyfile IDOR: GET /api/termsofuse/agreements/{a}/policyfiles/{p}/data with cross-tenant GUID pairs (token required). CVSS 5.3–7.5.
+- PD-E redirect_uri normalization matrix vs reply-url doc (RFC6749 §3.1.2 + RFC9700): trailing-slash, case, fragment, percent-encoding, response_mode form_post/fragment, wctx; live-check only on in-scope login.live.com fast-fail echo (1 req per variant, documented cases only). CVSS 7.4–9.0 if any first-party registration accepts a non-exact match.
+EOF
+echo "journal lines: $(wc -l < /home/runner/work/hunt-lab/hunt-lab/research/bigpickle.md)"
+journal lines: 4104
+[0m
+[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/leads/lead-bigpickle.md <<'EOF'
+
+## 2026-08-07 10:45:00 UTC [microsoft] (model bigpickle) — POC
+
+- [LIVE-VERIFIED] Graph $metadata crawl: agentSignInSession has 0 refs in BOTH v1 and beta $metadata (hashes 9d84e451..., ca304859...) — /me/agentSignInSessions is fully off-metadata. Agent ID entity model confirmed in metadata: agentIdentity (BaseType servicePrincipal, nav sponsors; beta adds inheritedAppRoleAssignments + inheritedOauth2PermissionGrants), agentIdentityBlueprint (application, nav inheritablePermissions ContainsTarget), agentIdentityBlueprintPrincipal, agentUser; user has sponsorOf+sponsors nav. Public docs (learn.microsoft.com/en-us/entra/agent-id + create-blueprint.md, 2026-05-01) + independent tests confirm sponsor-gated creation, blocked interactive flows/ROPC/client-secret-add, single-tenant agent identities, dir roles Agent ID Developer/Administrator, scopes AgentIdentityBlueprint.*/AgentIdentityBlueprintPrincipal.Create.
+- [LIVE-VERIFIED] ACS /metadata/json/1 shape changed: keys now keyValue{type:x509Certificate,value,keyInfo{x5t,cloud_instance_name}}; allowedAudiences absent. 5 self-signed keys, active rotation (3x microsoftonline.com CN=accounts.accesscontrol.windows.net notBefore 06-08/06-17/07-04-2026; 2x microsoftonline.us CN=login.microsoftonline.us notBefore 07-01/07-26-2026), all notAfter 2031. DER sha256 05d17f72..., 34d09425..., 93a64915..., 1b499ff9..., a73ca1f9... x5t aFkmKVFc.../AahUf1bC.../fEtqrhKT... (com) + jvm_-Ttaq.../6hXLaIYN... (us).
+- [LIVE-VERIFIED] Both .js.map still 200 text/plain with NO Cache-Control (immutable-hashed, deliberate-cacheable). myaccount CSP-Report-Only; mysignins real CSP + app-version 4.0.2233. main.shim.js = trivial loader + Azure Code Signing Authenticode block (ETag 1dd1b7e6aa49110).
+- [POC-DESIGN] Agent-identity privilege inheritance: sponsor self-blueprint → agentIdentity inherits oauth2PermissionGrants/appRoleAssignments (beta nav) — test whether inherited grants can exceed the sponsor's own (test tenant). CVSS 7.0–9.0.
+- [POC-DESIGN] agentSignInSessions cross-user: /users/{oid}/agentSignInSessions vs /me/ (test tenant). CVSS 6.5–8.8.
+- [POC-DESIGN] Verified ID mint (no-role vs GlobalAdmin, both-204 signal). CVSS 7.1–9.1. policyfile IDOR cross-tenant GUID pairs. CVSS 5.3–7.5. redirect_uri matrix vs reply-url rules (documented variants, live only on in-scope login.live.com echo). CVSS 7.4–9.0.
+EOF
+cat > /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json <<'EOF'
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+EOF
+cat /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+[0m
+## Program: microsoft — Phase: POC (read-only)
+
+### Key Findings
+- **`/me/agentSignInSessions` is fully off-metadata**: 0 references in both `v1.0/$metadata` (sha256 `9d84e451…`) and `beta/$metadata` (`ca304859…`) — the surface My Sign-Ins uses (`/recent-activity/agentic-sessions`) exists only as an internal route (baseline 401). Meanwhile the **Agent ID model IS public**: `agentIdentity` (BaseType `servicePrincipal`, nav `sponsors`; beta adds `inheritedAppRoleAssignments` + `inheritedOauth2PermissionGrants`), `agentIdentityBlueprint` (nav `inheritablePermissions` ContainsTarget), `agentIdentityBlueprintPrincipal`, `agentUser`; `user` exposes `sponsorOf`+`sponsors` nav (v1 metadata).
+- **ACS JWKS reconciled**: `allowedAudiences`/`Audience`/`Issuer` fields now absent from `/metadata/json/1` (tenant-enum patch reconfirmed). 5 self-signed signing keys with live rotation — 3× `CN=accounts.accesscontrol.windows.net` (notBefore 06-08/06-17/07-04-2026) tagged `cloud_instance_name=microsoftonline.com`, **2× `CN=login.microsoftonline.us`** (notBefore 07-01/07-26-2026) tagged `microsoftonline.us`. DER sha256: `05d17f72…`, `34d09425…`, `93a64915…`, `1b499ff9…`, `a73ca1f9…`.
+- **Public Agent ID docs + independent tests** (learn.microsoft.com/en-us/entra/agent-id; create-blueprint.md 2026-05-01; goodworkaround.com 2026-02-02; entrabot platform-docs) confirm hardening already in place: agent identities are single-tenant, interactive OAuth flows/ROPC blocked, `addPassword` on agentIdentity SP blocked, sponsor-required creation, dir roles `Agent ID Developer/Administrator`, scopes `AgentIdentityBlueprint.*`/`AgentIdentityBlueprintPrincipal.Create`. Feature is preview (Nov-2025) expanding to Dataverse (2026-08-06).
+- **Source maps still live** (api.myaccount 35.3 MB / mysignins 7 MB), both `200 text/plain`, **no Cache-Control** (immutable-hashed, deliberately cacheable — supporting asset only). myaccount shell: `CSP-Report-Only` + HSTS; mysignins shell: real CSP + `app-version 4.0.2233`.
+
+### New Endpoints / Assets
+- Graph (public metadata, read-only confirmed): `agentIdentity`, `agentIdentityBlueprint`, `agentIdentityBlueprintPrincipal`, `agentUser` entity types; `user.sponsorOf`/`user.sponsors`; beta `agentIdentity.inheritedOauth2PermissionGrants`/`inheritedAppRoleAssignments`.
+- Creation endpoints (documented, test-tenant): `POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint`, `/servicePrincipals/microsoft.graph.agentIdentityBlueprintPrincipal`, `/servicePrincipals/microsoft.graph.agentIdentity`, beta `/users` (agentUser).
+- `api.myaccount /bundle/main.shim.js` (trivial loader + Azure Code Signing block, ETag `1dd1b7e6aa49110`).
+
+### Hypotheses (impact + read-only test)
+1. **Agent-identity privilege inheritance (NEW, highest value)** — sponsor self-creates blueprint → agentIdentity inherits `oauth2PermissionGrants`/`appRoleAssignments` from blueprint; if inherited grants can exceed the sponsor's own, low-priv→high-priv escalation. Test: own tenant, compare agent effective grants vs sponsor's. CVSS 7.0–9.0.
+2. **`agentSignInSessions` cross-user/scope gap** — `/users/{oid}/agentSignInSessions` vs `/me/` with `AgentIdentity.Read.All` token; off-metadata surface, historically under-scoped. CVSS 6.5–8.8.
+3. **Verified ID mint authz** — POST `/api/issueVerifiedEmployeeCredential` (Bearer, scope=SPA clientId `8c59ead7…`, no body); no-role vs GlobalAdmin both-204 signal. CVSS 7.1–9.1.
+4. **ToS policyfile IDOR** — GET `…/agreements/{a}/policyfiles/{p}/data` cross-tenant GUID pairs (token required). CVSS 5.3–7.5.
+5. **OAuth redirect_uri matrix** — build normalization matrix (trailing slash, case, fragment, percent-encoding, `response_mode`, `wctx`) vs reply-url rules (RFC 6749 §3.1.2, RFC 9700); live-check only in-scope login.live.com fast-fail echo, documented variants. CVSS 7.4–9.0.
+6. **ACS cross-cloud token acceptance** — `microsoftonline.us` keys co-served in global JWKS; test-tenant only. CVSS 5.3–7.5 (config/hardening).
+
+### Secrets Check
+None found. This run: no raw secrets committed — only artifact sha256 hashes (graph metadata, acs.json, shim, HTML shells listed above). Public-client IDs and cert thumbprints only.
+
+### CVSS Candidates
+Agent inheritance 7.0–9.0; agent sessions 6.5–8.8; Verified ID 7.1–9.1; ToS IDOR 5.3–7.5; redirect ATO 7.4–9.0; ACS cross-cloud 5.3–7.5.
+
+---
+## STATE UPDATE
+STATUS_PHASE: POC
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: Test-tenant verification of Agent-identity inheritance (blueprint → agentIdentity inheritedOauth2PermissionGrants exceeding sponsor perms) — highest-value design, needs controlled tenant + `AgentIdentityBlueprint.Create`.
+NEXT_STEP_2: `agentSignInSessions` IDOR/scope check on test tenant (`/users/{oid}` vs `/me`); if confirmed, chain with My Sign-Ins `/recent-activity/agentic-sessions` for session-detail disclosure.
+NEXT_STEP_3: If POC blocked by passive-only rule, open RECON on next unexplored in-scope surface: `*.azurewebsites.net`/`*.azure.com` App Services under the identity estate + crt.sh CT inventory for `.microsoft.com` identity hosts, and enumerate first-party Graph app registrations from public AAD app catalog for redirect_uri matrix.
