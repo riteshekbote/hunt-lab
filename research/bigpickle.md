@@ -1,1080 +1,4 @@
-7 08:52 research-prompt.txt
-===LEADS===
-
-## 2026-08-07 08:55:53 UTC [microsoft] (model bigpickle)
-- [UNVALIDATED] Program landscape**: MSRC Cloud programs cap at $100k (Identity), $60k (Azure), $30k (Copilot), $20k each (Azure DevOps / Dynamics+Power Platform / Defender); Open Source program caps at $15k for a fixed repo list; report portal `msrc.microsoft.com/report/vulnerability/new` (aka.ms/secure-at), Correlation ID required. Sources: https://www.microsoft.com/en-us/msrc/bounty-programs, https://www.microsoft.com/en-us/msrc/pentest-rules-of-engagement
-- [UNVALIDATED] Identity bounty added 5 new hosts in Jul 2025 and account.microsoft.com in Nov 2025** — freshly-expanded scope is the best-hit-rate surface this run: `mysignins.microsoft.com`, `api.mysignins.microsoft.com`, `myaccount.microsoft.com`, `myaccess.microsoft.com`, `myapps.microsoft.com`, `microsoftazuread-sso.com`, `accounts.accesscontrol.windows.net`. Source: https://microsoft.com/msrc/bounty-microsoft-identity (Revision History).
-- [UNVALIDATED] Identity out-of-scope traps**: subdomain takeover, pure URL redirects (unless chained), missing headers, cookie replay, DoS, MFA-bypass needing physical access — these will be triaged out, do not report.
-- [UNVALIDATED] Rules of Engagement nuance**: retrieving/using credentials "regardless of how obtained, including leaked publicly" is prohibited — leaked-secret checks must stop at hashing + flagging for triage, never use.
-- [UNVALIDATED] DNS**: in-scope hosts terminate on the AAD gateway cluster: `mysignins`/`api.mysignins` -> `prdf.aadg.msidentity.com`; `accounts.accesscontrol.windows.net` -> `prda.aadg.msidentity.com`; `adminwebservice.microsoftonline.com` -> `adminwebservice.mso.msidentity.com` (aadg). `microsoftazuread-sso.com` apex has NO A record (host-keyed domain). `provisioningapi.microsoftonline.com` had no A record at lookup time.
-- [UNVALIDATED] OIDC v2.0 confirmed**: issuer templated `https://login.microsoftonline.com/{tenantid}/v2.0`, endpoints under `/common/oauth2/v2.0/` (authorize/token/devicecode/logout), `subject_types_supported: pairwise`, response types include `code id_token`. Metadata: https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
-- [UNVALIDATED] crt.sh was down (404/502)** this run — CT-based inventory deferred, do not re-crawl aggressively.
-- [UNVALIDATED] STATUS_PHASE: [RECON|SURFACE|HYPOTHESIS|POC]
-- [UNVALIDATED] STATUS_STATE: [IN_PROGRESS|EXHAUSTED|HIGH_POTENTIAL]
-- [UNVALIDATED] NEXT_STEP_1: ...
-- [UNVALIDATED] NEXT_STEP_2: ...
-- [UNVALIDATED] NEXT_STEP_3: ...
-[0m
-I'm big-pickle, moving RECON → SURFACE on microsoft. Previous run mapped scope and DNS. This run: endpoint/auth surface on the freshly-scoped identity hosts, Graph identity workflow endpoints, and OAuth surface — all read-only GET/HEAD at 1 rps.
-[0m$ [0mfor h in mysignins.microsoft.com www.mysignins.microsoft.com microsoftazuread-sso.com www.microsoftazuread-sso.com accounts.accesscontrol.windows.net; do echo "== $h"; curl -sI -o /dev/null -w "  HTTP %{http_code} -> %{redirect_url}\n" "https://$h/" --max-time 15 || echo "  [fail/timeout]"; sleep 1; done
-== mysignins.microsoft.com
-  HTTP 200 -> 
-== www.mysignins.microsoft.com
-  HTTP 000 -> 
-  [fail/timeout]
-== microsoftazuread-sso.com
-  HTTP 000 -> 
-  [fail/timeout]
-== www.microsoftazuread-sso.com
-  HTTP 000 -> 
-  [fail/timeout]
-== accounts.accesscontrol.windows.net
-  HTTP 200 ->
-[0m
-[0m$ [0msleep 2; for h in provisioningapi.microsoftonline.com adminwebservice.microsoftonline.com account.microsoft.com; do echo "== $h"; dig +short "$h" | head -2; curl -sI -o /dev/null -w "  HTTP %{http_code} -> %{redirect_url}\n" "https://$h/" --max-time 15 || echo "  [fail/timeout]"; sleep 1; done
-== provisioningapi.microsoftonline.com
-  HTTP 000 -> 
-  [fail/timeout]
-== adminwebservice.microsoftonline.com
-adminwebservice.mso.msidentity.com.
-lrt.privatelink.msidentity.com.
-  HTTP 404 -> 
-== account.microsoft.com
-account.microsoft.com.edgekey.net.
-e9412.b.akamaiedge.net.
-  HTTP 000 -> 
-  [fail/timeout]
-[0m
-[0m$ [0mcurl -s "https://mysignins.microsoft.com/" --max-time 20 | head -c 2000; echo; echo "=== HEADERS ==="; curl -sI "https://mysignins.microsoft.com/" --max-time 15
-<!doctype html><html lang="en"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/><meta name="theme-color" content="#000000"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta http-equiv="Content-Security-Policy" content="script-src 'self' amcdn.msftauth.net js.monitor.azure.com "/><link rel="manifest" href="/manifest.json"/><link rel="shortcut icon" href="/favicon.ico"/><meta name="app-version" content="4.0.2233"/><title>My Sign-Ins</title><base href="/"><meta name="description" content="My Sign-ins"><link rel="icon" href="/favicon.ico"><script defer="defer" src="/bundle/main.caa6a456.js"></script></head><body><noscript>You need to enable JavaScript to run this app</noscript><div id="root"></div></body></html>
-=== HEADERS ===
-HTTP/1.1 200 OK
-Content-Length: 793
-Content-Type: text/html
-Last-Modified: Tue, 28 Jul 2026 09:48:44 GMT
-Accept-Ranges: bytes
-ETag: "1dd1e76472ba519"
-x-ms-correlation-id: 37ae2b86-e9b9-4613-9681-51daa143fbe8
-x-ms-mysignins-region: westus2
-x-ms-gateway-requestid: ba85c43a-b8d1-4e93-a200-cdd6dc337891
-client-request-id: 499d6215-55e1-4f40-b5bb-68e593c50b74
-X-Content-Type-Options: nosniff
-Date: Fri, 07 Aug 2026 09:02:16 GMT
-[0m
-[0m$ [0mcurl -s "https://mysignins.microsoft.com/manifest.json" --max-time 15 | head -c 1500; echo; echo "=== bundle size ==="; curl -sI "https://mysignins.microsoft.com/bundle/main.caa6a456.js" --max-time 15 | head -8
-{
-  "short_name": "My Signins",
-  "name": "My Signins",
-  "icons": [
-    {
-      "src": "favicon.ico",
-      "sizes": "192x192",
-      "type": "image/png"
-    }
-  ],
-  "start_url": "./index.html",
-  "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
-}
-
-=== bundle size ===
-HTTP/1.1 200 OK
-Content-Length: 6006324
-Content-Type: text/javascript
-Last-Modified: Tue, 28 Jul 2026 09:48:44 GMT
-Accept-Ranges: bytes
-ETag: "1dd1e7647700034"
-x-ms-correlation-id: 7c5333a9-5409-49e9-93a3-4a970a7587ce
-x-ms-mysignins-region: westus2
-[0m
-[0m$ [0mcurl -s "https://mysignins.microsoft.com/bundle/main.caa6a456.js" --max-time 60 -o /tmp/opencode/mysignins-bundle.js && wc -c /tmp/opencode/mysignins-bundle.js && echo "=== api/url strings ===" && grep -oE 'https://[a-zA-Z0-9._/-]+' /tmp/opencode/mysignins-bundle.js | sort -u | grep -viE 'w3.org|schema.org|github.com|mozilla|reactjs|microsoft.com/en-us/|aka.ms|support.microsoft|learn.microsoft|msrc' | head -60
-6006324 /tmp/opencode/mysignins-bundle.js
-=== api/url strings ===
-https://a
-https://aka.eaglex.ic.gov/fwlink
-https://aka.microsoft.scloud/fwlink
-https://api.myaccount.azure.us
-https://api.myaccount.eaglex.ic.gov
-https://api.myaccount.identity.sovcloud.de
-https://api.myaccount.identity.sovcloud.fr
-https://api.myaccount.microsoft.com
-https://api.myaccount.microsoft.scloud
-https://api.myaccount.windowsazure.cn
-https://api.myprofile-ppe.microsoft.com
-https://au.pipe.aria.microsoft.com/Collector/3.0/
-https://breeze.aimon.applicationinsights.io
-https://browser.events.data.microsoft.com/OneCollector/1.0/
-https://browser.pipe.aria.microsoft.com/Collector/3.0/
-https://cdnssl.Clicktale.net/
-https://clients.config.office.net/
-https://collector.azure.cn/OneCollector/1.0/
-https://collector.azure.de/OneCollector/1.0/
-https://collector.azure.eaglex.ic.gov/OneCollector/1.0/
-https://collector.azure.fr/OneCollector/1.0/
-https://collector.azure.microsoft.scloud/OneCollector/1.0/
-https://dc-int.services.visualstudio.com
-https://dc.services.visualstudio.com
-https://de.pipe.aria.microsoft.com/Collector/3.0/
-https://directory.identity.sovcloud-api.de
-https://directory.identity.sovcloud-api.fr
-https://entra.microsoft.com
-https://eu.pipe.aria.microsoft.com/Collector/3.0/
-https://fb.me/react-polyfills
-https://go.microsoft.com/fwlink/
-https://go.microsoft.com/fwlink/p/
-https://graph.chinacloudapi.cn
-https://graph.cloudapi.microsoft.scloud
-https://graph.eaglex.ic.gov
-https://graph.microsoft-ppe.com
-https://graph.microsoft.com
-https://graph.microsoft.scloud
-https://graph.microsoft.us
-https://graph.microsoftazure.us
-https://graph.ppe.windows.net
-https://graph.svc.sovcloud.de
-https://graph.svc.sovcloud.fr
-https://graph.windows.net
-https://jp.pipe.aria.microsoft.com/Collector/3.0/
-https://login.chinacloudapi.cn/
-https://login.chinacloudapi.cn/common/
-https://login.microsoftonline.com/
-https://login.microsoftonline.com/common/
-https://login.microsoftonline.eaglex.ic.gov/
-https://login.microsoftonline.eaglex.ic.gov/common/
-https://login.microsoftonline.microsoft.scloud/
-https://login.microsoftonline.microsoft.scloud/common/
-https://login.microsoftonline.us/
-https://login.microsoftonline.us/common/
-https://login.sovcloud-identity.de/
-https://login.sovcloud-identity.de/common/
-https://login.sovcloud-identity.fr/
-https://login.sovcloud-identity.fr/common/
-https://login.windows-ppe.net/
-[0m
-[0m$ [0mcd /tmp/opencode && echo "=== clientId/appId candidates ===" && grep -oE '(clientId|client_id|appId)["\x27]?\s*[:=]\s*["\x27][a-zA-Z0-9-]{20,36}' mysignins-bundle.js | sort -u | head -20 && echo "=== redirectUri ===" && grep -oE 'redirectUri[^,]{0,80}' mysignins-bundle.js | sort -u | head -10 && echo "=== api path fragments ===" && grep -oE '"/[a-zA-Z0-9_/-]{4,60}"' mysignins-bundle.js | sort -u | grep -iE 'api|account|auth|signin|profile|security|session|device|token|credential' | head -50
-=== clientId/appId candidates ===
-clientId:"19db86c3-b2b9-44cc-b339-36da233a3be2
-=== redirectUri ===
-redirectUri
-redirectUri:c
-=== api path fragments ===
-"/acknowledgeSignIn"
-"/api/ab"
-"/api/authenticationmethods/availablemethods"
-"/api/authenticationmethods/completeProofup"
-"/api/authenticationmethods/delete"
-"/api/authenticationmethods/disablehardwaretoken"
-"/api/authenticationmethods/getpostredirectparameters"
-"/api/authenticationmethods/initializemobileapp"
-"/api/authenticationmethods/new"
-"/api/authenticationmethods/registrationpolicy"
-"/api/authenticationmethods/setdefault"
-"/api/authenticationmethods/verify"
-"/api/captcha/"
-"/api/captcha/validation"
-"/api/enabledFeatures"
-"/api/features/getEnabledApps"
-"/api/me"
-"/api/me/image"
-"/api/organization"
-"/api/password/change"
-"/api/password/passwordMethods"
-"/api/password/reset"
-"/api/post/registerSsprMethods"
-"/api/session/authorize"
-"/api/session/currentuser"
-"/api/session/extendsessionvalidity"
-"/api/session/issessionvalid"
-"/api/session/sessionvalidinfo"
-"/api/signInMap"
-"/api/signIns"
-"/api/signIns/"
-"/api/signOutEverywhere"
-"/api/tenants"
-"/api/users/getImages"
-"/authentication"
-"/authentication/phoneMethods"
-"/authentication/signInPreferences"
-"/authentication/temporaryAccessPassMethods"
-"/authentication/temporaryAccessPassMethods/"
-"/devices"
-"/disableSmsSignIn"
-"/enableSmsSignIn"
-"/me/agentSignInSessions"
-"/me/agentSignInSessions/"
-"/profile"
-"/recent-activity/agentic-sessions"
-"/security-info"
-"/token/failed"
-[0m
-[0m$ [0mcd /tmp/opencode && echo "=== redirectUri contexts ===" && grep -oE 'redirectUri[:=][^,;]{0,120}' mysignins-bundle.js | sort -u | head && echo "=== api base/tenant contexts ===" && grep -oE '"[a-z-]+(myaccount|myprofile|mysignins)[a-z0-9./-]*"' mysignins-bundle.js | sort -u | head && echo "=== scope strings ===" && grep -oE '"[a-zA-Z0-9./-]+\.default"|openid[^",]{0,40}' mysignins-bundle.js | sort -u | head && echo "=== authorize/known endpoints ===" && grep -oE '/(common|consumers|organizations)/(oauth2|saml2)/[a-zA-Z0-9/._-]+' mysignins-bundle.js | sort -u | head
-=== redirectUri contexts ===
-redirectUri:c
-=== api base/tenant contexts ===
-"x-ms-mysignins-region"
-=== scope strings ===
-"/.default"
-openid
-openid-configuration
-=== authorize/known endpoints ===
-[0m
-Rich SPA surface found. Let me extract more context around the API usage and auth config.
-[0m$ [0mcd /tmp/opencode && echo "=== session/authorize context ===" && grep -oE '.{60}/api/session/authorize.{60}' mysignins-bundle.js | head -3 && echo "=== logout/endSession ===" && grep -oE '.{40}(endSessionUrl|logout|post_logout_redirect_uri|redirect_uri).{80}' mysignins-bundle.js | head -8 && echo "=== known msal interaction ===" && grep -oE 'loginHint[^,;]{0,80}|account\.homeAccountId[^,;]{0,80}' mysignins-bundle.js | sort -u | head -6
-=== session/authorize context ===
-ath:"/api/session/currentuser",state:r.FORWARDING},m={path:"/api/session/authorize",state:r.FORWARDING},g={path:"/api/session/extendsessionval
-=== logout/endSession ===
-t){return(0,$n.getCustomAuthProvider)().logout(),e})),(0,C.addUnexpectedErrorHandler)((0,S.getFailureActionType)(w.S.signOutEv
-"AuthLifecycle"),p=e.init,f=e.login,h=e.logout,m=e.acquireToken,g=new Map;return e.init=(0,a.O)((function(n){d.info("init"),t.
-pped due to a redirect in progress")},e.logout=function(n){t.assertInitialized(),d.debug("logout called"),t.state.redirectStat
-.RedirectStatus.NotRedirecting?d.debug("logout skipped due to a redirect in progress."):(d.info("logout (hints: ".concat(JSON.
-("string"),token:(0,o.typeOf)("string"),logout:(0,o.typeOf)("string")}))),k=(0,o.struct)().optional({authorization_endpoint:(0
-ode",C),_.set("code_verifier",S),_.set("redirect_uri",g),t.next=24;break;case 17:if("refresh_token"!==d.type){t.next=23;break}w=d.ty
-d("client_id",b),w.searchParams.append("redirect_uri",g),w.searchParams.append("scope",_),w.searchParams.append("response_type","cod
-.next=3,l(n);case 3:return i=t.sent,a=i.logout,(s=new URL(a)).searchParams.set("post_logout_redirect_uri",r),u(s,o),t.abrupt("
-=== known msal interaction ===
-loginHint
-loginHint:""}
-[0m
-[0m# [0mTodos
-[✓] Map mysignins SPA endpoints + auth config (done: clientId, MyAccount API, session/auth methods)
-[•] Probe documented My Account API paths on api.mysignins/api.myaccount (read-only 401-baseline)
-[ ] Probe accounts.accesscontrol.windows.net (legacy ACS) metadata surface
-[ ] Probe account.microsoft.com + login.live.com OAuth surface
-[ ] Survey Graph API v1.0 identity workflow endpoints (public metadata)
-[ ] Write research journal, leads, state update (SURFACE)
-[0m
-SPA surface captured (clientId `19db86c3-b2b9-44cc-b339-36da233a3be2`, My Account API, session/authenticationmethod endpoints). Now probing documented API paths on the backend host + other in-scope identity hosts, read-only.
-[0m$ [0mfor p in "/api/me" "/api/session/currentuser" "/api/authenticationmethods/availablemethods" "/api/signIns" "/api/tenants"; do echo "== api.mysignins.microsoft.com$p"; curl -s -o /tmp/opencode/resp.txt -w "  HTTP %{http_code} | %{content_type} | %{size_download}b\n" "https://api.mysignins.microsoft.com$p" --max-time 15; head -c 300 /tmp/opencode/resp.txt; echo; sleep 1; done
-== api.mysignins.microsoft.com/api/me
-  HTTP 404 |  | 0b
-
-== api.mysignins.microsoft.com/api/session/currentuser
-  HTTP 405 |  | 0b
-
-== api.mysignins.microsoft.com/api/authenticationmethods/availablemethods
-  HTTP 401 |  | 0b
-
-== api.mysignins.microsoft.com/api/signIns
-  HTTP 401 |  | 0b
-
-== api.mysignins.microsoft.com/api/tenants
-  HTTP 401 |  | 0b
-[0m
-[0m$ [0mecho "== 401 body/details on api.mysignins"; curl -s -D - "https://api.mysignins.microsoft.com/api/authenticationmethods/availablemethods" --max-time 15 | head -20; sleep 1; echo "== accounts.accesscontrol.windows.net root"; curl -sI "https://accounts.accesscontrol.windows.net/" --max-time 15 | head -15
-== 401 body/details on api.mysignins
-HTTP/1.1 401 Unauthorized
-x-ms-correlation-id: c0d8957d-a2fc-4569-8401-6774e49340ac
-x-ms-mysignins-region: westus2
-x-ms-gateway-requestid: 23b79339-f33e-45dc-a1d4-0a147482a6cd
-client-request-id: 18e5c033-b1ca-4c44-9e5e-7c6c0ef3dd20
-X-Content-Type-Options: nosniff
-WWW-Authenticate: Bearer
-Date: Fri, 07 Aug 2026 09:03:21 GMT
-Content-Length: 0
-
-== accounts.accesscontrol.windows.net root
-HTTP/1.1 200 OK
-Cache-Control: no-store, no-cache
-Pragma: no-cache
-Content-Length: 23802
-Content-Type: text/html; charset=utf-8
-Expires: -1
-Strict-Transport-Security: max-age=31536000; includeSubDomains
-X-Content-Type-Options: nosniff
-Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin
-Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch
-Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch,<https://aadcdn.msftauth.net>; rel=dns-prefetch
-X-DNS-Prefetch-Control: on
-P3P: CP="DSP CUR OTPi IND OTRi ONL FIN"
-x-ms-request-id: 5d8562e9-47bc-4c93-a89a-13f9b11fa300
-x-ms-ests-server: 2.1.24997.11 - WUS3 ProdSlices
-[0m
-[0m$ [0mcurl -s "https://accounts.accesscontrol.windows.net/" --max-time 15 -o /tmp/opencode/acs-root.html && echo "title/redirect refs:" && grep -oiE '<title>[^<]*</title>|location.href[^;]*|href="[^"]{0,80}"' /tmp/opencode/acs-root.html | sort -u | head -20
-title/redirect refs:
-<title>Object moved</title>
-href="https://www.office.com/login#"
-[0m
-`accounts.accesscontrol.windows.net` is serviced by AAD ESTS — legacy ACS surface alive. Let me inspect the page and probe known ACS metadata endpoints.
-[0m$ [0mfor p in "/v2/metadata" "/v2/openid-configuration" "/v2/trust" "/metadata/json/1" "/wsfederationmetadata"; do echo "== accounts.accesscontrol.windows.net$p"; curl -s -o /tmp/opencode/x.txt -w "  HTTP %{http_code} | %{content_type} | %{size_download}b\n" "https://accounts.accesscontrol.windows.net$p" --max-time 15; head -c 200 /tmp/opencode/x.txt; echo; sleep 1; done
-== accounts.accesscontrol.windows.net/v2/metadata
-  HTTP 404 |  | 0b
-
-== accounts.accesscontrol.windows.net/v2/openid-configuration
-  HTTP 404 |  | 0b
-
-== accounts.accesscontrol.windows.net/v2/trust
-  HTTP 404 |  | 0b
-
-== accounts.accesscontrol.windows.net/metadata/json/1
-  HTTP 200 | application/json; charset=utf-8 | 6358b
-{"keys":[{"usage":"signing","keyValue":{"type":"x509Certificate","value":"MIIC/TCCAeWgAwIBAgIICR+ICKYVUk0wDQYJKoZIhvcNAQELBQAwLTErMCkGA1UEAxMiYWNjb3VudHMuYWNjZXNzY29udHJvbC53aW5kb3dzLm5ldDAeFw0yNjA2MD
-== accounts.accesscontrol.windows.net/wsfederationmetadata
-  HTTP 404 |  | 0b
-[0m
-`/metadata/json/1` is a live JWKS for the legacy ACS host. Capturing key fingerprint details, then probing the OAuth surface on login.live.com / account.microsoft.com.
-[0m$ [0mcurl -s "https://accounts.accesscontrol.windows.net/metadata/json/1" --max-time 15 -o /tmp/opencode/acs-keys.json && python3 -c "
-import json
-d=json.load(open('/tmp/opencode/acs-keys.json'))
-for k in d.get('keys',[]):
-    print('usage:',k.get('usage'),'| alg:',k.get('alg'),'| kid:',k.get('keyValue',{}).get('type') if isinstance(k.get('keyValue'),dict) else k.get('kid'))
-print('endpoints:', d.get('endpoints'))
-print('certSubject:', d.get('issuer'))
-"; sleep 1; echo "== login.live.com well-known"; curl -s -o /tmp/opencode/live-oidc.json -w "HTTP %{http_code} | %{content_type}\n" "https://login.live.com/.well-known/openid-configuration" --max-time 15 && python3 -c "
-import json
-d=json.load(open('/tmp/opencode/live-oidc.json'))
-print('issuer:',d.get('issuer'))
-print('authorization:',d.get('authorization_endpoint'))
-print('token:',d.get('token_endpoint'))
-print('jwks:',d.get('jwks_uri'))
-print('device:',d.get('device_authorization_endpoint'))
-"
-usage: signing | alg: None | kid: x509Certificate
-usage: signing | alg: None | kid: x509Certificate
-usage: signing | alg: None | kid: x509Certificate
-usage: signing | alg: None | kid: x509Certificate
-usage: signing | alg: None | kid: x509Certificate
-endpoints: [{'location': 'https://accounts.accesscontrol.windows.net/tokens/OAuth/2', 'protocol': 'OAuth2', 'usage': 'issuance'}, {'location': 'https://accounts.accesscontrol.windows.net/tokens/delegation/1', 'protocol': 'DelegationIssuance1.0', 'usage': 'issuance'}, {'location': 'https://accounts.accesscontrol.windows.net/mgmt/delegation/1', 'protocol': 'DelegationManagement1.0', 'usage': 'management'}]
-certSubject: None
-== login.live.com well-known
-HTTP 200 | application/json
-issuer: https://login.live.com
-authorization: https://login.live.com/oauth20_authorize.srf
-token: https://login.live.com/oauth20_token.srf
-jwks: https://nexus.passport.com/public/partner/discovery/key
-device: None
-[0m
-Legacy ACS exposes live OAuth2/delegation issuance endpoints. Probing them read-only, plus Entra custom-domain SSO host.
-[0m$ [0mfor u in "https://accounts.accesscontrol.windows.net/tokens/OAuth/2" "https://accounts.accesscontrol.windows.net/mgmt/delegation/1"; do echo "== $u"; curl -s -o /tmp/opencode/x.txt -w "  HTTP %{http_code} | %{content_type} | %{size_download}b\n" "$u" --max-time 15; head -c 300 /tmp/opencode/x.txt; echo; sleep 1; done; echo "== microsoftazuread-sso.com subdomain probes"; for h in login.microsoftazuread-sso.com mysignins.microsoftazuread-sso.com sso.microsoftazuread-sso.com; do echo "  $h"; curl -sI -o /dev/null -w "    HTTP %{http_code} -> %{redirect_url}\n" "https://$h/" --max-time 12 || echo "    [timeout/no route]"; sleep 1; done
-== https://accounts.accesscontrol.windows.net/tokens/OAuth/2
-  HTTP 200 | text/html; charset=utf-8 | 23795b
-
-
-<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
-<!DOCTYPE html>
-<html dir="ltr" class="" lang="en">
-<head>
-    <title>Sign in to your account</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="I
-== https://accounts.accesscontrol.windows.net/mgmt/delegation/1
-  HTTP 200 | text/html; charset=utf-8 | 23795b
-
-
-<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
-<!DOCTYPE html>
-<html dir="ltr" class="" lang="en">
-<head>
-    <title>Sign in to your account</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="I
-== microsoftazuread-sso.com subdomain probes
-  login.microsoftazuread-sso.com
-    HTTP 000 -> 
-    [timeout/no route]
-  mysignins.microsoftazuread-sso.com
-    HTTP 000 -> 
-    [timeout/no route]
-  sso.microsoftazuread-sso.com
-    HTTP 000 -> 
-    [timeout/no route]
-[0m
-[0m$ [0mecho "== microsoftazuread-sso.com DNS (all record types, passive)"; dig microsoftazuread-sso.com ANY +short; echo "-- NS:"; dig microsoftazuread-sso.com NS +short; echo "-- TXT:"; dig microsoftazuread-sso.com TXT +short; echo "-- CNAME:"; dig microsoftazuread-sso.com CNAME +short; sleep 1; echo "== ACS sign-in form action target"; grep -oE 'action="[^"]*"|name="[a-zA-Z]+"|method="[^"]*"' /tmp/opencode/acs-root.html | sort -u | head -20
-== microsoftazuread-sso.com DNS (all record types, passive)
-ns4-34.azure-dns.info.
-ns1-34.azure-dns.com.
-ns2-34.azure-dns.net.
-ns3-34.azure-dns.org.
--- NS:
-ns1-34.azure-dns.com.
-ns3-34.azure-dns.org.
-ns4-34.azure-dns.info.
-ns2-34.azure-dns.net.
--- TXT:
-"google-site-verification=gHF6gHIrBiWfQG4HXNM0qcLtSc4RbZF5eLu2T-4nHic"
--- CNAME:
-== ACS sign-in form action target
-[0m
-[0m$ [0mecho "== account.microsoft.com (in-scope Nov2025)"; curl -sI "https://account.microsoft.com/" --max-time 20 | head -12; sleep 1; echo "== account.microsoft.com/about redirect chain"; curl -s -o /dev/null -w "final=%{http_code} url=%{url_effective}\n" -L --max-time 20 "https://account.microsoft.com/" 2>/dev/null | head -1
-== account.microsoft.com (in-scope Nov2025)
-== account.microsoft.com/about redirect chain
-final=000 url=https://account.microsoft.com/
-[0m
-[0m$ [0mecho "== api.myaccount.microsoft.com (My Account API backend)"; curl -sI "https://api.myaccount.microsoft.com/" --max-time 20 | head -10; sleep 1; echo "== account.microsoft.com via DNS"; dig +short account.microsoft.com | head -3; echo "== try login.live.com authorize (no auth - expect 200/302 login)"; curl -s -o /dev/null -w "HTTP %{http_code} | %{redirect_url}\n" "https://login.live.com/oauth20_authorize.srf?client_id=000000004C12AE6A&response_type=code&redirect_uri=https%3A%2F%2Flogin.live.com%2Foauth20_desktop.srf&scope=wl.basic&response_mode=query" --max-time 20
-== api.myaccount.microsoft.com (My Account API backend)
-HTTP/1.1 200 OK
-Cache-Control: no-store
-Content-Length: 468
-Content-Type: text/html
-Last-Modified: Fri, 24 Jul 2026 15:09:26 GMT
-Accept-Ranges: bytes
-ETag: "1dd1b7e6aa4d6d4"
-Strict-Transport-Security: max-age=2592000
-X-Content-Type-Options: nosniff
-Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
-== account.microsoft.com via DNS
-account.microsoft.com.edgekey.net.
-e9412.b.akamaiedge.net.
-23.0.193.154
-== try login.live.com authorize (no auth - expect 200/302 login)
-HTTP 302 | https://login.live.com/oauth20_desktop.srf?error=invalid_request&error_description=The%20provided%20value%20for%20the%20input%20parameter%20'redirect_uri'%20is%20not%20valid.%20The%20client%20application%20must%20be%20marked%20as%20'mobile'%2c%20or%20the%20value%20must%20be%20an%20absolute%20URL%20which%20matches%20the%20registered%20redirect%20URI.&lc=1033
-[0m
-login.live.com OAuth surface confirmed (redirect_uri validation active, precise error reveals validation behavior). Now the My Account API root and Graph identity endpoint metadata.
-[0m$ [0mecho "== api.myaccount root body"; curl -s "https://api.myaccount.microsoft.com/" --max-time 20 | head -c 500; echo; sleep 1; echo "== probe api.myaccount known paths"; for p in "/api/me" "/api/authenticationmethods/availablemethods" "/api/security/authentication/signinpreferences"; do echo "  $p"; curl -s -o /dev/null -w "    HTTP %{http_code}\n" "https://api.myaccount.microsoft.com$p" --max-time 15; sleep 1; done
-== api.myaccount root body
-<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><meta name="theme-color" content="#000000"/><title>My Account</title><link rel="icon" href="/favicon.ico"><script defer="defer" src="/bundle/main.shim.js"></script></head><body><noscript>You need to enable JavaScript to run this app.</noscript><div id="root"></div></body></html>
-== probe api.myaccount known paths
-  /api/me
-    HTTP 401
-  /api/authenticationmethods/availablemethods
-    HTTP 401
-  /api/security/authentication/signinpreferences
-    HTTP 401
-[0m
-[0m$ [0mecho "== myaccount bundle"; curl -s "https://api.myaccount.microsoft.com/bundle/main.shim.js" --max-time 30 | head -c 200; echo; curl -s "https://api.myaccount.microsoft.com/bundle/main.js" --max-time 60 -o /tmp/opencode/myaccount.js 2>/dev/null; wc -c /tmp/opencode/myaccount.js 2>/dev/null; echo "== clientId + endpoints"; grep -oE 'clientId:"[a-zA-Z0-9-]{20,40}"' /tmp/opencode/myaccount.js 2>/dev/null | sort -u | head; grep -oE '"/api/[a-zA-Z0-9/_]{3,60}"' /tmp/opencode/myaccount.js 2>/dev/null | sort -u | head -40
-== myaccount bundle
-!function(){"use strict";var e=document.createElement("script");e.src="/bundle/main.4e6e3dc6.js",e.type="text/javascript",document.body.appendChild(e)}();
-// SIG // Begin signature block
-// SIG // M
-0 /tmp/opencode/myaccount.js
-== clientId + endpoints
-[0m
-[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js" --max-time 60 -o /tmp/opencode/myaccount2.js && wc -c /tmp/opencode/myaccount2.js && echo "== clientId"; grep -oE 'clientId:"[a-zA-Z0-9-]{20,40}"' /tmp/opencode/myaccount2.js | sort -u | head; echo "== api paths"; grep -oE '"/api/[a-zA-Z0-9/_]{3,60}"' /tmp/opencode/myaccount2.js | sort -u | grep -viE 'captcha' | head -50
-9279288 /tmp/opencode/myaccount2.js
-== clientId
-== api paths
-"/api/EnduserEmailContacts"
-"/api/TenantEmailSettings"
-"/api/allTimeZones"
-"/api/availableLanguages"
-"/api/availableRegionalFormats"
-"/api/canVerifiedIdBeIssued"
-"/api/dateTimeFormats"
-"/api/devices"
-"/api/devices/"
-"/api/features/getEnabledApps"
-"/api/features/isConvergedUXV2Enabled"
-"/api/features/isSsprConvergenceEnabled"
-"/api/groups/settings"
-"/api/instrument/logclient"
-"/api/issueVerifiedEmployeeCredential"
-"/api/me/image"
-"/api/organization"
-"/api/organizations"
-"/api/organizations/"
-"/api/shell/getshellinfo"
-"/api/signOutEverywhere"
-"/api/termsofuse/agreements/"
-"/api/termsofuse/myacceptances"
-"/api/termsofuse/tenantbannerlogo"
-"/api/termsofuse/tenantdisplayname"
-"/api/users/getImages"
-[0m
-[0m$ [0mcd /tmp/opencode && echo "== verified id / VC context"; grep -oE '.{80}(issueVerifiedEmployeeCredential|canVerifiedIdBeIssued).{80}' myaccount2.js | head -2; echo "== org switch endpoints"; grep -oE '"/api/[a-zA-Z0-9/_]*[Ss]witch[a-zA-Z0-9/_]*"' myaccount2.js | sort -u | head; echo "== authority/tenant fragments"; grep -oE '(authority|tenantId|tenant-id|common/oauth2)[^,]{0,60}' myaccount2.js | sort -u | head -12; echo "== adal/msal markers"; grep -oE 'adal|msal|login.microsoftonline[^"]{0,60}' myaccount2.js | sort -u | head
-== verified id / VC context
-nction(){var e=(0,oe.a)().auth,t="".concat(Z.r.get("myAccountBackendUrl"),"/api/issueVerifiedEmployeeCredential"),n=Z.r.getRequired("clientId");return(0,ve.useMutation)(fc(regeneratorRuntime.
-(0,_e.f1)(),l=function(){var e,t="".concat(Z.r.get("myAccountBackendUrl"),"/api/canVerifiedIdBeIssued"),n=Z.r.getRequired("clientId"),r=(0,oe.a)().auth;return(0,ve.useQuery)({queryK
-== org switch endpoints
-== authority/tenant fragments
-authority
-authority and the CloudInstanceDiscoveryMetadata returned from the ne
-authority and verify the .well-known/openid-configuration endpoint re
-authority configuration options: https://docs.microsoft.com/en-us/azu
-authority does not support logout."}
-authority endpoint");if(!n.endsWith("common/"))throw new Error("Autho
-authority found."
-authority has not completed endpoint discovery.");this.authority=e}
-authority host.")
-authority is not a trusted authority. Please include this authority i
-authority or account."}
-authority was not found within the CloudInstanceDiscoveryMetadata ret
-== adal/msal markers
-adal
-login.microsoftonline.com
-login.microsoftonline.com/
-login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
-login.microsoftonline.com/common/
-login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization
-login.microsoftonline.com/common/discovery/v2.0/keys
-login.microsoftonline.com/common/kerberos
-login.microsoftonline.com/common/oauth2/v2.0/authorize
-login.microsoftonline.com/common/oauth2/v2.0/devicecode
-[0m
-[0m$ [0mcd /tmp/opencode && echo "== feature flags used by myaccount"; grep -oE '"[a-zA-Z0-9.-]*[Ff]eature[a-zA-Z0-9.-]*"' myaccount2.js | sort -u | head -20; echo "== getRequired/config keys"; grep -oE 'getRequired\("[a-zA-Z0-9.-]+"\)' myaccount2.js | sort -u | head -30
-== feature flags used by myaccount
-"AddFeatureFlags"
-"Feature"
-"FeatureArea"
-"FeatureFlags"
-"FeatureIsDisabled"
-"FeatureLayout"
-"FeatureListItem"
-"NewFeature"
-"NewFeatureCallout"
-"NewFeatureDetails"
-"NewFeatureLink"
-"NewFeatureVideo"
-"ShellFeatureFlags"
-"enableSubFeatures"
-"featureHeading"
-"featureTurnedOffMessage"
-"featureconsumer"
-"featureflags"
-"getFeatureFlagValue"
-"missingFeatureFlagValue"
-== getRequired/config keys
-getRequired("authAuthorityEndpoint")
-getRequired("clientId")
-getRequired("cpmAudience")
-getRequired("cpmBaseUrl")
-getRequired("inProductFeedback")
-getRequired("msGraphResourceName")
-getRequired("myAccountBackendUrl")
-[0m
-[0m$ [0mcd /tmp/opencode && echo "== config key defaults"; grep -oE '"[a-zA-Z][a-zA-Z0-9]*":\s*".{0,80}"' myaccount2.js | grep -iE 'clientid|cpm|graph|backend|resource|authority' | sort -u | head -20; echo "== config lookup keys (JSON.parse style)"; grep -oE 'get\("[a-zA-Z][a-zA-Z0-9]*"\)' myaccount2.js | sort -u | head -40
-== config key defaults
-"aadGraphResourceName":"https://graph.ppe.windows.net","ssgmResourceName":"
-"aadGraphResourceName":"https://graph.windows.net","ssgmResourceName":"
-"ariaTelemetryKey":"","authAuthorityEndpoint":"https://login.partner.microsoftonline.cn/common/","
-"authAuthorityEndpoint":"https://login.microsoftonline.com/common/","
-"authAuthorityEndpoint":"https://login.microsoftonline.eaglex.ic.gov/common/","
-"authAuthorityEndpoint":"https://login.microsoftonline.microsoft.scloud/common/","
-"clientId":"8c59ead7-d703-4a27-9e55-c96a0054c8d2","iamuxClientId":"
-"cpmBaseUrl":"","cpmAudience":"","telemetryCollectorServiceEndpoint":"","isMySignInsEnabled"
-"cpmBaseUrl":"https://jcmsdf.account.microsoft-int.com/CPM","cpmAudience":"
-"cpmBaseUrl":"https://jcmsfd.account.microsoft.com/CPM","cpmAudience":"
-"env":"ppe","azureInstance":"https://login.windows-ppe.net/","msGraphResourceName":"
-"env":"prod","azureInstance":"https://login.microsoftonline.com/","msGraphResourceName"
-"meControlViewAccountLink":"https://myaccount.azure.us","ariaTelemetryKey":"","authAuthorityEndpoint":"
-"msGraphResourceName":"https://graph.eaglex.ic.gov","aadGraphResourceName":"
-"msGraphResourceName":"https://graph.microsoft.scloud","aadGraphResourceName":"
-"msGraphResourceName":"https://graph.microsoft.us","aadGraphResourceName":"
-"msGraphResourceName":"https://graph.svc.sovcloud.de","aadGraphResourceName":"
-"msGraphResourceName":"https://graph.svc.sovcloud.fr","aadGraphResourceName":"
-"msGraphResourceName":"https://microsoftgraph.chinacloudapi.cn","aadGraphResourceName":"
-"myAccountBackendUrl":"https://api.myaccount.azure.us","myAppsUrl":"https://myapps.microsoft.us","
-== config lookup keys (JSON.parse style)
-get("ETag")
-get("Expires")
-get("ReadWriteConsistencyToken")
-get("a")
-get("azureInstance")
-get("c")
-get("changePasswordFwdLink")
-get("cpmAudience")
-get("cpmBaseUrl")
-get("defaultCollectorEndpoint")
-get("env")
-get("error")
-get("euCollectorEndpoint")
-get("experimentNamespace")
-get("experimentRemoteUrl")
-get("flags")
-get("getDeviceAndBitlockerMsGraphCallEnabled")
-get("homeLink")
-get("isFloodgateDynamicSurveyEnabled")
-get("isLocalizedNamesDisabled")
-get("isMySignInsEnabled")
-get("isNewHomePageOptInEnabled")
-get("isNewMyGroupsEnabled")
-get("isOfficeAppLauncherDisabled")
-get("isPreferredLanguagesDisabled")
-get("isUniversalMeControlEnabled")
-get("isVerifiedIDEnabled")
-get("itemInsightsToggleEnabled")
-get("manageAgentNavItemEnabled")
-get("meControlViewAccountLink")
-get("msGraphResourceName")
-get("myAccessUrl")
-get("myAccountBackendUrl")
-get("myAgentsUrl")
-get("myAppsUrl")
-get("myGroupsUrl")
-get("myStaffUrl")
-get("officeSuiteHeaderAudience")
-get("oneDSInstrumentKey")
-get("panelHelpLink")
-[0m
-[0m$ [0mcd /tmp/opencode && echo "== cpm/jcms context"; grep -oE '.{50}jcms[fa]d.account.microsoft.com.{30}' myaccount2.js | head -3; grep -oE '"myAgentsUrl":"[^"]*"' myaccount2.js | sort -u | head; grep -oE '"myAccessUrl":"[^"]*"' myaccount2.js | sort -u | head; grep -oE '"isVerifiedIDEnabled":"[^"]*"' myaccount2.js | sort -u | head
-== cpm/jcms context
-tomPSSOLabelsEnabled":false,"cpmBaseUrl":"https://jcmsfd.account.microsoft.com/CPM","cpmAudience":"https://j
-"myAgentsUrl":"https://myaccount.microsoft.com/agents"
-"myAccessUrl":"https://myaccess.azure.eaglex.ic.gov"
-"myAccessUrl":"https://myaccess.azure.microsoft.scloud"
-"myAccessUrl":"https://myaccess.identity.sovcloud.de"
-"myAccessUrl":"https://myaccess.identity.sovcloud.fr"
-"myAccessUrl":"https://myaccess.microsoft.com"
-"myAccessUrl":"https://myaccess.microsoft.us"
-"myAccessUrl":"https://myaccess.microsoftonline.cn"
-"myAccessUrl":"https://myaccess.ppe.microsoft.com"
-[0m
-[0m$ [0mecho "== jcmsfd.account.microsoft.com"; dig +short jcmsfd.account.microsoft.com | head -3; curl -sI "https://jcmsfd.account.microsoft.com/CPM" --max-time 15 | head -8; sleep 1; echo "== cpmAudience full"; cd /tmp/opencode && grep -oE '"cpmAudience":"[^"]*"' myaccount2.js | sort -u | head -5
-== jcmsfd.account.microsoft.com
-cmfd-prod.trafficmanager.net.
-prod-cmfd-afd-gue8epfkfkcbhghj.z01.azurefd.net.
-mr-z01.tm-azurefd.net.
-HTTP/2 502 
-date: Fri, 07 Aug 2026 09:05:44 GMT
-content-type: text/html
-content-length: 1952
-cache-control: no-store
-x-azure-ref: 20260807T090544Z-17565954d7bt8blrhC1CO1xnns0000000uyg00000001yz64
-x-cache: CONFIG_NOCACHE
-
-== cpmAudience full
-"cpmAudience":""
-"cpmAudience":"https://jarvisapi.account.microsoft-int.com"
-"cpmAudience":"https://jarvisapi.account.microsoft.com"
-[0m
-My Account surface mapped (clientId `8c59ead7...`, CPM/Jarvis backends, feature flags). One more read-only check on the AAD authorize surface, then GitHub org repo check for identity code.
-[0m$ [0mecho "== AAD v2 authorize with unregistered redirect_uri (read-only, no auth)"; curl -s -o /tmp/opencode/aad-resp.txt -w "HTTP %{http_code} | %{redirect_url}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=1950a258-227b-4e31-a9cf-717495945fc2&response_type=code&redirect_uri=https%3A%2F%2Fevil.example.com%2Fcb&scope=openid" --max-time 20; head -c 400 /tmp/opencode/aad-resp.txt; echo
-== AAD v2 authorize with unregistered redirect_uri (read-only, no auth)
-HTTP 200 | 
-
-
-<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
-<!DOCTYPE html>
-<html dir="ltr" class="" lang="en">
-<head>
-    <title>Sign in to your account</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.
-[0m
-[0m$ [0mecho "== AAD v2 authorize, unknown client (read-only)"; curl -s -o /tmp/opencode/aad2.txt -w "HTTP %{http_code}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=00000000-0000-0000-0000-000000000001&response_type=code&redirect_uri=https%3A%2F%2Fevil.example.com%2Fcb&scope=openid&nonce=x&state=y" --max-time 20; head -c 600 /tmp/opencode/aad2.txt; echo; echo "== grep error info"; grep -oE 'error[^<]{0,120}|AADSTS[0-9]+[^<]{0,80}' /tmp/opencode/aad2.txt | head
-== AAD v2 authorize, unknown client (read-only)
-HTTP 200
-
-
-<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
-<!DOCTYPE html>
-<html dir="ltr" class="" lang="en">
-<head>
-    <title>Sign in to your account</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0, user-scalable=yes">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="-1">
-    <link rel="preconnect" href="https://aadcdn.msftauth.net" crossorigin>
-<me
-== grep error info
-error"},"loader":{"cdnRoots":["https://aadcdn.msauth.net/","https://aadcdn.msftauth.net/"],"logByThrowing":true},"serverDetai
-error=null,e.onreadystatechange=null),n(),e&&(e.src&&e.removeAttribute("src"),
-error=c,u.onreadystatechange=function(){"loaded"===u.readyState?setTimeout(function(){v(t,o,i,u,s)},500):"complete"===u.ready
-error.aspx?err=504"),e&&n("[$Loader]: Silently handled tenant branding CDN failure ['"+o+"']")})},f.OnError=function(e,t,o){v
-error.aspx?err=504"),e&&n("[$Loader]: Silently handled tenant branding CDN failure ['"+i+"']")}),f._ReportFailure(0,i,o)},f._
-error){if(e.error.stack){return s(e.error.stack)}}else if(window.opera&&e.message){return d(e.message)}}catch(e){}return null
-error&&(e=e.error,r=f(e)),(t=JSON.stringify(e))&&"{}"!==t||(t=e.toString())),r+":"+t}}catch(e){}}return""+(e||"")}function v(
-error,h.onerror=a,
-errorHooked=!0,y.when("jQuery.version",function(e){m.expectedVersion=e}),y.register("$WebWatson")}}(),function(){function e(e
-errors."+r[e])),n||(n=t("errors."+e)),n||(n=t("errors."+d)),n||(n=t(d)),n}function o(t){var n=null;return null===u&&(u=e(i,"$
-[0m
-[0m$ [0mecho "== Graph agent session endpoints (401-baseline, read-only)"; for p in "/v1.0/me/agentSignInSessions" "/beta/me/agentSignInSessions" "/v1.0/me/authentication/methods"; do curl -s -o /dev/null -w "  %{http_code} %{size_download}b  $p\n" "https://graph.microsoft.com$p" --max-time 15; sleep 1; done
-== Graph agent session endpoints (401-baseline, read-only)
-  401 237b  /v1.0/me/agentSignInSessions
-  401 237b  /beta/me/agentSignInSessions
-  401 237b  /v1.0/me/authentication/methods
-[0m
-[0m$ [0mecho "== 401 body detail"; curl -s "https://graph.microsoft.com/v1.0/me/agentSignInSessions" --max-time 15 | head -c 300; echo; sleep 1; echo "== myaccess / myapps HEAD"; for h in myaccess.microsoft.com myapps.microsoft.com; do curl -sI "https://$h/" --max-time 15 | head -4; sleep 1; done
-== 401 body detail
-{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T09:06:11","request-id":"7dbf69b9-714d-4006-b2fb-50ea6a6e957b","client-request-id":"7dbf69b9-714d-4006-b2fb-50ea6a6e957b"}}}
-== myaccess / myapps HEAD
-HTTP/1.1 200 OK
-Content-Length: 580
-Content-Type: text/html
-Last-Modified: Tue, 21 Jul 2026 19:51:24 GMT
-HTTP/1.1 200 OK
-Cache-Control: max-age=600
-Content-Length: 1049
-Content-Type: text/html
-[0m
-[0m$ [0msleep 1; curl -s "https://api.github.com/search/repositories?q=org%3Amicrosoft+msal&per_page=10" --max-time 20 | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-for r in d.get('items',[]):
-    print(f\"{r['full_name']:50s} stars={r['stargazers_count']:6d} pushed={r['pushed_at'][:10]} arch={r['archived']}\")
-"
-microsoft/adfs-sample-msal-dotnet-native-to-webapi stars=    15 pushed=2023-05-31 arch=True
-microsoft/adfs-sample-msal-dotnet-webapi-to-webapi-onbehalfof stars=    10 pushed=2023-06-12 arch=True
-microsoft/DevAppsForTeams                          stars=    59 pushed=2023-10-10 arch=False
-[0m
-[0m$ [0msleep 1; curl -s "https://api.github.com/search/repositories?q=org%3Amicrosoft+identity+security+graph&sort=updated&per_page=10" --max-time 20 | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-for r in d.get('items',[]):
-    print(f\"{r['full_name']:55s} stars={r['stargazers_count']:6d} pushed={r['pushed_at'][:10]} arch={r['archived']}\")
-"; sleep 1; echo "== identity model repo (in-scope code)"; curl -s "https://api.github.com/repos/AzureAD/microsoft-identity-web" --max-time 15 | python3 -c "
-import json,sys
-d=json.load(sys.stdin)
-print('AzureAD/microsoft-identity-web pushed:',d.get('pushed_at'),'archived:',d.get('archived'))
-" 2>/dev/null || echo "(repo not accessible / no route)"
-== identity model repo (in-scope code)
-AzureAD/microsoft-identity-web pushed: 2026-08-07T00:46:25Z archived: False
-[0m
-[0m$ [0mecho "== int/ppe identity-adjacent azure.com hosts (HEAD, read-only)"; for h in "https://api.dev.accessmonitor.azure.com/" "https://api.prod.accessmonitor.azure.com/" "https://controlplane.accledger.azure.com/" "https://identity.accledger.azure.com/"; do code=$(curl -s -o /dev/null -w "%{http_code}" "$h" --max-time 12); echo "  $code  $h"; sleep 1; done
-== int/ppe identity-adjacent azure.com hosts (HEAD, read-only)
-  403  https://api.dev.accessmonitor.azure.com/
-  403  https://api.prod.accessmonitor.azure.com/
-  404  https://controlplane.accledger.azure.com/
-  000  https://identity.accledger.azure.com/
-[0m
-[0m$ [0mecho "== accessmonitor known paths (HEAD)"; for h in "https://api.prod.accessmonitor.azure.com/health" "https://api.prod.accessmonitor.azure.com/v1/" "https://api.prod.accessmonitor.azure.com/.well-known/openid-configuration"; do code=$(curl -s -o /dev/null -w "%{http_code}" "$h" --max-time 12); echo "  $code  $h"; sleep 1; done; echo "== accledger controlplane known paths"; for h in "https://controlplane.accledger.azure.com/health" "https://controlplane.accledger.azure.com/.well-known/openid-configuration" "https://controlplane.accledger.azure.com/api/v1/"; do code=$(curl -s -o /dev/null -w "%{http_code}" "$h" --max-time 12); echo "  $code  $h"; sleep 1; done
-== accessmonitor known paths (HEAD)
-  403  https://api.prod.accessmonitor.azure.com/health
-  403  https://api.prod.accessmonitor.azure.com/v1/
-  403  https://api.prod.accessmonitor.azure.com/.well-known/openid-configuration
-== accledger controlplane known paths
-  200  https://controlplane.accledger.azure.com/health
-  404  https://controlplane.accledger.azure.com/.well-known/openid-configuration
-  404  https://controlplane.accledger.azure.com/api/v1/
-[0m
-`controlplane.accledger.azure.com/health` returns 200. Checking its content and the accledger identity host's health/API shape.
-[0m$ [0mecho "== accledger controlplane /health body"; curl -s "https://controlplane.accledger.azure.com/health" --max-time 15 | head -c 500; echo; echo "== headers"; curl -sI "https://controlplane.accledger.azure.com/health" --max-time 15 | head -12; sleep 1; echo "== accledger identity host"; dig +short identity.accledger.azure.com | head -2; curl -s -o /dev/null -w "  HTTPS %{http_code}\n" "https://identity.accledger.azure.com/" --max-time 12 || echo "  [no https]"; curl -s -o /dev/null -w "  HTTP %{http_code}\n" "http://identity.accledger.azure.com/" --max-time 12 || echo "  [no http]"
-== accledger controlplane /health body
-Healthy
-== headers
-HTTP/2 405 
-date: Fri, 07 Aug 2026 09:06:50 GMT
-server: Kestrel
-allow: GET
-x-ms-correlation-request-id: 807efb6a-5ee4-4a8f-94ac-7fa6fa82635e
-x-ms-machinename: controlplane-cdc48d7b7-rs76g
-x-ms-image-tag: 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8
-
-== accledger identity host
-identity-accledger-prod-1.eastus.cloudapp.azure.com.
-20.81.9.214
-  HTTPS 000
-  [no https]
-  HTTP 000
-  [no http]
-[0m
-`controlplane.accledger.azure.com` is a live .NET (Kestrel) API leaking pod name + image tag. Bounded read-only probes for API surface docs.
-[0m$ [0mfor p in "/swagger/index.html" "/swagger/v1/swagger.json" "/api/health" "/api/ledger" "/api/tenants" "/api/v1/health"; do code=$(curl -s -o /tmp/opencode/r.txt -w "%{http_code}|%{size_download}b" "https://controlplane.accledger.azure.com$p" --max-time 12); echo "  $code  $p"; head -c 120 /tmp/opencode/r.txt; echo; sleep 1; done
-404|92b  /swagger/index.html
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  404|92b  /swagger/v1/swagger.json
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  404|92b  /api/health
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  404|92b  /api/ledger
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  404|92b  /api/tenants
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  404|92b  /api/v1/health
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-[0m
-[0m$ [0mfor h in "https://chat.aedeptooling-int.azure.com/" "https://mcp.aedeptooling-int.azure.com/" "https://test.aedeptooling-int.azure.com/" "https://api.3psecureppe.microsoft.com/"; do code=$(curl -s -o /tmp/opencode/r.txt -w "%{http_code}|%{size_download}b" "$h" --max-time 12); echo "  $code  $h"; head -c 150 /tmp/opencode/r.txt; echo; sleep 1; done
-000|0b  https://chat.aedeptooling-int.azure.com/
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  000|0b  https://mcp.aedeptooling-int.azure.com/
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  000|0b  https://test.aedeptooling-int.azure.com/
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-  000|0b  https://api.3psecureppe.microsoft.com/
-{"Status":"failed","Error":{"Code":"404","Message":"NotFound","Target":null,"Details":null}}
-[0m
-[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/research/bigpickle.md <<'EOF'
-
-## RUN 2026-08-07 (big-pickle) — TARGET: microsoft — PHASE: SURFACE
-
-### mysignins.microsoft.com (SPA, My Sign-Ins, app-version 4.0.2233)
-- React SPA, bundle /bundle/main.caa6a456.js (6MB). clientId (MSAL): 19db86c3-b2b9-44cc-b339-36da233a3be2. Authz: https://login.microsoftonline.com/common/oauth2/v2.0/authorize (from bundle).
-- CSP: script-src 'self' amcdn.msftauth.net js.monitor.azure.com (no unsafe-eval/inline) — XSS surface limited.
-- Headers: x-ms-mysignins-region: westus2 (region pinned), x-ms-correlation-id, client-request-id.
-- Backend: api.mysignins.microsoft.com. Probes (no token):
-  - /api/me -> 404 (not an endpoint on this host)
-  - /api/session/currentuser -> 405 (POST-only), /api/authenticationmethods/availablemethods, /api/signIns, /api/tenants -> 401 + WWW-Authenticate: Bearer
-- Full endpoint map from bundle (auth-gated): /api/session/authorize, /api/session/issessionvalid, /api/session/extendsessionvalidity, /api/signIns, /api/signIns/{id}, /api/signInMap, /api/tenants, /api/organization, /api/authenticationmethods/{availablemethods,completeProofup,delete,getpostredirectparameters,initializemobileapp,new,registrationpolicy,setdefault,verify,disablehardwaretoken}, /api/password/{change,reset,passwordMethods}, /api/captcha/{,validation}, /api/features/getEnabledApps, /api/enabledFeatures, /api/post/registerSsprMethods, /api/signOutEverywhere, /api/acknowledgeSignIn, /api/me, /api/me/image, /api/users/getImages, /api/ab.
-- Graph endpoints from bundle: /me/agentSignInSessions (agentic sign-in sessions!), /authentication/phoneMethods, /authentication/temporaryAccessPassMethods, /devices, /authentication/signInPreferences, /profile, /recent-activity/agentic-sessions, /security-info, /token/failed.
-- api.mysignins region header + 401-with-Bearer confirm APIM/AAD-gated gateway; /api/session/currentuser POST-only is a session-state oracle.
-
-### api.myaccount.microsoft.com (My Account backend, also serves SPA)
-- Root serves My Account SPA, bundle /bundle/main.4e6e3dc6.js (9.2MB). clientId: 8c59ead7-d703-4a27-9e55-c96a0054c8d2 (MSAL public client).
-- Config blocks per env (prod/ppe/sov): azureInstance login.microsoftonline.com; msGraphResourceName https://graph.microsoft.com; aadGraphResourceName https://graph.windows.net; myAccountBackendUrl api.myaccount.*; myAccessUrl myaccess.*; cpmBaseUrl jcmsfd.account.microsoft.com/CPM; cpmAudience https://jarvisapi.account.microsoft.com.
-- Probes: /api/me, /api/authenticationmethods/availablemethods, /api/security/authentication/signinpreferences -> 401 (auth-gated, same gateway style).
-- Endpoint map from bundle: /api/EnduserEmailContacts, /api/TenantEmailSettings, /api/allTimeZones, /api/availableLanguages, /api/availableRegionalFormats, /api/canVerifiedIdBeIssued, /api/devices, /api/features/{getEnabledApps,isConvergedUXV2Enabled,isSsprConvergenceEnabled}, /api/groups/settings, /api/instrument/logclient, /api/issueVerifiedEmployeeCredential (Entra Verified ID!), /api/me/image, /api/organization(s), /api/shell/getshellinfo, /api/signOutEverywhere, /api/termsofuse/{agreements/,myacceptances,tenantbannerlogo,tenantdisplayname}, /api/users/getImages.
-- Consumer tenant 9188040d-6c67-4c5b-b112-36a304b66dad (MSA tenant) referenced for /v2.0.
-- Feature flags: isVerifiedIDEnabled, isMySignInsEnabled, manageAgentNavItemEnabled (agents in My Account!), itemInsightsToggleEnabled, isNewHomePageOptInEnabled.
-
-### accounts.accesscontrol.windows.net (legacy ACS, AAD ESTS-fronted)
-- Root: 302 -> https://www.office.com/login#; headers x-ms-ests-server: 2.1.24997.11 (WUS3). Live legacy host.
-- /metadata/json/1 -> 200 JSON with 5 signing x509 keys (JWKS-style), cert CN "accounts.accesscontrol.windows.net", valid-from 2026-06.
-- /v2/metadata, /v2/openid-configuration, /v2/trust, /wsfederationmetadata -> 404 (old ACS WCF paths gone).
-- Discovery endpoints from metadata: /tokens/OAuth/2 (OAuth2 issuance), /tokens/delegation/1 (DelegationIssuance1.0), /mgmt/delegation/1 (DelegationManagement1.0). GET on /tokens/OAuth/2 and /mgmt/delegation/1 -> 200 sign-in HTML (login page, not 404) — endpoint pathing alive, auth-gated.
-
-### microsoftazuread-sso.com (Entra custom-domain SSO)
-- Apex: NO A/AAAA. NS: ns1-34.azure-dns.{com,net,org,info}. TXT: google-site-verification=gHF6gHIrBiWfQG4HXNM0qcLtSc4RbZF5eLu2T-4nHic. No CNAME.
-- Subdomain probes login./mysignins./sso.microsoftazuread-sso.com -> no route (000/timeout). Host-keyed domain with no HTTP surface at apex; likely reserved for tenant "host-name" SSO redirects (whr/host header keyed). Low direct surface.
-
-### login.live.com OAuth surface
-- .well-known/openid-configuration -> issuer https://login.live.com; authorize oauth20_authorize.srf; token oauth20_token.srf; jwks nexus.passport.com/public/partner/discovery/key. No devicecode endpoint.
-- authorize probe with unregistered redirect_uri -> 302 to oauth20_desktop.srf?error=invalid_request&error_description=...redirect_uri is not valid... (exact leak of validation: client must be 'mobile' OR redirect must be absolute + registered).
-
-### login.microsoftonline.com (AAD v2) authorize surface
-- Unknown/unregistered client_id + evil redirect_uri -> 200 sign-in HTML (no early error; AAD validates client AFTER auth or returns generic page). Compare: login.live.com errors fast on redirect_uri. AAD v2 defers; classic redirect_uri normalization/response_mode research area.
-
-### Graph identity endpoints (401-baseline confirms alive)
-- /v1.0/me/agentSignInSessions, /beta/me/agentSignInSessions, /v1.0/me/authentication/methods -> 401 InvalidAuthenticationToken (endpoints resolve, auth required). agentSignInSessions is the agentic sign-in session surface (aligned with My Sign-Ins recent-activity/agentic-sessions).
-
-### Passive-DNS follow-ups (non-identity azure.com, in scope)
-- api.dev/prod.accessmonitor.azure.com -> 403 (AFD/WAF gated, no banner).
-- controlplane.accledger.azure.com -> Kestrel; /health -> 200 "Healthy" + headers x-ms-machinename (pod name), x-ms-image-tag 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8, x-ms-correlation-request-id. Structured 404 envelope {"Status":"failed","Error":{"Code":...}}. No swagger/api/ledger/tenants.
-- identity.accledger.azure.com -> CNAME identity-accledger-prod-1.eastus.cloudapp.azure.com; no HTTP(S) responder (000).
-- aedeptooling-int (chat/mcp/test/watchdog) + api.3psecureppe.microsoft.com -> 000/timeout (no route from this egress).
-EOF
-echo "journal appended: $(wc -l < research/bigpickle.md) lines total"
-journal appended: 801 lines total
-[0m
-Good data captured. Wrapping up SURFACE phase — writing journal and leads.
-[0m$ [0mcat > leads/lead-bigpickle.md <<'EOF'
-## 2026-08-07 09:08:00 UTC [microsoft] (model bigpickle) — SURFACE
-
-- [LEAD] mysignins.microsoft.com SPA clientId 19db86c3-b2b9-44cc-b339-36da233a3be2; backend api.mysignins.microsoft.com; full auth-gated API map (/api/session/*, /api/authenticationmethods/*, /api/signIns, /api/password/*, /api/captcha/*). Graph /me/agentSignInSessions. Region header x-ms-mysignins-region: westus2.
-- [LEAD] api.myaccount.microsoft.com SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2; config block leaks cpmBaseUrl jcmsfd.account.microsoft.com/CPM + cpmAudience https://jarvisapi.account.microsoft.com; Entra Verified ID issuance endpoints /api/issueVerifiedEmployeeCredential + /api/canVerifiedIdBeIssued; myAgentsUrl myaccount.microsoft.com/agents.
-- [LEAD] accounts.accesscontrol.windows.net live legacy ACS: /metadata/json/1 returns 5 signing x509 keys; endpoints /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1 alive (200 sign-in page). ESTS header 2.1.24997.11.
-- [LEAD] login.live.com redirect_uri validation leak: 302 error string "client must be mobile or redirect must be absolute and registered" — fast-fail behavior; AAD v2 (login.microsoftonline.com) instead returns generic sign-in page for unregistered client+redirect (deferred validation) — asymmetry worth testing in HYPOTHESIS phase.
-- [LEAD] controlplane.accledger.azure.com Kestrel /health 200 "Healthy" leaks pod name + x-ms-image-tag build ID; no swagger. identity.accledger.azure.com -> identity-accledger-prod-1.eastus.cloudapp.azure.com (no HTTPS).
-- [LEAD] microsoftazuread-sso.com apex NXDOMAIN (NS on azure-dns), TXT google-site-verification only; no subdomain HTTP surface.
-- [UNVALIDATED] api.dev/prod.accessmonitor.azure.com 403 AFD-gated; aedeptooling-int + api.3psecureppe no route from egress.
-EOF
-echo done; ls -la leads/
-done
-total 44
-drwxr-xr-x 2 runner runner 4096 Aug  7 09:01 .
-drwxr-xr-x 9 runner runner 4096 Aug  7 09:01 ..
--rw-r--r-- 1 runner runner 1783 Aug  7 09:07 lead-bigpickle.md
--rw-r--r-- 1 runner runner 2039 Aug  7 09:01 lead-laguna.md
--rw-r--r-- 1 runner runner 1781 Aug  7 09:01 lead-longcat.md
--rw-r--r-- 1 runner runner  250 Aug  7 09:01 reposcan-2026-08-07-08-25.md
--rw-r--r-- 1 runner runner  355 Aug  7 09:01 reposcan-2026-08-07-08-29.md
--rw-r--r-- 1 runner runner  290 Aug  7 09:01 reposcan-2026-08-07-08-34.md
--rw-r--r-- 1 runner runner  301 Aug  7 09:01 reposcan-2026-08-07-08-40.md
--rw-r--r-- 1 runner runner  301 Aug  7 09:01 reposcan-2026-08-07-08-52.md
--rw-r--r-- 1 runner runner  301 Aug  7 09:01 reposcan-latest.md
-[0m
-[0m# [0mTodos
-[✓] Map mysignins SPA endpoints + auth config (done: clientId, MyAccount API, session/auth methods)
-[✓] Probe documented My Account API paths on api.mysignins/api.myaccount (read-only 401-baseline)
-[✓] Probe accounts.accesscontrol.windows.net (legacy ACS) metadata surface
-[✓] Probe account.microsoft.com + login.live.com OAuth surface
-[✓] Survey Graph API v1.0 identity workflow endpoints (public metadata)
-[•] Write research journal, leads, state update (SURFACE)
-[0m
-SURFACE phase complete. All findings journaled (research/bigpickle.md) and leads recorded. Report follows.
-
-# Program: microsoft
-# Phase: SURFACE
-
-## Key Findings
-- **mysignins.microsoft.com (My Sign-Ins SPA, v4.0.2233)** is a Microsoft Authentication Library (MSAL) app (clientId `19db86c3-b2b9-44cc-b339-36da233a3be2`) hitting a region-pinned gateway (`x-ms-mysignins-region: westus2`). Its 6MB bundle enumerates a full auth-gated API map: `/api/session/{authorize,currentuser,issessionvalid,extendsessionvalidity}`, `/api/authenticationmethods/*`, `/api/signIns`, `/api/signIns/{id}`, `/api/signInMap`, `/api/password/{change,reset}`, `/api/captcha/*`, `/api/signOutEverywhere`. Probing without a token returns `401 + WWW-Authenticate: Bearer`; `/api/session/currentuser` is POST-only (405).
-- **Agentic sign-in surface is new and material**: bundle references Graph `/me/agentSignInSessions` and My Sign-Ins `/recent-activity/agentic-sessions`; `graph.microsoft.com/v1.0/me/agentSignInSessions` + `/beta/me/agentSignInSessions` both resolve with `401 InvalidAuthenticationToken` (endpoints alive). This is the freshly-expanded "agent sessions" identity workflow area.
-- **api.myaccount.microsoft.com (My Account SPA, clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`)** exposes Entra Verified ID endpoints (`/api/issueVerifiedEmployeeCredential`, `/api/canVerifiedIdBeIssued`), ToS agreement endpoints, `/api/shell/getshellinfo`, and config blocks leaking internal backends: `cpmBaseUrl https://jcmsfd.account.microsoft.com/CPM`, `cpmAudience https://jarvisapi.account.microsoft.com`, and `myAgentsUrl myaccount.microsoft.com/agents`. Consumer tenant `9188040d-6c67-4c5b-b112-36a304b66dad` is referenced for /v2.0.
-- **Legacy ACS host `accounts.accesscontrol.windows.net` is live** (served by AAD ESTS, `x-ms-ests-server: 2.1.24997.11`): `/metadata/json/1` returns 5 signing x509 certs (CN `accounts.accesscontrol.windows.net`); discovery advertises `/tokens/OAuth/2`, `/tokens/delegation/1` (DelegationIssuance1.0), `/mgmt/delegation/1` (DelegationManagement1.0) — GET returns a 200 sign-in page, so pathing is alive and auth-gated.
-- **OAuth validation asymmetry**: `login.live.com` fast-fails on bad redirect_uri with a precise 302 error ("client must be mobile or redirect must be absolute + registered"), while `login.microsoftonline.com/oauth2/v2.0/authorize` with an unregistered client+redirect returns a generic 200 sign-in page (validation deferred). Classic redirect_uri/response_mode research surface.
-- **`controlplane.accledger.azure.com`** is a live Kestrel API: `/health` → 200 `Healthy`, leaking `x-ms-machinename` (pod), `x-ms-image-tag 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8`; structured 404 envelope `{"Status":"failed","Error":{...}}`; no swagger/ledger/tenants routes. `identity.accledger.azure.com` → `identity-accledger-prod-1.eastus.cloudapp.azure.com` (no HTTPS responder).
-- `microsoftazuread-sso.com`: apex NXDOMAIN (NS on azure-dns), TXT `google-site-verification=...` only, no A/CNAME; subdomain probes (login/mysignins/sso) get no route — host-keyed SSO domain, low direct surface.
-
-## New Endpoints / Assets
-- api.mysignins.microsoft.com: /api/session/currentuser (405=POST), /api/authenticationmethods/availablemethods, /api/signIns, /api/tenants (401 baseline)
-- api.myaccount.microsoft.com: /api/issueVerifiedEmployeeCredential, /api/canVerifiedIdBeIssued, /api/termsofuse/{agreements/,myacceptances,tenantbannerlogo,tenantdisplayname}, /api/shell/getshellinfo, /api/groups/settings, /api/instrument/logclient
-- Backend leaks: jcmsfd.account.microsoft.com/CPM, jarvisapi.account.microsoft.com, myaccount.microsoft.com/agents, login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0
-- Graph: /v1.0 + /beta me/agentSignInSessions, /v1.0/me/authentication/methods
-- accounts.accesscontrol.windows.net: /metadata/json/1 (JWKS), /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1
-- controlplane.accledger.azure.com: /health; login.live.com: oauth20_authorize.srf / oauth20_token.srf (jwks nexus.passport.com/public/partner/discovery/key)
-
-## Hypotheses (numbered, with impact + read-only test)
-1. **Legacy ACS trust forgery/replay** — `/metadata/json/1` still issues signing keys and OAuth/delegation endpoints are alive under the AAD ESTS umbrella. If any relying party still trusts these self-signed ACS keys with weak issuer validation, token forgery is possible. Impact: cross-tenant auth bypass (Identity: up to $100k). Read-only test: retrieve `/metadata/json/1` (done), compare cert/key material vs current AAD JWKS, search public docs/SAML metadata for RPs pointing at `accounts.accesscontrol.windows.net` as a token issuer.
-2. **Agent sign-in sessions authorization gap** — new `/me/agentSignInSessions` + `/recent-activity/agentic-sessions` surface; newer identity endpoints have historically shipped missing `scp`/`roles` checks or per-session IDOR. Impact: cross-user session disclosure. Read-only: enumerate documented scopes/roles for agentSignInSessions via public Graph docs; test only against a controlled test tenant (not this run).
-3. **My Account /api/session + /api/signInMap state oracles** — POST-only `/api/session/currentuser`, `/api/extendsessionvalidity`, and `/api/me/image` / `/api/users/getImages` could act as user-enumeration/IDOR vectors if object IDs are controllable. Impact: PII disclosure. Read-only test: confirm exact verbs/content-types from bundle; design IDOR check against test-tenant objects only.
-4. **Entra Verified ID issuance endpoints** — `/api/issueVerifiedEmployeeCredential` + `/api/canVerifiedIdBeIssued` — if authorization relies only on clientId presence (not token scopes), a low-priv user could mint verified-employee credentials. Impact: credential forgery/privilege escalation. Read-only: extract full request schemas + required scopes from bundle; verify documented scope requirements.
-5. **OAuth redirect_uri asymmetry (live vs AAD v2)** — different validation behavior; historical AAD classes: trailing-slash/encoding normalization, `response_mode=fragment` confusion, `whr`/domain-hint trickery. Impact: authorization code theft/ATO. Read-only: build a matrix of redirect_uri encodings against documented client registration rules; do not send to live unless the encoding set is published.
-6. **controlplane.accledger (Access Ledger) info disclosure** — Kestrel banners leak pod name + image tag; structured error envelope. If any unauthenticated route returns ledger/tenant metadata, it's info disclosure. Impact: low-medium. Read-only: bounded GET/HEAD on documented common paths only; stop at 404 envelope (done).
-
-## Secrets Check (public repos: what was found, hash only, where)
-- No new secrets this run. Bundle-downloaded SPAs (mysignins main.caa6a456.js, myaccount main.4e6e3dc6.js) were string-scanned; only public clientIds and config URLs found, no keys/tokens. No commit of any raw secret. Independent reposcan job: 0 grep hits (leads/reposcan-latest.md).
-
-## CVSS Candidates
-- ACS token forgery (if trust confirmed): 8.1–9.8 (auth bypass).
-- Agent session IDOR/authorization gap: 6.5–8.8 (confidentiality + session integrity).
-- Verified ID issuance privilege escalation: 7.1–9.1 (credential forgery).
-- OAuth redirect_uri ATO: 7.4–9.0 (code theft, needs chain).
-- Ledger/health banner info disclosure: 3.7–5.3 (info exposure only).
-
----
-## STATE UPDATE (exact format for parsing)
-STATUS_PHASE: SURFACE
-STATUS_STATE: HIGH_POTENTIAL
-NEXT_STEP_1: HYPOTHESIS on the two highest-value surfaces: legacy ACS token trust (accounts.accesscontrol.windows.net) and agent sign-in session authorization (me/agentSignInSessions) — read-only design + impact only.
-NEXT_STEP_2: Extract full request schemas/scopes for /api/issueVerifiedEmployeeCredential + /api/session/* from the two SPA bundles and Graph public docs.
-NEXT_STEP_3: Build redirect_uri/response_mode normalization matrix from documented client registration rules (no live sends) and cross-check with login.live.com fast-fail behavior.
-
-## RUN 2026-08-07 (big-pickle) — TARGET: microsoft — PHASE: HYPOTHESIS
-
-### Source maps: BOTH SPAs ship live source maps (major code-review surface)
-- mysignins.microsoft.com/bundle/main.caa6a456.js.map (6,976,576 B) — NO sourcesContent; 4359 paths. sha256 2099f8a8...f3efbe.
-- api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35,340,363 B) — sourcesContent PRESENT (4922 files). sha256 72290126...27d6541. Extracted 1977 files to /tmp/opencode/myaccount-src (transient, not committed).
-- Source map presence is itself a reportable hardening gap (recon-only note; MSRC triages source-map exposure per-case — validate against program rules before reporting).
-
-### My Account backend (api.myaccount.microsoft.com) — request schemas recovered from source
-- Auth: @iamexperiences/feature-auth getMsalAuth, MSAL public client, CacheLocation.SessionStorage, authority settingsManager authAuthorityEndpoint, clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Tokens acquired with scopes=[clientId] (audience = the SPA's own clientId) for ALL /api/* calls.
-- /api/issueVerifiedEmployeeCredential: POST, Authorization Bearer <clientId-scope token>, NO body. Backend errors surfaced in UI: GuestIsNotAllowedToIssueVerifiedId, TenantIsNotInAllowedToIssueVerifiedId (authz gates = non-guest + tenant-onboarded + feature-on; per source comment 204 means true). Verified ID app linkedin ref VERIFIEDID_APP_NAME_LINKEDIN.
-- /api/canVerifiedIdBeIssued: GET, Bearer clientId-token; 200+204 = enabled, else JSON reason.
-- /api/termsofuse/*: agreements/{agreementId}; agreements/{agreementId}/policyfiles/{policyFileId}; policyfiles/{policyFileId}/data (GET JSON); policyfiles/{policyFileId}/decline and /accept (POST). UNAUTHENTICATED variants (useGetAgreementUnauthenticated, useDeclineAgreement, useGetPolicyFileDataUnauthenticated) read access_token + id_token_hint + claims (incl governance_control_state_per_device) from server-rendered data-requestbody dataset in the HTML — i.e., tokens/claims embedded in a consent page's DOM.
-- /api/shell/navbardata, /api/signOutEverywhere, /api/organizations, /api/organizations/{id}, /api/devices, /api/groups/settings, /api/EnduserEmailContacts, /api/TenantEmailSettings, /api/dateTimeFormats, /api/me/image, /api/users/getImages.
-- Graph beta calls: /me/ownedObjects via getOwnedAgentsUrl(userId) = /users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999 (scope AgentIdentity.Read.All); /users/{userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999; /roleManagement/directory/roleAssignments?$filter=principalId eq '{userId}'; /organization/{orgId}/branding/localizations?$select=cdnList,bannerLogoRelativeUrl; /me/settings/itemInsights, /me/settings/contactMergeSuggestions, /me/checkMemberGroups, /me/photos/648x648/$value. ServiceIdentity is the agent-identity SP type (MANAGEAGENTS.AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE).
-- MSGraphScopes enum: CrossTenantUserProfileSharing.ReadWrite.All, Organization.Read.All, User.Read.All, User.ReadWrite, MailboxSettings.ReadWrite, BitlockerKey.Read.All, Contacts.Read, AgentIdentity.Read.All.
-- Roaming settings: OFFICE_APP_ID 179, API_PATH /rs/v1/settings, PLATFORM Web.
-- IAMUX/portal routing (portal-app/lib): account.activedirectory-ppe.windowsazure.com (PPE), account-tip.activedirectory.windowsazure.com (TIP), account.activedirectory.windowsazure.com (PROD), account.activedirectory.windowsazure.us (AR), account.aad.microsoft.scloud (USSEC), account.aad.eaglex.ic.gov (USNAT). NOTE: *.windowsazure.com NOT in scope.yml — adjacent-only, no probing. Environment detection: hostname contains "ppe"/"tip"/"us" or ends .scloud/.eaglex.ic.gov else PROD.
-- Cross-app URLs pass upn, tenant, login_hint, optIn query params to IAMUX/myapps/mygroups/myaccess (createUrl). Substrate search builder search/api/{v1} on getSubstrateResourceName().
-
-### accounts.accesscontrol.windows.net (legacy ACS) — trust-relevant findings
-- /metadata/json/1 (200) now returns keys + endpoints ONLY (allowedAudiences REMOVED — tenant-enum patch confirmed; Sprocket Security 2026-05-19 writeup "Tenant Enumeration is Dead" documents the technique + patch).
-- 5 signing keys served: key0-2 CN=accounts.accesscontrol.windows.net self-signed (notBefore 2026-06/07, notAfter 2031-06/07), sha256 FP 05:D1:7F:72:..., 34:D0:94:25:..., 93:A6:49:15:...; key3-4 CN=login.microsoftonline.us self-signed (FP 1B:49:9F:F9:..., A7:3C:A1:F9:...). Mixed issuers in one JWKS = config artifact to compare vs ESTS discovery keys.
-- Discovery endpoints alive: /tokens/OAuth/2 (OAuth2 issuance), /tokens/delegation/1 (DelegationIssuance1.0), /mgmt/delegation/1 (DelegationManagement1.0) — all 200 sign-in pages (auth-gated, not 404).
-- Historical context: Sep-2025 critical (CVSS 10.0) ESTS actor-token impersonation chain (Dirk-jan Mollema) leveraged the well-known app 00000001-0000-0000-c000-000000000000 via accounts.accesscontrol.windows.net for AAD Graph actor tokens; mitigation blocked actor-token requests to AAD Graph. This host is a known high-attention MSRC identity asset; Microsoft's own ACS FAQ: "Traffic to accounts.accesscontrol.windows.net is handled by a different service" (absorbed into Entra ESTS).
-- ACS retirement: ACS itself retired Nov-2018; SharePoint add-in ACS auth retired Apr-2026. Remaining trust: legacy RPs/tools.
-
-### agentSignInSessions — new undocumented Graph surface
-- /v1.0/me/agentSignInSessions + /beta/me/agentSignInSessions resolve (401 InvalidAuthenticationToken baseline). NOT present in public Graph docs (docs-contrib tree only has agentic-agentsignin.md + agentsignin.md, both different resources: signIn audit + conditionalAccess). ms.date 05/01/2025 for agentic.agentSignIn; signIn.agent property type.
-- My Sign-Ins bundle modules: redux/modules/signIns/agentSessionApis.ts, agentSessionUtils.ts, agentSessions.ts, recentSignIns.ts, switchTenant.ts; SPA strings: /me/agentSignInSessions, /recent-activity/agentic-sessions. My Account: manageAgentNavItemEnabled, useHasOwnedAgents.
-
-### OAuth redirect_uri validation (documented rules; no live sends this run beyond baseline)
-- login.live.com fast-fails: 302 oauth20_desktop.srf?error=invalid_request&error_description=...redirect_uri is not valid. client must be 'mobile' OR redirect must be absolute + registered (confirmed SURFACE).
-- login.microsoftonline.com/oauth2/v2.0/authorize with unregistered client+redirect returns generic 200 sign-in page (deferred validation).
-- Documented AAD rules (learn.microsoft.com/en-us/entra/identity-platform/reply-url): https required (except localhost), case-sensitive exact match, AADSTS50011 on mismatch; RFC 6749 3.1.2 string compare + RFC 9700 (BCP) forbids wildcards. Loopback localhost (any port) for native/mobile; SPA client-type restriction AADSTS9002327/9002326.
-
-### accledger/accessmonitor
-- No public GitHub/docs presence found for "Access Ledger" controlplane. controlplane.accledger.azure.com: Kestrel /health 200 "Healthy" + x-ms-machinename (pod) + x-ms-image-tag 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8; structured 404 envelope {"Status":"failed","Error":{"Code":"404"...}}; no swagger/api/ledger/tenants. identity.accledger.azure.com -> identity-accledger-prod-1.eastus.cloudapp.azure.com (no HTTPS).
-- api.prod/dev.accessmonitor.azure.com: 403 AFD/WAF-gated.
-
-### Artifacts (hashes only, for triage reference)
-- mysignins map sha256 2099f8a83336e290f2ab20c09a56b3a4493d0b7f66328b944c7fc18055f3efbe
-- myaccount map sha256 72290126cebc34559574f30c675c6bfe84856fe8a7678eb2e0821237a27d6541
-- mysignins sources list sha256 1a5be8a2293c3797e11882895b69ef9dc53173bc71b1ee5865b6a8934034e506
-- No secrets found in either bundle/map (public clientIds + env hostnames only).
-
-===== RUN 2026-08-07 09:38:54 UTC | model bigpickle | target microsoft =====
-[0m
-> build · big-pickle
-[0m
-I'll continue the microsoft hunt from SURFACE into HYPOTHESIS phase. Let me first check what persisted from the previous run, then deepen the highest-value surfaces with read-only research.
-[0m$ [0mls -la /tmp/opencode/ 2>/dev/null | head -20; echo "---state---"; cat state_bigpickle.json 2>/dev/null; echo "---journal tail---"; tail -20 research/bigpickle.md 2>/dev/null | head -5
-total 16
-drwxr-xr-x  2 runner runner  4096 Aug  7 09:32 .
-drwxrwxrwt 14 root   root   12288 Aug  7 09:32 ..
----state---
-{"phase": "SURFACE", "status": "HIGH_POTENTIAL"}---journal tail---
-5. **OAuth redirect_uri asymmetry (live vs AAD v2)** — different validation behavior; historical AAD classes: trailing-slash/encoding normalization, `response_mode=fragment` confusion, `whr`/domain-hint trickery. Impact: authorization code theft/ATO. Read-only: build a matrix of redirect_uri encodings against documented client registration rules; do not send to live unless the encoding set is published.
-6. **controlplane.accledger (Access Ledger) info disclosure** — Kestrel banners leak pod name + image tag; structured error envelope. If any unauthenticated route returns ledger/tenant metadata, it's info disclosure. Impact: low-medium. Read-only: bounded GET/HEAD on documented common paths only; stop at 404 envelope (done).
-
-## Secrets Check (public repos: what was found, hash only, where)
-- No new secrets this run. Bundle-downloaded SPAs (mysignins main.caa6a456.js, myaccount main.4e6e3dc6.js) were string-scanned; only public clientIds and config URLs found, no keys/tokens. No commit of any raw secret. Independent reposcan job: 0 grep hits (leads/reposcan-latest.md).
-[0m
-[0m# [0mTodos
-[•] Re-verify ACS /metadata/json/1 keys + research legacy ACS DelegationIssuance1.0 trust (who still trusts accounts.accesscontrol.windows.net as issuer)
-[ ] Source-map check on mysignins + api.myaccount SPA bundles (read-only GET of .js.map)
-[ ] agentSignInSessions permission model — public Graph docs + scope/role design
-[ ] Entra Verified ID issuance endpoints — public docs, scopes, request schemas
-[ ] OAuth redirect_uri normalization — review in-scope code (microsoft-identity-web, MSAL.js) for validation logic
-[ ] accledger/accessmonitor public-repo + docs search for unauthenticated API routes
-[ ] Write HYPOTHESIS journal, leads, state update
-[0m
-State confirms SURFACE/HIGH_POTENTIAL → now advancing to HYPOTHESIS. Let me plan the work and start with the highest-value surfaces.
-Starting with the legacy ACS trust hypothesis — re-fetch the key metadata and parse the certificates for fingerprints and issuer structure.
-[0m$ [0mcurl -s "https://accounts.accesscontrol.windows.net/metadata/json/1" --max-time 15 -o /tmp/opencode/acs-keys.json && python3 -c "
-import json
-d=json.load(open('/tmp/opencode/acs-keys.json'))
-keys=d.get('keys',[])
-print('total keys:',len(keys))
-for i,k in enumerate(keys):
-    kv=k.get('keyValue',{})
-    v=kv.get('value','')
-    print(f\"key[{i}] usage={k.get('usage')} kid={kv.get('type')} len={len(v)}\")
-print('endpoints:',json.dumps(d.get('endpoints'),indent=1))
-"
-total keys: 5
-key[0] usage=signing kid=x509Certificate len=1028
-key[1] usage=signing kid=x509Certificate len=1028
-key[2] usage=signing kid=x509Certificate len=1028
-key[3] usage=signing kid=x509Certificate len=1000
-key[4] usage=signing kid=x509Certificate len=1000
-endpoints: [
- {
-  "location": "https://accounts.accesscontrol.windows.net/tokens/OAuth/2",
-  "protocol": "OAuth2",
-  "usage": "issuance"
- },
- {
-  "location": "https://accounts.accesscontrol.windows.net/tokens/delegation/1",
-  "protocol": "DelegationIssuance1.0",
-  "usage": "issuance"
- },
- {
-  "location": "https://accounts.accesscontrol.windows.net/mgmt/delegation/1",
-  "protocol": "DelegationManagement1.0",
-  "usage": "management"
- }
-]
-[0m
-[0m$ [0mpython3 -c "
-import json
-d=json.load(open('/tmp/opencode/acs-keys.json'))
-for i,k in enumerate(d.get('keys',[])):
-    v=k.get('keyValue',{}).get('value','')
-    try:
-        pem='-----BEGIN CERTIFICATE-----\n'+v+'\n-----END CERTIFICATE-----'
-        import subprocess
-        p=subprocess.run(['openssl','x509','-noout','-subject','-issuer','-dates','-fingerprint','-sha256'],input=pem.encode(),capture_output=True)
-        print(f'--- key[{i}] ---')
-        print(p.stdout.decode().strip())
-    except Exception as e:
-        print('err',e)
-"
---- key[0] ---
-subject=CN = accounts.accesscontrol.windows.net
-issuer=CN = accounts.accesscontrol.windows.net
-notBefore=Jun  8 12:04:26 2026 GMT
-notAfter=Jun  8 12:04:26 2031 GMT
-sha256 Fingerprint=05:D1:7F:72:3C:F3:10:76:71:74:BB:9F:BA:F3:F8:6D:72:86:0A:5A:4C:11:D7:0C:35:9A:46:3A:64:04:D9:C6
---- key[1] ---
-subject=CN = accounts.accesscontrol.windows.net
-issuer=CN = accounts.accesscontrol.windows.net
-notBefore=Jun 17 15:02:22 2026 GMT
-notAfter=Jun 17 15:02:22 2031 GMT
-sha256 Fingerprint=34:D0:94:25:2B:14:B0:33:D3:62:11:6B:30:09:11:9C:A8:CD:13:F9:9E:DA:BC:D1:10:6E:2D:70:C4:84:BD:5B
---- key[2] ---
-subject=CN = accounts.accesscontrol.windows.net
-issuer=CN = accounts.accesscontrol.windows.net
-notBefore=Jul  4 00:05:05 2026 GMT
-notAfter=Jul  4 00:05:05 2031 GMT
-sha256 Fingerprint=93:A6:49:15:A9:20:DB:8F:50:A8:A9:12:60:AA:F0:FF:5B:65:21:9D:81:5B:B8:4E:78:DA:84:C7:7D:36:4D:47
---- key[3] ---
-subject=CN = login.microsoftonline.us
-issuer=CN = login.microsoftonline.us
-notBefore=Jul  1 16:00:54 2026 GMT
-notAfter=Jul  1 16:00:54 2031 GMT
-sha256 Fingerprint=1B:49:9F:F9:EE:49:60:A6:75:E9:C6:F6:73:57:C9:0C:6D:08:50:01:AD:7E:A7:1F:89:DA:5B:F0:A8:4E:3D:85
---- key[4] ---
-subject=CN = login.microsoftonline.us
-issuer=CN = login.microsoftonline.us
-notBefore=Jul 26 16:01:26 2026 GMT
-notAfter=Jul 26 16:01:26 2031 GMT
-sha256 Fingerprint=A7:3C:A1:F9:DB:02:7F:E9:39:63:BD:18:08:0E:57:1E:FD:49:2A:6D:A8:74:3B:4A:D1:59:19:F0:5C:B5:67:B9
-[0m
-Three ACS self-signed signing keys + two `login.microsoftonline.us` keys served from this live endpoint — a token-forgery-relevant trust surface. Let me research who publicly trusts this issuer and the legacy DelegationIssuance1.0 protocol.
-[0m◈ [0mParallel Web Search "accounts.accesscontrol.windows.net legacy Access Control Service ACS trusted token issuer relying party metadata"
-[0m◈ [0mParallel Web Search "Windows Azure Access Control Service "DelegationIssuance1.0" delegation token protocol vulnerability"
-Key intel: the Sprocket Security writeup confirms `/metadata/json/1` was the tenant-enumeration + **actor-token vector** (Dirk-jan Mollema's 10.0-CVSS ESTS impersonation chain used `accounts.accesscontrol.windows.net`), and the `allowedAudiences` leak is now patched (my fetch confirms the field is gone). This is a known-high-attention MSRC surface. Now let me check the SPA source maps and agentSignInSessions docs.
-[0m◈ [0mParallel Web Search "Microsoft Graph "agentSignInSessions" API agentic sign-in session permissions scopes documentation"
-[0m
-[0m$ [0mfor u in "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" "https://mysignins.microsoft.com/manifest.json"; do code=$(curl -s -o /dev/null -w "%{http_code}|%{content_type}|%{size_download}b" "$u" --max-time 12); echo "$code  $u"; sleep 1; done
-200|text/plain|6976576b  https://mysignins.microsoft.com/bundle/main.caa6a456.js.map
-200|application/json|286b  https://mysignins.microsoft.com/manifest.json
-[0m
-Critical find: **the source map IS live** at `/bundle/main.caa6a456.js.map` (6.97MB). That's a full source tree of the My Sign-Ins SPA. Let me grab it and pull the agentic sign-in docs from the public graph-docs-contrib repo.
-[0m$ [0mcurl -s "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" --max-time 120 -o /tmp/opencode/mysignins.map && wc -c /tmp/opencode/mysignins.map && python3 -c "
+o /tmp/opencode/mysignins.map && wc -c /tmp/opencode/mysignins.map && python3 -c "
 import json
 d=json.load(open('/tmp/opencode/mysignins.map'))
 srcs=d.get('sources',[])
@@ -6714,3 +5638,1141 @@ STATUS_STATE: HIGH_POTENTIAL
 NEXT_STEP_1: Test-tenant H-13/H-14 (Agent Registration API: PATCH foreign id, foreign ownerIds, client-supplied createdBy echo, GET-by-id cross-tenant) + H-1/H-2 (user_fic Hop-3 subject validation; consent POST+PATCH-merge with exact Work IQ scopes H-12).
 NEXT_STEP_2: Test-tenant H-15 (PATCH policySettings as non-admin with admin-consented scope; role-vs-scope) + H-10 (pure-read catalog GET as non-admin in licensed tenant) + H-7 card-trust on the new registration surface.
 NEXT_STEP_3: If no test tenant, RECON next unexplored surface: authenticated-flow phase on copilotstudio.microsoft.com (login flow, client IDs, bundle API map), and track the announced multi-tenant Copilot/agent management private preview for new endpoints.
+
+## RUN 2026-08-07 15:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC→RECON (NEW SURFACE: Copilot Studio Direct-to-Engine S2S API + Agents SDK wire review)
+
+### NEW SURFACE — Copilot Studio Direct-to-Engine (D2E) API, S2S mode (Private Preview)
+- Source: microsoft/Agents docs/copilot-studio-client-s2s-doc.md (in-scope repo) + MS Learn publication-integrate-web-or-native-app-m365-agents-sdk (2026-08-03). D2E = programmatic access to published Copilot Studio agents WITHOUT Azure Bot Service/DirectLine; AAD-JWT-only; path Client→PPAPI Gateway→MCS.
+- New Entra permission **CopilotStudio.Copilots.Invoke** on Power Platform API (resourceAppId **8578e004-a5c6-46e7-913e-12f58912df43**; app role id **38c13204-7d79-4d83-bdbb-b770e28400df** per public reshmeeauckloo 2025-11-02). Both app-only and delegated exist. Community confirmation: admin consent REQUIRED for delegated variant (CORP-tenant blocked-admin = D2E unusable; community.powerplatform.com 2026-04-30) — consent gate is stricter than Graph CopilotPackages.Read.All.
+- AuthZ model: (1) tenant admin consents Copilots.Invoke to app; (2) maker shares agent with app identity via Copilot Studio Share API (viewer perm); (3) runtime validates share-ACL + permission + same-tenant. Two modes: True S2S (app-only client_credentials, agent must be 'No Authentication') and user-delegated (OBO, agent needs Integrated auth). Same-tenant only.
+- Documented turn-time guardrails (conversation-hijack prevention): App-identity consistency, User-identity consistency, Identity-type consistency (app-only vs delegated) → errors CallerIdentityMismatch / CallerIdentityTypeMismatch / S2SDirectEngineRequiresNoAuthentication / D2EAccessDenied; immutable ConversationInfo (UserId, ChannelId, ConversationId, UserTenantId).
+
+### CODE-EXACT D2E wire (microsoft/Agents-for-net CopilotStudio.Client, cross-verified in Agents-for-js + Agents-for-python)
+- Endpoint construction (Discovery/PowerPlatformEnvironment.cs:29-101, 276-301): envhost = "{envid(lower,no-dash) minus last2hex}.{last2hex}.environment.{suffix}" (Prod/FirstRelease suffix len 2, else 1); suffix map incl. api.powerplatform.com (Prod), api.preprod/dev/prv/exp/test.powerplatform.com (internal), api.gov/high.powerplatform.microsoft.us, api.appsplatform.us (DoD), api.powerplatform.partner.microsoftonline.cn (Mooncake), api.powerplatform.eaglex.ic.gov, api.powerplatform.microsoft.scloud. Scope = https://{envhost}/.default.
+- Paths (api-version=2022-03-01-preview): POST /copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations (start); .../conversations/{conversationId} (execute turn); .../conversations/{conversationId}/subscribe (SSE); **NEW orchestrated API**: POST /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (StartConversation/InvokeTool/HandleUserResponse/ConversationUpdate; SSE events activity/state/error/end; 'intended for internal use only' but public client).
+- Headers (CopilotStudioHeaderNames.cs): x-ms-conversation-id (client→orchestrated), x-ms-conversationid (response D2E conversation id), **x-ms-d2e-experimental** (response header whose hostname the SDK PROMOTES to DirectConnectUrl and sends all subsequent token-bearing requests to — CopilotClient.cs:509-517), x-ms-client-request-id, x-ms-correlation-id, x-cci-agent-version. Subscribe uses Last-Event-Id for post-disconnect event replay.
+- Token: S2S sample = ConfidentialClientApplication AcquireTokenForClient scope={envhost}/.default (AddTokenHandlerS2S.cs); webchat = MSAL browser delegated token, scopeFromSettings, redirectUri=window.location.origin.
+
+### CODE-LEVEL FINDING — client-supplied conversationId NOT validated (H-16 seed)
+- microsoft/Agents-for-js copilotStudioWebChat.ts:40-44 (verbatim): "The server does not validate conversation IDs. A non-existent GUID will silently create a new conversation under that ID, while a non-GUID string may cause the server to return no response. Only pass IDs that were previously captured from a real conversation."
+- .NET StartRequest.ConversationId is client-supplied and sent as x-ms-conversation-id on start (CopilotClient.cs:160-163). Webchat client redacts conversationId in logs (redactString, copilotStudioWebChat.ts) — MS itself treats conv IDs as sensitive.
+- Tension: S2S doc claims turn-time identity-consistency checks, but the enforcement location/strength for (a) app-only cross-app resumption, (b) subscribe/Last-Event-Id replay, (c) orchestrated client-supplied conversationId path param is unproven.
+
+### SCOPE FLAGS (not probed)
+- D2E runtime hosts are *.powerplatform.com / *.environment.api.powerplatform.com / api.gov/high.powerplatform.microsoft.us / api.appsplatform.us / api.powerplatform.microsoft.scloud / *.microsoftonline.cn — NONE in scope.yml. Code-review only. Flag for MSRC scope clarification if this grows (Copilot Studio runtime is the #1 D2E consumer).
+- *.island.powerapps.com IS in scope (powerapps.com) — the x-ms-d2e-experimental island target may land there, but hostname is server-returned (not derivable passively this run).
+- directline.botframework.com (DirectLine channel secret alt-path) is OUT of scope — design-note only (community: DirectLine needs NO admin consent, weaker identity — bot-identity messages, no user propagation).
+
+### Hypotheses (test-tenant, read-only design)
+- H-16 [HIGH, NEW] D2E conversation-ID binding: server accepts client-supplied conversationId at start (no validation) — does turn-time identity-consistency (CallerIdentityMismatch) actually block (a) app B continuing app A's conversation, (b) user B subscribing via /subscribe + Last-Event-Id to user A's conversation (event replay disclosure), (c) orchestrated path-param conversationId cross-user? If any bypass → conversation hijack / history disclosure / active-session prompt-injection. CVSS 6.5–9.0. Test: as second identity, POST .../conversations/{victimConvId} with valid own token; expect 200+D2EAccessDenied OR activities — read-only PoC NOT possible (POST), stays test-tenant.
+- H-17 [MED-LOW, NEW] x-ms-d2e-experimental trust: SDK rewrites base URL + sends Bearer to whatever host the response header names. If any input reflection into that header (host/query echo, redirect) exists → client token exfiltration (server→client SSRF). CVSS 4–6 if real.
+- H-18 [MED-HIGH, NEW] Orchestrated API trust boundary: InvokeTool passes client-supplied toolSchemaName+inputs for cdsBotId conversations — is tool invocation validated against the agent's registered tool list, or does any Copilots.Invoke holder invoke arbitrary tools in a foreign conversation? Tool-confusion / cross-conversation tool call. CVSS 6.5–8.5. Test-tenant.
+- H-19 [MED, NEW] envhost derivability: given EnvironmentId GUID (visible in Copilot Studio UI/connection strings) the D2E endpoint is fully predictable — the de-facto secrets are schemaName+share-ACL. PPAPI gateway error differentiation (valid/invalid schemaName) is the passive signal to test. CVSS 3–5.
+- H-20 [LOW, design-note] DirectLine vs D2E asymmetric authz: DirectLine channel secret (no admin consent) vs admin-consented Copilots.Invoke — same agent exposed via both = lower-barrier channel reachable even when D2E blocked; DirectLine lacks user identity propagation (attribution gap).
+
+### H-7 GROUNDING UPDATE (google/a2a relocation)
+- google/a2a permanently redirects to **a2aproject/A2A** (repo id 954873280, community org) — the A2A AgentCard JWS spec repo is NO LONGER in the declared google org. Scope note: a2aproject NOT in scope.yml github_orgs; treat spec as doc-reference, not code target. microsoft/agents contains NO agentcard JWS/did:web code (0 hits for jws/did/agentcard in tree) — the M365 Agent SDK does not implement card signature verification; card trust lives server-side (unverifiable passively, strengthens H-7's "runtime trust arbitrary Json" question on the new agentRegistration surface).
+
+### Secrets check
+- None. Public IDs only: Power Platform API 8578e004-a5c6-46e7-913e-12f58912df43; CopilotStudio.Copilots.Invoke app-role 38c13204-7d79-4d83-bdbb-b770e28400df (public blog 2025-11-02); SDK version @microsoft/agents-copilotstudio-client v1.7.0-beta.5. No tokens/keys. No raw secrets committed.
+
+### CVSS candidates
+H-16 6.5–9.0; H-18 6.5–8.5; H-17 4–6; H-19 3–5; H-20 design-note; H-13 7.5–9.0; H-1 9.1–9.8; H-2/H-12 7.5–8.8; H-7(relocated) 6.5–9.0; H-14 5.3–7.5; H-15 4–7.
+
+===== RUN 2026-08-07 15:46:38 UTC | model bigpickle | target microsoft =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcat state_bigpickle.json && echo "---" && tail -20 research/bigpickle.md && echo "---" && git log --oneline -3
+{"phase": "POC", "status": "HIGH_POTENTIAL"}---
+2. **[H-14 MED-HIGH]** `createdBy` forgery (client-writable → audit/governance bypass, breaks ownerless detection) + cross-tenant `GET /{id}` IDOR; whether `GET /copilot/agentRegistrations` enumerates (Collection in metadata, no doc). CVSS 5.3–7.5.
+3. **[H-15 MED]** Policy Settings: is the admin role enforced or scope-only for PATCH? `policyId`→arbitration-mailbox storage means any path exposing that mailbox/folder to non-admin = policy tamper (`blockaccesstoopenfiles`/`imagegeneration` flip). CVSS 4–7.
+4. **[H-10 REVISED DOWN]** Package read as non-admin in a licensed tenant (role-vs-scope untested; SKU check is server-side).
+5. **[H-12 UNCHANGED, HIGH]** Work IQ MCP scopes vs agent blocked-permissions table — full-mailbox/file path via Agent User at the MCP layer (wire-exact now). CVSS 7.5–8.8.
+6. **[H-7 RELOCATED]** New agentRegistration has no `signatures` — does the runtime verify `agentCard` against the registered agentIdentity, or trust arbitrary Json? CVSS 6.5–9.0.
+7. **[H-1/H-2 unchanged]** `user_fic` Hop-3 subject validation (9.1–9.8); consent POST+PATCH-merge (7.5–8.8).
+
+## Secrets Check
+None. entrabot a365/security layer = code/design only, no tokens/keys. Only public client IDs and well-known GUIDs (listed above). Artifact hashes only: `graph_v1_meta.xml 9d84e451…`, `graph_beta_meta.xml ca304859…` (unchanged). No raw secrets committed.
+
+## CVSS Candidates
+H-13 7.5–9.0; H-7(relocated) 6.5–9.0; H-12 7.5–8.8; H-1 9.1–9.8; H-2 7.5–8.8; H-14 5.3–7.5; H-15 4–7; H-9 6.5–8.8; H-10/H-11 3–5; H-8 4–6.
+
+---
+## STATE UPDATE
+STATUS_PHASE: POC
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: Test-tenant H-13/H-14 (Agent Registration API: PATCH foreign id, foreign ownerIds, client-supplied createdBy echo, GET-by-id cross-tenant) + H-1/H-2 (user_fic Hop-3 subject validation; consent POST+PATCH-merge with exact Work IQ scopes H-12).
+NEXT_STEP_2: Test-tenant H-15 (PATCH policySettings as non-admin with admin-consented scope; role-vs-scope) + H-10 (pure-read catalog GET as non-admin in licensed tenant) + H-7 card-trust on the new registration surface.
+NEXT_STEP_3: If no test tenant, RECON next unexplored surface: authenticated-flow phase on copilotstudio.microsoft.com (login flow, client IDs, bundle API map), and track the announced multi-tenant Copilot/agent management private preview for new endpoints.
+---
+08ac2b3 reposcan 2026-08-07-15-29
+[0m
+[0m# [0mTodos
+[•] Verify candidate in-scope repos exist (microsoft/agents, google/a2a, microsoft/autogen)
+[ ] Mine microsoft/agents (Agent Framework SDK) for agent card JWS verification / A2A trust code (grounds H-7)
+[ ] Mine google/a2a spec + reference impls for JWS/did:web key-purpose binding requirements
+[ ] Extract code-level findings; derive new test-tenant hypotheses
+[ ] Write journal, leads, state update
+[0m
+POC phase is test-tenant-blocked, so I'm starting RECON on a new unexplored surface: the in-scope OSS that implements agent-card trust (grounds H-7 at code level) — `microsoft/agents` (Agent Framework SDK) and `google/a2a` (A2A spec + reference impls).
+[0m$ [0mfor r in microsoft/agents microsoft/autogen google/a2a google/a2a-dotnet microsoft/agent-framework; do
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://api.github.com/repos/$r" -H "User-Agent: hunt-research")
+  echo "$r -> $code"
+  sleep 1
+done
+microsoft/agents -> 200
+microsoft/autogen -> 200
+google/a2a -> 301
+google/a2a-dotnet -> 404
+microsoft/agent-framework -> 200
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/google/a2a" -H "User-Agent: hunt-research" | python3 -c "import json,sys; d=json.load(sys.stdin); print('msg:', d.get('message')); print('url:', d.get('url'))" 2>/dev/null; echo "---"; curl -s "https://api.github.com/repos/microsoft/agents" -H "User-Agent: hunt-research" | python3 -c "import json,sys; d=json.load(sys.stdin); print('default_branch:', d.get('default_branch')); print('desc:', d.get('description')); print('updated:', d.get('updated_at'))"
+msg: Moved Permanently
+url: https://api.github.com/repositories/954873280
+---
+default_branch: main
+desc: The Microsoft 365 Agent SDK simplifies building full stack, multichannel, trusted agents for platforms including M365, Teams, Copilot Studio, and Webchat.
+updated: 2026-08-07T02:30:25Z
+[0m
+`microsoft/agents` = **Microsoft 365 Agent SDK** (updated today). Resolving the google/a2a redirect target, then pulling both repo trees.
+[0m$ [0mcurl -s "https://api.github.com/repositories/954873280" -H "User-Agent: hunt-research" | python3 -c "import json,sys; d=json.load(sys.stdin); print('full_name:', d.get('full_name')); print('desc:', d.get('description')); print('default_branch:', d.get('default_branch')); print('archived:', d.get('archived'))"
+full_name: a2aproject/A2A
+desc: Agent2Agent (A2A) is an open protocol enabling communication and interoperability between opaque agentic applications.
+default_branch: main
+archived: False
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s "https://api.github.com/repos/microsoft/agents/git/trees/main?recursive=1" -H "User-Agent: hunt-research" -o agents_tree.json && python3 -c "
+import json
+d=json.load(open('agents_tree.json'))
+tr=d.get('tree',[])
+print('total entries:', len(tr))
+if 'truncated' in d: print('TRUNCATED:', d['truncated'])
+kw=['jws','sign','agentcard','card','did','a2a','manifest','credential','secret','key']
+for k in kw:
+    hits=[t['path'] for t in tr if k in t['path'].lower() and t['type']=='blob']
+    print(f'== {k}: {len(hits)}')
+    for h in hits[:25]: print('   ',h)
+"
+total entries: 723
+TRUNCATED: False
+== jws: 0
+== sign: 33
+    experimental/bicep-scripts/samples/auto-signin/README.md
+    experimental/bicep-scripts/samples/auto-signin/oauth.bicep
+    experimental/bicep-scripts/samples/auto-signin/prov_app.ps1
+    experimental/bicep-scripts/samples/auto-signin/prov_bot.ps1
+    experimental/bicep-scripts/samples/auto-signin/provision.ps1
+    samples/dotnet/auto-signin/AspNetExtensions.cs
+    samples/dotnet/auto-signin/AuthAgent.cs
+    samples/dotnet/auto-signin/AutoSignIn.csproj
+    samples/dotnet/auto-signin/Program.cs
+    samples/dotnet/auto-signin/Properties/launchSettings.json
+    samples/dotnet/auto-signin/README.md
+    samples/dotnet/auto-signin/appManifest/color.png
+    samples/dotnet/auto-signin/appManifest/manifest.json
+    samples/dotnet/auto-signin/appManifest/outline.png
+    samples/dotnet/auto-signin/appsettings.json
+    samples/nodejs/auto-signin/README.md
+    samples/nodejs/auto-signin/env.TEMPLATE
+    samples/nodejs/auto-signin/package-lock.json
+    samples/nodejs/auto-signin/package.json
+    samples/nodejs/auto-signin/src/index.ts
+    samples/nodejs/auto-signin/src/pullRequestCard.json
+    samples/nodejs/auto-signin/src/userGraphClient.ts
+    samples/nodejs/auto-signin/src/userProfileCard.json
+    samples/nodejs/auto-signin/tsconfig.json
+    samples/python/auto-signin/README.md
+== agentcard: 0
+== card: 27
+    agent-plugins/agents-for-js/skills/agents-sdk-typescript/references/cards.md
+    agent-plugins/agents-for-net/skills/agents-sdk-dotnet/references/cards.md
+    samples/dotnet/retrieval-agent/Plugins/AdaptiveCardPlugin.cs
+    samples/dotnet/semantic-kernel-multiturn/Plugins/AdaptiveCardPlugin.cs
+    samples/nodejs/auto-signin/src/pullRequestCard.json
+    samples/nodejs/auto-signin/src/userProfileCard.json
+    samples/nodejs/cards/.vscode/launch.json
+    samples/nodejs/cards/.vscode/tasks.json
+    samples/nodejs/cards/README.md
+    samples/nodejs/cards/env.TEMPLATE
+    samples/nodejs/cards/package-lock.json
+    samples/nodejs/cards/package.json
+    samples/nodejs/cards/src/cardMessages.ts
+    samples/nodejs/cards/src/index.ts
+    samples/nodejs/cards/src/resources/adaptiveCard.json
+    samples/nodejs/cards/tsconfig.json
+    samples/python/auto-signin/src/cards.py
+    samples/python/cards/README.md
+    samples/python/cards/env.TEMPLATE
+    samples/python/cards/requirements.txt
+    samples/python/cards/src/agent.py
+    samples/python/cards/src/card_messages.py
+    samples/python/cards/src/main.py
+    samples/python/cards/src/resources/adaptive_card.json
+    samples/python/cards/src/start_server.py
+== did: 0
+== a2a: 0
+== manifest: 70
+    experimental/bicep-scripts/bot/manifest.json
+    experimental/bicep-scripts/gen_teams_manifest.ps1
+    samples/dotnet/Agent Framework/appPackage/manifest.json
+    samples/dotnet/auto-signin/appManifest/color.png
+    samples/dotnet/auto-signin/appManifest/manifest.json
+    samples/dotnet/auto-signin/appManifest/outline.png
+    samples/dotnet/azure-ai-streaming/appManifest/color.png
+    samples/dotnet/azure-ai-streaming/appManifest/manifest.json
+    samples/dotnet/azure-ai-streaming/appManifest/outline.png
+    samples/dotnet/copilotstudio-skill/wwwroot/manifest/echoskill-manifest-1.0.json
+    samples/dotnet/genesys-handoff/appManifest/color.png
+    samples/dotnet/genesys-handoff/appManifest/manifest.json
+    samples/dotnet/genesys-handoff/appManifest/outline.png
+    samples/dotnet/obo-authorization/appManifest/color.png
+    samples/dotnet/obo-authorization/appManifest/manifest.json
+    samples/dotnet/obo-authorization/appManifest/outline.png
+    samples/dotnet/otel/appManifest/color.png
+    samples/dotnet/otel/appManifest/manifest.json
+    samples/dotnet/otel/appManifest/outline.png
+    samples/dotnet/proactive/appManifest/color.png
+    samples/dotnet/proactive/appManifest/manifest.json
+    samples/dotnet/proactive/appManifest/outline.png
+    samples/dotnet/quickstart/appManifest/color.png
+    samples/dotnet/quickstart/appManifest/manifest.json
+    samples/dotnet/quickstart/appManifest/outline.png
+== credential: 0
+== secret: 1
+    experimental/agent-provision/func-create-secret.ps1
+== key: 0
+[0m
+google/a2a relocated to the `a2aproject/A2A` community org (scope observation — no longer in declared `google` org). Primary focus is `microsoft/agents` (in scope). Fetching its tree.
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('agents_tree.json'))
+tr=d['tree']
+tops={}
+for t in tr:
+    parts=t['path'].split('/')
+    tops.setdefault(parts[0],[]).append(t['path'])
+for k in sorted(tops):
+    print(k, len(tops[k]))
+"
+.claude-plugin 2
+.github 13
+.gitignore 1
+.vscode 4
+AgentErrorCodes.md 1
+AgentErrorCodesJS.md 1
+CODEOWNERS 1
+CODE_OF_CONDUCT.md 1
+LICENSE 1
+MCSandAgentsEcosystemLinks.md 1
+README.md 1
+SECURITY.md 1
+SUPPORT.md 1
+agent-plugins 45
+docs 3
+eslint.config.js 1
+experimental 39
+package-lock.json 1
+package.json 1
+samples 544
+specs 60
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('agents_tree.json'))
+tr=d['tree']
+for t in tr:
+    if t['path'].startswith('specs/') or t['path'].startswith('docs/') or t['path'].startswith('agent-plugins/'):
+        print(t['path'])
+" | head -80
+agent-plugins/CONTRIBUTING.md
+agent-plugins/README.md
+agent-plugins/agents-for-js
+agent-plugins/agents-for-js/.claude-plugin
+agent-plugins/agents-for-js/.claude-plugin/plugin.json
+agent-plugins/agents-for-js/plugin.json
+agent-plugins/agents-for-js/skills
+agent-plugins/agents-for-js/skills/agents-sdk-typescript-debugging
+agent-plugins/agents-for-js/skills/agents-sdk-typescript-debugging/SKILL.md
+agent-plugins/agents-for-js/skills/agents-sdk-typescript
+agent-plugins/agents-for-js/skills/agents-sdk-typescript/SKILL.md
+agent-plugins/agents-for-js/skills/agents-sdk-typescript/references
+agent-plugins/agents-for-js/skills/agents-sdk-typescript/references/cards.md
+agent-plugins/agents-for-js/skills/agents-sdk-typescript/references/streaming.md
+agent-plugins/agents-for-net
+agent-plugins/agents-for-net/.claude-plugin
+agent-plugins/agents-for-net/.claude-plugin/plugin.json
+agent-plugins/agents-for-net/plugin.json
+agent-plugins/agents-for-net/skills
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet-activityhandler-migration
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet-activityhandler-migration/SKILL.md
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet-debugging
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet-debugging/SKILL.md
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet/SKILL.md
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet/references
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet/references/cards.md
+agent-plugins/agents-for-net/skills/agents-sdk-dotnet/references/streaming.md
+agent-plugins/agents-for-net/skills/bf-to-agents-sdk-dotnet-migration
+agent-plugins/agents-for-net/skills/bf-to-agents-sdk-dotnet-migration/SKILL.md
+agent-plugins/agents-sdk-common
+agent-plugins/agents-sdk-common/.claude-plugin
+agent-plugins/agents-sdk-common/.claude-plugin/plugin.json
+agent-plugins/agents-sdk-common/plugin.json
+agent-plugins/agents-sdk-common/skills
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/SKILL.md
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/assets
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/assets/Create_SSO_AppRegistration.bicep
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/assets/Create_SSO_PreAuthorize.bicep
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/assets/ProvisionABS.bicep
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/assets/bicepconfig.json
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/references
+agent-plugins/agents-sdk-common/skills/agents-sdk-provision/references/oauth-setup.md
+docs/copilot-studio-client-s2s-doc.md
+docs/enhanced-task-completion.md
+specs/activity
+specs/activity/protocol-activity.md
+specs/activity/protocol-cards.md
+specs/manifest
+specs/manifest/bot-manifest.md
+specs/manifest/example.man
+specs/manifest/manifest.json
+specs/manifest/schemas
+specs/manifest/schemas/SchemaManifestTests
+specs/manifest/schemas/SchemaManifestTests/SchemaManifestTests.csproj
+specs/manifest/schemas/SchemaManifestTests/SchemaManifestTests.sln
+specs/manifest/schemas/SchemaManifestTests/ValidateSchemaTests.cs
+specs/manifest/schemas/readme.md
+specs/manifest/schemas/skill-manifest-2.0.0.json
+specs/manifest/schemas/skill-manifest-2.1.preview-1.json
+specs/manifest/schemas/v2.0
+specs/manifest/schemas/v2.0/samples
+specs/manifest/schemas/v2.0/samples/complex-skillmanifest.json
+specs/manifest/schemas/v2.0/samples/echo-skillmanifest.json
+specs/manifest/schemas/v2.0/samples/simple-skillmanifest.json
+specs/manifest/schemas/v2.0/skill-manifest.json
+specs/manifest/schemas/v2.1.preview-1
+specs/manifest/schemas/v2.1.preview-1/samples
+specs/manifest/schemas/v2.1.preview-1/samples/complex-skillmanifest.json
+specs/manifest/schemas/v2.1.preview-1/samples/echo-skillmanifest.json
+specs/manifest/schemas/v2.1.preview-1/samples/simple-skillmanifest.json
+specs/manifest/schemas/v2.1.preview-1/skill-manifest.json
+specs/manifest/schemas/v2.1
+specs/manifest/schemas/v2.1/samples
+specs/manifest/schemas/v2.1/samples/complex-pva-manifest.json
+specs/manifest/schemas/v2.1/samples/complex-skillmanifest.json
+specs/manifest/schemas/v2.1/samples/echo-skillmanifest.json
+specs/manifest/schemas/v2.1/samples/simple-skillmanifest.json
+specs/manifest/schemas/v2.1/skill-manifest.json
+[0m
+`microsoft/agents` = M365 Agent SDK with protocol specs + a new `copilot-studio-client-s2s-doc.md`. Checking `microsoft/agent-framework` + `autogen` identities, and pulling the high-value docs/samples.
+[0m$ [0mfor r in microsoft/agent-framework microsoft/autogen; do
+  echo "== $r =="
+  curl -s "https://api.github.com/repos/$r" -H "User-Agent: hunt-research" | python3 -c "import json,sys; d=json.load(sys.stdin); print('desc:', d.get('description')); print('default_branch:', d.get('default_branch')); print('updated:', d.get('updated_at')); print('archived:', d.get('archived'))"
+  sleep 1
+done
+== microsoft/agent-framework ==
+desc: A framework for building, orchestrating and deploying AI agents and multi-agent workflows with support for Python and .NET.
+default_branch: main
+updated: 2026-08-07T15:21:10Z
+archived: False
+== microsoft/autogen ==
+desc: A programming framework for agentic AI
+default_branch: main
+updated: 2026-08-07T14:07:36Z
+archived: False
+[0m
+[0m$ [0mcd /tmp/opencode && mkdir -p m365sdk && for f in "README.md" "docs/copilot-studio-client-s2s-doc.md" "docs/enhanced-task-completion.md" "samples/nodejs/auto-signin/src/index.ts" "samples/nodejs/auto-signin/src/userGraphClient.ts" "samples/nodejs/auto-signin/env.TEMPLATE" "AgentErrorCodes.md" "MCSandAgentsEcosystemLinks.md"; do
+  out="m365sdk/$(echo $f | tr '/' '_')"
+  curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/agents/main/$f" -o "$out"
+  echo "$f -> $(wc -c < $out) bytes"
+  sleep 1
+done
+README.md -> 8769 bytes
+docs/copilot-studio-client-s2s-doc.md -> 11694 bytes
+docs/enhanced-task-completion.md -> 5814 bytes
+samples/nodejs/auto-signin/src/index.ts -> 2175 bytes
+samples/nodejs/auto-signin/src/userGraphClient.ts -> 8986 bytes
+samples/nodejs/auto-signin/env.TEMPLATE -> 820 bytes
+AgentErrorCodes.md -> 147342 bytes
+MCSandAgentsEcosystemLinks.md -> 9932 bytes
+[0m
+[0m→ [0mRead /tmp/opencode/m365sdk/docs_copilot-studio-client-s2s-doc.md
+[0m→ [0mRead /tmp/opencode/m365sdk/samples_nodejs_auto-signin_src_index.ts
+This is a major new surface: **Copilot Studio S2S / Direct-to-Engine (D2E) API** (private preview) with a new Entra permission `CopilotStudio.Copilots.Invoke`, a share-ACL model, and documented identity-consistency guardrails. Reading the SDK auth samples + error code catalog next.
+[0m
+[0m$ [0mcd /tmp/opencode/m365sdk && grep -inE "D2E|DirectEngine|S2S|CopilotStudio|Copilots.Invoke|CallerIdentity|share" AgentErrorCodes.md | head -40; echo "=== count ==="; grep -icE "D2E|DirectEngine|S2S|CopilotStudio" AgentErrorCodes.md
+1307:This error occurs when code requests a specific user authorization handler by name, but that handler cannot be found in the configured handlers collection. This typically happens when using named handlers for different OAuth flows (e.g., "graph", "sharepoint") but the requested name doesn't match any configured handler. It can also occur if the default handler name is misconfigured.
+=== count ===
+0
+[0m
+[0m→ [0mRead /tmp/opencode/m365sdk/MCSandAgentsEcosystemLinks.md
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s "https://api.github.com/repos/microsoft/Agents-for-net/git/trees/main?recursive=1" -H "User-Agent: hunt-research" -o agentsnet_tree.json && python3 -c "
+import json
+d=json.load(open('agentsnet_tree.json'))
+tr=d.get('tree',[])
+print('total:', len(tr), 'truncated:', d.get('truncated'))
+hits=[t['path'] for t in tr if 'CopilotStudio' in t['path'] and t['type']=='blob']
+print('CopilotStudio files:', len(hits))
+for h in hits[:60]: print('   ', h)
+"
+total: 2245 truncated: False
+CopilotStudio files: 93
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/ConnectionSettings.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/CopilotClient.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/CopilotStudioHeaderNames.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Discovery/AgentType.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Discovery/PowerPlatformCloud.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Discovery/PowerPlatformEnvironment.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/ExecuteTurnRequest.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/GlobalSuppressions.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Interfaces/ICopilotClient.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Interfaces/ICopilotStudioClientConnectionSettings.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Interfaces/IOrchestratedClient.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Microsoft.Agents.CopilotStudio.Client.csproj
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/AgentStatePayload.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/AgentStatus.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/ExecuteTurnResponse.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestratedErrorCode.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestratedErrorPayload.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestratedResponse.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestratedTurnRequest.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestratedTurnResponse.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestrationOperation.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/OrchestrationRequest.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/RequestProperties.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/ResponseBase.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/StartRequest.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/StartResponse.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/SubscribeEvent.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/SubscribeRequest.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/SubscribeResponse.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/Models/ToolInvocationInput.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/OrchestratedClient.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/README.md
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/RequestTypes.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/UserAgentHelper.cs
+    src/libraries/Client/Microsoft.Agents.CopilotStudio.Client/icon.png
+    src/samples/CopilotStudioAgentConnector/CopilotStudioAgentConnector.csproj
+    src/samples/CopilotStudioAgentConnector/CopilotStudioAgentConnector.zip
+    src/samples/CopilotStudioAgentConnector/MyAgent.cs
+    src/samples/CopilotStudioAgentConnector/Program.cs
+    src/samples/CopilotStudioAgentConnector/Properties/launchSettings.json
+    src/samples/CopilotStudioAgentConnector/README.md
+    src/samples/CopilotStudioAgentConnector/appsettings.json
+    src/samples/CopilotStudioClient/CopilotStudioClient/AddTokenHandler.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/AddTokenHandlerS2S.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/ChatConsoleService.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/CopilotStudioClient.csproj
+    src/samples/CopilotStudioClient/CopilotStudioClient/Program.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/Properties/launchSettings.TEMPLATE.json
+    src/samples/CopilotStudioClient/CopilotStudioClient/README.md
+    src/samples/CopilotStudioClient/CopilotStudioClient/SampleConnectionSettings.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/TimeSpanExtensions.cs
+    src/samples/CopilotStudioClient/CopilotStudioClient/appsettings.json
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/AddTokenHandler.cs
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/AddTokenHandlerS2S.cs
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/ChatConsoleService.cs
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/CopilotStudioSubscriberClient.csproj
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/Program.cs
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/README.md
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/SampleConnectionSettings.cs
+    src/samples/CopilotStudioClient/CopilotStudioSubscriberClient/TimeSpanExtensions.cs
+[0m
+The D2E client SDKs live in `microsoft/Agents-for-*` (all in scope). Pulling the .NET client tree to recover the exact D2E API surface (URLs, endpoints, request shapes).
+[0m$ [0mcd /tmp/opencode && mkdir -p d2e && base="https://raw.githubusercontent.com/microsoft/Agents-for-net/main/src/libraries/Client/Microsoft.Agents.CopilotStudio.Client"
+for f in "CopilotClient.cs" "OrchestratedClient.cs" "ConnectionSettings.cs" "CopilotStudioHeaderNames.cs" "ExecuteTurnRequest.cs" "RequestTypes.cs" "Discovery/PowerPlatformCloud.cs" "Discovery/PowerPlatformEnvironment.cs" "Models/OrchestratedErrorCode.cs" "Models/OrchestratedErrorPayload.cs" "Models/StartRequest.cs" "Models/SubscribeRequest.cs"; do
+  out="d2e/$(echo $f | tr '/' '_')"
+  curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "$base/$f" -o "$out"
+  echo "$f -> $(wc -c < $out) bytes"
+  sleep 1
+done
+echo "=== S2S token handler ==="
+curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/Agents-for-net/main/src/samples/CopilotStudioClient/CopilotStudioClient/AddTokenHandlerS2S.cs" -o d2e/AddTokenHandlerS2S.cs
+echo "AddTokenHandlerS2S.cs -> $(wc -c < d2e/AddTokenHandlerS2S.cs) bytes"
+CopilotClient.cs -> 26063 bytes
+OrchestratedClient.cs -> 18068 bytes
+ConnectionSettings.cs -> 2919 bytes
+CopilotStudioHeaderNames.cs -> 1719 bytes
+ExecuteTurnRequest.cs -> 553 bytes
+RequestTypes.cs -> 177 bytes
+Discovery/PowerPlatformCloud.cs -> 3097 bytes
+Discovery/PowerPlatformEnvironment.cs -> 24700 bytes
+Models/OrchestratedErrorCode.cs -> 2812 bytes
+Models/OrchestratedErrorPayload.cs -> 1821 bytes
+Models/StartRequest.cs -> 1092 bytes
+Models/SubscribeRequest.cs -> 271 bytes
+=== S2S token handler ===
+AddTokenHandlerS2S.cs -> 3654 bytes
+[0m
+[0m→ [0mRead /tmp/opencode/d2e/ConnectionSettings.cs
+[0m→ [0mRead /tmp/opencode/d2e/CopilotClient.cs
+[0m→ [0mRead /tmp/opencode/d2e/Discovery_PowerPlatformEnvironment.cs
+[0m
+[0m$ [0mcd /tmp/opencode/d2e && for f in CopilotStudioHeaderNames.cs StartRequest.cs ExecuteTurnRequest.cs RequestTypes.cs Models_OrchestratedErrorCode.cs Models_StartRequest.cs Models_SubscribeRequest.cs AddTokenHandlerS2S.cs; do echo "===== $f ====="; cat "$f"; done 2>/dev/null | head -220
+===== CopilotStudioHeaderNames.cs =====
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+namespace Microsoft.Agents.CopilotStudio.Client
+{
+    /// <summary>
+    /// Header name constants used in HTTP requests and responses for Copilot Studio communication.
+    /// </summary>
+    internal static class CopilotStudioHeaderNames
+    {
+        /// <summary>
+        /// Header for the conversation ID in outgoing orchestrated requests.
+        /// </summary>
+        internal const string ConversationId = "x-ms-conversation-id";
+
+        /// <summary>
+        /// Header for client request correlation ID.
+        /// Used for request tracing and diagnostics.
+        /// </summary>
+        internal const string ClientRequestId = "x-ms-client-request-id";
+
+        /// <summary>
+        /// Header for the conversation ID returned in Direct-to-Engine responses.
+        /// </summary>
+        internal const string D2EConversationId = "x-ms-conversationid";
+
+        /// <summary>
+        /// Header for the island experimental URL returned in Direct-to-Engine responses.
+        /// </summary>
+        internal const string D2EExperimentalUrl = "x-ms-d2e-experimental";
+
+        /// <summary>
+        /// Header for the correlation ID used for end-to-end request tracing.
+        /// </summary>
+        internal const string CorrelationId = "x-ms-correlation-id";
+
+        /// <summary>
+        /// Header for the agent version.
+        /// </summary>
+        internal const string AgentVersion = "x-cci-agent-version";
+
+        /// <summary>
+        /// Header for the preferred natural language of the response.
+        /// </summary>
+        internal const string AcceptLanguage = "Accept-Language";
+    }
+}
+===== StartRequest.cs =====
+===== ExecuteTurnRequest.cs =====
+﻿// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System.Text.Json.Serialization;
+using Microsoft.Agents.Core.Models;
+
+namespace Microsoft.Agents.CopilotStudio.Client
+{
+    /// <summary>
+    /// Turn request wrapper for communicating with Copilot Studio Engine.
+    /// </summary>
+    public class ExecuteTurnRequest
+    {
+        [JsonPropertyName("activity")]
+#if !NETSTANDARD
+        public Activity? Activity { get; init; }
+#else
+        public Activity? Activity { get; set; }
+#endif
+    }
+}
+===== RequestTypes.cs =====
+﻿namespace Microsoft.Agents.CopilotStudio.Client
+{
+    internal enum RequestTypes
+    {
+        StartSession,
+        ExecuteAction,
+        ContinueSession,
+    }
+}
+===== Models_OrchestratedErrorCode.cs =====
+// Copyright (c) Microsoft Corporation. All rights reserved.
+// Licensed under the MIT License.
+
+using System;
+
+namespace Microsoft.Agents.CopilotStudio.Client.Models
+{
+    /// <summary>
+    /// Known error codes returned from externally orchestrated conversation turns.
+    /// </summary>
+    public enum OrchestratedErrorCode
+    {
+        /// <summary>
+        /// The error code is not recognized or was not provided.
+        /// </summary>
+        Unknown = 0,
+
+        /// <summary>
+        /// The requested operation is not valid in the current context.
+        /// </summary>
+        InvalidOperation,
+
+        /// <summary>
+        /// A required field was missing from the request.
+        /// </summary>
+        MissingRequiredField,
+
+        /// <summary>
+        /// The requested operation is not valid for the current conversation state.
+        /// </summary>
+        InvalidOperationForState,
+
+        /// <summary>
+        /// Authentication failed (HTTP 401/403).
+        /// </summary>
+        Unauthorized,
+
+        /// <summary>
+        /// The request was throttled (HTTP 429).
+        /// </summary>
+        Throttled,
+
+        /// <summary>
+        /// The bot content could not be found.
+        /// </summary>
+        BotContentNotFound,
+
+        /// <summary>
+        /// The specified topic was not found.
+        /// </summary>
+        TopicNotFound,
+
+        /// <summary>
+        /// An internal server error occurred.
+        /// </summary>
+        InternalServerError,
+
+        /// <summary>
+        /// The specified conversation was not found.
+        /// </summary>
+        ConversationNotFound
+    }
+
+    /// <summary>
+    /// Extension methods for parsing <see cref="Microsoft.Agents.CopilotStudio.Client.Models.OrchestratedErrorCode"/> from error code strings.
+    /// </summary>
+    public static class OrchestratedErrorCodeExtensions
+    {
+        /// <summary>
+        /// Parses a string error code into an <see cref="Microsoft.Agents.CopilotStudio.Client.Models.OrchestratedErrorCode"/> enum value.
+        /// Returns <see cref="Microsoft.Agents.CopilotStudio.Client.Models.OrchestratedErrorCode.Unknown"/> if the code is null, empty, or not recognized.
+        /// </summary>
+        /// <param name="code">The error code string from the error payload.</param>
+        /// <returns>The corresponding <see cref="Microsoft.Agents.CopilotStudio.Client.Models.OrchestratedErrorCode"/> value.</returns>
+        public static OrchestratedErrorCode ToOrchestratedErrorCode(this string? code)
+        {
+            if (!string.IsNullOrEmpty(code)
+                && Enum.TryParse<OrchestratedErrorCode>(code, ignoreCase: true, out var result))
+            {
+                return result;
+            }
+
+            return OrchestratedErrorCode.Unknown;
+        }
+    }
+}
+===== Models_StartRequest.cs =====
+﻿using System.Text.Json.Serialization;
+
+namespace Microsoft.Agents.CopilotStudio.Client.Models
+{
+#if !NETSTANDARD
+    public record StartRequest
+#else
+    public class StartRequest
+#endif
+    {
+        /// <summary>
+        /// The locale to use as defined by the client.
+        /// </summary>
+        [JsonPropertyName("locale")]
+#if !NETSTANDARD
+        public string? Locale { get; init; }
+#else
+        public string? Locale { get; set; }
+#endif
+
+        /// <summary>
+        /// Whether to emit a StartConversation event.
+        /// </summary>
+        [JsonPropertyName("emitStartConversationEvent")]
+#if !NETSTANDARD
+        public bool EmitStartConversationEvent { get; init; }
+#else
+        public bool EmitStartConversationEvent { get; set; }
+#endif
+
+        /// <summary>
+        /// Conversation ID requested by the client.
+        /// </summary>
+        [JsonPropertyName("conversationId")]
+#if !NETSTANDARD
+        public string? ConversationId { get; init; }
+#else
+        public string? ConversationId { get; set; }
+#endif
+    }
+}
+===== Models_SubscribeRequest.cs =====
+﻿namespace Microsoft.Agents.CopilotStudio.Client.Models
+{
+    /// <summary>
+    /// Request model for subscribe operations.
+    /// </summary>
+#if !NETSTANDARD
+    public record SubscribeRequest
+#else
+    public class SubscribeRequest
+[0m
+Exact D2E endpoint construction recovered (including a new **orchestrated** API and derivable per-environment hostnames). Reading headers, start/execute models, orchestration client, and the S2S token handler.
+[0m→ [0mRead /tmp/opencode/d2e/AddTokenHandlerS2S.cs
+[0m→ [0mRead /tmp/opencode/d2e/OrchestratedClient.cs
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s "https://api.github.com/repos/microsoft/Agents-for-js/git/trees/main?recursive=1" -H "User-Agent: hunt-research" -o agentsjs_tree.json && python3 -c "
+import json
+d=json.load(open('agentsjs_tree.json'))
+tr=d.get('tree',[])
+print('total:', len(tr))
+hits=[t['path'] for t in tr if 'copilotstudio' in t['path'].lower() and t['type']=='blob' and t['path'].endswith(('.ts','.js','.json'))]
+for h in hits[:60]: print('   ', h)
+"
+total: 1113
+    packages/agents-copilotstudio-client/package.json
+    packages/agents-copilotstudio-client/src/agentType.ts
+    packages/agents-copilotstudio-client/src/browser/crypto.ts
+    packages/agents-copilotstudio-client/src/browser/os.ts
+    packages/agents-copilotstudio-client/src/connectionSettings.ts
+    packages/agents-copilotstudio-client/src/copilotStudioClient.ts
+    packages/agents-copilotstudio-client/src/copilotStudioConnectionSettings.ts
+    packages/agents-copilotstudio-client/src/copilotStudioWebChat.ts
+    packages/agents-copilotstudio-client/src/errorHelper.ts
+    packages/agents-copilotstudio-client/src/executeTurnRequest.ts
+    packages/agents-copilotstudio-client/src/index.ts
+    packages/agents-copilotstudio-client/src/observability/index.ts
+    packages/agents-copilotstudio-client/src/observability/metrics.ts
+    packages/agents-copilotstudio-client/src/observability/traces.ts
+    packages/agents-copilotstudio-client/src/powerPlatformCloud.ts
+    packages/agents-copilotstudio-client/src/powerPlatformEnvironment.ts
+    packages/agents-copilotstudio-client/src/responses.ts
+    packages/agents-copilotstudio-client/src/scopeHelper.ts
+    packages/agents-copilotstudio-client/src/startRequest.ts
+    packages/agents-copilotstudio-client/src/strategies/prebuiltBotStrategy.ts
+    packages/agents-copilotstudio-client/src/strategies/publishedBotStrategy.ts
+    packages/agents-copilotstudio-client/src/strategies/strategy.ts
+    packages/agents-copilotstudio-client/src/subscribeEvent.ts
+    packages/agents-copilotstudio-client/src/userAgentHelper.ts
+    packages/agents-copilotstudio-client/test/copilotStudioClient.test.ts
+    packages/agents-copilotstudio-client/test/copilotStudioWebChat.test.ts
+    packages/agents-copilotstudio-client/test/errorHelper.test.ts
+    packages/agents-copilotstudio-client/tsconfig.json
+    test-agents/copilotstudio-console/package.json
+    test-agents/copilotstudio-console/src/index.ts
+    test-agents/copilotstudio-console/src/msalCachePlugin.ts
+    test-agents/copilotstudio-console/src/sampleConnectionSettings.ts
+    test-agents/copilotstudio-console/tsconfig.json
+    test-agents/copilotstudio-webchat/acquireToken.js
+    test-agents/copilotstudio-webchat/index.js
+    test-agents/copilotstudio-webchat/settings.js
+[0m
+Orchestrated D2E API recovered (StartConversation/InvokeTool/HandleUserResponse/ConversationUpdate, SSE events). Cross-checking the JS SDK for endpoint parity and any additional (unauthenticated) D2E paths.
+[0m$ [0mcd /tmp/opencode && mkdir -p d2ejs && base="https://raw.githubusercontent.com/microsoft/Agents-for-js/main/packages/agents-copilotstudio-client/src"
+for f in "powerPlatformEnvironment.ts" "copilotStudioClient.ts" "copilotStudioWebChat.ts" "strategies/publishedBotStrategy.ts" "strategies/prebuiltBotStrategy.ts" "strategies/strategy.ts" "startRequest.ts" "connectionSettings.ts"; do
+  out="d2ejs/$(echo $f | tr '/' '_')"
+  curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "$base/$f" -o "$out"
+  echo "$f -> $(wc -c < $out) bytes"
+  sleep 1
+done
+powerPlatformEnvironment.ts -> 11025 bytes
+copilotStudioClient.ts -> 20336 bytes
+copilotStudioWebChat.ts -> 20374 bytes
+strategies/publishedBotStrategy.ts -> 1269 bytes
+strategies/prebuiltBotStrategy.ts -> 1541 bytes
+strategies/strategy.ts -> 450 bytes
+startRequest.ts -> 1394 bytes
+connectionSettings.ts -> 5342 bytes
+[0m
+[0m$ [0mcd /tmp/opencode/d2ejs && grep -nE "conversations|subscribe|/bots/|authenticated|token|api-version|directline|DirectLine|powerplatform|island|schemaname|SchemaName|generateToken|GetToken|GenerateToken" powerPlatformEnvironment.ts | head -40; echo "=== publishedBotStrategy ==="; cat strategies_publishedBotStrategy.ts; echo "=== prebuiltBotStrategy ==="; cat strategies_prebuiltBotStrategy.ts
+77: * Generates the subscribe URL for Copilot Studio Server-Sent Events (SSE).
+79: * @param conversationId - The conversation ID to subscribe to.
+80: * @returns The subscribe URL.
+94:    ? `${url.pathname}subscribe`
+95:    : `${url.pathname}/subscribe`
+96:  const subscribeUrl = url.href
+98:  logger.debug(`Generated Copilot Studio subscribe URL: ${subscribeUrl}`)
+99:  return subscribeUrl
+136:    cloudBaseAddress ??= 'api.unknown.powerplatform.com'
+174:  if (!url.searchParams.has('api-version')) {
+175:    url.searchParams.append('api-version', '2022-03-01-preview')
+182:  if (url.pathname.includes('/conversations')) {
+183:    url.pathname = url.pathname.substring(0, url.pathname.indexOf('/conversations'))
+186:  url.pathname = `${url.pathname}/conversations`
+203:  cloudBaseAddress = cloudBaseAddress ?? 'api.unknown.powerplatform.com'
+219:      return 'api.powerplatform.localhost'
+221:      return 'api.exp.powerplatform.com'
+223:      return 'api.dev.powerplatform.com'
+225:      return 'api.prv.powerplatform.com'
+227:      return 'api.test.powerplatform.com'
+229:      return 'api.preprod.powerplatform.com'
+232:      return 'api.powerplatform.com'
+234:      return 'api.gov.powerplatform.microsoft.us'
+236:      return 'api.gov.powerplatform.microsoft.us'
+238:      return 'api.high.powerplatform.microsoft.us'
+242:      return 'api.powerplatform.partner.microsoftonline.cn'
+244:      return 'api.powerplatform.eaglex.ic.gov'
+246:      return 'api.powerplatform.microsoft.scloud'
+268:    case 'api.powerplatform.localhost':
+270:    case 'api.exp.powerplatform.com':
+272:    case 'api.dev.powerplatform.com':
+274:    case 'api.prv.powerplatform.com':
+276:    case 'api.test.powerplatform.com':
+278:    case 'api.preprod.powerplatform.com':
+280:    case 'api.powerplatform.com':
+282:    case 'api.gov.powerplatform.microsoft.us':
+284:    case 'api.high.powerplatform.microsoft.us':
+288:    case 'api.powerplatform.partner.microsoftonline.cn':
+=== publishedBotStrategy ===
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import type { Strategy, StrategySettings } from './strategy'
+
+/** @deprecated This interface will not be supported in future versions. Use StrategySettings instead. */
+interface PublishedBotStrategySettings {
+  readonly host: URL;
+  readonly schema: string;
+}
+
+/**
+ * Strategy for constructing PowerPlatform API connection URLs for published agents.
+ */
+export class PublishedBotStrategy implements Strategy {
+  private readonly API_VERSION = '2022-03-01-preview'
+  private baseURL: URL
+
+  constructor (settings: PublishedBotStrategySettings)
+  constructor (settings: StrategySettings) {
+    const { schema, host } = settings
+
+    this.baseURL = new URL(
+      `/copilotstudio/dataverse-backed/authenticated/bots/${schema}`,
+      host
+    )
+    this.baseURL.searchParams.append('api-version', this.API_VERSION)
+  }
+
+  public getConversationUrl (conversationId?: string): string {
+    const conversationUrl = new URL(this.baseURL.href)
+    conversationUrl.pathname = `${conversationUrl.pathname}/conversations`
+
+    if (conversationId) {
+      conversationUrl.pathname = `${conversationUrl.pathname}/${conversationId}`
+    }
+
+    return conversationUrl.href
+  }
+}
+=== prebuiltBotStrategy ===
+/**
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import type { Strategy, StrategySettings } from './strategy'
+
+/** @deprecated This interface will not be supported in future versions. Use StrategySettings instead. */
+interface PrebuiltBotStrategySettings {
+  readonly host: URL;
+  readonly identifier: string;
+}
+
+/**
+ * Strategy for constructing PowerPlatform API connection URLs for prebuilt agents.
+ */
+export class PrebuiltBotStrategy implements Strategy {
+  private readonly API_VERSION = '2022-03-01-preview'
+  private baseURL: URL
+
+  /**
+   * @deprecated This constructor will not be supported in future versions. Use constructor (settings: StrategySettings).
+   */
+  constructor (settings: PrebuiltBotStrategySettings)
+  constructor (settings: StrategySettings)
+  constructor (settings: PrebuiltBotStrategySettings | StrategySettings) {
+    const schema = 'schema' in settings ? settings.schema : settings.identifier
+    const host = settings.host
+
+    this.baseURL = new URL(
+      `/copilotstudio/prebuilt/authenticated/bots/${schema}`,
+      host
+    )
+    this.baseURL.searchParams.append('api-version', this.API_VERSION)
+  }
+
+  public getConversationUrl (conversationId?: string): string {
+    const conversationUrl = new URL(this.baseURL.href)
+    conversationUrl.pathname = `${conversationUrl.pathname}/conversations`
+
+    if (conversationId) {
+      conversationUrl.pathname = `${conversationUrl.pathname}/${conversationId}`
+    }
+
+    return conversationUrl.href
+  }
+}
+[0m
+[0m$ [0mcd /tmp/opencode/d2ejs && grep -nE "token|directline|DirectLine|conversation|/bots/|authenticated|api-version|new URL|postData|fetch\(" copilotStudioWebChat.ts | head -50
+33:   * An existing conversation ID to resume. When provided, the connection will
+34:   * send subsequent messages to this conversation instead of starting a new one.
+36:   * By default, providing a conversationId will skip the initial
+40:   * **Note:** The server does not validate conversation IDs. A non-existent
+41:   * GUID will silently create a new conversation under that ID, while a
+43:   * IDs that were previously captured from a real conversation.
+45:  conversationId?: string;
+51:   * - `undefined` (default): starts a new conversation only when no
+52:   *   `conversationId` is provided (`!conversationId`).
+53:   * - `true`: always starts a conversation, even when resuming.
+54:   * - `false`: never starts a conversation, even for new connections.
+66: * The connection follows the DirectLine protocol pattern, making it compatible with
+93:   * The active conversation ID. Set from `CopilotStudioWebChatSettings.conversationId`
+94:   * when resuming, or captured from the first response activity for new conversations.
+95:   * Returns `undefined` until a conversation has been established.
+97:  readonly conversationId: string | undefined;
+151: * enabling seamless communication through a DirectLine-compatible interface.
+154: * - DirectLine protocol compatibility for easy WebChat integration
+156: * - Automatic conversation management and message sequencing
+163: * - Building conversational AI experiences with Microsoft's bot ecosystem
+209:   * Creates a DirectLine-compatible connection for integrating Copilot Studio with WebChat.
+214:   *                 properly authenticated and configured with the target bot details.
+223:   *          the conversation lifecycle.
+230:   * Copilot Studio service. The returned connection object implements the DirectLine
+235:   * 2. **Conversation Start**: Automatically initiates conversation when first activity is posted
+268:      settings?.conversationId && settings.conversationId.trim() !== ''
+269:        ? settings.conversationId.trim()
+275:        conversationId: redactString(normalizedConversationId, true),
+283:      let conversation: ConversationAccount | undefined
+310:            if (!conversation && activity.conversation) {
+311:              conversation = activity.conversation
+313:            if (activity.conversation?.id) {
+314:              activeConversationId = activity.conversation.id
+348:        const from = conversation
+349:          ? { id: conversation.id, name: conversation.name }
+358:        get conversationId () {
+396:                  if (!activeConversationId && responseActivity.conversation?.id) {
+397:                    activeConversationId = responseActivity.conversation.id
+473:    const response = await fetch(newContentUrl)
+[0m
+[0m→ [0mRead /tmp/opencode/d2ejs/copilotStudioWebChat.ts[90m [offset=25, limit=50][0m
+Key comment in the JS webchat client about conversation-ID validation. Reading the exact context plus the JS startRequest.
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/Agents-for-js/main/test-agents/copilotstudio-webchat/acquireToken.js" -o d2ejs/acquireToken.js && echo "acquireToken.js: $(wc -c < d2ejs/acquireToken.js)"; echo "=== token flow ==="; grep -nE "acquire|token|scope|client|authority|/token|tenant|redirect" d2ejs/acquireToken.js | head -20
+acquireToken.js: 1161
+=== token flow ===
+6:import { CopilotStudioClient } from '@microsoft/agents-copilotstudio-client'
+8:export async function acquireToken (settings) {
+11:      clientId: settings.appClientId,
+12:      authority: `${settings.authority}/${settings.tenantId}`,
+18:    scopes: [CopilotStudioClient.scopeFromSettings(settings)],
+19:    redirectUri: window.location.origin,
+22:  // When there are not accounts or the acquireTokenSilent fails,
+27:      const response = await msalInstance.acquireTokenSilent({
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s "https://api.github.com/repos/microsoft/Agents-for-python/git/trees/main?recursive=1" -H "User-Agent: hunt-research" -o agentspy_tree.json && python3 -c "
+import json
+d=json.load(open('agentspy_tree.json'))
+tr=d.get('tree',[])
+print('total:', len(tr))
+hits=[t['path'] for t in tr if 'copilotstudio' in t['path'].lower() and t['type']=='blob']
+for h in hits[:40]: print('   ', h)
+"
+total: 1607
+    libraries/microsoft-agents-copilotstudio-client/LICENSE
+    libraries/microsoft-agents-copilotstudio-client/MANIFEST.in
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/__init__.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/agent_type.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/connection_settings.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/copilot_client.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/copilot_client_protocol.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/direct_to_engine_connection_settings_protocol.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/errors/__init__.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/errors/error_resources.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/execute_turn_request.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/power_platform_cloud.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/power_platform_environment.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/start_request.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/subscribe_event.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/subscribe_request.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/subscribe_response.py
+    libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/user_agent_helper.py
+    libraries/microsoft-agents-copilotstudio-client/pyproject.toml
+    libraries/microsoft-agents-copilotstudio-client/readme.md
+    libraries/microsoft-agents-copilotstudio-client/setup.py
+    tests/copilotstudio_client/__init__.py
+    tests/copilotstudio_client/test_copilot_client.py
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s --max-time 60 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/Agents-for-python/main/libraries/microsoft-agents-copilotstudio-client/microsoft_agents/copilotstudio/client/power_platform_environment.py" -o d2ejs/py_power_platform_environment.py && grep -nE "conversations|authenticated|bots/|orchestrated|api-version|environment|direct_connect|subscribe" d2ejs/py_power_platform_environment.py | head -30
+26:        create_subscribe_link: bool = False,
+28:        direct_connect_url: Optional[str] = None,
+37:        :param create_subscribe_link: Whether to create a subscribe link for the conversation
+39:        :param direct_connect_url: DirectConnection URL to a given Copilot Studio agent, if provided all other settings are ignored
+43:        direct_url = direct_connect_url or settings.direct_connect_url
+46:            # Standard environment-based connection
+49:            if not settings.environment_id:
+79:            host = PowerPlatformEnvironment.get_environment_endpoint(
+80:                cloud, settings.environment_id, cloud_base_address
+87:                create_subscribe_link,
+95:                direct_url, conversation_id, create_subscribe_link
+103:        direct_connect_url: Optional[str] = None,
+111:        :param direct_connect_url: DirectConnection URL to a given Copilot Studio agent
+115:        direct_url = direct_connect_url or (
+116:            settings.direct_connect_url if settings else None
+120:            # Standard environment-based audience
+187:        create_subscribe_link: bool = False,
+197:        :param create_subscribe_link: Whether to create a subscribe link
+201:            agent_identifier, host, agent_type, conversation_id, create_subscribe_link
+210:        create_subscribe_link: bool = False,
+213:        Creates the PowerPlatform API connection URL for standard environment-based connections.
+219:        :param create_subscribe_link: Whether to create a subscribe link
+227:            path = f"/copilotstudio/{agent_path_name}/authenticated/bots/{agent_identifier}/conversations"
+229:            conversation_suffix = "/subscribe" if create_subscribe_link else ""
+230:            path = f"/copilotstudio/{agent_path_name}/authenticated/bots/{agent_identifier}/conversations/{conversation_id}{conversation_suffix}"
+238:                f"api-version={PowerPlatformEnvironment.API_VERSION}",
+247:        create_subscribe_link: bool = False,
+255:        :param create_subscribe_link: Whether to create a subscribe link
+265:        # If path has /conversations, remove it
+266:        if "/conversations" in path:
+[0m
+Endpoint parity confirmed across .NET/JS/Python. Doing one targeted web check for the `CopilotStudio.Copilots.Invoke` permission being publicly documented, then synthesizing.
+[0m◈ [0mParallel Web Search ""CopilotStudio.Copilots.Invoke" permission Direct-to-Engine API Microsoft Copilot Studio"
+[0m
+[0m# [0mTodos
+[✓] Verify candidate in-scope repos exist (microsoft/agents, google/a2a, microsoft/autogen)
+[✓] Mine microsoft/agents (Agent Framework SDK) for agent card JWS verification / A2A trust code (grounds H-7)
+[✓] Mine google/a2a spec + reference impls for JWS/did:web key-purpose binding requirements
+[✓] Extract code-level findings; derive new test-tenant hypotheses
+[•] Write journal, leads, state update
+[0m
+Permission is publicly documented (admin consent required). I have a complete new surface. Writing journal, leads, and state.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat >> research/bigpickle.md <<'EOF'
+
+## RUN 2026-08-07 15:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC→RECON (NEW SURFACE: Copilot Studio Direct-to-Engine S2S API + Agents SDK wire review)
+
+### NEW SURFACE — Copilot Studio Direct-to-Engine (D2E) API, S2S mode (Private Preview)
+- Source: microsoft/Agents docs/copilot-studio-client-s2s-doc.md (in-scope repo) + MS Learn publication-integrate-web-or-native-app-m365-agents-sdk (2026-08-03). D2E = programmatic access to published Copilot Studio agents WITHOUT Azure Bot Service/DirectLine; AAD-JWT-only; path Client→PPAPI Gateway→MCS.
+- New Entra permission **CopilotStudio.Copilots.Invoke** on Power Platform API (resourceAppId **8578e004-a5c6-46e7-913e-12f58912df43**; app role id **38c13204-7d79-4d83-bdbb-b770e28400df** per public reshmeeauckloo 2025-11-02). Both app-only and delegated exist. Community confirmation: admin consent REQUIRED for delegated variant (CORP-tenant blocked-admin = D2E unusable; community.powerplatform.com 2026-04-30) — consent gate is stricter than Graph CopilotPackages.Read.All.
+- AuthZ model: (1) tenant admin consents Copilots.Invoke to app; (2) maker shares agent with app identity via Copilot Studio Share API (viewer perm); (3) runtime validates share-ACL + permission + same-tenant. Two modes: True S2S (app-only client_credentials, agent must be 'No Authentication') and user-delegated (OBO, agent needs Integrated auth). Same-tenant only.
+- Documented turn-time guardrails (conversation-hijack prevention): App-identity consistency, User-identity consistency, Identity-type consistency (app-only vs delegated) → errors CallerIdentityMismatch / CallerIdentityTypeMismatch / S2SDirectEngineRequiresNoAuthentication / D2EAccessDenied; immutable ConversationInfo (UserId, ChannelId, ConversationId, UserTenantId).
+
+### CODE-EXACT D2E wire (microsoft/Agents-for-net CopilotStudio.Client, cross-verified in Agents-for-js + Agents-for-python)
+- Endpoint construction (Discovery/PowerPlatformEnvironment.cs:29-101, 276-301): envhost = "{envid(lower,no-dash) minus last2hex}.{last2hex}.environment.{suffix}" (Prod/FirstRelease suffix len 2, else 1); suffix map incl. api.powerplatform.com (Prod), api.preprod/dev/prv/exp/test.powerplatform.com (internal), api.gov/high.powerplatform.microsoft.us, api.appsplatform.us (DoD), api.powerplatform.partner.microsoftonline.cn (Mooncake), api.powerplatform.eaglex.ic.gov, api.powerplatform.microsoft.scloud. Scope = https://{envhost}/.default.
+- Paths (api-version=2022-03-01-preview): POST /copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations (start); .../conversations/{conversationId} (execute turn); .../conversations/{conversationId}/subscribe (SSE); **NEW orchestrated API**: POST /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (StartConversation/InvokeTool/HandleUserResponse/ConversationUpdate; SSE events activity/state/error/end; 'intended for internal use only' but public client).
+- Headers (CopilotStudioHeaderNames.cs): x-ms-conversation-id (client→orchestrated), x-ms-conversationid (response D2E conversation id), **x-ms-d2e-experimental** (response header whose hostname the SDK PROMOTES to DirectConnectUrl and sends all subsequent token-bearing requests to — CopilotClient.cs:509-517), x-ms-client-request-id, x-ms-correlation-id, x-cci-agent-version. Subscribe uses Last-Event-Id for post-disconnect event replay.
+- Token: S2S sample = ConfidentialClientApplication AcquireTokenForClient scope={envhost}/.default (AddTokenHandlerS2S.cs); webchat = MSAL browser delegated token, scopeFromSettings, redirectUri=window.location.origin.
+
+### CODE-LEVEL FINDING — client-supplied conversationId NOT validated (H-16 seed)
+- microsoft/Agents-for-js copilotStudioWebChat.ts:40-44 (verbatim): "The server does not validate conversation IDs. A non-existent GUID will silently create a new conversation under that ID, while a non-GUID string may cause the server to return no response. Only pass IDs that were previously captured from a real conversation."
+- .NET StartRequest.ConversationId is client-supplied and sent as x-ms-conversation-id on start (CopilotClient.cs:160-163). Webchat client redacts conversationId in logs (redactString, copilotStudioWebChat.ts) — MS itself treats conv IDs as sensitive.
+- Tension: S2S doc claims turn-time identity-consistency checks, but the enforcement location/strength for (a) app-only cross-app resumption, (b) subscribe/Last-Event-Id replay, (c) orchestrated client-supplied conversationId path param is unproven.
+
+### SCOPE FLAGS (not probed)
+- D2E runtime hosts are *.powerplatform.com / *.environment.api.powerplatform.com / api.gov/high.powerplatform.microsoft.us / api.appsplatform.us / api.powerplatform.microsoft.scloud / *.microsoftonline.cn — NONE in scope.yml. Code-review only. Flag for MSRC scope clarification if this grows (Copilot Studio runtime is the #1 D2E consumer).
+- *.island.powerapps.com IS in scope (powerapps.com) — the x-ms-d2e-experimental island target may land there, but hostname is server-returned (not derivable passively this run).
+- directline.botframework.com (DirectLine channel secret alt-path) is OUT of scope — design-note only (community: DirectLine needs NO admin consent, weaker identity — bot-identity messages, no user propagation).
+
+### Hypotheses (test-tenant, read-only design)
+- H-16 [HIGH, NEW] D2E conversation-ID binding: server accepts client-supplied conversationId at start (no validation) — does turn-time identity-consistency (CallerIdentityMismatch) actually block (a) app B continuing app A's conversation, (b) user B subscribing via /subscribe + Last-Event-Id to user A's conversation (event replay disclosure), (c) orchestrated path-param conversationId cross-user? If any bypass → conversation hijack / history disclosure / active-session prompt-injection. CVSS 6.5–9.0. Test: as second identity, POST .../conversations/{victimConvId} with valid own token; expect 200+D2EAccessDenied OR activities — read-only PoC NOT possible (POST), stays test-tenant.
+- H-17 [MED-LOW, NEW] x-ms-d2e-experimental trust: SDK rewrites base URL + sends Bearer to whatever host the response header names. If any input reflection into that header (host/query echo, redirect) exists → client token exfiltration (server→client SSRF). CVSS 4–6 if real.
+- H-18 [MED-HIGH, NEW] Orchestrated API trust boundary: InvokeTool passes client-supplied toolSchemaName+inputs for cdsBotId conversations — is tool invocation validated against the agent's registered tool list, or does any Copilots.Invoke holder invoke arbitrary tools in a foreign conversation? Tool-confusion / cross-conversation tool call. CVSS 6.5–8.5. Test-tenant.
+- H-19 [MED, NEW] envhost derivability: given EnvironmentId GUID (visible in Copilot Studio UI/connection strings) the D2E endpoint is fully predictable — the de-facto secrets are schemaName+share-ACL. PPAPI gateway error differentiation (valid/invalid schemaName) is the passive signal to test. CVSS 3–5.
+- H-20 [LOW, design-note] DirectLine vs D2E asymmetric authz: DirectLine channel secret (no admin consent) vs admin-consented Copilots.Invoke — same agent exposed via both = lower-barrier channel reachable even when D2E blocked; DirectLine lacks user identity propagation (attribution gap).
+
+### H-7 GROUNDING UPDATE (google/a2a relocation)
+- google/a2a permanently redirects to **a2aproject/A2A** (repo id 954873280, community org) — the A2A AgentCard JWS spec repo is NO LONGER in the declared google org. Scope note: a2aproject NOT in scope.yml github_orgs; treat spec as doc-reference, not code target. microsoft/agents contains NO agentcard JWS/did:web code (0 hits for jws/did/agentcard in tree) — the M365 Agent SDK does not implement card signature verification; card trust lives server-side (unverifiable passively, strengthens H-7's "runtime trust arbitrary Json" question on the new agentRegistration surface).
+
+### Secrets check
+- None. Public IDs only: Power Platform API 8578e004-a5c6-46e7-913e-12f58912df43; CopilotStudio.Copilots.Invoke app-role 38c13204-7d79-4d83-bdbb-b770e28400df (public blog 2025-11-02); SDK version @microsoft/agents-copilotstudio-client v1.7.0-beta.5. No tokens/keys. No raw secrets committed.
+
+### CVSS candidates
+H-16 6.5–9.0; H-18 6.5–8.5; H-17 4–6; H-19 3–5; H-20 design-note; H-13 7.5–9.0; H-1 9.1–9.8; H-2/H-12 7.5–8.8; H-7(relocated) 6.5–9.0; H-14 5.3–7.5; H-15 4–7.
+EOF
+echo "journal lines: $(wc -l < research/bigpickle.md)"
+journal lines: 6756
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat >> leads/lead-bigpickle.md <<'EOF'
+
+## 2026-08-07 15:45:00 UTC [microsoft] (model bigpickle) — POC->RECON (NEW: Copilot Studio Direct-to-Engine S2S API, private preview)
+
+- [NEW-SURFACE] Copilot Studio D2E (Direct-to-Engine) S2S API, private preview (microsoft/Agents docs/copilot-studio-client-s2s-doc.md + MS Learn 2026-08-03): programmatic access to published agents, AAD-JWT-only, Client->PPAPI Gateway->MCS. Perm **CopilotStudio.Copilots.Invoke** on Power Platform API (resourceAppId 8578e004-a5c6-46e7-913e-12f58912df43; app role 38c13204-7d79-4d83-bdbb-b770e28400df). ADMIN CONSENT REQUIRED (community confirmed). AuthZ = admin-consent + maker share-ACL (viewer) + same-tenant; modes True S2S (app-only, agent must be No-Auth) / OBO (Integrated auth).
+- [LEAD-HIGH H-16] D2E conversation-ID NOT validated server-side (copilotStudioWebChat.ts:40-44 verbatim: server "does not validate conversation IDs. A non-existent GUID will silently create a new conversation under that ID"; .NET StartRequest.ConversationId -> x-ms-conversation-id on start). Documented turn-time guardrails (CallerIdentityMismatch / CallerIdentityTypeMismatch / D2EAccessDenied) unproven for: cross-app resumption, subscribe+Last-Event-Id replay, orchestrated path-param convId. If bypass -> conversation hijack / history disclosure / active-session prompt injection. CVSS 6.5-9.0. Test-tenant (POST-only, no passive PoC).
+- [LEAD-MED-HIGH H-18] Orchestrated API /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (StartConversation/InvokeTool/HandleUserResponse/ConversationUpdate; 'internal use only' but public client, OrchestratedClient.cs). InvokeTool takes client-supplied toolSchemaName+inputs - is it validated against agent's registered tools / foreign conversation? Tool-confusion. CVSS 6.5-8.5.
+- [LEAD-MED-LOW H-17] x-ms-d2e-experimental response header -> SDK promotes host to DirectConnectUrl and sends subsequent Bearer requests there (CopilotClient.cs:509-517). If header ever reflects attacker input -> client token exfiltration. CVSS 4-6.
+- [LEAD-MED H-19] D2E envhost fully derivable from EnvironmentId GUID: {envid-last2hex}.{last2hex}.environment.{suffix}; endpoint /copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations?api-version=2022-03-01-preview. De-facto secrets = schemaName + share-ACL. PPAPI error-differentiation is the passive signal.
+- [LEAD-LOW H-20] DirectLine channel secret requires NO admin consent vs D2E admin-consented Copilots.Invoke; same agent on both = lower-barrier path, no user identity propagation (attribution gap). design-note.
+- [SCOPE-FLAG] D2E runtime hosts *.powerplatform.com / *.environment.api.powerplatform.com / api.gov/high.powerplatform.microsoft.us / api.appsplatform.us / api.powerplatform.microsoft.scloud / *.microsoftonline.cn are NOT in scope.yml - code-review only, NOT probed. Clarify with MSRC if D2E grows. *.island.powerapps.com (in scope) may host the experimental island URL.
+- [SCOPE] google/a2a permanently moved to a2aproject/A2A (repo 954873280) - A2A spec repo no longer in declared google org; treat as doc-reference. microsoft/agents tree has 0 jws/did/agentcard hits - M365 Agent SDK does NOT implement card signature verification (strengthens H-7: card trust is server-side/arbitrary Json).
+- [RECON] SDK cross-verified .NET/JS/Python (endpoint parity, api-version 2022-03-01-preview); package @microsoft/agents-copilotstudio-client v1.7.0-beta.5; PowerPlatformCloud enum leaks internal fleet: api.exp/prv/dev/preprod/test.powerplatform.com, api.appsplatform.us (DoD), api.powerplatform.eaglex.ic.gov, api.powerplatform.microsoft.scloud.
+EOF
+cat > state_bigpickle.json <<'EOF'
+{"phase": "RECON", "status": "HIGH_POTENTIAL", "note": "POC test-tenant blocked; new D2E S2S surface recovered at code level"}
+EOF
+echo "leads: $(wc -l < leads/lead-bigpickle.md)"; echo "state: $(cat state_bigpickle.json)"
+leads: 155
+state: {"phase": "RECON", "status": "HIGH_POTENTIAL", "note": "POC test-tenant blocked; new D2E S2S surface recovered at code level"}
+[0m
+[0m# [0mTodos
+[✓] Verify candidate in-scope repos exist (microsoft/agents, google/a2a, microsoft/autogen)
+[✓] Mine microsoft/agents (Agent Framework SDK) for agent card JWS verification / A2A trust code (grounds H-7)
+[✓] Mine google/a2a spec + reference impls for JWS/did:web key-purpose binding requirements
+[✓] Extract code-level findings; derive new test-tenant hypotheses
+[✓] Write journal, leads, state update
+[0m
+# Program: microsoft
+# Phase: POC → RECON (NEW SURFACE: Copilot Studio Direct-to-Engine S2S API + M365 Agents SDK wire review)
+
+## Key Findings (one line each, specific)
+- **NEW surface (private preview): Copilot Studio D2E / S2S API** — programmatic access to published agents, AAD-JWT-only, `Client → PPAPI Gateway → MCS`, documented in-scope at `microsoft/Agents/docs/copilot-studio-client-s2s-doc.md` + MS Learn `publication-integrate-web-or-native-app-m365-agents-sdk` (2026-08-03).
+- **New Entra permission `CopilotStudio.Copilots.Invoke`** on Power Platform API (resourceAppId `8578e004-a5c6-46e7-913e-12f58912df43`, app role `38c13204-7d79-4d83-bdbb-b770e28400df`); **admin consent required** for delegated variant (community-confirmed 2026-04-30) — stricter gate than Graph `CopilotPackages.Read.All`.
+- **H-16 seed (code-exact): D2E server does NOT validate conversation IDs** — `microsoft/Agents-for-js copilotStudioWebChat.ts:40-44` (verbatim: "The server does not validate conversation IDs. A non-existent GUID will silently create a new conversation under that ID"); .NET `StartRequest.ConversationId` → `x-ms-conversation-id` on start. Documented guardrails (`CallerIdentityMismatch`/`CallerIdentityTypeMismatch`/`D2EAccessDenied`) unproven for cross-app resumption, subscribe+`Last-Event-Id` replay, and orchestrated path-param conversationId.
+- **NEW orchestrated API** `POST /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` (`StartConversation`/`InvokeTool`/`HandleUserResponse`/`ConversationUpdate`; SSE activity/state/error/end) — "internal use only" but ships as a public client (`OrchestratedClient.cs`); `InvokeTool` carries client-supplied toolSchemaName+inputs.
+- **D2E endpoints fully derivable**: envhost = `{envid-last2hex}.{last2hex}.environment.{suffix}`, paths `/copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations{,/conversationId,/subscribe}`, `api-version=2022-03-01-preview`, scope `https://{envhost}/.default` — cross-verified .NET/JS/Python.
+- **`x-ms-d2e-experimental` response header** promotes a server-chosen host into `DirectConnectUrl` and the SDK sends all subsequent Bearer requests there (`CopilotClient.cs:509-517`) — server→client redirect trust point (H-17).
+- **H-7 grounding**: `microsoft/agents` tree has **0 hits for jws/did/agentcard** — the M365 Agent SDK implements no card-signature verification (card trust is server-side); and **google/a2a permanently moved to `a2aproject/A2A`** (repo 954873280) — spec repo is no longer in the declared `google` org.
+- **SCOPE-FLAG**: D2E runtime hosts (`*.powerplatform.com`, `*.environment.api.powerplatform.com`, `api.gov/high.powerplatform.microsoft.us`, `api.appsplatform.us`, `api.powerplatform.microsoft.scloud`, `*.microsoftonline.cn`) are **NOT in scope.yml** — code-review only, not probed. `*.island.powerapps.com` (in scope) may host the experimental island URL.
+
+## New Endpoints / Assets
+- `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` (start), `.../conversations/{id}` (turn), `.../conversations/{id}/subscribe` (SSE), `POST /powervirtualagents/orchestrated/{cdsBotId}/conversations/{id}` — all `https://{envhost}` `api-version=2022-03-01-preview`.
+- Headers: `x-ms-conversation-id`, `x-ms-conversationid` (resp), `x-ms-d2e-experimental` (resp), `x-ms-client-request-id`, `x-ms-correlation-id`, `x-cci-agent-version`, `Last-Event-Id`.
+- Perm/resource IDs: Power Platform API `8578e004-…`, `CopilotStudio.Copilots.Invoke` app role `38c13204-…`.
+- Cloud fleet leaked by `PowerPlatformCloud` enum: `api.exp/prv/dev/preprod/test.powerplatform.com`, `api.appsplatform.us` (DoD), `api.powerplatform.eaglex.ic.gov`, `api.powerplatform.microsoft.scloud`.
+
+## Hypotheses (impact + read-only test)
+1. **[H-16 HIGH]** D2E conversation-ID binding: second identity continues/subscribes to a victim conversationId (`/subscribe` + `Last-Event-Id` replay, or orchestrated path-param). Any bypass → conversation hijack / history disclosure / active-session prompt-injection. CVSS 6.5–9.0. Test-tenant (POST-only, no passive PoC).
+2. **[H-18 MED-HIGH]** Orchestrated `InvokeTool` tool-name/args validated against the agent's registered tool list? Unvalidated → cross-conversation tool call / tool confusion by any Copilots.Invoke holder. CVSS 6.5–8.5.
+3. **[H-17 MED-LOW]** `x-ms-d2e-experimental` header reflection → client Bearer exfiltration to attacker host. CVSS 4–6.
+4. **[H-19 MED]** envhost derivability + PPAPI gateway error-differentiation for valid/invalid `schemaName` (passive signal). CVSS 3–5.
+5. **[H-20 LOW, design-note]** DirectLine channel secret (no admin consent, no user identity propagation) vs admin-consented D2E — lower-barrier path when D2E blocked.
+6. **[H-13/H-14/H-15/H-1/H-2/H-12/H-7 unchanged]** Agent Registration ownership (7.5–9.0); `user_fic` Hop-3 (9.1–9.8); consent POST+PATCH (7.5–8.8); Work IQ MCP scopes (7.5–8.8); policySettings (4–7); card-trust now strengthened server-side (6.5–9.0).
+
+## Secrets Check
+None. Public IDs only (Power Platform API `8578e004-…`, app role `38c13204-…`, SDK `@microsoft/agents-copilotstudio-client` v1.7.0-beta.5). No tokens/keys. No raw secrets committed.
+
+## CVSS Candidates
+H-16 6.5–9.0; H-18 6.5–8.5; H-17 4–6; H-19 3–5; H-13 7.5–9.0; H-1 9.1–9.8; H-2/H-12 7.5–8.8; H-7 6.5–9.0; H-14 5.3–7.5; H-15 4–7.
+
+---
+## STATE UPDATE
+STATUS_PHASE: RECON
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: Test-tenant H-16/H-18 (D2E conversation-id resumption as second identity; orchestrated InvokeTool validation) + H-13/H-14 (Agent Registration PATCH foreign id/createdBy echo) + H-1/H-2 user_fic/consent.
+NEXT_STEP_2: If no test tenant, RECON next unexplored surface: authenticated-flow phase on copilotstudio.microsoft.com (login client IDs, bundle API map, D2E island hostname pattern via the maker SPA), and passive PPAPI gateway error-differentiation check only if scope clarified to include powerplatform.com.
+NEXT_STEP_3: Clarify with MSRC: (a) D2E runtime hosts (*.powerplatform.com) scope, (b) a2aproject/A2A spec-repo scope for the google program, before any further mining.
