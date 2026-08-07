@@ -41,3 +41,12 @@ Let me start by understanding the target program scope and existing research con
     "ref": "err_eed62271"
   }
 }
+
+===== RUN 2026-08-07 13:49:28 UTC | model ling3 | target google =====
+[91m[1mError: [0m{
+  "name": "UnknownError",
+  "data": {
+    "message": "Unexpected server error. Check server logs for details.",
+    "ref": "err_f57024e7"
+  }
+}
