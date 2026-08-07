@@ -1017,4 +1017,340 @@ STATUS_STATE: IN_PROGRESS
 NEXT_STEP_1: Begin PHASE 2 SURFACE — passively enumerate OIDC discovery document and OAuth2 authorize endpoint parameters on login.microsoftonline.com; map redirect_uri handling.
 NEXT_STEP_2: Passively inspect graph.microsoft.com Graph v1.0 metadata (unauth discovery) to map the Directory/Governance/Identity+Sign-In endpoint surface and consent model.
 NEXT_STEP_3: Start passive source review of microsoft/msquic + microsoft/SymCrypt (in-scope native code) for memory-safety leads, and retry crt.sh subdomain enumeration now that the first pass is complete.
+
+============================================================
+# PROGRAM: microsoft
+# PHASE: SURFACE  (2026-08-07 run, model laguna)
+============================================================
+## Key Findings (one line each, specific)
+- OIDC v2.0 discovery (login.microsoftonline.com/common/v2.0/.well-known/openid-configuration) returns full endpoint set: authorize, token, end_session/logout, devicecode, jwks, kerberos, plus an **mtls token_endpoint alias at mtlsauth.microsoft.com** with `tls_client_certificate_bound_access_tokens=true`.
+- v2.0 supported grant/response surface: response_types {code, id_token, code id_token, id_token token}; response_modes {query, fragment, form_post}; client auth methods {client_secret_post, private_key_jwt, client_secret_basic, self_signed_tls_client_auth}; subject_types {pairwise}.
+- **Dual protocol versions**: v1.0 discovery (/common/.well-known/openid-configuration?api-version=1.0) uses issuer `https://sts.windows.net/{tenantid}/`, authorize at /common/oauth2/authorize, and supports response types NOT present in v2.0: hybrid `token id_token` and implicit `token` (v2.0 dropped these). Two distinct issuer namespaces for the same tenant.
+- **Authorize endpoint does NOT validate redirect_uri on the initial unauthenticated GET**: a request with a placeholder client_id + arbitrary redirect_uri (https://example.com/ and https://evil.example/) returned HTTP 200 + a generic "Sign in to your account" page in BOTH cases — no redirect_uri rejection, no error. Validation is deferred to post-authentication token issuance. → redirect_uri handling is NOT observable via a passive unauth GET; confirming a redirect_uri flaw requires completing an auth flow (state-change / OOS for passive).
+- Graph API v1.0 service doc (graph.microsoft.com/v1.0/) returns 72 top-level collections; OData $metadata (2.9 MB) exposes **1,183 EntityTypes** and **326 Functions** across namespaces `microsoft.graph`, `microsoft.graph.identityGovernance`, `microsoft.graph.security`, `microsoft.graph.entraRecoveryServices`.
+- mTLS config: `tls_client_certificate_bound_access_tokens=true`; token endpoint alias on `mtlsauth.microsoft.com` (separate host, mTLS-bound tokens). Certificate-bound access token surface — possible binding-confusion between the plain token endpoint and the mTLS alias if an attacker strips the binding.
+- Legacy WS-Fed host `microsoftazuread-sso.com` unreachable from test vantage (HTTP 000 — likely region/gateway-gated); `api.mysignins.microsoftonline.com` and `provisioningapi.microsoftonline.com` also unreachable from vantage (HTTP 000, path/region-gated); `adminwebservice.microsoftonline.com` resolves (HTTP 404 on root, Content-Type text/HTML).
+
+## New Endpoints / Assets (SURFACE)
+- GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration  (OIDC discovery; live)
+- GET https://login.microsoftonline.com/common/.well-known/openid-configuration?api-version=1.0  (v1.0 discovery; issuer sts.windows.net/{tenantid})
+- GET https://login.microsoftonline.com/common/oauth2/v2.0/authorize  (response_types: code|id_token|code id_token|id_token token; modes: query|fragment|form_post)
+- GET https://login.microsoftonline.com/common/oauth2/v2.0/token  (POST normally; mTLS alias: https://mtlsauth.microsoft.com/common/oauth2/v2.0/token)
+- GET https://login.microsoftonline.com/common/oauth2/v2.0/logout  (end_session_endpoint)
+- GET https://login.microsoftonline.com/common/oauth2/v2.0/devicecode  (device code flow)
+- GET https://login.microsoftonline.com/common/discovery/v2.0/keys  (JWKS)
+- GET https://login.microsoftonline.com/common/kerberos
+- GET https://graph.microsoft.com/v1.0/  (OData service doc, 72 collections)
+- GET https://graph.microsoft.com/v1.0/$metadata  (OData schema, 1183 EntityTypes, 326 Functions)
+- GET https://graph.microsoft.com/oidc/userinfo  (userinfo endpoint per v2.0 discovery)
+- adminwebservice.microsoftonline.com/  (resolves; 404 root)
+- (region-gated/unreachable from vantage): microsoftazuread-sso.com, api.mysignins.microsoftonline.com, provisioningapi.microsoftonline.com, accounts.accesscontrol.windows.net
+
+## Hypotheses (numbered, with impact + read-only test)  ← PHASE 3 input
+1. Issuer-confusion / token replay across v1.0↔v2.0. v1.0 issuer is `https://sts.windows.net/{tenantid}/`; v2.0 is `https://login.microsoftonline.com/{tenantid}/v2.0`. If any in-scope Relying Party or MS graph token-accepting endpoint accepts a v1.0-style `sts.windows.net` iss token where it should require v2.0 (or vice-versa), or accepts tokens whose `aud` matches the wrong protocol, cross-protocol token replay is possible. Impact: auth bypass / MFA bypass (up to $100,000). Read-only test: compare iss/aud/tid fields of v1.0 vs v2.0 sample tokens in public MS docs; inspect any token-bearing surface for loose issuer/aud validation (source review of MS-published sample RPs). NOTE: high bar — only actionable if a downstream RP validates issuer loosely; Microsoft's own endpoints must not be mis-tested.
+2. mTLS cert-bound access token binding bypass. `tls_client_certificate_bound_access_tokens=true` and a distinct mTLS token endpoint on mtlsauth.microsoft.com. If the binding is enforced only at the token endpoint and an access token request to graph.microsoft.com does not re-attest the TLS cert binding, a stolen/bound token could be replayed over plain TLS. Impact: access-token replay (Confidentiality/Integrity on Graph data). Read-only test: GET graph.microsoft.com/v1.0/ over plain TLS vs mTLS; compare WWW-Authenticate / token-claim introspection hints (no token use — passive header analysis only).
+3. Hybrid/implicit response_type quirks (v1.0 supports `token id_token`, `token` not in v2.0). The form_post response_mode + hybrid response_type path is historically error-prone. Impact: code/token leakage via response_mode confusion. Read-only test: inspect MSRC Update Guide / CVRF for past fixes in this path (regression); passive source/docs review. Cannot actively trigger without a flow (state-change).
+4. redirect_uri deferred-validation (observed). Because the authorize endpoint does not pre-validate redirect_uri, any redirect_uri-allowlist bypass is invisible to a passive GET. A true PoC needs to complete a sign-in (state change / OOS for passive). Hypothesis is documented as a **deferred PoC** — not pursued live; candidate for formal report only if a non-flow-completing signal (e.g., error-message oracle) is later found.
+5. Graph IDOR / consent-scope escape in identityGovernance or security functions. 326 Graph functions across identityGovernance (Governance tab) + security. A delegated permission scope that maps to identityGovernance functions (e.g., workflow/task/insights) could permit cross-tenant enumeration or self-elevation if consent is loosely scoped. Impact: privilege escalation / info disclosure (up to ~$19,500 for M365; OS-program IDOR up to $15,000). Read-only test: GET graph.microsoft.com/v1.0/$metadata and enumerate identityGovernance-bound functions; map to documented delegated-vs-app-only scopes in docs.microsoft.com (passive docs read only).
+
+## Secrets Check (public repos: what was found, hash only, where)
+- Phase 2 did not execute a secret scan. Per RECON, the reposcan pipeline (reposcan-raw/grep-hits.txt) reported 0 code/config hits this cycle. Targeted secret scan against the OS-bounty repo list is deferred (next slot). Any live secret found will be reported as a sha256 hash only and flagged for triage.
+
+## CVSS Candidates
+- (deferred to PHASE 3 HYPOTHESIS / PHASE 4 POC). Issuer-confusion / auth-bypass class candidate sits ~CVSS 8.0–9.8 depending on UI and required precondition (MFA interaction, RP config). mTLS binding bypass ~CVSS 7.5–8.1. Graph IDOR ~CVSS 6.5–8.1. No score claimed until a concrete read-only signal is produced.
 </arg_value></tool_call>
+
+===== RUN 2026-08-07 09:06:00 UTC | model laguna | target google =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0msleep 1; curl -sL -m 25 -H "User-Agent: msrc-research-recon" "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" -o /tmp/oidc_common.json -w "HTTP %{http_code} bytes %{size_download}\n"; echo "=== keys ==="; python3 -c "import json;d=json.load(open('/tmp/oidc_common.json'));[print(k,'=',d[k]) for k in d]" 2>&1 | head -40
+HTTP 200 bytes 1728
+=== keys ===
+token_endpoint = https://login.microsoftonline.com/common/oauth2/v2.0/token
+token_endpoint_auth_methods_supported = ['client_secret_post', 'private_key_jwt', 'client_secret_basic', 'self_signed_tls_client_auth']
+jwks_uri = https://login.microsoftonline.com/common/discovery/v2.0/keys
+response_modes_supported = ['query', 'fragment', 'form_post']
+subject_types_supported = ['pairwise']
+id_token_signing_alg_values_supported = ['RS256']
+response_types_supported = ['code', 'id_token', 'code id_token', 'id_token token']
+scopes_supported = ['openid', 'profile', 'email', 'offline_access']
+issuer = https://login.microsoftonline.com/{tenantid}/v2.0
+request_uri_parameter_supported = False
+userinfo_endpoint = https://graph.microsoft.com/oidc/userinfo
+authorization_endpoint = https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+device_authorization_endpoint = https://login.microsoftonline.com/common/oauth2/v2.0/devicecode
+http_logout_supported = True
+frontchannel_logout_supported = True
+end_session_endpoint = https://login.microsoftonline.com/common/oauth2/v2.0/logout
+claims_supported = ['sub', 'iss', 'cloud_instance_name', 'cloud_instance_host_name', 'cloud_graph_host_name', 'msgraph_host', 'aud', 'exp', 'iat', 'auth_time', 'acr', 'nonce', 'preferred_username', 'name', 'tid', 'ver', 'at_hash', 'c_hash', 'email']
+kerberos_endpoint = https://login.microsoftonline.com/common/kerberos
+mtls_endpoint_aliases = {'token_endpoint': 'https://mtlsauth.microsoft.com/common/oauth2/v2.0/token'}
+tls_client_certificate_bound_access_tokens = True
+tenant_region_scope = None
+cloud_instance_name = microsoftonline.com
+cloud_graph_host_name = graph.windows.net
+msgraph_host = graph.microsoft.com
+rbac_url = https://pas.windows.net
+[0m
+[0m$ [0msleep 1; curl -sL -m 25 -H "User-Agent: msrc-research-recon" "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" -o /tmp/o2.json -w "HTTP %{http_code} bytes %{size_download}\n"; echo "---authorize endpoint params---"; python3 -c "
+import json
+d=json.load(open('/tmp/o2.json'))
+for k,v in d.items():
+    print(k,'=>',v)
+" 2>&1 | head -40
+HTTP 200 bytes 1728
+---authorize endpoint params---
+token_endpoint => https://login.microsoftonline.com/common/oauth2/v2.0/token
+token_endpoint_auth_methods_supported => ['client_secret_post', 'private_key_jwt', 'client_secret_basic', 'self_signed_tls_client_auth']
+jwks_uri => https://login.microsoftonline.com/common/discovery/v2.0/keys
+response_modes_supported => ['query', 'fragment', 'form_post']
+subject_types_supported => ['pairwise']
+id_token_signing_alg_values_supported => ['RS256']
+response_types_supported => ['code', 'id_token', 'code id_token', 'id_token token']
+scopes_supported => ['openid', 'profile', 'email', 'offline_access']
+issuer => https://login.microsoftonline.com/{tenantid}/v2.0
+request_uri_parameter_supported => False
+userinfo_endpoint => https://graph.microsoft.com/oidc/userinfo
+authorization_endpoint => https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+device_authorization_endpoint => https://login.microsoftonline.com/common/oauth2/v2.0/devicecode
+http_logout_supported => True
+frontchannel_logout_supported => True
+end_session_endpoint => https://login.microsoftonline.com/common/oauth2/v2.0/logout
+claims_supported => ['sub', 'iss', 'cloud_instance_name', 'cloud_instance_host_name', 'cloud_graph_host_name', 'msgraph_host', 'aud', 'exp', 'iat', 'auth_time', 'acr', 'nonce', 'preferred_username', 'name', 'tid', 'ver', 'at_hash', 'c_hash', 'email']
+kerberos_endpoint => https://login.microsoftonline.com/common/kerberos
+mtls_endpoint_aliases => {'token_endpoint': 'https://mtlsauth.microsoft.com/common/oauth2/v2.0/token'}
+tls_client_certificate_bound_access_tokens => True
+tenant_region_scope => None
+cloud_instance_name => microsoftonline.com
+cloud_graph_host_name => graph.windows.net
+msgraph_host => graph.microsoft.com
+rbac_url => https://pas.windows.net
+[0m
+I have the full RECON context. The state file shows `phase=RECON, status=IN_PROGRESS`, so this run advances to **PHASE 2 SURFACE**. I'll build on the journal — not repeat it. The highest-impact surface is the Microsoft Identity OAuth2/OIDC endpoints on `login.microsoftonline.com` (MFA-bypass bounty = $100k). Let me passively enumerate the OIDC discovery docs and Graph metadata.
+
+I'll respect ≤1 rps and GET/HEAD only, against declared in-scope hosts.
+[0m$ [0msleep 1; curl -sL -m 25 -H "User-Agent: msrc-research-recon" "https://graph.microsoft.com/v1.0/" -o /tmp/graph_svc.json -w "HTTP %{http_code} bytes %{size_download}\n"; python3 -c "
+import json
+try:
+    d=json.load(open('/tmp/graph_svc.json'))
+    print('top-level keys:', list(d.keys()))
+    for k in list(d.keys())[:20]:
+        v=d[k]
+        if isinstance(v,str): print(f'{k} = {v}')
+        elif isinstance(v,(list,dict)): print(f'{k} = ({type(v).__name__} len {len(v) if not isinstance(v,dict) else len(v.keys())})')
+except Exception as e:
+    print('ERR',e)
+" 2>&1 | head -40
+HTTP 200 bytes 4779
+top-level keys: ['@odata.context', 'value']
+@odata.context = https://graph.microsoft.com/v1.0/$metadata
+value = (list len 72)
+[0m
+[0m$ [0msleep 1; curl -sL -m 25 -H "User-Agent: msrc-research-recon" "https://graph.microsoft.com/v1.0/\$metadata" -o /tmp/graph_meta.xml -w "HTTP %{http_code} bytes %{size_download}\n"; echo "--- namespace + entity count ---"; python3 -c "
+import re
+try:
+    x=open('/tmp/graph_meta.xml',encoding='utf-8',errors='ignore').read()
+    print('len',len(x))
+    ns=re.findall(r'Namespace=\"([^\"]+)\"',x)[:5]
+    print('namespaces:',ns)
+    ents=re.findall(r'<EntityType\s+Name=\"([^\"]+)\"',x)
+    print('entity types:',len(ents))
+    print('sample entities:',ents[:15])
+    funcs=re.findall(r'<Function\s+Name=\"([^\"]+)\"',x)
+    print('functions:',len(funcs),funcs[:10])
+except Exception as e:
+    print('ERR',e)
+" 2>&1 | head -30
+HTTP 200 bytes 2931817
+--- namespace + entity count ---
+len 2931764
+namespaces: ['microsoft.graph.identityGovernance', 'microsoft.graph', 'microsoft.graph.security', 'microsoft.graph.entraRecoveryServices', 'microsoft.graph.termStore']
+entity types: 1183
+sample entities: ['workflowBase', 'workflow', 'lifecycleWorkflowsContainer', 'userProcessingResult', 'run', 'task', 'taskProcessingResult', 'customTaskExtension', 'insights', 'lifecycleManagementSettings', 'taskDefinition', 'workflowTemplate', 'taskReport', 'workflowVersion', 'entity']
+functions: 326 ['summary', 'summary', 'summary', 'topTasksProcessedSummary', 'topWorkflowsProcessedSummary', 'workflowsProcessedByCategory', 'workflowsProcessedSummary', 'getRelyingPartyDetailedSummary', 'deviceConfigurationDeviceActivity', 'deviceConfigurationUserActivity']
+[0m
+Got the Microsoft Entra OIDC discovery doc — it reveals the full OAuth2/OIDC endpoint set (authorize, token, end_session, devicecode, jwks, kerberos, mtls alias). Now let me map the Graph API surface (v1.0 metadata) and probe how the `authorize` endpoint handles `redirect_uri` validation — the key SURFACE question for the Identity program.
+[0m$ [0msleep 1; echo "=== TEST 1: benign redirect_uri with placeholder client_id ==="; curl -s -m 20 -H "User-Agent: msrc-research-recon" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=00000000-0000-0000-0000-000000000000&response_type=code&redirect_uri=https%3A%2F%2Fexample.com%2F&response_mode=query&scope=openid&state=abc123" -D /tmp/az_hdr1.txt -o /tmp/az_body1.html -w "HTTP %{http_code}\n"; echo "--- headers ---"; grep -iE "location|set-cookie|www-authenticate" /tmp/az_hdr1.txt 2>/dev/null; echo "--- body snippet ---"; head -c 800 /tmp/az_body1.html 2>/dev/null | tr -d '\r\n' | sed 's/<[^>]*>//g' | head -c 500; echo
+=== TEST 1: benign redirect_uri with placeholder client_id ===
+HTTP 200
+--- headers ---
+Set-Cookie: buid=1.ASkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApAA.AQABGgEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzAwAAAAAAHcQhzE0_nBcCCpfDebJiS4FNl5jyF2XeVsMDrpVQaMaXoF_teu82oJ0iYR2c5H-NyBBdBcn7pGt_mgoLF6wGbSmFhy6U-hIJZUE7xDI_6skgAA; expires=Sun, 06-Sep-2026 09:02:58 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx-8ZT4DiltgN4=AQABCQEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAAfQW9iAd19b18OPnd4T9Bdps_pxGd3Ab_KBqAk2wwul9l__kJkDTnoptWB7rQNU6FERTnhoXqiRc3Ln36pW16v_CQPXFFnK2rBSWWhhD-TOpkXcjb7Ac15qFX6-QUlltjppvqFn-5KQQ3XgwdxDWnQiAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: fpc=AiPQeu4puNtBn6mV7E2I01E; expires=Sun, 06-Sep-2026 09:02:58 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx=PBgABBwEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAAOC0ucTgdROtgXnKAShOWAhxFuSbqLzCGpqzweqGtRiDCxQJt2te1wgi1Y8ev-3e_3nvXagT9PT80MrKUwseoo7GH2z4cDzPSpCsxFg2WVaQZ8nY4AWXap700ctJZ7aN_byz1wJtGhUStm9TLzg81nRA76Z_c4yvPIQM9RRUgjVH1PaY0AxpZrhVOmufWndcD5Wizi7C9_FqAmLjk0Wqb2CtnKy45A4GN8UjIRu1QLeVPUKFNgOJM9BM0VLhqiCWAAGgxr5laNrobzj3-CDJZNkFfblv3tw04WK_JJxKEQIFsDzwpjVDowVTHsVAD4xLGsmqSs7Q7M8pAivbmlJ4DOoKFPFHDTM5htlyjFEweju39Z2hX4S8dUY3yVb8bRTZo1pW1vWE6ZoJobHv6nfmgHrDGsPRxQ4bvrBTq4ORK-m6ilqxS_sj8NVQwhI0XxI5y7ZyhdyWz-_3eXWh98umxCgsmZZRaS6_jn2CSUoQ-fk-aFoU2bM2NfzPWrPG-zeYGKRNB4DjH4WkFSwX9e_AxGMo_S9hV-JgFthKq7fk8o6nanOvcHwXyQtvn9weS7HzU0C_DxHqrwTOlS84hG7p8RSUtbGn5s3-KXStcv0-_w-iXpYapkubZRAUXYHUGfGa2aU-a4iNSgGSgZUMpq9N_yT6FuTBMtUORkovsOWd87jwrGgoa2goVebT0BKH1_6YeAl6OCEAVySEHovc2wr1xcGSPOmboPzrfnoq2tyMgdeMgAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: x-ms-gateway-slice=estsfd; path=/; secure; samesite=none; httponly
+Set-Cookie: stsservicecookie=estsfd; path=/; secure; samesite=none; httponly
+--- body snippet ---
+    Sign in to your account                            <meta name="PageID" content="C
+[0m
+Graph API surface is large: **1,183 entity types, 326 functions** across `microsoft.graph`, `identityGovernance`, and `security` namespaces. Now the critical SURFACE probe — how does the `authorize` endpoint validate `redirect_uri`? I'll send a single benign GET with a controlled redirect_uri and a placeholder client_id to observe the validation/error behavior (no credentials, no flow completion — pure passive).
+[0m$ [0msleep 1; echo "=== TEST 2: malformed redirect_uri (observe error specificity) ==="; curl -s -m 20 -H "User-Agent: msrc-research-recon" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=00000000-0000-0000-0000-000000000000&response_type=code&redirect_uri=https%3A%2F%2Fevil.example%2Fcb&response_mode=fragment&scope=openid&state=x" -D /tmp/az2_hdr.txt -o /tmp/az2_body.html -w "HTTP %{http_code}\n"; grep -iE "location|set-cookie" /tmp/az2_hdr.txt 2>/dev/null; echo "--- body snippet ---"; head -c 600 /tmp/az2_body.html 2>/dev/null | tr -d '\r\n' | sed 's/<[^>]*>//g' | head -c 400; echo
+=== TEST 2: malformed redirect_uri (observe error specificity) ===
+HTTP 200
+Set-Cookie: buid=1.AVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABYAA.AQABGgEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzAwAAAAAA2oVqCUpUm1DatNi0R3cWz5kTpBOLb4fcEoiGE7Z4li6FhdYgQYYMTPLHB0kbFlt3m30gwfMw_qgGR_kHQGIAjN3dpANsnsczlvEvoMJLxzUgAA; expires=Sun, 06-Sep-2026 09:03:03 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx-Vgz8fSvTVQ=AQABCQEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAA5Vv82ZAYqed1gZwdk1QSMtnOv53abOE-JKIxtMy3lP-8ZEeh25sRRlJVlQ1qebeuqjWFCH_I2cg8l4hGlJ-Je60gd0ipxrRicJrWS0nczvTbOQSA-dW-Oc9jvJw5NCirtrMktc5Vny5aU2mJ-s5bPSAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: fpc=AgHE-uKFivhLpBsQsxh_fww; expires=Sun, 06-Sep-2026 09:03:03 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx=PBgABBwEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAAmWVRqeRhRVAW_0EzD6tPn8qeVKeydMMkFEZaCKwJH5TrZLUWVSLWQuAB_0JP8qKLXUrfmQhgop1a1mW39s1AS0OpmEPA1pNZZcEJQtUCSWRfD4XchE7ig3SerPI9hlJuihUu56z3oL8fW-oTalwr8TzKhCWhiac7b4uW4kYzHcRKa9-ODOBPPu_Natxnp0FTBqm-bb9xT91j56EMyiAB226XH-Ur3QNkbXGSXLlnkwLT6OmS6RuGJlMWjzKNiqGUjlV0788mhgImPwkRz1Hch8McwUT3RjRsIocsXqmTO5FCWtI4KJzTI_-ExxqI4Olv18QFZ34DSSGn1OiFju1BZECxWBvpDFlfXiOmIO0I7hE4tY89hYUzynt-vHJhsG9xXsTgVsgdzVAJzoFu4IlkCSi3kbEqoTd_yKcEsBXJq8u0BfaxmFZUDmdiQXZER3yia408ga6RPAipwsXWmCXDTid60myaAOC4tsa5PwQDG7vkvFWsQ-SdtHjko7JVcKlLx5IZ0NTropCyUCwAhDLFI-k9lNOnbiUmHukyuOL9oI6ChmwzDlZnQmFdHqblhFqBO4Twma4tdkjKh3U-WQzEL6h42ED1IphFpZiM4NlCJBJFHp_QwmLpJEcJlaE_Ls3zy_j5vyPzQB2cbmdhc36RElebTwVfsx6tBm7bC8bpl3iE7h4cDu7qLlRr_6tScnRmDXYOLdXvWdilkqO1bcVf6_gq1Q-KvQcRTTw_8fnfPGcgAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: x-ms-gateway-slice=estsfd; path=/; secure; samesite=none; httponly
+Set-Cookie: stsservicecookie=estsfd; path=/; secure; samesite=none; httponly
+--- body snippet ---
+    Sign in to your account                        <me
+[0m
+[0m$ [0msleep 1; echo "=== v1.0 discovery (legacy) ==="; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://login.microsoftonline.com/common/.well-known/openid-configuration?api-version=1.0" -o /tmp/v1disc.json -w "HTTP %{http_code} bytes %{size_download}\n"; python3 -c "
+import json
+try:
+    d=json.load(open('/tmp/v1disc.json'))
+    for k in ['authorization_endpoint','token_endpoint','end_session_endpoint','issuer','jwks_uri','userinfo_endpoint']:
+        print(k,'=',d.get(k))
+    print('response_types:',d.get('response_types_supported'))
+    print('id_token_alg:',d.get('id_token_signing_alg_values_supported'))
+except Exception as e:
+    print('not JSON or err:',e); print(open('/tmp/v1disc.json').read()[:300])
+" 2>&1 | head -30
+=== v1.0 discovery (legacy) ===
+HTTP 200 bytes 1564
+authorization_endpoint = https://login.microsoftonline.com/common/oauth2/authorize
+token_endpoint = https://login.microsoftonline.com/common/oauth2/token
+end_session_endpoint = https://login.microsoftonline.com/common/oauth2/logout
+issuer = https://sts.windows.net/{tenantid}/
+jwks_uri = https://login.microsoftonline.com/common/discovery/keys
+userinfo_endpoint = https://login.microsoftonline.com/common/openid/userinfo
+response_types: ['code', 'id_token', 'code id_token', 'token id_token', 'token']
+id_token_alg: ['RS256']
+[0m
+Key SURFACE observation: both authorize probes returned HTTP 200 with a generic *"Sign in to your account"* page even with a **placeholder client_id + arbitrary redirect_uri** — Microsoft does **not** return a redirect_uri validation error on the initial unauthenticated GET. Validation is deferred to post-authentication token issuance, which means redirect_uri handling is **not observable via a passive unauthenticated GET** alone (requires completing the flow). Important for PoC design.
+
+Let me check the v1.0 discovery (legacy vs v2.0) and the legacy `microsoftazuread-sso.com` WS-Fed endpoint to map the multi-tenant/auth protocol surface.
+[0m$ [0msleep 1; echo "=== microsoftazuread-sso.com (legacy WS-Fed) ==="; curl -sI -m 20 -H "User-Agent: msrc-research-recon" "https://microsoftazuread-sso.com/" -w "HTTP %{http_code}\n" -D /tmp/sso_hdr.txt; echo "--- headers ---"; head -30 /tmp/sso_hdr.txt 2>/dev/null; echo "=== check well-known on legacy host ==="; curl -s -m 20 -H "User-Agent: msrc-research-recon" "https://microsoftazuread-sso.com/FederationMetadata/2007-06/FederationMetadata.xml" -w "HTTP %{http_code} bytes %{size_download}\n" -o /tmp/sso_fed.xml 2>&1 | tail -2; head -c 300 /tmp/sso_fed.xml 2>/dev/null
+=== microsoftazuread-sso.com (legacy WS-Fed) ===
+HTTP 000
+--- headers ---
+=== check well-known on legacy host ===
+HTTP 000 bytes 0
+[0m
+[0m$ [0msleep 1; for ep in "https://api.mysignins.microsoftonline.com/" "https://provisioningapi.microsoftonline.com/" "https://adminwebservice.microsoftonline.com/"; do echo "=== $ep ==="; curl -sI -m 15 -H "User-Agent: msrc-research-recon" "$ep" -w "HTTP %{http_code}\n" -D /tmp/sig.txt 2>&1 | tail -1; grep -iE "^(server|www-authenticate|location|content-type)" /tmp/sig.txt 2>/dev/null | head -5; echo; done
+=== https://api.mysignins.microsoftonline.com/ ===
+HTTP 000
+
+=== https://provisioningapi.microsoftonline.com/ ===
+HTTP 000
+
+=== https://adminwebservice.microsoftonline.com/ ===
+HTTP 404
+Content-Type: text/HTML
+[0m
+Excellent SURFACE data point — the v1.0 endpoint reveals a **different issuer** (`https://sts.windows.net/{tenantid}/`) and **supports additional response types** the v2.0 doesn't (hybrid `token id_token`, pure `token` implicit) — a classic dual-protocol surface. `microsoftazuread-sso.com` is currently unreachable from this vantage (HTTP 000). Let me round out the Surface with a quick probe of the two "less-frequent" endpoints flagged in RECON (api.mysignins + provisioningapi).
+[0m→ [0mRead state_laguna.json
+[0m→ [0mRead leads/lead-laguna.md
+[0m→ [0mRead research/laguna.md
+I now have comprehensive PHASE 2 SURFACE data. The dual v1.0/v2.0 endpoints with a **different issuer namespace** (`sts.windows.net` vs `login.microsoftonline.com`) plus the mTLS cert-bound token surface and 326 Graph functions across `identityGovernance`/`security` namespaces are the most promising surfaces. The "less-frequent" endpoints (adminwebservice) resolve but are path-gated; mysignins/provisioning/sso host are unreachable from this vantage.
+
+Let me persist these findings and advance the phase.
+[0m
+[0m← [0mWrite state_laguna.json
+Wrote file successfully.
+[0m
+[0m← [0mWrite leads/lead-laguna.md
+Wrote file successfully.
+[0m
+I have all the PHASE 2 SURFACE data I need. Let me persist the SURFACE findings, update the leads with the new hypotheses (issuer-confusion between sts.windows.net/v1.0 vs login.microsoftonline.com/v2.0, mTLS cert-binding surface, Graph identityGovernance/security functions), and advance the state file.
+[0m$ [0mtail -5 /home/runner/work/hunt-lab/hunt-lab/research/laguna.md; echo "=== LINE COUNT ==="; wc -l /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
+STATUS_STATE: IN_PROGRESS
+NEXT_STEP_1: Begin PHASE 2 SURFACE — passively enumerate OIDC discovery document and OAuth2 authorize endpoint parameters on login.microsoftonline.com; map redirect_uri handling.
+NEXT_STEP_2: Passively inspect graph.microsoft.com Graph v1.0 metadata (unauth discovery) to map the Directory/Governance/Identity+Sign-In endpoint surface and consent model.
+NEXT_STEP_3: Start passive source review of microsoft/msquic + microsoft/SymCrypt (in-scope native code) for memory-safety leads, and retry crt.sh subdomain enumeration now that the first pass is complete.
+</arg_value></tool_call>
+=== LINE COUNT ===
+1020 /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
+[0m
+Now let me append the PHASE 2 SURFACE findings to the research journal. Let me read the tail of the research file to find the right anchor point.
+[0m← [0mEdit research/laguna.md
+Index: /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
+===================================================================
+--- /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
++++ /home/runner/work/hunt-lab/hunt-lab/research/laguna.md
+@@ -1016,5 +1016,46 @@
+ STATUS_STATE: IN_PROGRESS
+ NEXT_STEP_1: Begin PHASE 2 SURFACE — passively enumerate OIDC discovery document and OAuth2 authorize endpoint parameters on login.microsoftonline.com; map redirect_uri handling.
+ NEXT_STEP_2: Passively inspect graph.microsoft.com Graph v1.0 metadata (unauth discovery) to map the Directory/Governance/Identity+Sign-In endpoint surface and consent model.
+ NEXT_STEP_3: Start passive source review of microsoft/msquic + microsoft/SymCrypt (in-scope native code) for memory-safety leads, and retry crt.sh subdomain enumeration now that the first pass is complete.
++
++============================================================
++# PROGRAM: microsoft
++# PHASE: SURFACE  (2026-08-07 run, model laguna)
++============================================================
++## Key Findings (one line each, specific)
++- OIDC v2.0 discovery (login.microsoftonline.com/common/v2.0/.well-known/openid-configuration) returns full endpoint set: authorize, token, end_session/logout, devicecode, jwks, kerberos, plus an **mtls token_endpoint alias at mtlsauth.microsoft.com** with `tls_client_certificate_bound_access_tokens=true`.
++- v2.0 supported grant/response surface: response_types {code, id_token, code id_token, id_token token}; response_modes {query, fragment, form_post}; client auth methods {client_secret_post, private_key_jwt, client_secret_basic, self_signed_tls_client_auth}; subject_types {pairwise}.
++- **Dual protocol versions**: v1.0 discovery (/common/.well-known/openid-configuration?api-version=1.0) uses issuer `https://sts.windows.net/{tenantid}/`, authorize at /common/oauth2/authorize, and supports response types NOT present in v2.0: hybrid `token id_token` and implicit `token` (v2.0 dropped these). Two distinct issuer namespaces for the same tenant.
++- **Authorize endpoint does NOT validate redirect_uri on the initial unauthenticated GET**: a request with a placeholder client_id + arbitrary redirect_uri (https://example.com/ and https://evil.example/) returned HTTP 200 + a generic "Sign in to your account" page in BOTH cases — no redirect_uri rejection, no error. Validation is deferred to post-authentication token issuance. → redirect_uri handling is NOT observable via a passive unauth GET; confirming a redirect_uri flaw requires completing an auth flow (state-change / OOS for passive).
++- Graph API v1.0 service doc (graph.microsoft.com/v1.0/) returns 72 top-level collections; OData $metadata (2.9 MB) exposes **1,183 EntityTypes** and **326 Functions** across namespaces `microsoft.graph`, `microsoft.graph.identityGovernance`, `microsoft.graph.security`, `microsoft.graph.entraRecoveryServices`.
++- mTLS config: `tls_client_certificate_bound_access_tokens=true`; token endpoint alias on `mtlsauth.microsoft.com` (separate host, mTLS-bound tokens). Certificate-bound access token surface — possible binding-confusion between the plain token endpoint and the mTLS alias if an attacker strips the binding.
++- Legacy WS-Fed host `microsoftazuread-sso.com` unreachable from test vantage (HTTP 000 — likely region/gateway-gated); `api.mysignins.microsoftonline.com` and `provisioningapi.microsoftonline.com` also unreachable from vantage (HTTP 000, path/region-gated); `adminwebservice.microsoftonline.com` resolves (HTTP 404 on root, Content-Type text/HTML).
++
++## New Endpoints / Assets (SURFACE)
++- GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration  (OIDC discovery; live)
++- GET https://login.microsoftonline.com/common/.well-known/openid-configuration?api-version=1.0  (v1.0 discovery; issuer sts.windows.net/{tenantid})
++- GET https://login.microsoftonline.com/common/oauth2/v2.0/authorize  (response_types: code|id_token|code id_token|id_token token; modes: query|fragment|form_post)
++- GET https://login.microsoftonline.com/common/oauth2/v2.0/token  (POST normally; mTLS alias: https://mtlsauth.microsoft.com/common/oauth2/v2.0/token)
++- GET https://login.microsoftonline.com/common/oauth2/v2.0/logout  (end_session_endpoint)
++- GET https://login.microsoftonline.com/common/oauth2/v2.0/devicecode  (device code flow)
++- GET https://login.microsoftonline.com/common/discovery/v2.0/keys  (JWKS)
++- GET https://login.microsoftonline.com/common/kerberos
++- GET https://graph.microsoft.com/v1.0/  (OData service doc, 72 collections)
++- GET https://graph.microsoft.com/v1.0/$metadata  (OData schema, 1183 EntityTypes, 326 Functions)
++- GET https://graph.microsoft.com/oidc/userinfo  (userinfo endpoint per v2.0 discovery)
++- adminwebservice.microsoftonline.com/  (resolves; 404 root)
++- (region-gated/unreachable from vantage): microsoftazuread-sso.com, api.mysignins.microsoftonline.com, provisioningapi.microsoftonline.com, accounts.accesscontrol.windows.net
++
++## Hypotheses (numbered, with impact + read-only test)  ← PHASE 3 input
++1. Issuer-confusion / token replay across v1.0↔v2.0. v1.0 issuer is `https://sts.windows.net/{tenantid}/`; v2.0 is `https://login.microsoftonline.com/{tenantid}/v2.0`. If any in-scope Relying Party or MS graph token-accepting endpoint accepts a v1.0-style `sts.windows.net` iss token where it should require v2.0 (or vice-versa), or accepts tokens whose `aud` matches the wrong protocol, cross-protocol token replay is possible. Impact: auth bypass / MFA bypass (up to $100,000). Read-only test: compare iss/aud/tid fields of v1.0 vs v2.0 sample tokens in public MS docs; inspect any token-bearing surface for loose issuer/aud validation (source review of MS-published sample RPs). NOTE: high bar — only actionable if a downstream RP validates issuer loosely; Microsoft's own endpoints must not be mis-tested.
++2. mTLS cert-bound access token binding bypass. `tls_client_certificate_bound_access_tokens=true` and a distinct mTLS token endpoint on mtlsauth.microsoft.com. If the binding is enforced only at the token endpoint and an access token request to graph.microsoft.com does not re-attest the TLS cert binding, a stolen/bound token could be replayed over plain TLS. Impact: access-token replay (Confidentiality/Integrity on Graph data). Read-only test: GET graph.microsoft.com/v1.0/ over plain TLS vs mTLS; compare WWW-Authenticate / token-claim introspection hints (no token use — passive header analysis only).
++3. Hybrid/implicit response_type quirks (v1.0 supports `token id_token`, `token` not in v2.0). The form_post response_mode + hybrid response_type path is historically error-prone. Impact: code/token leakage via response_mode confusion. Read-only test: inspect MSRC Update Guide / CVRF for past fixes in this path (regression); passive source/docs review. Cannot actively trigger without a flow (state-change).
++4. redirect_uri deferred-validation (observed). Because the authorize endpoint does not pre-validate redirect_uri, any redirect_uri-allowlist bypass is invisible to a passive GET. A true PoC needs to complete a sign-in (state change / OOS for passive). Hypothesis is documented as a **deferred PoC** — not pursued live; candidate for formal report only if a non-flow-completing signal (e.g., error-message oracle) is later found.
++5. Graph IDOR / consent-scope escape in identityGovernance or security functions. 326 Graph functions across identityGovernance (Governance tab) + security. A delegated permission scope that maps to identityGovernance functions (e.g., workflow/task/insights) could permit cross-tenant enumeration or self-elevation if consent is loosely scoped. Impact: privilege escalation / info disclosure (up to ~$19,500 for M365; OS-program IDOR up to $15,000). Read-only test: GET graph.microsoft.com/v1.0/$metadata and enumerate identityGovernance-bound functions; map to documented delegated-vs-app-only scopes in docs.microsoft.com (passive docs read only).
++
++## Secrets Check (public repos: what was found, hash only, where)
++- Phase 2 did not execute a secret scan. Per RECON, the reposcan pipeline (reposcan-raw/grep-hits.txt) reported 0 code/config hits this cycle. Targeted secret scan against the OS-bounty repo list is deferred (next slot). Any live secret found will be reported as a sha256 hash only and flagged for triage.
++
++## CVSS Candidates
++- (deferred to PHASE 3 HYPOTHESIS / PHASE 4 POC). Issuer-confusion / auth-bypass class candidate sits ~CVSS 8.0–9.8 depending on UI and required precondition (MFA interaction, RP config). mTLS binding bypass ~CVSS 7.5–8.1. Graph IDOR ~CVSS 6.5–8.1. No score claimed until a concrete read-only signal is produced.
+ </arg_value></tool_call>
+
+[0m
+[0m$ [0mecho "=== state_laguna.json ==="; cat state_laguna.json; echo "=== git status (short) ==="; git -C /home/runner/work/hunt-lab/hunt-lab status --short
+=== state_laguna.json ===
+{"phase": "SURFACE", "status": "HIGH_POTENTIAL"}
+=== git status (short) ===
+ M leads/lead-laguna.md
+ M research/laguna.md
+ M state_laguna.json
+?? ctx-leads.txt
+?? ctx-research.txt
+?? ctx-valid.txt
+?? raw_laguna.txt
+?? research-prompt.txt
+[0m
+Let me verify the final state is consistent.
+PHASE 2 SURFACE complete. State advanced to `SURFACE / HIGH_POTENTIAL`.
+
+## Key results
+
+**OAuth2/OIDC surface (login.microsoftonline.com):**
+- v2.0 discovery (live, GET): authorize `/oauth2/v2.0/authorize`, token, logout, devicecode, jwks, kerberos; supports response_types `{code, id_token, code id_token, id_token token}` and response_modes `{query, fragment, form_post}`.
+- **Dual protocol**: v1.0 discovery uses issuer `https://sts.windows.net/{tenantid}/` and supports **response types not in v2.0** (hybrid `token id_token`, implicit `token`) — two issuer namespaces for the same tenant. → issuer-confusion surface [Hypothesis 1].
+- **redirect_uri is NOT validated pre-auth**: placeholder client_id + arbitrary redirect_uri (both `example.com` and `evil.example`) returned HTTP 200 + a generic *"Sign in"* page — no rejection. Validation is deferred to post-auth token issuance, so it's **not observable via a passive GET**. → deferred PoC [Hypothesis 4].
+- **mTLS**: `tls_client_certificate_bound_access_tokens=true` with token alias on `mtlsauth.microsoft.com` — cert-binding/bypass surface [Hypothesis 2].
+
+**Graph surface (graph.microsoft.com):**
+- v1.0 service doc: 72 collections; `$metadata`: **1,183 EntityTypes, 326 Functions** across `microsoft.graph`, `identityGovernance`, `security`, `entraRecoveryServices`. → IDOR / consent-scope-escape surface [Hypothesis 5].
+
+**Legacy "less-frequent" endpoints:**
+- `adminwebservice.microsoftonline.com` resolves (404 root); `microsoftazuread-sso.com`, `api.mysignins.*`, `provisioningapi.*`, `accounts.accesscontrol.windows.net` unreachable from this vantage (HTTP 000 — region/path-gated).
+
+**In scope per rules:** login.microsoftonline.com, graph.microsoft.com, microsoftazuread-sso.com, accounts.accesscontrol.windows.net — all declared in-scope hosts. All requests were GET/HEAD, ≤1 rps, no credentials/flows/state-changes.
+
+**Findings persisted:** `research/laguna.md` (appended SURFACE section), `leads/lead-laguna.md` (5 hypotheses w/ read-only PoC designs), `state_laguna.json` (`{"phase":"SURFACE","status":"HIGH_POTENTIAL"}`).
+
+**Next:** PHASE 3 HYPOTHESIS — formalize issuer-confusion vs sts.windows.net, mTLS cert-binding bypass, and Graph identityGovernance/security function IDOR; design read-only GET/HEAD PoCs (no flow completion).
