@@ -1,4 +1,38 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-I don't see any actual grep hits in your message - only the scan summary. Please provide the grep hits (file paths and matching lines) you'd like me to triage.
+Looking at these hits, they're all from `google/osv-scanner` and fall into clear categories:
+
+**TEST_OR_EXAMPLE** (test fixtures, sample data):
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/osv-scanner/internal/ci/testdata/vulns/test-vuln-results-b.json | 68 | HashiCorp discuss URL in test vuln data |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid-no-call-data.json | 119 | Same HashiCorp URL in test input |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/vulnbyid.json | 119 | Same HashiCorp URL in test input |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/input-no-call-data.json | 55 | Same HashiCorp URL in test input |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/input.json | 55 | Same HashiCorp URL in test input |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/output.json | 76 | Same HashiCorp URL in test output |
+| reposcan-raw/google/osv-scanner/internal/sourceanalysis/testdata/json/output-no-call-data.json | 72 | Same HashiCorp URL in test output |
+| reposcan-raw/google/osv-scanner/internal/output/testdata/flattened_vulns.json | 64 | Same HashiCorp URL in test output |
+| reposcan-raw/google/osv-scanner/cmd/osv-scanner/scan/source/testdata/cassettes/*.yaml | 27-3400 | `https://api.osv.dev/v1/querybatch` in 60+ test cassettes |
+
+**ENDPOINT_LEAK** (production/internal endpoints):
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/osv-scanner/cmd/osv-scanner/fix/command.go | 291 | `RemoteHost: "https://osv-vulnerabilities.storage.googleapis.com"` - production GCS bucket endpoint |
+
+**REAL_SECRET**: None found - no API keys, tokens, or credentials with signs of life.
+
+**INTERESTING**: None beyond the above.
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|-----------------|
+| HashiCorp discuss URLs in testdata | no |
+| api.osv.dev/v1/querybatch in test cassettes | no |
+| osv-vulnerabilities.storage.googleapis.com in command.go | no (public production endpoint) |
+
+**Summary**: No reportable secrets. All hits are test fixtures, example data, or public production endpoints.
