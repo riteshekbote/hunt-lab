@@ -68,6 +68,7 @@ jobs:
       - name: Secret + endpoint grep sweep (python, 50 patterns)
         run: |
           OUT=reposcan-raw/grep-hits.txt
+          [ -f $OUT ] && cp $OUT reposcan-raw/grep-hits.prev.txt
           : > $OUT
           python3 << 'PY'
           import os, re, json
@@ -137,6 +138,50 @@ jobs:
           PY
           wc -l $OUT
 
+      - name: Delta vs previous scan + RAG knowledge prep
+        run: |
+          python3 << 'PY'
+          import os, hashlib, re
+          def norm(path):
+              out = []
+              try:
+                  for line in open(path, errors='ignore'):
+                      l = line.strip()
+                      if l and not l.startswith('SCAN SUMMARY'):
+                          out.append(l)
+              except FileNotFoundError:
+                  pass
+              return set(out)
+          cur = norm('reposcan-raw/grep-hits.txt')
+          prev = norm('reposcan-raw/grep-hits.prev.txt')
+          new = sorted(cur - prev)
+          with open('reposcan-raw/grep-delta.txt', 'w') as f:
+              f.write(f"DELTA: {len(new)} new hit lines vs previous scan\n")
+              for l in new[:40]:
+                  f.write(l + "\n")
+          # hash any secret-looking material for the model (never raw)
+          out = []
+          for l in new:
+              m = re.search(r'[A-Za-z0-9_\-\.]{20,}', l)
+              if m:
+                  out.append((l[:120], hashlib.sha256(m.group(0).encode()).hexdigest()[:16]))
+          with open('reposcan-raw/grep-delta.txt', 'a') as f:
+              if out:
+                  f.write("HASHED MATERIAL:\n")
+                  for l, h in out[:20]:
+                      f.write(f"{h}  {l}\n")
+          print(f"delta lines: {len(new)}")
+          PY
+          {
+            echo "=== KNOWLEDGE BASE (RAG) ==="
+            cat knowledge/index.md 2>/dev/null || echo none
+            echo "=== INVENTORY google ==="
+            cat inventory/google.md 2>/dev/null | head -40 || echo none
+            echo "=== INVENTORY microsoft ==="
+            cat inventory/microsoft.md 2>/dev/null | head -40 || echo none
+          } > reposcan-raw/rag.txt
+          wc -l reposcan-raw/rag.txt reposcan-raw/grep-delta.txt
+
       - name: Model deep-dive on hits
         run: |
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
@@ -145,7 +190,22 @@ jobs:
           microsoft/ GitHub orgs (both are in scope of their bounty programs as
           public source code).
 
-          Below are grep hits (files + lines). For EACH hit classify:
+          KNOWLEDGE (from our RAG base, respected as proven facts):
+          PROMPT_START
+          cat reposcan-raw/rag.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_MID'
+          Above knowledge lists REJECTED classes (do NOT re-report these as
+          candidates), KNOWN DUPLICATES (skip them), and alive surfaces.
+
+          NEW HITS SINCE LAST SCAN (delta - focus here first):
+          PROMPT_MID
+          cat reposcan-raw/grep-delta.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_MID2'
+          FULL GREP HITS (for context):
+          PROMPT_MID2
+          cat reposcan-raw/grep-hits.txt >> scan-prompt.txt
+          cat >> scan-prompt.txt << 'PROMPT_END'
+          For EACH hit classify:
           - REAL_SECRET: hardcoded credential/API key/token with signs of life
             (reportable via the program's disclosure channel after triage)
           - TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
@@ -155,10 +215,7 @@ jobs:
           the secret material.
           Output: a table per category, then a SHORT verdict list with
           "REPORT_CANDIDATE: yes/no" per real candidate.
-
-          GREP HITS:
-          PROMPT_START
-          cat reposcan-raw/grep-hits.txt >> scan-prompt.txt
+          PROMPT_END
           timeout 15m opencode run --model "$MODEL_ID" < scan-prompt.txt > reposcan-raw/analysis.txt 2>&1 || true
           echo "=== analysis preview ==="; head -30 reposcan-raw/analysis.txt
 
@@ -182,4 +239,5 @@ jobs:
           git config --global user.email "actions@github.com"
           git add leads reposcan-raw || true
           git diff --cached --quiet || git commit -m "reposcan $(date -u +'%Y-%m-%d-%H-%M')"
+          git pull --rebase || true
           git push || true
