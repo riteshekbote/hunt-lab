@@ -3916,3 +3916,722 @@ No [PARKED] items.
 ---
 
 **Summary**: The knowledge base remains fully current. Fresh live probes at 22:37 UTC confirmed all ACCEPTED findings (Graph 405, tokeninfo oracle, JWKS kid overlap, v2.0 HTTP 200 error, OIDC discovery response_types, agentRegistrations 401, bughunters hardening) are still live. NO_DELTA. Three final hypotheses (all AUTH_HELPED) target the Microsoft Entra/Copilot identity plane as the highest-value remaining surface. Google surface exhausted at risk 30.
+===== ANALYST laguna 2026-08-07 23:32:28 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/
+total 188
+drwxr-xr-x 12 runner runner  4096 Aug  7 23:16 .
+drwxr-xr-x  3 runner runner  4096 Aug  7 23:15 ..
+drwxr-xr-x  7 runner runner  4096 Aug  7 23:16 .git
+drwxr-xr-x  3 runner runner  4096 Aug  7 23:15 .github
+-rw-r--r--  1 runner runner  1022 Aug  7 23:15 README.md
+-rw-r--r--  1 runner runner    39 Aug  7 23:16 analyst-out.txt
+-rw-r--r--  1 runner runner 53960 Aug  7 23:16 analyst-prompt.txt
+-rw-r--r--  1 runner runner 51665 Aug  7 23:16 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 leads
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 reports
+drwxr-xr-x  4 runner runner  4096 Aug  7 23:15 reposcan-raw
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 research
+-rw-r--r--  1 runner runner  1650 Aug  7 23:15 scope.yml
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 scripts
+-rw-r--r--  1 runner runner    44 Aug  7 23:15 state_bigpickle.json
+-rw-r--r--  1 runner runner    44 Aug  7 23:15 state_laguna.json
+-rw-r--r--  1 runner runner    41 Aug  7 23:15 state_ling3.json
+-rw-r--r--  1 runner runner    41 Aug  7 23:15 state_longcat.json
+-rw-r--r--  1 runner runner    41 Aug  7 23:15 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 triage
+[0m
+[0m$ [0mcurl -s -m 15 "https://graph.microsoft.com/beta/$metadata" 2>/dev/null | grep -A 40 "EntityType Name=\"oauth2PermissionGrant\"" | head -50; echo "EXIT:$?"
+EXIT:0
+[0m
+I'll analyze the current state and run the 8 steps. Let me first probe the most promising new surface item (the consent primitive) passively, and check the working directory for any local files.
+[0m$ [0mcurl -s -m 15 "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" 2>/dev/null | python3 -c "import sys,json; d=json.load(sys.stdin); [print(p) for p in d.get('paths',[]) if any(k in p.lower() for k in ['consent','permission','grant','resourceid','oauth2'])]" 2>/dev/null | head -20; echo "EXIT:$?"
+EXIT:0
+[0m
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/inventory/ /home/runner/work/hunt-lab/hunt-lab/knowledge/ /home/runner/work/hunt-lab/hunt-lab/leads/ /home/runner/work/hunt-lab/hunt-lab/reports/ /home/runner/work/hunt-lab/hunt-lab/triage/
+/home/runner/work/hunt-lab/hunt-lab/inventory/:
+total 48
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 .
+drwxr-xr-x 12 runner runner  4096 Aug  7 23:16 ..
+-rw-r--r--  1 runner runner 20328 Aug  7 23:15 google.md
+-rw-r--r--  1 runner runner 20463 Aug  7 23:15 microsoft.md
+
+/home/runner/work/hunt-lab/hunt-lab/knowledge/:
+total 28
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 .
+drwxr-xr-x 12 runner runner  4096 Aug  7 23:16 ..
+-rw-r--r--  1 runner runner 16847 Aug  7 23:15 index.md
+
+/home/runner/work/hunt-lab/hunt-lab/leads/:
+total 688
+drwxr-xr-x  2 runner runner   4096 Aug  7 23:15 .
+drwxr-xr-x 12 runner runner   4096 Aug  7 23:16 ..
+-rw-r--r--  1 runner runner  82841 Aug  7 23:15 lead-bigpickle.md
+-rw-r--r--  1 runner runner 114772 Aug  7 23:15 lead-laguna.md
+-rw-r--r--  1 runner runner    550 Aug  7 23:15 lead-ling3.md
+-rw-r--r--  1 runner runner   2405 Aug  7 23:15 lead-longcat.md
+-rw-r--r--  1 runner runner  92164 Aug  7 23:15 lead-nemotron3.md
+-rw-r--r--  1 runner runner    250 Aug  7 23:15 reposcan-2026-08-07-08-25.md
+-rw-r--r--  1 runner runner    355 Aug  7 23:15 reposcan-2026-08-07-08-29.md
+-rw-r--r--  1 runner runner    290 Aug  7 23:15 reposcan-2026-08-07-08-34.md
+-rw-r--r--  1 runner runner    301 Aug  7 23:15 reposcan-2026-08-07-08-40.md
+-rw-r--r--  1 runner runner    301 Aug  7 23:15 reposcan-2026-08-07-08-52.md
+-rw-r--r--  1 runner runner    343 Aug  7 23:15 reposcan-2026-08-07-09-02.md
+-rw-r--r--  1 runner runner   8878 Aug  7 23:15 reposcan-2026-08-07-14-23.md
+-rw-r--r--  1 runner runner   8509 Aug  7 23:15 reposcan-2026-08-07-14-50.md
+-rw-r--r--  1 runner runner  12975 Aug  7 23:15 reposcan-2026-08-07-14-58.md
+-rw-r--r--  1 runner runner  14625 Aug  7 23:15 reposcan-2026-08-07-15-29.md
+-rw-r--r--  1 runner runner  14656 Aug  7 23:15 reposcan-2026-08-07-15-54.md
+-rw-r--r--  1 runner runner  17169 Aug  7 23:15 reposcan-2026-08-07-16-17.md
+-rw-r--r--  1 runner runner  15894 Aug  7 23:15 reposcan-2026-08-07-16-31.md
+-rw-r--r--  1 runner runner  14155 Aug  7 23:15 reposcan-2026-08-07-16-44.md
+-rw-r--r--  1 runner runner   9908 Aug  7 23:15 reposcan-2026-08-07-17-29.md
+-rw-r--r--  1 runner runner  16284 Aug  7 23:15 reposcan-2026-08-07-17-44.md
+-rw-r--r--  1 runner runner  18211 Aug  7 23:15 reposcan-2026-08-07-18-28.md
+-rw-r--r--  1 runner runner  16974 Aug  7 23:15 reposcan-2026-08-07-18-37.md
+-rw-r--r--  1 runner runner  17286 Aug  7 23:15 reposcan-2026-08-07-19-03.md
+-rw-r--r--  1 runner runner  10826 Aug  7 23:15 reposcan-2026-08-07-19-29.md
+-rw-r--r--  1 runner runner  10750 Aug  7 23:15 reposcan-2026-08-07-19-35.md
+-rw-r--r--  1 runner runner  16457 Aug  7 23:15 reposcan-2026-08-07-19-42.md
+-rw-r--r--  1 runner runner   8348 Aug  7 23:15 reposcan-2026-08-07-20-29.md
+-rw-r--r--  1 runner runner  11523 Aug  7 23:15 reposcan-2026-08-07-20-48.md
+-rw-r--r--  1 runner runner  12257 Aug  7 23:15 reposcan-2026-08-07-21-16.md
+-rw-r--r--  1 runner runner  12576 Aug  7 23:15 reposcan-2026-08-07-21-43.md
+-rw-r--r--  1 runner runner  15121 Aug  7 23:15 reposcan-2026-08-07-21-59.md
+-rw-r--r--  1 runner runner  14419 Aug  7 23:15 reposcan-2026-08-07-22-45.md
+-rw-r--r--  1 runner runner  14419 Aug  7 23:15 reposcan-latest.md
+
+/home/runner/work/hunt-lab/hunt-lab/reports/:
+total 708
+drwxr-xr-x  2 runner runner   4096 Aug  7 23:15 .
+drwxr-xr-x 12 runner runner   4096 Aug  7 23:16 ..
+-rw-r--r--  1 runner runner 168940 Aug  7 23:15 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 350199 Aug  7 23:15 analyst-laguna.log
+-rw-r--r--  1 runner runner   2376 Aug  7 23:15 analyst-ling3.log
+-rw-r--r--  1 runner runner   1080 Aug  7 23:15 analyst-longcat.log
+-rw-r--r--  1 runner runner 111285 Aug  7 23:15 analyst-nemotron3.log
+-rw-r--r--  1 runner runner   3635 Aug  7 23:15 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   9753 Aug  7 23:15 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner     50 Aug  7 23:15 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner     52 Aug  7 23:15 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner  14029 Aug  7 23:15 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  23578 Aug  7 23:15 hypotheses.md
+-rw-r--r--  1 runner runner    781 Aug  7 23:15 valid-bugs.md
+
+/home/runner/work/hunt-lab/hunt-lab/triage/:
+total 80
+drwxr-xr-x  2 runner runner  4096 Aug  7 23:15 .
+drwxr-xr-x 12 runner runner  4096 Aug  7 23:16 ..
+-rw-r--r--  1 runner runner 14785 Aug  7 23:15 run-2026-08-07-10-16.md
+-rw-r--r--  1 runner runner  8341 Aug  7 23:15 run-2026-08-07-11-10.md
+-rw-r--r--  1 runner runner  1637 Aug  7 23:15 run-2026-08-07-11-59.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-13-41.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-15-10.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-16-09.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-17-09.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-18-03.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-19-17.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-21-00.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner    82 Aug  7 23:15 run-2026-08-07-22-56.md
+[0m
+[0m$ [0mfor f in /home/runner/work/hunt-lab/hunt-lab/state_*.json; do echo "=== $f ==="; cat "$f"; echo; done
+=== /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json ===
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+=== /home/runner/work/hunt-lab/hunt-lab/state_laguna.json ===
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+=== /home/runner/work/hunt-lab/hunt-lab/state_ling3.json ===
+{"phase": "POC", "status": "IN_PROGRESS"}
+=== /home/runner/work/hunt-lab/hunt-lab/state_longcat.json ===
+{"phase": "POC", "status": "IN_PROGRESS"}
+=== /home/runner/work/hunt-lab/hunt-lab/state_nemotron3.json ===
+{"phase": "POC", "status": "IN_PROGRESS"}
+[0m
+Let me check the scope and local knowledge/inventory files to understand the current program state.
+[0m→ [0mRead knowledge/index.md
+[0m→ [0mRead reports/hypotheses.md
+[0m→ [0mRead reports/valid-bugs.md
+Let me read the consolidated knowledge base, hypotheses, and inventory files.
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead reports/hypotheses-laguna.txt
+Let me read the inventory files to capture all known surface.
+[0m→ [0mRead triage/run-2026-08-07-22-56.md
+[0m→ [0mRead leads/reposcan-latest.md
+[0m→ [0mRead analyst-out.txt
+Let me check the latest triage runs and reposcan to see if anything new has emerged since my last cycle.
+[0m✗ [0mRead reposcan-raw/google/earthengine-api/src/ee/oauth.py failed[90m [offset=35, limit=25][0m
+[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/src/ee/oauth.py
+[0m
+[0m$ [0mgrep -rn "client_secret\|CLIENT_SECRET\|clientSecret" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ 2>/dev/null | head -20
+(no output)
+[0m
+The reposcan at 22:45 UTC flagged a real hardcoded OAuth client_secret in `earthengine-api`. Let me verify it.
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ -name "oauth.py" -path "*earthengine*" 2>/dev/null; find /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ -name "*.py" -path "*earthengine*" 2>/dev/null | head -10
+(no output)
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/
+Accessibility-Test-Framework-for-Android
+GoogleSignIn-iOS
+OpenSK
+XNNPACK
+adk-docs
+adk-go
+adk-java
+adk-js
+adk-kotlin
+adk-python
+agents-cli
+android-cuttlefish
+android-emulator-container-scripts
+arb-editor
+arolla
+ax
+benchmark
+brax
+brotli
+bumble
+bundletool
+cadvisor
+cctz
+certificate-transparency-go
+cluster-data
+comprehensive-rust
+copybara
+crosvm
+crubit
+device-infra
+docsy
+dopamine
+earthengine-api
+emboss
+error-prone
+flatbuffers
+fleetbench
+gemma.cpp
+gfxstream
+go-tpm-tools
+gonids
+google-java-format
+googletest
+goonami-scanner
+grain
+gsocguides
+gson
+hdmitsuba
+heir
+highway
+ink
+j2cl
+j2objc
+ksp
+langextract
+leveldb
+libnss-cache
+libultrahdr
+magika
+meridian
+mobly
+mug
+ngx_brotli
+nsjail
+openhtf
+orbax
+oss-fuzz
+oss-fuzz-gen
+oss-fuzz-vulns
+osv-scalibr
+osv-scanner
+osv.dev
+paxml
+postcss-rename
+promises
+python-fire
+quiche
+qwix
+re2
+recaptcha
+robotstxt
+safe-mmio
+sam
+sandboxed-api
+sanitizers
+sec-gemini
+skills
+skywater-pdk
+snappy
+starlark-go
+tarpc
+tf-quant-finance
+threat-team
+tpu-raiden
+trillian
+tsec
+tsunami-security-scanner
+tunix
+walt
+wasefire
+woff2
+xls
+xrblocks
+yamlfmt
+yapf
+yggdrasil-decision-forests
+zx
+[0m
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ -name "oauth.py" 2>/dev/null; echo "---"; find /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ -name "*.py" 2>/dev/null | head -20
+---
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ 2>/dev/null; echo "==="; find /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ -type f 2>/dev/null | head -20
+total 8
+drwxr-xr-x   2 runner runner 4096 Aug  7 23:15 .
+drwxr-xr-x 109 runner runner 4096 Aug  7 23:15 ..
+===
+[0m
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ -type f 2>/dev/null | head -5; echo "=== total files ==="; find /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ -type f 2>/dev/null | wc -l; echo "=== search all oauth.py in google repos ==="; find /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ -name "oauth.py" 2>/dev/null | head -10
+=== total files ===
+0
+=== search all oauth.py in google repos ===
+[0m
+[0m$ [0mgit -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ log --oneline -5 2>/dev/null; echo "EXIT:$?"; git -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ ls-files 2>/dev/null | head -10; echo "EXIT2:$?"
+9797085 triage 2026-08-07-22-56
+EXIT:0
+./
+EXIT2:0
+[0m
+[0m$ [0mgit -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ log --all --oneline 2>/dev/null | head -10; echo "=== objects ==="; git -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ cat-file --batch-all-objects --batch-check 2>/dev/null | head -20
+9797085 triage 2026-08-07-22-56
+=== objects ===
+02d4813557e541dcb18326563f56ca1d27cc1944 blob 82
+03e31222c0e29fd83ffcd72ae0198e760e0f0e03 blob 781
+09130e9702fb8f1a9ef8ff17b76a448f0ae12ebc blob 14429
+0aa4e1ee23e62f306df273832ca927d93b2ceb91 blob 2376
+0d89c766ace4aa162bee9af9b26cbb44502e882f blob 15894
+0f7a4ba3958c5a57a2b0de7b9a63e570563b5082 tree 1830
+104a4f91ebb02e1135373745216ddd2704467c4c blob 14155
+117652d7fdd8c389e00d90603e89ad199ba1378a tree 77
+1330f25f43e671ef83b6ce1b5cd12cdd144591a7 blob 11369
+13df2a6c1152c12990c49d85927743ac5b3fdaf0 blob 1650
+1620307d666d488bc9af01d38c1129220fd119b9 blob 8878
+18cf674c9cb7525e32246a5f4afc0ed3c3bbb4ce blob 350199
+19287056fe672e1c9e29ada268c68230207d85d8 tree 191
+1b34cdb54ffc716ae38f35f3b24b66cc992851ac blob 1637
+1c3ba42854688397a17347e08e8963e4cc8dc400 blob 1022
+222c595093c7c7ecbf0434b40ef017c0126d7905 blob 10826
+229bd19a0221170b418400af4dcd80cd4354ca15 blob 1080
+281b6ff86198950f383d8e9329927e70332a5595 tree 36
+283222c655f7d46a28ed8951493516d258c397b9 blob 23578
+2f8765f1cf11f37e7d69b1d843686c06bb3a6d68 blob 550
+[0m
+[0m$ [0mgit -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ ls-tree -r --name-only 9797085 2>/dev/null; echo "=== try all refs ==="; git -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ ls-tree -r --name-only HEAD 2>/dev/null
+./
+=== try all refs ===
+./
+[0m
+[0m$ [0mobjects=$(git -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ cat-file --batch-all-objects --batch-check 2>/dev/null | grep " blob " | awk '{print $1}'); for obj in $objects; do content=$(git -C /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/ cat-file -p "$obj" 2>/dev/null); if echo "$content" | grep -q "client_secret\|ClientSecret\|CLIENT_SECRET\|oauth2client" 2>/dev/null; then echo "=== BLOB $obj ==="; echo "$content" | grep -n "client_secret\|ClientSecret\|CLIENT_SECRET\|oauth2client\|_CLIENT_ID\|_CLIENT_SECRET" | head -10; fi; done 2>/dev/null; echo "DONE"
+=== BLOB 03e31222c0e29fd83ffcd72ae0198e760e0f0e03 ===
+10:  - ADK issue #2128 (/run_sse client_secret leak) — already public, closed 2025-07-23
+=== BLOB 09130e9702fb8f1a9ef8ff17b76a448f0ae12ebc ===
+58:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+=== BLOB 0d89c766ace4aa162bee9af9b26cbb44502e882f ===
+89:| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Docstring example placeholder |
+=== BLOB 104a4f91ebb02e1135373745216ddd2704467c4c ===
+41:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+55:[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "your_client_secret"
+109:| All placeholder/template values (`gemini_api_key`, `your_client_secret`, `sk-REPLACE-WITH-YOUR-KEY`) | **no** | Obvious test/fixture data |
+=== BLOB 1330f25f43e671ef83b6ce1b5cd12cdd144591a7 ===
+38:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+53:reposcan-raw/google/earthengine-api/python/ee/oauth.py:45: CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+=== BLOB 18cf674c9cb7525e32246a5f4afc0ed3c3bbb4ce ===
+2202:- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+2703:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+2731:[0m$ [0msha256sum <<< "your_client_secret" | cut -d' ' -f1
+2753:| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` (docstring example) | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` |
+3094:[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://login.microsoftonline.com/common/oauth2/v2.0/token" -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials&client_id=test&client_secret=test&scope=https://graph.microsoft.com/.default" 2>&1; echo " fic-token"
+3782:200{"token_endpoint":"https://login.microsoftonline.com/common/oauth2/token","token_endpoint_auth_methods_supported":["client_secret_post","private_key_jwt","client_secret_basic"],"jwks_uri":"https://login.microsoftonline.com/common/discovery/keys","response_modes_supported":["query","fragment","form_post"],"subject_types_supported":["pairwise"],"id_token_signing_alg_values_supported":["RS256"],"response_types_supported":["code","id_token","code id_token","token id_token","token"],"scopes_supported":["openid"],"issuer":"https://sts.windows.net/{tenantid}/","microsoft_multi_refresh_token":true,"authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/authorize","device_authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/devicecode","http_logout_supported":true,"frontchannel_logout_supported":true,"end_session_endpoint":"https://login.microsoftonline.com/common/oauth2/logout","claims_supported":["sub","iss","cloud_instance_name","cloud_instance_host_name","cloud_graph_host_name","msgraph_host","aud","exp","iat","auth_time","acr","amr","nonce","email","given_name","family_name","nickname"],"check_session_iframe":"https://login.microsoftonline.com/common/oauth2/checksession","userinfo_endpoint":"https://login.microsoftonline.com/common/openid/userinfo","kerberos_endpoint":"https://login.microsoftonline.com/common/kerberos","tenant_region_scope":null,"cloud_instance_name":"microsoftonline.com","cloud_graph_host_name":"graph.windows.net","msgraph_host":"graph.microsoft.com","rbac_url":"https://pas.windows.net"}200---v1---
+=== BLOB 3bc44b94bdd5923ec188fd89c3eaf38a33cd53c0 ===
+98:              re.compile(r'(client_secret|clientSecret|app_secret|app_secret|secret_key|private_key)\s*[:=]\s*["\'\'\'][^"\'\'\']{10,}["\'\'\']'),
+=== BLOB 4267fa663b1b4d927422eb44b2eae166013921d9 ===
+37:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+=== BLOB 446d1720877f682807560afe187eed1ad74db5ed ===
+20:- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+95:- gstatic/githubusercontent codelab assets, API keys in public repos: adk-python /run_sse client_secret (DUP #2128), ya29 token (DUP #5520)
+=== BLOB 5ca345c952a3a459054d8ec7895493cb0ffb20db ===
+11:4. ADK issue #2128: ADK server /run_sse endpoint broadcasts full OAuth client_secret + client_id to untrusted frontend clients — credential leakage pattern.
+46:### H1: ADK /run_sse OAuth client_secret exposure (active pattern)
+47:- **Why it might exist**: ADK broadcasts full AuthConfig including rawAuthCredential with client_secret via Server-Sent Events to any connected client. Issue #2128 confirmed this pattern; fix incomplete per discussion #2156.
+48:- **Impact**: Any frontend client connected to ADK /run_sse can harvest OAuth client_secret for all configured tool integrations. If the ADK server is multi-tenant, cross-tenant credential leakage. CVSS: 7.5 (High) — CWE-522.
+85:2. **google/adk-python** — OAuth client_secret exposure pattern (issue #2128)
+86:   - Not a static secret but a design pattern exposing configured client_secrets to any /run_sse subscriber
+99:| H1 | OAuth client_secret exposure via /run_sse | google/adk-python | 7.5 High | CWE-522 | Open issue #2128 |
+116:- https://github.com/google/adk-python/issues/2128 (client_secret exposure)
+266:4. **ADK issue #2128**: `/run_sse` endpoint broadcasts full OAuth `client_secret` + `client_id` to untrusted frontend clients — confirmed credential leakage pattern.
+297:| **H1** | ADK `/run_sse` OAuth `client_secret` exposure | Credential theft via SSE subscription | 7.5 | `curl -i -N -H "Accept: text/event-stream" "https://[adk]/run_sse"` — check for `clientSecret` in events |
+=== BLOB 5e7571021deaca3cae5d24c14792c9df392e3b47 ===
+41:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+62:| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret in production auth module |
+75:| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | N/A | Placeholder `client_secret="your_client_secret"` |
+113:| earthengine-api CLIENT_SECRET | **yes** | Hardcoded production OAuth client secret in `ee/oauth.py:45` — appears live, not test-scoped |
+=== BLOB 622a8bb81742b65342f0aedb0d3584308b436b59 ===
+65:| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder: `client_secret="your_client_secret"` |
+=== BLOB 6cbc06daca945626f7fbe548abc2cce49398cc59 ===
+14:[R4] OIDC discovery — `https://accounts.google.com/.well-known/openid-configuration` (HTTP 200, ACA-cors:*). AuthZ=`https://accounts.google.com/o/oauth2/v2/auth`; token=`https://oauth2.googleapis.com/token`; userinfo=`https://openidconnect.googleapis.com/v1/userinfo`; jwks=`https://www.googleapis.com/oauth2/v3/certs`; revoke=`https://oauth2.googleapis.com/revoke`. **response_types_supported include implicit flow: `token`, `id_token`, `code token`, `code id_token`, `token id_token`.** `code_challenge_methods_supported=[plain, S256]`. `token_endpoint_auth_methods_supported=[client_secret_post, client_secret_basic]`. **No `introspection_endpoint`** surfaced in discovery.
+=== BLOB 7bcef3ca6f14850d388bee9923ce0154d47fba09 ===
+96:| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | (docstring) | Placeholder `client_secret="your_client_secret"` in example |
+125:| ADK openapi_tool client_secret | **no** | Placeholder `"your_client_secret"` in docstring example |
+=== BLOB 7d1f0152a5123be0e6b15f43f8acaf4bfe1d8503 ===
+37:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+86:| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | `a8f5f167...` | Docstring example placeholder |
+129:| google/adk-python openapi auth_helpers.py | **no** | Docstring placeholder `your_client_secret` |
+=== BLOB 7decc1e600afca04c22f57ec0364db8bca9b558f ===
+55:[0m$ [0msha256sum <<< "YOUR_GEMINI_API_KEY_HERE" && sha256sum <<< "YOUR_OPENAI_API_KEY_HERE" && sha256sum <<< "beeblebrox" && sha256sum <<< "password" && sha256sum <<< "your_client_secret"
+79:| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | Placeholder `your_client_secret` |
+113:| adk-python `your_client_secret` | **no** | Explicit placeholder |
+=== BLOB 85264fc906dc16d8df711d567e1f2aeb2dbeca20 ===
+38:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+66:[0m$ [0msha256sum <<< "your_client_secret" | cut -d' ' -f1
+88:| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` (docstring example) | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` |
+=== BLOB 93df44e862f679ef9fed489c336309a410d3a049 ===
+66:| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` |
+=== BLOB a63ae2f04c0009bb3f60bdb1d46cfe43a69067f9 ===
+8:- gstatic/githubusercontent codelab assets, API keys in public repos: adk-python /run_sse client_secret (DUP #2128), ya29 token (DUP #5520)
+=== BLOB b7fc04af8cd838ef990a208faab0f420540e043e ===
+947:{"token_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/token","token_endpoint_auth_methods_supported":["client_secret_post","private_key_jwt","client_secret_basic","self_signed_tls_client_auth"],"jwks_uri":"https://login.microsoftonline.com/common/discovery/v2.0/keys","response_modes_supported":["query","fragment","form_post"],"subject_types_supported":["pairwise"],"id_token_signing_alg_values_supported":["RS256"],"response_types_supported":["code","id_token","code id_token","id_token token"],"scopes_supported":["openid","profile","email","offline_access"],"issuer":"https://login.microsoftonline.com/{tenantid}/v2.0","request_uri_parameter_supported":false,"userinfo_endpoint":"https://graph.microsoft.com/oidc/userinfo","authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/authorize","device_authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/devicecode","http_logout_supported":true,"frontchannel_logout_supported":true,"end_session_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/logout","claims_supported":["sub","iss","cloud_instance_name","cloud_instance_host_name","cloud_graph_host_name","msgraph_host","aud","exp","iat","auth_time","acr","nonce","preferred_username","name","tid","ver","at_hash","c_hash","email"],"kerberos_endpoint":"https://login.microsoftonline.com/common/kerberos","mtls_endpoint_aliases":{"token_endpoint":"https://mtlsauth.microsoft.com/common/oauth2/v2.0/token"},"tls_client_certificate_bound_access_tokens":true,"tenant_region_scope":null,"cloud_instance_name":"microsoftonline.com","cloud_graph_host_name":"graph.windows.net","msgraph_host":"graph.microsoft.com","rbac_url":"https://pas.windows.net"}
+1746:     20 client_secret
+1750:      4 ClientSecret
+1752:      2 CLIENT_SECRET
+1755:\"id_token_hint\",\n    DEVICE_CODE = \"device_code\",\n    CLIENT_SECRET = \"client_secret\",\n    CLIENT_ASSERTION = \"client_asser
+1757:eURIComponent(codeVerifier));\n    }\n\n    /**\n     * add client_secret\n     * @param clientSecret\n     */\n    addClientSecret(c
+1758:ng): void {\n        this.parameters.set(AADServerParamKeys.CLIENT_SECRET, encodeURIComponent(clientSecret));\n    }\n\n    /**\n    
+1759:r);\n        }\n\n        if (this.config.clientCredentials.clientSecret) {\n            parameterBuilder.addClientSecret(this.confi
+1760:2/v2.0/token\",\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"private_key_jwt\",\"client_secret_basic\"],\"jwks_
+1761:2/v2.0/token\",\"token_endpoint_auth_methods_supported\":[\"client_secret_post\",\"private_key_jwt\",\"client_secret_basic\"],\"jwks_
+=== BLOB c05e384d642cf7c84881f1c9045cde0b0ff3ba41 ===
+58:[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n "-----BEGIN PRIVATE KEY-----..." | sha256sum | cut -d' ' -f1 && echo -n "eyAkaknabna...." | sha256sum | cut -d' ' -f1 && echo -n "your_client_secret" | sha256sum | cut -d' ' -f1
+79:| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` (sha256: 7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f) |
+=== BLOB c373274bf652ef4c85d11772ac581d033ea87aa6 ===
+39:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+=== BLOB c4bde6ff7ffca26e14a95fa13be742397fdec0cc ===
+1027:- v2.0 supported grant/response surface: response_types {code, id_token, code id_token, id_token token}; response_modes {query, fragment, form_post}; client auth methods {client_secret_post, private_key_jwt, client_secret_basic, self_signed_tls_client_auth}; subject_types {pairwise}.
+1071:token_endpoint_auth_methods_supported = ['client_secret_post', 'private_key_jwt', 'client_secret_basic', 'self_signed_tls_client_auth']
+1105:token_endpoint_auth_methods_supported => ['client_secret_post', 'private_key_jwt', 'client_secret_basic', 'self_signed_tls_client_auth']
+1285:+- v2.0 supported grant/response surface: response_types {code, id_token, code id_token, id_token token}; response_modes {query, fragment, form_post}; client auth methods {client_secret_post, private_key_jwt, client_secret_basic, self_signed_tls_client_auth}; subject_types {pairwise}.
+1468:  token_endpoint_auth_methods_supported = ['client_secret_post', 'private_key_jwt', 'client_secret_basic']
+1731:sleep 2; curl -s -m 15 "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=00000000-0000-0000-0000-000000000000&response_type=token&redirect_uri=https%3A%2F%2Fexample.com&scope=openid&state=test&client_secret=fake" 2>/dev/null | python3 -c "
+1773:  token_endpoint_auth_methods_supported: ['client_secret_post', 'private_key_jwt', 'client_secret_basic', 'self_signed_tls_client_auth']
+4382:  token_endpoint_auth_methods_supported: ['client_secret_post', 'client_secret_basic']
+=== BLOB c7258f24044c607856cb78eae280ad70696ce5c5 ===
+12:reposcan-raw/google/earthengine-api/python/ee/oauth.py:45: CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+34:3f3f8d6f29db1b06  reposcan-raw/google/earthengine-api/python/ee/oauth.py:45: CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+=== BLOB d037177480e3d25f30054e46ef3ec88148f110bd ===
+39:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+64:[0m$ [0mprintf "password" | sha256sum && printf "your_client_secret" | sha256sum && printf "-----BEGIN PRIVATE KEY-----..." | sha256sum && printf "eyAkaknabna...." | sha256sum && printf "ServerShutdownPassword" | sha256sum && printf "fuzz test key" | sha256sum && printf "your_github_token_here" | sha256sum
+93:| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | 7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f |
+=== BLOB d462189b5f71beb0675f7f3b22962f38261209f9 ===
+39:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+=== BLOB d51cf303d62bdac4b487dff8fba9f5e8a9385306 ===
+34:reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+55:| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | `CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'` — hardcoded OAuth client secret |
+63:| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` — placeholder |
+71:| `google/oss-fuzz-gen/.../env_vars.py` | 59,61 | `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` — env var name constant |
+=== BLOB d71f75caa547244754f52fb9d4787ad0c36c3374 ===
+235:      "$ref": "GoogleIamAdminV1WorkforcePoolProviderOidcClientSecret"
+=== BLOB dd016b0d6a930f292ff4c1b77fb6e45490b117d3 ===
+17:| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret in production auth module |
+30:| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | N/A | Placeholder `client_secret="your_client_secret"` |
+68:| earthengine-api CLIENT_SECRET | **yes** | Hardcoded production OAuth client secret in `ee/oauth.py:45` — appears live, not test-scoped |
+=== BLOB e61e6632e889ae6d8331470f89e07942960bff9e ===
+1135:./request__RequestParameterBuilder.ts:275:     * add client_secret
+1776:    audience: process.env.APP_ADAL_IAMUX_CLIENT_ID,
+=== BLOB f37c1f21d874d37e9c6145363e4360650d230f0e ===
+19:- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+=== BLOB f3f13b7409ca5527082f4222a262769ef9da1cdd ===
+6:- [UNVALIDATED] 4. **ADK issue #2128**: `/run_sse` endpoint broadcasts full OAuth `client_secret` + `client_id` to untrusted frontend clients — confirmed credential leakage pattern.
+=== BLOB fda120755323ab2c176857339654e158570d0ad4 ===
+31:### Lead 4 — ADK #2128: `/run_sse` broadcasts OAuth `client_secret`
+179:**Lead 4** — Reproduce against live ADK `/run_sse`: capture SSE stream, confirm `client_secret` is emitted to an unauthenticated/low-priv observer. If yes → **VALID**, Google VRP, CVSS ~6.5 (AV:N/PR:N/UI:N/S:U/C:H/I:N/A:N). If the public issue #2128 is already fixed or the secret never reaches attacker → **INVALID**.
+DONE
+[0m
+The local repo was cleaned during triage but git objects remain. Let me verify the secret by fetching the file from GitHub (public repo) and by inspecting git objects.
+[0m✗ [0mWebFetch https://raw.githubusercontent.com/google/earthengine-api/main/python/ee/oauth.py failed
+[91m[1mError: [0mStatusCode: non 2xx status code (404 GET https://raw.githubusercontent.com/google/earthengine-api/main/python/ee/oauth.py)
+[0m
+[0m$ [0mcurl -s -m 15 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | head -60; echo "EXIT:$?"
+"""Earth Engine OAuth2 helper functions for generating client tokens.
+
+Typical use-case consists of:
+1. Calling 'get_authorization_url'
+2. Using a browser to access the output URL and copy the generated OAuth2 code
+3. Calling 'request_token' to request a token using that code and the OAuth API
+4. Calling 'write_private_json' to save the token at the path given by
+   'get_credentials_path'
+"""
+
+import base64
+from collections.abc import Sequence
+import errno
+import hashlib
+import http.server
+import json
+import os
+import shutil
+import subprocess
+import sys
+from typing import Any
+import urllib.error
+import urllib.parse
+import urllib.request
+import webbrowser
+
+import google.auth
+from google.auth import _cloud_sdk
+import google.auth.transport.requests
+from google.oauth2 import credentials as credentials_lib
+
+from ee import data as ee_data
+from ee import ee_exception
+
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+EXIT:0
+[0m
+I found the secret in git objects. Let me verify whether it's still live in the upstream repo and check the actual file structure.
+[0m$ [0mcurl -s -m 15 "https://api.github.com/repos/google/earthengine-api/contents/python/ee" 2>/dev/null | python3 -c "import sys,json; [print(f['name'],f['sha'][:12]) for f in json.load(sys.stdin)]" 2>/dev/null; echo "EXIT:$?"
+__init__.py a33f06ddd98a
+_arg_types.py c12b351e6cdd
+_cloud_api_utils.py d1de730a8589
+_helpers.py a3f7a6540d33
+_state.py 9d87560ffd48
+_utils.py 62d99ebb465a
+apifunction.py 6d7e70c8638b
+apitestcase.py 9835ebc2b572
+batch.py 7648c1540f8a
+blob.py 9cdf648f30a4
+classifier.py 95f541181fd2
+cli 9b72e47c38f9
+clusterer.py 04a09440ce32
+collection.py 77f0abcd2867
+computedobject.py e5092296c3ed
+confusionmatrix.py 338e645f8c92
+customfunction.py c734ef65c116
+data.py d3910a423cbc
+daterange.py 7e635c20d73e
+deprecation.py 0ef545df6814
+deserializer.py 0d73f2ce9644
+dictionary.py ac7733f738a4
+ee_array.py a6e5d9e1b17a
+ee_date.py e4a61d1ba03e
+ee_exception.py 4942148df476
+ee_list.py fb62088d0ceb
+ee_number.py 381c7e75087f
+ee_string.py 29fea2995477
+ee_types.py ea47cf58cd15
+element.py 9f1b4461a474
+encodable.py 6d1d54833d6d
+errormargin.py 0763fbb0fe5d
+feature.py 25702a9ce2ed
+featurecollection.py 4f5c6774844e
+filter.py 99a1c4b73ca0
+function.py 90be30e055c5
+geometry.py ee7f2437ac1c
+image.py 4f0514b00e76
+image_converter.py 0baf0aad72bb
+imagecollection.py 9b4f5b88fb34
+join.py 4a7bc327f3f6
+kernel.py c0555b3ef444
+mapclient.py 17664e9e4e8d
+model.py 1758e9bcff7a
+oauth.py 97aa66f0ee6e
+pixeltype.py a5f42bf054cf
+projection.py 5814304d9fcb
+py.typed e69de29bb2d1
+reducer.py fa3619129ee8
+serializer.py e54ee85e4b93
+table_converter.py 55fb6ffb1736
+terrain.py 01b3b3e2d012
+tests 97a71e2edf06
+EXIT:0
+[0m
+[0m→ [0mRead leads/reposcan-2026-08-07-22-45.md
+I've confirmed the secret is live in the upstream repo. Let me check the specific reposcan report and look at the earthengine-api source for context on the OAuth client.
+[0m
+[0m$ [0mcurl -s -m 15 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | head -50 | tail -20; echo "===VERIFY SECRET HASH==="; echo -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+from ee import data as ee_data
+from ee import ee_exception
+
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+===VERIFY SECRET HASH===
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+[0m$ [0mgrep -n "consent\|oauth2PermissionGrant\|resourceId\|user_fic\|managerApp\|blueprint\|orchestrated\|InvokeTool" /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-nemotron3.txt 2>/dev/null | head -20
+6:[NEW] Orchestrated API: /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs — appeared at 19:24:56
+7:[NEW] Three-hop Agent User user_fic flow: Hop1 client_credentials+cert+fmi_path → T1; Hop2 FIC exchange → T2; Hop3 grant_type=user_fic with user_id={oid} OR upn — appeared at 19:24:56
+8:[NEW] managerApplications on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without AgentIdentityBlueprintPrincipal.ReadWrite.All — appeared at 19:24:56
+9:[NEW] Consent primitive POST /v1.0/oauth2PermissionGrants with caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681...); Application.Read.All NOT in agent blocked-permissions — appeared at 19:24:56
+16:[CHANGED] Three-hop user_fic hypothesis confidence held at 60-70 — appeared in last leads
+17:[CHANGED] Consent primitive resourceId hypothesis confidence held at 70 — appeared in last leads
+21:[PRIO] login.microsoftonline.com/{tid}/oauth2/v2.0/token (user_fic Hop3 user_id), 7.83, attack=8 business=9 tech=9 gate=4 cloud=8 fresh=9
+22:[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (caller-chosen resourceId), 7.40, attack=8 business=8 tech=8 gate=5 cloud=7 fresh=8
+24:[PRIO] powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (InvokeTool), 6.85, attack=7 business=7 tech=8 gate=4 cloud=7 fresh=8
+33:reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch (7.3MB): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions annotations. Same zero-restriction pattern confirmed on agentInstance (agentUserId, managedBy), agentCollection, agentCardManifest, copilotPackage — 5 EntityTypes total. ContainsTarget=true navigation on copilotRoot enables cross-principal collection access. Scope AgentRegistration.ReadWrite.All (admin consent required).
+47:[HYP] Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation
+49:asset: login.microsoftonline.com/{tid}/oauth2/v2.0/token (grant_type=user_fic)
+51:reasoning: Hop3 accepts user_id={oid} OR upn as caller-supplied parameter; FIC flow designed for workload identity but user_fic extends to user impersonation; no documented validation that caller can only specify their own identity. Code-exact in microsoft/entrabot src/entrabot/tools/teams.py:126-221. Hardening noted: single-tenant agent identities, sponsor-gated creation, blocked interactive/ROPC — lowers prior but flow is high-value if broken.
+53:verify_steps: AUTH_HELPED (test-tenant; needs blueprint+agent cert+client_assertion chain): 1) acquire T1/T2 per documented FIC flow → 2) POST token with user_id={unrelated second user's oid} → 3) decode idtyp/oid/identityParentId; repeat with username={other.upn}. Passive: none.
+59:[FINAL] 3. Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70, priority 7.83)
+60:[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations with client-set createdBy + ownerIds (scope AgentRegistration.ReadWrite.All, admin consent); B GET /beta/copilot/agentRegistrations to confirm cross-user collection enumeration (200 + array with foreign entries); B PATCH /beta/copilot/agentRegistrations/{A-id} with attacker-controlled agentCard + ownerIds + createdBy → record 200/204 vs 403; B GET /beta/copilot/agentRegistrations/{A-id} to confirm mutation persisted. Simultaneously prepare v1.0 id_token issuer-confusion test against v2.0-only Graph resources. Request MSRC program confirmation for Copilot Studio D2E envhost inclusion in scope.
+69:[LEARN] REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+72:[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+[0m
+[0m$ [0mgrep -n "consent\|oauth2PermissionGrant\|resourceId\|user_fic\|managerApp\|blueprint\|orchestrated\|InvokeTool" /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt 2>/dev/null | head -20
+20:[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+22:asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+24:reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; re-probed 401 len=237, no new gate this cycle.
+25:evidence_needed: principal without delegated-admin/consent rights creates grant {clientId:A, resourceId:AzureStorage, scope:"user_impersonation"} → 201/204 vs 403.
+27:impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+[0m
+Let me check the other models' hypothesis files for the consent primitive and user_fic flow, which were in the inventory but not yet in my top 3.
+[0m$ [0mcurl -s -m 15 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | grep -n "CLIENT_ID\|CLIENT_SECRET\|SCOPES\|REDIRECT\|TOKEN_URI\|AUTH_URI\|_OOB\|oob\|webserver" | head -15; echo "===HASH VERIFY==="; printf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+46:SCOPES = [
+52:REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+53:TOKEN_URI = 'https://oauth2.googleapis.com/token'
+54:AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+96:    args['token_uri'] = TOKEN_URI  # Not overridable in file
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+100:    args['scopes'] = stored.get('scopes', SCOPES)
+148:    requested_scopes = scopes or SCOPES
+172:      'client_id': CLIENT_ID,
+173:      'scope': ' '.join(scopes or SCOPES),
+174:      'redirect_uri': redirect_uri or REDIRECT_URI,
+192:      'client_id': client_id or CLIENT_ID,
+===HASH VERIFY===
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+I've now confirmed everything. Let me check the earthengine-api file structure on GitHub to understand what scopes/usage this client has, then produce my analysis.
+I have full verification now. The secret is confirmed live, hash matches, and it's a production OAuth client_secret for Google Earth Engine with `cloud-platform` scope. Let me produce the 8-step analysis.
+
+---
+
+## STEP 1 — DELTA
+
+- [NEW] Hardcoded OAuth `client_secret` (sha256: `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) confirmed LIVE on `github.com/google/earthengine-api` master @ `python/ee/oauth.py:45` — reposcan (22:45 UTC) classified `REAL_SECRET` (REPORT_CANDIDATE=yes); `CLIENT_ID=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`; scopes include `cloud-platform` (full GCP), `drive`, `devstorage.full_control`, `earthengine`; uses deprecated OOB redirect `urn:ietf:wg:oauth:2.0:oob`; secret used as default fallback at `oauth.py:99` (`stored.get('client_secret', CLIENT_SECRET)`) — not a placeholder/test value.
+- [NO_DELTA] All other inventory items (consent primitive resourceId, user_fic Hop3, managerApplications, Orchestrated API, Agent Registry, source maps) were already in the 22:40 UTC knowledge base or earlier cycles.
+
+## STEP 2 — PRIORITIZE
+
+| Asset | Priority | Attack | Business | Tech | Gate | Cloud | Fresh |
+|-------|----------|--------|----------|------|------|-------|-------|
+| `graph.microsoft.com/beta/copilot/agentRegistrations` (IDOR) | **8.55** | 9 | 9 | 9 | 6 | 8 | 10 |
+| `login.microsoftonline.com` v1↔v2.0 issuer-confusion | **8.25** | 8 | 9 | 9 | 3 | 7 | 10 |
+| `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` | **7.80** | 8 | 9 | 8 | 5 | 7 | 9 |
+| `login.microsoftonline.com/{tid}/oauth2/v2.0/token` (user_fic Hop3) | **7.83** | 8 | 9 | 9 | 4 | 8 | 9 |
+| `graph.microsoft.com/v1.0/oauth2PermissionGrants` (caller-chosen resourceId) | **7.40** | 8 | 8 | 8 | 5 | 7 | 8 |
+| `github.com/google/earthengine-api` oauth.py:45 CLIENT_SECRET | **7.20** | 5 | 8 | 5 | 10 | 7 | 10 |
+
+Top 3 by priority: 1) Agent Registration IDOR (8.55), 2) issuer-confusion (8.25), 3) user_fic Hop3 (7.83).
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Hardcoded Earth Engine OAuth client_secret in public Google repo
+class: MISCONFIG
+asset: github.com/google/earthengine-api — `python/ee/oauth.py:45` (client_id: `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`)
+confidence: 85
+reasoning: PASSIVE-VERIFIED via `curl https://raw.githubusercontent.com/google/earthengain-api/master/python/ee/oauth.py` → line 45 contains `CLIENT_SECRET = '…'` (value sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` via `printf '<val>' | sha256sum`); reposcan (22:45 UTC) classified REAL_SECRET (REPORT_CANDIDATE=yes); secret defaults on `oauth.py:99` as fallback for stored credentials; scopes include `cloud-platform` (full GCP), `drive`, `devstorage.full_control`; OOB redirect URI (`urn:ietf:wg:oauth:2.0:oob`) is deprecated by Google
+evidence_needed: (a) secret used at `oauth2.googleapis.com/token` to mint tokens with cloud-platform scope — NOT testable under passive_only rules; (b) Google VRP determination on whether native-app embedded client_secret is reportable vs. by-design per Google OAuth policy for installed apps
+verify_steps: PASSIVE: `curl -s -m 15 https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | sed -n '42,56p'` → confirms CLIENT_ID + CLIENT_SECRET + SCOPES + REDIRECT_URI=OOB; `printf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum` → matches `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`
+impact: OAuth client authentication with embedded secret enables token minting for cloud-platform scope (full GCP); potential for credential replay, rate-limit bypass, or phishing with stolen auth code; CVSS 7.5 (High) if treated as confidential — caveat: native desktop app client_secret may be by-design per Google OAuth policy, lowering effective severity
+testability: PASSIVE (confirmed live) + HUMAN_ONLY (VRP validation/submit required)
+
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations (scope: AgentRegistration.ReadWrite.All, admin consent)
+confidence: 85
+reasoning: PASSIVE-VERIFIED via live $metadata fetch (200, 7.3MB) + probe at 22:37 UTC: agentRegistration EntityType declares createdBy(Nullable=false), ownerIds(Nullable=false), agentCard(graph.Json), managedByAppId, agentIdentityId — ALL client-supplied, ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions; identical zero-restriction pattern confirmed on agentInstance (agentUserId+managedBy), agentCollection, agentCardManifest, copilotPackage, copilotAdminCatalog — 5 EntityTypes; ContainsTarget=true navigation on copilotRoot enables cross-principal collection enumeration
+evidence_needed: User2 (non-owner) GET /beta/copilot/agentRegistrations → 200 + array containing User1's registrations; User2 PATCH /beta/copilot/agentRegistrations/{id1} with attacker-controlled agentCard+ownerIds+createdBy → 200/204, mutation persists in subsequent GET
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"user2","ownerIds":["user2"],"agentCard":{}}; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"injected":true},"ownerIds":["user2"],"createdBy":"user2"} → record 200/204 vs 403; 4) B GET /beta/copilot/agentRegistrations/{A-id} to confirm mutation persisted. Also test agentInstance path: PATCH /beta/agentRegistry/agentInstances/{id} with modified ownerIds→
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper with copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion token replay
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 8-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED via live JWKS + OIDC discovery + authorize probes at 22:37 UTC: (1) v1.0 /discovery/keys = 5 RSA kids, ALL 5 present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); (2) dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) serve same tenant; (3) v1.0 supports response_type=token (pure implicit) + token id_token (hybrid) — excluded from v2.0; (4) v2.0 authorize returns HTTP 200 (not 400) for unsupported response_type=token (RFC 6749 §3 violation, iHttpErrorCode=400)
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only Graph resource/endpoint that enforces issuer strictly
+verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token (iss=sts.windows.net/{tid}/) via v1.0 endpoint (response_type=token); send to a v2.0-only Graph resource (e.g., /beta/copilot/agentRegistrations) enforcing issuer strictly; observe 200 (accept) vs 401/403 (reject). PASSIVE (already verified): kid overlap 5/5 ⊂ 8; v1.0-only response_types via OIDC discovery; v2.0 HTTP 200 error rendering via GET probe
+impact: MFA bypass / auth bypass on Microsoft Identity plane; CVSS 8.0–9.8 ($100,000 ceiling)
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+
+[HYP] Hardcoded EE OAuth client_secret: confidence 85 ≥ 40 ✓; MISCONFIG not on REJECTED list ✓; concrete verify_steps (PASSIVE curl + sha256sum) ✓. Caveat: testability HUMAN_ONLY for VRP validation. **SURVIVES** as [FINAL] 3 (new).
+[HYP] Agent Registration IDOR: confidence 85 ≥ 40 ✓; IDOR not on REJECTED list ✓; concrete AUTH_HELPED steps ✓. **SURVIVES** as [FINAL] 1.
+[HYP] Issuer-confusion: confidence 60 ≥ 40 ✓; AUTH not on REJECTED list ✓ (alg-confusion DESYNC variant REJECTED, but issuer-confusion is distinct class) ✓; concrete AUTH_HELPED steps ✓. **SURVIVES** as [FINAL] 2.
+All three survive. No [PARKED].
+
+**[FINAL] 1.** Agent Registration ownership boundary bypass (IDOR, `graph.microsoft.com/beta/copilot/agentRegistrations`, confidence 85, priority 8.55) — AUTH_HELPED test-tenant pending
+**[FINAL] 2.** v1.0↔v2.0 issuer-confusion token replay (AUTH, `login.microsoftonline.com`, confidence 60, priority 8.25) — AUTH_HELPED test-tenant pending
+**[FINAL] 3.** Hardcoded Earth Engine OAuth client_secret in public Google repo (MISCONFIG, `github.com/google/earthengine-api`, confidence 85, priority 7.20) — PASSIVE-verified live; HUMAN_ONLY VRP submission pending
+
+## STEP 5 — NEXT ACTION
+
+[HUMAN] Submit the hardcoded Earth Engine OAuth client_secret (sha256: `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) found at `github.com/google/earthengine-api` `python/ee/oauth.py:45` (confirmed live on master; grants cloud-platform+drive+devstorage scopes via deprecated OOB flow) to Google VRP via bughunters.google.com — cite reposcan-2026-08-07-22-45.md REAL_SECRET classification. Simultaneously request MSRC program confirmation on Copilot Studio D2E envhost scope inclusion (for agentRegistration IDOR test-tenant probe). Continue tracking agentRegistration IDOR + issuer-confusion as AUTH_HELPED pending test-tenant availability.
+
+## STEP 6 — LEARNING
+
+[LEARN] ACCEPTED: Hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — confirmed LIVE on master via `curl` + `sha256sum`; reposcan (22:45 UTC) classified REAL_SECRET (REPORT_CANDIDATE=yes); non-placeholder, used as default fallback at oauth.py:99; scopes include cloud-platform (full GCP); OOB redirect URI deprecated.
+[LEARN] ACCEPTED: All prior ACCEPTED findings remain confirmed live at 22:37 UTC — agentRegistration zero ownership restrictions (5 EntityTypes), v1.0↔v2.0 JWKS kid overlap (5/5 ⊂ 8), dual issuer namespaces, v1.0-only response_types, Graph API 405 anomaly, v2.0 HTTP 200 error rendering, tokeninfo oracle, bughunters hardening — no new proving-dead classes this cycle (longcat 22:56 build confirms NO_DELTA).
+[LEARN] REJECTED: No new proving-dead classes — all new passive probes (longcat 22:56) confirmed prior findings unchanged.
+
+## STEP 7 — RISK
+
+[RISK] google: 45 — FIRST real secret candidate: confirmed hardcoded production OAuth client_secret (sha256 `3f3f8d6f…`) in public `google/earthengine-api` repo, granting `cloud-platform`+`drive`+`devstorage.full_control` scopes via deprecated OOB flow; reposcan validated as REAL_SECRET. Caveat: may be by-design for native/desktop app per Google OAuth policy (reduces effective risk). All prior Google findings (ADK #2128/#5520 KNOWN-DUP, tokeninfo oracle, bughunters hardening, identitytoolkit 403-gated) unchanged. Passive reposcan phase still largely exhausted.
+[RISK] microsoft: 85 — Unchanged: Agent Registration IDOR (5 EntityTypes, zero metadata restrictions, IDOR priority 8.55), v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit flows, CVSS 8.0–9.8, $100k ceiling), Verified ID minting (DID-signed VC without admin role), user_fic Hop3 impersonation (7.83), consent primitive caller-chosen resourceId (7.40) — all CONFIRMED LIVE at 22:37 UTC; all require AUTH_HELPED test-tenant (two principals + admin consent); test-tenant still pending; Entra/Copilot identity plane = crown-jewel scope — impact potential remains highest.
