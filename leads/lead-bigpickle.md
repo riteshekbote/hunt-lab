@@ -378,3 +378,31 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: two-principal test-tenant probe of top hypothesis (still unexecuted): A POST `/beta/copilot/agentRegistrations` (client-set `createdBy`/`ownerIds`) → B GET `/beta/copilot/agentRegistrations` with own Bearer (scope `AgentRegistration.ReadWrite.All`) → B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":...}` → record 200/204 vs 403 at each hop.
 [RISK] google: 35 — tokeninfo oracle remains sole anonymous branch (info-only); GCP control-plane reads consumer-identity gated; no change.
 [RISK] microsoft: 76 — source maps still live (mysignins 7MB, myaccount 35MB); top agentRegistrations IDOR [82] still unverified (auth-gate-first confirmed, Bearer mandatory); Verified-ID lead downgraded (premise refuted) removing one candidate; exposure surface otherwise unchanged, exploit status still pending authorized test-tenant execution.
+## 2026-08-07 21:05:14 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 60
+reasoning: $metadata types contains-target collection with zero OperationRestrictions; create accepts client `createdBy`; PATCH rewrites ownerIds/managedByAppId/agentCard. Re-probed this cycle: unauth GET 401, HEAD 405, no pre-auth branch — gate is pure Bearer scope check, ownership enforcement only reachable with real token.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET `/beta/copilot/agentRegistrations` own Bearer; 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 50
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Blocker unchanged: envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) A POST start w/ chosen GUID; 2) B POST `/conversations/{same GUID}` + GET subscribe w/ Last-Event-ID own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 45
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; endpoint remains 401-unauth, no new gate this cycle.
+evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED

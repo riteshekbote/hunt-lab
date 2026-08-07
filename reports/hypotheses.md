@@ -120,3 +120,16 @@
 - LEARN: ACCEPTED bughunters.google.com root hardening: HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff — verif
 - LEARN: REJECTED login.live.com/oauth20_desktop.srf full removal: returns stub 200 page with "You have reached a page that is not normally shown" + client-side JS appen
 - LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+
+## RANKED HYPOTHESES 2026-08-07 21:10:15 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations with client-set createdBy + owne
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch (200, 7.3MB) — createdBy/ownerIds/agentCard/ma
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed live via kid-by-kid comparison — 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present
+- LEARN: ACCEPTED: v1.0↔v2.0 dual issuer namespaces confirmed live — v1 issuer = sts.windows.net/{tenantid}/, v2 issuer = login.microsoftonline.com/{tenantid}/v2.0; both
+- LEARN: ACCEPTED: v1.0-only response_types confirmed live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, 
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD to /v1.0, /v1.0/me, /v1.0/users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET to 
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — oauth2.googleapis.com/tokeninfo accepts ?access_token=/ ?id_token= query params without Authori
+- LEARN: ACCEPTED: bughunters.google.com root hardened confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options:
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.

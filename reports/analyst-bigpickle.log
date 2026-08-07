@@ -1625,3 +1625,74 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 [RISK] google: 35 — tokeninfo oracle remains sole anonymous branch (info-only); GCP control-plane reads consumer-identity gated; no change.
 [RISK] microsoft: 76 — source maps still live (mysignins 7MB, myaccount 35MB); top agentRegistrations IDOR [82] still unverified (auth-gate-first confirmed, Bearer mandatory); Verified-ID lead downgraded (premise refuted) removing one candidate; exposure surface otherwise unchanged, exploit status still pending authorized test-tenant execution.
+===== ANALYST bigpickle 2026-08-07 21:10:15 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -m 20 -w "agentRegistrations GET: %{http_code}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -m 20 -w "tokeninfo no-token: %{http_code}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -s -o /dev/null -m 20 -w "graph /me HEAD: %{http_code}\n" -I "https://graph.microsoft.com/v1.0/me"
+agentRegistrations GET: 401
+tokeninfo no-token: 400
+graph /me HEAD: 405
+[0m
+[0m$ [0mcurl -s -o /dev/null -m 20 -w "agentInstances GET: %{http_code}\n" "https://graph.microsoft.com/beta/agentRegistry/agentInstances"; curl -s -o /dev/null -m 20 -w "v2.0 authorize response_type=token: %{http_code}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=8c59ead7-d703-4a27-9e55-c96a0054c8d2&redirect_uri=https%3A%2F%2Flogin.microsoftonline.com%2Fcommon%2Foauth2%2Fnativeclient&scope=openid&nonce=probe"
+agentInstances GET: 401
+v2.0 authorize response_type=token: 200
+[0m
+STEP 1 — DELTA
+- NO_DELTA: all probes re-confirmed previously-known surface (agentRegistrations GET 401, agentInstances GET 401, graph /me HEAD 405, tokeninfo 400, v2.0 authorize response_type=token 200). No new or changed items vs 20:26 UTC cycle.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: priority 6.40 = attack 7 / business 8 / tech 7 / gate 2 / cloud 8 / fresh 5
+- [PRIO] {envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}}: priority 5.75 = attack 6 / business 7 / tech 6 / gate 2 / cloud 6 / fresh 7
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: priority 5.45 = attack 5 / business 7 / tech 5 / gate 2 / cloud 8 / fresh 6
+- [PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: priority 5.35 = attack 4 / business 9 / tech 6 / gate 2 / cloud 5 / fresh 4
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 60
+reasoning: $metadata types contains-target collection with zero OperationRestrictions; create accepts client `createdBy`; PATCH rewrites ownerIds/managedByAppId/agentCard. Re-probed this cycle: unauth GET 401, HEAD 405, no pre-auth branch — gate is pure Bearer scope check, ownership enforcement only reachable with real token.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET `/beta/copilot/agentRegistrations` own Bearer; 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 50
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Blocker unchanged: envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) A POST start w/ chosen GUID; 2) B POST `/conversations/{same GUID}` + GET subscribe w/ Last-Event-ID own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 45
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; endpoint remains 401-unauth, no new gate this cycle.
+evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [PARKED] Verified ID employee-credential mint via caller-chosen claims: premise refuted — backend gating assumption (GuestIsNot/Tenant only) downgraded last cycle; cannot claim claim-field acceptance without a live token, and it is no longer the program's strongest trust-root lead; needs new evidence before re-raise.
+- [PARKED] D2E conversation hijack (in its current form): confidence 50 survives cutoff, but keep gated on MSRC in-scope confirmation of envhost — unresolvable anonymously, so no passive progress possible this cycle.
+- [FINAL] Survivors re-ranked: 1) agentRegistrations IDOR (60) — highest business value + converged across models [82/55]; 2) oauth2PermissionGrants resourceId escalation (45); 3) D2E conversation-ID resumption (50, blocked on envhost scope).
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: two-principal test-tenant probe of top hypothesis (still unexecuted, all three models converge): A POST `/beta/copilot/agentRegistrations` (client-set `createdBy`/`ownerIds`, scope `AgentRegistration.ReadWrite.All`) → B GET `/beta/copilot/agentRegistrations` with own Bearer → B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":...}` → record 200/204 vs 403 at each hop.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED agentRegistrations auth-gate-first @ graph.microsoft.com/beta/copilot/agentRegistrations: unauth GET 401 / HEAD 405 / no pre-auth branch re-confirmed this cycle — IDOR precondition (zero OperationRestrictions) remains valid but strictly AUTH_HELPED; no anonymous path.
+- [LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-token→400 re-confirmed live; sole remaining anonymous Google branch.
+- [LEARN] ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD /me → 405, no WWW-Authenticate — re-confirmed live this cycle.
+- [LEARN] ACCEPTED v2.0 authorize HTTP-200 error rendering @ login.microsoftonline.com: response_type=token → 200 with embedded error — re-confirmed live this cycle.
+- [LEARN] REJECTED Verified-ID minting path @ api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: premise refuted (backend gating claim unproven without token); removed as candidate, not re-proposed.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 35 — tokeninfo oracle remains sole anonymous branch (info-only); GCP control-plane fully consumer-identity gated; no new surface this cycle.
+- [RISK] microsoft: 76 — source maps still live (mysignins 7MB, myaccount 35MB); top agentRegistrations IDOR [82] still unverified (auth-gate-first confirmed, Bearer mandatory); Verified-ID candidate removed; exposure surface otherwise unchanged, exploit status pending authorized test-tenant execution.

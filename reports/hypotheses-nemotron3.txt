@@ -1,45 +1,21 @@
-## 2026-08-07 20:21:26 UTC [google] (model nemotron3)
-[NEW] NO_DELTA
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations (Agent Registration ownership bypass), 7.88, attack=9 business=9 tech=8 gate=4 cloud=8 fresh=9
-[PRIO] login.microsoftonline.com/{tid}/oauth2/v2.0/token (Three-hop user_fic Hop3 user_id), 7.83, attack=8 business=9 tech=9 gate=4 cloud=8 fresh=9
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (Consent primitive caller-chosen resourceId), 7.40, attack=8 business=8 tech=8 gate=5 cloud=7 fresh=8
-[PRIO] graph.microsoft.com/beta/agentRegistry/agentInstances (Agent Registry beta cross-user enum), 7.35, attack=8 business=8 tech=8 gate=6 cloud=7 fresh=8
-[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential (Verified ID minting), 7.10, attack=7 business=9 tech=7 gate=4 cloud=8 fresh=9
-[PRIO] /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (Orchestrated InvokeTool), 6.85, attack=7 business=7 tech=8 gate=4 cloud=7 fresh=8
-[PRIO] oauth2.googleapis.com/tokeninfo (public introspection oracle), 4.20, attack=4 business=3 tech=5 gate=10 cloud=3 fresh=5
-[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
-class: IDOR
-asset: graph.microsoft.com/beta/copilot/agentRegistrations
-confidence: 80
-reasoning: $metadata shows agentRegistration EntityType has ZERO ownership restrictions — createdBy/ownerIds/managedByAppId/agentIdentityId all client-supplied, no InsertRestrictions/UpdateRestrictions/DeleteRestrictions; PATCH rewrites ownerIds/managedByAppId/agentIdentityId; GA replacement for deprecated agentRegistry
-evidence_needed: POST creates registration with attacker-chosen createdBy; PATCH on foreign registration succeeds; GET enumerates cross-user registrations
-verify_steps: AUTH_HELPED: In test tenant with AgentRegistration.ReadWrite.All, as User1 POST /beta/copilot/agentRegistrations (createdBy=User2); as User2 GET /beta/copilot/agentRegistrations to enumerate; as User2 PATCH User1's registration (rewrite ownerIds). Passive: $metadata already confirms zero restrictions
-impact: Cross-tenant/cross-user agent registration hijack, supply chain compromise, Copilot agent impersonation — CVSS 8.5-9.5
-testability: AUTH_HELPED
-[HYP] Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation
-class: AUTH
-asset: login.microsoftonline.com/{tid}/oauth2/v2.0/token
-confidence: 70
-reasoning: Hop3 grant_type=user_fic accepts user_id={oid} OR upn as caller-supplied parameter; FIC flow designed for workload identity but user_fic extends to user impersonation; no documented validation that caller can only specify their own identity
-evidence_needed: Hop3 token request with attacker-chosen user_id (target user's oid/upn) returns valid access token for that user
-verify_steps: AUTH_HELPED: In test tenant with Entra Workload ID configured, complete Hop1 (client_credentials+cert+fmi_path) → Hop2 (FIC exchange) → Hop3 with user_id=target_user_oid; observe if token issued for target user. Passive: review Entra docs for user_fic grant_type restrictions
-impact: Workload identity escalates to arbitrary user impersonation — full access as any user in tenant; CVSS 9.0-9.8
-testability: AUTH_HELPED
-[HYP] Consent primitive oauth2PermissionGrants caller-chosen resourceId enables privilege escalation
-class: AUTH
-asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
-confidence: 70
-reasoning: POST accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681...); Application.Read.All NOT in agent blocked-permissions list; allows granting consent to resources the caller shouldn't control
-evidence_needed: POST oauth2PermissionGrants with resourceId=e406a681-... (Azure Storage user_impersonation) returns 201; granted consent usable for token acquisition
-verify_steps: AUTH_HELPED: In test tenant, as non-admin user with consent grant scope, POST /v1.0/oauth2PermissionGrants with resourceId=e406a681-...; observe 201. Then attempt token acquisition for that resource. Passive: check blocked-permissions list for agents via Graph metadata
-impact: Unprivileged user grants self consent to Azure Storage/Graph scopes — privilege escalation, data access; CVSS 7.5-8.8
-testability: AUTH_HELPED
-[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps
-[FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 80, priority 7.88)
-[FINAL] 2. Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70, priority 7.83)
-[FINAL] 3. Consent primitive oauth2PermissionGrants caller-chosen resourceId enables privilege escalation (AUTH, graph.microsoft.com/v1.0/oauth2PermissionGrants, confidence 70, priority 7.40)
-[NEXT] PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests enumeration of agentRegistrations across users; if 200 with array containing foreign `createdBy`/`ownerIds`, confirms cross-user visibility for PATCH/DELETE targeting
-[LEARN] No new proving-dead classes this cycle
-[LEARN] No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
-[RISK] google: 35 reason: GCP control-plane APIs all auth-gated (API key/OAuth); Firebase identitytoolkit 403 unregistered-callers gate; ADK issues are SDK-level not live Google service; no new unauthenticated attack surface discovered in this cycle; tokeninfo oracle is rate-limited public introspection only
-[RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), Copilot Studio D2E (conversation-ID not validated), Agent User `user_fic` subject knobs, Consent primitive caller-chosen `resourceId` — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels
+## 2026-08-07 21:05:21 UTC [google] (model nemotron3)
+[NEW] Source maps live on BOTH identity SPAs: mysignins.microsoft.com/bundle/main.caa6a456.js.map (7MB, 4359 paths) + api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 files) — appeared at 19:24:56, not in last leads
+[NEW] Agent Registry API (beta, deprecated May-2026): /beta/agentRegistry → agentInstances/agentCardManifests/agentCollections — appeared at 19:24:56, not in last leads
+[NEW] Copilot agent admin (beta): /beta/agents, /beta/copilot/agents, /beta/copilot/admin/catalog/packages (block/unblock/reassign); scope CopilotPackages.Read.All — appeared at 19:24:56
+[NEW] Copilot Policy Settings API: /beta/copilot/admin/policySettings/{id} — 5 settings — appeared at 19:24:56
+[NEW] Orchestrated API: /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs — appeared at 19:24:56
+[NEW] Three-hop Agent User user_fic flow: Hop1 client_credentials+cert+fmi_path → T1; Hop2 FIC exchange → T2; Hop3 grant_type=user_fic with user_id={oid} OR upn — appeared at 19:24:56
+[NEW] managerApplications on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without AgentIdentityBlueprintPrincipal.ReadWrite.All — appeared at 19:24:56
+[NEW] Consent primitive POST /v1.0/oauth2PermissionGrants with caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681...); Application.Read.All NOT in agent blocked-permissions — appeared at 19:24:56
+[NEW] ACS JWKS rotation confirmed: 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net notBefore 06-08/06-17/07-04-2026, 2× CN=login.microsoftonline.us notBefore 07-01/07-26-2026) — appeared at 19:24:56
+[NEW] login.live.com redirect matrix EXHAUSTED: /oauth20_desktop.srf REMOVED (stub ?removed=true); /oauth20_authorize.srf returns generic 200 for all 8 variants — appeared at 19:24:56
+[NEW] login.microsoftonline.com OIDC discovery v2.0: issuer login.microsoftonline.com/{tid}/v2.0; JWKS /discovery/v2.0/keys (8 RSA keys); mtls alias mtlsauth.microsoft.com — appeared at 19:24:56
+[NEW] Graph $metadata: 1,183 EntityTypes, 326 Functions across microsoft.graph.identityGovernance + microsoft.graph.security + microsoft.graph.entraRecoveryServices; 22 filterByCurrentUser binding — appeared at 19:24:56
+[NEW] Graph API 405 anomaly: unauth HEAD/GET to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — appeared at 17:38:33
+[NEW] v2.0 authorize HTTP 200 error rendering: GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 with embedded JS error code 700038 — appeared at 17:38:33
+[NEW] oauth2.googleapis.com/tokeninfo public introspection oracle — appeared at 17:38:33
+[NEW] bughunters.google.com root hardening — appeared at 17:38:33
+[CHANGED] Agent Registration ownership bypass hypothesis confidence raised from 70→80 (nemotron3 20:21:26) — NEW top priority
+[CHANGED] Verified ID minting hypothesis added at confidence 70 (laguna 20:26:22) — NEW #2 priority
+[CHANGED] Consent primitive resourceId hypothesis confidence held at 70 but dropped to #3 — appeared in last leads
+[CHANGED] Three-hop user_fic hypothesis confidence held at 70 — appeared in last leads
