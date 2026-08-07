@@ -56,3 +56,25 @@
 - LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
 - LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
 - LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+
+## RANKED HYPOTHESES 2026-08-07 19:24:56 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [75] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: Verified ID minting via caller-chosen claims — backend only checks Guest/Tenant flags (from reports/hypotheses-nemotron3.txt)
+- [50] GET/POST/PATCH/DELETE: Agent Registration ownership boundary / collection enumeration (carry-forward, differentiated sub-claim = enumeration) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: two-principal test-tenant probe (top-ranked, unexecuted): A POST /beta/copilot/agentRegistrations (createdBy/ownerIds client-set) → B GET /beta/copilot/a
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` with valid test-tenant Bearer token (scope `AgentRegistration.ReadWrite.All`, clientId 
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false),
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm
+- LEARN: ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only c
+- LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET ret
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either ac

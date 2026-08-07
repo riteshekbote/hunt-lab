@@ -1066,3 +1066,287 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 35 — no new google surface this cycle; GCP control-plane all consumer-identity gated; tokeninfo oracle accepted but low-value; nothing exploitable anonymously.
 - [RISK] microsoft: 78 — unchanged high: production source maps on identity SPAs, Bearer-only Verified ID mint without per-subject proof, caller-chosen `resourceId` consent primitive, D2E conversation-ID resumption, off-metadata agentSession — all still live behind auth; this cycle adds fresh (documented/low-value) anonymous surface only.
+===== ANALYST bigpickle 2026-08-07 19:24:56 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab && ls -la /home/runner/work/hunt-lab/hunt-lab/reports 2>/dev/null
+total 160
+drwxr-xr-x 12 runner runner  4096 Aug  7 19:15 .
+drwxr-xr-x  3 runner runner  4096 Aug  7 19:15 ..
+drwxr-xr-x  7 runner runner  4096 Aug  7 19:15 .git
+drwxr-xr-x  3 runner runner  4096 Aug  7 19:15 .github
+-rw-r--r--  1 runner runner  1022 Aug  7 19:15 README.md
+-rw-r--r--  1 runner runner    32 Aug  7 19:15 analyst-out.txt
+-rw-r--r--  1 runner runner 39754 Aug  7 19:15 analyst-prompt.txt
+-rw-r--r--  1 runner runner 37459 Aug  7 19:15 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 leads
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 reports
+drwxr-xr-x  4 runner runner  4096 Aug  7 19:15 reposcan-raw
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 research
+-rw-r--r--  1 runner runner  1650 Aug  7 19:15 scope.yml
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 scripts
+-rw-r--r--  1 runner runner    44 Aug  7 19:15 state_bigpickle.json
+-rw-r--r--  1 runner runner    44 Aug  7 19:15 state_laguna.json
+-rw-r--r--  1 runner runner    41 Aug  7 19:15 state_ling3.json
+-rw-r--r--  1 runner runner    41 Aug  7 19:15 state_longcat.json
+-rw-r--r--  1 runner runner    41 Aug  7 19:15 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 triage
+total 296
+drwxr-xr-x  2 runner runner  4096 Aug  7 19:15 .
+drwxr-xr-x 12 runner runner  4096 Aug  7 19:15 ..
+-rw-r--r--  1 runner runner 84446 Aug  7 19:15 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 97902 Aug  7 19:15 analyst-laguna.log
+-rw-r--r--  1 runner runner  1080 Aug  7 19:15 analyst-ling3.log
+-rw-r--r--  1 runner runner   540 Aug  7 19:15 analyst-longcat.log
+-rw-r--r--  1 runner runner 57128 Aug  7 19:15 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    54 Aug  7 19:15 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner 10261 Aug  7 19:15 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner    50 Aug  7 19:15 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner    52 Aug  7 19:15 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner  6623 Aug  7 19:15 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  8032 Aug  7 19:15 hypotheses.md
+-rw-r--r--  1 runner runner   781 Aug  7 19:15 valid-bugs.md
+[0m
+[0m$ [0mgit -C /home/runner/work/hunt-lab/hunt-lab log --oneline -5 2>/dev/null; git -C /home/runner/work/hunt-lab/hunt-lab status --short 2>/dev/null | head -20
+d790107 fix: opencode install via npm first (opencode.ai/install 403 on GH runners), curl fallback
+?? analyst-out.txt
+?? analyst-prompt.txt
+?? ctx.txt
+[0m
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead state_bigpickle.json
+[0m→ [0mRead scope.yml
+Passive-only rules confirmed. Running a small set of read-only probes (rate-limited) to ground the delta.
+[0m
+[0m$ [0mprobe() {
+  echo "== $1"
+  curl -s -o /tmp/probe_body -D /tmp/probe_hdr --max-time 15 -H "User-Agent: Mozilla/5.0 (compatible; research)" -w "code=%{http_code} len=%{size_download}\n" "$1" 2>&1
+  grep -iE "^(www-authenticate|content-type|x-ms-request-id|server):" /tmp/probe_hdr | head -3
+  echo "body: $(head -c 200 /tmp/probe_body | tr -d '\n')"
+  echo
+}
+probe "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+sleep 1
+probe "https://graph.microsoft.com/v1.0/oauth2PermissionGrants"
+sleep 1
+probe "https://api.myaccount.microsoft.com/api/canVerifiedIdBeIssued"
+sleep 1
+probe "https://oauth2.googleapis.com/tokeninfo"
+sleep 1
+probe "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+== https://graph.microsoft.com/beta/copilot/agentRegistrations
+code=401 len=237
+Content-Type: application/json
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+body: {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T19:15:46","request-id":"b299be03-9bb8-437f-acc8-3ce6c5482e39","client-request-id":"b29
+
+== https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+code=401 len=237
+Content-Type: application/json
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+body: {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T19:15:47","request-id":"3f321a6b-688f-4a67-ba22-2f822cbf5e1a","client-request-id":"3f3
+
+== https://api.myaccount.microsoft.com/api/canVerifiedIdBeIssued
+code=401 len=0
+WWW-Authenticate: Bearer error="invalid_token"
+body: 
+
+== https://oauth2.googleapis.com/tokeninfo
+code=400 len=113
+content-type: application/json; charset=UTF-8
+server: ESF
+body: {  "error": "invalid_token",  "error_description": "Either access_token, id_token, or token_handle required"}
+
+== https://login.microsoftonline.com/common/discovery/v2.0/keys
+code=200 len=12894
+Content-Type: application/json; charset=utf-8
+x-ms-request-id: 0fee23d0-410e-425c-9403-e7e494190700
+body: {"keys":[{"kty":"RSA","use":"sig","kid":"aFkmKVFc-4WV6sXCBvNZkXI505Y","x5t":"aFkmKVFc-4WV6sXCBvNZkXI505Y","n":"okYm9VU3RbibMexFuFthuBL7vG5a2UUtHaUpBZOLOogVhpWZYIiHedAOhb2oeZvdUVHcqsSckZLnUBqnzK-UfjWG9
+[0m
+[0m$ [0mprobe_keys() {
+  echo "== $1"
+  curl -s --max-time 15 -H "User-Agent: Mozilla/5.0 (compatible; research)" "$1" | python3 -c "import sys,json; d=json.load(sys.stdin); ks=d.get('keys',[]); print('nkeys=',len(ks)); print('kids=',[k.get('kid') for k in ks]); print('kty=',set(k.get('kty') for k in ks))"
+  echo
+}
+probe_keys "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+sleep 1
+probe_keys "https://login.microsoftonline.com/common/discovery/keys"
+== https://login.microsoftonline.com/common/discovery/v2.0/keys
+nkeys= 8
+kids= ['aFkmKVFc-4WV6sXCBvNZkXI505Y', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'NqEBZVuOpstZ__5iZuWH3HPswcI', '1Nv3JExJrKNx1l7adICQ7Y_Atps']
+kty= {'RSA'}
+
+== https://login.microsoftonline.com/common/discovery/keys
+nkeys= 5
+kids= ['aFkmKVFc-4WV6sXCBvNZkXI505Y', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug']
+kty= {'RSA'}
+[0m
+[0m$ [0mprobe() {
+  echo "== $1"
+  curl -s -o /dev/null -D /tmp/pb_hdr --max-time 15 -H "User-Agent: Mozilla/5.0 (compatible; research)" -w "code=%{http_code} len=%{size_download}\n" "$1"
+  grep -iE "^(content-type|content-length|server|x-frame):" /tmp/pb_hdr | head -3
+  echo
+}
+probe "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map"
+sleep 1
+probe "https://graph.microsoft.com/beta/agentRegistry"
+sleep 1
+probe "https://graph.microsoft.com/v1.0/me/agentSignInSessions"
+sleep 1
+probe "https://api.mysignins.microsoft.com/api/session"
+== https://mysignins.microsoft.com/bundle/main.caa6a456.js.map
+code=200 len=6976576
+Content-Length: 6976576
+Content-Type: text/plain
+
+== https://graph.microsoft.com/beta/agentRegistry
+code=401 len=237
+Content-Type: application/json
+
+== https://graph.microsoft.com/v1.0/me/agentSignInSessions
+code=401 len=237
+Content-Type: application/json
+
+== https://api.mysignins.microsoft.com/api/session
+code=404 len=0
+Content-Length: 0
+[0m
+[0m$ [0mprobe() {
+  echo "== $1"
+  curl -s -o /dev/null -D /tmp/pb_hdr --max-time 15 -H "User-Agent: Mozilla/5.0 (compatible; research)" -w "code=%{http_code} len=%{size_download}\n" "$1"
+  grep -iE "^(content-type|content-length|www-authenticate):" /tmp/pb_hdr | head -3
+  echo
+}
+probe "https://api.mysignins.microsoft.com/api/signIns"
+sleep 1
+probe "https://api.mysignins.microsoft.com/api/session/"
+sleep 1
+probe "https://api.myaccount.microsoft.com/api/shell/getshellinfo"
+== https://api.mysignins.microsoft.com/api/signIns
+code=401 len=0
+WWW-Authenticate: Bearer
+Content-Length: 0
+
+== https://api.mysignins.microsoft.com/api/session/
+code=404 len=0
+Content-Length: 0
+
+== https://api.myaccount.microsoft.com/api/shell/getshellinfo
+code=401 len=0
+WWW-Authenticate: Bearer error="invalid_token"
+Content-Length: 0
+[0m
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead reports/valid-bugs.md
+[0m→ [0mRead reports/hypotheses-laguna.txt[90m [limit=40][0m
+[0m
+[0m$ [0mdate -u +"%Y-%m-%d %H:%M:%S UTC"
+2026-08-07 19:17:03 UTC
+[0m
+[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt <<'EOF'
+
+## 2026-08-07 19:17:03 UTC [google] (model bigpickle)
+DELTA: NO_DELTA surface-wide; only [CHANGED] api.mysignins.microsoft.com `/api/session` and `/api/session/` (bare) now 404 Content-Length 0 while `/api/session/*` subpaths remain 401 — path-routing nuance only, no auth change.
+PROBES: agentRegistrations 401, oauth2PermissionGrants 401, canVerifiedIdBeIssued 401 (invalid_token), /beta/agentRegistry 401, /v1.0/me/agentSignInSessions 401, getshellinfo 401 — all alive/auth-gated. main.caa6a456.js.map still 200 (7MB). tokeninfo oracle still live (no-token → 400 invalid_token). discovery keys: v1 (5 kids) ⊂ v2.0 (8 kids), all RSA — no rotation desync.
+[HYP] Agent Registration ownership boundary / collection enumeration (carry-forward, differentiated sub-claim = enumeration)
+class: IDOR
+asset: GET/POST/PATCH/DELETE https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 50
+reasoning: create accepts CLIENT-SUPPLIED createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard; metadata types collection (contains-target) with no OperationRestrictions; converged with nemotron3 [75] — differentiated sub-claim is bare GET enumeration, not PATCH.
+evidence_needed: principal B (no ownership) GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration; 2) B GET /beta/copilot/agentRegistrations (enumeration); 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; 4) observe 200/204 vs 403. Passive: none (401, re-confirmed).
+impact: cross-app agent registration tamper → impersonation/supply-chain/forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId (carry-forward)
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
+confidence: 52
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked list; passive 401 re-confirmed this cycle, no new gate.
+evidence_needed: principal without delegated-admin/consent rights creates grant {clientId:A, resourceId:AzureStorage, scope:"user_impersonation"} → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) app A + app B; 2) owner of A POSTs grant as above; 3) observe 201/204 vs 403; 4) if accepted, AAD client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+[HYP] D2E conversation-ID resumption / cross-app session hijack (carry-forward)
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: RAG PROVES JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards.
+evidence_needed: principal B executes turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) app A POST start w/ chosen GUID; 2) app B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; 3) observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[PARKED] Verified ID employee-credential mint hypothesis (confidence 50, carry-forward) — retained but NOT re-filed this cycle: already flagged as aggregate NEXT (hypotheses-bigpickle.txt 18:48), business_value 9 highest, human test queued, no new passive evidence this cycle.
+[FINAL] 1. agentRegistrations ownership/enumeration (IDOR, merged with nemotron3 [75]) — priority 6.55
+[FINAL] 2. D2E conversation-ID resumption (IDOR) — priority 6.50
+[FINAL] 3. oauth2PermissionGrants caller-chosen resourceId (BUSLOGIC) — priority 6.50
+[NEXT] HUMAN: two-principal test-tenant probe (top-ranked, unexecuted): A POST /beta/copilot/agentRegistrations (createdBy/ownerIds client-set) → B GET /beta/copilot/agentRegistrations (collection enumeration, Bearer scope AgentRegistration.ReadWrite.All) → B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":...} → record 200/204 vs 403 for each hop.
+[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only, no-token→400); all GCP control-plane reads consumer-identity gated; keys dual-endpoint verified clean; no exploitable unauth branch.
+[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401 but Bearer-gated behind authorized-token tests; exposure surface unchanged, exploit status pending test-tenant.
+EOF
+echo appended; tail -3 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt
+appended
+[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only, no-token→400); all GCP control-plane reads consumer-identity gated; keys dual-endpoint verified clean; no exploitable unauth branch.
+[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401 but Bearer-gated behind authorized-token tests; exposure surface unchanged, exploit status pending test-tenant.
+[0m
+STEP 1 — DELTA: NO_DELTA surface-wide. One minor [CHANGED]: `api.mysignins.microsoft.com/api/session` + `/api/session/` (bare) → 404 (Content-Length 0) while `/api/session/*` subpaths remain 401 — path-routing nuance, no auth change. All key endpoints re-verified alive/auth-gated (below). No new surface items.
+
+STEP 2 — PRIORITIZE:
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations | score 6.55 | attack7 business8 tech6 gate2 cloud8 fresh8
+- [PRIO] {envhost}/copilotstudio/.../conversations (D2E) | score 6.50 | attack7 business7 tech8 gate2 cloud7 fresh8
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | score 6.50 | attack7 business8 tech7 gate2 cloud8 fresh6
+- (4th) api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential | score 6.40 — already queued as aggregate NEXT, not re-prioritized
+
+STEP 3 — HYPOTHESES:
+[HYP] Agent Registration ownership boundary / collection enumeration (carry-forward; differentiated sub-claim = bare GET enumeration)
+class: IDOR
+asset: GET/POST/PATCH/DELETE https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 50
+reasoning: create accepts client-supplied `createdBy`; PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard`; metadata types it a contains-target collection with zero OperationRestrictions; converged with nemotron3 [75]. Re-probed: endpoint 401 `InvalidAuthenticationToken`, alive.
+evidence_needed: principal B (no ownership) GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration; 2) B GET `/beta/copilot/agentRegistrations` (enumeration); 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; 4) observe 200/204 vs 403. Passive: none (401, confirmed).
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] D2E conversation-ID resumption / cross-app session hijack (carry-forward)
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: RAG proves JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL remains.
+evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error (CallerIdentityMismatch/D2EAccessDenied).
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) app A POST start with chosen GUID; 2) app B POST `/conversations/{same GUID}` + GET subscribe with `Last-Event-ID` using its own Bearer; 3) observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId (carry-forward)
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
+confidence: 52
+reasoning: consent primitive accepts caller-chosen `resourceId` spanning Graph or Azure Storage `user_impersonation` (e406a681-…); `Application.Read.All` absent from agent blocked-permissions; endpoint re-probed 401, no new gate.
+evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) app A + app B; 2) owner of A POSTs grant as above; 3) observe 201/204 vs 403; 4) if accepted, AAD client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE:
+- [PARKED] Verified ID employee-credential mint (confidence 50) — retained but not re-filed: highest business_value (9), already queued as aggregate NEXT (hypotheses-bigpickle.txt 18:48), no new passive evidence this cycle; re-filing would duplicate.
+- [PARKED] v1.0↔v2.0 issuer-confusion — duplicate of laguna [55], tracked by that model.
+- [FINAL] 1. agentRegistrations ownership/enumeration (IDOR, merged w/ nemotron3 [75]) — 6.55
+- [FINAL] 2. D2E conversation-ID resumption (IDOR) — 6.50
+- [FINAL] 3. oauth2PermissionGrants caller-chosen resourceId (BUSLOGIC) — 6.50
+
+STEP 5 — NEXT ACTION:
+[NEXT] HUMAN: two-principal test-tenant probe of the top-ranked hypothesis (unexecuted): A POST `/beta/copilot/agentRegistrations` (client-set `createdBy`/`ownerIds`) → B GET `/beta/copilot/agentRegistrations` with its own Bearer (scope `AgentRegistration.ReadWrite.All`) to test collection enumeration → B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":...}` → record 200/204 vs 403 at each hop.
+
+STEP 6 — LEARNING:
+[LEARN] REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
+
+STEP 7 — RISK SCORE:
+[RISK] google: 35 — tokeninfo oracle is the sole anonymous branch (info-only; no-token→400); all GCP control-plane reads consumer-identity gated; dual-JWKS verified clean; no exploitable unauth branch.
+[RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 7MB, HTTP 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all re-confirmed 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.
+
+(Appended to `reports/hypotheses-bigpickle.txt`.)
