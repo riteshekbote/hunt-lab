@@ -2653,3 +2653,8 @@ Index: /home/runner/work/hunt-lab/hunt-lab/ctx-leads.txt
 - `research/longcat.md` — Microsoft SURFACE section appended
 - `ctx-research.txt` — State updated with both program findings
 - `ctx-leads.txt` — New Microsoft leads appended
+
+===== RUN 2026-08-07 13:49:37 UTC | model longcat | target google =====
+[0m
+> build · longcat-2.0-free
+[0m
