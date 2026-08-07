@@ -50,3 +50,12 @@ Let me start by understanding the target program scope and existing research con
     "ref": "err_f57024e7"
   }
 }
+
+===== RUN 2026-08-07 14:43:01 UTC | model ling3 | target google =====
+[91m[1mError: [0m{
+  "name": "UnknownError",
+  "data": {
+    "message": "Unexpected server error. Check server logs for details.",
+    "ref": "err_5b91b2db"
+  }
+}
