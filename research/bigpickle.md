@@ -1846,3 +1846,2234 @@ STATUS_STATE: HIGH_POTENTIAL
 NEXT_STEP_1: HYPOTHESIS on the two highest-value surfaces: legacy ACS token trust (accounts.accesscontrol.windows.net) and agent sign-in session authorization (me/agentSignInSessions) — read-only design + impact only.
 NEXT_STEP_2: Extract full request schemas/scopes for /api/issueVerifiedEmployeeCredential + /api/session/* from the two SPA bundles and Graph public docs.
 NEXT_STEP_3: Build redirect_uri/response_mode normalization matrix from documented client registration rules (no live sends) and cross-check with login.live.com fast-fail behavior.
+
+## RUN 2026-08-07 (big-pickle) — TARGET: microsoft — PHASE: HYPOTHESIS
+
+### Source maps: BOTH SPAs ship live source maps (major code-review surface)
+- mysignins.microsoft.com/bundle/main.caa6a456.js.map (6,976,576 B) — NO sourcesContent; 4359 paths. sha256 2099f8a8...f3efbe.
+- api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35,340,363 B) — sourcesContent PRESENT (4922 files). sha256 72290126...27d6541. Extracted 1977 files to /tmp/opencode/myaccount-src (transient, not committed).
+- Source map presence is itself a reportable hardening gap (recon-only note; MSRC triages source-map exposure per-case — validate against program rules before reporting).
+
+### My Account backend (api.myaccount.microsoft.com) — request schemas recovered from source
+- Auth: @iamexperiences/feature-auth getMsalAuth, MSAL public client, CacheLocation.SessionStorage, authority settingsManager authAuthorityEndpoint, clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Tokens acquired with scopes=[clientId] (audience = the SPA's own clientId) for ALL /api/* calls.
+- /api/issueVerifiedEmployeeCredential: POST, Authorization Bearer <clientId-scope token>, NO body. Backend errors surfaced in UI: GuestIsNotAllowedToIssueVerifiedId, TenantIsNotInAllowedToIssueVerifiedId (authz gates = non-guest + tenant-onboarded + feature-on; per source comment 204 means true). Verified ID app linkedin ref VERIFIEDID_APP_NAME_LINKEDIN.
+- /api/canVerifiedIdBeIssued: GET, Bearer clientId-token; 200+204 = enabled, else JSON reason.
+- /api/termsofuse/*: agreements/{agreementId}; agreements/{agreementId}/policyfiles/{policyFileId}; policyfiles/{policyFileId}/data (GET JSON); policyfiles/{policyFileId}/decline and /accept (POST). UNAUTHENTICATED variants (useGetAgreementUnauthenticated, useDeclineAgreement, useGetPolicyFileDataUnauthenticated) read access_token + id_token_hint + claims (incl governance_control_state_per_device) from server-rendered data-requestbody dataset in the HTML — i.e., tokens/claims embedded in a consent page's DOM.
+- /api/shell/navbardata, /api/signOutEverywhere, /api/organizations, /api/organizations/{id}, /api/devices, /api/groups/settings, /api/EnduserEmailContacts, /api/TenantEmailSettings, /api/dateTimeFormats, /api/me/image, /api/users/getImages.
+- Graph beta calls: /me/ownedObjects via getOwnedAgentsUrl(userId) = /users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999 (scope AgentIdentity.Read.All); /users/{userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999; /roleManagement/directory/roleAssignments?$filter=principalId eq '{userId}'; /organization/{orgId}/branding/localizations?$select=cdnList,bannerLogoRelativeUrl; /me/settings/itemInsights, /me/settings/contactMergeSuggestions, /me/checkMemberGroups, /me/photos/648x648/$value. ServiceIdentity is the agent-identity SP type (MANAGEAGENTS.AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE).
+- MSGraphScopes enum: CrossTenantUserProfileSharing.ReadWrite.All, Organization.Read.All, User.Read.All, User.ReadWrite, MailboxSettings.ReadWrite, BitlockerKey.Read.All, Contacts.Read, AgentIdentity.Read.All.
+- Roaming settings: OFFICE_APP_ID 179, API_PATH /rs/v1/settings, PLATFORM Web.
+- IAMUX/portal routing (portal-app/lib): account.activedirectory-ppe.windowsazure.com (PPE), account-tip.activedirectory.windowsazure.com (TIP), account.activedirectory.windowsazure.com (PROD), account.activedirectory.windowsazure.us (AR), account.aad.microsoft.scloud (USSEC), account.aad.eaglex.ic.gov (USNAT). NOTE: *.windowsazure.com NOT in scope.yml — adjacent-only, no probing. Environment detection: hostname contains "ppe"/"tip"/"us" or ends .scloud/.eaglex.ic.gov else PROD.
+- Cross-app URLs pass upn, tenant, login_hint, optIn query params to IAMUX/myapps/mygroups/myaccess (createUrl). Substrate search builder search/api/{v1} on getSubstrateResourceName().
+
+### accounts.accesscontrol.windows.net (legacy ACS) — trust-relevant findings
+- /metadata/json/1 (200) now returns keys + endpoints ONLY (allowedAudiences REMOVED — tenant-enum patch confirmed; Sprocket Security 2026-05-19 writeup "Tenant Enumeration is Dead" documents the technique + patch).
+- 5 signing keys served: key0-2 CN=accounts.accesscontrol.windows.net self-signed (notBefore 2026-06/07, notAfter 2031-06/07), sha256 FP 05:D1:7F:72:..., 34:D0:94:25:..., 93:A6:49:15:...; key3-4 CN=login.microsoftonline.us self-signed (FP 1B:49:9F:F9:..., A7:3C:A1:F9:...). Mixed issuers in one JWKS = config artifact to compare vs ESTS discovery keys.
+- Discovery endpoints alive: /tokens/OAuth/2 (OAuth2 issuance), /tokens/delegation/1 (DelegationIssuance1.0), /mgmt/delegation/1 (DelegationManagement1.0) — all 200 sign-in pages (auth-gated, not 404).
+- Historical context: Sep-2025 critical (CVSS 10.0) ESTS actor-token impersonation chain (Dirk-jan Mollema) leveraged the well-known app 00000001-0000-0000-c000-000000000000 via accounts.accesscontrol.windows.net for AAD Graph actor tokens; mitigation blocked actor-token requests to AAD Graph. This host is a known high-attention MSRC identity asset; Microsoft's own ACS FAQ: "Traffic to accounts.accesscontrol.windows.net is handled by a different service" (absorbed into Entra ESTS).
+- ACS retirement: ACS itself retired Nov-2018; SharePoint add-in ACS auth retired Apr-2026. Remaining trust: legacy RPs/tools.
+
+### agentSignInSessions — new undocumented Graph surface
+- /v1.0/me/agentSignInSessions + /beta/me/agentSignInSessions resolve (401 InvalidAuthenticationToken baseline). NOT present in public Graph docs (docs-contrib tree only has agentic-agentsignin.md + agentsignin.md, both different resources: signIn audit + conditionalAccess). ms.date 05/01/2025 for agentic.agentSignIn; signIn.agent property type.
+- My Sign-Ins bundle modules: redux/modules/signIns/agentSessionApis.ts, agentSessionUtils.ts, agentSessions.ts, recentSignIns.ts, switchTenant.ts; SPA strings: /me/agentSignInSessions, /recent-activity/agentic-sessions. My Account: manageAgentNavItemEnabled, useHasOwnedAgents.
+
+### OAuth redirect_uri validation (documented rules; no live sends this run beyond baseline)
+- login.live.com fast-fails: 302 oauth20_desktop.srf?error=invalid_request&error_description=...redirect_uri is not valid. client must be 'mobile' OR redirect must be absolute + registered (confirmed SURFACE).
+- login.microsoftonline.com/oauth2/v2.0/authorize with unregistered client+redirect returns generic 200 sign-in page (deferred validation).
+- Documented AAD rules (learn.microsoft.com/en-us/entra/identity-platform/reply-url): https required (except localhost), case-sensitive exact match, AADSTS50011 on mismatch; RFC 6749 3.1.2 string compare + RFC 9700 (BCP) forbids wildcards. Loopback localhost (any port) for native/mobile; SPA client-type restriction AADSTS9002327/9002326.
+
+### accledger/accessmonitor
+- No public GitHub/docs presence found for "Access Ledger" controlplane. controlplane.accledger.azure.com: Kestrel /health 200 "Healthy" + x-ms-machinename (pod) + x-ms-image-tag 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8; structured 404 envelope {"Status":"failed","Error":{"Code":"404"...}}; no swagger/api/ledger/tenants. identity.accledger.azure.com -> identity-accledger-prod-1.eastus.cloudapp.azure.com (no HTTPS).
+- api.prod/dev.accessmonitor.azure.com: 403 AFD/WAF-gated.
+
+### Artifacts (hashes only, for triage reference)
+- mysignins map sha256 2099f8a83336e290f2ab20c09a56b3a4493d0b7f66328b944c7fc18055f3efbe
+- myaccount map sha256 72290126cebc34559574f30c675c6bfe84856fe8a7678eb2e0821237a27d6541
+- mysignins sources list sha256 1a5be8a2293c3797e11882895b69ef9dc53173bc71b1ee5865b6a8934034e506
+- No secrets found in either bundle/map (public clientIds + env hostnames only).
+
+===== RUN 2026-08-07 09:38:54 UTC | model bigpickle | target microsoft =====
+[0m
+> build · big-pickle
+[0m
+I'll continue the microsoft hunt from SURFACE into HYPOTHESIS phase. Let me first check what persisted from the previous run, then deepen the highest-value surfaces with read-only research.
+[0m$ [0mls -la /tmp/opencode/ 2>/dev/null | head -20; echo "---state---"; cat state_bigpickle.json 2>/dev/null; echo "---journal tail---"; tail -20 research/bigpickle.md 2>/dev/null | head -5
+total 16
+drwxr-xr-x  2 runner runner  4096 Aug  7 09:32 .
+drwxrwxrwt 14 root   root   12288 Aug  7 09:32 ..
+---state---
+{"phase": "SURFACE", "status": "HIGH_POTENTIAL"}---journal tail---
+5. **OAuth redirect_uri asymmetry (live vs AAD v2)** — different validation behavior; historical AAD classes: trailing-slash/encoding normalization, `response_mode=fragment` confusion, `whr`/domain-hint trickery. Impact: authorization code theft/ATO. Read-only: build a matrix of redirect_uri encodings against documented client registration rules; do not send to live unless the encoding set is published.
+6. **controlplane.accledger (Access Ledger) info disclosure** — Kestrel banners leak pod name + image tag; structured error envelope. If any unauthenticated route returns ledger/tenant metadata, it's info disclosure. Impact: low-medium. Read-only: bounded GET/HEAD on documented common paths only; stop at 404 envelope (done).
+
+## Secrets Check (public repos: what was found, hash only, where)
+- No new secrets this run. Bundle-downloaded SPAs (mysignins main.caa6a456.js, myaccount main.4e6e3dc6.js) were string-scanned; only public clientIds and config URLs found, no keys/tokens. No commit of any raw secret. Independent reposcan job: 0 grep hits (leads/reposcan-latest.md).
+[0m
+[0m# [0mTodos
+[•] Re-verify ACS /metadata/json/1 keys + research legacy ACS DelegationIssuance1.0 trust (who still trusts accounts.accesscontrol.windows.net as issuer)
+[ ] Source-map check on mysignins + api.myaccount SPA bundles (read-only GET of .js.map)
+[ ] agentSignInSessions permission model — public Graph docs + scope/role design
+[ ] Entra Verified ID issuance endpoints — public docs, scopes, request schemas
+[ ] OAuth redirect_uri normalization — review in-scope code (microsoft-identity-web, MSAL.js) for validation logic
+[ ] accledger/accessmonitor public-repo + docs search for unauthenticated API routes
+[ ] Write HYPOTHESIS journal, leads, state update
+[0m
+State confirms SURFACE/HIGH_POTENTIAL → now advancing to HYPOTHESIS. Let me plan the work and start with the highest-value surfaces.
+Starting with the legacy ACS trust hypothesis — re-fetch the key metadata and parse the certificates for fingerprints and issuer structure.
+[0m$ [0mcurl -s "https://accounts.accesscontrol.windows.net/metadata/json/1" --max-time 15 -o /tmp/opencode/acs-keys.json && python3 -c "
+import json
+d=json.load(open('/tmp/opencode/acs-keys.json'))
+keys=d.get('keys',[])
+print('total keys:',len(keys))
+for i,k in enumerate(keys):
+    kv=k.get('keyValue',{})
+    v=kv.get('value','')
+    print(f\"key[{i}] usage={k.get('usage')} kid={kv.get('type')} len={len(v)}\")
+print('endpoints:',json.dumps(d.get('endpoints'),indent=1))
+"
+total keys: 5
+key[0] usage=signing kid=x509Certificate len=1028
+key[1] usage=signing kid=x509Certificate len=1028
+key[2] usage=signing kid=x509Certificate len=1028
+key[3] usage=signing kid=x509Certificate len=1000
+key[4] usage=signing kid=x509Certificate len=1000
+endpoints: [
+ {
+  "location": "https://accounts.accesscontrol.windows.net/tokens/OAuth/2",
+  "protocol": "OAuth2",
+  "usage": "issuance"
+ },
+ {
+  "location": "https://accounts.accesscontrol.windows.net/tokens/delegation/1",
+  "protocol": "DelegationIssuance1.0",
+  "usage": "issuance"
+ },
+ {
+  "location": "https://accounts.accesscontrol.windows.net/mgmt/delegation/1",
+  "protocol": "DelegationManagement1.0",
+  "usage": "management"
+ }
+]
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/acs-keys.json'))
+for i,k in enumerate(d.get('keys',[])):
+    v=k.get('keyValue',{}).get('value','')
+    try:
+        pem='-----BEGIN CERTIFICATE-----\n'+v+'\n-----END CERTIFICATE-----'
+        import subprocess
+        p=subprocess.run(['openssl','x509','-noout','-subject','-issuer','-dates','-fingerprint','-sha256'],input=pem.encode(),capture_output=True)
+        print(f'--- key[{i}] ---')
+        print(p.stdout.decode().strip())
+    except Exception as e:
+        print('err',e)
+"
+--- key[0] ---
+subject=CN = accounts.accesscontrol.windows.net
+issuer=CN = accounts.accesscontrol.windows.net
+notBefore=Jun  8 12:04:26 2026 GMT
+notAfter=Jun  8 12:04:26 2031 GMT
+sha256 Fingerprint=05:D1:7F:72:3C:F3:10:76:71:74:BB:9F:BA:F3:F8:6D:72:86:0A:5A:4C:11:D7:0C:35:9A:46:3A:64:04:D9:C6
+--- key[1] ---
+subject=CN = accounts.accesscontrol.windows.net
+issuer=CN = accounts.accesscontrol.windows.net
+notBefore=Jun 17 15:02:22 2026 GMT
+notAfter=Jun 17 15:02:22 2031 GMT
+sha256 Fingerprint=34:D0:94:25:2B:14:B0:33:D3:62:11:6B:30:09:11:9C:A8:CD:13:F9:9E:DA:BC:D1:10:6E:2D:70:C4:84:BD:5B
+--- key[2] ---
+subject=CN = accounts.accesscontrol.windows.net
+issuer=CN = accounts.accesscontrol.windows.net
+notBefore=Jul  4 00:05:05 2026 GMT
+notAfter=Jul  4 00:05:05 2031 GMT
+sha256 Fingerprint=93:A6:49:15:A9:20:DB:8F:50:A8:A9:12:60:AA:F0:FF:5B:65:21:9D:81:5B:B8:4E:78:DA:84:C7:7D:36:4D:47
+--- key[3] ---
+subject=CN = login.microsoftonline.us
+issuer=CN = login.microsoftonline.us
+notBefore=Jul  1 16:00:54 2026 GMT
+notAfter=Jul  1 16:00:54 2031 GMT
+sha256 Fingerprint=1B:49:9F:F9:EE:49:60:A6:75:E9:C6:F6:73:57:C9:0C:6D:08:50:01:AD:7E:A7:1F:89:DA:5B:F0:A8:4E:3D:85
+--- key[4] ---
+subject=CN = login.microsoftonline.us
+issuer=CN = login.microsoftonline.us
+notBefore=Jul 26 16:01:26 2026 GMT
+notAfter=Jul 26 16:01:26 2031 GMT
+sha256 Fingerprint=A7:3C:A1:F9:DB:02:7F:E9:39:63:BD:18:08:0E:57:1E:FD:49:2A:6D:A8:74:3B:4A:D1:59:19:F0:5C:B5:67:B9
+[0m
+Three ACS self-signed signing keys + two `login.microsoftonline.us` keys served from this live endpoint — a token-forgery-relevant trust surface. Let me research who publicly trusts this issuer and the legacy DelegationIssuance1.0 protocol.
+[0m◈ [0mParallel Web Search "accounts.accesscontrol.windows.net legacy Access Control Service ACS trusted token issuer relying party metadata"
+[0m◈ [0mParallel Web Search "Windows Azure Access Control Service "DelegationIssuance1.0" delegation token protocol vulnerability"
+Key intel: the Sprocket Security writeup confirms `/metadata/json/1` was the tenant-enumeration + **actor-token vector** (Dirk-jan Mollema's 10.0-CVSS ESTS impersonation chain used `accounts.accesscontrol.windows.net`), and the `allowedAudiences` leak is now patched (my fetch confirms the field is gone). This is a known-high-attention MSRC surface. Now let me check the SPA source maps and agentSignInSessions docs.
+[0m◈ [0mParallel Web Search "Microsoft Graph "agentSignInSessions" API agentic sign-in session permissions scopes documentation"
+[0m
+[0m$ [0mfor u in "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" "https://mysignins.microsoft.com/manifest.json"; do code=$(curl -s -o /dev/null -w "%{http_code}|%{content_type}|%{size_download}b" "$u" --max-time 12); echo "$code  $u"; sleep 1; done
+200|text/plain|6976576b  https://mysignins.microsoft.com/bundle/main.caa6a456.js.map
+200|application/json|286b  https://mysignins.microsoft.com/manifest.json
+[0m
+Critical find: **the source map IS live** at `/bundle/main.caa6a456.js.map` (6.97MB). That's a full source tree of the My Sign-Ins SPA. Let me grab it and pull the agentic sign-in docs from the public graph-docs-contrib repo.
+[0m$ [0mcurl -s "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" --max-time 120 -o /tmp/opencode/mysignins.map && wc -c /tmp/opencode/mysignins.map && python3 -c "
+import json
+d=json.load(open('/tmp/opencode/mysignins.map'))
+srcs=d.get('sources',[])
+print('total source files:',len(srcs))
+# list unique top dirs
+import collections
+tops=collections.Counter(s.split('/')[0] for s in srcs if s)
+for t,n in tops.most_common(30):
+    print(f'{n:5d}  {t}')
+print('--- interesting source names ---')
+import re
+for s in srcs:
+    if re.search(r'(config|secret|key|token|session|auth|endpoint|host)',s,re.I) and not re.search(r'(node_modules|\.d\.ts|test)',s):
+        print('  ',s)
+" | head -70
+6976576 /tmp/opencode/mysignins.map
+total source files: 4359
+ 4359  webpack:
+--- interesting source names ---
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/Authenticator.scoped.scss?3b4d
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/ManualActivation.scoped.scss?064a
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/Verification.scoped.scss?0d12
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.scss?3ebc
+   webpack://sign-ins/./src/SecurityInfo/Passkey/AllowedAAGUIDs/AllowedAAGUIDs.scoped.scss?24ef
+   webpack://sign-ins/./src/SecurityInfo/Passkey/Passkey.scss?936d
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/NameYourPasskey.scoped.scss?05ba
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PasskeyAddError/PasskeyAddError.scoped.scss?e11c
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PasskeyWebAuthN.scoped.scss?c28b
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/StrongAuthRequired.scoped.scss?7d43
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/ManualActivation.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/RegistrationComplete.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/RegistrationNotSupported.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/Authenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/Authenticator.types.ts
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/AuthenticatorDialog.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/AuthenticatorStep.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/ConnectedAuthenticator.ts
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/Activation.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/AuthenticatorStageHeader.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/InstallationInstructions.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/SameDeviceActivation.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/SetupInstructions.tsx
+   webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/Verification.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ConnectedExternalAuth.ts
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.page.ts
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.styles.ts
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/AddProviderDialog.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/ExternalAuthAdded.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/ExternalAuthFailed.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/ProviderPickerDialog.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/RegisteringProvider.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/WizardSpecificSteps/AddProvider.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/RegistrationSteps/WizardSpecificSteps/ProviderPicker.tsx
+   webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.utils.ts
+   webpack://sign-ins/./src/SecurityInfo/Fido/screens/SelectSecurityKeyTypeScreen.tsx
+   webpack://sign-ins/./src/SecurityInfo/Fido/screens/NameSecurityKeyScreen.tsx
+   webpack://sign-ins/./src/SecurityInfo/Fido/screens/StrongAuthRequiredScreen.tsx
+   webpack://sign-ins/./src/SecurityInfo/HardwareOath/RegistrationStages/EnterTokenName.tsx
+   webpack://sign-ins/./src/SecurityInfo/HardwareOath/RegistrationStages/EnterTokenSerialNumber.tsx
+   webpack://sign-ins/./src/SecurityInfo/HardwareOath/RegistrationStages/EnterTokenVerificationNumber.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/EPOW/SettingUpWindowsHello.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/EPOW/WindowsHello.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/EPOW/WindowsHelloSetupDone.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/AllowedAAGUIDs/AllowedAAGUIDs.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/AllowedAAGUIDs/AllowedAAGUIDsDialog.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/AllowedAAGUIDs/AllowedAAGUIDsContainer.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/Components/HavingTroubleDialogFooter.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/DirectRegistration/PasskeyOnAuthenticatorDoesNotHaveAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/DirectRegistration/PasskeyOnAuthenticatorHasAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/AddPasskey.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/DirectRegistration/CompleteInMicrosoftAuthenticatorDoesNotHaveAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/DirectRegistration/CompleteInMicrosoftAuthenticatorHasAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/DirectRegistration/CompleteInMicrosoftAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/NameYourPasskey.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PasskeyAddError/PasskeyAddError.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PasskeyCreated.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PasskeyNotRegistered.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/PolicyMisconfiguration.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/ReadyToSave.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/ReadyToSaveMsAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/StrongAuthRequired.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/TurnOnPasskeySupport.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/WhereToSavePasskey.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/RegistrationStages/WhereToSavePasskeyOnMSAuthenticator.tsx
+   webpack://sign-ins/./src/SecurityInfo/Passkey/Troubleshooting/Components/ContactSupportInformation.tsx
+Exception ignored in: <_io.TextIOWrapper name='<stdout>' mode='w' encoding='utf-8'>
+BrokenPipeError: [Errno 32] Broken pipe
+[0m
+[0m$ [0mpython3 -c "
+import json
+d=json.load(open('/tmp/opencode/mysignins.map'))
+print('has sourcesContent:', bool(d.get('sourcesContent')))
+print('num content:', len([c for c in (d.get('sourcesContent') or []) if c]))
+srcs=d.get('sources',[])
+with open('/tmp/opencode/mysignins-srcs.txt','w') as f:
+    for s in srcs:
+        f.write(s+'\n')
+# top-level dirs
+import collections,re
+dirs=collections.Counter()
+for s in srcs:
+    m=re.match(r'webpack://sign-ins/\./([^/]+)/',s)
+    if m: dirs[m.group(1)]+=1
+    elif s.startswith('webpack://sign-ins/.'):
+        dirs['(root)']+=1
+for t,n in dirs.most_common(40):
+    print(f'{n:5d}  {t}')
+"
+has sourcesContent: False
+num content: 0
+ 3590  (root)
+  473  src
+  281  node_modules
+[0m
+Full source map with 4359 source files including original TypeScript. Let me extract the source tree and check for embedded source content.
+[0m$ [0mpython3 -c "
+import collections
+srcs=open('/tmp/opencode/mysignins-srcs.txt').read().splitlines()
+pref=collections.Counter()
+for s in srcs:
+    if s.startswith('webpack://sign-ins/'):
+        rest=s[len('webpack://sign-ins/'):]
+        pref[rest.split('/')[0]+'/'+rest.split('/')[1] if '/' in rest else rest]+=1
+    else:
+        pref[s.split('/')[0]]+=1
+for t,n in pref.most_common(50):
+    print(f'{n:5d}  {t}')
+"
+2006  ../..
+  894  ../portal-app
+  690  ../fabric-ui-portal
+  473  ./src
+  281  ./node_modules
+   14  webpack/runtime
+    1  webpack/bootstrap
+[0m
+[0m$ [0mgrep -E '^webpack://sign-ins/\./src/' /tmp/opencode/mysignins-srcs.txt | sed 's|webpack://sign-ins/\./src/||' | sort > /tmp/opencode/src-list.txt; wc -l /tmp/opencode/src-list.txt; echo "=== dirs ==="; python3 -c "
+import collections
+dirs=collections.Counter()
+for l in open('/tmp/opencode/src-list.txt'):
+    d=l.split('/')[0]
+    dirs[d]+=1
+for t,n in dirs.most_common():
+    print(f'{n:4d}  {t}')
+"
+473 /tmp/opencode/src-list.txt
+=== dirs ===
+ 387  SecurityInfo
+  34  shared
+  28  redux
+   8  InProductFeedback
+   7  utils
+   5  SignIns
+   1  Application
+   1  auth.ts
+
+   1  index.tsx
+
+   1  register.ts
+[0m
+[0m$ [0mecho "=== shared + utils + Application + auth.ts ==="; grep -E '^(shared|utils|Application|auth\.ts|index|register|SignIns|redux)/' /tmp/opencode/src-list.txt; echo; echo "=== SignIns ==="; grep '^SignIns/' /tmp/opencode/src-list.txt
+=== shared + utils + Application + auth.ts ===
+Application/signInsRouting.ts
+SignIns/RecentActivity/RecentActivity.page.ts
+SignIns/models/SignInsActions.ts
+SignIns/shared/signIns-helpers.ts
+SignIns/shared/signins-session-activity.ts
+SignIns/shared/signins-unfriendly-apps.ts
+redux/modules/featureFlags/featureFlagNames.ts
+redux/modules/featureFlags/featureFlags.utils.ts
+redux/modules/featureFlags/featureFlagsApi.ts
+redux/modules/featureFlags/featureFlagsSelectors.ts
+redux/modules/featureFlags/mySignInsActions.ts
+redux/modules/featureFlags/mySignInsReducer.ts
+redux/modules/featureFlags/mySignInsRegistry.ts
+redux/modules/featureFlags/organizationBrandingInfo/getOrganizationBranding.ts
+redux/modules/featureFlags/serviceInfoActions.ts
+redux/modules/header/getNavBarData.ts
+redux/modules/header/getOrganizations.ts
+redux/modules/header/getTenantBranding.ts
+redux/modules/header/getTenantBrandingLegacy.ts
+redux/modules/header/userPersonData.ts
+redux/modules/root.ts
+redux/modules/search/searchContext.ts
+redux/modules/shared/sharedEffects.ts
+redux/modules/signIns.ts
+redux/modules/signIns/agentSessionApis.ts
+redux/modules/signIns/agentSessionUtils.ts
+redux/modules/signIns/agentSessions.ts
+redux/modules/signIns/getMapImageForSignIn.ts
+redux/modules/signIns/recentSignIns.ts
+redux/modules/signIns/showInProductFeedback.ts
+redux/modules/signIns/signInApis.ts
+redux/modules/signIns/signInsRegistry.ts
+redux/modules/signIns/signInsSearch.ts
+redux/modules/signIns/switchTenant.ts
+shared/Telemetry.constants.ts
+shared/components/CopyInfo/CopyInfo.scoped.scss
+shared/components/CopyInfo/CopyInfo.scoped.scss?3346
+shared/components/CopyInfo/CopyInfo.tsx
+shared/components/DownloadLinks/DownloadLinks.scoped.scss
+shared/components/DownloadLinks/DownloadLinks.scoped.scss?a57f
+shared/components/DownloadLinks/DownloadLinks.tsx
+shared/components/ReSkinDialog/ReSkinDialog.scss
+shared/components/ReSkinDialog/ReSkinDialog.scss?e26b
+shared/components/ReSkinDialog/ReSkinDialog.tsx
+shared/components/UnderlinedComboBox/UnderlinedComboBox.scoped.scss
+shared/components/UnderlinedComboBox/UnderlinedComboBox.scoped.scss?f4e1
+shared/components/UnderlinedComboBox/UnderlinedComboBox.tsx
+shared/components/UnderlinedDropdown/UnderlinedDropdown.scoped.scss
+shared/components/UnderlinedDropdown/UnderlinedDropdown.scoped.scss?8896
+shared/components/UnderlinedDropdown/UnderlinedDropdown.tsx
+shared/constants.ts
+shared/dropdownStyles.ts
+shared/ecosTelemetry.ts
+shared/getTheme.ts
+shared/settings/SigninSettings.ts
+shared/settings/environments/settings.arlington.ts
+shared/settings/environments/settings.bleu.ts
+shared/settings/environments/settings.delos.ts
+shared/settings/environments/settings.mooncake.ts
+shared/settings/environments/settings.ppe.ts
+shared/settings/environments/settings.production.ts
+shared/settings/environments/settings.ts
+shared/settings/environments/settings.usnat.ts
+shared/settings/environments/settings.ussec.ts
+shared/settings/resolveEnvironmentSettings.ts
+shared/telemetry.ts
+shared/types/interrupt.type.ts
+shared/types/telemetryArea.type.ts
+utils/apiUtils.ts
+utils/dateUtils.ts
+utils/queryStringFlags.ts
+utils/registerCustomIcons.tsx
+utils/sessionUtils.ts
+utils/urlUtils.ts
+utils/windowHelper.ts
+
+=== SignIns ===
+SignIns/RecentActivity/RecentActivity.page.ts
+SignIns/models/SignInsActions.ts
+SignIns/shared/signIns-helpers.ts
+SignIns/shared/signins-session-activity.ts
+SignIns/shared/signins-unfriendly-apps.ts
+[0m
+[0m$ [0mpython3 -c "
+import collections,re
+srcs=open('/tmp/opencode/mysignins-srcs.txt').read().splitlines()
+portal=[]; root=[]
+for s in srcs:
+    if s.startswith('webpack://sign-ins/../portal-app/'):
+        portal.append(s[len('webpack://sign-ins/../portal-app/'):])
+    elif s.startswith('webpack://sign-ins/../..'):
+        root.append(s)
+print('portal-app files:',len(portal))
+c=collections.Counter(p.split('/')[0] for p in portal)
+for t,n in c.most_common(15): print(f'{n:4d}  portal-app/{t}')
+print()
+print('parent-shared files:',len(root))
+# classify by 2nd path segment
+c2=collections.Counter()
+for r in root:
+    parts=r[len('webpack://sign-ins/../../'):].split('/')
+    c2[parts[0]+'/'+(parts[1] if len(parts)>1 else '')]+=1
+for t,n in c2.most_common(25): print(f'{n:4d}  {t}')
+"
+portal-app files: 894
+ 747  portal-app/node_modules
+ 147  portal-app/lib
+
+parent-shared files: 2006
+ 450  node_modules/rxjs
+ 362  node_modules/core-js-pure
+ 357  node_modules/core-js
+ 181  node_modules/@fluentui
+ 180  node_modules/@microsoft
+ 137  node_modules/moment
+  85  node_modules/@iamexperiences
+  82  node_modules/@babel
+  26  node_modules/react-query
+  18  node_modules/react-redux
+  14  node_modules/uuid
+  13  node_modules/i18next
+  13  node_modules/lodash
+  10  node_modules/lodash-es
+   9  node_modules/react-i18next
+   8  node_modules/connected-react-router
+   5  node_modules/redux-observable
+   5  node_modules/redux
+   4  dev/node_modules
+   4  node_modules/html-parse-stringify2
+   4  node_modules/i18next-xhr-backend
+   4  node_modules/react
+   3  node_modules/prop-types
+   3  node_modules/util
+   2  node_modules/path-to-regexp
+[0m
+The `src` tree is rich — note the `agentSessionApis.ts` / `agentSessions.ts` modules and per-environment settings. Let me inspect the portal-app and shared-package sources bundled in.
+[0m$ [0mpython3 -c "
+srcs=open('/tmp/opencode/mysignins-srcs.txt').read().splitlines()
+iam=[s for s in srcs if '@iamexperiences' in s]
+ms=[s for s in srcs if '/@microsoft/' in s]
+for s in iam[:200]:
+    print(s.split('@iamexperiences/')[-1])
+" | sed 's|node_modules/||' | sort | head -90
+ecos-telemetry/lib/callFunctionOnTelemetrySinks.js
+ecos-telemetry/lib/getInstanceId.js
+ecos-telemetry/lib/react/TelemetryContext.js
+ecos-telemetry/lib/react/TelemetryProvider.js
+ecos-telemetry/lib/react/qos/QosErrorBoundary.js
+ecos-telemetry/lib/react/qos/QosProvider.js
+ecos-telemetry/lib/react/qos/types.js
+ecos-telemetry/lib/sinks/1ds-sink/OneDsTelemetrySink.js
+ecos-telemetry/lib/sinks/types/EventType.js
+ecos-telemetry/lib/sinks/utils/getErrorJsonData.js
+ecos-telemetry/lib/sinks/utils/getPLTMetrics.js
+ecos-telemetry/lib/sinks/utils/getResourcesMetrics.js
+ecos-telemetry/lib/sinks/utils/scrubSensitiveData.js
+ecos-telemetry/lib/sinks/utils/stringifyHelper.js
+ecos-telemetry/lib/telemetry.js
+inproductfeedback/lib/esm.js
+react-auth/lib/core/constants.js
+react-auth/lib/core/errors/AuthError.js
+react-auth/lib/core/getAuthManager.js
+react-auth/lib/core/getAuthUser.js
+react-auth/lib/core/getAuthorityTenant.js
+react-auth/lib/core/getAutoLoginHandler.js
+react-auth/lib/core/getAutoLoginResult.js
+react-auth/lib/core/getBestEmail.js
+react-auth/lib/core/getBestUsername.js
+react-auth/lib/core/getDecodedJwtToken.js
+react-auth/lib/core/getDefaultLoggerFactory.js
+react-auth/lib/core/getNormalPromptQuery.js
+react-auth/lib/core/getNormalScopes.js
+react-auth/lib/core/getNormalUsername.js
+react-auth/lib/core/getPageLoadStats.js
+react-auth/lib/core/getTenantAuthority.js
+react-auth/lib/core/isGuestUsername.js
+react-auth/lib/core/types/IAuth.js
+react-auth/lib/core/types/IAuthError.js
+react-auth/lib/core/withAuthLifecycle.js
+react-auth/lib/implementations/V1/addOpenIdScope.js
+react-auth/lib/implementations/V1/constants.js
+react-auth/lib/implementations/V1/getAuthV1.js
+react-auth/lib/implementations/V1/getDependencies.js
+react-auth/lib/implementations/V1/getError.js
+react-auth/lib/implementations/V1/getOAuthAuthorizeClient.js
+react-auth/lib/implementations/V1/getOAuthLogoutClient.js
+react-auth/lib/implementations/V1/getOAuthTokenClient.js
+react-auth/lib/implementations/V1/getOpenIdConfigClient.js
+react-auth/lib/implementations/V1/getPkceCodes.js
+react-auth/lib/implementations/V1/getSession.js
+react-auth/lib/implementations/V1/getUser.js
+react-auth/lib/implementations/V1/types.js
+react-auth/lib/react/AuthContext.js
+react-auth/lib/react/AuthHooks.js
+react-auth/lib/react/AuthProvider.js
+react-auth/lib/react/WithUser.js
+react-auth/lib/utils/Crypto/getCrypto.js
+react-auth/lib/utils/Crypto/getCryptoMock.js
+react-auth/lib/utils/Crypto/getRandomValues.js
+react-auth/lib/utils/Crypto/getSessionId.js
+react-auth/lib/utils/Crypto/getSha256Digest.js
+react-auth/lib/utils/Crypto/getUuid.js
+react-auth/lib/utils/Decorators/once.js
+react-auth/lib/utils/Fetch/AbortController.js
+react-auth/lib/utils/Fetch/AbortControllerPolyfill.js
+react-auth/lib/utils/Fetch/AbortSignal.js
+react-auth/lib/utils/Fetch/Headers.js
+react-auth/lib/utils/Fetch/HeadersPolyfill.js
+react-auth/lib/utils/Fetch/fetch.js
+react-auth/lib/utils/Logger/DefaultLoggerHandler.js
+react-auth/lib/utils/Logger/constants.js
+react-auth/lib/utils/Logger/getLogger.js
+react-auth/lib/utils/Logger/getLoggerFactory.js
+react-auth/lib/utils/Logger/getLoggerLevel.js
+react-auth/lib/utils/Store/getMemoryStorage.js
+react-auth/lib/utils/Store/getStore.js
+react-auth/lib/utils/Store/getStoreKey.js
+react-auth/lib/utils/Subject/getSubject.js
+react-auth/lib/utils/Types/array.js
+react-auth/lib/utils/Types/dictionary.js
+react-auth/lib/utils/Types/eq.js
+react-auth/lib/utils/Types/getArray.js
+react-auth/lib/utils/Types/getCleanRecord.js
+react-auth/lib/utils/Types/guard.js
+react-auth/lib/utils/Types/hasOwnProperty.js
+react-auth/lib/utils/Types/isDeepEqual.js
+react-auth/lib/utils/Types/struct.js
+react-auth/lib/utils/Types/typeOf.js
+react-auth/lib/utils/createStorageKey.js
+[0m
+`@iamexperiences` (the identity experiences SDK) and `portal-app/lib` are bundled. Let me enumerate those — they reveal the full backend API surface.
+[0m$ [0mpython3 -c "
+srcs=open('/tmp/opencode/mysignins-srcs.txt').read().splitlines()
+for s in srcs:
+    if s.startswith('webpack://sign-ins/../portal-app/lib/'):
+        print(s.split('portal-app/lib/')[-1])
+" | sort | head -150
+App/AppFlags.js
+App/ConnectedStandardAppBar/ConnectedStandardAppBar.js
+App/ConnectedStandardAppBar/index.js
+App/Loading/Loading.js
+App/Loading/getLoadingState.js
+App/Loading/index.js
+App/redux/applicationInitialState.js
+App/redux/applicationRegistry.js
+AppSuite/index.js
+AppSuite/models/AppSuiteActions.js
+AppSuite/models/index.js
+AppSuite/redux/actions/getAppsEnabled.js
+AppSuite/redux/actions/index.js
+AppSuite/redux/appSuiteApi.js
+AppSuite/redux/appSuiteInitialState.js
+AppSuite/redux/appSuiteRegistry.js
+AppSuite/redux/index.js
+Banners/EmptyBanner/EmptyBanner.js
+Banners/EmptyBanner/EmptyBanner.types.js
+Banners/EmptyBanner/index.js
+Banners/ErrorBanner/ErrorBanner.js
+Banners/ErrorBanner/ErrorBanner.types.js
+Banners/ErrorBanner/index.js
+Banners/LoadingBanner/LoadingBanner.js
+Banners/LoadingBanner/index.js
+FeatureFlags/models/FeatureFlagsActions.js
+FeatureFlags/models/index.js
+FeatureFlags/redux/featureFlagsInitialState.js
+FeatureFlags/redux/featureFlagsRegistry.js
+FeatureFlags/redux/index.js
+LanguageDetector/htmlTagDetector.js
+LanguageDetector/index.js
+LanguageDetector/languageDetectorPlugin.js
+LanguageDetector/navigatorDetector.js
+LanguageDetector/profileLanguageDetector.js
+LanguageDetector/queryStringDetector.js
+Nav/models/Nav.js
+Notifications/dialogRegistry.js
+Notifications/helpers/notificationsMerge.js
+Notifications/isDialogOpen.js
+Notifications/models/INotification.js
+Notifications/models/NotificationsActions.js
+Notifications/models/index.js
+Notifications/redux/actions/dialog.js
+Notifications/redux/actions/index.js
+Notifications/redux/getDialogParameter.js
+Notifications/redux/index.js
+Notifications/redux/notifications.js
+Notifications/redux/notificationsInitialState.js
+Notifications/redux/notificationsRegistry.js
+Options/models/OptionsActions.js
+Options/models/index.js
+Options/redux/actions/index.js
+Options/redux/actions/options.js
+Options/redux/index.js
+Options/redux/optionsInitialState.js
+Options/redux/optionsRegistry.js
+Search/models/SearchActions.js
+Search/models/index.js
+Search/redux/actions/index.js
+Search/redux/actions/search.js
+Search/redux/actions/searchContext.js
+Search/redux/actions/searchUsers.js
+Search/redux/index.js
+Search/redux/searchInitialState.js
+Search/redux/searchRegistry.js
+User/getUserId.js
+User/getUserImageUrl.js
+User/getUserName.js
+User/models/ICurrentUser.js
+User/models/IPerson.js
+User/models/UserActions.js
+User/models/index.js
+User/redux/actions/getCurrentUser.js
+User/redux/actions/getCurrentUserImage.js
+User/redux/actions/getFlights.js
+User/redux/actions/getMyOrganization.js
+User/redux/actions/getUser.js
+User/redux/actions/getUserImage.js
+User/redux/actions/index.js
+User/redux/actions/logOut.js
+User/redux/actions/updateUserImage.js
+User/redux/index.js
+User/redux/requireAuthentication.js
+User/redux/userApi.js
+User/redux/userInitialState.js
+User/redux/userRegistry.js
+aad-graph-api/getAadGraphResourceName.js
+ajax-utils/index.js
+ajax-utils/mapJsonResponse.js
+ajax-utils/mapObservableJsonResponse.js
+auth/acquireToken.js
+auth/auth.js
+auth/csrf.js
+auth/index.js
+auth/withAuth.js
+bootstrap.js
+device/is-mobile.js
+device/is-oobe-mode.js
+device/is-touch.js
+environment/determineEnvironment.js
+environment/getApiServerUrl.js
+environment/getUrlForApp.js
+environment/index.js
+feature-flags/flags.js
+feature-flags/index.js
+fetch/fetch.js
+fetch/fetchMatch.js
+fetch/fetchResponse.js
+fetch/index.js
+i18n.js
+models/ILoading.js
+models/LocalizedError.js
+ms-graph-api/getMsGraphResourceName.js
+ms-graph-api/getMsGraphUrl.js
+ms-graph-api/users/userApi.js
+redux/ReducerRegistry.js
+redux/createAction.js
+redux/createAjaxEpic.js
+redux/data/setPageableToLoading.js
+redux/modules/nav.js
+redux/modules/root.js
+redux/observableErrorHandler.js
+shared/localization.js
+shared/override-settings/overrideSettings.js
+sorting/time.js
+styling/patterns/Banner.scoped.scss
+styling/patterns/Banner.scoped.scss?3318
+styling/patterns/DetailsPage.scoped.scss
+styling/patterns/DetailsPage.scoped.scss?6f50
+styling/patterns/Section.scoped.scss
+styling/patterns/Section.scoped.scss?3be2
+styling/patterns/Text.scoped.scss
+styling/patterns/Text.scoped.scss?1332
+styling/patterns/TextField.scoped.scss
+styling/patterns/TextField.scoped.scss?4c7e
+styling/stylingConstants.js
+telemetry/AriaTelemetryProvider.js
+telemetry/ConsoleTelemetryProvider.js
+telemetry/ISS.js
+telemetry/Telemetry.js
+telemetry/initClickTale.js
+telemetry/logBusinessEventError.js
+telemetry/scrubTelemetryData.js
+telemetry/setDefaultProviders.js
+telemetry/treatmentService.js
+text/ellipsis.js
+[0m
+[0m$ [0mpython3 -c "
+srcs=open('/tmp/opencode/mysignins-srcs.txt').read().splitlines()
+for s in srcs:
+    if '/@microsoft/' in s:
+        print(s.split('@microsoft/')[-1].replace('node_modules/',''))
+" | sort -u | head -40
+1ds-analytics-web-js/dist-esm/src/ApplicationInsights.js
+1ds-core-js/dist-esm/src/AppInsightsCore.js
+1ds-core-js/dist-esm/src/InternalConstants.js
+1ds-core-js/dist-esm/src/Utils.js
+1ds-post-js/dist-esm/src/ClockSkewManager.js
+1ds-post-js/dist-esm/src/DataModels.js
+1ds-post-js/dist-esm/src/EventBatch.js
+1ds-post-js/dist-esm/src/HttpManager.js
+1ds-post-js/dist-esm/src/InternalConstants.js
+1ds-post-js/dist-esm/src/KillSwitch.js
+1ds-post-js/dist-esm/src/PostChannel.js
+1ds-post-js/dist-esm/src/RetryPolicy.js
+1ds-post-js/dist-esm/src/Serializer.js
+1ds-post-js/dist-esm/src/TimeoutOverrideWrapper.js
+1ds-properties-js/dist-esm/src/ExtensionKeys.js
+1ds-properties-js/dist-esm/src/InternalConstants.js
+1ds-properties-js/dist-esm/src/PropertiesPlugin.js
+1ds-properties-js/dist-esm/src/SessionManager.js
+1ds-properties-js/dist-esm/src/TelemetryContext.js
+1ds-properties-js/dist-esm/src/Utils.js
+1ds-properties-js/dist-esm/src/context/Application.js
+1ds-properties-js/dist-esm/src/context/Cloud.js
+1ds-properties-js/dist-esm/src/context/Device.js
+1ds-properties-js/dist-esm/src/context/IntWeb.js
+1ds-properties-js/dist-esm/src/context/Loc.js
+1ds-properties-js/dist-esm/src/context/OperatingSystem.js
+1ds-properties-js/dist-esm/src/context/Sdk.js
+1ds-properties-js/dist-esm/src/context/Session.js
+1ds-properties-js/dist-esm/src/context/Trace.js
+1ds-properties-js/dist-esm/src/context/User.js
+1ds-properties-js/dist-esm/src/context/Utc.js
+1ds-properties-js/dist-esm/src/context/Web.js
+1ds-qos-js/dist-esm/src/Id.js
+1ds-qos-js/dist-esm/src/QosPlugin.js
+1ds-qos-js/dist-esm/src/common/DataCollector.js
+1ds-qos-js/dist-esm/src/common/Utils.js
+1ds-qos-js/dist-esm/src/events/IncomingQosEvent.js
+1ds-qos-js/dist-esm/src/events/OutgoingQosEvent.js
+1ds-qos-js/dist-esm/src/events/QosEvent.js
+1ds-wa-js/dist-esm/src/Behaviors.js
+[0m
+[0m$ [0mcode=$(curl -s -o /dev/null -w "%{http_code}|%{size_download}b" "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" --max-time 20); echo "myaccount .map: $code"; sleep 1
+myaccount .map: 200|35340363b
+[0m
+Both source maps are live — myaccount's is 35MB. Let me download and extract its source tree for comparison.
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" --max-time 180 -o /tmp/opencode/myaccount.map && wc -c /tmp/opencode/myaccount.map && python3 -c "
+import json,collections
+d=json.load(open('/tmp/opencode/myaccount.map'))
+print('has sourcesContent:', bool(d.get('sourcesContent')))
+print('num content:', len([c for c in (d.get('sourcesContent') or []) if c]))
+srcs=d.get('sources',[])
+print('total sources:',len(srcs))
+with open('/tmp/opencode/myaccount-srcs.txt','w') as f:
+    for s in srcs: f.write(s+'\n')
+pref=collections.Counter()
+for s in srcs:
+    if s.startswith('webpack://') and '/./src/' in s:
+        pref['./src']+=1
+    elif s.startswith('webpack://') and '/../portal-app/' in s:
+        pref['../portal-app']+=1
+    elif s.startswith('webpack://') and '/../..' in s:
+        pref['../..']+=1
+    else:
+        pref[s.split('/')[0]]+=1
+for t,n in pref.most_common(10): print(f'{n:6d}  {t}')
+"
+35340363 /tmp/opencode/myaccount.map
+has sourcesContent: True
+num content: 4922
+total sources: 5015
+  3861  webpack:
+   927  ../..
+   227  ./src
+[0m
+The myaccount map has **full source content** (4922 files). Let me extract the app's own `src/` code — this reveals exact API request schemas and scopes.
+[0m$ [0mpython3 << 'EOF'
+import json,os,re
+d=json.load(open('/tmp/opencode/myaccount.map'))
+srcs=d['sources']; cont=d.get('sourcesContent') or []
+outdir='/tmp/opencode/myaccount-src'
+os.makedirs(outdir,exist_ok=True)
+count=0
+for s,c in zip(srcs,cont):
+    if not c: continue
+    if '/./src/' in s:
+        rel=s.split('/./src/',1)[-1]
+    elif '/src/' in s:
+        rel=s.split('/src/',1)[-1]
+    else:
+        continue
+    rel=rel.replace('/','__').replace('?','_Q')
+    path=os.path.join(outdir,rel)
+    with open(path,'w') as f:
+        f.write(c)
+    count+=1
+print('extracted',count,'files to',outdir)
+EOF
+ls /tmp/opencode/myaccount-src | wc -l; ls /tmp/opencode/myaccount-src | head -50
+extracted 1977 files to /tmp/opencode/myaccount-src
+1947
+Account__AccountCard__AccountCard.scoped.scss
+Account__AccountCard__AccountCard.scoped.scss_Qe7e5
+Account__AccountCard__AccountCard.tsx
+Account__AccountHome__AccountHome.page.ts
+Account__AccountHome__AccountHome.scoped.scss
+Account__AccountHome__AccountHome.scoped.scss_Q0258
+Account__AccountHome__AccountHome.tsx
+Account__AccountHome__ConnectedAccountHome.ts
+Account__Credential__CopyLinkDialog.tsx
+Account__Credential__CredentialDialog.styles.ts
+Account__Credential__CredentialDialog.tsx
+Account__Credential__GetVerifyId.tsx
+Account__Credential__RetrievingCredentials.scoped.scss
+Account__Credential__RetrievingCredentials.scoped.scss_Q5bf7
+Account__Credential__RetrievingCredentials.tsx
+Account__Credential__useRetrievingCredential.ts
+Account__LeaveOrganization__actions.ts
+Account__LeaveOrganization__components__LeaveOrgConfirmationDialog.page.ts
+Account__LeaveOrganization__components__LeaveOrgConfirmationDialog.tsx
+Account__LeaveOrganization__components__LeaveOrgSuccessDialog.page.ts
+Account__LeaveOrganization__components__LeaveOrgSuccessDialog.tsx
+Account__LeaveOrganization__effects__effectLeaveOrg.ts
+Account__LeaveOrganization__hooks__useLeaveOrgFlow.ts
+Account__LeaveOrganization__models.ts
+Account__LeaveOrganization__reducers.ts
+Account__LeaveOrganization__selectors.ts
+Account__OrganizationCard__ConnectedOrganizationCard.tsx
+Account__OrganizationCard__OrganizationCard.tsx
+Account__Organizations__NativeIdentity__useCurrentOrganization.ts
+Account__Organizations__OrganizationsPage.tsx
+Account__PersonBadge__CannotEditInfoDetails.tsx
+Account__PersonBadge__CannotEditInfoDetailsContent.tsx
+Account__PersonBadge__ConnectedPersonBadge.ts
+Account__PersonBadge__PersonBadge.scoped.scss
+Account__PersonBadge__PersonBadge.scoped.scss_Q6999
+Account__PersonBadge__PersonBadge.tsx
+Account__PersonBadge__Persona.tsx
+Account__PersonBadge__ResponsiveConnectedPersonBadge.tsx
+Account__models__AccountActions.ts
+Account__redux__accountInitialState.ts
+Account__redux__accountRegistry.ts
+Account__redux__actions__convergedUXV2Enabled.ts
+Account__redux__actions__getCurrentOrganization.ts
+Account__redux__actions__getNavBarData.ts
+Account__redux__actions__getOrganizations.ts
+Account__redux__actions__getUser.ts
+Account__redux__actions__leaveOrganization.ts
+Account__redux__actions__signOutEverywhere.ts
+Account__redux__actions__ssprConvergenceEnabled.ts
+Announcers__AnnouncementsProvider.tsx
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && rg -l -i "issueVerifiedEmployeeCredential|canVerifiedIdBeIssued|issueverified" . 2>/dev/null; echo "=== verified id refs ==="; rg -n -i "issueVerified|canVerifiedId|verifiableCredential|verifiedid" --glob '*.ts*' . 2>/dev/null | rg -v "scoped.scss" | head -30
+=== verified id refs ===
+/bin/bash: line 1: rg: command not found
+[0m
+Full source extracted. Now let me mine it for the Verified ID issuance flow, session handling, and scope/audience requirements.
+[0m$ [0mcd /tmp/opencode/myaccount-src && grep -rl -i "issueVerifiedEmployeeCredential\|canVerifiedIdBeIssued" . 2>/dev/null | head; echo "=== matches ==="; grep -rn -i "issueVerified\|canVerifiedId" . 2>/dev/null | grep -v "scoped.scss" | head -20
+./Account__Credential__useRetrievingCredential.ts
+=== matches ===
+./Account__Credential__useRetrievingCredential.ts:8:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/issueVerifiedEmployeeCredential`;
+./Account__Credential__useRetrievingCredential.ts:33:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;
+./shared__getErrorString.ts:13:    case 'GuestIsNotAllowedToIssueVerifiedId':
+./shared__getErrorString.ts:14:      return t('verifyIdGuestIsNotAllowedToIssueVerifiedId', { tenantId });
+./shared__getErrorString.ts:19:    case 'TenantIsNotInAllowedToIssueVerifiedId':
+./shared__getErrorString.ts:20:      return t('verifyIdTenantIsNotInAllowedToIssueVerifiedId', { tenantId });
+[0m
+[0m→ [0mRead /tmp/opencode/myaccount-src/Account__Credential__useRetrievingCredential.ts
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && ls | grep -i "settings\|environ" ; echo "=== list a few ==="; grep -rn "myAccountBackendUrl\|authAuthorityEndpoint\|clientId" --include="*.ts" . 2>/dev/null | grep -i "settings\|environ" | head -20
+GlobalSettings.ts
+InProductFeedback__getInProductFeedbackLocalizedSettings.ts
+SettingsAndPrivacy__SettingsAndPrivacyPage.tsx
+customizations__mergeSettings.ts
+customizations__useCustomizationSettings.ts
+getVendorSettings.ts
+shared__SettingsManager.ts
+shared__settings.ts
+webjs__AWTLogManagerSettings.js
+=== list a few ===
+./Account__LeaveOrganization__effects__effectLeaveOrg.ts:10:    const clientId = settingsManager.getRequired('clientId');
+./TermsOfUse__hooks__useGetTenantDisplayName.ts:16:      const clientId = settingsManager.getRequired('clientId');
+./TermsOfUse__hooks__useGetTenantDisplayName.ts:42:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/tenantdisplayname`;
+./auth.ts:5:const authority = settingsManager.getRequired('authAuthorityEndpoint');
+./auth.ts:7:const clientId = settingsManager.getRequired('clientId');
+./hooks__useLeftNavGroupConditions.ts:151:      const token = await configuration.getToken(settingsManager.getRequired('clientId'));
+./hooks__useLeftNavGroupConditions.ts:152:      const url = `${settingsManager.getRequired('myAccountBackendUrl')}/api/groups/settings`;
+./TermsOfUse__hooks__useGetTenantBannerLogo.ts:16:      const url = `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/tenantbannerlogo`;
+./TermsOfUse__hooks__useDeclineAgreement.ts:17:        `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${props.agreementId}/policyfiles/${
+./Account__redux__actions__getOrganizations.ts:14:  url: `${settingsManager.get('myAccountBackendUrl')}/api/organizations`,
+./Account__redux__actions__getOrganizations.ts:15:  audience: settingsManager.getRequired('clientId'),
+./Language__hooks__useGetAvailableLocalesQuery.ts:22:      const clientId = settingsManager.getRequired('clientId');
+./TermsOfUse__hooks__useGetMyAcceptances.ts:16:      const url = `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/myacceptances`;
+./TermsOfUse__hooks__useGetMyAcceptances.ts:17:      const clientId = settingsManager.getRequired('clientId');
+./TermsOfUse__hooks__useGetAgreement.ts:17:      const clientId = settingsManager.getRequired('clientId');
+./TermsOfUse__hooks__useGetAgreement.ts:43:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${agreementId}`;
+./Account__Credential__useRetrievingCredential.ts:8:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/issueVerifiedEmployeeCredential`;
+./Account__Credential__useRetrievingCredential.ts:9:  const clientId = settingsManager.getRequired('clientId');
+./Account__Credential__useRetrievingCredential.ts:33:  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;
+./Account__Credential__useRetrievingCredential.ts:34:  const clientId = settingsManager.getRequired('clientId');
+[0m
+The Verified ID flow uses `scopes: [clientId]` (token audience = the SPA's own clientId) — backend checks `GuestIsNotAllowedToIssueVerifiedId` / `TenantIsNotInAllowedToIssueVerifiedId`. Let me pull the environment settings and look for more internal config.
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== useDeclineAgreement ==="; cat TermsOfUse__hooks__useDeclineAgreement.ts; echo; echo "=== useGetAgreement ==="; cat TermsOfUse__hooks__useGetAgreement.ts
+=== useDeclineAgreement ===
+import { useTelemetry } from '@iamexperiences/ecos-telemetry';
+import { useMutation } from 'react-query';
+
+import { HttpRequestError } from '../../shared/HttpRequestError';
+import { IAgreementIdentifiers } from '../models/types';
+import { settingsManager } from '../../shared/settings';
+import { getRequestBody } from '../utilities/getRequestBody';
+
+export const useDeclineAgreement = () => {
+  const telemetry = useTelemetry();
+  // This hook is only used in unauthenticated flow and should always use access token from the request body
+  const { accessToken, recordDeviceId } = getRequestBody();
+
+  return useMutation({
+    mutationFn: async (props: IAgreementIdentifiers) => {
+      const url = new URL(
+        `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${props.agreementId}/policyfiles/${
+          props.policyFileId
+        }/decline`,
+      );
+      url.searchParams.append('recordDeviceId', recordDeviceId.toString());
+      const token = accessToken;
+      const response = await fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+          Authorization: 'Bearer ' + token,
+        },
+      });
+
+      if (!response.ok) {
+        const error = new HttpRequestError(response.status, response.statusText);
+        telemetry.error('Error declining agreement', error);
+
+        throw error;
+      }
+    },
+  });
+};
+
+=== useGetAgreement ===
+import { useAuth } from '@iamexperiences/feature-auth';
+import { ITelemetry, useTelemetry } from '@iamexperiences/ecos-telemetry';
+import { useQuery } from 'react-query';
+
+import { HttpRequestError } from '../../shared/HttpRequestError';
+import { IAgreement } from '../models/types';
+import { settingsManager } from '../../shared/settings';
+import { getRequestBody } from '../utilities/getRequestBody';
+
+export const useGetAgreementAuthenticated = (agreementId: string) => {
+  const telemetry = useTelemetry();
+  const { auth } = useAuth();
+
+  const query = useQuery({
+    queryKey: [{ scope: 'agreements-authenticated', agreementId }],
+    queryFn: async ({ queryKey }) => {
+      const clientId = settingsManager.getRequired('clientId');
+      const token = await auth.acquireToken({ scopes: [clientId] });
+      return getAgreementQueryFn(queryKey[0].agreementId, token, telemetry);
+    },
+    staleTime: Infinity,
+  });
+
+  return query;
+};
+
+export const useGetAgreementUnauthenticated = (agreementId: string) => {
+  const telemetry = useTelemetry();
+
+  const query = useQuery({
+    queryKey: [{ scope: 'agreements-unauthenticated', agreementId }],
+    queryFn: async ({ queryKey }) => {
+      const { accessToken } = getRequestBody();
+      return getAgreementQueryFn(queryKey[0].agreementId, accessToken, telemetry);
+    },
+    staleTime: Infinity,
+  });
+
+  return query;
+};
+
+async function getAgreementQueryFn(agreementId: string, token: string, telemetry: ITelemetry) {
+  const url = `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${agreementId}`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + token,
+    },
+  });
+
+  if (!response.ok) {
+    const error = new HttpRequestError(response.status, response.statusText);
+    telemetry.error('Error getting agreement', error);
+
+    throw error;
+  }
+
+  const data: IAgreement = await response.json();
+
+  return data;
+}
+[0m
+More surface: `/api/termsofuse/agreements/{id}/policyfiles/{id}` and `/api/groups/settings`. Let me examine the ToS hooks (potential SSRF/IDOR path) and the auth/settings modules.
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== getRequestBody ==="; find . -name "*getRequestBody*"; cat $(find . -name "*getRequestBody*" | head -1); echo; echo "=== policyfile refs ==="; grep -rn "policyfile\|policyFile\|policyfile" . 2>/dev/null | grep -v scoped.scss | head -15
+=== getRequestBody ===
+./TermsOfUse__utilities__getRequestBody.ts
+let requestBody: URLSearchParams;
+
+export const getRequestBody = () => {
+  if (!requestBody) {
+    const htmlElement = document.documentElement;
+    const rawRequestBody = htmlElement.dataset.requestbody ?? '';
+    requestBody = new URLSearchParams(rawRequestBody);
+  }
+
+  const getRequestBodyAsString = (key: string): string => {
+    const value = requestBody.get(key);
+    if (!value) {
+      throw new Error(`${key} is null`);
+    }
+
+    return value.toString();
+  };
+
+  return {
+    requestBody: requestBody,
+    accessToken: getRequestBodyAsString('access_token'),
+    agreementId: getRequestBodyAsString('agreement_id'),
+    replyUri: getRequestBodyAsString('reply_uri'),
+    idTokenHint: getRequestBodyAsString('id_token_hint'),
+    recordDeviceId:
+      JSON.parse(getRequestBodyAsString('claims'))['id_token']['governance_control_state_per_device'] !== undefined,
+  };
+};
+
+=== policyfile refs ===
+./TermsOfUse__Consent__ConsentPageContent.tsx:32:  const policyFileId = agreement?.policyFiles.find((policyFile) => policyFile.isDefault)?.id;
+./TermsOfUse__Consent__ConsentPageContent.tsx:78:  } else if (getAgreementQuery.isError || !agreement || !agreementId || !policyFileId) {
+./TermsOfUse__Consent__ConsentPageContent.tsx:81:    const agreementIdentifiers = { agreementId, policyFileId };
+./TermsOfUse__Consent__ConsentPageContent.tsx:112:        { agreementId: agreementId, policyFileId: policyFileId },
+./TermsOfUse__Consent__ConsentPageContent.tsx:131:        { agreementId: agreementId, policyFileId: policyFileId },
+./TermsOfUse__Acceptances__AcceptanceList.tsx:94:      policyFileId={acceptance.policyFileId}
+./TermsOfUse__hooks__useDeclineAgreement.ts:17:        `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${props.agreementId}/policyfiles/${
+./TermsOfUse__hooks__useDeclineAgreement.ts:18:          props.policyFileId
+./TermsOfUse__hooks__useAcceptAgreement.ts:17:        `${settingsManager.get('myAccountBackendUrl')}/api/termsofuse/agreements/${props.agreementId}/policyfiles/${
+./TermsOfUse__hooks__useAcceptAgreement.ts:18:          props.policyFileId
+./TermsOfUse__hooks__useGetPolicyFileData.ts:9:export const useGetPolicyFileDataAuthenticated = (agreementId: string, policyFileId: string) => {
+./TermsOfUse__hooks__useGetPolicyFileData.ts:14:    queryKey: [{ scope: 'policyfiles-authenticated', agreementId, policyFileId }],
+./TermsOfUse__hooks__useGetPolicyFileData.ts:18:      return getPolicyFileDataQueryFn(queryKey[0].agreementId, queryKey[0].policyFileId, token, telemetry);
+./TermsOfUse__hooks__useGetPolicyFileData.ts:26:export const useGetPolicyFileDataUnauthenticated = (agreementId: string, policyFileId: string) => {
+./TermsOfUse__hooks__useGetPolicyFileData.ts:30:    queryKey: [{ scope: 'policyfiles-unauthenticated', agreementId, policyFileId }],
+[0m
+The ToS decline flow is **unauthenticated by design** with an access token from the request body. Let me trace how that token is obtained and how policy files are resolved.
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== useGetPolicyFileData ==="; cat TermsOfUse__hooks__useGetPolicyFileData.ts; echo; echo "=== GlobalSettings ==="; sed -n '1,80p' GlobalSettings.ts
+=== useGetPolicyFileData ===
+import { useAuth } from '@iamexperiences/feature-auth';
+import { ITelemetry, useTelemetry } from '@iamexperiences/ecos-telemetry';
+import { useQuery } from 'react-query';
+
+import { HttpRequestError } from '../../shared/HttpRequestError';
+import { settingsManager } from '../../shared/settings';
+import { getRequestBody } from '../utilities/getRequestBody';
+
+export const useGetPolicyFileDataAuthenticated = (agreementId: string, policyFileId: string) => {
+  const telemetry = useTelemetry();
+  const { auth } = useAuth();
+
+  const query = useQuery({
+    queryKey: [{ scope: 'policyfiles-authenticated', agreementId, policyFileId }],
+    queryFn: async ({ queryKey }) => {
+      const clientId = settingsManager.getRequired('clientId');
+      const token = await auth.acquireToken({ scopes: [clientId] });
+      return getPolicyFileDataQueryFn(queryKey[0].agreementId, queryKey[0].policyFileId, token, telemetry);
+    },
+    staleTime: Infinity,
+  });
+
+  return query;
+};
+
+export const useGetPolicyFileDataUnauthenticated = (agreementId: string, policyFileId: string) => {
+  const telemetry = useTelemetry();
+
+  const query = useQuery({
+    queryKey: [{ scope: 'policyfiles-unauthenticated', agreementId, policyFileId }],
+    queryFn: async ({ queryKey }) => {
+      const { accessToken } = getRequestBody();
+      return getPolicyFileDataQueryFn(queryKey[0].agreementId, queryKey[0].policyFileId, accessToken, telemetry);
+    },
+    staleTime: Infinity,
+  });
+
+  return query;
+};
+
+async function getPolicyFileDataQueryFn(
+  agreementId: string,
+  policyFileId: string,
+  token: string,
+  telemetry: ITelemetry,
+) {
+  const url = `${settingsManager.get(
+    'myAccountBackendUrl',
+  )}/api/termsofuse/agreements/${agreementId}/policyfiles/${policyFileId}/data`;
+  const response = await fetch(url, {
+    headers: {
+      Authorization: 'Bearer ' + token,
+    },
+  });
+
+  if (!response.ok) {
+    const error = new HttpRequestError(response.status, response.statusText);
+    telemetry.error('Error getting policyfile', error);
+
+    throw error;
+  }
+
+  const data = await response.json();
+
+  return data;
+}
+
+=== GlobalSettings ===
+import { getWindow } from './dom/getWindow';
+
+/**
+ * Storing global state in local module variables has issues when more than one copy
+ * if the module gets loaded on the page (due to a bundling error or simply by consuming
+ * a prebundled script.)
+ *
+ * This file contains helpers to deal with the getting and setting local state, and allows
+ * callers to get called back when it mutates.
+ */
+
+const GLOBAL_SETTINGS_PROP_NAME = '__globalSettings__';
+const CALLBACK_STATE_PROP_NAME = '__callbacks__';
+
+let _counter = 0;
+
+/**
+ * Change description used for change callbacks in GlobalSettings.
+ *
+ * @public
+ * {@docCategory IChangeDescription}
+ */
+export interface IChangeDescription {
+  key: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  oldValue: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: any;
+}
+
+/**
+ * Change event callback.
+ *
+ * @public
+ * {@docCategory IChangeEventCallback}
+ */
+export interface IChangeEventCallback {
+  __id__?: string;
+  (changeDescription?: IChangeDescription): void;
+}
+
+/**
+ * Global settings helper, which stores settings in the global (window) namespace.
+ * If window is not provided, it will store settings in module scope. Provides a
+ * way to observe changes as well when their values change.
+ *
+ * @public
+ * {@docCategory GlobalSettings}
+ */
+export class GlobalSettings {
+  public static getValue<T>(key: string, defaultValue?: T | (() => T)): T {
+    const globalSettings = _getGlobalSettings();
+
+    if (globalSettings[key] === undefined) {
+      globalSettings[key] = typeof defaultValue === 'function' ? (defaultValue as Function)() : defaultValue;
+    }
+
+    return globalSettings[key];
+  }
+
+  public static setValue<T>(key: string, value: T): T {
+    const globalSettings = _getGlobalSettings();
+    const callbacks = globalSettings[CALLBACK_STATE_PROP_NAME];
+    let oldValue = globalSettings[key];
+
+    if (value !== oldValue) {
+      globalSettings[key] = value;
+
+      let changeDescription = {
+        oldValue,
+        value,
+        key,
+      };
+
+      for (let id in callbacks) {
+        if (callbacks.hasOwnProperty(id)) {
+          callbacks[id](changeDescription);
+        }
+      }
+    }
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== auth.ts ==="; cat auth.ts 2>/dev/null | head -60; echo "=== secret-ish patterns ==="; grep -rn "password\|secret\|apikey\|api_key\|accessToken\s*[:=]\s*['\"][^'\"]\{20,\}" --include="*.ts" --include="*.tsx" . 2>/dev/null | grep -v "scoped.scss" | grep -viE "accessToken == null|accessToken\b.*null|'access_token'|passwordreset|PasswordMethods|password/change|changePassword|ForgotPassword|password reset|passwords" | head -15
+=== auth.ts ===
+import { getMsalAuth, CacheLocation } from '@iamexperiences/feature-auth';
+import { settingsManager } from './shared/settings';
+import { getTelemetry } from './Telemetry/Telemetry';
+
+const authority = settingsManager.getRequired('authAuthorityEndpoint');
+
+const clientId = settingsManager.getRequired('clientId');
+
+export const auth = getMsalAuth(
+  {
+    clientId,
+    authority,
+    cacheLocation: CacheLocation.SessionStorage,
+  },
+  {
+    onError: (message: string) => {
+      logEvent('error', message);
+    },
+    onWarning: (message: string) => {
+      logEvent('warning', message);
+    },
+    onVerbose: (message: string) => {
+      logEvent('verbose', message);
+    },
+    onInfo: (message: string) => {
+      // This will send too many logs, which is not performant.
+      // Only enable when session storage is there
+      logEvent('info', message);
+    },
+  },
+);
+
+function logEvent(loglevel: string, message: string) {
+  // Storage read is synchronous so we cache the result per session
+  let isAuthDebugEnabled: boolean | null = null;
+  if (loglevel == 'error' || loglevel == 'warning') {
+    isAuthDebugEnabled = true;
+  }
+
+  if (isAuthDebugEnabled === null) {
+    try {
+      if (sessionStorage.getItem('AuthDebug') === 'true') {
+        isAuthDebugEnabled = true;
+      }
+    } catch (e) {
+      // sessionStorage not available
+      isAuthDebugEnabled = false;
+    }
+  }
+
+  if (isAuthDebugEnabled) {
+    getTelemetry()?.reportCustomEvent(`feature-auth/${loglevel}`, {
+      message,
+    });
+  }
+}
+=== secret-ish patterns ===
+./cache__entities__IdTokenEntity.ts:22: *      secret: Actual credential as a string
+./cache__entities__IdTokenEntity.ts:49:        idTokenEntity.secret = idToken;
+./cache__entities__IdTokenEntity.ts:71:            entity.hasOwnProperty("secret") &&
+./components__SensitiveContent__SensitiveContent.tsx:20:export type SensitiveContentType = "password";
+./components__SensitiveContent__SensitiveContent.tsx:116:        case "password": {
+./error__ClientAuthError.ts:169:        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
+./client__SilentFlowClient.ts:104:            idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
+./cache__entities__CredentialEntity.ts:22: *      secret: Actual credential as a string
+./cache__entities__CredentialEntity.ts:36:    secret: string;
+./cache__CacheManager.ts:230:            accountInfo.idToken = idToken.secret;
+./cache__CacheManager.ts:231:            accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
+./cache__CacheManager.ts:690:            cachedAccount.idTokenClaims = new AuthToken(cachedIdToken.secret, this.cryptoImpl).claims;
+./sinks__utils__scrubSensitiveData.ts:27:  [/(api_secret=)([^&;]+)/g, '$1REDACTED-API-SECRET'],
+./crypto__PopTokenGenerator.ts:15: * -  xms_ksl element, representing the storage location of the key's secret component on the client device. One of two values:
+./request__RequestParameterBuilder.ts:275:     * add client_secret
+[0m
+Let me scan the extracted source for auth config, session handling, and any high-value strings (internal hosts, secrets patterns).
+My Account source is mapped (auth via `@iamexperiences/feature-auth`, MSAL + SessionStorage). Now let me pull the Graph agentic sign-in docs from the public docs-contrib repo to design the authorization hypothesis.
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-docs-contrib/main/api-reference/beta/resources/agentic-agentsignin.md" --max-time 20 | head -80; sleep 1; echo "=== try API methods listing ==="; curl -s "https://api.github.com/search/code?q=repo:microsoftgraph/microsoft-graph-docs-contrib+agentsigninsession+in:path" --max-time 20 | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    for it in d.get('items',[])[:20]:
+        print(it['path'])
+except Exception as e:
+    print('search err:',e)
+"
+---
+title: "agentSignIn resource type"
+description: "Information about an agentic sign-in"
+author: "egreenberg14"
+ms.date: 05/01/2025
+ms.localizationpriority: medium
+ms.subservice: "entra-monitoring-health"
+doc_type: resourcePageType
+---
+
+# agentSignIn resource type
+
+Namespace: microsoft.graph.agentic
+
+[!INCLUDE [beta-disclaimer](../../includes/beta-disclaimer.md)]
+
+For agentic sign-ins, provides information about the agent. This object is configured in the **agent** property of [signIn](../resources/signin.md) and [summarizedSignIn](../resources/summarizedsignin.md).
+
+## Properties
+
+|Property|Type|Description|
+|:---|:---|:---|
+|agentSubjectParentId|String|The subject's parent object ID. This is either the **id** of the **agentIdentity** or **agentIdentityBlueprint**.|
+|agentSubjectType|microsoft.graph.agentic.agentType|The type of the subject that requested the token. The possible values are: `notAgentic`, `agenticApp`, `agenticAppInstance`, `unknownFutureValue`, `agentIdentityBlueprintPrincipal`, `agentIDuser`. Use the `Prefer: include-unknown-enum-members` request header to get the following value or values in this [evolvable enum](/graph/best-practices-concept#handling-future-members-in-evolvable-enumerations): `agentIdentityBlueprintPrincipal`, `agentIDuser`.|
+|agentType|microsoft.graph.agentic.agentType|Indicates whether the identity is agentic or nonagentic. The possible values are: `notAgentic`, `agenticApp`, `agenticAppInstance`, `unknownFutureValue`, `agentIdentityBlueprintPrincipal`, `agentIDuser`. Use the `Prefer: include-unknown-enum-members` request header to get the following value or values in this [evolvable enum](/graph/best-practices-concept#handling-future-members-in-evolvable-enumerations): `agentIdentityBlueprintPrincipal`, `agentIDuser`. |
+|parentAppId|String|The **appId** of the parent agent where the **agentType** is agentic.|
+
+## Relationships
+
+None.
+
+## JSON representation
+
+The following JSON representation shows the resource type.
+<!-- {
+  "blockType": "resource",
+  "@odata.type": "microsoft.graph.agentic.agentSignIn"
+}
+-->
+``` json
+{
+  "@odata.type": "#microsoft.graph.agentic.agentSignIn",
+  "agentType": "String",
+  "parentAppId": "String",
+  "agentSubjectType": "String",
+  "agentSubjectParentId": "String"
+}
+```
+=== try API methods listing ===
+[0m
+[0m$ [0mcurl -s "https://api.github.com/repos/microsoftgraph/microsoft-graph-docs-contrib/git/trees/main?recursive=1" --max-time 60 -o /tmp/opencode/graphdocs-tree.json && python3 -c "
+import json
+d=json.load(open('/tmp/opencode/graphdocs-tree.json'))
+paths=[t['path'] for t in d.get('tree',[]) if 'agentSignIn' in t['path'] or 'agentsign' in t['path'].lower() or 'agentic' in t['path'].lower()]
+for p in paths: print(p)
+print('total tree entries:',len(d.get('tree',[])))
+"
+api-reference/beta/resources/agentic-agentsignin.md
+api-reference/beta/resources/agentsignin.md
+total tree entries: 48939
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/microsoftgraph/microsoft-graph-docs-contrib/main/api-reference/beta/resources/agentsignin.md" --max-time 20 | head -100
+---
+title: "agentSignIn resource type (for conditionalAccess)"
+description: "Defines details of the agent identity that is signing in."
+author: "kvenkit"
+ms.date: 11/03/2025
+ms.localizationpriority: medium
+ms.subservice: "entra-sign-in"
+doc_type: resourcePageType
+---
+
+# agentSignIn resource type (for conditionalAccess)
+
+Namespace: microsoft.graph
+
+[!INCLUDE [beta-disclaimer](../../includes/beta-disclaimer.md)]
+
+Defines details of the agent identity that is signing in, as defined in [Conditional Access What If evaluation](../api/conditionalaccessroot-evaluate.md).
+
+Inherits from [signInIdentity](../resources/signinidentity.md).
+
+
+## Properties
+|Property|Type|Description|
+|:---|:---|:---|
+|agentServicePrincipalId|String|Agent identity object IDs included in the policy.|
+
+## Relationships
+None.
+
+## JSON representation
+The following JSON representation shows the resource type.
+<!-- {
+  "blockType": "resource",
+  "@odata.type": "microsoft.graph.agentSignIn"
+}
+-->
+``` json
+{
+  "@odata.type": "#microsoft.graph.agentSignIn",
+  "agentServicePrincipalId": "String"
+}
+```
+[0m
+`/me/agentSignInSessions` is NOT yet in public Graph docs — it's a new, sparsely-documented surface (good for the agent-session authorization hypothesis). Let me extract the iamexperiences SDK packages from the myaccount map and check agent references.
+[0m$ [0mcd /tmp/opencode/myaccount-src && grep -rn -i "agent\|copilot" --include="*.ts" --include="*.tsx" . 2>/dev/null | grep -v "scoped.scss\|SensitiveContent" | head -20
+./components__GroupedList__GroupedListSection.tsx:440:      onDragEnter: dragDropEvents!.onDragEnter,
+./components__GroupedList__GroupedListSection.tsx:452:   * @param event - the event trigger dropping state change which can be dragenter, dragleave etc
+./components__GroupedList__GroupedListSection.tsx:464:        if (dragDropEvents && dragDropEvents.onDragEnter) {
+./components__GroupedList__GroupedListSection.tsx:465:          this._droppingClassName = dragDropEvents.onDragEnter(group, event);
+./TermsOfUse__Consent__ConsentPageContent.tsx:35:  const isMSAppHost = navigator.userAgent.includes('MSAppHost/');
+./hooks__useHasOwnedAgents.ts:4:import { MSGraphScopes, MANAGEAGENTS } from '../shared/constants';
+./hooks__useHasOwnedAgents.ts:5:import { getOwnedAgentsUrl } from '../redux/modules/graphApis';
+./hooks__useHasOwnedAgents.ts:8: * Hook to check if user has any owned agent service principals
+./hooks__useHasOwnedAgents.ts:9: * @returns Query result with boolean indicating if user has owned agents
+./hooks__useHasOwnedAgents.ts:11:export const useHasOwnedAgents = () => {
+./hooks__useHasOwnedAgents.ts:21:    queryKey: ['hasOwnedAgents', auth.user?.objectId],
+./hooks__useHasOwnedAgents.ts:23:      const { scope } = getMSGraphScopeAndEndPoint(MSGraphScopes.AgentIdentityReadAll);
+./hooks__useHasOwnedAgents.ts:25:      const url = getOwnedAgentsUrl(auth.user?.objectId || '');
+./hooks__useHasOwnedAgents.ts:38:        throw new Error('Failed to fetch owned agents');
+./hooks__useHasOwnedAgents.ts:43:      const agentServicePrincipals = servicePrincipals.filter(
+./hooks__useHasOwnedAgents.ts:44:        (sp: IServicePrincipal) => sp.servicePrincipalType === MANAGEAGENTS.AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE
+./hooks__useHasOwnedAgents.ts:47:      return agentServicePrincipals.length > 0;
+./Stylesheet.ts:95:const REUSE_STYLE_NODE = typeof navigator !== 'undefined' && /rv:11.0/.test(navigator.userAgent);
+./fluent2SharedColors.ts:16:  magentaDark: '#6b0043', // sharedColors.magenta.shade30
+./fluent2SharedColors.ts:17:  magenta: '#bf0077', // sharedColors.magenta.primary
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== useHasOwnedAgents ==="; cat hooks__useHasOwnedAgents.ts; echo "=== constants ==="; grep -rn "MANAGEAGENTS\|AgentIdentity" shared__constants.ts 2>/dev/null | head; echo "=== graphApis ==="; cat redux__modules__graphApis.ts 2>/dev/null | head -60
+=== useHasOwnedAgents ===
+import { useQuery } from 'react-query';
+import { useAuth } from '@iamexperiences/feature-auth';
+import { getMSGraphScopeAndEndPoint } from '../shared/utils';
+import { MSGraphScopes, MANAGEAGENTS } from '../shared/constants';
+import { getOwnedAgentsUrl } from '../redux/modules/graphApis';
+
+/**
+ * Hook to check if user has any owned agent service principals
+ * @returns Query result with boolean indicating if user has owned agents
+ */
+export const useHasOwnedAgents = () => {
+  const { auth } = useAuth();
+   
+  interface IServicePrincipal {
+      id?: string;
+      servicePrincipalType?: string;
+      displayName?: string;
+  }
+
+  return useQuery({
+    queryKey: ['hasOwnedAgents', auth.user?.objectId],
+    queryFn: async () => {
+      const { scope } = getMSGraphScopeAndEndPoint(MSGraphScopes.AgentIdentityReadAll);
+      const token = await auth.acquireToken({ scopes: [scope] });
+      const url = getOwnedAgentsUrl(auth.user?.objectId || '');
+
+      // Note: Using top(999) to balance performance vs completeness.
+      // We need to perform in-memory filtering on servicePrincipalType since
+      // the Graph API doesn't support filtering by servicePrincipalType directly.
+      // This avoids pagination while checking most users' service principals.
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch owned agents');
+      }
+
+      const data = await response.json();
+      const servicePrincipals = data?.value || [];
+      const agentServicePrincipals = servicePrincipals.filter(
+        (sp: IServicePrincipal) => sp.servicePrincipalType === MANAGEAGENTS.AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE
+      );
+
+      return agentServicePrincipals.length > 0;
+    },
+    enabled: !!auth.user?.objectId,
+  });
+};
+=== constants ===
+44:  AgentIdentityReadAll = 'AgentIdentity.Read.All',
+145:export const MANAGEAGENTS = {
+=== graphApis ===
+import { getMsGraphUrl } from '@microsoft/portal-app/lib/ms-graph-api/getMsGraphUrl';
+import { IAjaxRequest } from '@microsoft/portal-app/lib/auth';
+import { getApiServerUrl } from '@microsoft/portal-app/lib/environment/getApiServerUrl';
+import { ICheckMemberGroupsRequest } from '../../Privacy/redux/actions/ICheckMemberGroupsRequest';
+import { getSubstrateSearchUrl } from './getSubstrateSearchUrl';
+import { getSubstrateSearchAudienceName } from './getSubstrateSearchAudienceName';
+import { getMSGraphScopeAndEndPoint } from '../../shared/utils';
+import { MSGraphScopes } from '../../shared/constants';
+
+const getGraphUrlV1 = getMsGraphUrl();
+const getGraphUrlBeta = getMsGraphUrl('beta');
+const getSubstrateSearchUrlV1 = getSubstrateSearchUrl('v1');
+
+export const getMailboxSettingsUrl = () => getGraphUrlV1('/me/mailboxsettings').toString();
+export const getPhotoUrl = () => getGraphUrlV1('/me/photos/648x648/$value').toString();
+export const getMePhotoUrl = () => getGraphUrlV1('/me/photo/$value').toString();
+export const getAvailableTimezonesUrl = (lang: string) =>
+  getApiServerUrl('/api/allTimeZones').toString() + `?lang=${lang}`;
+export const getAvailableLocalesUrl = () => getApiServerUrl('/api/availableRegionalFormats').toString();
+export const getBatchUpdateUrl = () => getGraphUrlBeta('/$batch').toString();
+export const getRegionalAndLanguageUrl = () => getGraphUrlBeta('/me/settings/regionalAndLanguageSettings').toString();
+export const getUserItemInsightsSettingsUrl = () => getGraphUrlBeta('/me/settings/itemInsights').toString();
+export const postCheckMemberGroupsUrl = () => getGraphUrlBeta(`/me/checkMemberGroups`).toString();
+export const getContactMergeSuggestionsSettingsUrl = () =>
+  getGraphUrlBeta('/me/settings/contactMergeSuggestions').toString();
+export const getTenantBrandingLogoUrl = (orgId: string) =>
+  getGraphUrlV1(
+    `/organization/${orgId}/branding/localizations?`,
+    '$select=id,cdnList,bannerLogoRelativeUrl',
+  ).toString();
+export const getOrgContactInsightsSettingsUrl = (orgId: string) =>
+  getGraphUrlBeta(`/organization/${orgId}/settings/contactInsights`).toString();
+export const getOrgItemInsightsSettingsUrl = (orgId: string) =>
+  getGraphUrlBeta(`/organization/${orgId}/settings/itemInsights`).toString();
+export const getOrgPeopleInsightsSettingsUrl = (orgId: string) =>
+  getGraphUrlBeta(`/organization/${orgId}/settings/peopleInsights`).toString();
+export const getOwnedAgentsUrl = (userId: string) => getGraphUrlBeta(`/users/${userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999`).toString();
+export const getSponsoredAgentsUrl = (userId: string) => getGraphUrlBeta(`/users/${userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999`).toString();
+export const getAssignedPlansUrl = () => getGraphUrlV1('/me?', '$select=assignedPlans').toString();
+export const getUserInfoUrl = () =>
+  getGraphUrlV1(
+    '/me?',
+    '$select=displayName,userPrincipalName,businessPhones,officeLocation,city,mail,jobTitle,preferredLanguage,givenName,surname',
+  ).toString();
+// https://learn.microsoft.com/en-us/graph/api/rbacapplication-list-roleassignments?view=graph-rest-1.0&tabs=http
+export const getRoleAssignmentsUrl = (userId: string) =>
+  getGraphUrlV1(
+    `/roleManagement/directory/roleAssignments?'`,
+    `$filter = principalId eq '${encodeURIComponent(userId)}'`,
+  ).toString();
+
+export const getProfilePhotoAllowedOperationsUrl = () => getGraphUrlBeta('/me/photo/getAllowedOperations').toString();
+
+// This extended property is used to store the display name of the source (e.g. mobile device) on each contact imported from that source.
+// This is Customer Content and needs to be included in DSR exports for completeness.
+export const extendedPropertyIdImportDisplayName = 'String 0x200106F';
+
+// This extended property is used to store the contact's id on the source (e.g. mobile device).
+// This information is imported from the source (i.e. device) and needs to be included in DSR exports for completeness.
+export const extendedPropertyIdSourceContactId = 'String 0x2001081';
+[0m
+My Account has an agent-management hook using a Graph scope `AgentIdentity.Read.All`. Let me read it and the constants/graph helpers.
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== constants 1-70 ==="; sed -n '1,70p' shared__constants.ts; echo "=== constants 140-175 ==="; sed -n '140,175p' shared__constants.ts; echo "=== shared/utils getMSGraphScopeAndEndPoint ==="; grep -rn "getMSGraphScopeAndEndPoint" shared__utils.ts 2>/dev/null; find . -name "shared__utils*"; 
+=== constants 1-70 ===
+export const meControlQueryParamKey = 'ref';
+export const meControlQueryParamValue = 'MeControl';
+export const lastTimeSawBannerLocalStorageKey = 'lastTimeSawBanner';
+export const msaRedirectUrl = 'https://account.microsoft.com';
+
+export const B2B_LEAVE_HOME_ORG_LINK = 'https://aka.ms/ManageOrgsWorkOrSchool';
+export const LEAVE_ORG_LEARN_MORE_LINK = 'https://aka.ms/ManageOrgsWorkOrSchool';
+
+export const LAST_ADMIN_LEARN_MORE_LINK =
+  'https://learn.microsoft.com/en-us/azure/active-directory/enterprise-users/directory-delete-howto';
+export const B2B_COLLAB_VS_DIRECT_CONNECT_LINK = 'https://aka.ms/b2b-collab-vs-direct-connect';
+
+export const QUERY_PARAM_LOGIN_HINT = 'login_hint';
+export const QUERY_PARAM_TENANT = 'tenant';
+
+export const P1_SERVICE_PLAN_ID = '41781fb2-bc02-4b7c-bd55-b576c07bb09d';
+export const P2_SERVICE_PLAN_ID = 'eec0eb4f-6444-4f95-aba0-50c24d67f998';
+export const ENTRA_IDENTITY_GOVERNANCE_SERVICE_PLAN_ID = 'e866a266-3cff-43a3-acca-0c90a7e00c8b';
+export const COPILOT_BUSINESS_CHAT_SERVICE_PLAN_ID = '3f30311c-6b1e-48a4-ab79-725b469da960';
+
+export const changeInfoContactUrl = 'https://aka.ms/aadchangeinfocontact';
+
+export const MY_GROUPS_PATH = '/groups';
+
+export const AUTHENTICATOR_LINK = 'https://www.microsoft.com/en-us/security/mobile-authenticator-app';
+export const RETRIEVING_CREDENTIALS = 'retrieving-credentials';
+
+export const ENABLE_TOU_QUERY_STRING = 'enabletou';
+
+export const EU_DATA_BOUNDARY_CLAIM_VALUE = 'eu';
+
+export const PAGE_TITLE = 'My Account';
+
+export const VERIFIEDID_APP_NAME_LINKEDIN = 'linkedin';
+
+export enum MSGraphScopes {
+  CrossTenantUserProfileSharingReadWriteAll = 'CrossTenantUserProfileSharing.ReadWrite.All',
+  OrganizationReadAll = 'Organization.Read.All',
+  UserReadAll = 'User.Read.All',
+  UserReadWrite = 'User.ReadWrite',
+  MailboxSettingsReadWrite = 'MailboxSettings.ReadWrite',
+  BitlockerKeyReadAll = 'BitlockerKey.Read.All',
+  ContactsRead = 'Contacts.Read',
+  AgentIdentityReadAll = 'AgentIdentity.Read.All',
+}
+
+export const MOBILE_BREAK_POINT = 's';
+
+export const OFFICE_SERVICES = {
+  sharePoint: 'SharePoint',
+  exchange: 'exchange',
+  microsoftOffice: 'MicrosoftOffice',
+  toDo: 'To-Do',
+  yammer: 'YammerEnterprise',
+  teams: 'TeamspaceAPI',
+  powerApps: 'PowerAppsService',
+  sway: 'Sway',
+};
+
+// route map
+interface RoutePath {
+  link: string;
+  key: string;
+  subRoutePaths?: RoutePathMap;
+}
+type RoutePathMap = Record<string, RoutePath>;
+export const NAVIGATION_LINKS: RoutePathMap = {
+  home: { link: '/', key: 'home' },
+  devices: { link: '/device-list', key: 'device-list' },
+  organizations: {
+=== constants 140-175 ===
+  REQUESTS: { link: '/requests', linkKey: 'requests' },
+  SEARCH: { link: '/search', linkKey: 'search' },
+  GIVE_FEEDBACK: { linkKey: 'give-feedback' },
+};
+
+export const MANAGEAGENTS = {
+  AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE: 'ServiceIdentity',
+};
+
+/**
+ * Roaming Settings API configuration constants.
+ */
+export const ROAMING_SETTINGS = {
+  /** Office Application ID assigned to MyAccount by the roaming team. */
+  OFFICE_APP_ID: '179',
+  /** The roaming setting ID for image watermark. */
+  SETTING_ID_FOR_IMAGE_WATERMARK: 1395,
+  /** Office platform identifier. */
+  PLATFORM: 'Web',
+  /** API path prefix. */
+  API_PATH: '/rs/v1/settings',
+} as const;
+=== shared/utils getMSGraphScopeAndEndPoint ===
+38:export const getMSGraphScopeAndEndPoint = (scope: MSGraphScopes) => {
+./shared__utils.ts
+[0m
+Rich Graph surface exposed (owned agents, role assignments, substrate search). Let me read the constants and scope-mapping utils.
+[0m→ [0mRead /tmp/opencode/myaccount-src/shared__utils.ts
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && echo "=== roaming settings rs/v1 ==="; grep -rln "rs/v1/settings\|ROAMING_SETTINGS" . 2>/dev/null | head; echo "=== substrate ==="; grep -rln "substrate\|Substrate" . 2>/dev/null | head; echo "=== getSubstrateSearchUrl ==="; cat redux__modules__getSubstrateSearchUrl.ts 2>/dev/null; cat redux__modules__getSubstrateSearchAudienceName.ts 2>/dev/null
+=== roaming settings rs/v1 ===
+./shared__constants.ts
+=== substrate ===
+./redux__modules__getSubstrateResourceName.ts
+./redux__modules__getSubstrateSearchAudienceName.ts
+./redux__modules__getSubstrateSearchUrl.ts
+./redux__modules__graphApis.ts
+=== getSubstrateSearchUrl ===
+import { getSubstrateResourceName } from './getSubstrateResourceName';
+
+export const getSubstrateSearchUrl =
+  (version: string = 'v1') =>
+  (path: string, queryString?: string) => {
+    const substrateRootPath = getSubstrateResourceName();
+    const substrateSearchUrl = `search/api/${version}${path}`;
+    const url: URL = new URL(substrateSearchUrl + (queryString ? `&${queryString}` : ''), substrateRootPath);
+    return url;
+  };
+import { getSubstrateResourceName } from './getSubstrateResourceName';
+export const getSubstrateSearchAudienceName = () => {
+  const substrateRootPath = getSubstrateResourceName();
+  return substrateRootPath ? `${substrateRootPath}/search` : '';
+};
+[0m
+Let me check the roaming-settings + substrate-search usage in source, and research the AAD redirect_uri validation rules and accledger in parallel.
+[0m◈ [0mParallel Web Search "Azure AD v2.0 redirect_uri validation rules normalization exact match public client response_mode restrictions"
+[0m
+[0m$ [0mcd /tmp/opencode/myaccount-src && grep -rhoE "(getApiServerUrl|myAccountBackendUrl)/?[^\`'\"]{0,80}|\`[^\`]*(api|/v[0-9])[^\`]*\`" --include="*.ts" --include="*.tsx" . 2>/dev/null | grep -oE "(/api/[a-zA-Z0-9/_$}{.:-]+|/search/api/[a-z0-9/_$}{.:-]+|/rs/v1/[a-zA-Z0-9/_$}{.:-]+)" | sort -u | head -60
+/api/${version}${path}
+/api/EnduserEmailContacts
+/api/TenantEmailSettings
+/api/canVerifiedIdBeIssued
+/api/dateTimeFormats
+/api/devices
+/api/devices/${encode
+/api/groups/settings
+/api/issueVerifiedEmployeeCredential
+/api/organizations
+/api/organizations/${encode
+/api/shell/navbardata
+/api/signOutEverywhere
+/api/termsofuse/agreements/${agreementId}
+/api/termsofuse/myacceptances
+/api/termsofuse/tenantbannerlogo
+/api/termsofuse/tenantdisplayname
+[0m
+Solid redirect_uri research captured. Let me catalog every backend endpoint in the extracted My Account source and search for the accledger service publicly.
+[0m◈ [0mParallel Web Search ""accledger" OR "access ledger" Microsoft Entra identity service github controlplane"
+[0m
+[0m$ [0mpython3 << 'EOF'
+import json,os
+d=json.load(open('/tmp/opencode/myaccount.map'))
+srcs=d['sources']; cont=d.get('sourcesContent') or []
+out='/tmp/opencode/portal-lib'
+os.makedirs(out,exist_ok=True)
+n=0
+for s,c in zip(srcs,cont):
+    if not c: continue
+    if 'portal-app/lib/environment' in s or 'portal-app/lib/ms-graph-api' in s:
+        rel=s.split('portal-app/lib/')[-1].replace('/','__').replace('?','_Q')
+        with open(os.path.join(out,rel),'w') as f: f.write(c)
+        n+=1
+print('extracted',n)
+EOF
+ls /tmp/opencode/portal-lib/
+extracted 7
+environment__determineEnvironment.js
+environment__getApiServerUrl.js
+environment__getUrlForApp.js
+environment__index.js
+ms-graph-api__getMsGraphResourceName.js
+ms-graph-api__getMsGraphUrl.js
+ms-graph-api__users__userApi.js
+[0m
+Let me extract the portal-app environment routing lib from the myaccount map — it reveals host routing/URL construction.
+[0m$ [0mcd /tmp/opencode/portal-lib && echo "=== getUrlForApp ==="; cat environment__getUrlForApp.js; echo "=== getMsGraphUrl ==="; cat ms-graph-api__getMsGraphUrl.js; echo "=== getMsGraphResourceName ==="; cat ms-graph-api__getMsGraphResourceName.js
+=== getUrlForApp ===
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime-corejs3/helpers/interopRequireDefault");
+
+var _Object$defineProperty = require("@babel/runtime-corejs3/core-js/object/define-property");
+
+_Object$defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.getIAMUXBaseAddress = getIAMUXBaseAddress;
+exports.getIAMUXRequestOptions = exports.getUrlForApp = exports.getIAMUXTermsOfUseUrl = exports.getIAMUXChangePasswordUrl = exports.getIAMUXAppsUrl = exports.getIAMUXGroupsUrl = exports.getIAMUXProfileUrl = exports.AppKeys = void 0;
+
+var _concat = _interopRequireDefault(require("@babel/runtime-corejs3/core-js/instance/concat"));
+
+var _url = _interopRequireDefault(require("@babel/runtime-corejs3/core-js/url"));
+
+var _overrideSettings = require("../shared/override-settings/overrideSettings");
+
+var _determineEnvironment = require("./determineEnvironment");
+
+var AppKeys;
+exports.AppKeys = AppKeys;
+
+(function (AppKeys) {
+  AppKeys["apps"] = "myApps";
+  AppKeys["access"] = "myAccess";
+  AppKeys["groups"] = "myGroups";
+  AppKeys["account"] = "myAccount";
+  AppKeys["signins"] = "mySignins";
+  AppKeys["convergedUXV2"] = "convergedUXV2";
+  AppKeys["staff"] = "myStaff";
+})(AppKeys || (exports.AppKeys = AppKeys = {}));
+
+var getIAMUXProfileUrl = function getIAMUXProfileUrl(params) {
+  var baseAddress = getIAMUXBaseAddress(params);
+  baseAddress.pathname = '/profile';
+  return baseAddress.toString();
+};
+
+exports.getIAMUXProfileUrl = getIAMUXProfileUrl;
+
+var getIAMUXGroupsUrl = function getIAMUXGroupsUrl(params) {
+  var baseAddress = getIAMUXBaseAddress(params);
+  baseAddress.pathname = '/redirect/groups';
+  return baseAddress.toString();
+};
+
+exports.getIAMUXGroupsUrl = getIAMUXGroupsUrl;
+
+var getIAMUXAppsUrl = function getIAMUXAppsUrl(params) {
+  var baseAddress = getIAMUXBaseAddress(params);
+  baseAddress.pathname = '/r';
+  baseAddress.hash = '/applications';
+  return baseAddress.toString();
+};
+
+exports.getIAMUXAppsUrl = getIAMUXAppsUrl;
+
+var getIAMUXChangePasswordUrl = function getIAMUXChangePasswordUrl(location, tenantId) {
+  var baseAddress = getIAMUXBaseAddress(location, tenantId);
+  baseAddress.pathname = '/ChangePassword.aspx';
+  return baseAddress.toString();
+};
+
+exports.getIAMUXChangePasswordUrl = getIAMUXChangePasswordUrl;
+
+var getIAMUXTermsOfUseUrl = function getIAMUXTermsOfUseUrl(location, tenantId) {
+  var baseAddress = getIAMUXBaseAddress(location, tenantId);
+  baseAddress.pathname = '/responsive/TermsOfUse';
+  return baseAddress.toString();
+};
+
+exports.getIAMUXTermsOfUseUrl = getIAMUXTermsOfUseUrl;
+
+function getIAMUXBaseAddress(locationOrParams, tenantIdParam) {
+  var _ref = locationOrParams && isIGetIAMUXUrlParams(locationOrParams) ? locationOrParams : {
+    location: locationOrParams,
+    tenantId: tenantIdParam || '',
+    loginHint: ''
+  },
+      _ref$location = _ref.location,
+      location = _ref$location === void 0 ? window.location : _ref$location,
+      tenantId = _ref.tenantId,
+      loginHint = _ref.loginHint,
+      optInApp = _ref.optInApp;
+
+  var environment = (0, _determineEnvironment.determineEnvironment)(location);
+  var protocolPrefix = 'https://';
+  var iamuxBaseAddressOverrideEndpoint = (0, _overrideSettings.getOverrideSetting)('iamuxBaseAddressEndpoint');
+  var url;
+
+  if (iamuxBaseAddressOverrideEndpoint) {
+    var _context;
+
+    url = new _url.default((0, _concat.default)(_context = "".concat(protocolPrefix)).call(_context, iamuxBaseAddressOverrideEndpoint));
+  } else {
+    switch (environment) {
+      case _determineEnvironment.EnvironmentType.localhost:
+      case _determineEnvironment.EnvironmentType.PPE:
+        url = new _url.default("".concat(protocolPrefix, "account.activedirectory-ppe.windowsazure.com"));
+        break;
+
+      case _determineEnvironment.EnvironmentType.TIP:
+        url = new _url.default("".concat(protocolPrefix, "account-tip.activedirectory.windowsazure.com"));
+        break;
+
+      case _determineEnvironment.EnvironmentType.PROD:
+        url = new _url.default("".concat(protocolPrefix, "account.activedirectory.windowsazure.com"));
+        break;
+
+      case _determineEnvironment.EnvironmentType.AR:
+        url = new _url.default("".concat(protocolPrefix, "account.activedirectory.windowsazure.us"));
+        break;
+
+      case _determineEnvironment.EnvironmentType.USSEC:
+        url = new _url.default("".concat(protocolPrefix, "account.aad.microsoft.scloud"));
+        break;
+
+      case _determineEnvironment.EnvironmentType.USNAT:
+        url = new _url.default("".concat(protocolPrefix, "account.aad.eaglex.ic.gov"));
+        break;
+
+      default:
+        url = new _url.default("".concat(protocolPrefix, "account.activedirectory-ppe.windowsazure.com"));
+    }
+  }
+
+  if (tenantId) {
+    url.searchParams.set('tenantId', tenantId);
+  }
+
+  if (loginHint) {
+    url.searchParams.set('login_hint', loginHint);
+  }
+
+  if (optInApp) {
+    url.searchParams.set('optIn', optInApp);
+  }
+
+  return url;
+}
+
+var getApiPrefix = function getApiPrefix(isBackend) {
+  return isBackend ? 'api.' : '';
+};
+
+var getUrlForApp = function getUrlForApp(location, appKey, isBackend) {
+  var _context5, _context6, _context7, _context8, _context9, _context10, _context11, _context12, _context13, _context14, _context15, _context16, _context17, _context18, _context19, _context20, _context21, _context22;
+
+  var key = appKey;
+
+  if (appKey === AppKeys.apps) {
+    key = 'myapplications';
+  }
+
+  key = key.toLowerCase();
+  var prefix = getApiPrefix(isBackend);
+  var environment = (0, _determineEnvironment.determineEnvironment)(location);
+  var protocolPrefix = 'https://';
+  var urlSuffix = (0, _overrideSettings.getOverrideSetting)('appUrlSuffix');
+
+  if (urlSuffix) {
+    var _context2, _context3, _context4;
+
+    return new _url.default((0, _concat.default)(_context2 = (0, _concat.default)(_context3 = (0, _concat.default)(_context4 = "".concat(protocolPrefix)).call(_context4, prefix)).call(_context3, key)).call(_context2, urlSuffix));
+  }
+
+  switch (environment) {
+    case _determineEnvironment.EnvironmentType.localhost:
+      return new _url.default(process.env.APP_LOCALHOST_URL || 'http://localhost:3000');
+
+    case _determineEnvironment.EnvironmentType.PPE:
+      return new _url.default((0, _concat.default)(_context5 = (0, _concat.default)(_context6 = (0, _concat.default)(_context7 = "".concat(protocolPrefix)).call(_context7, prefix)).call(_context6, key)).call(_context5, process.env.APP_PPE_URL_SUFFIX));
+
+    case _determineEnvironment.EnvironmentType.TIP:
+      return new _url.default((0, _concat.default)(_context8 = (0, _concat.default)(_context9 = (0, _concat.default)(_context10 = "".concat(protocolPrefix)).call(_context10, prefix)).call(_context9, key)).call(_context8, process.env.APP_TIP_URL_SUFFIX));
+
+    case _determineEnvironment.EnvironmentType.PROD:
+      return new _url.default((0, _concat.default)(_context11 = (0, _concat.default)(_context12 = (0, _concat.default)(_context13 = "".concat(protocolPrefix)).call(_context13, prefix)).call(_context12, key)).call(_context11, process.env.APP_PROD_URL_SUFFIX));
+
+    case _determineEnvironment.EnvironmentType.AR:
+      return new _url.default((0, _concat.default)(_context14 = (0, _concat.default)(_context15 = (0, _concat.default)(_context16 = "".concat(protocolPrefix)).call(_context16, prefix)).call(_context15, key)).call(_context14, process.env.APP_AR_URL_SUFFIX));
+
+    case _determineEnvironment.EnvironmentType.USSEC:
+      return new _url.default((0, _concat.default)(_context17 = (0, _concat.default)(_context18 = (0, _concat.default)(_context19 = "".concat(protocolPrefix)).call(_context19, prefix)).call(_context18, key)).call(_context17, process.env.APP_USSEC_URL_SUFFIX));
+
+    case _determineEnvironment.EnvironmentType.USNAT:
+      return new _url.default((0, _concat.default)(_context20 = (0, _concat.default)(_context21 = (0, _concat.default)(_context22 = "".concat(protocolPrefix)).call(_context22, prefix)).call(_context21, key)).call(_context20, process.env.APP_USNAT_URL_SUFFIX));
+  }
+};
+/**
+ * Gets the base ajax options for making IAMUX ajax requests.
+ */
+
+
+exports.getUrlForApp = getUrlForApp;
+
+var getIAMUXRequestOptions = function getIAMUXRequestOptions() {
+  return {
+    hasXssiResponse: true,
+    audience: process.env.APP_ADAL_IAMUX_CLIENT_ID,
+    sendSessionId: false,
+    // IAMUX has logger lived sessions
+    withCredentials: true,
+    setResponseRequestId: true
+  };
+}; // TODO: use Omit
+
+
+exports.getIAMUXRequestOptions = getIAMUXRequestOptions;
+
+function isIGetIAMUXUrlParams(obj) {
+  return obj.origin === undefined;
+}=== getMsGraphUrl ===
+"use strict";
+
+var _interopRequireDefault = require("@babel/runtime-corejs3/helpers/interopRequireDefault");
+
+var _Object$defineProperty = require("@babel/runtime-corejs3/core-js/object/define-property");
+
+_Object$defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.getMsGraphUrl = void 0;
+
+var _url = _interopRequireDefault(require("@babel/runtime-corejs3/core-js/url"));
+
+var _overrideSettings = require("../shared/override-settings/overrideSettings");
+
+var _getMsGraphResourceName = require("./getMsGraphResourceName");
+
+var getMsGraphUrl = function getMsGraphUrl() {
+  var version = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 'v1.0';
+  return function (path, queryString) {
+    var location = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : window.location;
+    var overrideSetting = (0, _overrideSettings.getOverrideSetting)('msGraphResourceName');
+    var url;
+
+    if (overrideSetting) {
+      url = new _url.default(version + path, overrideSetting);
+    } else {
+      url = new _url.default(version + path, (0, _getMsGraphResourceName.getMsGraphResourceName)(location));
+    }
+
+    url.search = queryString || '';
+    return url;
+  };
+};
+
+exports.getMsGraphUrl = getMsGraphUrl;=== getMsGraphResourceName ===
+"use strict";
+
+var _Object$defineProperty = require("@babel/runtime-corejs3/core-js/object/define-property");
+
+_Object$defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.getMsGraphResourceName = void 0;
+
+var _environment = require("../environment");
+
+var _overrideSettings = require("../shared/override-settings/overrideSettings");
+
+var getMsGraphResourceName = function getMsGraphResourceName() {
+  var location = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : window.location;
+  var overrideSetting = (0, _overrideSettings.getOverrideSetting)('msGraphResourceName');
+
+  if (overrideSetting) {
+    return overrideSetting;
+  }
+
+  var env = (0, _environment.determineEnvironment)(location);
+  var resourceName;
+
+  switch (env) {
+    case _environment.EnvironmentType.PPE:
+      resourceName = 'https://graph.microsoft-ppe.com';
+      break;
+
+    default:
+      resourceName = 'https://graph.microsoft.com';
+  }
+
+  return resourceName;
+};
+
+exports.getMsGraphResourceName = getMsGraphResourceName;
+[0m
+[0m$ [0mcd /tmp/opencode/portal-lib && echo "=== determineEnvironment ==="; sed -n '1,80p' environment__determineEnvironment.js | grep -A30 "function determineEnvironment\|EnvironmentType" | head -45
+=== determineEnvironment ===
+exports.setEnvironmentCallback = exports.getEnvironmentSetting = exports.determineEnvironment = exports.EnvironmentType = void 0;
+
+var _endsWith = _interopRequireDefault(require("@babel/runtime-corejs3/core-js/instance/ends-with"));
+
+var _includes = _interopRequireDefault(require("@babel/runtime-corejs3/core-js/instance/includes"));
+
+var EnvironmentType;
+exports.EnvironmentType = EnvironmentType;
+
+(function (EnvironmentType) {
+  EnvironmentType["localhost"] = "localhost";
+  EnvironmentType["PPE"] = "PPE";
+  EnvironmentType["TIP"] = "TIP";
+  EnvironmentType["PROD"] = "PROD";
+  EnvironmentType["AR"] = "US";
+  EnvironmentType["USSEC"] = "microsoft.scloud";
+  EnvironmentType["USNAT"] = "eaglex.ic.gov";
+})(EnvironmentType || (exports.EnvironmentType = EnvironmentType = {}));
+
+var determineEnvironment = function determineEnvironment(location) {
+  if (environmentCallback !== undefined) {
+    var environmentOverride = environmentCallback(location);
+
+    if (environmentOverride !== undefined) {
+      return environmentOverride;
+    }
+  }
+
+  var currentUrl = location.hostname.toLowerCase();
+
+  if ((0, _includes.default)(currentUrl).call(currentUrl, EnvironmentType.localhost.toString().toLowerCase())) {
+    return EnvironmentType.localhost;
+  } else if ((0, _includes.default)(currentUrl).call(currentUrl, EnvironmentType.PPE.toString().toLowerCase())) {
+    return EnvironmentType.PPE;
+  } else if ((0, _includes.default)(currentUrl).call(currentUrl, EnvironmentType.TIP.toString().toLowerCase())) {
+    return EnvironmentType.TIP;
+  } else if ((0, _includes.default)(currentUrl).call(currentUrl, EnvironmentType.AR.toString().toLowerCase())) {
+    return EnvironmentType.AR;
+  } else if ((0, _endsWith.default)(currentUrl).call(currentUrl, EnvironmentType.USSEC.toString().toLowerCase())) {
+    return EnvironmentType.USSEC;
+  } else if ((0, _endsWith.default)(currentUrl).call(currentUrl, EnvironmentType.USNAT.toString().toLowerCase())) {
+    return EnvironmentType.USNAT;
+  } else {
+    // Assume that if the URL doesn't contain localhost, TIP, or PPE then it's PROD
+    return EnvironmentType.PROD;
+[0m
+IAMUX host routing captured (PPE/TIP/PROD for `account.activedirectory.windowsazure.com` — adjacent, out-of-scope per scope.yml). Let me check env detection and the substrate search usage, then finalize.
+[0m$ [0mcd /tmp/opencode/myaccount-src && grep -rln "getSubstrateSearchUrl\|search/api" --include="*.ts" --include="*.tsx" . 2>/dev/null | head; echo "=== query paths ==="; grep -rhoE "getSubstrateSearchUrl\(\)\('[^']{0,80}" . 2>/dev/null | sort -u | head -10
+./redux__modules__getSubstrateSearchUrl.ts
+./redux__modules__graphApis.ts
+=== query paths ===
+[0m
+[0m$ [0mcd /tmp/opencode && sha256sum mysignins.map myaccount.map mysignins-srcs.txt 2>/dev/null; echo "---"; git -C /home/runner/work/hunt-lab/hunt-lab status --short 2>/dev/null | head; echo "---leads dir---"; ls /home/runner/work/hunt-lab/hunt-lab/leads/
+2099f8a83336e290f2ab20c09a56b3a4493d0b7f66328b944c7fc18055f3efbe  mysignins.map
+72290126cebc34559574f30c675c6bfe84856fe8a7678eb2e0821237a27d6541  myaccount.map
+1a5be8a2293c3797e11882895b69ef9dc53173bc71b1ee5865b6a8934034e506  mysignins-srcs.txt
+---
+?? ctx-leads.txt
+?? ctx-research.txt
+?? ctx-valid.txt
+?? raw_bigpickle.txt
+?? research-prompt.txt
+---leads dir---
+lead-bigpickle.md
+lead-laguna.md
+lead-ling3.md
+lead-longcat.md
+lead-nemotron3.md
+reposcan-2026-08-07-08-25.md
+reposcan-2026-08-07-08-29.md
+reposcan-2026-08-07-08-34.md
+reposcan-2026-08-07-08-40.md
+reposcan-2026-08-07-08-52.md
+reposcan-2026-08-07-09-02.md
+reposcan-latest.md
+[0m
+Comprehensive material gathered. Let me hash the downloaded artifacts for the journal (no raw secrets — hashes only) and check repo state.
+[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/research/bigpickle.md <<'EOF'
+
+## RUN 2026-08-07 (big-pickle) — TARGET: microsoft — PHASE: HYPOTHESIS
+
+### Source maps: BOTH SPAs ship live source maps (major code-review surface)
+- mysignins.microsoft.com/bundle/main.caa6a456.js.map (6,976,576 B) — NO sourcesContent; 4359 paths. sha256 2099f8a8...f3efbe.
+- api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35,340,363 B) — sourcesContent PRESENT (4922 files). sha256 72290126...27d6541. Extracted 1977 files to /tmp/opencode/myaccount-src (transient, not committed).
+- Source map presence is itself a reportable hardening gap (recon-only note; MSRC triages source-map exposure per-case — validate against program rules before reporting).
+
+### My Account backend (api.myaccount.microsoft.com) — request schemas recovered from source
+- Auth: @iamexperiences/feature-auth getMsalAuth, MSAL public client, CacheLocation.SessionStorage, authority settingsManager authAuthorityEndpoint, clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Tokens acquired with scopes=[clientId] (audience = the SPA's own clientId) for ALL /api/* calls.
+- /api/issueVerifiedEmployeeCredential: POST, Authorization Bearer <clientId-scope token>, NO body. Backend errors surfaced in UI: GuestIsNotAllowedToIssueVerifiedId, TenantIsNotInAllowedToIssueVerifiedId (authz gates = non-guest + tenant-onboarded + feature-on; per source comment 204 means true). Verified ID app linkedin ref VERIFIEDID_APP_NAME_LINKEDIN.
+- /api/canVerifiedIdBeIssued: GET, Bearer clientId-token; 200+204 = enabled, else JSON reason.
+- /api/termsofuse/*: agreements/{agreementId}; agreements/{agreementId}/policyfiles/{policyFileId}; policyfiles/{policyFileId}/data (GET JSON); policyfiles/{policyFileId}/decline and /accept (POST). UNAUTHENTICATED variants (useGetAgreementUnauthenticated, useDeclineAgreement, useGetPolicyFileDataUnauthenticated) read access_token + id_token_hint + claims (incl governance_control_state_per_device) from server-rendered data-requestbody dataset in the HTML — i.e., tokens/claims embedded in a consent page's DOM.
+- /api/shell/navbardata, /api/signOutEverywhere, /api/organizations, /api/organizations/{id}, /api/devices, /api/groups/settings, /api/EnduserEmailContacts, /api/TenantEmailSettings, /api/dateTimeFormats, /api/me/image, /api/users/getImages.
+- Graph beta calls: /me/ownedObjects via getOwnedAgentsUrl(userId) = /users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999 (scope AgentIdentity.Read.All); /users/{userId}/sponsorOf/microsoft.graph.servicePrincipal?$top=999; /roleManagement/directory/roleAssignments?$filter=principalId eq '{userId}'; /organization/{orgId}/branding/localizations?$select=cdnList,bannerLogoRelativeUrl; /me/settings/itemInsights, /me/settings/contactMergeSuggestions, /me/checkMemberGroups, /me/photos/648x648/$value. ServiceIdentity is the agent-identity SP type (MANAGEAGENTS.AGENT_IDENTITY_SERVICE_PRINCIPAL_TYPE).
+- MSGraphScopes enum: CrossTenantUserProfileSharing.ReadWrite.All, Organization.Read.All, User.Read.All, User.ReadWrite, MailboxSettings.ReadWrite, BitlockerKey.Read.All, Contacts.Read, AgentIdentity.Read.All.
+- Roaming settings: OFFICE_APP_ID 179, API_PATH /rs/v1/settings, PLATFORM Web.
+- IAMUX/portal routing (portal-app/lib): account.activedirectory-ppe.windowsazure.com (PPE), account-tip.activedirectory.windowsazure.com (TIP), account.activedirectory.windowsazure.com (PROD), account.activedirectory.windowsazure.us (AR), account.aad.microsoft.scloud (USSEC), account.aad.eaglex.ic.gov (USNAT). NOTE: *.windowsazure.com NOT in scope.yml — adjacent-only, no probing. Environment detection: hostname contains "ppe"/"tip"/"us" or ends .scloud/.eaglex.ic.gov else PROD.
+- Cross-app URLs pass upn, tenant, login_hint, optIn query params to IAMUX/myapps/mygroups/myaccess (createUrl). Substrate search builder search/api/{v1} on getSubstrateResourceName().
+
+### accounts.accesscontrol.windows.net (legacy ACS) — trust-relevant findings
+- /metadata/json/1 (200) now returns keys + endpoints ONLY (allowedAudiences REMOVED — tenant-enum patch confirmed; Sprocket Security 2026-05-19 writeup "Tenant Enumeration is Dead" documents the technique + patch).
+- 5 signing keys served: key0-2 CN=accounts.accesscontrol.windows.net self-signed (notBefore 2026-06/07, notAfter 2031-06/07), sha256 FP 05:D1:7F:72:..., 34:D0:94:25:..., 93:A6:49:15:...; key3-4 CN=login.microsoftonline.us self-signed (FP 1B:49:9F:F9:..., A7:3C:A1:F9:...). Mixed issuers in one JWKS = config artifact to compare vs ESTS discovery keys.
+- Discovery endpoints alive: /tokens/OAuth/2 (OAuth2 issuance), /tokens/delegation/1 (DelegationIssuance1.0), /mgmt/delegation/1 (DelegationManagement1.0) — all 200 sign-in pages (auth-gated, not 404).
+- Historical context: Sep-2025 critical (CVSS 10.0) ESTS actor-token impersonation chain (Dirk-jan Mollema) leveraged the well-known app 00000001-0000-0000-c000-000000000000 via accounts.accesscontrol.windows.net for AAD Graph actor tokens; mitigation blocked actor-token requests to AAD Graph. This host is a known high-attention MSRC identity asset; Microsoft's own ACS FAQ: "Traffic to accounts.accesscontrol.windows.net is handled by a different service" (absorbed into Entra ESTS).
+- ACS retirement: ACS itself retired Nov-2018; SharePoint add-in ACS auth retired Apr-2026. Remaining trust: legacy RPs/tools.
+
+### agentSignInSessions — new undocumented Graph surface
+- /v1.0/me/agentSignInSessions + /beta/me/agentSignInSessions resolve (401 InvalidAuthenticationToken baseline). NOT present in public Graph docs (docs-contrib tree only has agentic-agentsignin.md + agentsignin.md, both different resources: signIn audit + conditionalAccess). ms.date 05/01/2025 for agentic.agentSignIn; signIn.agent property type.
+- My Sign-Ins bundle modules: redux/modules/signIns/agentSessionApis.ts, agentSessionUtils.ts, agentSessions.ts, recentSignIns.ts, switchTenant.ts; SPA strings: /me/agentSignInSessions, /recent-activity/agentic-sessions. My Account: manageAgentNavItemEnabled, useHasOwnedAgents.
+
+### OAuth redirect_uri validation (documented rules; no live sends this run beyond baseline)
+- login.live.com fast-fails: 302 oauth20_desktop.srf?error=invalid_request&error_description=...redirect_uri is not valid. client must be 'mobile' OR redirect must be absolute + registered (confirmed SURFACE).
+- login.microsoftonline.com/oauth2/v2.0/authorize with unregistered client+redirect returns generic 200 sign-in page (deferred validation).
+- Documented AAD rules (learn.microsoft.com/en-us/entra/identity-platform/reply-url): https required (except localhost), case-sensitive exact match, AADSTS50011 on mismatch; RFC 6749 3.1.2 string compare + RFC 9700 (BCP) forbids wildcards. Loopback localhost (any port) for native/mobile; SPA client-type restriction AADSTS9002327/9002326.
+
+### accledger/accessmonitor
+- No public GitHub/docs presence found for "Access Ledger" controlplane. controlplane.accledger.azure.com: Kestrel /health 200 "Healthy" + x-ms-machinename (pod) + x-ms-image-tag 1.0.03467.455-73c40f8d7a2145ba44be22ca0c6029eca472d3d8; structured 404 envelope {"Status":"failed","Error":{"Code":"404"...}}; no swagger/api/ledger/tenants. identity.accledger.azure.com -> identity-accledger-prod-1.eastus.cloudapp.azure.com (no HTTPS).
+- api.prod/dev.accessmonitor.azure.com: 403 AFD/WAF-gated.
+
+### Artifacts (hashes only, for triage reference)
+- mysignins map sha256 2099f8a83336e290f2ab20c09a56b3a4493d0b7f66328b944c7fc18055f3efbe
+- myaccount map sha256 72290126cebc34559574f30c675c6bfe84856fe8a7678eb2e0821237a27d6541
+- mysignins sources list sha256 1a5be8a2293c3797e11882895b69ef9dc53173bc71b1ee5865b6a8934034e506
+- No secrets found in either bundle/map (public clientIds + env hostnames only).
+EOF
+echo "journal total: $(wc -l < /home/runner/work/hunt-lab/hunt-lab/research/bigpickle.md) lines"
+journal total: 1893 lines
+[0m
+Now writing the HYPOTHESIS journal entry.
+[0m$ [0mcat >> /home/runner/work/hunt-lab/hunt-lab/leads/lead-bigpickle.md <<'EOF'
+
+## 2026-08-07 10:05:00 UTC [microsoft] (model bigpickle) — HYPOTHESIS
+
+- [LEAD-HIGH] Source maps live on BOTH identity SPAs: mysignins main.caa6a456.js.map (no content, 4359 paths) and api.myaccount main.4e6e3dc6.js.map (sourcesContent for 4922 files). Verified ID + ToS request schemas recovered from extracted source. Hashes: myaccount.map sha256 72290126...d6541, mysignins.map sha256 2099f8a8...f3efbe.
+- [LEAD-HIGH] api.myaccount /api/issueVerifiedEmployeeCredential: POST with Bearer token whose scope = the SPA's own clientId (8c59ead7-d703-4a27-9e55-c96a0054c8d2); backend gates on GuestIsNotAllowedToIssueVerifiedId / TenantIsNotInAllowedToIssueVerifiedId. Low-priv credential-minting hypothesis (test-tenant only).
+- [LEAD-HIGH] /me/agentSignInSessions (v1.0+beta) alive but UNDOCUMENTED in public Graph docs; bundle modules agentSessionApis.ts / agentSessions.ts + /recent-activity/agentic-sessions. New-scope AgentIdentity.Read.All + ServiceIdentity SP type (useHasOwnedAgents → /users/{userId}/ownedObjects/...?$top=999).
+- [LEAD-HIGH] accounts.accesscontrol.windows.net: allowedAudiences removed (tenant-enum patched Mar-2026); 5 live signing keys incl 2x CN=login.microsoftonline.us mixed into global JWKS; /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1 pathing alive. Historical Sep-2025 CVSS-10.0 actor-token chain used this host (app 00000001-0000-0000-c000-000000000000) — known high-attention MSRC surface.
+- [LEAD-MED] ToS unauthenticated consent flow embeds access_token + id_token_hint + claims (governance_control_state_per_device) in server-rendered data-requestbody DOM; policyfiles/{id}/data GET is an IDOR candidate across tenants (test-tenant only).
+- [LEAD-MED] Cross-app URLs pass upn/tenant/login_hint/optIn to IAMUX + myapps + mygroups + myaccess; substrate search builder search/api/v1 (confused-deputy surface, test-tenant only).
+- [LEAD-LOW] controlplane.accledger.azure.com /health leaks pod name + x-ms-image-tag; no swagger. No public repo/docs for Access Ledger found.
+EOF
+echo done
+done
+[0m
+Now the leads file and state update.
+[0m$ [0mcat > /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json <<'EOF'
+{"phase": "HYPOTHESIS", "status": "HIGH_POTENTIAL"}
+EOF
+cat /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json
+{"phase": "HYPOTHESIS", "status": "HIGH_POTENTIAL"}
+[0m
+[0m# [0mTodos
+[✓] Re-verify ACS /metadata/json/1 keys + research legacy ACS DelegationIssuance1.0 trust (who still trusts accounts.accesscontrol.windows.net as issuer)
+[✓] Source-map check on mysignins + api.myaccount SPA bundles (read-only GET of .js.map)
+[✓] agentSignInSessions permission model — public Graph docs + scope/role design
+[✓] Entra Verified ID issuance endpoints — public docs, scopes, request schemas
+[✓] OAuth redirect_uri normalization — review in-scope code (microsoft-identity-web, MSAL.js) for validation logic
+[✓] accledger/accessmonitor public-repo + docs search for unauthenticated API routes
+[✓] Write HYPOTHESIS journal, leads, state update
+[0m
+# Program: microsoft
+# Phase: HYPOTHESIS
+
+## Key Findings
+- **Source maps shipped live on both identity SPAs** — `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (no content, 4,359 paths) and `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35 MB, `sourcesContent` for 4,922 files). Recovered My Account request schemas below. Hashes (triage ref): myaccount.map `sha256 72290126…27d6541`, mysignins.map `sha256 2099f8a8…f3efbe`.
+- **Verified ID minting endpoint** `api.myaccount /api/issueVerifiedEmployeeCredential` = POST + `Bearer` token whose scope is the SPA's own `clientId` (8c59ead7-…-c8d2); backend gates solely on `GuestIsNotAllowedToIssueVerifiedId` / `TenantIsNotInAllowedToIssueVerifiedId` / feature-on — no visible admin-role check in the client contract.
+- **`/me/agentSignInSessions` (v1.0 + beta) is alive but undocumented** in public Graph docs (docs-contrib tree has no such API page); My Sign-Ins bundles `agentSessionApis.ts` / `agentSessions.ts` and `/recent-activity/agentic-sessions`; My Account uses new scope `AgentIdentity.Read.All` + `ServiceIdentity` SP type via `/users/{userId}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999`.
+- **`accounts.accesscontrol.windows.net` legacy-ACS surface**: `allowedAudiences` field is REMOVED from `/metadata/json/1` (tenant-enum patch confirmed per Sprocket 2026-05-19), but 5 live signing keys remain served — 3× self-signed `CN=accounts.accesscontrol.windows.net`, **2× `CN=login.microsoftonline.us` mixed into the global JWKS**; `/tokens/OAuth/2`, `/tokens/delegation/1`, `/mgmt/delegation/1` pathing alive (200 sign-in). This host was the vector for the Sep-2025 CVSS-10.0 ESTS actor-token impersonation chain (app `00000001-0000-0000-c000-000000000000`).
+- **ToS unauthenticated consent flow** embeds `access_token` + `id_token_hint` + `claims` (incl. `governance_control_state_per_device`) in the server-rendered `data-requestbody` DOM; `…/policyfiles/{policyFileId}/data` is a GET JSON (cross-tenant IDOR candidate).
+- **OAuth validation asymmetry** (SURFACE baseline): login.live.com fast-fails invalid `redirect_uri` (302, precise error); login.microsoftonline.com defers to a generic sign-in page. Documented AAD rules (reply-url doc): https-only (except localhost), case-sensitive exact match, `AADSTS50011`; RFC 6749 §3.1.2 string compare, RFC 9700 forbids wildcards.
+- `controlplane.accledger.azure.com`: `/health` 200 leaks pod name + `x-ms-image-tag 1.0.03467.455-73c40f8d…`; no swagger, no public "Access Ledger" repo/docs found.
+
+## New Endpoints / Assets
+- api.myaccount: `/api/issueVerifiedEmployeeCredential` (POST, no body), `/api/canVerifiedIdBeIssued` (GET), `/api/termsofuse/agreements/{id}`, `/…/policyfiles/{id}`, `/…/policyfiles/{id}/data`, `/…/{id}/decline`, `/…/accept`, `/api/shell/navbardata`, `/api/dateTimeFormats`
+- Graph beta: `/users/{id}/ownedObjects/Microsoft.graph.ServicePrincipal?$top=999`, `/users/{id}/sponsorOf/microsoft.graph.servicePrincipal?$top=999`, `/roleManagement/directory/roleAssignments?$filter=principalId eq '{id}'` (scope `AgentIdentity.Read.All`, SP type `ServiceIdentity`)
+- IAMUX routing (adjacent, out-of-scope — NOT probed): `account-tip.activedirectory.windowsazure.com`, `account.activedirectory-ppe.windowsazure.com`, `account.activedirectory.windowsazure.us`, `account.aad.microsoft.scloud`, `account.aad.eaglex.ic.gov`
+- ACS live token endpoints: `/tokens/OAuth/2`, `/tokens/delegation/1` (DelegationIssuance1.0), `/mgmt/delegation/1` (DelegationManagement1.0)
+
+## Hypotheses (impact + read-only test)
+1. **Legacy ACS actor-token / delegation regressions** — host is ESTS-fronted, previously weaponized for tenant-wide impersonation; token endpoints still live. Impact: cross-tenant impersonation/ATO (Identity, up to $100k). Read-only: compare the 5 ACS keys vs `/common/discovery/v2.0/keys` for cross-issuer reuse; search public SAML/federation metadata (SharePoint/xbox/mojang historically in `allowedAudiences`) for continued issuer trust; verify `DelegationIssuance1.0` requires a registered `grantedBy` principal (test-tenant only).
+2. **`agentSignInSessions` authorization gap** — undocumented new surface + new `AgentIdentity.Read.All` scope; new identity endpoints historically ship missing `scp`/IDOR checks. Impact: cross-user agent-session disclosure/impersonation (6.5–8.8). Read-only: enumerate required scopes from token claims on a controlled test tenant; test whether `/users/{id}/…` resolves the caller's oid vs arbitrary id; confirm session-IDOR absence — no live MS-infra testing.
+3. **Verified ID credential-minting by low-priv user** — `/api/issueVerifiedEmployeeCredential` token audience = SPA clientId; if backend authorizes on token-validity + non-guest rather than issuer role, credential forgery. Impact: verified-credential forgery / RP trust poisoning (7.1–9.1). Read-only: document schema (done: POST, no body); test on own tenant with basic vs credential-issuer role comparing accepted claims.
+4. **ToS token-in-HTML + policyfile IDOR** — consent page embeds access tokens/claims; `policyfiles/{id}/data` GET may be tenant-unscopped. Impact: token disclosure, consent-state tampering, PII (5.3–7.5). Read-only: verify cache headers on consent page (own session); test tenant-scoping of agreement/policy IDs.
+5. **OAuth redirect_uri / response_mode confusion** — AAD v2 defers validation; exact-match rules well-documented; first-party registrations could have permissive legacy redirect URIs. Impact: auth-code theft / ATO via dangling redirects (7.4–9.0). Read-only: build normalization matrix (trailing slash, case, fragment, percent-encoding, `response_mode=form_post/fragment`, `wctx`) against documented rules; no live sends beyond the recorded baseline.
+6. **Cross-app confused deputy** — My Account forwards `upn`/`tenant`/`login_hint`/`optIn` to IAMUX/myapps/mygroups/myaccess and uses substrate `search/api/v1`; if a destination acts on the parameter without re-auth → cross-tenant disclosure. Impact: info disclosure (5.3–8.1). Read-only: test-tenant verification of re-authentication at each destination.
+7. **Access Ledger controlplane** — Kestrel banners + structured errors; unauthenticated ledger/tenant route unknown. Impact: info disclosure (3.7–5.3). Read-only: bounded GET/HEAD on documented .NET API paths only, stop at 404 envelope (done).
+
+## Secrets Check (hash only)
+- No secrets. Scanned both bundles + extracted 1,977 source files: only public clientIds (`19db86c3…`, `8c59ead7…`, `00000001-0000-0000-c000-000000000000`) and env hostnames. Artifact hashes above. Independent reposcan job: 0 hits (leads/reposcan-latest.md).
+
+## CVSS Candidates
+- ACS actor-token/impersonation regression: 9.0–10.0 (if reintroduced); agent-session authz gap: 6.5–8.8; Verified ID mint: 7.1–9.1; ToS token/IDOR: 5.3–7.5; OAuth redirect ATO: 7.4–9.0; confused deputy: 5.3–8.1; ledger banner leak: 3.7–5.3.
+
+---
+## STATE UPDATE (exact format for parsing)
+STATUS_PHASE: HYPOTHESIS
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: POC on highest-value read-only signals: (a) confirm no cross-issuer key reuse between accounts.accesscontrol.windows.net JWKS and AAD `/common/discovery/v2.0/keys`; (b) one bounded GET of `policyfiles` data shape on a test tenant for the IDOR design.
+NEXT_STEP_2: Enumerate first-party redirect_uri registrations from public sources and build the normalization matrix against reply-url rules; mark which encodings are safe to validate live vs require test tenant.
+NEXT_STEP_3: If HYPOTHESIS exhausts, open new RECON surface: crt.sh CT inventory for the Jul-2025 identity hosts + `*.activedirectory.windowsazure.com` (note: out-of-scope, adjacent only) and Graph `/v1.0/$metadata` service-document crawl for new agent/identity types.
