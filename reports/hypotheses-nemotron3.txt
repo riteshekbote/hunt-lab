@@ -1,53 +1,45 @@
-## 2026-08-07 19:36:33 UTC [google] (model nemotron3)
-[NEW] Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
-[NEW] Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
-[NEW] Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
-[NEW] Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
-[NEW] Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
-[NEW] `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
-[NEW] Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permissions
-[CHANGED] `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
-[PRIO] Three-hop Agent User `user_fic` flow (Hop3 `user_id` parameter), 7.90, attack=8 business=9 tech=9 gate=4 cloud=8 fresh=9
-[PRIO] Agent Registry API `/beta/agentRegistry` (agentInstances/agentCardManifests/agentCollections), 7.60, attack=8 business=8 tech=8 gate=6 cloud=7 fresh=8
-[PRIO] Consent primitive `POST /v1.0/oauth2PermissionGrants` (caller-chosen `resourceId`), 7.45, attack=8 business=8 tech=8 gate=5 cloud=7 fresh=8
-[PRIO] Copilot agent admin `/beta/copilot/admin/catalog/packages` (block/unblock/reassign), 7.45, attack=7 business=9 tech=7 gate=6 cloud=7 fresh=8
-[PRIO] `managerApplications` on Blueprints (10 first-party apps bypass), 7.05, attack=7 business=8 tech=7 gate=5 cloud=7 fresh=8
-[PRIO] Copilot Policy Settings API `/beta/copilot/admin/policySettings/{id}`, 6.95, attack=6 business=8 tech=7 gate=6 cloud=7 fresh=8
-[PRIO] Orchestrated API `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` (InvokeTool client-supplied schema), 6.80, attack=7 business=7 tech=8 gate=4 cloud=7 fresh=8
-[PRIO] `login.live.com` redirect matrix EXHAUSTED, 5.90, attack=5 business=5 tech=5 gate=10 cloud=5 fresh=6
-[HYP] Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation
+## 2026-08-07 20:21:26 UTC [google] (model nemotron3)
+[NEW] NO_DELTA
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations (Agent Registration ownership bypass), 7.88, attack=9 business=9 tech=8 gate=4 cloud=8 fresh=9
+[PRIO] login.microsoftonline.com/{tid}/oauth2/v2.0/token (Three-hop user_fic Hop3 user_id), 7.83, attack=8 business=9 tech=9 gate=4 cloud=8 fresh=9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (Consent primitive caller-chosen resourceId), 7.40, attack=8 business=8 tech=8 gate=5 cloud=7 fresh=8
+[PRIO] graph.microsoft.com/beta/agentRegistry/agentInstances (Agent Registry beta cross-user enum), 7.35, attack=8 business=8 tech=8 gate=6 cloud=7 fresh=8
+[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential (Verified ID minting), 7.10, attack=7 business=9 tech=7 gate=4 cloud=8 fresh=9
+[PRIO] /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (Orchestrated InvokeTool), 6.85, attack=7 business=7 tech=8 gate=4 cloud=7 fresh=8
+[PRIO] oauth2.googleapis.com/tokeninfo (public introspection oracle), 4.20, attack=4 business=3 tech=5 gate=10 cloud=3 fresh=5
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: $metadata shows agentRegistration EntityType has ZERO ownership restrictions — createdBy/ownerIds/managedByAppId/agentIdentityId all client-supplied, no InsertRestrictions/UpdateRestrictions/DeleteRestrictions; PATCH rewrites ownerIds/managedByAppId/agentIdentityId; GA replacement for deprecated agentRegistry
+evidence_needed: POST creates registration with attacker-chosen createdBy; PATCH on foreign registration succeeds; GET enumerates cross-user registrations
+verify_steps: AUTH_HELPED: In test tenant with AgentRegistration.ReadWrite.All, as User1 POST /beta/copilot/agentRegistrations (createdBy=User2); as User2 GET /beta/copilot/agentRegistrations to enumerate; as User2 PATCH User1's registration (rewrite ownerIds). Passive: $metadata already confirms zero restrictions
+impact: Cross-tenant/cross-user agent registration hijack, supply chain compromise, Copilot agent impersonation — CVSS 8.5-9.5
+testability: AUTH_HELPED
+[HYP] Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation
 class: AUTH
-asset: login.microsoftonline.com/{tid}/oauth2/v2.0/token (grant_type=user_fic)
+asset: login.microsoftonline.com/{tid}/oauth2/v2.0/token
 confidence: 70
-reasoning: Hop3 accepts `user_id={oid}` OR `upn` as caller-supplied parameter; FIC flow designed for workload identity but `user_fic` extends to user impersonation; no documented validation that caller can only specify their own identity
-evidence_needed: Hop3 token request with attacker-chosen `user_id` (target user's oid/upn) returns valid access token for that user
-verify_steps: AUTH_HELPED: In test tenant with Entra Workload ID configured, complete Hop1 (client_credentials+cert+fmi_path) → Hop2 (FIC exchange) → Hop3 with `user_id=target_user_oid`; observe if token issued for target user. Passive: review Entra docs for `user_fic` grant_type restrictions
+reasoning: Hop3 grant_type=user_fic accepts user_id={oid} OR upn as caller-supplied parameter; FIC flow designed for workload identity but user_fic extends to user impersonation; no documented validation that caller can only specify their own identity
+evidence_needed: Hop3 token request with attacker-chosen user_id (target user's oid/upn) returns valid access token for that user
+verify_steps: AUTH_HELPED: In test tenant with Entra Workload ID configured, complete Hop1 (client_credentials+cert+fmi_path) → Hop2 (FIC exchange) → Hop3 with user_id=target_user_oid; observe if token issued for target user. Passive: review Entra docs for user_fic grant_type restrictions
 impact: Workload identity escalates to arbitrary user impersonation — full access as any user in tenant; CVSS 9.0-9.8
 testability: AUTH_HELPED
-[HYP] Agent Registry API (beta) allows cross-user agentInstance enumeration and mutation
-class: IDOR
-asset: graph.microsoft.com/beta/agentRegistry
-confidence: 65
-reasoning: New beta API (deprecated May 2026) exposes `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBlob`; no ownership enforcement documented; deprecated status may mean reduced guards
-evidence_needed: GET `/beta/agentRegistry/agentInstances` returns other users' agent instances; PATCH/DELETE on foreign `agentInstance` succeeds
-verify_steps: AUTH_HELPED: In test tenant, as User1 create agentInstance via agentRegistry; as User2 (same tenant, same scope) GET `/beta/agentRegistry/agentInstances` to enumerate; attempt PATCH/DELETE on User1's instance. Passive: check `$metadata` for agentRegistry EntityType restrictions
-impact: Cross-user agent instance enumeration, hijack, deletion — agent supply chain compromise; CVSS 7.0-8.5
-testability: AUTH_HELPED
-[HYP] Consent primitive `oauth2PermissionGrants` caller-chosen `resourceId` enables privilege escalation
+[HYP] Consent primitive oauth2PermissionGrants caller-chosen resourceId enables privilege escalation
 class: AUTH
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 70
-reasoning: POST accepts caller-chosen `resourceId` (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permissions list; allows granting consent to resources the caller shouldn't control
-evidence_needed: POST `oauth2PermissionGrants` with `resourceId=e406a681-...` (Azure Storage `user_impersonation`) returns 201; granted consent usable for token acquisition
-verify_steps: AUTH_HELPED: In test tenant, as non-admin user with consent grant scope, POST `/v1.0/oauth2PermissionGrants` with `resourceId=e406a681-...`; observe 201. Then attempt token acquisition for that resource. Passive: check blocked-permissions list for agents via Graph metadata
+reasoning: POST accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681...); Application.Read.All NOT in agent blocked-permissions list; allows granting consent to resources the caller shouldn't control
+evidence_needed: POST oauth2PermissionGrants with resourceId=e406a681-... (Azure Storage user_impersonation) returns 201; granted consent usable for token acquisition
+verify_steps: AUTH_HELPED: In test tenant, as non-admin user with consent grant scope, POST /v1.0/oauth2PermissionGrants with resourceId=e406a681-...; observe 201. Then attempt token acquisition for that resource. Passive: check blocked-permissions list for agents via Graph metadata
 impact: Unprivileged user grants self consent to Azure Storage/Graph scopes — privilege escalation, data access; CVSS 7.5-8.8
 testability: AUTH_HELPED
 [PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps
-[FINAL] 1. Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70, priority 7.90)
-[FINAL] 2. Consent primitive `oauth2PermissionGrants` caller-chosen `resourceId` enables privilege escalation (AUTH, graph.microsoft.com/v1.0/oauth2PermissionGrants, confidence 70, priority 7.45)
-[FINAL] 3. Agent Registry API (beta) allows cross-user agentInstance enumeration and mutation (IDOR, graph.microsoft.com/beta/agentRegistry, confidence 65, priority 7.60)
-[NEXT] PROBE: GET `https://graph.microsoft.com/beta/agentRegistry/agentInstances` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All` or `CopilotPackages.Read.All`) — tests enumeration of agentInstances across users; if 200 with array containing foreign `agentIdentityId`/`agentUserId`, confirms cross-user visibility for PATCH/DELETE targeting
+[FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 80, priority 7.88)
+[FINAL] 2. Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70, priority 7.83)
+[FINAL] 3. Consent primitive oauth2PermissionGrants caller-chosen resourceId enables privilege escalation (AUTH, graph.microsoft.com/v1.0/oauth2PermissionGrants, confidence 70, priority 7.40)
+[NEXT] PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests enumeration of agentRegistrations across users; if 200 with array containing foreign `createdBy`/`ownerIds`, confirms cross-user visibility for PATCH/DELETE targeting
 [LEARN] No new proving-dead classes this cycle
 [LEARN] No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
 [RISK] google: 35 reason: GCP control-plane APIs all auth-gated (API key/OAuth); Firebase identitytoolkit 403 unregistered-callers gate; ADK issues are SDK-level not live Google service; no new unauthenticated attack surface discovered in this cycle; tokeninfo oracle is rate-limited public introspection only
-[RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registry (deprecated but live, cross-user enumeration), user_fic Hop3 user_id impersonation knob, Consent primitive caller-chosen resourceId, Copilot admin catalog/packages, managerApplications Blueprint bypass — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels
+[RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), Copilot Studio D2E (conversation-ID not validated), Agent User `user_fic` subject knobs, Consent primitive caller-chosen `resourceId` — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels

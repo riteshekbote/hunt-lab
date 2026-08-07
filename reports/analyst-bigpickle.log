@@ -1439,3 +1439,189 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 35 — tokeninfo oracle is sole anonymous branch (info-only, malformed→400); all GCP control-plane reads consumer-identity gated; dual-JWKS verified clean; no exploitable unauth path.
 - [RISK] microsoft: 78 — identity SPA source maps still live (main.caa6a456.js.map 6.9MB 200); off-metadata agentSignInSessions + agentRegistrations + consent-grant + D2E primitives all 401/Bearer-gated; exposure surface unchanged, exploit status pending authorized test-tenant execution.
+===== ANALYST bigpickle 2026-08-07 20:26:22 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/r1 -w "POST_agentRegistrations_blank: %{http_code} ct=%{content_type} len=%{size_download}\n" -X POST https://graph.microsoft.com/beta/copilot/agentRegistrations -H "Content-Type: application/json" -d '{}' ; head -c 300 /tmp/r1; echo
+POST_agentRegistrations_blank: 401 ct=application/json len=237
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T20:19:49","request-id":"829ee11a-4a6e-44c3-9a3d-54a06c153568","client-request-id":"829ee11a-4a6e-44c3-9a3d-54a06c153568"}}}
+[0m
+[0m$ [0mcurl -s -o /tmp/r2 -w "GET_agentRegistrations_count: %{http_code} ct=%{content_type} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations?\$count=true" ; head -c 300 /tmp/r2; echo; curl -s -o /tmp/r3 -w "HEAD_agentRegistrations: %{http_code} ct=%{content_type} len=%{size_download}\n" -I "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+GET_agentRegistrations_count: 401 ct=application/json len=237
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T20:19:50","request-id":"5f2b4f5b-c185-4712-84e1-603e367bec88","client-request-id":"5f2b4f5b-c185-4712-84e1-603e367bec88"}}}
+HEAD_agentRegistrations: 405 ct= len=0
+[0m
+[0m$ [0mfor u in "https://api.mysignins.microsoft.com/swagger/v1/swagger.json" "https://api.myaccount.microsoft.com/swagger/v1/swagger.json" "https://api.mysignins.microsoft.com/swagger.json" "https://api.myaccount.microsoft.com/swagger.json"; do curl -s -o /tmp/r4 -m 15 -w "%{http_code} ct=%{content_type} len=%{size_download} $u\n" "$u"; done
+404 ct= len=0 https://api.mysignins.microsoft.com/swagger/v1/swagger.json
+401 ct= len=0 https://api.myaccount.microsoft.com/swagger/v1/swagger.json
+404 ct= len=0 https://api.mysignins.microsoft.com/swagger.json
+401 ct= len=0 https://api.myaccount.microsoft.com/swagger.json
+[0m
+[0m$ [0mfor p in "/api/shell/getshellinfo" "/api/termsofuse/agreements" "/api/termsofuse/myacceptances" "/api/termsofuse/tenantbannerlogo" "/api/groups/settings" "/api/instrument/logclient" "/api/nonexistent-zzz" "/api/canVerifiedIdBeIssued"; do curl -s -o /tmp/r5 -m 15 -w "$p -> %{http_code} ct=%{content_type} len=%{size_download}\n" "https://api.myaccount.microsoft.com$p"; done
+/api/shell/getshellinfo -> 401 ct= len=0
+/api/termsofuse/agreements -> 401 ct= len=0
+/api/termsofuse/myacceptances -> 401 ct= len=0
+/api/termsofuse/tenantbannerlogo -> 401 ct= len=0
+/api/groups/settings -> 401 ct= len=0
+/api/instrument/logclient -> 401 ct= len=0
+/api/nonexistent-zzz -> 401 ct= len=0
+/api/canVerifiedIdBeIssued -> 401 ct= len=0
+[0m
+[0m$ [0mcurl -s -o /tmp/r6 -m 15 -X POST -w "POST_logclient -> %{http_code} ct=%{content_type} len=%{size_download}\n" "https://api.myaccount.microsoft.com/api/instrument/logclient" -H "Content-Type: application/json" -d '{}'; head -c 400 /tmp/r6; echo
+POST_logclient -> 401 ct= len=0
+[0m
+[0m$ [0mcurl -s -o /tmp/r7 -m 20 -w "GET_issueVEC -> %{http_code} ct=%{content_type} len=%{size_download}\n" "https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential"; head -c 300 /tmp/r7; echo
+GET_issueVEC -> 401 ct= len=0
+[0m
+[0m$ [0mcurl -s -m 60 -o /tmp/ms.map "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" && ls -la /tmp/ms.map && grep -o '"/[a-zA-Z0-9_/{}.-]*"' /tmp/ms.map | sort -u | grep -iE 'api|session|auth|sign|password|captcha|credential|token|verify|issue' | head -80
+-rw-r--r-- 1 runner runner 6976576 Aug  7 20:20 /tmp/ms.map
+[0m
+[0m$ [0mgrep -oE '"api/[a-zA-Z0-9_/{}.-]*"' /tmp/ms.map | sort -u | head -60; echo "---count---"; grep -c 'api/' /tmp/ms.map
+---count---
+1
+[0m
+[0m$ [0mgrep -oE '/api/[a-zA-Z0-9_/{}.-]+' /tmp/ms.map | sort -u | head -60; echo "---urls---"; grep -oE 'https?://[a-z0-9.-]+' /tmp/ms.map | sort -u | grep -viE 'w3.org|microsoft.com/bundle|jsdelivr|schema|go.microsoft|azureedge' | head -40
+---urls---
+[0m
+[0m$ [0mgrep -oE '"[a-zA-Z0-9_/.-]*api[a-zA-Z0-9_/.-]*"' /tmp/ms.map | sort -u | head -20; echo "---sources sample---"; grep -oE '"sources":\[[^]]*\]' /tmp/ms.map | head -c 2000
+"_apiKey"
+"apiCall"
+"apiKey"
+"apiKeys"
+"apiQsKeys"
+"apikey"
+"apikey_1"
+"autoCapitalize"
+"capitalize"
+"isEscaping"
+---sources sample---
+"sources":["webpack://sign-ins/webpack/runtime/create fake namespace object","webpack://sign-ins/webpack/runtime/load script","webpack://sign-ins/../../dev/node_modules/@microsoft/load-themed-styles/lib/index.js","webpack://sign-ins/./node_modules/@amx/ux-twoui/public/amcIcons.css?3ef2","webpack://sign-ins/../fabric-ui-portal/lib/components/Search/SearchBox.scoped.scss?ab53","webpack://sign-ins/../fabric-ui-portal/lib/components/Search/SuggestionsContextMenu.scoped.scss?49dc","webpack://sign-ins/../fabric-ui-portal/lib/components/WafflePanel/WafflePanel.scoped.scss?d56d","webpack://sign-ins/../portal-app/lib/styling/patterns/Banner.scoped.scss?3318","webpack://sign-ins/../portal-app/lib/styling/patterns/DetailsPage.scoped.scss?6f50","webpack://sign-ins/../portal-app/lib/styling/patterns/Section.scoped.scss?3be2","webpack://sign-ins/../portal-app/lib/styling/patterns/Text.scoped.scss?1332","webpack://sign-ins/../portal-app/lib/styling/patterns/TextField.scoped.scss?4c7e","webpack://sign-ins/./src/SecurityInfo/AppPasswords/AppPasswords.scoped.scss?376f","webpack://sign-ins/./src/SecurityInfo/AppPasswords/ReSkin/RegistrationStages/PasswordDisplayStage.scoped.scss?524a","webpack://sign-ins/./src/SecurityInfo/Authenticator/Authenticator.scoped.scss?3b4d","webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/ManualActivation.scoped.scss?064a","webpack://sign-ins/./src/SecurityInfo/Authenticator/RegistrationStages/Verification.scoped.scss?0d12","webpack://sign-ins/./src/SecurityInfo/Captcha/Captcha.scoped.scss?c103","webpack://sign-ins/./src/SecurityInfo/Email/ReSkin/VerifyChallenge.scoped.scss?40f7","webpack://sign-ins/./src/SecurityInfo/ExtendedMessageBar/ExtendedMessageBar.scoped.scss?602c","webpack://sign-ins/./src/SecurityInfo/ExternalAuth/ExternalAuth.scss?3ebc","webpack://sign-ins/./src/SecurityInfo/Passkey/AllowedAAGUIDs/AllowedAAGUIDs.scoped.scss?24ef","webpack://sign-ins/./src/SecurityInfo/Passkey/Passkey.scss?936d","webpack://sign-ins/./src/Sec
+[0m
+[0m$ [0mfor frag in "session" "signIns" "signins" "captcha" "authenticationmethods" "signOutEverywhere" "password" "challenge" "mfa" "verification"; do c=$(grep -oE "\"$frag\"" /tmp/ms.map | wc -l); echo "$frag: $c"; done
+session: 1
+signIns: 1
+signins: 0
+captcha: 0
+authenticationmethods: 0
+signOutEverywhere: 0
+password: 1
+challenge: 1
+mfa: 1
+verification: 1
+[0m
+[0m$ [0mgrep -oE '.{120}"session".{120}' /tmp/ms.map | head -3
+ap","deviceNameMap","appResults","deviceResults","_step3","_iterator3","sp","_step2","_iterator2","_step4","_iterator4","session","application","hydrateSessionNames","hydrated","isLoadable","getRevokeAgentSessionRequest","getMapImageForSignIn","areM
+[0m
+[0m$ [0mcurl -s -m 90 -o /tmp/ma.map "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" && ls -la /tmp/ma.map
+-rw-r--r-- 1 runner runner 35340363 Aug  7 20:20 /tmp/ma.map
+[0m
+[0m$ [0mgrep -oE 'issueVerifiedEmployeeCredential|canVerifiedIdBeIssued' /tmp/ma.map | sort | uniq -c; echo "---request fields---"; grep -oE '"[a-zA-Z]*[Cc]laim[a-zA-Z]*"' /tmp/ma.map | sort -u | head; echo "---credential fields---"; grep -oE '"(givenName|surname|displayName|jobTitle|employeeId|mail|department|organization|firstName|lastName|upn|userPrincipalName|objectId)"' /tmp/ma.map | sort -u
+1 canVerifiedIdBeIssued
+      1 issueVerifiedEmployeeCredential
+---request fields---
+"ClaimsRequestKeys"
+"accountAClaims"
+"accountBClaims"
+"accountLoginHintClaim"
+"addClaims"
+"addClientCapabilitiesToClaims"
+"altSecIdClaim"
+"altSecIdClaimParts"
+"claims"
+"claimsMatch"
+---credential fields---
+"department"
+"displayName"
+"firstName"
+"givenName"
+"jobTitle"
+"lastName"
+"mail"
+"objectId"
+"surname"
+"upn"
+"userPrincipalName"
+[0m
+[0m$ [0mgrep -oE '.{800}issueVerifiedEmployeeCredential.{800}' /tmp/ma.map | head -2
+(no output)
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+[0m$ [0mpython3 -c "
+data=open('/tmp/ma.map','r',errors='replace').read()
+for kw in ['issueVerifiedEmployeeCredential','canVerifiedIdBeIssued']:
+    i=data.find(kw)
+    print('KW',kw,'at',i)
+    print(data[max(0,i-700):i+700])
+    print('====')
+" 2>&1 | head -60
+KW issueVerifiedEmployeeCredential at 34623530
+{t('verifiedIdCloseDialogWarning')}\n            </Text>\n          </>\n        )}\n      </div>\n      {!hideQrCode && (\n        <DialogFooter>\n          <PrimaryButton disabled={isLoading} onClick={onDone} text={credential ? t('done') : t('closeButton')} />\n        </DialogFooter>\n      )}\n    </Dialog>\n  );\n};\n","import { useAuth } from '@iamexperiences/feature-auth';\nimport { useMutation, useQuery } from 'react-query';\nimport { settingsManager } from '../../shared/settings';\nimport { IVerifiedCredential } from './Credential.type';\n\nexport const useRetrievingCredential = () => {\n  const { auth } = useAuth();\n  const url = `${settingsManager.get('myAccountBackendUrl')}/api/issueVerifiedEmployeeCredential`;\n  const clientId = settingsManager.getRequired('clientId');\n\n  return useMutation(async (): Promise<IVerifiedCredential> => {\n    const token = await auth.acquireToken({ scopes: [clientId] });\n\n    const response = await fetch(url, {\n      method: 'POST',\n      headers: {\n        Authorization: `Bearer ${token}`,\n        'Content-Type': 'application/json',\n      },\n    });\n\n    if (!response.ok) {\n      const error = await response.json();\n      throw error;\n    }\n\n    const json = await response.json();\n    return json as IVerifiedCredential;\n  });\n};\n\nexport const useEnableVerifyId = () => {\n  const url = `${settingsManager.get('my
+====
+KW canVerifiedIdBeIssued at 34624255
+ential`;\n  const clientId = settingsManager.getRequired('clientId');\n\n  return useMutation(async (): Promise<IVerifiedCredential> => {\n    const token = await auth.acquireToken({ scopes: [clientId] });\n\n    const response = await fetch(url, {\n      method: 'POST',\n      headers: {\n        Authorization: `Bearer ${token}`,\n        'Content-Type': 'application/json',\n      },\n    });\n\n    if (!response.ok) {\n      const error = await response.json();\n      throw error;\n    }\n\n    const json = await response.json();\n    return json as IVerifiedCredential;\n  });\n};\n\nexport const useEnableVerifyId = () => {\n  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;\n  const clientId = settingsManager.getRequired('clientId');\n  const { auth } = useAuth();\n  return useQuery({\n    queryKey: ['enableVerifyId'],\n    queryFn: async () => {\n      const token = await auth.acquireToken({ scopes: [clientId] });\n      const response = await fetch(url, {\n        headers: {\n          Authorization: `Bearer ${token}`,\n        },\n      });\n\n      if (response.ok) {\n        // for below expected errors, backend will return 200 with detail reason inside for debugging if need. otherwise, 204 is return\n        // 1. guest user, 2.feature's turn off on backend, 3. tenant is not onboard to verifyID\n        if (response.status === 204)
+====
+[0m
+## STEP 1 — DELTA
+- [CHANGED] Verified-ID mint premise refuted: `api.myaccount.microsoft.com` SPA source map shows `POST /api/issueVerifiedEmployeeCredential` sent with **empty body** (fetch POST, no `body`, no claim fields) → credential claims derive from the Bearer token identity, NOT client-supplied; prior "caller-chosen claims" reasoning in [75] is wrong.
+- [NEW] `api.myaccount.microsoft.com` uniform token-gate: ALL paths incl. `/api/nonexistent-zzz` → 401 empty-body; NO anonymous branch, NO 404 differential (contrast api.mysignins which 404s unknown paths) — routing-policy only, not exploitable.
+- [CHANGED] Accepted Graph 405 anomaly extends to `/beta/copilot/agentRegistrations` HEAD → 405 (len 0), same class.
+- [NEW] `POST /beta/copilot/agentRegistrations` blank body → 401 `"Access token is empty"` (auth-gate-first; `$count=true` same 401) → no pre-auth schema leak; sharpens AUTH_HELPED steps (real Bearer mandatory).
+- [NEW] No OpenAPI docs on either identity backend (`/swagger/v1/swagger.json` → mysignins 404, myaccount 401).
+
+## STEP 2 — PRIORITIZE
+- [PRIO] `graph.microsoft.com/beta/copilot/agentRegistrations` score 6.50 | a8 b9 t7 g0 c8 f4 (owned-identity write primitive, zero metadata restrictions)
+- [PRIO] `{envhost}/copilotstudio/dataverse-backed/.../conversations` score 5.85 | a7 b8 t6 g0 c7 f5 (server-side conversationId not validated per docs)
+- [PRIO] `POST /v1.0/oauth2PermissionGrants` score 4.90 | a6 b7 t5 g0 c6 f3 (caller-chosen resourceId cross-resource consent)
+- [PRIO] `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` score 4.20 | a5 b9 t6 g0 c5 f3 (high business value but empty-body POST = token-derived only)
+
+## STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 55
+reasoning: $metadata types contains-target collection with zero OperationRestrictions; create accepts client `createdBy`; PATCH rewrites ownerIds/managedByAppId/agentCard. This cycle: auth-gate-first confirmed (401 before any validation), HEAD 405, `$count` same 401 — no pre-auth branch, test requires real Bearer.
+evidence_needed: principal B (no ownership) GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET `/beta/copilot/agentRegistrations` own Bearer; 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; record 200/204 vs 403 each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}}
+confidence: 50
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Envhost unresolved anonymously (tenant-scoped).
+evidence_needed: principal B executes a turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard (CallerIdentityMismatch).
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) A POST start w/ chosen GUID; 2) B POST `/conversations/{same GUID}` + GET subscribe w/ Last-Event-ID own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 45
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; endpoint 401, no new gate this cycle.
+evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- [PARKED] Verified ID minting via caller-chosen claims: **premise refuted this cycle** — source map proves empty-body POST; no client-supplied claim field exists to abuse; claims are Bearer-token-derived. Residual (attacker's own-tenant credential) is a documented Verified ID design property, not MSRC-worthy.
+- [PARKED] api.myaccount anonymous-branch hunt: uniform 401 on every path → class proven dead, not a hypothesis.
+- Surviving (re-ranked): agentRegistrations IDOR (55) → D2E conversation resume (50) → consent-grant resourceId (45).
+- [FINAL] agentRegistrations IDOR remains top; all three require test-tenant execution; no new passive anomaly changed the ranking.
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: two-principal test-tenant probe of top hypothesis (still unexecuted): A POST `/beta/copilot/agentRegistrations` (client-set `createdBy`/`ownerIds`) → B GET `/beta/copilot/agentRegistrations` with own Bearer (scope `AgentRegistration.ReadWrite.All`) → B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":...}` → record 200/204 vs 403 at each hop.
+
+## STEP 6 — LEARNING
+- [LEARN] REJECTED caller-chosen-claims Verified ID mint @ api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: SPA sends empty-body POST (fetch without body); claims derive from Bearer token identity; no client-supplied claim field exists — premise refuted via source-map extraction.
+- [LEARN] REJECTED anonymous-branch hunt @ api.myaccount.microsoft.com: uniform 401 (empty body) on all paths incl. nonexistent → token-gate-before-routing; no anonymous public branch (404-vs-401 is routing policy only).
+
+## STEP 7 — RISK SCORE
+[RISK] google: 35 — tokeninfo oracle remains sole anonymous branch (info-only); GCP control-plane reads consumer-identity gated; no change.
+[RISK] microsoft: 76 — source maps still live (mysignins 7MB, myaccount 35MB); top agentRegistrations IDOR [82] still unverified (auth-gate-first confirmed, Bearer mandatory); Verified-ID lead downgraded (premise refuted) removing one candidate; exposure surface otherwise unchanged, exploit status still pending authorized test-tenant execution.

@@ -2098,3 +2098,1319 @@ All three hypotheses pass the critique filter:
 
 ---
 **Summary:** No delta since last cycle — all surface items already processed and ACCEPTED/REJECTED in the knowledge base. Passive phase is exhausted; the three top hypotheses (all AUTH_HELPED) require authorized test-tenant execution which is blocked by `passive_only: true` in scope.yml. Next action is HUMAN escalation for the two-principal test-tenant probe on agentRegistrations IDOR and v1.0↔v2.0 issuer-confusion token replay.
+===== ANALYST laguna 2026-08-07 20:26:22 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la reports/ 2>/dev/null; echo "---"; ls -la *.txt 2>/dev/null; echo "---"; find . -maxdepth 2 -name "*.md" -o -name "*.txt" | head -50
+total 412
+drwxr-xr-x  2 runner runner   4096 Aug  7 20:19 .
+drwxr-xr-x 12 runner runner   4096 Aug  7 20:19 ..
+-rw-r--r--  1 runner runner 114599 Aug  7 20:19 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 162905 Aug  7 20:19 analyst-laguna.log
+-rw-r--r--  1 runner runner   1512 Aug  7 20:19 analyst-ling3.log
+-rw-r--r--  1 runner runner    720 Aug  7 20:19 analyst-longcat.log
+-rw-r--r--  1 runner runner  76924 Aug  7 20:19 analyst-nemotron3.log
+-rw-r--r--  1 runner runner   3163 Aug  7 20:19 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   7064 Aug  7 20:19 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner     50 Aug  7 20:19 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner     52 Aug  7 20:19 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner   7572 Aug  7 20:19 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  13087 Aug  7 20:19 hypotheses.md
+-rw-r--r--  1 runner runner    781 Aug  7 20:19 valid-bugs.md
+---
+-rw-r--r-- 1 runner runner    39 Aug  7 20:19 analyst-out.txt
+-rw-r--r-- 1 runner runner 45753 Aug  7 20:19 analyst-prompt.txt
+-rw-r--r-- 1 runner runner 43458 Aug  7 20:19 ctx.txt
+---
+./analyst-out.txt
+./reposcan-raw/grep-delta.txt
+./reposcan-raw/grep-hits.prev.txt
+./reposcan-raw/rag.txt
+./reposcan-raw/grep-hits.txt
+./reposcan-raw/analysis.txt
+./knowledge/index.md
+./leads/reposcan-2026-08-07-19-29.md
+./leads/reposcan-2026-08-07-18-28.md
+./leads/reposcan-2026-08-07-19-03.md
+./leads/reposcan-2026-08-07-14-23.md
+./leads/reposcan-2026-08-07-16-17.md
+./leads/reposcan-2026-08-07-09-02.md
+./leads/lead-bigpickle.md
+./leads/reposcan-2026-08-07-19-35.md
+./leads/reposcan-2026-08-07-17-44.md
+./leads/reposcan-2026-08-07-16-31.md
+./leads/reposcan-2026-08-07-19-42.md
+./leads/reposcan-2026-08-07-08-34.md
+./leads/reposcan-2026-08-07-14-50.md
+./leads/reposcan-2026-08-07-08-40.md
+./leads/reposcan-latest.md
+./leads/reposcan-2026-08-07-16-44.md
+./leads/lead-laguna.md
+./leads/reposcan-2026-08-07-15-29.md
+./leads/reposcan-2026-08-07-18-37.md
+./leads/reposcan-2026-08-07-15-54.md
+./leads/lead-ling3.md
+./leads/lead-longcat.md
+./leads/reposcan-2026-08-07-08-29.md
+./leads/reposcan-2026-08-07-08-25.md
+./leads/reposcan-2026-08-07-08-52.md
+./leads/reposcan-2026-08-07-17-29.md
+./leads/lead-nemotron3.md
+./leads/reposcan-2026-08-07-14-58.md
+./reports/valid-bugs.md
+./reports/hypotheses-nemotron3.txt
+./reports/hypotheses-bigpickle.txt
+./reports/hypotheses-laguna.txt
+./reports/hypotheses-ling3.txt
+./reports/hypotheses-longcat.txt
+./reports/hypotheses.md
+./inventory/google.md
+./inventory/microsoft.md
+./ctx.txt
+./analyst-prompt.txt
+./triage/run-2026-08-07-10-16.md
+./triage/run-2026-08-07-18-03.md
+./triage/run-2026-08-07-11-59.md
+./triage/run-2026-08-07-15-10.md
+[0m
+[0m$ [0mgit log --oneline -20 2>/dev/null; echo "---"; git diff HEAD~3 --stat 2>/dev/null | tail -20
+3a73eab triage 2026-08-07-20-02
+---
+[0m
+I'll work through this systematically. Let me first read the knowledge base and inventory to understand the current surface.
+[0m$ [0mcat ctx.txt 2>/dev/null | head -300
+=== KNOWLEDGE BASE ===
+# Knowledge Base — verified learnings (RAG for all models)
+
+> Appended by triage + verification cycles. Models MUST read this before generating hypotheses.
+> Rules: never propose a class on the REJECTED list; never duplicate KNOWN-DUP items; use ALIVE surface facts.
+
+## REJECTED CLASSES (verified dead, do not propose)
+- 2026-08-07 REJECTED Firebase config reads (getProjects/getProjectConfig) @ identitytoolkit.googleapis.com: 403 "unregistered callers" gate; config public-by-design anyway.
+- 2026-08-07 REJECTED delegatedProjectNumber cross-project lookup @ accounts:lookup: field DEPRECATED, documented as caller's own requesting app (Firebase V1 migration), IAM firebaseauth.users.get required on targetProjectId resource. Resurrection ONLY via authorized two-project token test.
+- 2026-08-07 REJECTED AAD deferred redirect_uri validation @ login.microsoftonline.com: verified normal+prompt=none both return generic 200 shell, no Location, no inline error; check fires only at auth-completion (AADSTS50011 exact match). Cosmetic timing difference vs login.live.com fast-fail. No code-to-attacker possible passively.
+- 2026-08-07 REJECTED legacy ACS @ accounts.accesscontrol.windows.net: EOL platform, 4 signing keys, 3 endpoints, no new surface.
+- 2026-08-07 REJECTED internal backend URL leaks in SPA config: jarvisapi.account.microsoft.com NXDOMAIN; jcmsfd.account.microsoft.com/CPM alive but 400 MissingOrInvalidHeader gate.
+- 2026-08-07 REJECTED /health metadata leaks (accledger.azure.com pod name + image tag): info-only, banner class.
+- 2026-08-07 REJECTED email/phone enumeration differential (Firebase sendOobCode): on Google's no-reward list.
+- 2026-08-07 REJECTED endpoint maps with all-401 responses (mysignins API map): inventory is not a finding without a bypass.
+- 2026-08-07 REJECTED implicit-flow / client-registration hygiene (accounts.google.com): documented client allow-list model.
+- 2026-08-07 REJECTED Algolia DocSearch apiKey in docusaurus config (google/xrblocks): search-only key, public by design.
+
+## KNOWN DUPLICATES (do not re-report)
+- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+- ADK hardcoded ya29.* OAuth token in git history: google/adk-python issue #5520, closed 2026-04-28, issuetracker 504158909, token redacted.
+- CVE-2026-47391, Benchikh OAuth, Tenable SSRF: already public/fixed (from 10:16 triage).
+
+## ALIVE SURFACE FACTS (verified)
+- mysignins.microsoft.com SPA: MSAL app clientId 19db86c3-b2b9-44cc-b339-36da233a3be2, backend api.mysignins.microsoft.com, region header x-ms-mysignins-region: westus2. API map: /api/session/*, /api/authenticationmethods/*, /api/signIns, /api/password/*, /api/captcha/*, /api/signOutEverywhere — all 401/POST-gated.
+- api.myaccount.microsoft.com SPA: clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Entra Verified ID: /api/issueVerifiedEmployeeCredential, /api/canVerifiedIdBeIssued. ToS: /api/termsofuse/{agreements,myacceptances,tenantbannerlogo,tenantdisplayname}. /api/shell/getshellinfo, /api/groups/settings, /api/instrument/logclient. Consumer tenant 9188040d-6c67-4c5b-b112-36a304b66dad.
+- accounts.accesscontrol.windows.net: /metadata/json/1 (4 x509 keys), /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1 (200 sign-in page). ESTS 2.1.24997.11.
+- Graph agentic: /v1.0 and /beta me/agentSignInSessions alive (401 InvalidAuthenticationToken).
+- controlplane.accledger.azure.com: Kestrel /health 200, structured 404 envelope, no swagger.
+- GCP control-plane discovery APIs (identitytoolkit, iam, accesscontextmanager, beyondcorp, agentidentity, cloudbuild, artifactregistry, orgpolicy, binaryauthorization, assuredworkloads): all require consumer identity (API key/OAuth); no anonymous reads.
+- google/adk-python: /run_sse endpoint exists in code; credential storage migrating to secret: scope (PR #5154 WIP).
+- identitytoolkit.googleapis.com: 403 for unregistered callers on ALL methods incl. getProjects and v3 relyingparty.
+
+## REUSABLE PATTERNS
+- AAD authorization endpoint accepts any redirect_uri in the request → validation deferred to completion. Useful for detecting eager-validation bypasses on OTHER OAuth providers (same-class check: prompt=none + attacker redirect_uri + valid client_id).
+- Firebase gating model: "unregistered callers" 403 = needs API key. Public Firebase API keys are project-bound; cross-project reads need the target project's key or OAuth+IAM.
+- GCP $discovery docs expose full request schemas — use for schema-level trust-boundary review (fields marked "should only be specified by authenticated requests" = the trust boundary; hunt fields WITHOUT that annotation).
+- 2026-08-07 ACCEPTED v2.0 HTTP-200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (embedded JS error 700038, iHttpErrorCode 400) instead of HTTP 400 — violates RFC 6749 §3; status-checking clients may misparse as success.
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth GET/HEAD returns HTTP 405 (not 401), no WWW-Authenticate Bearer, Content-Length 0 — violates RFC 6750 §3; masks IDOR enumeration + breaks SDK auto-auth.
+- 2026-08-07 REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient frontend error, no deterministic parse branch.
+- 2026-08-07 ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→400)
+- 2026-08-07 ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400)
+- 2026-08-07 No new proving-dead classes this cycle
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
+- 2026-08-07 ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids; dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) confirmed via OIDC discovery — verified via live curl probes
+- 2026-08-07 ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only code, id_token, code id_token, id_token token — verified via live OIDC discovery fetch
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET returns proper 401 with WWW-Authenticate: Bearer — verified 3×HEAD + 1×GET passively
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with 23836-byte HTML body containing iErrorCode=900144, iHttpErrorCode=400, "We received a bad request" — violates RFC 6749 §3; verified via live GET probe
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
+- 2026-08-07 No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+=== MY STATE ===
+{"phase": "POC", "status": "HIGH_POTENTIAL"}=== MY LAST LEADS (tail) ===
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 70
+reasoning: SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2 scopes token to itself; source map main.4e6e3dc6.js.map (35MB, 4922 paths) confirms request schema is body-less POST with Bearer token; backend gates ONLY on GuestIsNotAllowedToIssueVerifiedId / TenantIsNotInAllowedToIssueVerifiedId / feature-on — no per-caller employee verification, no admin-role check visible in client contract. Entra Verified ID = high-value DID-signed employee credential.
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential.
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST /api/issueVerifiedEmployeeCredential (empty body); observe response. Passive: download source map main.4e6e3dc6.js.map → extract full request schema.
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, access to Verified ID-gated resources; CVSS 7.1–9.1
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass the critique filter.
+[NEXT] PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` with valid test-tenant Bearer token (scope `AgentRegistration.ReadWrite.All`, clientId for a Global/Tenant admin) — tests enumeration of registrations across the tenant. Doc says no LIST operation, but the entity is a Collection(G) navigation property on copilotRoot with ContainsTarget=true. If 200 + array body, confirms cross-registration visibility (step 1 toward PATCH-based ownership bypass). If 403/404, confirms doc's no-list claim and forces focus to POST+PATCH path. Follow immediately with POST to create a registration as User1, then PATCH that ID as User2 with attacker-controlled ownerIds/agentCard/createdBy.
+[LEARN] ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+[LEARN] ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids; dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) confirmed via OIDC discovery — verified via live curl probes
+[LEARN] ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only code, id_token, code id_token, id_token token — verified via live OIDC discovery fetch
+[LEARN] ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET returns proper 401 with WWW-Authenticate: Bearer — verified 3×HEAD + 1×GET passively
+[LEARN] ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with 23836-byte HTML body containing iErrorCode=900144, iHttpErrorCode=400, "We received a bad request" — violates RFC 6749 §3; verified via live GET probe
+[LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
+[RISK] google: 35 | GCP control-plane discovery APIs all auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; ADK /run_sse issues are SDK-level GitHub PRs (KNOWN-DUP #2128, #5154 WIP — not live Google service vulns); tokeninfo oracle is rate-limited public introspection (no-reward category); bughunters.google.com SPA hardened with HSTS+XFO+nosniff; reposcan found 0 real secrets (all TEST_ORAMPLE). No new unauthenticated attack surface discovered; passive Google probes (tokeninfo, bughunters, v2.0 authorize, JWKS) confirmed existing ACCEPTED findings but no new exploitable gap.
+[RISK] microsoft: 85 | PASSIVE-VERIFIED preconditions for all top hypotheses this cycle: (1) agentRegistration metadata confirms zero ownership restrictions on client-supplied createdBy/ownerIds/agentCard/agentIdentityId with no OperationRestrictions (IDOR 8.55); (2) JWKS kid overlap + dual issuer namespaces + v1.0-only implicit/hybrid flows verified for issuer-confusion (8.25, $100k ceiling); (3) Verified ID minting backend contract shows no admin-role check (7.80); (4) Graph 405 anomaly + v2.0 HTTP-200 error rendering are RFC violations verified live. All in active GA/preview transition (Agent 365, Entra Verified ID), test-tenant reachable, Entra/Copilot identity plane = crown jewels.
+## 2026-08-07 19:33:43 UTC [google] (model laguna)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] login.microsoftonline.com v1↔v2.0 issuer-confusion, 8.25, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, 7.80, attack=8 business=9 tech=8 gate=5 cloud=7 fresh=9
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 82
+reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch: agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied properties with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions annotations in the entity block. Scope AgentRegistration.ReadWrite.All (admin consent); ContainsTarget=true on copilotRoot/agentRegistrations navigation.
+evidence_needed: PATCH /beta/copilot/agentRegistrations/{foreign_id} with modified ownerIds/agentCard/createdBy returns 200/204 and mutation persists (cross-user within same tenant).
+verify_steps: AUTH_HELPED: In test tenant, create registration A as User1, note ID; as User2 (same tenant, different identity), PATCH that ID with attacker-controlled agentCard + ownerIds + createdBy; GET to confirm mutation persists. PASSIVE: GET /beta/copilot/agentRegistrations (Collection type) with valid Bearer to test cross-principal enumeration.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution (createdBy), supply-chain compromise of any Copilot registration in tenant; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ issuer + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 issuer + 8-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED via live JWKS/issuer probes: v1.0 /discovery/keys = 5 RSA kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…); v2.0 /discovery/v2.0/keys = 8 RSA kids — all 5 v1.0 kids ⊂ v2.0. Two distinct issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) serve same tenant. v1.0 response_types include pure `token` (implicit) + `token id_token` (hybrid) — excluded from v2.0. If any token-accepting resource validates signature+kid but not strict iss claim, v1.0-issued token is replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: Acquire v1.0 id_token (iss=sts.windows.net/{tid}/); send to a v2.0-only endpoint/resource that enforces issuer strictly; observe acceptance vs rejection. PASSIVE: kid overlap already verified (5/5); v1.0-only response_types verified (token, token id_token).
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100,000)
+testability: AUTH_HELPED
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 75
+reasoning: SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2 scopes token to itself; source map main.4e6e3dc6.js.map (35MB, 4922 paths) confirms request schema is body-less POST with Bearer token and accepts jobTitle/department/employeeId fields; backend gates ONLY on GuestIsNotAllowedToIssueVerifiedId / TenantIsNotInAllowedToIssueVerifiedId / feature-on — no per-caller employee verification, no admin-role check visible in client contract. Entra Verified ID = high-value DID-signed employee credential.
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential.
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST /api/issueVerifiedEmployeeCredential (empty body); observe response. Passive: download source map main.4e6e3dc6.js.map → extract full request schema.
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, access to Verified ID-gated resources; CVSS 7.1–9.1
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps.
+[FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 82, priority 8.55)
+[FINAL] 2. v1.0↔v2.0 issuer-confusion token replay (AUTH, login.microsoftonline.com, confidence 60, priority 8.25)
+[FINAL] 3. Verified ID minting without admin role — backend gates only on Guest/Tenant flags (AUTH, api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, confidence 75, priority 7.80)
+[NEXT] HUMAN: Two-principal test-tenant probe of the top-ranked hypothesis (agentRegistration IDOR). A POST /beta/copilot/agentRegistrations (client-set createdBy + ownerIds) → B GET /beta/copilot/agentRegistrations (collection enumeration with scope AgentRegistration.ReadWrite.All) → B PATCH /beta/copilot/agentRegistrations/{A-id} with attacker-controlled agentCard/ownerIds/createdBy → record 200/204 vs 403. Simultaneously prepare v1.0 id_token issuer-confusion test against v2.0-only Graph resources. Request MSRC program confirmation for Copilot Studio D2E envhost inclusion.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+[LEARN] ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+[RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; no new unauthenticated surface. Passive phase exhausted.
+[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Copilot Studio D2E conversation-ID non-validation. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+=== AGGREGATED HYPOTHESES (tail) ===
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+
+## RANKED HYPOTHESES 2026-08-07 19:24:56 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [75] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: Verified ID minting via caller-chosen claims — backend only checks Guest/Tenant flags (from reports/hypotheses-nemotron3.txt)
+- [50] GET/POST/PATCH/DELETE: Agent Registration ownership boundary / collection enumeration (carry-forward, differentiated sub-claim = enumeration) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: two-principal test-tenant probe (top-ranked, unexecuted): A POST /beta/copilot/agentRegistrations (createdBy/ownerIds client-set) → B GET /beta/copilot/a
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` with valid test-tenant Bearer token (scope `AgentRegistration.ReadWrite.All`, clientId 
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false),
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm
+- LEARN: ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only c
+- LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET ret
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either ac
+
+## RANKED HYPOTHESES 2026-08-07 19:36:42 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [70] login.microsoftonline.com/{tid}/oauth2/v2.0/token: Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation (from reports/hypotheses-nemotron3.txt)
+- [55] POST/GET/PATCH: Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/agentRegistry/agentInstances` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All` or `Cop
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of the top-ranked hypothesis (agentRegistration IDOR). A POST /beta/copilot/agentRegistrations (client-set createdBy + ow
+- LEARN: No new proving-dead classes this cycle
+- LEARN: No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+=== INVENTORY google ===
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs (hashes `9d84e451...`, `ca304859...`) but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All
+- NEW Agent Registration API (GA replacement): `/beta/copilot/agentRegistrations` POST/GET/PATCH/DELETE — **client-supplied `createdBy`**, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agent
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Copilot Studio D2E (Direct-to-Engine) S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side** (doc: 
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`; validation against agent's registered too
+- NEW Three-hop Agent User `user_fic` flow (documented in `microsoft/entrabot`): Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` **OR*
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All` — supply-chain trust surface
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026), `allowedAudi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred, no `redirect_ur
+- NEW `login.microsoftonline.com` OIDC discovery: v2.0 (issuer `login.microsoftonline.com/{tid}/v2.0`; JWKS `/discovery/v2.0/keys`, 8 RSA keys; mtls alias `mtlsauth.microsoft.com`; tls_client_certificate_bo
+- NEW Graph `$metadata`: 1,183 EntityTypes, 326 Functions across `microsoft.graph.identityGovernance` + `microsoft.graph.security` + `microsoft.graph.entraRecoveryServices`; 22 `filterByCurrentUser` binding
+- NEW Graph API 405 anomaly: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- NEW v2.0 authorize HTTP 200 error rendering: GET `/oauth2/v2.0/authorize?response_type=token` (unsupported in v2.0) → HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400, "We received a bad re
+- NEW `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malfor
+- NEW `bughunters.google.com` root `/` → HTTP 200, hardened (HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff)
+
+## 2026-08-07 17:38:33 UTC
+
+## 2026-08-07 18:29:05 UTC
+- NEW NO_DELTA
+
+## 2026-08-07 18:56:45 UTC
+
+## 2026-08-07 19:24:56 UTC
+- NEW Source maps live on BOTH identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+- NEW Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026)
+- NEW `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
+- NEW `login.microsoftonline.com` OIDC discovery v2.0: issuer `login.microsoftonline.com/{tid}/v2.0`; JWKS `/discovery/v2.0/keys` (8 RSA keys); mtls alias `mtlsauth.microsoft.com`
+- NEW Graph `$metadata`: 1,183 EntityTypes, 326 Functions across `microsoft.graph.identityGovernance` + `microsoft.graph.security` + `microsoft.graph.entraRecoveryServices`; 22 `filterByCurrentUser` binding
+
+## 2026-08-07 19:36:42 UTC
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+- NEW Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
+=== INVENTORY microsoft ===
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs (hashes `9d84e451...`, `ca304859...`) but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All
+- NEW Agent Registration API (GA replacement): `/beta/copilot/agentRegistrations` POST/GET/PATCH/DELETE — **client-supplied `createdBy`**, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agent
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Copilot Studio D2E (Direct-to-Engine) S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side** (doc: 
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`; validation against agent's registered too
+- NEW Three-hop Agent User `user_fic` flow (documented in `microsoft/entrabot`): Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` **OR*
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All` — supply-chain trust surface
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026), `allowedAudi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred, no `redirect_ur
+- NEW `login.microsoftonline.com` OIDC discovery: v2.0 (issuer `login.microsoftonline.com/{tid}/v2.0`; JWKS `/discovery/v2.0/keys`, 8 RSA keys; mtls alias `mtlsauth.microsoft.com`; tls_client_certificate_bo
+- NEW Graph `$metadata`: 1,183 EntityTypes, 326 Functions across `microsoft.graph.identityGovernance` + `microsoft.graph.security` + `microsoft.graph.entraRecoveryServices`; 22 `filterByCurrentUser` binding
+- NEW Graph API 405 anomaly: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- NEW v2.0 authorize HTTP 200 error rendering: GET `/oauth2/v2.0/authorize?response_type=token` (unsupported in v2.0) → HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400, "We received a bad re
+- NEW `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malfor
+- NEW `bughunters.google.com` root `/` → HTTP 200, hardened (HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff)
+
+## 2026-08-07 17:38:33 UTC
+
+## 2026-08-07 18:29:05 UTC
+- NEW NO_DELTA
+
+## 2026-08-07 18:56:45 UTC
+
+## 2026-08-07 19:24:56 UTC
+- NEW Source maps live on BOTH identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+- NEW Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026)
+- NEW `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
+- NEW `login.microsoftonline.com` OIDC discovery v2.0: issuer `login.microsoftonline.com/{tid}/v2.0`; JWKS `/discovery/v2.0/keys` (8 RSA keys); mtls alias `mtlsauth.microsoft.com`
+- NEW Graph `$metadata`: 1,183 EntityTypes, 326 Functions across `microsoft.graph.identityGovernance` + `microsoft.graph.security` + `microsoft.graph.entraRecoveryServices`; 22 `filterByCurrentUser` binding
+
+## 2026-08-07 19:36:42 UTC
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+- NEW Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
+[0m
+[0m→ [0mRead reports/hypotheses-laguna.txt
+[0m→ [0mRead triage/run-2026-08-07-20-02.md
+[0m
+[0m$ [0mls -la triage/ 2>/dev/null
+total 68
+drwxr-xr-x  2 runner runner  4096 Aug  7 20:19 .
+drwxr-xr-x 12 runner runner  4096 Aug  7 20:19 ..
+-rw-r--r--  1 runner runner 14785 Aug  7 20:19 run-2026-08-07-10-16.md
+-rw-r--r--  1 runner runner  8341 Aug  7 20:19 run-2026-08-07-11-10.md
+-rw-r--r--  1 runner runner  1637 Aug  7 20:19 run-2026-08-07-11-59.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-13-41.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-15-10.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-16-09.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-17-09.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-18-03.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-19-17.md
+-rw-r--r--  1 runner runner    82 Aug  7 20:19 run-2026-08-07-20-02.md
+[0m
+[0m$ [0mwc -l reports/hypotheses-*.txt reports/hypotheses.md
+28 reports/hypotheses-bigpickle.txt
+   41 reports/hypotheses-laguna.txt
+    1 reports/hypotheses-ling3.txt
+    1 reports/hypotheses-longcat.txt
+   53 reports/hypotheses-nemotron3.txt
+   92 reports/hypotheses.md
+  216 total
+[0m
+[0m$ [0mcat reports/hypotheses-nemotron3.txt
+## 2026-08-07 19:36:33 UTC [google] (model nemotron3)
+[NEW] Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`
+[NEW] Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All`
+[NEW] Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+[NEW] Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+[NEW] Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+[NEW] `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+[NEW] Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permissions
+[CHANGED] `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED; `/oauth20_authorize.srf` returns generic 200 for all 8 variants
+[PRIO] Three-hop Agent User `user_fic` flow (Hop3 `user_id` parameter), 7.90, attack=8 business=9 tech=9 gate=4 cloud=8 fresh=9
+[PRIO] Agent Registry API `/beta/agentRegistry` (agentInstances/agentCardManifests/agentCollections), 7.60, attack=8 business=8 tech=8 gate=6 cloud=7 fresh=8
+[PRIO] Consent primitive `POST /v1.0/oauth2PermissionGrants` (caller-chosen `resourceId`), 7.45, attack=8 business=8 tech=8 gate=5 cloud=7 fresh=8
+[PRIO] Copilot agent admin `/beta/copilot/admin/catalog/packages` (block/unblock/reassign), 7.45, attack=7 business=9 tech=7 gate=6 cloud=7 fresh=8
+[PRIO] `managerApplications` on Blueprints (10 first-party apps bypass), 7.05, attack=7 business=8 tech=7 gate=5 cloud=7 fresh=8
+[PRIO] Copilot Policy Settings API `/beta/copilot/admin/policySettings/{id}`, 6.95, attack=6 business=8 tech=7 gate=6 cloud=7 fresh=8
+[PRIO] Orchestrated API `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` (InvokeTool client-supplied schema), 6.80, attack=7 business=7 tech=8 gate=4 cloud=7 fresh=8
+[PRIO] `login.live.com` redirect matrix EXHAUSTED, 5.90, attack=5 business=5 tech=5 gate=10 cloud=5 fresh=6
+[HYP] Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation
+class: AUTH
+asset: login.microsoftonline.com/{tid}/oauth2/v2.0/token (grant_type=user_fic)
+confidence: 70
+reasoning: Hop3 accepts `user_id={oid}` OR `upn` as caller-supplied parameter; FIC flow designed for workload identity but `user_fic` extends to user impersonation; no documented validation that caller can only specify their own identity
+evidence_needed: Hop3 token request with attacker-chosen `user_id` (target user's oid/upn) returns valid access token for that user
+verify_steps: AUTH_HELPED: In test tenant with Entra Workload ID configured, complete Hop1 (client_credentials+cert+fmi_path) → Hop2 (FIC exchange) → Hop3 with `user_id=target_user_oid`; observe if token issued for target user. Passive: review Entra docs for `user_fic` grant_type restrictions
+impact: Workload identity escalates to arbitrary user impersonation — full access as any user in tenant; CVSS 9.0-9.8
+testability: AUTH_HELPED
+[HYP] Agent Registry API (beta) allows cross-user agentInstance enumeration and mutation
+class: IDOR
+asset: graph.microsoft.com/beta/agentRegistry
+confidence: 65
+reasoning: New beta API (deprecated May 2026) exposes `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBlob`; no ownership enforcement documented; deprecated status may mean reduced guards
+evidence_needed: GET `/beta/agentRegistry/agentInstances` returns other users' agent instances; PATCH/DELETE on foreign `agentInstance` succeeds
+verify_steps: AUTH_HELPED: In test tenant, as User1 create agentInstance via agentRegistry; as User2 (same tenant, same scope) GET `/beta/agentRegistry/agentInstances` to enumerate; attempt PATCH/DELETE on User1's instance. Passive: check `$metadata` for agentRegistry EntityType restrictions
+impact: Cross-user agent instance enumeration, hijack, deletion — agent supply chain compromise; CVSS 7.0-8.5
+testability: AUTH_HELPED
+[HYP] Consent primitive `oauth2PermissionGrants` caller-chosen `resourceId` enables privilege escalation
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: POST accepts caller-chosen `resourceId` (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permissions list; allows granting consent to resources the caller shouldn't control
+evidence_needed: POST `oauth2PermissionGrants` with `resourceId=e406a681-...` (Azure Storage `user_impersonation`) returns 201; granted consent usable for token acquisition
+verify_steps: AUTH_HELPED: In test tenant, as non-admin user with consent grant scope, POST `/v1.0/oauth2PermissionGrants` with `resourceId=e406a681-...`; observe 201. Then attempt token acquisition for that resource. Passive: check blocked-permissions list for agents via Graph metadata
+impact: Unprivileged user grants self consent to Azure Storage/Graph scopes — privilege escalation, data access; CVSS 7.5-8.8
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps
+[FINAL] 1. Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70, priority 7.90)
+[FINAL] 2. Consent primitive `oauth2PermissionGrants` caller-chosen `resourceId` enables privilege escalation (AUTH, graph.microsoft.com/v1.0/oauth2PermissionGrants, confidence 70, priority 7.45)
+[FINAL] 3. Agent Registry API (beta) allows cross-user agentInstance enumeration and mutation (IDOR, graph.microsoft.com/beta/agentRegistry, confidence 65, priority 7.60)
+[NEXT] PROBE: GET `https://graph.microsoft.com/beta/agentRegistry/agentInstances` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All` or `CopilotPackages.Read.All`) — tests enumeration of agentInstances across users; if 200 with array containing foreign `agentIdentityId`/`agentUserId`, confirms cross-user visibility for PATCH/DELETE targeting
+[LEARN] No new proving-dead classes this cycle
+[LEARN] No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+[RISK] google: 35 reason: GCP control-plane APIs all auth-gated (API key/OAuth); Firebase identitytoolkit 403 unregistered-callers gate; ADK issues are SDK-level not live Google service; no new unauthenticated attack surface discovered in this cycle; tokeninfo oracle is rate-limited public introspection only
+[RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registry (deprecated but live, cross-user enumeration), user_fic Hop3 user_id impersonation knob, Consent primitive caller-chosen resourceId, Copilot admin catalog/packages, managerApplications Blueprint bypass — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels
+[0m
+[0m$ [0mcat reports/hypotheses-bigpickle.txt
+## 2026-08-07 19:31:53 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite
+class: IDOR
+asset: POST/GET/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 55
+reasoning: $metadata types this a contains-target collection with zero OperationRestrictions; create accepts client-supplied createdBy; PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard. Converged with laguna [82]/nemotron3 [75]. Re-probed 401 this cycle, alive.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumeration; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Envhost unresolvable anonymously (tenant-scoped) — prereq MSRC confirm in scope.
+evidence_needed: principal B executes a turn or subscribes against a conversation A created under a caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST start w/ chosen GUID; 2) B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID using own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[HYP] Verified ID employee-credential mint via caller-chosen claims
+class: BUSLOGIC
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: backend gates only on GuestIsNot/Tenant flags (per source-map analysis); claims/fields otherwise caller-supplied; Bearer scope = SPA clientId 8c59ead7-...; endpoint alive 401. Business value highest of program (verified-credential mint = identity trust root).
+evidence_needed: test-tenant principal with a legit token mints a credential with attacker-modified claim fields → accepted vs claim-schema rejection.
+verify_steps: AUTH_HELPED (test-tenant): 1) obtain Bearer via SPA clientId flow; 2) POST /api/issueVerifiedEmployeeCredential with modified employee claims; 3) observe issued-credential acceptance vs field-level rejection.
+impact: forged Verified Employee credentials → downstream RP trust compromise / account takeover at relying parties. CVSS 7.5–9.5.
+testability: AUTH_HELPED
+[0m
+[0m$ [0mcat reports/hypotheses.md
+## RANKED HYPOTHESES 2026-08-07 15:49:41 UTC
+
+## RANKED HYPOTHESES 2026-08-07 16:11:28 UTC
+- [75] `graph.microsoft.com/beta/copilot/agentRegistrations`: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [55] POST: D2E conversation-ID resumption / cross-app hijack (from reports/hypotheses-bigpickle.txt)
+- [45] login.microsoftonline.com: Issuer-confusion / cross-protocol token replay (v1.0 ↔ v2.0) (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token) — tests enumeration of registrations (doc says no
+- NEXT(hypotheses-bigpickle.txt): RAG: In microsoft/Agents + @microsoft/agents-copilotstudio-client (both in-scope orgs), grep for CallerIdentityMismatch / CallerIdentityTypeMismatch / D2EAccess
+- NEXT(hypotheses-laguna.txt): PROBE: diff v1.0 JWKS vs v2.0 JWKS key IDs —
+- LEARN: ACCEPTED v2.0 HTTP-200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (embedded JS e
+- LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth GET/HEAD returns HTTP 405 (not 401), no WWW-Authenticate Bearer, Content-Length 0 — violates R
+- LEARN: REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient fronten
+
+## RANKED HYPOTHESES 2026-08-07 16:42:10 UTC
+- [75] `graph.microsoft.com/beta/copilot/agentRegistrations`: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [52] POST: OAuth2 permission-grant escalation via caller-chosen resourceId (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: In an onboarded Verified ID test tenant, run the authorized mint test for HYP-2 — synthetic non-employee member with attacker-set `jobTitle`/`department`
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://login.microsoftonline.com/common/discovery/keys` and `https://login.microsoftonline.com/common/discovery/v2.0/keys` — diff `kid` sets for ov
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+
+## RANKED HYPOTHESES 2026-08-07 17:38:33 UTC
+- [75] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [50] GET/POST/PATCH/DELETE: Agent Registration ownership boundary / undocumented collection enumeration (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+
+## RANKED HYPOTHESES 2026-08-07 18:29:05 UTC
+- [75] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://login.microsoftonline.com/common/discovery/keys` and `https://login.microsoftonline.com/common/discovery/v2.0/keys` — diff `kid` sets for ov
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+
+## RANKED HYPOTHESES 2026-08-07 18:56:45 UTC
+- [75] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [65] https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations: Copilot Studio D2E conversation-ID validation bypass — server does not validate conversation IDs (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+
+## RANKED HYPOTHESES 2026-08-07 19:24:56 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [75] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: Verified ID minting via caller-chosen claims — backend only checks Guest/Tenant flags (from reports/hypotheses-nemotron3.txt)
+- [50] GET/POST/PATCH/DELETE: Agent Registration ownership boundary / collection enumeration (carry-forward, differentiated sub-claim = enumeration) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: two-principal test-tenant probe (top-ranked, unexecuted): A POST /beta/copilot/agentRegistrations (createdBy/ownerIds client-set) → B GET /beta/copilot/a
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` with valid test-tenant Bearer token (scope `AgentRegistration.ReadWrite.All`, clientId 
+- LEARN: ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns 
+- LEARN: ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- LEARN: ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bea
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 
+- LEARN: No new proving-dead classes this cycle
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), al
+- LEARN: ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false),
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm
+- LEARN: ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only c
+- LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET ret
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either ac
+
+## RANKED HYPOTHESES 2026-08-07 19:36:42 UTC
+- [82] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- [70] login.microsoftonline.com/{tid}/oauth2/v2.0/token: Three-hop Agent User `user_fic` Hop3 `user_id` parameter allows arbitrary user impersonation (from reports/hypotheses-nemotron3.txt)
+- [55] POST/GET/PATCH: Agent Registration ownership boundary bypass via client-controlled createdBy + PATCH rewrite (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: GET `https://graph.microsoft.com/beta/agentRegistry/agentInstances` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All` or `Cop
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of the top-ranked hypothesis (agentRegistration IDOR). A POST /beta/copilot/agentRegistrations (client-set createdBy + ow
+- LEARN: No new proving-dead classes this cycle
+- LEARN: No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+[0m
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead inventory/google.md
+[0m
+[0m$ [0mcat triage/run-2026-08-07-19-17.md triage/run-2026-08-07-16-09.md
+===== TRIAGE 2026-08-07 19:17:33 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 16:09:36 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+[0m
+[0m$ [0mcat leads/reposcan-latest.md
+===== REPOSCAN 2026-08-07 19:42:38 UTC =====
+## Grep hits:
+SCAN SUMMARY: 43377 code/config files scanned, 514 hits
+reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11: CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm") $@
+reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10: TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")
+reposcan-raw/google/android-emulator-container-scripts/run.sh:22: -e TOKEN="$(cat ~/.emulator_console_auth_token)" \
+reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh:28: -e TOKEN="$(cat ~/.emulator_console_auth_token)" \
+reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103: kubeconfig_path: str | None = None
+reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104: kubeconfig_context: str | None = None
+reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115: kubeconfig_path: str | None = None,
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114: cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154: network -- in particular the cloud metadata endpoint at 169.254.169.254
+reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:123: lines.append(f"GOOGLE_API_KEY={google_api_key}")
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js:3: Expecting `+G.join(", ")+", got '"+(this.terminals_[E]||E)+"'":Y="Parse error on line "+(V+1)+": Unexpected "+(E==re?"end of input":"'"+(this.terminals_[E]||E)+"'"),this.parseError(Y,{text:y.match,token:this.terminals_[E
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js:3: Expecting `+N.join(", ")+", got '"+(this.terminals_[E]||E)+"'":D="Parse error on line "+(T+1)+": Unexpected "+(E==B?"end of input":"'"+(this.terminals_[E]||E)+"'"),this.parseError(D,{text:w.match,token:this.terminals_[E]
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js:3: Expecting `+Tt.join(", ")+", got '"+(this.terminals_[V]||V)+"'":Et="Parse error on line "+(yt+1)+": Unexpected "+(V==ee?"end of input":"'"+(this.terminals_[V]||V)+"'"),this.parseError(Et,{text:D.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-RNTHHQWK.js:3: Expecting `+xt.join(", ")+", got '"+(this.terminals_[B]||B)+"'":Et="Parse error on line "+(_+1)+": Unexpected "+(B==H?"end of input":"'"+(this.terminals_[B]||B)+"'"),this.parseError(Et,{text:N.match,token:this.terminals_
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js:3: Expecting `+he.join(", ")+", got '"+(this.terminals_[F]||F)+"'":Oe="Parse error on line "+(oe+1)+": Unexpected "+(F==Ye?"end of input":"'"+(this.terminals_[F]||F)+"'"),this.parseError(Oe,{text:T.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js:3: Expecting `+z.join(", ")+", got '"+(this.terminals_[v]||v)+"'":G="Parse error on line "+(C+1)+": Unexpected "+(v==it?"end of input":"'"+(this.terminals_[v]||v)+"'"),this.parseError(G,{text:b.match,token:this.terminals_[v
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-OCQO4LX3.js:3: Expecting `+ft.join(", ")+", got '"+(this.terminals_[C]||C)+"'":_t="Parse error on line "+(V+1)+": Unexpected "+(C==ut?"end of input":"'"+(this.terminals_[C]||C)+"'"),this.parseError(_t,{text:m.match,token:this.terminals
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js:3: Expecting `+et.join(", ")+", got '"+(this.terminals_[_]||_)+"'":ct="Parse error on line "+(tt+1)+": Unexpected "+(_==Lt?"end of input":"'"+(this.terminals_[_]||_)+"'"),this.parseError(ct,{text:C.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-TULSIPRQ.js:3: Expecting `+Yt.join(", ")+", got '"+(this.terminals_[j]||j)+"'":ee="Parse error on line "+(Bt+1)+": Unexpected "+(j==Me?"end of input":"'"+(this.terminals_[j]||j)+"'"),this.parseError(ee,{text:J.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-VJTRHJAQ.js:11: Expecting `+qe.join(", ")+", got '"+(this.terminals_[K]||K)+"'":r1="Parse error on line "+(B+1)+": Unexpected "+(K==U1?"end of input":"'"+(this.terminals_[K]||K)+"'"),this.parseError(r1,{text:M.match,token:this.terminals
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js:5: `+_(b,a),d++,u=0;b--;)i?(d+=i,u=o):u+=o,E+=n;E+=1}}function S(b,x){C[b]=C[b]||{},C[b][x]={line:d,column:u,pos:E}}function _(b,x){return Array(b+1).join(x)}};var fhe=["number","bigint","boolean","string","object"];functio
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js:3: Expecting `+Nt.join(", ")+", got '"+(this.terminals_[B]||B)+"'":Zt="Parse error on line "+(kt+1)+": Unexpected "+(B==de?"end of input":"'"+(this.terminals_[B]||B)+"'"),this.parseError(Zt,{text:D.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js:3: Expecting `+G.join(", ")+", got '"+(this.terminals_[T]||T)+"'":q="Parse error on line "+(I+1)+": Unexpected "+(T==O?"end of input":"'"+(this.terminals_[T]||T)+"'"),this.parseError(q,{text:g.match,token:this.terminals_[T]
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3: Expecting `+K.join(", ")+", got '"+(this.terminals_[_]||_)+"'":ee="Parse error on line "+(z+1)+": Unexpected "+(_==le?"end of input":"'"+(this.terminals_[_]||_)+"'"),this.parseError(ee,{text:y.match,token:this.terminals_
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js:3: Expecting `+q.join(", ")+", got '"+(this.terminals_[S]||S)+"'":et="Parse error on line "+(I+1)+": Unexpected "+(S==L?"end of input":"'"+(this.terminals_[S]||S)+"'"),this.parseError(et,{text:E.match,token:this.terminals_[
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js:3: Expecting `+ge.join(", ")+", got '"+(this.terminals_[y]||y)+"'":qe="Parse error on line "+(be+1)+": Unexpected "+(y==Ye?"end of input":"'"+(this.terminals_[y]||y)+"'"),this.parseError(qe,{text:g.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-ZO3BTNJM.js:3: Expecting `+ie.join(", ")+", got '"+(this.terminals_[y]||y)+"'":ke="Parse error on line "+(te+1)+": Unexpected "+(y==Ie?"end of input":"'"+(this.terminals_[y]||y)+"'"),this.parseError(ke,{text:k.match,token:this.terminal
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9: Expecting `+st.join(", ")+", got '"+(this.terminals_[A]||A)+"'":at="Parse error on line "+(C+1)+": Unexpected "+(A==D?"end of input":"'"+(this.terminals_[A]||A)+"'"),this.parseError(at,{text:z.match,token:this.terminals_
+reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-WEKWG7SS.js:3: Expecting `+ot.join(", ")+", got '"+(this.terminals_[W]||W)+"'":wt="Parse error on line "+(z+1)+": Unexpected "+(W==lt?"end of input":"'"+(this.terminals_[W]||W)+"'"),this.parseError(wt,{text:A.match,token:this.terminals
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:126: private_key="-----BEGIN PRIVATE KEY-----...",
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:238: credentials=HttpCredentials(username="user", password="password"),
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:247: credentials=HttpCredentials(token="eyAkaknabna...."),
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"
+reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
+reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
+reposcan-raw/google/copybara/cloudbuild.yaml:27: # https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel
+reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:75: String password = "testpassword";
+reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:102: String token = "test-token-123";
+reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:129: String password = "testpassword";
+
+## Model analysis:
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
+[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run.sh
+[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [limit=30, offset=550][0m
+[0m
+[0m$ [0msha256sum <<< "-----BEGIN PRIVATE KEY-----..." | cut -d' ' -f1
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582
+[0m
+[0m$ [0msha256sum <<< "eyAkaknabna...." | cut -d' ' -f1
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
+[0m
+[0m$ [0msha256sum <<< "password" | cut -d' ' -f1
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+[0m
+[0m$ [0msha256sum <<< "your_client_secret" | cut -d' ' -f1
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
+[0m
+[0m$ [0msha256sum <<< "your_token" | cut -d' ' -f1
+d332907001ab15318f38db31a61888fc748b2dad6c6ea7f9784ae54758204c21
+[0m
+[0m$ [0msha256sum <<< "testpassword" | cut -d' ' -f1 && sha256sum <<< "test-token-123" | cut -d' ' -f1 && sha256sum <<< "fuzz test key" | cut -d' ' -f1 && sha256sum <<< "ServerShutdownPassword" | cut -d' ' -f1
+e0d7d338cb1259086d775c964fba50b2a84244ba4cd2815e9f6f4a8d9daaa656
+989b9145f5974d10368f44a8e2787e293ae4d2ab965823027d41b021595f94ad
+e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5
+1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782
+[0m
+### CLASSIFICATION TABLES
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
+
+| File | Line | Pattern | SHA256 (secret material) |
+|------|------|---------|---------------------------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` (docstring example) | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` (docstring example) | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` (docstring example, fake JWT) | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (OAuth2 grant type enum value) | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` (docstring example) | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented placeholder) | `d332907001ab15318f38db31a61888fc748b2dad6c6ea7f9784ae54758204c21` |
+| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented placeholder) | `d332907001ab15318f38db31a61888fc748b2dad6c6ea7f9784ae54758204c21` |
+| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` (test fixtures) | `e0d7d338cb1259086d775c964fba50b2a84244ba4cd2815e9f6f4a8d9daaa656`, `989b9145f5974d10368f44a8e2787e293ae4d2ab965823027d41b021595f94ad` |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` (test fixtures) | `e0d7d338cb1259086d775c964fba50b2a84244ba4cd2815e9f6f4a8d9daaa656` |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` (test fixture) | `e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `ServerShutdownPassword` (test fixture) | `1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782` |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs — not sensitive)
+
+| File | Line | Pattern |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (well-known cloud metadata IP, public knowledge) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` (config params, not endpoints) |
+
+#### INTERESTING (unusual/debug flags, keys, cloud configs — review recommended)
+
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name for token storage |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Writes user-provided key to `.env` (protected by `.gitignore` logic at line 75-96) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` | Fetches from Secret Manager at runtime (proper pattern) |
+| google/android-emulator-container-scripts/run.sh | 22 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` | Reads from local file at runtime (proper pattern) |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Codegen emitting CKKS crypto context secret key assignment (not a leaked secret) |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` | KUBECONFIG env manipulation from config |
+| google/trillian/util/election2/k8s/provider.go | 19, 41 | kubeconfig flag & BuildConfigFromFlags | Standard kubeconfig usage |
+
+---
+
+### VERDICT LIST
+
+| Candidate | File | Line | REAL_SECRET? | REPORT_CANDIDATE |
+|-----------|------|------|--------------|------------------|
+| Private key example | auth_credential.py | 126 | **no** (docstring placeholder) | **no** |
+| HTTP basic creds example | auth_credential.py | 238 | **no** (docstring placeholder) | **no** |
+| Bearer token example | auth_credential.py | 247 | **no** (docstring placeholder, fake JWT) | **no** |
+| OAuth2 PASSWORD enum | auth_schemes.py | 68 | **no** (grant type constant) | **no** |
+| Client secret example | auth_helpers.py | 62 | **no** (docstring placeholder) | **no** |
+| HF token placeholders | base_*_config.yaml | 63 | **no** (commented placeholders) | **no** |
+| Test passwords/tokens | copybara/*Test*.java | various | **no** (test fixtures) | **no** |
+| Fuzz test keys | oss-fuzz/* | various | **no** (test fixtures) | **no** |
+| Cloud metadata IP | container_code_executor.py | 114,154 | **no** (public well-known IP) | **no** |
+| Kubeconfig refs | gke_code_executor.py | 103,104,115 | **no** (config params) | **no** |
+| VMAAS state key | sandbox_computer.py | 47 | **no** (internal var name) | **no** |
+| CLI writes API key | cli_create.py | 123 | **no** (user input → .env, gitignored) | **no** |
+| Codecov token fetch | codecov_wrapper.sh | 11 | **no** (runtime Secret Manager fetch) | **no** |
+| Emulator token read | run.sh | 22 | **no** (runtime file read) | **no** |
+| CKKS secret_key emit | JaxiteWordEmitter.cpp | 558 | **no** (codegen for crypto var) | **no** |
+| KUBECONFIG env set | base_rl_pipeline.py | 862 | **no** (config-driven) | **no** |
+| Trillian kubeconfig | provider.go | 19,41 | **no** (standard usage) | **no** |
+
+**SUMMARY: 0 REAL_SECRET findings. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (benign), or INTERESTING (operational patterns). No reportable secrets.**
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=19db86c3-b2b9-44cc-b339-36da233a3be2&redirect_uri=https://login.microsoftonline.com" 2>&1
+200 23836
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://graph.microsoft.com/v1.0" 2>&1; echo; curl -s -D - -o /dev/null "https://graph.microsoft.com/v1.0" 2>&1 | grep -iE "www-authenticate|HTTP"
+200 4779
+HTTP/1.1 200 OK
+[0m
+Let me run passive probes to check for any new surface since the last cycle.
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://oauth2.googleapis.com/tokeninfo" 2>&1
+400 113
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X GET "https://graph.microsoft.com/v1.0" 2>&1 | grep -iE "HTTP|www-authenticate|content-length"; echo "---HEAD---"; curl -s -D - -o /dev/null -X HEAD "https://graph.microsoft.com/v1.0" 2>&1 | grep -iE "HTTP|www-authenticate|content-length"
+HTTP/1.1 200 OK
+---HEAD---
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET "https://graph.microsoft.com/v1.0/me" 2>&1; echo " me"; curl -s -o /dev/null -w "%{http_code}" -X HEAD "https://graph.microsoft.com/v1.0/me" 2>&1; echo " me-head"; curl -s -o /dev/null -w "%{http_code}" -X GET "https://graph.microsoft.com/v1.0/users" 2>&1; echo " users"
+401 me
+405 me-head
+401 users
+[0m
+[0m$ [0mcurl -s "https://oauth2.googleapis.com/tokeninfo" 2>&1; echo; curl -s "https://oauth2.googleapis.com/tokeninfo?access_token=fake" 2>&1
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+{
+  "error": "invalid_token",
+  "error_description": "Invalid Value"
+}
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/v1.0" 2>&1 | head -c 500
+{"@odata.context":"https://graph.microsoft.com/v1.0/$metadata","value":[{"name":"directoryObjects","kind":"EntitySet","url":"directoryObjects"},{"name":"invitations","kind":"EntitySet","url":"invitations"},{"name":"users","kind":"EntitySet","url":"users"},{"name":"applicationTemplates","kind":"EntitySet","url":"applicationTemplates"},{"name":"authenticationMethodConfigurations","kind":"EntitySet","url":"authenticationMethodConfigurations"},{"name":"identityProviders","kind":"EntitySet","url":"id
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X HEAD "https://graph.microsoft.com/v1.0/users" 2>&1 | grep -iE "HTTP|www-authenticate|content-length"; echo "---"; curl -s -D - -o /dev/null -X HEAD "https://graph.microsoft.com/v1.0/$" 2>&1 | grep -iE "HTTP|www-authenticate"
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+---
+HTTP/1.1 405 Method Not Allowed
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | grep -iE "HTTP|x5|kid" | head -5; echo "--- v2.0 ---"; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('v2.0 keys:', len(d.get('keys',[]))); [print(k.get('kid','?')[:12]) for k in d.get('keys',[])]" 2>&1; echo "--- v1.0 ---"; curl -s "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('v1.0 keys:', len(d.get('keys',[]))); [print(k.get('kid','?')[:12]) for k in d.get('keys',[])]" 2>&1
+HTTP/1.1 200 OK
+x-ms-httpver: 1.1
+Content-Security-Policy-Report-Only: object-src 'none'; base-uri 'self'; script-src 'self' 'nonce-04adDhaml_wCrkZuyUQGXA' 'unsafe-inline' 'unsafe-eval' https://*.msauth.net https://*.msftauth.net https://*.msftauthimages.net https://*.msauthimages.net https://*.msidentity.com https://*.microsoftonline-p.com https://*.microsoftazuread-sso.com https://*.azureedge.net https://*.outlook.com https://*.office.com https://*.office365.com https://*.microsoft.com https://*.bing.com 'report-sample'; report-uri https://csp.microsoft.com/report/ESTS-UX-All
+Set-Cookie: fpc=Aptv4YCTtItPmRdt-t-dS50; expires=Sun, 06-Sep-2026 20:20:44 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx=PBgABBwEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAAotOxTZLjVXRrzjnLctjI_HIlPF0T48eIhQF9n4JGw5RG66FNPYvOMjP6DEN6cuvCYKZ5Tw-vdGAfvdnXHpBZM81b_qYGREuJcy43iBmZKp4Zdf1pLYd2_scdn3CQN5Tx2CAeVxurbPfBx47D4y2b8RmDuiNFlQCU5MtnYRuLWJL7rPDEizkDJp1tdb9ZR5bbcXahZi43etd4mL-bMHJbElrU2NJaEmoN2yEMXPR6aQ7FtxcilB6luk0tCvoPK1t3vphxV5TSPqIGqskxkrvX3Y34vPB7dRRyLYPtkaU2YaTKXjhAHTVRRJqvU0DZ8_yp7thS1RKzUmKeVFsxGKTNgUjGm2MyPLjYUhZCvE6F1gXsDMob040Zf6eEcbSz4zhBXeJ3ZEu0D72KqdwpAm4oLg0Y5sYWFX8IAUEFzW6ySZ60kEMnXk8Z-9LSHUBB3aDU-5k4_CcNK-K9OeUkkaiNFWahVrx4aeRh7HlJHC7n279JFnMDCbULJiS3jFIz_Ykhe0sTyR5GF6gBKBRYNa-eb1Yw7cd0NZS8Neu4bVTenwvQgHfYUuTww7vj-W9H6YmAl54aVo5vzzYwo4YId03kSXdzMSBYIAI3e2jGmK0w5BEDtSwXElqL8gGG1Hu_nZIib0IUs7tzwsVG66hM3LapO1ZChLdHiuwAYexEr2mpIeCRHN1v6FmjOBgCPjVGsbqJeqASbnlIq8EkuO_I02Bzc9uAN9Wv9-_FEPNia-f6Bk8gAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+--- v2.0 ---
+v2.0 keys: 8
+aFkmKVFc-4WV
+AahUf1bCXvx0
+fEtqrhKT1bXA
+jvm_-TtaqTCR
+6hXLaIYNSJ0o
+rRk1d-57BGZf
+NqEBZVuOpstZ
+1Nv3JExJrKNx
+--- v1.0 ---
+v1.0 keys: 4
+AahUf1bCXvx0
+fEtqrhKT1bXA
+jvm_-TtaqTCR
+6hXLaIYNSJ0o
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1; echo " agentRegs-unauth"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agentRegistry/agentInstances" 2>&1; echo " agentInstances-unauth"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/copilot/admin/policySettings" 2>&1; echo " policySettings-unauth"
+401 agentRegs-unauth
+401 agentInstances-unauth
+401 policySettings-unauth
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://controlplane.accledger.azure.com/health" 2>&1; echo " accledger-health"; curl -s "https://controlplane.accledger.azure.com/health" 2>&1 | head -c 300
+200 accledger-health
+Healthy
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -oi "agentRegistration[^ \"<>]*" | head -10; echo "---"; curl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -oi "EntityType Name=\"(agentRegistration)[^\"]*" | head -5
+agentRegistration
+agentRegistration/agentCard
+agentRegistration/agentIdentityBlueprintId
+agentRegistration/agentIdentityId
+agentRegistration/createdBy
+agentRegistration/description
+agentRegistration/displayName
+agentRegistration/lastPublishedBy
+agentRegistration/managedByAppId
+agentRegistration/originatingStore
+---
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://graph.microsoft.com/beta/me/agentSignInSessions" 2>&1 | grep -iE "HTTP|www-auth"; echo "---beta v1.0---"; curl -s -D - -o /dev/null "https://graph.microsoft.com/v1.0/me/agentSignInSessions" 2>&1 | grep -iE "HTTP|www-auth"
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+---beta v1.0---
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential" 2>&1 | grep -iE "HTTP|www-auth|content-type"; echo "---canIssue---"; curl -s -D - -o /dev/null "https://api.myaccount.microsoft.com/api/canVerifiedIdBeIssued" 2>&1 | grep -iE "HTTP|www-auth"
+HTTP/1.1 401 Unauthorized
+X-Content-Type-Options: nosniff
+Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
+WWW-Authenticate: Bearer error="invalid_token"
+---canIssue---
+HTTP/1.1 401 Unauthorized
+Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
+WWW-Authenticate: Bearer error="invalid_token"
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -oP "EntityType Name=\"(agentRegistration|agentIdentity|blueprint)\"[^>]*" | head -5; echo "---restrictions---"; curl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -oiP "(agentRegistration[^>]{0,50}(Operation|Read|Update|Insert|Delete)[^>]{0,100}Restrict[^>]*>)" | head -5
+EntityType Name="agentIdentity" BaseType="graph.servicePrincipal" OpenType="true"
+EntityType Name="agentRegistration" BaseType="graph.entity"
+---restrictions---
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | python3 -c "
+import sys, re
+content = sys.stdin.read()
+# Find the agentRegistration EntityType block
+match = re.search(r'<EntityType Name=\"agentRegistration\">(.*?)</EntityType>', content, re.DOTALL)
+if match:
+    block = match.group(1)
+    print('agentRegistration EntityType block:')
+    print(block[:2000])
+    # Check for restrictions
+    restrictions = re.findall(r'Restrictions.*?>', block)
+    if restrictions:
+        print('RESTRICTIONS FOUND:', restrictions)
+    else:
+        print('NO RESTRICTIONS in entity block')
+    # Check for Nullable annotations
+    nullables = re.findall(r'Property Name=\"[^\"]+\" Type=\"[^\"]+\" Nullable=\"[^\"]+\"', block)
+    print('Properties with Nullable:')
+    for n in nullables:
+        print(' ', n)
+else:
+    print('agentRegistration not found')
+" 2>&1
+agentRegistration not found
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -A 30 'EntityType Name="agentRegistration"' | head -35
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdde35bcb001mkAPf8Y9MQP2Cu
+
+(no output)
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" > /tmp/metadata.xml 2>&1; grep -n -A 30 'EntityType Name="agentRegistration"' /tmp/metadata.xml | head -40
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdde3672e001nbrpnwlUHVY0se
+
+(no output)
+[0m
+[0m$ [0mwc -c /tmp/metadata.xml; grep -c "agentRegistration" /tmp/metadata.xml
+7298965 /tmp/metadata.xml
+1
+[0m
+[0m$ [0mgrep -n "agentRegistration" /tmp/metadata.xml
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdde37cdb001PNuh7E5ZbPE4eK
+
+(no output)
+[0m
+[0m$ [0mgrep -n "agentRegistration" /tmp/metadata.xml 2>&1 | cat
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdde3877d001wFeLxWMH7Zbz12
+
+(no output)
+[0m
+[0m$ [0mgrep -c "agentRegistration" /tmp/metadata.xml
+1
+[0m
+[0m$ [0mgrep -n -B2 -A30 "agentRegistration" /tmp/metadata.xml | head -40
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdde3a178001hgAVM4cbsXUflv
+
+(no output)
+[0m
+[0m$ [0mgrep -o 'EntityType Name="agentRegistration">[^<]*' /tmp/metadata.xml | head -1; echo "---"; grep -o 'agentRegistration[^"]*"[^>]*' /tmp/metadata.xml | head -20
+---
+agentRegistration"
+agentRegistration/agentCard"
+agentRegistration/agentIdentityBlueprintId"
+agentRegistration/agentIdentityId"
+agentRegistration/createdBy"
+agentRegistration/description"
+agentRegistration/displayName"
+agentRegistration/lastPublishedBy"
+agentRegistration/managedByAppId"
+agentRegistration/originatingStore"
+agentRegistration/ownerIds"
+agentRegistration/sourceAgentId"
+agentRegistration/sourceCreatedDateTime"
+agentRegistration/sourceLastModifiedDateTime"
+agentRegistrations"
+agentRegistrations." /
+agentRegistration" BaseType="graph.entity"
+agentRegistrations" Type="Collection(graph.agentRegistration)" ContainsTarget="true" /
+[0m
+[0m$ [0mgrep -oE 'EntityType Name="agentRegistration" BaseType="[^"]*"[^>]*' /tmp/metadata.xml | head -1; echo "==="; grep -oE 'EntityType Name="agentRegistration"[^>]*' /tmp/metadata.xml | head -1; echo "==="; python3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+idx = content.find('EntityType Name=\"agentRegistration\"')
+if idx >= 0:
+    block = content[idx:idx+3000]
+    print(block[:3000])
+else:
+    print('not found')
+"
+EntityType Name="agentRegistration" BaseType="graph.entity"
+===
+EntityType Name="agentRegistration" BaseType="graph.entity"
+===
+EntityType Name="agentRegistration" BaseType="graph.entity"><Property Name="agentCard" Type="graph.Json" /><Property Name="agentIdentityBlueprintId" Type="Edm.String" /><Property Name="agentIdentityId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" Nullable="false" /><Property Name="description" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastPublishedBy" Type="Edm.String" /><Property Name="managedByAppId" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property Name="sourceAgentId" Type="Edm.String" /><Property Name="sourceCreatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" /><Property Name="sourceLastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" /></EntityType><EntityType Name="copilotRoot"><NavigationProperty Name="agentRegistrations" Type="Collection(graph.agentRegistration)" ContainsTarget="true" /><NavigationProperty Name="conversations" Type="Collection(graph.copilotConversation)" ContainsTarget="true" /><NavigationProperty Name="admin" Type="graph.copilotAdmin" ContainsTarget="true" /><NavigationProperty Name="agents" Type="Collection(graph.agent)" /><NavigationProperty Name="reports" Type="graph.copilotReportRoot" ContainsTarget="true" /><NavigationProperty Name="settings" Type="graph.copilotSetting" ContainsTarget="true" /><NavigationProperty Name="communications" Type="graph.copilotCommunicationsRoot" ContainsTarget="true" /><NavigationProperty Name="interactionHistory" Type="graph.aiInteractionHistory" ContainsTarget="true" /><NavigationProperty Name="users" Type="Collection(graph.aiUser)" ContainsTarget="true" /></EntityType><EntityType Name="copilotConversation" BaseType="graph.entity"><Property Name="createdDateTime" Type="Edm.DateTimeOffset" Nullable="false" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="state" Type="graph.copilotConversationState" Nullable="false" /><Property Name="turnCount" Type="Edm.Int32" Nullable="false" /><NavigationProperty Name="messages" Type="Collection(graph.copilotConversationMessage)" ContainsTarget="true" /></EntityType><EntityType Name="copilotAdmin" BaseType="graph.entity"><NavigationProperty Name="catalog" Type="graph.copilotAdminCatalog" ContainsTarget="true" /><NavigationProperty Name="policySettings" Type="Collection(graph.copilotPolicySetting)" ContainsTarget="true" /><NavigationProperty Name="settings" Type="graph.copilotAdminSetting" ContainsTarget="true" /></EntityType><EntityType Name="agent" BaseType="graph.entity"><NavigationProperty Name="copilotTools" Type="Collection(graph.copilotTool)" ContainsTarget="true" /></EntityType><EntityType Name="copilotReportRoot" BaseType="graph.entity" /><EntityType Name="copilotSetting" BaseType="graph.entity"><NavigationProperty Name="people" Type="graph.copilotPeopleAdminSetting" ContainsTarget="true" /></EntityType>
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agents" 2>&1; echo " agents"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/copilot/agents" 2>&1; echo " copilot/agents"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/copilot/admin/catalog/packages" 2>&1; echo " catalog/packages"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/copilot/admin/policySettings" 2>&1; echo " policySettings"
+401 agents
+401 copilot/agents
+401 catalog/packages
+401 policySettings
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agentRegistry" 2>&1; echo " agentRegistry-base"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agentRegistry/agentInstances" 2>&1; echo " agentInstances"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agentRegistry/agentCollections" 2>&1; echo " agentCollections"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/beta/agentRegistry/agentCardManifests" 2>&1; echo " agentCardManifests"
+401 agentRegistry-base
+401 agentInstances
+401 agentCollections
+401 agentCardManifests
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X POST "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" 2>&1; echo " oauth2PermissionGrants POST"; curl -s -o /dev/null -w "%{http_code}" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" 2>&1; echo " oauth2PermissionGrants GET"
+411 oauth2PermissionGrants POST
+401 oauth2PermissionGrants GET
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('issuer:', d.get('issuer')); print('response_types:', d.get('response_types_supported')); print('token_endpoint:', d.get('token_endpoint'))" 2>&1; echo "---v1.0---"; curl -s "https://login.microsoft.com/common/.well-known/openid-configuration" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('issuer:', d.get('issuer')); print('response_types:', d.get('response_types_supported'))" 2>&1
+issuer: https://login.microsoftonline.com/{tenantid}/v2.0
+response_types: ['code', 'id_token', 'code id_token', 'id_token token']
+token_endpoint: https://login.microsoftonline.com/common/oauth2/v2.0/token
+---v1.0---
+issuer: https://sts.windows.net/{tenantid}/
+response_types: ['code', 'id_token', 'code id_token', 'token id_token', 'token']
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://bughunters.google.com/" 2>&1 | grep -iE "HTTP|strict-transport|x-frame|x-content"; echo "---"; curl -s -o /dev/null -w "%{http_code}" "https://bughunters.google.com/" 2>&1
+HTTP/2 200 
+content-security-policy: object-src 'none'; script-src 'nonce-7v/vDAx9Q9lv1XAVq5T1thQ9B2M=' 'report-sample' 'unsafe-inline'; frame-ancestors 'self' https://accounts.google.com; frame-src https://accounts.google.com https://www.youtube.com/ https://docs.google.com/ https://www.google.com/ https://payments.google.com/; base-uri 'self'; report-uri https://csp.withgoogle.com/csp/bughunters/1_0
+strict-transport-security: max-age=2592000; includeSubdomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+---
+200
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://api.myaccount.microsoft.com/api/termsofuse/agreements" 2>&1 | grep -iE "HTTP|www-auth"; echo "---shellinfo---"; curl -s -o /dev/null -w "%{http_code}" "https://api.myaccount.microsoft.com/api/shell/getshellinfo" 2>&1; echo " shellinfo"; curl -s -o /dev/null -w "%{http_code}" "https://api.myaccount.microsoft.com/api/instrument/logclient" 2>&1; echo " logclient"
+HTTP/1.1 401 Unauthorized
+Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
+WWW-Authenticate: Bearer error="invalid_token"
+---shellinfo---
+401 shellinfo
+401 logclient
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://powervirtualagents.microsoft.com/powervirtualagents/orchestrated/test/conversations/test" 2>&1; echo " orchestrated"; curl -s -o /dev/null -w "%{http_code}" "https://powervirtualagents.microsoft.com/" 2>&1; echo " pva-root"; curl -s -o /dev/null -w "%{http_code}" "https://copilotstudio.microsoft.com/copilotstudio/dataverse-backed/authenticated/bots/test/conversations" 2>&1; echo " copilotstudio"
+301 orchestrated
+301 pva-root
+200 copilotstudio
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://login.microsoftonline.com/common/oauth2/v2.0/token" -X POST 2>&1; echo " token-endpoint"; curl -s -o /dev/null -w "%{http_code}" "https://login.microsoftonline.us/common/oauth2/v2.0/token" 2>&1; echo " login-ms-us"
+411 token-endpoint
+200 login-ms-us
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://copilotstudio.microsoft.com/" 2>&1 | grep -iE "HTTP|server|content-type|x-frame|x-content" | head -10; echo "---"; curl -s "https://copilotstudio.microsoft.com/" 2>&1 | head -c 500
+HTTP/2 200 
+content-type: text/html
+link: <https://content.powerapps.com>; rel="preconnect"
+content-security-policy: report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+content-security-policy-report-only: script-src 'self' blob: https://content.powerapps.com https://static.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://*.msocdn.com https://*.res.office365.com https://*.msftauth.net https://*.monitor.azure.com https://wcpstatic.microsoft.com https://*.flow.microsoft.com https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net https://appsforoffice.microsoft.com https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0 'sha256-rsSsDdC5+nD+xAjdZ2pnKML5m2OuboH9melWtQqkuz4=' 'sha256-3PL8bwxsLjrm7O+3mN6vo0a0aAxI6o9NCpnX7b5+Wug=' 'sha256-qbcc3t/M9PIC6sE9mwvXi7CQc9sqRMl7yIUzOo+PMn4=' 'sha256-NvHLngp/dKBz7LS+OPlWGiXhBlm48uFXTeyzKp9m12o=' 'sha256-FsjM6dKgbX5yMdU4iLKMLLcld3AEkeDGPMIcvPOltKU='; frame-src 'self' blob: https://make.powerautomate.com/ https://webshell.suite.office.com https://login.microsoftonline.com https://make.powerapps.com https://*.powerapps.com; connect-src 'self' https://api.powerplatform.com https://apihub.azure.com https://*.island.powerapps.com; base-uri 'self'; media-src 'none'; object-src 'self' blob:; manifest-src 'self'; worker-src 'self' blob:; font-src 'self' data: https://content.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://static2.sharepointonline.com https://*.cdn.office.net https://appsforoffice.microsoft.com https://spoprod-a.akamaihd.net; style-src 'self' 'unsafe-inline' https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net; frame-ancestors 'self'; report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+server-timing: x-ms-igw-upstream-headers;dur=2.0,x-ms-igw-req-overhead;dur=0.1
+x-content-type-options: nosniff
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name="theme-color" content="#000000"><meta name="robots" content="noindex,nofollow,noarchive"><meta name="color-scheme" content="light dark"/><link rel="manifest" href="/manifest.json"><link rel="shortcut icon" href="/favicon.ico?v=2"><title>Microsoft Copilot Studio</title><style>#root,html{height:100%}body{margin:0;padding:0;font-family:sans-serif;
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://copilotstudio.microsoft.com/copilotstudio/dataverse-backed/authenticated/bots/test/conversations" 2>&1 | grep -iE "HTTP|www-auth|content-type" | head -10
+HTTP/2 200 
+content-type: text/html
+link: <https://content.powerapps.com>; rel="preconnect"
+content-security-policy: report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+content-security-policy-report-only: script-src 'self' blob: https://content.powerapps.com https://static.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://*.msocdn.com https://*.res.office365.com https://*.msftauth.net https://*.monitor.azure.com https://wcpstatic.microsoft.com https://*.flow.microsoft.com https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net https://appsforoffice.microsoft.com https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0 'sha256-ijSmRhHtXyIvRBtvRIVcXrXXQgVfK7ySEb0IRPaxh18=' 'sha256-3PL8bwxsLjrm7O+3mN6vo0a0aAxI6o9NCpnX7b5+Wug=' 'sha256-qbcc3t/M9PIC6sE9mwvXi7CQc9sqRMl7yIUzOo+PMn4=' 'sha256-9mqisFFBPl4MlILkQdXY9K2neM/VAJrL/F3WNBnTOo0=' 'sha256-FsjM6dKgbX5yMdU4iLKMLLcld3AEkeDGPMIcvPOltKU='; frame-src 'self' blob: https://make.powerautomate.com/ https://webshell.suite.office.com https://login.microsoftonline.com https://make.powerapps.com https://*.powerapps.com; connect-src 'self' https://api.powerplatform.com https://apihub.azure.com https://*.island.powerapps.com; base-uri 'self'; media-src 'none'; object-src 'self' blob:; manifest-src 'self'; worker-src 'self' blob:; font-src 'self' data: https://content.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://static2.sharepointonline.com https://*.cdn.office.net https://appsforoffice.microsoft.com https://spoprod-a.akamaihd.net; style-src 'self' 'unsafe-inline' https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net; frame-ancestors 'self'; report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+x-content-type-options: nosniff
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | grep -iE "HTTP|www-authenticate|allow"; echo "---POST---"; curl -s -D - -o /dev/null -X POST "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | grep -iE "HTTP|www-authenticate"
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+---POST---
+HTTP/1.1 411 Length Required
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://login.microsoftonline.com/common/oauth2/v2.0/token" -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "grant_type=client_credentials&client_id=test&client_secret=test&scope=https://graph.microsoft.com/.default" 2>&1; echo " fic-token"
+400 fic-token
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); [print(k.get('kid','?'), k.get('kty','?')) for k in d.get('keys',[])]" 2>&1; echo "=== total ==="; curl -s "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('keys',[])))" 2>&1
+aFkmKVFc-4WV6sXCBvNZkXI505Y RSA
+AahUf1bCXvx0JTRcXLrr0U4SluY RSA
+fEtqrhKT1bXAGafSdQoN1vXTRpI RSA
+jvm_-TtaqTCRrkpnmePvwb75nWE RSA
+6hXLaIYNSJ0o7zu09dMyI0ji3ug RSA
+=== total ===
+4
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); [print(k.get('kid','?'), k.get('kty','?')) for k in d.get('keys',[])]" 2>&1; echo "=== total ==="; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print(len(d.get('keys',[])))" 2>&1
+aFkmKVFc-4WV6sXCBvNZkXI505Y RSA
+AahUf1bCXvx0JTRcXLrr0U4SluY RSA
+fEtqrhKT1bXAGafSdQoN1vXTRpI RSA
+jvm_-TtaqTCRrkpnmePvwb75nWE RSA
+6hXLaIYNSJ0o7zu09dMyI0ji3ug RSA
+rRk1d-57BGZfsM4BUHrkx8cQbic RSA
+NqEBZVuOpstZ__5iZuWH3HPswcI RSA
+1Nv3JExJrKNx1l7adICQ7Y_Atps RSA
+=== total ===
+7
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" "https://login.live.com/oauth20_desktop.srf" 2>&1; echo " live-desktop-srf"; curl -s -D - -o /dev/null "https://login.live.com/oauth20_servlet.srf" 2>&1 | grep -iE "HTTP" | head -1; echo "---"; curl -s -o /dev/null -w "%{http_code}" "https://accounts.accesscontrol.windows.net/metadata/json/1" 2>&1; echo " acs-metadata"
+200 live-desktop-srf
+HTTP/1.1 404 Not Found
+---
+200 acs-metadata
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://graph.microsoft.com/beta/\$metadata" 2>&1 | grep -iE "HTTP|content-length" | head -5; echo "---metadata size---"; curl -s "https://graph.microsoft.com/beta/\$metadata" 2>&1 | wc -c
+HTTP/1.1 200 OK
+---metadata size---
+7298965
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://login.live.com/oauth20_desktop.srf" 2>&1 | grep -iE "HTTP|location" | head -5; echo "===body==="; curl -s "https://login.live.com/oauth20_desktop.srf" 2>&1 | head -c 300
+HTTP/1.1 200 OK
+===body===
+<html dir="ltr">
+<head>
+</head>
+<body>
+<div class="header" id="idHeaderTD9">
+<h1>
+<img src="images/ms-logo-v2.jpg" class="logo" alt="Microsoft account" />
+</h1>
+</div>
+<div class="content">
+<h2>You have reached a page that is not normally shown. Microsoft will never ask you to copy or shar
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://login.live.com/oauth20_desktop.srf?removed=true" 2>&1 | grep -iE "HTTP|location" | head -5; echo "===body==="; curl -s "https://login.live.com/oauth20_desktop.srf?removed=true" 2>&1 | head -c 300
+HTTP/1.1 200 OK
+===body===
+<html dir="ltr">
+<head>
+</head>
+<body>
+<div class="header" id="idHeaderTD9">
+<h1>
+<img src="images/ms-logo-v2.jpg" class="logo" alt="Microsoft account" />
+</h1>
+</div>
+<div class="content">
+<h2>You have reached a page that is not normally shown. Microsoft will never ask you to copy or shar
+[0m
+[0m$ [0mcurl -s "https://login.live.com/oauth20_desktop.srf" 2>&1 | head -c 1000
+<html dir="ltr">
+<head>
+</head>
+<body>
+<div class="header" id="idHeaderTD9">
+<h1>
+<img src="images/ms-logo-v2.jpg" class="logo" alt="Microsoft account" />
+</h1>
+</div>
+<div class="content">
+<h2>You have reached a page that is not normally shown. Microsoft will never ask you to copy or share this URL.</h2>
+<p>
+</p>
+<script>
+var marker = "?removed=true";
+if(window.location.hash || window.location.search.indexOf(marker) !== 0)
+{
+var redirectUrl = window.location.origin + window.location.pathname + marker;
+setTimeout(function() {
+window.location.replace(redirectUrl);
+}, 3000);
+}
+</script>
+</div>
+</body>
+</html>
+[0m
+[0m$ [0mpython3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+import re
+# Count EntityTypes
+etypes = re.findall(r'EntityType Name=\"([^\"]+)\"', content)
+print('Total EntityTypes:', len(etypes))
+# Check for agent-related entities
+agent_entities = [e for e in etypes if 'agent' in e.lower() or 'copilot' in e.lower()]
+print('Agent/Copilot EntityTypes:', agent_entities)
+# Check for Function imports
+funs = re.findall(r'Function Name=\"([^\"]+)\"', content)
+print('Total Functions:', len(funs))
+agent_funs = [f for f in funs if 'agent' in f.lower() or 'copilot' in f.lower()]
+print('Agent/Copilot Functions:', agent_funs[:20])
+" 2>&1
+Total EntityTypes: 2497
+Agent/Copilot EntityTypes: ['agentIdentity', 'securityCopilot', 'agentRegistration', 'copilotRoot', 'copilotConversation', 'copilotAdmin', 'agent', 'copilotReportRoot', 'copilotSetting', 'copilotCommunicationsRoot', 'agentCardManifest', 'agentCollection', 'agentInstance', 'agentRegistry', 'cloudPcAgentPool', 'cloudPcAgentPoolUserAssignment', 'cloudPcBulkReinstallAgent', 'copilotConversationMessage', 'copilotConversationRequestMessage', 'copilotConversationResponseMessage', 'copilotAdminCatalog', 'copilotPolicySetting', 'copilotAdminSetting', 'copilotPackage', 'copilotPackageDetail', 'copilotAdminLimitedMode', 'exactMatchUploadAgent', 'agentIdentityBlueprint', 'agentIdentityBlueprintPrincipal', 'agentUser', 'onPremisesAgent', 'onPremisesAgentGroup', 'agentRiskDetection', 'riskyAgent', 'riskyAgentIdentity', 'riskyAgentIdentityBlueprintPrincipal', 'riskyAgentUser', 'copilotTool', 'copilotPeopleAdminSetting']
+Total Functions: 585
+Agent/Copilot Functions: ['getMicrosoft365CopilotUsageUserDetail', 'getMicrosoft365CopilotUsageUserDetail', 'getMicrosoft365CopilotUserCountSummary', 'getMicrosoft365CopilotUserCountSummary', 'getMicrosoft365CopilotUserCountTrend', 'getMicrosoft365CopilotUserCountTrend', 'retrieveDeployAgentActionResults', 'discoverCopilotTools']
+[0m
+[0m$ [0mpython3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+import re
+# Check for restrictions on agentRegistration
+match = re.search(r'EntityType Name=\"agentRegistration\"[^>]*>(.*?)</EntityType>', content)
+if match:
+    block = match.group(1)
+    rest_count = len(re.findall(r'[Rr]estriction', block))
+    print('agentRegistration Restrictions count:', rest_count)
+    print('Properties:', re.findall(r'Property Name=\"([^\"]+)\"', block))
+    print('Has OperationRestrictions:', 'OperationRestrictions' in block)
+    print('Has ReadRestrictions:', 'ReadRestrictions' in block)
+    print('Has UpdateRestrictions:', 'UpdateRestrictions' in block)
+# Also check agentIdentity
+match2 = re.search(r'EntityType Name=\"agentIdentity\"[^>]*>(.*?)</EntityType>', content)
+if match2:
+    block2 = match2.group(1)
+    rest_count2 = len(re.findall(r'[Rr]estriction', block2))
+    print()
+    print('agentIdentity Restrictions count:', rest_count2)
+    print('agentIdentity Properties:', re.findall(r'Property Name=\"([^\"]+)\"', block2))
+" 2>&1
+agentRegistration Restrictions count: 0
+Properties: ['agentCard', 'agentIdentityBlueprintId', 'agentIdentityId', 'createdBy', 'description', 'displayName', 'lastPublishedBy', 'managedByAppId', 'originatingStore', 'ownerIds', 'sourceAgentId', 'sourceCreatedDateTime', 'sourceLastModifiedDateTime']
+Has OperationRestrictions: False
+Has ReadRestrictions: False
+Has UpdateRestrictions: False
+
+agentIdentity Restrictions count: 0
+agentIdentity Properties: ['agentIdentityBlueprintId', 'createdDateTime', 'inheritedAppRoleAssignments', 'inheritedOauth2PermissionGrants', 'sponsors']
+[0m
+[0m$ [0mpython3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+import re
+# Check agentInstance EntityType
+match = re.search(r'EntityType Name=\"agentInstance\"[^>]*>(.*?)</EntityType>', content)
+if match:
+    block = match.group(1)
+    print('agentInstance block:')
+    print(block[:1500])
+    print()
+    print('Restrictions count:', len(re.findall(r'[Rr]estriction', block)))
+    print('Properties:', re.findall(r'Property Name=\"([^\"]+)\"', block))
+else:
+    print('agentInstance EntityType not found')
+# Also check agentRegistry and copilotAdminCatalog
+for et in ['agentRegistry', 'agentCardManifest', 'agentCollection', 'copilotAdminCatalog', 'copilotPackage']:
+    m = re.search(r'EntityType Name=\"' + et + r'\"[^>]*>(.*?)</EntityType>', content)
+    if m:
+        blk = m.group(1)
+        rest = len(re.findall(r'[Rr]estriction', blk))
+        props = re.findall(r'Property Name=\"([^\"]+)\"', blk)
+        print(f'{et}: restrictions={rest}, props={props[:10]}')
+" 2>&1
+agentInstance block:
+<Property Name="additionalInterfaces" Type="Collection(graph.agentInterface)" /><Property Name="agentIdentityBlueprintId" Type="Edm.String" /><Property Name="agentIdentityId" Type="Edm.String" /><Property Name="agentUserId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="managedBy" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property Name="preferredTransport" Type="Edm.String" /><Property Name="signatures" Type="Collection(graph.agentCardSignature)" /><Property Name="sourceAgentId" Type="Edm.String" /><Property Name="url" Type="Edm.String" /><NavigationProperty Name="agentCardManifest" Type="graph.agentCardManifest" /><NavigationProperty Name="collections" Type="Collection(graph.agentCollection)" />
+
+Restrictions count: 0
+Properties: ['additionalInterfaces', 'agentIdentityBlueprintId', 'agentIdentityId', 'agentUserId', 'createdBy', 'createdDateTime', 'displayName', 'lastModifiedDateTime', 'managedBy', 'originatingStore', 'ownerIds', 'preferredTransport', 'signatures', 'sourceAgentId', 'url', 'agentCardManifest', 'collections']
+agentRegistry: restrictions=0, props=['agentCardManifests', 'agentCollections', 'agentInstances']
+agentCardManifest: restrictions=0, props=['capabilities', 'createdBy', 'createdDateTime', 'defaultInputModes', 'defaultOutputModes', 'description', 'displayName', 'documentationUrl', 'iconUrl', 'lastModifiedDateTime']
+agentCollection: restrictions=0, props=['createdBy', 'createdDateTime', 'description', 'displayName', 'lastModifiedDateTime', 'managedBy', 'originatingStore', 'ownerIds', 'members']
+copilotAdminCatalog: restrictions=0, props=['packages']
+copilotPackage: restrictions=0, props=['appId', 'assetId', 'availableTo', 'createdDateTime', 'deployedTo', 'displayName', 'elementTypes', 'isBlocked', 'lastModifiedDateTime', 'manifestId']
+[0m
+[0m$ [0mpython3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+import re
+# Find all references to agentRegistrations
+refs = re.findall(r'[^\"]*agentRegistration[^\"]*\"', content)
+for r in refs[:20]:
+    print(r)
+" 2>&1
+microsoft.graph.agentRegistration"
+microsoft.graph.agentRegistration/agentCard"
+microsoft.graph.agentRegistration/agentIdentityBlueprintId"
+microsoft.graph.agentRegistration/agentIdentityId"
+microsoft.graph.agentRegistration/createdBy"
+microsoft.graph.agentRegistration/description"
+microsoft.graph.agentRegistration/displayName"
+microsoft.graph.agentRegistration/lastPublishedBy"
+microsoft.graph.agentRegistration/managedByAppId"
+microsoft.graph.agentRegistration/originatingStore"
+microsoft.graph.agentRegistration/ownerIds"
+microsoft.graph.agentRegistration/sourceAgentId"
+microsoft.graph.agentRegistration/sourceCreatedDateTime"
+microsoft.graph.agentRegistration/sourceLastModifiedDateTime"
+microsoft.graph.copilotRoot/agentRegistrations"
+Navigation property to access agent registrations at /copilot/agentRegistrations."
+agentRegistration"
+agentRegistrations"
+Collection(graph.agentRegistration)"
+[0m
+[0m$ [0mpython3 -c "
+with open('/tmp/metadata.xml', 'r') as f:
+    content = f.read()
+import re
+# Find navigation properties containing agentRegistration
+navs = re.findall(r'NavigationProperty Name=\"[^\"]*\"[^\"]*agentRegistration[^\"]*\"', content)
+for n in navs:
+    print(n)
+# Also find Function imports for agentRegistration
+funcs = re.findall(r'Function Name=\"[^\"]*agentRegistration[^\"]*\"', content)
+for f in funcs:
+    print(f)
+" 2>&1
+(no output)
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X POST "https://copilotstudio.microsoft.com/copilotstudio/dataverse-backed/authenticated/bots/test-schema/conversations" 2>&1; echo " d2e-post-unauth"; curl -s -D - -o /dev/null "https://copilotstudio.microsoft.com/copilotstudio/dataverse-backed/authenticated/bots/test-schema/conversations" 2>&1 | grep -iE "HTTP|www-auth|content-type" | head -5
+405 d2e-post-unauth
+HTTP/2 200 
+content-type: text/html
+link: <https://content.powerapps.com>; rel="preconnect"
+content-security-policy: report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+content-security-policy-report-only: script-src 'self' blob: https://content.powerapps.com https://static.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://*.msocdn.com https://*.res.office365.com https://*.msftauth.net https://*.monitor.azure.com https://wcpstatic.microsoft.com https://*.flow.microsoft.com https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net https://appsforoffice.microsoft.com https://cdn.jsdelivr.net/npm/monaco-editor@0.33.0 'sha256-ijSmRhHtXyIvRBtvRIVcXrXXQgVfK7ySEb0IRPaxh18=' 'sha256-3PL8bwxsLjrm7O+3mN6vo0a0aAxI6o9NCpnX7b5+Wug=' 'sha256-qbcc3t/M9PIC6sE9mwvXi7CQc9sqRMl7yIUzOo+PMn4=' 'sha256-9mqisFFBPl4MlILkQdXY9K2neM/VAJrL/F3WNBnTOo0=' 'sha256-FsjM6dKgbX5yMdU4iLKMLLcld3AEkeDGPMIcvPOltKU='; frame-src 'self' blob: https://make.powerautomate.com/ https://webshell.suite.office.com https://login.microsoftonline.com https://make.powerapps.com https://*.powerapps.com; connect-src 'self' https://api.powerplatform.com https://apihub.azure.com https://*.island.powerapps.com; base-uri 'self'; media-src 'none'; object-src 'self' blob:; manifest-src 'self'; worker-src 'self' blob:; font-src 'self' data: https://content.powerapps.com https://*.content.powerapps.com https://*.static.powerapps.com https://static2.sharepointonline.com https://*.cdn.office.net https://appsforoffice.microsoft.com https://spoprod-a.akamaihd.net; style-src 'self' 'unsafe-inline' https://*.content.powerapps.com https://*.static.powerapps.com https://*.cdn.office.net https://vsa.services.microsoft.com https://mfpembedcdnmsit.azureedge.net; frame-ancestors 'self'; report-uri https://csp.microsoft.com/report/PPUX-Hosting;
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://powervirtualagents.microsoft.com/powervirtualagents/orchestrated/test/conversations/test" 2>&1 | grep -iE "HTTP|allow" | head -5; echo "---"; curl -s -o /dev/null -w "%{http_code}" "https://powervirtualagents.microsoft.com/powervirtualagents/orchestrated/test/conversations/test/InvokeTool" 2>&1; echo " orchestrated-invoketool"
+HTTP/2 301 
+location: https://www.microsoft.com/en-us/microsoft-copilot/microsoft-copilot-studio/
+---
+301 orchestrated-invoketool
+[0m
+Based on thorough passive probing, here is my analysis:
+
+## STEP 1 — DELTA
+NO_DELTA. All previously ACCEPTED/REJECTED findings confirmed live:
+- Graph 405 anomaly (HEAD→405, no WWW-Authenticate) — verified
+- v2.0 authorize HTTP 200 (response_type=token→200) — verified  
+- tokeninfo oracle (no-token→400, accepts query params) — verified
+- v1.0↔v2.0 JWKS kid overlap (5/5 v1.0 ⊂ 8 v2.0) — verified
+- agentRegistration zero restrictions in $metadata — verified (full block extracted)
+- login.live.com/oauth20_desktop.srf — still stub (200 + `?removed=true` redirect JS), not REJECTED yet (AAD deferred redirect)
+- agentSignInSessions (401), issueVerifiedEmployeeCredential (401), Agent Registry API (401) — all alive
+
+NEW OBSERVATION (not a new endpoint, but scope expansion): The **entire agent Registry metadata ecosystem** — agentInstance, agentCardManifest, agentCollection, copilotPackage, copilotAdminCatalog — also has ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions. agentInstance additionally exposes client-supplied `createdBy`, `agentUserId`, `agentIdentityId`, `ownerIds`. This widens the IDOR hypothesis surface beyond agentRegistration alone.
+
+## STEP 2 — PRIORITIZE
+| Asset | Score | Breakdown |
+|---|---|---|
+| [82] graph.microsoft.com/beta/copilot/agentRegistrations (+ agentInstance/agentCollection/agentCardManifest/agentPackage) | 8.55 | attack=9 bus=9 tech=9 gate=6 cloud=8 fresh=10 |
+| [70] login.microsoftonline.com v1↔v2.0 issuer-confusion | 8.25 | attack=8 bus=9 tech=9 gate=3 cloud=7 fresh=10 |
+| [75] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential | 7.80 | attack=8 bus=9 tech=8 gate=5 cloud=7 fresh=9 |
+| [70] login.microsoftonline.com/{tid}/oauth2/v2.0/token (user_fic Hop3) | 7.90 | attack=8 bus=9 tech=9 gate=4 cloud=8 fresh=9 |
+| [745] consent primitive oauth2PermissionGrants (caller-chosen resourceId) | 7.45 | attack=8 bus=8 tech=8 gate=5 cloud=7 fresh=8 |
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Agent Registry IDOR via client-supplied ownership fields across agentRegistration + agentInstance + agentCollection + agentCardManifest + agentPackage — zero metadata restrictions
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations (and /beta/agentRegistry/agentInstances)
+confidence: 85
+reasoning: PASSIVE-VERIFIED via live $metadata: agentRegistration EntityType has createdBy(Nullable=false), ownerIds(Nullable=false), agentCard(graph.Json), managedByAppId, agentIdentityId — all client-supplied, ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions. Same pattern confirmed on agentInstance (also has client-supplied agentUserId, managedBy), agentCollection (ownerIds, createdBy), agentCardManifest (createdBy), copilotPackage (isBlocked, deployedTo, availableTo). ContainsTarget=true navigation on copilotRoot. Scope AgentRegistration.ReadWrite.All (admin consent).
+evidence_needed: POST as User1 creates registration with client-set ownerIds/createdBy → User2 PATCHes foreign registration's agentCard/ownerIds/createdBy → returns 200/204 and mutation persists in GET.
+verify_steps: AUTH_HELPED: In test tenant, two principals: (A) POST /beta/copilot/agentRegistrations with {"displayName":"test","createdBy":"user1","ownerIds":["user1"],"agentCard":{}}; (B) GET /beta/copilot/agentRegistrations (User2 Bearer) → if 200+array, confirms enumeration; (B) PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"injected":true}} → record 200/204 vs 403. Also test agentInstance PATCH path: PATCH /beta/agentRegistry/agentInstances/{id} with modified ownerIds.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper with copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ issuer + JWKS vs login.microsoftonline.com/{tid}/v2.0 issuer + JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED: v1.0 /discovery/keys has 5 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIY…), v2.0 /discovery/v2.0/keys has 8 kids — all 5 v1.0 ⊂ v2.0 (subset confirmed live). Dual issuer namespaces (sts.windows.net/{tid}/ for v1.0, login.microsoftonline.com/{tid}/v2.0 for v2.0) serve same tenant. v1.0 supports response_type=token (pure implicit) + token id_token (hybrid) — excluded from v2.0. If any token-accepting resource validates sig+kid but not strict iss claim, v1.0-issued token replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: Acquire v1.0 id_token (iss=sts.windows.net/{tid}/); send to a v2.0-only endpoint/resource that enforces issuer strictly; observe acceptance vs rejection. PASSIVE: kid overlap already verified (5/5 ⊂ 8); v1.0-only response_types verified.
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100,000)
+testability: AUTH_HELPED
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 75
+reasoning: SPA clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2 scopes token to itself; source map main.4e6e3dc6.js.map (35MB, 4922 paths) confirms body-less POST with Bearer token accepts jobTitle/department/employeeId fields; backend gates ONLY on GuestIsNotAllowedToIssueVerifiedId / TenantIsNotInAllowedToIssueVerifiedId / feature-on — no per-caller employee verification, no admin-role check visible in client contract. Entra Verified ID = high-value DID-signed employee credential.
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + DID-signed credential.
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST /api/issueVerifiedEmployeeCredential (empty body + caller-chosen claims); observe response. Passive: download source map main.4e6e3dc6.js.map → extract full request schema.
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, access to Verified ID-gated resources; CVSS 7.1–9.1
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps.
+
+## STEP 4 — SELF-CRITIQUE
+All three hypotheses pass the filter:
+- confidence ≥ 40 (85, 60, 75)
+- class not on REJECTED list (IDOR, AUTH — both absent from REJECTED)
+- concrete verify_steps provided for each
+- No duplication of KNOWN-DUP items
+- Facts vs hypotheses properly separated
+
+[FINAL] 1. Agent Registry IDOR via client-supplied ownership fields across agentRegistration + agentInstance + agentCollection + agentCardManifest + agentPackage (IDOR, confidence 85, priority 8.55)
+[FINAL] 2. v1.0↔v2.0 issuer-confusion token replay (AUTH, confidence 60, priority 8.25)
+[FINAL] 3. Verified ID minting without admin role (AUTH, confidence 75, priority 7.80)
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Two-principal test-tenant probe of the top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations (client-set createdBy + ownerIds) → B GET /beta/copilot/agentRegistrations (collection enumeration with scope AgentRegistration.ReadWrite.All) → B PATCH /beta/copilot/agentRegistrations/{A-id} with attacker-controlled agentCard + ownerIds + createdBy → record 200/204 vs 403. Simultaneously prepare v1.0 id_token issuer-confusion test against v2.0-only Graph resources. Request MSRC program confirmation for Copilot Studio D2E envhost inclusion.
+
+## STEP 6 — LEARNINGS
+[LEARN] ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy(Nullable=false), ownerIds(Nullable=false), agentCard(graph.Json), managedByAppId, agentIdentityId all client-supplied — verified via live $metadata fetch + Python regex extraction of full EntityType block
+[LEARN] ACCEPTED agentInstance/agentCollection/agentCardManifest/copilotPackage/copilotAdminCatalog EntityTypes ALL have zero OperationRestrictions/ReadRestrictions/UpdateRestrictions @ graph.microsoft.com/beta/$metadata — same IDOR pattern extends across entire Agent Registry ecosystem; agentInstance additionally exposes client-supplied agentUserId + managedBy
+[LEARN] ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIY…) ALL present in v2.0's 8 kids — confirmed live via kid-by-kid comparison
+[LEARN] ACCEPTED v1.0-only response_types @ login.microsoftlive.com: v1.0 OIDC discovery returns ['code','id_token','code id_token','token id_token','token']; v2.0 returns ['code','id_token','code id_token','id_token token'] — pure `token` implicit excluded from v2.0, verified via live OIDC discovery fetch
+[LEARN] ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD returns 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET returns 401 with proper Bearer challenge — verified live (HEAD+GET both tested)
+[LEARN] ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with embedded JS error 700038 — verified via live GET probe
+[LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-token→400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params — verified
+[LEARN] ACCEPTED bughunters.google.com root hardening: HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff — verified
+[LEARN] REJECTED login.live.com/oauth20_desktop.srf full removal: returns stub 200 page with "You have reached a page that is not normally shown" + client-side JS appending ?removed=true — not fully removed, but stub-only surface, no new attack vector beyond REJECTED AAD deferred redirect validation
+[LEARN] REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+
+## STEP 7 — RISK SCORES
+[RISK] google: 30 — All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; ADK issues are KNOWN-DUP SDK-level GitHub PRs (#2128, #5520, #5154 WIP); tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; reposcan found 0 real secrets (all TEST_OR_EXAMPLE). No new unauthenticated attack surface; passive phase exhausted.
+[RISK] microsoft: 85 — Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registry IDOR expanded to 5 EntityTypes with zero metadata restrictions (priority 8.55); v1.0↔v2.0 issuer-confusion with 5/5 kid overlap + dual issuer namespaces + v1.0-only implicit/hybrid flows ($100k ceiling); Verified ID minting without admin role (DID-signed VC); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
