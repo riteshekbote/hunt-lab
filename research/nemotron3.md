@@ -1,3532 +1,4 @@
-**Reporting to the Vendor:** Regardless of the severity, we encourage researchers to also disclose the vulnerability directly to the third-party vendor. Google is committed to [responsible disclosure](https://about.google/company-info/appsecurity/) and will notify the vendor of such vulnerabilities reported to us.
-*   **Vulnerabilities in Google's implementation**, integration, configuration, or management layer _around_ the third-party service remain in scope as per the standard Cloud VRP rules.
-
-### Other non-qualifying findings [](https://bughunters.google.com/about/rules/google-friends/cloud-vulnerability-reward-program-rules#other-non-qualifying-findings)
-
-**Note:** Visit our [Bug Hunter University](https://bughunters.google.com/learn) page dedicated to common non-qualifying findings and vulnerabilities.
-
-The main reason why a reported issue may not qualify for a reward is because of low impact. Although we review each report on a case-by-case basis, we are sharing some of the common low-risk issues that typically do not earn a monetary reward:
-
-*   **Cross-site scripting vulnerabilities in “sandbox” domains** ([_read more_](https://bughunters.google.com/learn/invalid-reports/web-platform/xss/6619189462433792).) We maintain a number of domains that leverage the same-origin policy to safely isolate certain types of untrusted content; the most prominent example of this is "*.googleusercontent.com". Unless an impact on sensitive user data can be demonstrated, we do not consider the ability to execute JavaScript in that domain to be a bug.
-*   **URL redirection** ([_read more_](https://bughunters.google.com/learn/invalid-reports/navigation/6680364896223232).) We recognize that the address bar is the only reliable security indicator in modern browsers; consequently, we hold that the usability and security benefits of a small number of well-designed and closely monitored redirectors outweigh their true risks.
-*   **Legitimate content proxying and framing.** We expect our services to unambiguously label third-party content and to perform a number of abuse-detection checks, but as with redirectors, we think that the value the risk.
-*   **Bugs requiring exceedingly unlikely user interaction.** For example, a cross-site scripting flaw that requires the victim to manually type in an XSS payload and then double-click an error message may realistically not meet the bar.
-*   **Logout cross-site request forgery** ([_read more_](https://bughunters.google.com/learn/invalid-reports/web-platform/csrf-clickjacking/5072689380982784).) For better or worse, the design of HTTP cookies means that no single website can prevent its users from being logged out; consequently, application-specific ways of achieving this goal will likely not qualify. You may be interested in personal blog posts from [Chris Evans](http://scarybeastsecurity.blogspot.com/2010/01/logout-xsrf-significant-web-app-bug.html) and [Michal Zalewski](http://lcamtuf.blogspot.com/2010/10/http-cookies-or-how-not-to-design.html) for more background.
-*   **Flaws affecting the users of out-of-date browsers and plugins.** The security model of the web is constantly being fine-tuned. The panel typically does not reward reports that describe issues that affect only the users of outdated or unpatched browsers.
-*   **Presence of banner or version information.** Version information does not, by itself, expose the service to attacks - so we do not consider this to be a bug. That said, if you find outdated software and have good reasons to suspect that it poses a well-defined security risk, please let us know.
-*   **User enumeration.** Reports outlining user enumeration are not within scope unless you can demonstrate that we don't have any rate limits in place to protect our users.
-*   **Bypassing the limit of accounts that can be verified with a given SMS number.** We often receive reports about users being able to bypass our SMS limit for verifying accounts. There are actually two different quotas per number for account verification, one via 'SMS' and a different one via 'Call Me'.
-*   **Activity within the scope of your own provisioned resources.** If you have root/admin in your own isolated instance (like Cloud Shell, GCE, etc.), things you do inside that instance aren't a vulnerability unless you can affect other users' or Google's infra. This includes looking at old data on your disk.
-*   **No PoC**: Reports that lack a functional proof-of-concept.
-*   **Customer Misconfiguration / Shared Responsibility**: Insecure customer configurations (such as unconditionally injecting shared secrets or misconfiguring security-related settings) rather than a product vulnerability. This also includes vulnerabilities that exist entirely within the application code deployed by the customer.
-*   **UI discrepancy**: In some cases the underlying APIs may have a different behaviour than the (web) UI on top of it. We usually consider the API to be the source of truth. Reports focusing on discrepancies between the UI and the API usually don't receive a monetary reward, unless the story around it clearly demonstrates the bypass of a security boundary.
-*   **Social Engineering Pre-requisite**: Theoretical attacks requiring victims to execute double-click scenarios on previously-installed malicious software or inserting arbitrary authorized domain strings for Google One Tap prompts are generally rejected; these vectors operate externally via social engineering rather than indicating platform vulnerabilities.
-
-Monetary rewards aside, vulnerability reporters who work with us to resolve security bugs in our products will be credited on the [Leaderboard](https://bughunters.google.com/leaderboard). If we file an internal security bug, we will acknowledge your contribution on that page.
-
-## Reward amounts [](https://bughunters.google.com/about/rules/google-friends/cloud-vulnerability-reward-program-rules#reward-amounts)
-
-The following table outlines typical rewards for the most common classes of bugs.
-
-**Applicable to reports submitted on or after October 1, 2025**
-
-| Severity Impact Category / Impact Tier | Description | Google Cloud products on [Tier 1](https://github.com/google/bughunters/blob/main/cloud_tiers/cloud-tiers.asciipb)**(IT1)** | Google Cloud products on [Tier 2](https://github.com/google/bughunters/blob/main/cloud_tiers/cloud-tiers.asciipb)**(IT2)** | Default Google Cloud products **(IT3)** | Acquired Google Cloud products **(IT3a)** | Other acquisitions or lower priority Google Cloud products **(IT3b, Generic)** |
-| --- | --- | --- | --- | --- | --- | --- |
-| **Vulnerabilities without any interaction or relationship between attacker and victim, and the impact must involve unauthorized access to sensitive data or actions (e.g., metadata access may not qualify).** |
-| (S0a) Compromise of Google Cloud Production Environment | Vulnerabilities that allow an attacker to breach the security boundaries of the underlying Google Infrastructure that runs Cloud services. | $50,000 - $101,010 | $2,500 - $20,000 |
-| (S0b) Cloud Project/Organization Takeover with Full Administrative Control | Gaining the highest level of control over a project, equivalent to `roles/owner`. This includes the ability to set any IAM policy on any resource, `iam.setIamPolicy`, manage all service accounts, and control all resources within that project. | $75,000 | $50,000 | $31,337 | $25,000 | $20,000 |
-| (S0c) Multi-Service Privilege Escalation - WRITE | Ability to gain modification capabilities on resources in multiple GCP services within the customer project, or to obta
-[0m
-[0m$ [0mcurl -s "https://r.jina.ai/http://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules" | head -c 15000
-Title: AI Vulnerability Reward Program Rules | Google Bug Hunters
-
-URL Source: http://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules
-
-Markdown Content:
-In October 2023, Google announced initial reward criteria for reporting bugs in AI products. In October 2025, we're expanding and clarifying our AI rewards program with the launch of this AI Vulnerability Reward Program. This program allows us to reward security researchers who invest their time and effort to discover and report AI-related vulnerabilities, assisting us in securing our platforms and our users.
-
-## Scope [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#scope)
-
-The AI Vulnerability Rewards Program (VRP) covers AI-related vulnerability and abuse issues in Google and Alphabet AI products. See the [Rewards](https://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules#rewards) section below for detail. AI-related issues are those issues where interaction with a Large Language Model (LLM) or other Generative AI (GenAI) system, such as a natural language interaction, is an integral part of the vulnerability or abuse issue.
-
-**Note: Except where [otherwise noted](https://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules#ai-vrp-product-tiers), issues found in Vertex AI or other [Google Cloud products](https://cloud.google.com/products?e=48754805) are covered by the [Google Cloud Vulnerability Rewards Program](https://bughunters.google.com/about/rules/google-friends/4849867320328192/cloud-vulnerability-reward-program-rules#services-in-scope), and are out of scope for this AI VRP.**
-
-## Ineligible report types - Read this before you submit! [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#ineligible-report-types-read-this-before-you-submit-)
-
-When submitting AI vulnerability reports, take note that [non-qualifying issues and vulnerabilities](https://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules#non-qualifying-vulnerabilities) are ineligible for reward. Reports that fall in these categories will not be accepted, and your report will be closed. Examples include:
-
-*   Generating violative, misleading, or factually incorrect content within the attacker's own session (including standard "jailbreaks" and "hallucinations"). Please report inappropriate content using in-product links.
-*   AI-generated content-based issues, including reports of AI safety or alignment bypasses. Please report this content using in-product links.
-*   Compliance, legal, or intellectual property issues, including issues relating to country/region-specific laws such as privacy or intellectual property laws. Please report those issues to the [Report Content for Legal Reasons](https://support.google.com/legal/answer/3110420) process.
-*   Preamble extraction without sensitive information leakage.
-*   Execution of arbitrary code within a sandboxed environment (Gemini provides access to code execution tools).
-*   Contexts in which a model's incorrect output or classification does not pose a compelling attack scenario or feasible path to user harm.
-*   Insecure or unsafe MCP server interaction, when configured by the victim.
-
-Reports must be verified by the reporter and demonstrate a clear in-scope threat, risk, or vulnerability in plain language. Please carefully review the [list of non-qualifying vulnerabilities](https://bughunters.google.com/about/rules/5222232590712832/ai-vulnerability-reward-program-rules#non-qualifying-vulnerabilities) before filing your report.
-
-## Qualifying vulnerabilities [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#qualifying-vulnerabilities)
-
-The following table details our criteria for AI bug reports to assist our bug hunting community in effectively testing the safety and security of our AI products. Our scope aims to facilitate testing for traditional security vulnerabilities as well as risks specific to AI systems.
-
-| Category | Example Attack Scenario |
-| --- | --- |
-| **S1: Rogue Actions** Attacks that modify the state of the victim’s account or data with a clear security impact[1]. | Indirect prompt injection allows an attacker to unexpectedly, and without confirmation, cause Google Home to take an action, such as unlocking a door. |
-| **S2: Sensitive Data Exfiltration** Attacks that leak victim’s [SPII](https://developers.google.com/standard-payments/reference/glossary#spii), [PII](https://developers.google.com/standard-payments/reference/glossary#pii), or other sensitive data without an effective opportunity for user approval. | Indirect prompt injection allows an attacker to summarize all of a victim's email, and send the summary to an attacker-controlled account. |
-| **A1: Phishing Enablement** Persistent, cross-user HTML injection on a Google-branded site which: (a) does not include a “user-generated content” warning, and (b) at the panel’s discretion, presents a convincing phishing attack vector. **Note**: Sites intended for user-generated content are excluded from this category. | An AI product allows an attacker to share an attacker-generated web page, hiding the user-generated content warning. The attacker can distribute this page, and a user would be reasonably convinced that the page is a legitimate Google site. |
-| **A2: Model Theft** Attacks that exfiltrate complete, detailed, and confidential model parameters. **Note**: System prompts and training corpora are almost always non-confidential and specifically out of scope. **Note**: Successful reports in this category are extremely rare. | A Google-exposed API allows unintentional exfiltration of exact, detailed loss values for arbitrary inputs from a Google-proprietary, confidential model. |
-| **A3: Context Manipulation (Cross-account)** Attacks that allow for repeatable, persistent manipulation of the context of a victim’s AI environment, that is hidden from the victim and does not require significant victim interaction. **Note**: Context manipulation that results in rogue action or sensitive data exfiltration will be rewarded under those rules respectively. | An attacker is able to send a calendar invite to a victim, causing a memory to be stored in an AI product; the product takes unconfirmed, but non-security-sensitive, future actions based on that stored memory. |
-| **A4: Access Control Bypass (Limited security impact)** Attacks that allow a user to exfiltrate data which is otherwise inaccessible. **Note**: Exfiltration of security-sensitive content, at the panel’s discretion, would be covered by “Sensitive Data Exfiltration” above. | An AI product is able to provide content from an otherwise inaccessible document not containing user data, such as a Google’s campus lunch menus, where the attack does not rise to the level of a serious security incident. |
-| **A5: Unauthorized Product Usage** Attacks that allow Google server-side features to be enabled on the user’s account without authorization or billing. **Note**: The enabled feature must be functional, not merely visible. | An attacker is able to modify parameters on a signup form to enable and use an AI feature that has not been publicly announced. |
-| **A6: Cross-user Denial of Service (with caveats!)** Attacks that cause persistent denial of service for a feature or product in a (non-attacker) victim account with a limited set of requests. | Joining a public event or forum with a malformed user profile causes product crashes for other users, where the attacker account is not specifically invited or visible to victim users. **Note**: Per our [Code of Conduct](https://bughunters.google.com/about/rules/other/6009584292331520/code-of-conduct-for-our-vulnerability-reward-programs#inappropriate-testing-and-data-handling), your testing must not disrupt any account you don’t own. Volumetric DoS attacks are specifically prohibited. The ability to DoS your current account is excluded from this category. |
-| **Other Abuse or Security Issues** If you find a flaw in an AI-powered tool other than what is listed above, you can still submit, provided that it meets the qualifications listed on this page. | A bug or behavior that clearly meets our qualifications for a valid security or abuse issue. |
-
-[1] For example, a bug which can create an email draft with arbitrary content does modify the state of a victim's account, but it does not clearly demonstrate an impact of the attack.
-
-## Non-qualifying vulnerabilities [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#non-qualifying-vulnerabilities)
-
-In addition to the list of [non-qualifying vulnerabilities for the Google VRP](https://bughunters.google.com/about/rules/google-friends/6625378258649088/google-and-alphabet-vulnerability-reward-program-vrp-rules#non-qualifying-vulnerabilities), please review the table below detailing the explicit, non-qualifying vulnerabilities for Prompt Injection techniques, which should be reported via in-product feedback channels instead of the AI VRP.
-
-| Common Outcome / Technique | Description / Examples |
-| --- | --- |
-| Policy-Violating Content Generation | Generating violative content (such as hate speech, violent content, or illegal instructions), misleading information, or factually incorrect/fabricated content within the user's own session (e.g. jailbreaks, safety bypasses, or alignment bypasses). |
-| Guardrail Bypass | Circumventing content filters or instructions (e.g., using obfuscation, translation, role-playing) to achieve policy-violating content generation (see above). |
-| Harm Achievable Through Existing Non-AI Tools | Using an AI product to do something potentially harmful that is already possible with other tools. For example, finding a vulnerability in open source software (already possible using publicly available [static analysis tools](https://en.wikipedia.org/wiki/Static_application_security_testing)), or producing the answer to a harmful question when the answer is otherwise available online. |
-| Hallucinations / Factual Inaccuracy | Model generates incorrect, nonsensical, or fabricated information, including fake code execution results, APIs, or credentials. |
-| No Compelling Harm from Incorrect Output / Classification | Contexts in which a model's incorrect output or classification does not pose a compelling attack scenario or feasible path to user harm. |
-| Intended Functionality | Demonstrating expected behavior, e.g., accessing / summarizing the user's own data when permitted. |
-| Preamble / Prompt Extraction (Non-Sensitive) | Extracting system prompts or preambles that do not contain sensitive, non-public information. |
-| Extraction of Non-Sensitive / Public Information | Extraction of non-sensitive / public model information (e.g., model name or architectural approach, if publicly known). |
-| Imprecise / Non-confidential Model Weight Extraction | Attacks in which the architecture and weights are extracted without precision, or weights are extracted from a non-confidential model (e.g. Gemma). |
-| Low-Impact Disruptions to User Experience | Minor disruptions like adding harmless text, minor formatting errors, easily ignored deviations from a user’s typical experience. |
-| Intellectual Property Issues | Content which appears to violate copyright or other intellectual property rights. Google's generative AI products already include a dedicated reporting channel for these types of content issues, accessible via in-product links. |
-
-Google's generative AI products already have a dedicated reporting channel for content-based issues. You can also report inappropriate content for legal reasons [here](https://support.google.com/legal/answer/3110420).
-
-## Rewards [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#rewards)
-
-AI VRP rewards amounts are determined based on the product impacted by the issue ("AI VRP Product Tiers"), and the Category of the issue, as shown in the table below.
-
-### AI VRP Product Tiers [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#ai-vrp-product-tiers)
-
-#### Flagship [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#flagship)
-
-AI features in Flagship Google AI products, specifically:
-
-*   [Google Search](https://google.com/) (on google.com),
-*   [Gemini Apps](https://support.google.com/gemini/answer/13275745) ([Web](https://gemini.google.com/), [Android](https://play.google.com/store/apps/details?id=com.google.android.apps.bard), and [iOS](https://apps.apple.com/us/app/google-gemini/id6477489729)), and
-*   [Google Workspace](https://workspace.google.com/) core applications (i.e., Gmail, Drive, Meet, Calendar, Docs, Sheets, Slides, and Forms).
-
-#### Standard [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#standard)
-
-AI features in high-sensitivity Google AI products, including:
-
-*   [AI Studio](https://aistudio.google.com/),
-*   [Jules](https://jules.google.com/), and
-*   [Google Workspace](https://workspace.google.com/) non-core applications (i.e., NotebookLM, Appsheet, etc).
-
-#### Other [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#other)
-
-Other AI integrations in Google products, **excluding**:
-
-*   [Tier3 or Tier4 acquisitions](https://github.com/google/bughunters/blob/main/domain-tiers/external_domains_acquisitions.asciipb),
-*   [other Tier 3 or Tier 4 applications](https://github.com/google/bughunters/blob/main/domain-tiers/external_domains_google.asciipb), and
-*   Other open-source, non-proprietary, or third-party applications.
-
-### Reward amounts [](https://bughunters.google.com/about/rules/google-friends/ai-vulnerability-reward-program-rules#reward-amounts)
-
-The following table outlines the standard rewards for the most common classes of bugs, and the sections that follow it describe how these rewards can be adjusted to take into account characteristics such as report quality and other factors.
-
-| Category / VRP Product Tier | Flagship | Standard | Other |
-| --- | --- | --- | --- |
-| **S1: Rogue Actions** | $20,000 | $15,000 | $10,000 |
-| **S2: Sensitive Data Exfiltration** | $15,000 | $15,000 | $10,000 |
-| **A1: Phishing Enablement** | $5,000 | $500 | credit |
-| **A2: Model Theft** | $5,000 | $500 | credit |
-| **A3: Context Manipulation** | $5,000 | $500 | credit |
-| **A4: Access Control Bypass** | $2,500 | $250 | credit |
-| **A5: Unauthorized Product Usage** | $1,000 | $100 | credit |
-| **A6: Cross-user Denial of Service** | $500 | $100 | credit |
-
-The final amount is always chosen at the discretion of the reward panel. We understand that some of you are not interested in money. We offer the option
-[0m
-[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/bughunters/main/domain-tiers/external_domains_google.asciipb" | head -c 10000
-domain: {
-  fqdn: "flash.android.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "accounts.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console.actions.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "admin.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "bard.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "chrome.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "chromewebstore.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "clients6.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "accounts.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console-secure.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "ide.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "shell.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "ssh.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "ssh-secure.cloud.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "cloudsearch.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "cloudssh.developers.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console.developers.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "ediscovery.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "fi.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console.firebase.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "gemini.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "inbox.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "issuetracker.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "mail.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "mail-settings.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "meet.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "myaccount.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "passwords.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "play.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "remotedesktop.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "takeout.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "vault.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "googlecloudcheatsheet.withgoogle.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "console.cloud.google"
-  tier: TIER0
-}
-domain: {
-  fqdn: "bugs.chromium.org"
-  tier: TIER0
-}
-domain: {
-  fqdn: "g-issues.chromium.org"
-  tier: TIER0
-}
-domain {
-  fqdn: "bughunters.google.com"
-  tier: TIER0
-}
-domain: {
-  fqdn: "issues.chromium.org"
-  tier: TIER0
-}
-domain: {
-  fqdn: "enexpress.app"
-  tier: TIER1
-}
-domain: {
-  fqdn: "threadit.app"
-  tier: TIER1
-}
-domain: {
-  fqdn: "ci.android.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "orionwifi.area120.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "signals.area120.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "threadit.area120.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "ads.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "adsense.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "adwords.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "android.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "baseline.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "admin.baseline.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "businessmessages.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "calendar.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "chat.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients1.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients2.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients3.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients4.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "clients5.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "bigquery.cloud.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "channelservices.cloud.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "partners.cloud.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "source.cloud.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "storage.cloud.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "docs.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "domains.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "drive.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "encrypted.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "express.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "get.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "groups.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "hangouts.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "home.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "hume.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "ipv6.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "lens.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "lers.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "messages.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "myactivity.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "notifications.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "pay.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "payments.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "photos.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "admin-baseline.sandbox.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "baseline.sandbox.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "script.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "shop.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "shopping.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "store.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "talkgadget.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "timeline.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "timeline-autopush.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "timeline-staging.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "voice.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "wallet.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "www.google.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "toolbox.googleapps.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "googlesource.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "checkout.youtube.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "m.youtube.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "payments.youtube.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "studio.youtube.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "www.youtube.com"
-  tier: TIER1
-}
-domain: {
-  fqdn: "legalretrievals.google"
-  tier: TIER1
-}
-domain: {
-  fqdn: "orion.google"
-  tier: TIER1
-}
-domain: {
-  fqdn: "wiz.io"
-  tier: TIER1
-}
-domain: {
-  fqdn: "grasshopper.app"
-  tier: TIER2
-}
-domain: {
-  fqdn: "kormo.app"
-  tier: TIER2
-}
-domain: {
-  fqdn: "admob.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "partner.android.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "blogger.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "gfiber.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "360suite.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "aboutme.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "adsdatahub.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "adservice.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "adssettings.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "adviser.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "analytics.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "apis.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "appengine.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "appmaker.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "area120.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "artsandculture.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "audiencecenter.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "automotiveservices.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "books.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "campaignmanager.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "careers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "classroom.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "cloud.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "sdk.cloud.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "status.cloud.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "contributor.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "usercontent.corp.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "crowdsource.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "cse.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "datastudio.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "ddm.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "developers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "apps.developers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "cla.developers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "codelabs.developers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "payments.developers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "dns.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "donate.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "doubleclick.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "earth.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "earthengine.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "code.earthengine.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "explorer.earthengine.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "signup.earthengine.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "families.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "fiber.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "console.fiber.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "partnerportal.fiber.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "toolbox.fiber.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "firebase.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "fit.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "flights.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "fonts.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "fusiontables.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "gsuite.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "health.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "images.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "inputtools.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "ipv6test.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "isp.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "jamboard.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "keep.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "manufacturers.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "maps.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "merchants.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "microhost.google.com"
-  tier: TIER2
-}
-domain: {
-  fqdn: "news.google.c
-[0m
-[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/bughunters/main/cloud_tiers/cloud-tiers.asciipb" | head -c 10000
-# proto-file: google3/cloud/security/pse/cloud_vrp/cptitool/cloud_tiers.proto
-# proto-message: CloudTiers
-
-# This file is effective from: 2026-05-01T00:00:00-08:00
-
-product {
-  name: "AlloyDB"
-  tier: IT1
-}
-product {
-  name: "App Engine Platform"
-  tier: IT1
-  remarks: "Web applications hosted on App Engine are out of scope."
-  hostnames: "appengine.googleapis.com"
-}
-product {
-  name: "Artifact Registry"
-  tier: IT1
-  hostnames: "artifactregistry.googleapis.com"
-}
-product {
-  name: "BigQuery"
-  tier: IT1
-  hostnames: "bigquery.googleapis.com"
-}
-product {
-  name: "Certificate Authority Service"
-  tier: IT1
-  hostnames: "privateca.googleapis.com"
-}
-product {
-  name: "Cloud Bigtable"
-  tier: IT1
-  hostnames: "bigtableadmin.googleapis.com"
-}
-product {
-  name: "Cloud Billing"
-  tier: IT1
-}
-product {
-  name: "Cloud Build"
-  tier: IT1
-  hostnames: "cloudbuild.googleapis.com"
-}
-product {
-  name: "Cloud Identity and Access Management"
-  tier: IT1
-  hostnames: "iam.googleapis.com"
-}
-product {
-  name: "Cloud Key Management Service"
-  tier: IT1
-  hostnames: "cloudkms.googleapis.com"
-}
-product {
-  name: "Cloud Load Balancing"
-  tier: IT1
-}
-product {
-  name: "Cloud Pub/Sub"
-  tier: IT1
-  hostnames: "pubsub.googleapis.com"
-}
-product {
-  name: "Cloud Run"
-  tier: IT1
-  hostnames: "run.googleapis.com"
-}
-product {
-  name: "Cloud Spanner"
-  tier: IT1
-  hostnames: "spanner.googleapis.com"
-  hostnames: "splodetestspanner.googleapis.com"
-}
-product {
-  name: "Cloud SQL"
-  tier: IT1
-  hostnames: "sqladmin.googleapis.com"
-}
-product {
-  name: "Cloud Storage"
-  tier: IT1
-  hostnames: "storage.googleapis.com"
-}
-product {
-  name: "Compute Engine"
-  tier: IT1
-}
-product {
-  name: "Firestore"
-  tier: IT1
-  hostnames: "firestore.googleapis.com"
-}
-product {
-  name: "GKE Identity Service"
-  tier: IT1
-}
-product {
-  name: "Google Cloud Console"
-  tier: IT1
-  hostnames: "console.cloud.google.com"
-}
-product {
-  name: "Google Cloud Identity Platform"
-  tier: IT1
-  hostnames: "identitytoolkit.googleapis.com"
-}
-product {
-  name: "Google Cloud Networking"
-  tier: IT1
-  hostnames: "servicenetworking.googleapis.com"
-}
-product {
-  name: "Google Kubernetes Engine"
-  tier: IT1
-  hostnames: "container.googleapis.com"
-}
-product {
-  name: "Memorystore"
-  tier: IT1
-}
-product {
-  name: "Secret Manager"
-  tier: IT1
-  hostnames: "secretmanager.googleapis.com"
-}
-product {
-  name: "Vertex AI Platform"
-  tier: IT1
-  hostnames: "aiplatform.googleapis.com"
-}
-product {
-  name: "Virtual Private Cloud"
-  tier: IT1
-}
-product {
-  name: "Agent Assist"
-  tier: IT2
-}
-product {
-  name: "Application Integration"
-  tier: IT2
-  hostnames: "integrations.googleapis.com"
-}
-product {
-  name: "Artifact Analysis"
-  tier: IT2
-  hostnames: "containeranalysis.googleapis.com"
-}
-product {
-  name: "Assured Workloads"
-  tier: IT2
-  hostnames: "assuredworkloads.googleapis.com"
-}
-product {
-  name: "Binary Authorization"
-  tier: IT2
-  hostnames: "binaryauthorization.googleapis.com"
-}
-product {
-  name: "Certificate Manager"
-  tier: IT2
-}
-product {
-  name: "Cloud API Gateway"
-  tier: IT2
-  hostnames: "apigateway.googleapis.com"
-}
-product {
-  name: "Cloud CDN"
-  tier: IT2
-}
-product {
-  name: "Cloud Composer"
-  tier: IT2
-  hostnames: "composer.googleapis.com"
-}
-product {
-  name: "Cloud Dataflow"
-  tier: IT2
-  hostnames: "dataflow.googleapis.com"
-}
-product {
-  name: "Cloud Dataproc"
-  tier: IT2
-  hostnames: "dataproc.googleapis.com"
-}
-product {
-  name: "Cloud Deploy"
-  tier: IT2
-  hostnames: "clouddeploy.googleapis.com"
-}
-product {
-  name: "Cloud DNS"
-  tier: IT2
-}
-product {
-  name: "Cloud Interconnect"
-  tier: IT2
-}
-product {
-  name: "Cloud Logging"
-  tier: IT2
-  hostnames: "clouderrorreporting.googleapis.com"
-  hostnames: "logging.googleapis.com"
-}
-product {
-  name: "Cloud Monitoring"
-  tier: IT2
-  hostnames: "monitoring.googleapis.com"
-}
-product {
-  name: "Cloud NGFW"
-  tier: IT2
-}
-product {
-  name: "Cloud Pub/Sub Lite"
-  tier: IT2
-  hostnames: "pubsublite.googleapis.com"
-}
-product {
-  name: "Cloud Shell"
-  tier: IT2
-  hostnames: "cloudshell.googleapis.com"
-}
-product {
-  name: "Cloud Source Repositories"
-  tier: IT2
-  hostnames: "sourcerepo.googleapis.com"
-}
-product {
-  name: "Cloud Tasks"
-  tier: IT2
-  hostnames: "cloudtasks.googleapis.com"
-}
-product {
-  name: "Cloud VPN"
-  tier: IT2
-}
-product {
-  name: "Conversational Insights"
-  tier: IT2
-  hostnames: "contactcenterinsights.googleapis.com"
-}
-product {
-  name: "Dialogflow"
-  tier: IT2
-  hostnames: "dialogflow.googleapis.com"
-}
-product {
-  name: "Document AI"
-  tier: IT2
-  hostnames: "documentai.googleapis.com"
-}
-product {
-  name: "Easy APIs"
-  tier: IT2
-}
-product {
-  name: "Firebase Platform"
-  tier: IT2
-  hostnames: "fcm.googleapis.com"
-  hostnames: "firebase.googleapis.com"
-  hostnames: "firebasedatabase.googleapis.com"
-}
-product {
-  name: "Gemini Cloud Assist"
-  tier: IT2
-}
-product {
-  name: "Gemini Code Assist"
-  tier: IT2
-}
-product {
-  name: "Genkit"
-  tier: IT2
-}
-product {
-  name: "GKE Enterprise on GCP"
-  tier: IT2
-}
-product {
-  name: "Google Cloud Armor"
-  tier: IT2
-}
-product {
-  name: "Google Cloud Marketplace"
-  tier: IT2
-}
-product {
-  name: "Google Distributed Cloud air-gapped"
-  tier: IT2
-}
-product {
-  name: "Google Distributed Cloud Edge"
-  tier: IT2
-  hostnames: "edgenetwork.googleapis.com"
-}
-product {
-  name: "Google SecOps SIEM"
-  tier: IT2
-}
-product {
-  name: "Google SecOps SOAR"
-  tier: IT2
-}
-product {
-  name: "Healthcare Data Engine"
-  tier: IT2
-}
-product {
-  name: "Identity-Aware Proxy"
-  tier: IT2
-  hostnames: "iap.googleapis.com"
-}
-product {
-  name: "Infrastructure Manager"
-  tier: IT2
-}
-product {
-  name: "Integration Connectors"
-  tier: IT2
-  hostnames: "connectors.googleapis.com"
-}
-product {
-  name: "Investigator AI"
-  tier: IT2
-}
-product {
-  name: "Managed Service for Microsoft Active Directory"
-  tier: IT2
-  hostnames: "managedidentities.googleapis.com"
-}
-product {
-  name: "NotebookLM for Enterprise"
-  tier: IT2
-}
-product {
-  name: "Private Service Connect"
-  tier: IT2
-}
-product {
-  name: "Privileged Access Manager"
-  tier: IT2
-}
-product {
-  name: "Recommendation Engine API"
-  tier: IT2
-}
-product {
-  name: "Resource Manager"
-  tier: IT2
-  hostnames: "cloudresourcemanager.googleapis.com"
-}
-product {
-  name: "Secure Source Manager"
-  tier: IT2
-  hostnames: "securesourcemanager.googleapis.com"
-}
-product {
-  name: "Security Command Center"
-  tier: IT2
-}
-product {
-  name: "Service Infrastructure"
-  tier: IT2
-}
-product {
-  name: "Service Usage"
-  tier: IT2
-  hostnames: "serviceusage.googleapis.com"
-}
-product {
-  name: "Vertex AI Platform - IT2 subproducts"
-  tier: IT2
-  variants: "Vertex AI Feature Store"
-  variants: "Vertex AI Model Monitoring"
-  variants: "Vertex AI TensorBoard"
-  variants: "Vertex AI Translation Hub"
-  variants: "Vertex AI Vizier"
-  variants: "Vertex ML Metadata"
-  hostnames: "aiplatform.googleapis.com"
-}
-product {
-  name: "Video Intelligence API"
-  tier: IT2
-  hostnames: "videointelligence.googleapis.com"
-}
-product {
-  name: "Access Context Manager"
-  tier: IT3
-}
-product {
-  name: "Access Transparency"
-  tier: IT3
-}
-product {
-  name: "Active Assist"
-  tier: IT3
-}
-product {
-  name: "Anti Money Laundering AI"
-  tier: IT3
-}
-product {
-  name: "API Registry"
-  tier: IT3
-}
-product {
-  name: "Apigee API Platform"
-  tier: IT3
-  hostnames: "apigee.googleapis.com"
-}
-product {
-  name: "App Hub"
-  tier: IT3
-}
-product {
-  name: "Application Design Center"
-  tier: IT3
-}
-product {
-  name: "AppSheet"
-  tier: IT3
-}
-product {
-  name: "Assured Open Source Software"
-  tier: IT3
-}
-product {
-  name: "Audit Manager"
-  tier: IT3
-}
-product {
-  name: "Backup and DR Service"
-  tier: IT3
-}
-product {
-  name: "Bare Metal HSM"
-  tier: IT3
-}
-product {
-  name: "Bare Metal Solution"
-  tier: IT3
-}
-product {
-  name: "Blockchain Analytics"
-  tier: IT3
-}
-product {
-  name: "Blockchain Node Engine"
-  tier: IT3
-  hostnames: "blockchainnodeengine.googleapis.com"
-}
-product {
-  name: "Blockchain RPC"
-  tier: IT3
-}
-product {
-  name: "Blockchain Validator Manager"
-  tier: IT3
-}
-product {
-  name: "Chrome Enterprise Premium"
-  tier: IT3
-  hostnames: "beyondcorp.googleapis.com"
-}
-product {
-  name: "Cloud Asset Inventory"
-  tier: IT3
-  hostnames: "cloudasset.googleapis.com"
-}
-product {
-  name: "Cloud Data Fusion"
-  tier: IT3
-  hostnames: "datafusion.googleapis.com"
-}
-product {
-  name: "Cloud Deployment Manager"
-  tier: IT3
-  hostnames: "deploymentmanager.googleapis.com"
-}
-product {
-  name: "Cloud Domains"
-  tier: IT3
-}
-product {
-  name: "Cloud Endpoints"
-  tier: IT3
-}
-product {
-  name: "Cloud Healthcare API"
-  tier: IT3
-  hostnames: "healthcare.googleapis.com"
-}
-product {
-  name: "Cloud Hub"
-  tier: IT3
-}
-product {
-  name: "Cloud Intrusion Detection System"
-  tier: IT3
-}
-product {
-  name: "Cloud Life Sciences"
-  tier: IT3
-}
-product {
-  name: "Cloud Location Finder"
-  tier: IT3
-}
-product {
-  name: "Cloud NAT"
-  tier: IT3
-}
-product {
-  name: "Cloud Natural Language API"
-  tier: IT3
-  hostnames: "language.googleapis.com"
-}
-product {
-  name: "Cloud Profiler"
-  tier: IT3
-}
-product {
-  name: "Cloud Quotas"
-  tier: IT3
-}
-product {
-  name: "Cloud Router"
-  tier: IT3
-}
-product {
-  name: "Cloud Scheduler"
-  tier: IT3
-}
-product {
-  name: "Cloud SDK - Google Cloud CLI"
-  tier: IT3
-}
-product {
-  name: "Cloud Service Health"
-  tier: IT3
-}
-product {
-  name: "Cloud Service Health"
-  tier: IT3
-}
-product {
-  name: "Cloud Talent Solution"
-  tier: IT3
-  hostnames: "jobs.googleapis.com"
-}
-product {
-  name: "Cloud Trace"
-  tier: IT3
-  hostnames: "cloudtrace.googleapis.com"
-}
-product {
-  name: "Cloud Translation API"
-  tier: IT3
-  hostnames: "translate.googleapis.com"
-}
-product {
-  name: "Cloud Vision API"
-  tier: IT3
-  hostnames: "vision.googleapis.com"
-}
-product {
-  name: "Cloud Vision OCR On-Prem"
-  tier: IT3
-}
-product {
-  name: "Cloud Workstations"
-  tier: IT3
-  hostnames: "workstations.googleapis.com"
-}
-product {
-  name: "Code Modernization for .NET"
-  tier: IT3
-}
-product {
-  name: "Colab Enterprise"
-  tier: IT3
-}
-product {
-  name: "Config Connector"
-  tier: IT3
-}
-product
-[0m
-[0m$ [0mcurl -s "https://r.jina.ai/http://bughunters.google.com/about/rules/6521337925468160/google-open-source-software-vulnerability-reward-program-rules" | head -c 15000
-Title: Google Open Source Software Vulnerability Reward Program Rules | Google Bug Hunters
-
-URL Source: http://bughunters.google.com/about/rules/6521337925468160/google-open-source-software-vulnerability-reward-program-rules
-
-Markdown Content:
-Google’s Open Source Software Vulnerability Reward Program recognizes the contributions of security researchers who invest their time and effort in helping us secure open source software released by Google (Google OSS). Through this program, we provide monetary rewards and public recognition to researchers who disclose vulnerabilities in Google OSS to us.
-
-## Repositories in scope [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#repositories-in-scope)
-
-The program covers all the latest versions of open source software stored in the public repositories of Google-owned GitHub organizations and selected repositories hosted on other platforms.
-
-The program also covers repository configuration settings (e.g. GitHub actions, access control rules, GitHub application configurations).
-
-### Third-party dependencies [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#third-party-dependencies)
-
-A critical element of the security of a software package is the security of its dependencies, so [vulnerabilities in 3rd-party dependencies](http://osv.dev/) are in scope for this program.
-
-That said, please send your bug reports directly to the owner of the vulnerable package first and **ensure that the issue is addressed upstream before letting us know of the issue details**. Just like we would like to learn about vulnerabilities in our code first, we feel 3rd-party code authors should have the same advantage.
-
-Submissions detailing vulnerabilities through 3rd-party dependencies should:
-
-*   Demonstrate that the vulnerability manifests itself in our projects (i.e. you must show that the 3rd-party vulnerability can be triggered or exploited in Google OSS).
-*   Be shared no earlier than 30 days after the issue was fixed upstream (e.g. a patched software package was released).
-
-Vulnerabilities in 3rd-party _services_ or _platforms_ used to maintain and build Google OSS (e.g. source code management systems, CI/CD systems, package managers) are _out of scope for this program_. We cannot authorize you to conduct security research of assets that belong to other users and companies on their behalf. That said, we welcome submissions describing vulnerabilities in our configuration or integration of those 3rd-party services.
-
-## Qualifying Vulnerabilities [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#qualifying-vulnerabilities)
-
-### Supply chain compromises [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#supply-chain-compromises)
-
-First and foremost, we welcome submissions pointing out vulnerabilities affecting source or build integrity that could result in a **supply chain compromise**. Supply chain vulnerabilities include the ability to compromise Google OSS source code, and build artifacts or packages distributed via package managers to users. For example:
-
-*   Ability to modify or submit code on main branches of repositories
-*   Vulnerabilities in the configuration of build and release infrastructure that lead to the compromise of artifacts that are distributed to users, e.g.:
-    *   Vulnerabilities in Google OSS GitHub Actions configuration
-    *   Insecure configuration of a project's GCP build environment setup
-    *   Disclosure of package manager credentials for publishing build artifacts
-
-*   Compromise of cryptographic signing keys for published artifacts
-
-Important: You must be able to demonstrate that the vulnerability is exploitable, **bypassing the requirement that external contributors must first have PRs approved**. This can be achieved either by exploiting a vulnerability in an organization or repository that does not enforce this requirement, through a time-of-check-time-of-use (TOCTOU) vulnerability, or by other means. If your vulnerability will only trigger after approval by a maintainer, the vulnerability will be considered for "Credit" as it will be treated only as an insider risk.
-
-### Product vulnerabilities [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#product-vulnerabilities)
-
-Any design or implementation issue in Google OSS that causes a **product [vulnerability](https://bughunters.google.com/learn/improving-your-reports/getting-started/6450430198153216/what-is-a-security-vulnerability)** substantially affecting the confidentiality or integrity of user data in software builds using Google OSS is also in scope for the program. Some examples:
-
-Note: For vulnerabilities in Google's open source projects that are closely tied to Google Cloud or AI products, we encourage you to report them to the [Google Cloud Vulnerability Reward Program](https://bughunters.google.com/about/rules/google-friends/4849867320328192/cloud-vulnerability-reward-program-rules) or the [AI VRP](https://bughunters.google.com/about/rules/google-friends/5222232590712832/ai-vulnerability-reward-program-rules) to help us route your report to the right engineers.
-
-*   Memory corruption issues in file format parsers or network protocol implementations
-*   Failures in the sanitizer functions (e.g. HTML sanitizers)
-*   Path traversal issues
-*   Bad defaults or insecure code examples in project documentation
-
-#### Acceptance criteria for product vulnerability type reports [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#acceptance-criteria-for-product-vulnerability-type-reports)
-
-The criteria for accepting product vulnerability type reports in the OSS VRP program depend on the project’s tier (OT0-OT3) and the subcategory of vulnerability, specifically:
-
-*   All memory corruption vulnerabilities for **OT0** and **OT1** tier repositories require either exact [OSS-Fuzz reproduction steps](https://google.github.io/oss-fuzz/advanced-topics/reproducing/) (using an existing fuzz target, and including exact steps to [build the image](https://google.github.io/oss-fuzz/advanced-topics/reproducing/#building-using-docker)) or an already merged patch in the target repository.
-*   Non-memory corruption vulnerabilities in **OT0** and **OT1** tier repositories do not require a merged patch for submission.
-*   For all projects in the **OT2** (Standard) and **OT3** (Low-Priority) tiers, all types of "Product Vulnerabilities" are not eligible for monetary reward.
-
-We aim to have our important projects (**OT0** and **OT1**) integrated with OSS-Fuzz when relevant, as this provides a more robust and scalable defense than triaging individual memory corruption issues; we prioritize rewards for researchers who contribute to this robust security model. For this reason, if a memory corruption vulnerability is found in an **OT0** or **OT1** project that lacks an existing or complete OSS-Fuzz integration, we encourage building the integration before sending the report to the VRP program.
-
-Please note that **rewards are granted based on security impact alone**. For tiers where a merged patch is required for submission, the existence of a patch is a prerequisite but **not a guarantee of a reward**; the panel determines the overall security impact of the underlying issue at its own discretion.
-
-### Other security issues [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#other-security-issues)
-
-We would also like to know about issues that affect the security of the target projects, but don't map to the above categories as they are not technical security vulnerabilities. For example:
-
-*   Sensitive credentials that give write access which have been stored in personal projects (e.g. dotfiles)
-*   Credential leaks in publicly stored backups
-*   Weak passwords for 3rd-party CI systems for which we don't control the password policy
-*   Insider risk, i.e. vulnerabilities that are only exploitable by maintainers or those with elevated permissions. There must be a realistic attack scenario for the attacks originating from non-maintainers. As a reminder, social engineering attacks are explicitly out of scope for rewards.
-
-There are a couple of classes of vulnerabilities that generally do not qualify for a reward:
-
-*   Security vulnerabilities and weaknesses with a root cause in downstream software integration with Google OSS (e.g. insecure configuration of Google OSS libraries, or third-party code calling Google OSS functions documented to accept sanitized inputs, with non-sanitized inputs).
-*   Typosquatting / dependency confusion, unless it can be demonstrated how this leads to a compromise of Google OSS build artifacts distributed to users.
-*   Insecure installation / software usage instructions that compromise the security of the developers working on the product
-*   For all projects in the **OT2** (Standard) and **OT3** (Low-Priority) tiers, all types of "other security issues" are not eligible for monetary reward.
-*   Issues with negligible security impact, as described in the [Bug Hunter University](https://bughunters.google.com/learn/invalid-reports/5374985771941888/about-this-section).
-
-Out of concern for the availability of our services to all users, please do not attempt to carry out DoS attacks, leverage black hat SEO techniques, spam people, or perform other similarly questionable actions. Whenever possible, please try to test the vulnerabilities locally without impacting other users. We also discourage the use of any vulnerability testing tools that automatically generate significant volumes of traffic.
-
-## Project tiers [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#project-tiers)
-
-Project tiers indicate the sensitivity and criticality connected with projects, and have implications for the reward amounts the VRP grants to researchers. The full list of **OT0** and **OT1** repositories can be found at **[https://github.com/google/bughunters](https://github.com/google/bughunters/blob/main/oss-repository-tier/external_repositories.txtpb)**.
-
-### Flagship OSS projects (OT0) [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#flagship-oss-projects-ot0-)
-
-This tier contains selected Google open source projects that we consider particularly sensitive. Rewards for vulnerabilities found in projects in this tier are significantly higher than for projects in other tiers. The full and up-to-date list of **OT0** repositories can be found at **[https://github.com/google/bughunters](https://github.com/google/bughunters/blob/main/oss-repository-tier/external_repositories.txtpb)**.
-
-### Important OSS projects (OT1) [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#important-oss-projects-ot1-)
-
-The Important (**OT1**) tier includes repositories with significant community impact or high security criticality. For a full and up-to-date list of **OT1** repositories, please refer to **[https://github.com/google/bughunters](https://github.com/google/bughunters/blob/main/oss-repository-tier/external_repositories.txtpb)**. Only the projects mentioned explicitly as **OT1** in this list fall under the **OT1** category.
-
-### Standard OSS projects (OT2) [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#standard-oss-projects-ot2-)
-
-This tier contains all software repositories that are not explicitly mentioned in the criteria of other tiers. Typically, they fulfill all of the below requirements:
-
-*   Repository is active and open to receive commits (i.e. not labeled as archived, deprecated, or in maintenance mode).
-*   Repository stores code of a software library, framework, or end-user product.
-*   Build artifacts from the repository are published in one of the popular package manager registries (e.g. npm, PyPI).
-*   Released packages are marked as stable, release candidate, or late beta.
-
-Note that there is no published list of **OT2** repositories and the tier decision when rewarding a report is at the discretion of the reward panel.
-
-### Low-priority OSS projects (OT3) [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#low-priority-oss-projects-ot3-)
-
-This tier contains small, experimental, sample, and other low-priority projects. Projects in this tier typically have some combination of the following properties:
-
-*   Non-existent or small community impact
-*   No active development
-*   Marked as "experimental", "demo", "sample", etc.
-*   Unofficial project under a Google org
-*   No executable code in the project (e.g. projects serving documentation websites)
-*   Projects accompanying research projects conducted by Googlers
-*   Repository belongs to "google-research", "googleinterns", "googlearchived", or similar GitHub orgs
-*   No CI/CD setup on the repository
-
-We currently do not financially reward submissions describing issues in projects from this tier.
-
-## Reward amounts [](https://bughunters.google.com/about/rules/open-source/google-open-source-software-vulnerability-reward-program-rules#reward-amounts)
-
-The following table outlines typical rewards for the most common classes of bugs, depending on the affected project tier.
-
-| Category | OT0 (Flagship) | OT1 (Important) | OT2 (Standard) | OT3 (Low-priority) |
-| --- | --- | --- | --- | --- |
-| Supply chain compromises | $3,133.7 - $31,337 | $1,337 - $13,337 | $500 - $3,133.7 | - |
-| Product vulnerabilities | $500 - $7,500 | $101 - $3,133.7 | - | - |
-| Other security issues | $1,000 | $500 | - | - |
-
-The final amount is always chosen at the discretion of the reward panel. In particular, we may decide to pay higher rewards for unusually clever, severe, or wide-reaching vulnerabilities; decide to pay lower rewards for vulnerabilities that hinge on the existence of other, not-yet-discovered or hypothetical bugs to become exploitable, require unusual user interaction or other rarely-met prerequisites; decide that a single report actually constitutes multiple bugs; or that multiple reports are so closely related that they only warrant a single reward.
-
-For every reported vulnerability, the security impact is evaluated by looking at the most dangerous attack scenario that the panel can come up with. If we discover higher-impact attack vectors that the original reporter hadn't considered in the submitted report, we bump up the score accordingly. When receiving multiple reports, we typical
-[0m
-[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/bughunters/main/oss-repository-tier/external_repositories.txtpb" | head -c 10000
-repository {
-  url: "https://github.com/angular/angular"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/angular/dev-infra"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/angular/angular-cli"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/angular/components"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/bazelbuild/bazel"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/bazelbuild/bazel-central-registry"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/bazelbuild/continuous-integration"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/bazelbuild/remote-apis-sdks"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/gson"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/protocolbuffers/protobuf"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/openthread/openthread"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/guava"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/gvisor"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/flutter/flutter"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/flutter/devtools"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/GoogleContainerTools/distroless"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tink-crypto/tink-cc"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tink-crypto/tink-java"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tink-crypto/tink-go"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/go"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/net"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/vscode-go"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/crypto"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/image"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/sync"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/text"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/tools"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/golang/sys"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/project-oak/oak"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/fonts"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/benchmark"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/clusterfuzz"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/re2"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/go-github"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/osv-scanner"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/cdapio/cdap"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_CLOUD_VRP
-}
-repository {
-  url: "https://github.com/cdapio/cdap-ui"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_CLOUD_VRP
-}
-repository {
-  url: "https://github.com/openxla/xla"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/go-cloud"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/closure-compiler"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/filament"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/flatbuffers"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/zerocopy"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/shaderc"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/jax-ml/jax"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/adk-python"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/adk-js"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/adk-go"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/adk-java"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/shaka-project/shaka-player"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/googlemaps/android-maps-utils"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/site-kit-wp"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/libphonenumber"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/brotli"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/Polymer/polymer"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google/XNNPACK"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/google-gemini/gemini-cli"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_CLOUD_VRP
-}
-repository {
-  url: "https://fuchsia.googlesource.com/fuchsia"
-  tier: TIER_OT0
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tensorflow/tflite-micro"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tensorflow/serving"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tensorflow/models"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tensorflow/tfjs"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/tensorflow/tensorflow"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/dart-lang/sdk"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/dart-lang/tools"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/dart-lang/test"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/dart-lang/build"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://gerrit.googlesource.com/gerrit"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/keras-team/keras"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://github.com/keras-team/tf-keras"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-repository {
-  url: "https://gerrit.googlesource.com/gerrit"
-  tier: TIER_OT1
-  product_vuln_scope: SCOPE_OSS_VRP
-}
-[0m
-[0m$ [0mcurl -s "https://api.github.com/repos/google/bughunters/contents" | jq -r '.[] | "\(.name) \(.type) \(.html_url)"'
-CONTRIBUTING.md file https://github.com/google/bughunters/blob/main/CONTRIBUTING.md
-LICENSE file https://github.com/google/bughunters/blob/main/LICENSE
-README.md file https://github.com/google/bughunters/blob/main/README.md
-cloud_tiers dir https://github.com/google/bughunters/tree/main/cloud_tiers
-domain-tiers dir https://github.com/google/bughunters/tree/main/domain-tiers
-oss-repository-tier dir https://github.com/google/bughunters/tree/main/oss-repository-tier
-patch-rewards-program dir https://github.com/google/bughunters/tree/main/patch-rewards-program
-[0m
-[0m$ [0mcurl -s "https://api.github.com/repos/google/osv.dev/commits?per_page=5" | jq -r '.[] | "\(.sha) \(.commit.message)"'
-...output truncated...
-
-Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fdb7b3c6c0011nt7NQ4vLOFw0i
-
-
-[Compare
-Source](https://redirect.github.com/github/codeql-action/compare/v4.37.3...v4.37.4)
-
-</details>
-
-<details>
-<summary>tcort/github-action-markdown-link-check
-(tcort/github-action-markdown-link-check)</summary>
-
-###
-[`v1.1.3`](https://redirect.github.com/tcort/github-action-markdown-link-check/compare/v1.1.2...v1.1.3)
-
-[Compare
-Source](https://redirect.github.com/tcort/github-action-markdown-link-check/compare/v1.1.2...v1.1.3)
-
-</details>
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 6am on wednesday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-👻 **Immortal**: This PR will be recreated if closed unmerged. Get
-[config
-help](https://redirect.github.com/renovatebot/renovate/discussions) if
-that's undesired.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv.dev).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTIuMCIsInRhcmdldEJyYW5jaCI6Im1hc3RlciIsImxhYmVscyI6WyJkZXBlbmRlbmNpZXMiXX0=-->
-269c96cf6cdaa14601c901df1f36fa5fef42ad0d chore(deps): update terraform to ~> 7.42.0 (#5777)
-
-This PR contains the following updates:
-
-| Package | Type | Update | Change | Pending |
-|---|---|---|---|---|
-| [google](https://registry.terraform.io/providers/hashicorp/google)
-([source](https://redirect.github.com/hashicorp/terraform-provider-google))
-| required_provider | minor | `~> 7.40.0` → `~> 7.42.0` | `7.43.0` |
-|
-[google-beta](https://registry.terraform.io/providers/hashicorp/google-beta)
-([source](https://redirect.github.com/hashicorp/terraform-provider-google-beta))
-| required_provider | minor | `~> 7.40.0` → `~> 7.42.0` | `7.43.0` |
-
----
-
-### Release Notes
-
-<details>
-<summary>hashicorp/terraform-provider-google (google)</summary>
-
-###
-[`v7.42.0`](https://redirect.github.com/hashicorp/terraform-provider-google/releases/tag/v7.42.0)
-
-[Compare
-Source](https://redirect.github.com/hashicorp/terraform-provider-google/compare/v7.41.0...v7.42.0)
-
-NOTES:
-
-- compute: migrated `google_compute_region_instance_template` resource
-to use direct HTTP rather than a client library
-([#&#8203;28431](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28431))
-
-DEPRECATIONS:
-
-- vertexai: deprecated `google_vertex_ai_schedule`, an
-accidentally-added duplicate resource; use `google_colab_schedule`
-instead.
-([#&#8203;28406](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28406))
-
-FEATURES:
-
-- **New Data Source:** `google_cloud_quotas_quota_adjuster_settings`
-([#&#8203;28383](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28383))
-- **New List Resource:** `google_service_account_key`
-([#&#8203;28430](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28430))
-- **New Resource:** `google_agent_identity_auth_provider`
-([#&#8203;28447](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28447))
-- **New Resource:** `google_apihub_runtime_project_attachment`
-([#&#8203;28449](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28449))
-- **New Resource:** `google_chronicle_big_query_export`
-([#&#8203;28403](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28403))
-- **New Resource:** `google_compute_global_vm_extension_policy`
-([#&#8203;28445](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28445))
-- **New Resource:** `google_compute_rollout_plan`
-([#&#8203;28445](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28445))
-- **New Resource:** `google_vector_search_data_object`
-([#&#8203;28434](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28434))
-- **New Resource:** `google_vertex_ai_persistent_resource`
-([#&#8203;28435](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28435))
-
-IMPROVEMENTS:
-
-- bigquery: added `table_type` field to `google_bigquery_routine`
-resource
-([#&#8203;28446](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28446))
-- cloudrunv2: added `start_execution_token` and `run_execution_token`
-fields to `google_cloud_run_v2_job`resource
-([#&#8203;28384](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28384))
-- colab: added `catch_up`, `create_pipeline_job_request`, `create_time`,
-`last_pause_time`, `last_resume_time`, `last_scheduled_run_response`,
-`max_concurrent_active_run_count`, `next_run_time`, `started_run_count`,
-and `update_time` fields, and sub-fields under
-`create_notebook_execution_job_request.notebook_execution_job`
-(`create_time`, `custom_environment_spec`, `encryption_spec`,
-`job_state`, `kernel_name`, `labels`, `name`, `schedule_resource_name`,
-`workbench_runtime`) and under `create_notebook_execution_job_request`
-(`notebook_execution_job_id`, `parent`) to `google_colab_schedule`
-resource
-([#&#8203;28406](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28406))
-- compute: added `effective_location` field to
-`google_compute_interconnect` resource
-([#&#8203;28416](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28416))
-- compute: added `request_headers` and `response_headers` fields to
-`log_config` on `google_compute_backend_service` and
-`google_compute_region_backend_service` resources
-([#&#8203;28421](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28421))
-- compute: added identity support to `google_compute_instance`, allowing
-resource import using an `identity` block
-([#&#8203;28433](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28433))
-- compute: changed `location` field to mutable for
-`google_compute_interconnect` resource
-([#&#8203;28416](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28416))
-- container: added `addons_config.node_readiness_config` field to
-`google_container_cluster` resource
-([#&#8203;28417](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28417))
-- container: added `rollback_safe_upgrade`, `desired_emulated_version`,
-and `emulated_version` fields to `google_container_cluster` resource
-([#&#8203;28442](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28442))
-- container: increased default timeout to 2 hours for
-`google_container_node_pool`resource
-([#&#8203;28382](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28382))
-- dataproc: added `confidential_instance_type` field to
-`google_dataproc_cluster` resource
-([#&#8203;28371](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28371))
-- gkehub: added `min_control_plane_version`, `min_node_version`,
-`target_control_plane_version`, `target_node_version`, and
-`operational_state` fields to `google_gke_hub_rollout_sequence` resource
-([#&#8203;28429](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28429))
-- hypercomputecluster: increased default timeouts for
-`google_hypercomputecluster_cluster` to 120 minutes
-([#&#8203;28448](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28448))
-- modelarmor: added field `template_metadata.filter_version_selector` to
-`google_model_armor_template` resource
-([#&#8203;28402](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28402))
-- sql: added identity support to `google_sql_user` for `terraform query`
-support
-([#&#8203;28428](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28428))
-
-BUG FIXES:
-
-- bigtable: fixed an issue where `bigtable_custom_endpoint` and
-`universe_domain` were ignored when creating Bigtable resources
-([#&#8203;28404](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28404))
-- compute: fixed an issue where diffs in
-`google_compute_security_policy` were not detected
-([#&#8203;28420](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28420))
-- gkehub: fixed `rollout_creation_scope` and `upgrade_types` fields in
-`google_gke_hub_rollout_sequence` resource
-([#&#8203;28429](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28429))
-- osconfig: added client-side validation to ensure
-`resource_hierarchy_selector` and `location_selector` are not set at the
-same time in `google_os_config_v2_policy_orchestrator`,
-`google_os_config_v2_policy_orchestrator_for_folder`, and
-`google_os_config_v2_policy_orchestrator_for_organization`
-([#&#8203;28407](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28407))
-- secretmanager: fixed an issue where
-`google_secret_manager_secret_version` would fail at apply time if
-neither `secret_data` nor `secret_data_wo` was set
-([#&#8203;28419](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28419))
-- sql: fixed issue where updates to
-`settings.ip_configuration.psc_config.allowed_consumer_projects` in
-`google_sql_database_instance` were silently ignored on in-place updates
-([#&#8203;28444](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28444))
-- vertexai: fixed
-`google_vertex_ai_endpoint_with_model_garden_deployment` destroying and
-recreating the endpoint when `min_replica_count`, `max_replica_count`,
-`required_replica_count`, or `autoscaling_metric_specs` changed
-([#&#8203;28401](https://redirect.github.com/hashicorp/terraform-provider-google/pull/28401))
-
-###
-[`v7.41.0`](https://redirect.github.com/hashicorp/terraform-provider-google/blob/HEAD/CHANGELOG.md#7410-Unreleased)
-
-[Compare
-Source](https://redirect.github.com/hashicorp/terraform-provider-google/compare/v7.40.0...v7.41.0)
-
-</details>
-
-<details>
-<summary>hashicorp/terraform-provider-google-beta
-(google-beta)</summary>
-
-###
-[`v7.42.0`](https://redirect.github.com/hashicorp/terraform-provider-google-beta/releases/tag/v7.42.0)
-
-[Compare
-Source](https://redirect.github.com/hashicorp/terraform-provider-google-beta/compare/v7.41.0...v7.42.0)
-
-NOTES:
-
-- compute: migrated `google_compute_region_instance_template` resource
-to use direct HTTP rather than a client library
-([#&#8203;12752](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12752))
-
-DEPRECATIONS:
-
-- vertexai: deprecated `google_vertex_ai_schedule`, an
-accidentally-added duplicate resource; use `google_colab_schedule`
-instead.
-([#&#8203;12739](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12739))
-
-FEATURES:
-
-- **New List Resource:** `google_service_account_key`
-([#&#8203;12750](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12750))
-- **New Resource:** `google_agent_identity_auth_provider`
-([#&#8203;12762](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12762))
-- **New Resource:** `google_apihub_runtime_project_attachment`
-([#&#8203;12764](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12764))
-- **New Resource:** `google_chronicle_big_query_export`
-([#&#8203;12737](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12737))
-- **New Resource:** `google_vector_search_data_object`
-([#&#8203;12755](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12755))
-- **New Resource:** `google_vertex_ai_persistent_resource`
-([#&#8203;12756](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12756))
-
-IMPROVEMENTS:
-
-- bigquery: added `table_type` field to `google_bigquery_routine`
-resource
-([#&#8203;12761](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12761))
-- colab: added `catch_up`, `create_pipeline_job_request`, `create_time`,
-`last_pause_time`, `last_resume_time`, `last_scheduled_run_response`,
-`max_concurrent_active_run_count`, `next_run_time`, `started_run_count`,
-`update_time` fields, and sub-fields under
-`create_notebook_execution_job_request.notebook_execution_job`
-(`create_time`, `custom_environment_spec`, `encryption_spec`,
-`job_state`, `kernel_name`, `labels`, `name`, `schedule_resource_name`,
-`workbench_runtime`) and under `create_notebook_execution_job_request`
-(`notebook_execution_job_id`, `parent`) to `google_colab_schedule`
-resource
-([#&#8203;12739](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12739))
-- composer: added `config.node_config.traffic_routing_config` field to
-`google_composer_environment` resource
-([#&#8203;12733](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12733))
-- compute: added `effective_location` field to
-`google_compute_interconnect` resource
-([#&#8203;12742](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12742))
-- compute: added `request_headers` and `response_headers` fields to
-`log_config` on `google_compute_backend_service` and
-`google_compute_region_backend_service` resources
-([#&#8203;12746](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12746))
-- compute: added identity support to `google_compute_instance`, allowing
-resource import using an `identity` block
-([#&#8203;12754](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12754))
-- compute: changed `location` field to mutable for
-`google_compute_interconnect` resource
-([#&#8203;12742](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12742))
-- container: added `addons_config.node_readiness_config` field to
-`google_container_cluster` resource
-([#&#8203;12743](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12743))
-- container: added `rollback_safe_upgrade`, `desired_emulated_version`,
-and `emulated_version` fields to `google_container_cluster` resource
-([#&#8203;12757](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12757))
-- container: increased default timeout to 2 hours for
-`google_container_node_pool` resource
-([#&#8203;12727](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12727))
-- dataproc: added `confidential_instance_type` field to
-`google_dataproc_cluster` resource
-([#&#8203;12725](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12725))
-- gkehub: added `min_control_plane_version`, `min_node_version`,
-`target_control_plane_version`, `target_node_version`, and
-`operational_state` fields to `google_gke_hub_rollout_sequence` resource
-([#&#8203;12749](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12749))
-- hypercomputecluster: increased default timeouts for
-`google_hypercomputecluster_cluster` to 120 minutes
-([#&#8203;12763](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12763))
-- modelarmor: added `template_metadata.filter_version_selector` field to
-`google_model_armor_template` resource
-([#&#8203;12736](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12736))
-- sql: added identity support to `google_sql_user` for `terraform query`
-support
-([#&#8203;12748](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12748))
-
-BUG FIXES:
-
-- bigtable: fixed an issue where `bigtable_custom_endpoint` and
-`universe_domain` were ignored when creating Bigtable resources
-([#&#8203;12738](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12738))
-- compute: fixed an issue where diffs in
-`google_compute_security_policy` were not detected
-([#&#8203;12745](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12745))
-- gkehub: fixed `rollout_creation_scope` and `upgrade_types` fields in
-`google_gke_hub_rollout_sequence` resource
-([#&#8203;12749](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12749))
-- osconfig: added client-side validation to ensure
-`resource_hierarchy_selector` and `location_selector` are not set at the
-same time in `google_os_config_v2_policy_orchestrator`,
-`google_os_config_v2_policy_orchestrator_for_folder`, and
-`google_os_config_v2_policy_orchestrator_for_organization`
-([#&#8203;12740](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12740))
-- secretmanager: fixed an issue where
-`google_secret_manager_secret_version` would fail at apply time if
-neither `secret_data` nor `secret_data_wo` was set
-([#&#8203;12744](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12744))
-- sql: fixed issue where updates to
-`settings.ip_configuration.psc_config.allowed_consumer_projects` in
-`google_sql_database_instance` were silently ignored on in-place updates
-([#&#8203;12759](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12759))
-- vertexai: fixed
-`google_vertex_ai_endpoint_with_model_garden_deployment` destroying and
-recreating the endpoint when `min_replica_count`, `max_replica_count`,
-`required_replica_count`, or `autoscaling_metric_specs` changed
-([#&#8203;12735](https://redirect.github.com/hashicorp/terraform-provider-google-beta/pull/12735))
-
-###
-[`v7.41.0`](https://redirect.github.com/hashicorp/terraform-provider-google-beta/blob/HEAD/CHANGELOG.md#7410-Unreleased)
-
-[Compare
-Source](https://redirect.github.com/hashicorp/terraform-provider-google-beta/compare/v7.40.0...v7.41.0)
-
-</details>
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 6am on wednesday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-🔕 **Ignore**: Close this PR and you won't be reminded about these
-updates again.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv.dev).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTIuMCIsInRhcmdldEJyYW5jaCI6Im1hc3RlciIsImxhYmVscyI6WyJkZXBlbmRlbmNpZXMiXX0=-->
-46fa6ea8522f7a92ac6bd10d5d29d3244ba655a2 chore(deps): update pnpm to v11.18.0 (#5776)
-
-This PR contains the following updates:
-
-| Package | Change |
-[Age](https://docs.renovatebot.com/merge-confidence/) |
-[Confidence](https://docs.renovatebot.com/merge-confidence/) |
-|---|---|---|---|
-| [pnpm](https://pnpm.io)
-([source](https://redirect.github.com/pnpm/pnpm/tree/HEAD/pnpm11/pnpm))
-| [`11.15.1` →
-`11.18.0`](https://renovatebot.com/diffs/npm/pnpm/11.15.1/11.18.0) |
-![age](https://developer.mend.io/api/mc/badges/age/npm/pnpm/11.18.0?slim=true)
-|
-![confidence](https://developer.mend.io/api/mc/badges/confidence/npm/pnpm/11.15.1/11.18.0?slim=true)
-|
-
----
-
-### Release Notes
-
-<details>
-<summary>pnpm/pnpm (pnpm)</summary>
-
-###
-[`v11.18.0`](https://redirect.github.com/pnpm/pnpm/releases/tag/v11.18.0):
-pnpm 11.18
-
-[Compare
-Source](https://redirect.github.com/pnpm/pnpm/compare/v11.17.0...v11.18.0)
-
-#### Minor Changes
-
-- Fixed an installed optional dependency being left without one of its
-own required dependencies. When a package reached through
-`optionalDependencies` is installable on the current system but one of
-its regular `dependencies` is not, a lockfile-based install skipped that
-dependency and installed the parent anyway, so importing the parent
-failed with `MODULE_NOT_FOUND`. The dependency is now installed, and an
-install-check warning reports the incompatibility. A dependency is still
-only skipped when every path to it is optional, or when the package that
-pulls it in was itself skipped
-[#&#8203;13286](https://redirect.github.com/pnpm/pnpm/issues/13286).
-
-- `pnpm setup` now appends `PNPM_HOME` and the global bin directory to
-the GitHub Actions environment files (`GITHUB_ENV` and `GITHUB_PATH`),
-so later steps in the same job can run `pnpm add --global` and other
-global commands
-[#&#8203;9191](https://redirect.github.com/pnpm/pnpm/issues/9191).
-
-- Added support for `publishConfig.name`, which publishes a package
-under a different name than the one its manifest carries in the
-workspace. It is for a project whose published name is already taken by
-a sibling project, which otherwise has to be renamed by a build step
-just before publishing. Only the published artifact is renamed —
-dependents, `pnpm-lock.yaml`, and release tooling keep addressing the
-project by its manifest name — and the new name reaches the packed
-manifest, the tarball filename, and everything that addresses the
-package at the registry: the already-published check of `pnpm publish
--r`, its registry selection, and the release-planning probes of `pnpm
-change status` and `pnpm version -r`
-[#&#8203;13345](https://redirect.github.com/pnpm/pnpm/issues/13345).
-
-- `pnpm self-update` no longer takes any instruction from the project it
-is run in:
-
-- pnpm is fetched through the same trusted registry and auth
-configuration used when switching pnpm versions, so a project `.npmrc`
-or `pnpm-workspace.yaml` can no longer redirect the download or attach
-credentials to it, and the project's default `.pnpmfile.(c|m)js` is no
-longer loaded. Pnpmfiles from trusted sources (the `pnpmfile` setting,
-the global pnpmfile, config dependencies) still apply.
-- The `minimumReleaseAge` settings in `pnpm-workspace.yaml` no longer
-affect `self-update`. They still govern the project's own dependencies;
-for `self-update` the cooldown now comes from the built-in default, your
-global config, a `PNPM_CONFIG_*` environment variable, or a command-line
-flag. This fixes `self-update` failing inside a workspace that raises
-the cutoff while succeeding everywhere else, and stops a repository from
-either waiving the cooldown or keeping you on an outdated pnpm by
-raising it.
-- The same applies to the `trustPolicy` settings and to `ci`: a project
-can no longer weaken the trust check that guards the pnpm download, nor
-re-enable the confirmation prompt that a CI run suppresses.
-
-When `self-update` refuses a version that is younger than the cutoff, an
-interactive run now offers to update anyway; non-interactive runs still
-fail. CI never prompts, even on a runner that attaches a TTY.
-
-#### Patch Changes
-
-- Fixed `pnpm licenses list` to report every version when the same
-package is installed under multiple aliases
-[pnpm/pnpm#13438](https://redirect.github.com/pnpm/pnpm/issues/13438).
-
-- Sort `pnpm dedupe --check` snapshot changes for stable output across
-pnpm implementations.
-
-- Strip Unicode formatting characters from registry- and
-manifest-derived terminal output.
-
-- Speed up installs after compatible catalog or direct dependency range
-changes by retaining the locked version without resolving the dependency
-graph again.
-
-- Speed up installs after safe override changes by reusing unambiguous
-compatible dependency resolutions, pruning obsolete dependencies,
-applying independent replacements and removals together, and handling
-parent-scoped `"-"` overrides without full lockfile resolution.
-
-- Installing a local `file:` directory dependency with the global
-virtual store enabled no longer fails with `TypeError: Cannot read
-properties of undefined (reading 'split')`
-[#&#8203;13335](https://redirect.github.com/pnpm/pnpm/issues/13335).
-
-Local directory dependencies — `file:` directories and injected
-workspace packages — now get a global-virtual-store slot of their own
-per project. They used to share one slot across every project that
-depended on a directory of the same name, so a project could end up
-linked to another project's copy of the dependency.
-
-- The `Workspace` column of `pnpm update --interactive` now falls back
-to the project's path when its `name` is only whitespace, as it already
-did for a missing or empty one — all three render an equally blank label
-otherwise.
-
-- Checking GitHub Actions dependencies for updates is now opt-in for
-every command. Neither `pnpm outdated` nor `pnpm update` reads the
-workflow files unless `--include-github-actions` is passed or
-`update.githubActions` is set to `true` in `pnpm-workspace.yaml`.
-Reading them runs `git ls-remote` against every referenced repository,
-which fails in environments where GitHub is not reachable the way pnpm
-assumes (a GitHub Enterprise Server, a custom certificate authority, or
-an offline network)
-[#&#8203;13254](https://redirect.github.com/pnpm/pnpm/issues/13254).
-
-  `pnpm outdated` accepts the `--include-github-actions` option too.
-
-- `pnpm update --interactive` now measures its table in terminal columns
-rather than in characters. A package name, workspace name, or version
-containing wide characters (CJK, most emoji) no longer knocks its row's
-columns out of line with the rest of the group, and a wide character in
-a version no longer aborts the command with `Subject parameter value
-width cannot be greater than the container width`
-[#&#8203;13357](https://redirect.github.com/pnpm/pnpm/issues/13357).
-
-- The `Workspace` column of `pnpm update --interactive` is more
-informative in two cases. A dependency outdated at the same version in
-several workspace projects is offered as one choice, since selecting it
-updates every project — that choice now names all of them instead of
-only the first. And a workspace project without a `name` is now labelled
-with its path rather than left blank, so several unnamed projects can be
-told apart.
-
-- An auto-installed *optional* peer is no longer hoisted at a version
-the workspace root's own dependency on that package excludes.
-`resolvePeersFromWorkspaceRoot` already made the workspace root's
-specifier decide which version a missing *required* peer is installed
-at; the optional-peer picker ignored it and always took the highest
-version present anywhere in the graph. In a workspace whose root pins
-`postcss: 8.5.10`, an importer that depends on `webpack` and declares no
-`postcss` of its own got `postcss@8.5.22` hoisted for
-`terser-webpack-plugin`'s optional `postcss` peer, leaving two
-`postcss@8.5.x` instances in the graph
-[#&#8203;13320](https://redirect.github.com/pnpm/pnpm/issues/13320).
-
-- `overrides` now also govern peers that pnpm auto-installs. Previously
-an override only rewrote dependencies declared in a manifest, so a peer
-nobody declares — installed because `autoInstallPeers` is on — resolved
-against its declared peer range and could bring in a second copy of the
-very package the override pinned. For example, with `overrides: { react:
-npm:react@19.2.0 }` and a lone `lucide-react` dependency, pnpm installed
-`react@18.3.1`; it now installs the pinned `react@19.2.0`
-[#&#8203;13320](https://redirect.github.com/pnpm/pnpm/issues/13320).
-
-- Under `resolvePeersFromWorkspaceRoot`, a workspace root dependency
-declared with `link:` or `file:` (or the path form of `workspace:`, such
-as `workspace:../pkg`) now satisfies another project's missing peer
-dependency at the linked package's own version, instead of being hoisted
-as a path. Those specifiers are relative to the project that declares
-them, so the same specifier reached a different directory — or none —
-from the project the peer was hoisted into, leaving a broken link. The
-root now has the same authority over the peer as it has when it declares
-the package with a version range
-[#&#8203;13373](https://redirect.github.com/pnpm/pnpm/issues/13373).
-
-- Installs through a pnpr server now apply the project's whole
-verification policy. `minimumReleaseAgeExclude`,
-`minimumReleaseAgeIgnoreMissingTime`, `trustPolicy`,
-`trustPolicyExclude`, `trustPolicyIgnoreAfter`, and `trustLockfile` were
-ignored, so excluded packages were still held back and a lockfile
-containing them could be rejected.
-
-`trustPolicy: no-downgrade` no longer fails with
-`TRUST_POLICY_INCOMPATIBLE_WITH_PNPR` when a pnpr server is configured.
-
-`--frozen-lockfile` and `--no-prefer-frozen-lockfile` are now honored on
-the pnpr path, instead of resolving and rewriting the lockfile anyway.
-Since `frozenLockfile` defaults to `true` on CI, a CI install through a
-pnpr server now fails on an out-of-date lockfile rather than updating
-it.
-
-- Workspace installs through a pnpr server no longer crash with `Cannot
-read properties of undefined (reading 'filter')` after linking, when
-`minimumReleaseAge` is active
-[#&#8203;13275](https://redirect.github.com/pnpm/pnpm/issues/13275).
-
-- Fixed `pnpm dedupe` updating valid catalog resolutions when another
-matching version exists in the lockfile.
-
-- `pnpm -r run "/pattern/" --no-bail` no longer exits zero when one of a
-project's matched scripts fails and a later one passes. The run summary
-carries a single status per project, and the passing script overwrote
-the recorded failure.
-
-- Restored the store block a first install prints, naming how packages
-were materialized and where the stores live
-[#&#8203;13315](https://redirect.github.com/pnpm/pnpm/issues/13315):
-
-  ```text
-Packages are hard linked from the content-addressable store to the
-virtual store.
-    Content-addressable store is at: ~/.local/share/pnpm/store/v11
-    Virtual store is at:             node_modules/.pnpm
-  ```
-
-- The root project's `pnpm:devPreinstall` script now runs before
-resolution and linking, as it does in pnpm 11. It is skipped under
-`--ignore-scripts`, `--lockfile-only` and `--dry-run`, by `pnpm fetch`
-and `pnpm rebuild`, and by a repeat install that is already up to date.
-Workspaces that use the hook to prepare state the install depends on —
-such as [next.js](https://redirect.github.com/vercel/next.js), which
-generates a placeholder `next` bin with it — were left with dependents
-linked against files that were never created
-[#&#8203;13313](https://redirect.github.com/pnpm/pnpm/issues/13313).
-
-- Prevented `pnpm dedupe --check` from removing an incompatible
-`node_modules` directory.
-
-- `pnpm update --workspace` no longer links dependencies the user never
-named:
-
-- Running it with `updateConfig.ignoreDependencies` configured no longer
-fails with `ERR_PNPM_WORKSPACE_PACKAGE_NOT_FOUND` for a dependency that
-is only published to the registry. Such dependencies keep their
-specifiers, as they already did when no dependencies were ignored.
-- Passing package selectors that match no direct dependency no longer
-falls back to linking every workspace dependency.
-
-<!-- sponsors -->
-
-#### Platinum Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://bit.cloud/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/bit.svg" width="80" alt="Bit"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://openai.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/openai_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/openai_light.svg" />
-<img src="https://pnpm.io/img/users/openai_dark.svg" width="160"
-alt="OpenAI" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-#### Gold Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://sanity.io/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/sanity.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/sanity_light.svg" />
-<img src="https://pnpm.io/img/users/sanity.svg" width="120" alt="Sanity"
-/>
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://discord.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/discord.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/discord_light.svg" />
-<img src="https://pnpm.io/img/users/discord.svg" width="220"
-alt="Discord" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://vite.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/vitejs.svg" width="42" alt="Vite"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://serpapi.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/serpapi_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/serpapi_light.svg" />
-<img src="https://pnpm.io/img/users/serpapi_dark.svg" width="160"
-alt="SerpApi" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://coderabbit.ai/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/coderabbit.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/coderabbit_light.svg" />
-<img src="https://pnpm.io/img/users/coderabbit.svg" width="220"
-alt="CodeRabbit" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://stackblitz.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/stackblitz.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/stackblitz_light.svg" />
-<img src="https://pnpm.io/img/users/stackblitz.svg" width="190"
-alt="Stackblitz" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://workleap.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/workleap.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/workleap_light.svg" />
-<img src="https://pnpm.io/img/users/workleap.svg" width="190"
-alt="Workleap" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://nx.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/nx.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/nx_light.svg" />
-<img src="https://pnpm.io/img/users/nx.svg" width="50" alt="Nx" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- sponsors end -->
-
-###
-[`v11.17.0`](https://redirect.github.com/pnpm/pnpm/releases/tag/v11.17.0):
-pnpm 11.17
-
-[Compare
-Source](https://redirect.github.com/pnpm/pnpm/compare/v11.16.0...v11.17.0)
-
-##### Minor Changes
-
-- Added a new setting, `update.githubActionsServer`, for specifying the
-base URL of the GitHub server that hosts the repositories of the GitHub
-Actions referenced by the workflow files (for example, a GitHub
-Enterprise Server). When the setting is not defined, the URL is read
-from the `GITHUB_SERVER_URL` environment variable, falling back to
-`https://github.com`. The URL must use the `https://` or `http://`
-protocol
-[#&#8203;13220](https://redirect.github.com/pnpm/pnpm/issues/13220).
-
-`pnpm outdated` and `pnpm update` no longer fail when the refs of a
-GitHub Action's repository cannot be read (for example, when the
-action's repository is private or hosted on a different GitHub server).
-Such actions are now skipped with a warning.
-
-Setting `update.githubActions` to `false` now makes `pnpm outdated` and
-the interactive `pnpm update` skip GitHub Actions dependencies.
-
-##### Patch Changes
-
-- The token poll for web-based authentication no longer reads the body
-of non-OK or still-pending (HTTP 202) responses, and caps the token
-response body it does read at 64 KiB, so a malicious or compromised
-registry cannot exhaust memory through the poll
-[pnpm/pnpm#12721](https://redirect.github.com/pnpm/pnpm/issues/12721).
-
-- Fixed `catalog:` references in dependencies and overrides failing to
-resolve when installing through a pnpr server, which errored with "No
-catalog entry '<name>' was found for catalog 'default'." even though the
-catalog entry existed. Also fixed a crash on Windows when installing a
-nested workspace member (e.g. `packages/foo`) through a pnpr server
-[#&#8203;13232](https://redirect.github.com/pnpm/pnpm/issues/13232).
-
-- Republished every package: the tarballs published by the v11.13.1
-through v11.16.0 releases were missing most of their compiled files due
-to a packing bug
-[#&#8203;13164](https://redirect.github.com/pnpm/pnpm/issues/13164).
-
-- Revert script ordering change for `pnpm run --sequential /regex/`
-
-- Support the `from-git` argument in the `pnpm version` command.
-
-- When the authentication URL cannot be rendered as a QR code (for
-example when it exceeds the maximum QR data capacity), web-based login
-now displays the URL alone with a warning instead of aborting
-authentication
-[pnpm/pnpm#12721](https://redirect.github.com/pnpm/pnpm/issues/12721).
-
-<!-- sponsors -->
-
-##### Platinum Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://bit.cloud/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/bit.svg" width="80" alt="Bit"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://openai.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/openai_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/openai_light.svg" />
-<img src="https://pnpm.io/img/users/openai_dark.svg" width="160"
-alt="OpenAI" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-##### Gold Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://sanity.io/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/sanity.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/sanity_light.svg" />
-<img src="https://pnpm.io/img/users/sanity.svg" width="120" alt="Sanity"
-/>
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://discord.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/discord.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/discord_light.svg" />
-<img src="https://pnpm.io/img/users/discord.svg" width="220"
-alt="Discord" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://vite.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/vitejs.svg" width="42" alt="Vite"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://serpapi.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/serpapi_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/serpapi_light.svg" />
-<img src="https://pnpm.io/img/users/serpapi_dark.svg" width="160"
-alt="SerpApi" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://coderabbit.ai/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/coderabbit.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/coderabbit_light.svg" />
-<img src="https://pnpm.io/img/users/coderabbit.svg" width="220"
-alt="CodeRabbit" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://stackblitz.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/stackblitz.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/stackblitz_light.svg" />
-<img src="https://pnpm.io/img/users/stackblitz.svg" width="190"
-alt="Stackblitz" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://workleap.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/workleap.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/workleap_light.svg" />
-<img src="https://pnpm.io/img/users/workleap.svg" width="190"
-alt="Workleap" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://nx.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/nx.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/nx_light.svg" />
-<img src="https://pnpm.io/img/users/nx.svg" width="50" alt="Nx" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- sponsors end -->
-
-###
-[`v11.16.0`](https://redirect.github.com/pnpm/pnpm/releases/tag/v11.16.0):
-pnpm 11.16
-
-[Compare
-Source](https://redirect.github.com/pnpm/pnpm/compare/v11.15.1...v11.16.0)
-
-#### Minor Changes
-
-- The first release of a package now publishes the version written in
-its manifest verbatim, instead of bumping off it. `pnpm version -r` and
-`pnpm change status` check the registry for each release's current
-version; when that version is not yet published, the package debuts at
-it and its pending changesets apply only from the next release. A newly
-added package seeded at `1100.0.0` with a `minor` changeset is therefore
-published as `1100.0.0` rather than skipping straight to `1100.1.0`.
-
-- Added a `--changeset` flag to `pnpm update`. Set `update.changeset` to
-`true` in `pnpm-workspace.yaml` to enable this behavior by default, and
-use `--no-changeset` to override the setting for one update. After the
-update completes, pnpm writes a `.changeset/pnpm-update-<suffix>.md`
-file declaring a patch bump for every workspace package whose
-`dependencies` or `optionalDependencies` were changed by the update and
-a major bump when `peerDependencies` changed, including packages that
-consume an updated catalog entry via the `catalog:` protocol. Private
-packages, packages without a name, and packages listed in the `ignore`
-array of `.changeset/config.json` are skipped. If
-`.changeset/config.json` does not exist, a warning is printed and no
-changeset is generated.
-
-- Added GitHub Actions dependencies to `pnpm outdated` and interactive
-`pnpm update`. Non-interactive updates can include them with
-`--include-github-actions` or by setting `update.githubActions` to
-`true` in `pnpm-workspace.yaml`. Updated actions are pinned to exact
-commit hashes with their release tags preserved in comments.
-
-- Added `update` and `audit` settings sections to `pnpm-workspace.yaml`,
-superseding the awkwardly named `updateConfig`, `auditConfig`, and
-top-level `auditLevel` settings:
-
-  ```yaml
-  update:
-    ignoreDeps: # was updateConfig.ignoreDependencies
-      - webpack
-      - "@babel/*"
-
-  audit:
-    level: high # was auditLevel
-    ignore: # was auditConfig.ignoreGhsas
-      - GHSA-xxxx-yyyy-zzzz
-  ```
-
-`update.ignoreDeps` lists dependency name patterns that `pnpm update`
-and `pnpm outdated` should skip. `audit.level` and `audit.ignore` tune
-`pnpm audit`.
-
-The deprecated `updateConfig`, `auditConfig`, and `auditLevel` settings
-keep working until the next major version. When both a new section value
-and its deprecated counterpart are set, the new section takes precedence
-and a warning is printed. Both the TypeScript CLI and the Rust config
-surface (pacquet) recognize the new sections.
-
-#### Patch Changes
-
-- Fixed `pnpm add --save-exact`/`--save-prefix` and `pnpm update`
-writing a package's version with the `peerDependencies` range's prefix
-(e.g. `^19.2.7` instead of the requested `19.2.7`) whenever the same
-package also appeared in `peerDependencies`. A real
-`dependencies`/`devDependencies`/`optionalDependencies` entry now takes
-precedence over a same-named `peerDependencies` entry when computing the
-current specifiers
-[#&#8203;13108](https://redirect.github.com/pnpm/pnpm/issues/13108).
-
-<!-- sponsors -->
-
-#### Platinum Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://bit.cloud/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/bit.svg" width="80" alt="Bit"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://openai.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/openai_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/openai_light.svg" />
-<img src="https://pnpm.io/img/users/openai_dark.svg" width="160"
-alt="OpenAI" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-#### Gold Sponsors
-
-<table>
-  <tbody>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://sanity.io/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/sanity.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/sanity_light.svg" />
-<img src="https://pnpm.io/img/users/sanity.svg" width="120" alt="Sanity"
-/>
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://discord.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/discord.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/discord_light.svg" />
-<img src="https://pnpm.io/img/users/discord.svg" width="220"
-alt="Discord" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://vite.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer"><img
-src="https://pnpm.io/img/users/vitejs.svg" width="42" alt="Vite"></a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://serpapi.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/serpapi_dark.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/serpapi_light.svg" />
-<img src="https://pnpm.io/img/users/serpapi_dark.svg" width="160"
-alt="SerpApi" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://coderabbit.ai/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/coderabbit.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/coderabbit_light.svg" />
-<img src="https://pnpm.io/img/users/coderabbit.svg" width="220"
-alt="CodeRabbit" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a
-href="https://stackblitz.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/stackblitz.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/stackblitz_light.svg" />
-<img src="https://pnpm.io/img/users/stackblitz.svg" width="190"
-alt="Stackblitz" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-    <tr>
-      <td align="center" valign="middle">
-<a href="https://workleap.com/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/workleap.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/workleap_light.svg" />
-<img src="https://pnpm.io/img/users/workleap.svg" width="190"
-alt="Workleap" />
-          </picture>
-        </a>
-      </td>
-      <td align="center" valign="middle">
-<a href="https://nx.dev/?utm_source=pnpm&utm_medium=release_notes"
-target="_blank" rel="noopener noreferrer">
-          <picture>
-<source media="(prefers-color-scheme: light)"
-srcset="https://pnpm.io/img/users/nx.svg" />
-<source media="(prefers-color-scheme: dark)"
-srcset="https://pnpm.io/img/users/nx_light.svg" />
-<img src="https://pnpm.io/img/users/nx.svg" width="50" alt="Nx" />
-          </picture>
-        </a>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<!-- sponsors end -->
-
-</details>
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 6am on wednesday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-🔕 **Ignore**: Close this PR and you won't be reminded about this update
-again.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv.dev).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTIuMCIsInRhcmdldEJyYW5jaCI6Im1hc3RlciIsImxhYmVscyI6WyJkZXBlbmRlbmNpZXMiXX0=-->
-[0m
-[0m$ [0mcurl -s "https://api.github.com/repos/google/osv-scanner/commits?per_page=5" | jq -r '.[] | "\(.sha) \(.commit.message)"'
-add393a2e051ea46b7d94aa96e468bbdde1e621d test: add E2E test for openSUSE Leap ecosystem mapping (#2937)
-
-## Summary
-
-Adds an end-to-end test for the openSUSE Leap ecosystem mapping fix that
-just merged in
-[google/osv-scalibr#2290](https://github.com/google/osv-scalibr/pull/2290)
-(closes
-[google/osv-scalibr#2203](https://github.com/google/osv-scalibr/issues/2203)),
-following the same pattern used for the AlmaLinux (#2870) and Mageia
-(#2873) ecosystem E2E tests.
-
-- Adds a pinned `opensuse/leap:15.5` image fixture
-(`test-opensuse-leap-15.5.Dockerfile`).
-- Adds `Scanning_openSUSE_Leap_15.5_image` /
-`scanning_opensuse_leap_15.5_image` cases to `TestCommand_OCIImage` and
-`TestCommand_OCIImage_JSONFormat`, with recorded cassette entries and
-snapshots showing real SUSE-SU advisories detected for `curl` and
-`openssl-1_1`.
-
-While wiring this up I found the `os/rpm` extractor was never registered
-in the `artifact` preset used by image scanning
-(`internal/scalibrplugin/presets.go`), so any RPM-based image, not just
-openSUSE Leap, currently scans with zero package inventory ("No package
-sources found"). This is the same root cause already fixed for AlmaLinux
-in #2870 (commit f995ea59), which hasn't landed on `main` yet, so I
-included the same registration here to unblock this test. Updated the
-snapshots/cassettes it touches (`scan/source`, `internal/output`,
-`internal/scalibrplugin`).
-
-`go.mod` points at a branch on my osv-scalibr fork carrying just the
-openSUSE Leap ecosystem fix cherry-picked onto the same osv-scalibr base
-already used by the AlmaLinux/Mageia branches. Bumping straight to the
-latest osv-scalibr `main` pulls in unrelated breaking API changes
-(`PluginConfig` refactor, Maven client signature changes, etc.) that
-osv-scanner hasn't absorbed yet. This is the same temporary-replace
-pattern used while #2250 was in flight; happy to drop it once either
-this or the AlmaLinux/Mageia scalibr bump lands.
-
-## Test plan
-
-- [x] `go build ./...`: clean
-- [x] `go test ./... -short`: all packages pass
-- [x] `TEST_ACCEPTANCE=true go test ./cmd/osv-scanner/scan/image/...
--run 'TestCommand_OCIImage$|TestCommand_OCIImage_JSONFormat$'`: all
-pass, including the new openSUSE Leap cases
-- [x] Verified the JSON snapshot shows real detections: `curl
-8.0.1-150400.5.50.1` matches `SUSE-SU-2024:3926-1` and
-`SUSE-SU-2024:4359-1`; `openssl-1_1 1.1.1l-150500.17.34.1` matches
-`SUSE-SU-2024:3765-1`; ecosystem `openSUSE:Leap 15.5`; base image
-`opensuse/leap` correctly detected.
-
-
-cc @Ly-Joey: this follows up on your review request on
-google/osv-scalibr#2290 to add E2E coverage for the openSUSE Leap
-ecosystem mapping.
-
----------
-
-Co-authored-by: Rex P <rexpan@google.com>
-Co-authored-by: Rex P <106129829+another-rex@users.noreply.github.com>
-656f850a76a4ea41439d91dfbc16bf3b846eb490 chore(deps): update actions/stale action to v11 (#2961)
-
-This PR contains the following updates:
-
-| Package | Type | Update | Change |
-|---|---|---|---|
-| [actions/stale](https://redirect.github.com/actions/stale) | action |
-major | `v10.4.0` → `v11.0.0` |
-
----
-
-### Release Notes
-
-<details>
-<summary>actions/stale (actions/stale)</summary>
-
-###
-[`v11.0.0`](https://redirect.github.com/actions/stale/releases/tag/v11.0.0)
-
-[Compare
-Source](https://redirect.github.com/actions/stale/compare/v11.0.0...v11.0.0)
-
-#### What's Changed
-
-##### Enhancement
-
-- Migrate to ESM and update dependencies by
-[@&#8203;chiranjib-swain](https://github-grid.enterprise.slack.com/team/U08CVLQ4JKE)
-in [#&#8203;1350](https://redirect.github.com/actions/stale/pull/1350)
-
-##### Dependency Update
-
-- Override brace-expansion to 5.0.8 to address 24 high-severity
-dependency vulnerabilities by
-[@&#8203;dependabot](https://redirect.github.com/dependabot) in
-[#&#8203;1351](https://redirect.github.com/actions/stale/pull/1351)
-
-**Full Changelog**:
-<https://github.com/actions/stale/compare/v10...v11.0.0>
-
-###
-[`v11`](https://redirect.github.com/actions/stale/compare/v10.4.0...v11.0.0)
-
-[Compare
-Source](https://redirect.github.com/actions/stale/compare/v10.4.0...v11.0.0)
-
-</details>
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 6am on monday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-🔕 **Ignore**: Close this PR and you won't be reminded about this update
-again.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv-scanner).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTIuMCIsInRhcmdldEJyYW5jaCI6Im1haW4iLCJsYWJlbHMiOlsiZGVwZW5kZW5jaWVzIl19-->
-a258868211a57052da6bd323f758b8388dee02bb fix: Attempt 3/4 fix macos test timeouts (#2958)
-
-Fix macos test timeouts
-0a11aa246772af0f21e3ce3ca46492a207b2763e chore(deps): update workflows (#2959)
-
-This PR contains the following updates:
-
-| Package | Type | Update | Change | Pending |
-|---|---|---|---|---|
-| [docker/login-action](https://redirect.github.com/docker/login-action)
-| action | minor | `v4.5.1` → `v4.6.0` | |
-|
-[github/codeql-action](https://redirect.github.com/github/codeql-action)
-| action | patch | `v4.37.3` → `v4.37.4` | `v4.37.6` (+1) |
-|
-[tcort/github-action-markdown-link-check](https://redirect.github.com/tcort/github-action-markdown-link-check)
-| action | patch | `v1.1.2` → `v1.1.3` | |
-
----
-
-### Release Notes
-
-<details>
-<summary>docker/login-action (docker/login-action)</summary>
-
-###
-[`v4.6.0`](https://redirect.github.com/docker/login-action/compare/v4.5.2...v4.6.0)
-
-[Compare
-Source](https://redirect.github.com/docker/login-action/compare/v4.5.2...v4.6.0)
-
-###
-[`v4.5.2`](https://redirect.github.com/docker/login-action/compare/v4.5.1...v4.5.2)
-
-[Compare
-Source](https://redirect.github.com/docker/login-action/compare/v4.5.1...v4.5.2)
-
-</details>
-
-<details>
-<summary>github/codeql-action (github/codeql-action)</summary>
-
-###
-[`v4.37.4`](https://redirect.github.com/github/codeql-action/compare/v4.37.3...v4.37.4)
-
-[Compare
-Source](https://redirect.github.com/github/codeql-action/compare/v4.37.3...v4.37.4)
-
-</details>
-
-<details>
-<summary>tcort/github-action-markdown-link-check
-(tcort/github-action-markdown-link-check)</summary>
-
-###
-[`v1.1.3`](https://redirect.github.com/tcort/github-action-markdown-link-check/compare/v1.1.2...v1.1.3)
-
-[Compare
-Source](https://redirect.github.com/tcort/github-action-markdown-link-check/compare/v1.1.2...v1.1.3)
-
-</details>
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 6am on monday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-👻 **Immortal**: This PR will be recreated if closed unmerged. Get
-[config
-help](https://redirect.github.com/renovatebot/renovate/discussions) if
-that's undesired.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv-scanner).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTIuMCIsInRhcmdldEJyYW5jaCI6Im1haW4iLCJsYWJlbHMiOlsiZGVwZW5kZW5jaWVzIl19-->
-c32b46d20c305c1f3826792737ad1c932708edfb chore(deps): lock file maintenance (#2962)
-
-This PR contains the following updates:
-
-| Update | Change |
-|---|---|
-| lockFileMaintenance | All locks refreshed |
-
-🔧 This Pull Request updates lock files to use the latest dependency
-versions.
-
----
-
-### Configuration
-
-📅 **Schedule**: (in timezone Australia/Sydney)
-
-- Branch creation
-  - "before 4am on monday"
-- Automerge
-  - At any time (no schedule defined)
-
-🚦 **Automerge**: Disabled by config. Please merge this manually once you
-are satisfied.
-
-♻ **Rebasing**: Whenever PR becomes conflicted, or you tick the
-rebase/retry checkbox.
-
-👻 **Immortal**: This PR will be recreated if closed unmerged. Get
-[config
-help](https://redirect.github.com/renovatebot/renovate/discussions) if
-that's undesired.
-
----
-
-- [ ] <!-- rebase-check -->If you want to rebase/retry this PR, check
-this box
-
----
-
-This PR was generated by [Mend Renovate](https://mend.io/renovate/).
-View the [repository job
-log](https://developer.mend.io/github/google/osv-scanner).
-
-<!--renovate-debug:eyJjcmVhdGVkSW5WZXIiOiI0NC4xMS40IiwidXBkYXRlZEluVmVyIjoiNDQuMTEuNCIsInRhcmdldEJyYW5jaCI6Im1haW4iLCJsYWJlbHMiOlsiZGVwZW5kZW5jaWVzIl19-->
-
-Co-authored-by: Rex P <106129829+another-rex@users.noreply.github.com>
-[0m
-[0m$ [0mcurl -s "https://api.github.com/repos/google/tsunami-security-scanner/commits?per_page=5" | jq -r '.[] | "\(.sha) \(.commit.message)"'
-363ba87b3543f8ae8e4304d3416818f03da7f262 Merge pull request #156 from doyensec:new-templated-variables
-
-PiperOrigin-RevId: 936702330
-Change-Id: Ie86d25b85468311d0ba8885ca3e2e76e218ffd21
-238a4277e15c1484a7c02adfab89102febbb7d59 fixed test case
-e4e8d6ec1a71f2f7c31d5522c11493c0f1380f20 No public description
-
-PiperOrigin-RevId: 930528155
-Change-Id: Id4313d24e9efe264f89ca73d39cebf2fbdf23a54
-c723152d4de8291e49fc98de492dacf33b3ab1fa Fix asyncio loop creation for Python 3.14
-
-PiperOrigin-RevId: 927208016
-Change-Id: Id67afc0e7eb9e43539960769e63d5e2d75cd084e
-b0b443f9d4b9c6ea33637a1627f386d6aa67d00f changed test cases
-[0m
-# Program: google
-# Phase: RECON
-## Key Findings (one line each, specific)
-- Google VRP covers 6 distinct programs: Google/Alphabet VRP (web), Cloud VRP, AI VRP, Android/Devices VRP, Chrome/ChromeOS VRP, OSS VRP — each with separate rules, scopes, and reward tables
-- Scope includes *.google.com, *.youtube.com, *.blogger.com, *.deepmind.com, *.waymo.com, *.wing.com + Google/Waymo iOS apps; Cloud VRP covers all GCP products (IT1/IT2/IT3 tiers); AI VRP covers Flagship (Search, Gemini, Workspace core), Standard (AI Studio, Jules), and Other tiers
-- Domain tiers published: 50+ TIER0 domains (accounts.google.com, console.cloud.google.com, gemini.google.com, mail.google.com, etc.), 100+ TIER1, 200+ TIER2 — TIER0/1 are highest reward multipliers
-- Certificate transparency reveals 200+ historical subdomains including corp.google.com, sandbox.google.com, *.c.docs.google.com, *.clients*.google.com, adwords regional variants, and legacy/internal hosts (orkut, wifi, freezone, flexpack)
-- Google GitHub org has 100+ public repos; security-relevant: security-research (pocs for 11 vendor categories), osv.dev (vuln DB), osv-scanner (Go vuln scanner), tsunami-security-scanner (Java/Go scanner), atheris (Python fuzzer), bughunters (tier configs)
-- OSS VRP tiers published: OT0 (Flagship: angular, bazel, protobuf, golang/go, tensorflow, flutter, guava, gvisor, tink-crypto) and OT1 (Important: adk-*, filament, flatbuffers, jax, XNNPACK, shaka-player, etc.) — supply chain compromise rewards up to $31,337
-
-## New Endpoints / Assets
-- TIER0 domains: accounts.google.com, admin.google.com, bard.google.com, chrome.google.com, console.cloud.google.com, gemini.google.com, mail.google.com, myaccount.google.com, passwords.google.com, play.google.com, takeout.google.com, vault.google.com, console.firebase.google.com, issuetracker.google.com, cloudsearch.google.com
-- Cloud IT1 products: AlloyDB, App Engine, Artifact Registry, BigQuery, Cloud Build, Cloud KMS, Cloud Run, Cloud SQL, Cloud Storage, Compute Engine, Firestore, GKE, Secret Manager, Vertex AI, Cloud Console, IAM, VPC, Load Balancing, Pub/Sub, Spanner, Bigtable
-- Historical subdomains from CT: *.corp.google.com, *.sandbox.google.com, *.c.docs.google.com, *.clients*.google.com, *.ext.google.com, *.vp.video.l.google.com, adwords.google.com.*, onex.wifi.google.com, hosted-id.google.com, freezone.google.com, flexpack.google.com
-
-## Hypotheses (numbered, with impact + read-only test)
-1. **OAuth redirect_uri validation on TIER0 auth endpoints** — accounts.google.com, myaccount.google.com, admin.google.com handle sensitive auth flows; misconfigured redirect_uri allowlist could enable account takeover via OAuth code theft. Test: GET /.well-known/oauth-authorization-server on TIER0 domains, compare allowlist against known Google OAuth clients.
-2. **Cloud Console (console.cloud.google.com) IAM policy evaluation bypass** — TIER0 domain with IT1 Cloud IAM product; potential for privilege escalation via malformed condition expressions or resource hierarchy traversal. Test: GET /api/cloudresourcemanager/v1/projects/{id}:getIamPolicy on test project (requires auth — read-only design only).
-3. **AI Studio (aistudio.google.com) / Gemini (gemini.google.com) indirect prompt injection via shared context** — AI VRP Flagship tier, S1/S2 categories ($20k/$15k); context manipulation across user sessions via shared documents/drive. Test: GET /api/contentgeneration/v1/models/gemini-pro:generateContent with crafted prompt referencing victim's Drive (requires auth — design only).
-4. **OSS supply chain compromise via GitHub Actions in OT0 repos** — angular/angular, bazelbuild/bazel, golang/go use complex CI; compromised action or malicious PR could inject backdoor into released artifacts. Test: Review .github/workflows/*.yml in OT0 repos for unpinned actions, self-hosted runner risks, secret exposure in logs.
-5. **Subdomain takeover on deprecated *.corp.google.com / *.sandbox.google.com hosts** — CT shows many legacy subdomains; if DNS records point to deprovisioned GCP resources (App Engine, Cloud Run), takeover possible. Test: DNS resolve for each CT subdomain, check CNAME targets against known GCP service patterns (appspot.com, run.app, cloudfunctions.net).
-6. **Vertex AI (aiplatform.googleapis.com) model deployment SSRF via custom container** — IT1 product, allows custom containers; malicious image could access metadata server or internal services. Test: Review Vertex AI custom container docs for network isolation guarantees (public source review only).
-7. **Secret leakage in public repos via Renovate/Dependabot PRs** — osv.dev, osv-scanner show automated dependency PRs with lockfile updates; potential for malicious package substitution if supply chain compromised. Test: Audit recent Renovate PRs in google/osv.dev, google/osv-scanner for unexpected version pins or new dependencies.
-
-## Secrets Check (public repos: what was found, hash only, where)
-- No hardcoded secrets found in recent commits of google/osv.dev, google/osv-scanner, google/tsunami-security-scanner, google/security-research — commits show routine dependency updates, test additions, and CI maintenance
-- Renovate bot PRs in osv.dev/osv-scanner only update Terraform providers, pnpm, GitHub Actions — no API keys, tokens, or credentials in diffs
-- google/security-research/pocs/ contains only vulnerability PoCs for third-party software (LibRaw, Apple, Azure, etc.) — no Google internal secrets
-
-## CVSS Candidates
-- OAuth redirect_uri bypass on TIER0: CVSS 9.1 (AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:N) — account takeover via code theft
-- Cloud Console IAM privilege escalation: CVSS 8.8 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H) — project/org takeover
-- AI indirect prompt injection (S1 Rogue Actions): CVSS 8.2 (AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:L) — sensitive data exfiltration / state change
-- OSS supply chain compromise (OT0): CVSS 9.8 (AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H) — malicious artifact distribution
-- Subdomain takeover on legacy *.corp.google.com: CVSS 7.5 (AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N) — phishing / brand abuse
-- Vertex AI custom container SSRF: CVSS 8.6 (AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L) — internal network access
-
----
-## STATE UPDATE (exact format for parsing)
-STATUS_PHASE: RECON
-STATUS_STATE: IN_PROGRESS
-NEXT_STEP_1: Enumerate live endpoints on TIER0 domains (HEAD /.well-known/*, /api/*, /_ah/*) to map attack surface
-NEXT_STEP_2: Cross-reference CT subdomains with DNS resolution to identify dangling CNAMEs for takeover testing
-NEXT_STEP_3: Deep-dive OT0 repo GitHub Actions configs for supply chain risks (unpinned actions, workflow_dispatch permissions, secret handling)
+ing)
 
 ===== RUN 2026-08-07 09:40:49 UTC | model nemotron3 | target microsoft =====
 [0m
@@ -10490,6 +6962,2794 @@ MY LEADS:
 - [UNVALIDATED] Agent Identity auth providers**: `GET /v1/projects/{project}/locations/{location}/authProviders` — lists `AuthProvider` with `allowedScopes`, `blockedScopes`, `workloadIds`
 
 ## 2026-08-07 12:00:00 UTC [google] (model nemotron3)
+- [UNVALIDATED] Cloud Build private pool**: `GET /v1/projects/{project}/locations/{location}/workerPools/{workerPool}` — returns `privatePoolV1Config.networkConfig` (VPC peering) + `privateServiceConnect`
+- [UNVALIDATED] Cloud Build trigger webhook**: `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:webhook` — accepts JSON payload to trigger build
+- [UNVALIDATED] Artifact Registry virtual repo upstreams**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}?view=FULL` — returns `virtualRepositoryConfig.upstreamPolicies[]` with priority order
+- [UNVALIDATED] Artifact Registry remote repo config**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}` — returns `remoteRepositoryConfig` with `upstreamCredentials`, `disableUpstreamValidation`, per-format settings
+- [UNVALIDATED] Artifact Registry cleanup policies**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}/rules` — lists `CleanupPolicy` with DELETE/KEEP actions
+- [UNVALIDATED] Assured Workloads compliance**: `GET /v1/organizations/{org}/locations/{location}/workloads/{workload}:analyzeWorkloadMove` — validates resource move
+- [UNVALIDATED] BeyondCorp connector health**: `POST /v1/projects/{project}/locations/{location}/appConnectors/{connector}:reportStatus` — connector self-reports status
+- [UNVALIDATED] Cloud KMS key version import**: `POST /v1/projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}/cryptoKeyVersions:import` — imports wrapped key material
+- [UNVALIDATED] Cloud Run service ingress**: `GET /v1/projects/{project}/locations/{location}/services/{service}` — `metadata.annotations['run.googleapis.com/ingress']` + `status.conditions` for ingress status
+- [UNVALIDATED] Cloud Run binary authorization**: `metadata.annotations['run.googleapis.com/binary-authorization']` — BREAKGLASS allows unverified images
+- [UNVALIDATED] Cloud Run custom audiences**: `metadata.annotations['run.googleapis.com/custom-audiences']` — OIDC audience override for service-to-service auth
+
+VALIDATED FINDINGS (do not re-report):
+# no validated findings yet
+
+===== RUN 2026-08-07 13:55:38 UTC | model nemotron3 | target google =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['BuildTrigger', 'Build', 'RepoSource', 'BuildStep', 'GitHubEventsConfig', 'WebhookConfig', 'PubsubConfig', 'DeveloperConnectEventConfig']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== BuildTrigger ===
+{
+  "id": "BuildTrigger",
+  "type": "object",
+  "properties": {
+    "createTime": {
+      "description": "Output only. Time when the trigger was created.",
+      "readOnly": true,
+      "format": "google-datetime",
+      "type": "string"
+    },
+    "includedFiles": {
+      "type": "array",
+      "description": "If any of the files altered in the commit pass the ignored_files filter and included_files is empty, then as far as this filter is concerned, we should trigger the build. If any of the files altered in the commit pass the ignored_files filter and included_files is not empty, then we make sure that at least one of those files matches a included_files glob. If not, then we do not trigger a build.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "tags": {
+      "description": "Tags for annotation of a `BuildTrigger`",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "description": {
+      "description": "Human-readable description of this trigger.",
+      "type": "string"
+    },
+    "id": {
+      "description": "Output only. Unique identifier of the trigger.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "github": {
+      "$ref": "GitHubEventsConfig",
+      "description": "GitHubEventsConfig describes the configuration of a trigger that creates a build whenever a GitHub event is received. Mutually exclusive with `trigger_template`."
+    },
+    "autodetect": {
+      "description": "Autodetect build configuration. The following precedence is used (case insensitive): 1. cloudbuild.yaml 2. cloudbuild.yml 3. cloudbuild.json 4. Dockerfile Currently only available for GitHub App Triggers.",
+      "type": "boolean"
+    },
+    "filename": {
+      "description": "Path, from the source root, to the build configuration file (i.e. cloudbuild.yaml).",
+      "type": "string"
+    },
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "EVENT_TYPE_UNSPECIFIED",
+        "REPO",
+        "WEBHOOK",
+        "PUBSUB",
+        "MANUAL"
+      ],
+      "description": "EventType allows the user to explicitly set the type of event to which this BuildTrigger should respond. This field will be validated against the rest of the configuration if it is set.",
+      "enumDescriptions": [
+        "EVENT_TYPE_UNSPECIFIED event_types are ignored.",
+        "REPO corresponds to the supported VCS integrations.",
+        "WEBHOOK corresponds to webhook triggers.",
+        "PUBSUB corresponds to pubsub triggers.",
+        "MANUAL corresponds to manual-only invoked triggers."
+      ]
+    },
+    "bitbucketServerTriggerConfig": {
+      "description": "BitbucketServerTriggerConfig describes the configuration of a trigger that creates a build whenever a Bitbucket Server event is received.",
+      "$ref": "BitbucketServerTriggerConfig"
+    },
+    "build": {
+      "$ref": "Build",
+      "description": "Contents of the build template."
+    },
+    "approvalConfig": {
+      "description": "Configuration for manual approval to start a build invocation of this BuildTrigger.",
+      "$ref": "ApprovalConfig"
+    },
+    "includeBuildLogs": {
+      "description": "If set to INCLUDE_BUILD_LOGS_WITH_STATUS, log url will be shown on GitHub page when build status is final. Setting this field to INCLUDE_BUILD_LOGS_WITH_STATUS for non GitHub triggers results in INVALID_ARGUMENT error.",
+      "enumDescriptions": [
+        "Build logs will not be shown on GitHub.",
+        "Build logs will be shown on GitHub."
+      ],
+      "type": "string",
+      "enum": [
+        "INCLUDE_BUILD_LOGS_UNSPECIFIED",
+        "INCLUDE_BUILD_LOGS_WITH_STATUS"
+      ]
+    },
+    "repositoryEventConfig": {
+      "$ref": "RepositoryEventConfig",
+      "description": "The configuration of a trigger that creates a build whenever an event from Repo API is received."
+    },
+    "resourceName": {
+      "description": "The `Trigger` name with format: `projects/{project}/locations/{location}/triggers/{trigger}`, where {trigger} is a unique identifier generated by the service.",
+      "type": "string"
+    },
+    "disabled": {
+      "description": "If true, the trigger will never automatically execute a build.",
+      "type": "boolean"
+    },
+    "name": {
+      "description": "User-assigned name of the trigger. Must be unique within the project. Trigger names must meet the following requirements: + They must contain only alphanumeric characters and dashes. + They can be 1-64 characters long. + They must begin and end with an alphanumeric character.",
+      "type": "string"
+    },
+    "gitlabEnterpriseEventsConfig": {
+      "description": "Deprecated: CloudBuild GitLab V1 integration is deprecated. GitLabEnterpriseEventsConfig describes the configuration of a trigger that creates a build whenever a GitLab Enterprise event is received.",
+      "deprecated": true,
+      "$ref": "GitLabEventsConfig"
+    },
+    "filter": {
+      "description": "A Common Expression Language string.",
+      "type": "string"
+    },
+    "pubsubConfig": {
+      "description": "PubsubConfig describes the configuration of a trigger that creates a build whenever a Pub/Sub message is published.",
+      "$ref": "PubsubConfig"
+    },
+    "gitFileSource": {
+      "$ref": "GitFileSource",
+      "description": "The file source describing the local or remote Build template."
+    },
+    "ignoredFiles": {
+      "description": "ignored_files and included_files are file glob matches using https://golang.org/pkg/path/filepath/#Match extended with support for \"**\". If ignored_files and changed files are both empty, then they are not used to determine whether or not to trigger a build. If ignored_files is not empty, then we ignore any files that match any of the ignored_file globs. If the change has no files that are outside of the ignored_files globs, then we do not trigger a build.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "developerConnectEventConfig": {
+      "$ref": "DeveloperConnectEventConfig",
+      "description": "Optional. The configuration of a trigger that creates a build whenever an event from the DeveloperConnect API is received."
+    },
+    "triggerTemplate": {
+      "description": "Template describing the types of source changes to trigger a build. Branch and tag names in trigger templates are interpreted as regular expressions. Any branch or tag change that matches that regular expression will trigger a build. Mutually exclusive with `github`.",
+      "$ref": "RepoSource"
+    },
+    "webhookConfig": {
+      "$ref": "WebhookConfig",
+      "description": "WebhookConfig describes the configuration of a trigger that creates a build whenever a webhook is sent to a trigger's webhook URL."
+    },
+    "substitutions": {
+      "description": "Substitutions for Build resource. The keys must match the following regular expression: `^_[A-Z0-9_]+$`.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "sourceToBuild": {
+      "description": "The repo and ref of the repository from which to build. This field is used only for those triggers that do not respond to SCM events. Triggers that respond to such events build source at whatever commit caused the event. This field is currently only used by Webhook, Pub/Sub, Manual, and Cron triggers.",
+      "$ref": "GitRepoSource"
+    },
+    "serviceAccount": {
+      "description": "The service account used for all user-controlled operations including UpdateBuildTrigger, RunBuildTrigger, CreateBuild, and CancelBuild. If no service account is set and the legacy Cloud Build service account ([PROJECT_NUM]@cloudbuild.gserviceaccount.com) is the default for the project then it will be used instead. Format: `projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT_ID_OR_EMAIL}`",
+      "type": "string"
+    }
+  },
+  "description": "Configuration for an automated build in response to source repository changes."
+}
+
+=== Build ===
+{
+  "description": "A build resource in the Cloud Build API. At a high level, a `Build` describes where to find source code, how to build it (for example, the builder image to run on the source), and where to store the built artifacts. Fields can include the following variables, which will be expanded when the build is created: - $PROJECT_ID: the project ID of the build. - $PROJECT_NUMBER: the project number of the build. - $LOCATION: the location/region of the build. - $BUILD_ID: the autogenerated ID of the build. - $REPO_NAME: the source repository name specified by RepoSource. - $BRANCH_NAME: the branch name specified by RepoSource. - $TAG_NAME: the tag name specified by RepoSource. - $REVISION_ID or $COMMIT_SHA: the commit SHA specified by RepoSource or resolved from the specified branch or tag. - $SHORT_SHA: first 7 characters of $REVISION_ID or $COMMIT_SHA.",
+  "id": "Build",
+  "type": "object",
+  "properties": {
+    "approval": {
+      "description": "Output only. Describes this build's approval configuration, status, and result.",
+      "readOnly": true,
+      "$ref": "BuildApproval"
+    },
+    "source": {
+      "description": "Optional. The location of the source files to build.",
+      "$ref": "Source"
+    },
+    "buildTriggerId": {
+      "type": "string",
+      "description": "Output only. The ID of the `BuildTrigger` that triggered this build, if it was triggered automatically.",
+      "readOnly": true
+    },
+    "startTime": {
+      "description": "Output only. Time at which execution of the build was started.",
+      "readOnly": true,
+      "format": "google-datetime",
+      "type": "string"
+    },
+    "name": {
+      "description": "Output only. The 'Build' name with format: `projects/{project}/locations/{location}/builds/{build}`, where {build} is a unique identifier generated by the service.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "artifacts": {
+      "description": "Artifacts produced by the build that should be uploaded upon successful completion of all build steps.",
+      "$ref": "Artifacts"
+    },
+    "logUrl": {
+      "description": "Output only. URL to logs for this build in Google Cloud Console.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "serviceAccount": {
+      "description": "IAM service account whose credentials will be used at build runtime. Must be of the format `projects/{PROJECT_ID}/serviceAccounts/{ACCOUNT}`. ACCOUNT can be email address or uniqueId of the service account. ",
+      "type": "string"
+    },
+    "substitutions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Substitutions data for `Build` resource."
+    },
+    "timing": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "TimeSpan"
+      },
+      "description": "Output only. Stores timing information for phases of the build. Valid keys are: * BUILD: time to execute all build steps. * PUSH: time to push all artifacts including docker images and non docker artifacts. * FETCHSOURCE: time to fetch source. * SETUPBUILD: time to set up build. If the build does not specify source or images, these keys will not be included.",
+      "readOnly": true
+    },
+    "failureInfo": {
+      "$ref": "FailureInfo",
+      "description": "Output only. Contains information about the build when status=FAILURE.",
+      "readOnly": true
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "STATUS_UNKNOWN",
+        "PENDING",
+        "QUEUED",
+        "WORKING",
+        "SUCCESS",
+        "FAILURE",
+        "INTERNAL_ERROR",
+        "TIMEOUT",
+        "CANCELLED",
+        "EXPIRED"
+      ],
+      "description": "Output only. Status of the build.",
+      "readOnly": true,
+      "enumDescriptions": [
+        "Status of the build is unknown.",
+        "Build has been created and is pending execution and queuing. It has not been queued.",
+        "Build or step is queued; work has not yet begun.",
+        "Build or step is being executed.",
+        "Build or step finished successfully.",
+        "Build or step failed to complete successfully.",
+        "Build or step failed due to an internal cause.",
+        "Build or step took longer than was allowed.",
+        "Build or step was canceled by a user.",
+        "Build was enqueued for longer than the value of `queue_ttl`."
+      ]
+    },
+    "steps": {
+      "description": "Required. The operations to be performed on the workspace.",
+      "items": {
+        "$ref": "BuildStep"
+      },
+      "type": "array"
+    },
+    "sourceProvenance": {
+      "description": "Output only. A permanent fixed identifier for source.",
+      "readOnly": true,
+      "$ref": "SourceProvenance"
+    },
+    "dependencies": {
+      "description": "Optional. Dependencies that the Cloud Build worker will fetch before executing user steps.",
+      "items": {
+        "$ref": "Dependency"
+      },
+      "type": "array"
+    },
+    "options": {
+      "description": "Special options for this build.",
+      "$ref": "BuildOptions"
+    },
+    "id": {
+      "type": "string",
+      "description": "Output only. Unique identifier of the build.",
+      "readOnly": true
+    },
+    "projectId": {
+      "description": "Output only. ID of the project.",
+      "readOnly": true,
+      "type": "string"
+    },
+    "finishTime": {
+      "type": "string",
+      "description": "Output only. Time at which execution of the build was finished. The difference between finish_time and start_time is the duration of the build's execution.",
+      "readOnly": true,
+      "format": "google-datetime"
+    },
+    "secrets": {
+      "description": "Secrets to decrypt using Cloud Key Management Service. Note: Secret Manager is the recommended technique for managing sensitive data with Cloud Build. Use `available_secrets` to configure builds to access secrets from Secret Manager. For instructions, see: https://cloud.google.com/cloud-build/docs/securing-builds/use-secrets",
+      "items": {
+        "$ref": "Secret"
+      },
+      "type": "array"
+    },
+    "tags": {
+      "description": "Tags for annotation of a `Build`. These are not docker tags.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "createTime": {
+      "type": "string",
+      "description": "Output only. Time at which the request to create the build was received.",
+      "readOnly": true,
+      "format": "google-datetime"
+    },
+    "timeout": {
+      "description": "Amount of time that this build should be allowed to run, to second granularity. If this amount of time elapses, work on the build will cease and the build status will be `TIMEOUT`. `timeout` starts ticking from `startTime`. Default time is 60 minutes.",
+      "format": "google-duration",
+      "type": "string"
+    },
+    "logsBucket": {
+      "description": "Cloud Storage bucket where logs should be written (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Logs file names will be of the format `${logs_bucket}/log-${build_id}.txt`.",
+      "type": "string"
+    },
+    "statusDetail": {
+      "type": "string",
+      "description": "Output only. Customer-readable message about the current status.",
+      "readOnly": true
+    },
+    "availableSecrets": {
+      "description": "Secrets and secret environment variables.",
+      "$ref": "Secrets"
+    },
+    "queueTtl": {
+      "description": "TTL in queue for this build. If provided and the build is enqueued longer than this value, the build will expire and the build status will be `EXPIRED`. The TTL starts ticking from create_time.",
+      "format": "google-duration",
+      "type": "string"
+    },
+    "images": {
+      "description": "A list of images to be pushed upon the successful completion of all build steps. The images are pushed using the builder service account's credentials. The digests of the pushed images will be stored in the `Build` resource's results field. If any of the images fail to be pushed, the build status is marked `FAILURE`.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "results": {
+      "$ref": "Results",
+      "description": "Output only. Results of the build.",
+      "readOnly": true
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Output only. Non-fatal problems encountered during the execution of the build.",
+      "readOnly": true,
+      "items": {
+        "$ref": "Warning"
+      }
+    },
+    "gitConfig": {
+      "$ref": "GitConfig",
+      "description": "Optional. Configuration for git operations."
+    }
+  }
+}
+
+=== RepoSource ===
+{
+  "description": "Location of the source in a Google Cloud Source Repository.",
+  "id": "RepoSource",
+  "type": "object",
+  "properties": {
+    "projectId": {
+      "description": "Optional. ID of the project that owns the Cloud Source Repository. If omitted, the project ID requesting the build is assumed.",
+      "type": "string"
+    },
+    "tagName": {
+      "description": "Regex matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
+      "type": "string"
+    },
+    "substitutions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Optional. Substitutions to use in a triggered build. Should only be used with RunBuildTrigger"
+    },
+    "repoName": {
+      "description": "Required. Name of the Cloud Source Repository.",
+      "type": "string"
+    },
+    "commitSha": {
+      "description": "Explicit commit SHA to build.",
+      "type": "string"
+    },
+    "branchName": {
+      "description": "Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
+      "type": "string"
+    },
+    "dir": {
+      "description": "Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step's `dir` is specified and is an absolute path, this value is ignored for that step's execution.",
+      "type": "string"
+    },
+    "invertRegex": {
+      "description": "Optional. Only trigger a build if the revision regex does NOT match the revision regex.",
+      "type": "boolean"
+    }
+  }
+}
+
+=== BuildStep ===
+{
+  "description": "A step in the build pipeline.",
+  "id": "BuildStep",
+  "type": "object",
+  "properties": {
+    "results": {
+      "description": "Declaration of results for this build step.",
+      "items": {
+        "$ref": "StepResult"
+      },
+      "type": "array"
+    },
+    "volumes": {
+      "description": "List of volumes to mount into the build step. Each volume is created as an empty volume prior to execution of the build step. Upon completion of the build, volumes and their contents are discarded. Using a named volume in only one step is not valid as it is indicative of a build request with an incorrect configuration.",
+      "items": {
+        "$ref": "Volume"
+      },
+      "type": "array"
+    },
+    "status": {
+      "description": "Output only. Status of the build step. At this time, build step status is only updated on build completion; step status is not updated in real-time as the build progresses.",
+      "readOnly": true,
+      "type": "string",
+      "enum": [
+        "STATUS_UNKNOWN",
+        "PENDING",
+        "QUEUED",
+        "WORKING",
+        "SUCCESS",
+        "FAILURE",
+        "INTERNAL_ERROR",
+        "TIMEOUT",
+        "CANCELLED",
+        "EXPIRED"
+      ],
+      "enumDescriptions": [
+        "Status of the build is unknown.",
+        "Build has been created and is pending execution and queuing. It has not been queued.",
+        "Build or step is queued; work has not yet begun.",
+        "Build or step is being executed.",
+        "Build or step finished successfully.",
+        "Build or step failed to complete successfully.",
+        "Build or step failed due to an internal cause.",
+        "Build or step took longer than was allowed.",
+        "Build or step was canceled by a user.",
+        "Build was enqueued for longer than the value of `queue_ttl`."
+      ]
+    },
+    "args": {
+      "description": "A list of arguments that will be presented to the step when it is started. If the image used to run the step's container has an entrypoint, the `args` are used as arguments to that entrypoint. If the image does not define an entrypoint, the first element in args is used as the entrypoint, and the remainder will be used as arguments.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "timing": {
+      "description": "Output only. Stores timing information for executing this build step.",
+      "readOnly": true,
+      "$ref": "TimeSpan"
+    },
+    "allowFailure": {
+      "description": "Allow this build step to fail without failing the entire build. If false, the entire build will fail if this step fails. Otherwise, the build will succeed, but this step will still have a failure status. Error information will be reported in the failure_detail field.",
+      "type": "boolean"
+    },
+    "allowExitCodes": {
+      "type": "array",
+      "description": "Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.",
+      "items": {
+        "type": "integer",
+        "format": "int32"
+      }
+    },
+    "entrypoint": {
+      "description": "Entrypoint to be used instead of the build step image's default entrypoint. If unset, the image's default entrypoint is used.",
+      "type": "string"
+    },
+    "timeout": {
+      "type": "string",
+      "description": "Time limit for executing this build step. If not defined, the step has no time limit and will be allowed to continue to run until either it completes or the build itself times out.",
+      "format": "google-duration"
+    },
+    "name": {
+      "description": "Required. The name of the container image that will run this particular build step. If the image is available in the host's Docker daemon's cache, it will be run directly. If not, the host will attempt to pull the image first, using the builder service account's credentials if necessary. The Docker daemon's cache will already have the latest versions of all of the officially supported build steps ([https://github.com/GoogleCloudPlatform/cloud-builders](https://github.com/GoogleCloudPlatform/cloud-builders)). The Docker daemon will also have cached many of the layers for some popular images, like \"ubuntu\", \"debian\", but they will be refreshed at the time you attempt to use them. If you built an image in a previous build step, it will be stored in the host's Docker daemon's cache and is available to use as the name for a later build step.",
+      "type": "string"
+    },
+    "pullTiming": {
+      "$ref": "TimeSpan",
+      "description": "Output only. Stores timing information for pulling this build step's builder image only.",
+      "readOnly": true
+    },
+    "script": {
+      "description": "A shell script to be executed in the step. When script is provided, the user cannot specify the entrypoint or args.",
+      "type": "string"
+    },
+    "waitFor": {
+      "type": "array",
+      "description": "The ID(s) of the step(s) that this build step depends on. This build step will not start until all the build steps in `wait_for` have completed successfully. If `wait_for` is empty, this build step will start when all previous build steps in the `Build.Steps` list have completed successfully.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "env": {
+      "description": "A list of environment variable definitions to be used when running a step. The elements are of the form \"KEY=VALUE\" for the environment variable \"KEY\" being given the value \"VALUE\".",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "exitCode": {
+      "type": "integer",
+      "description": "Output only. Return code from running the step.",
+      "readOnly": true,
+      "format": "int32"
+    },
+    "secretEnv": {
+      "type": "array",
+      "description": "A list of environment variables which are encrypted using a Cloud Key Management Service crypto key. These values must be specified in the build's `Secret`.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "id": {
+      "description": "Unique identifier for this build step, used in `wait_for` to reference this build step as a dependency.",
+      "type": "string"
+    },
+    "dir": {
+      "description": "Working directory to use when running this step's container. If this value is a relative path, it is relative to the build's working directory. If this value is absolute, it may be outside the build's working directory, in which case the contents of the path may not be persisted across build step executions, unless a `volume` for that path is specified. If the build specifies a `RepoSource` with `dir` and a step with a `dir`, which specifies an absolute path, the `RepoSource` `dir` is ignored for the step's execution.",
+      "type": "string"
+    },
+    "automapSubstitutions": {
+      "description": "Option to include built-in and custom substitutions as env variables for this build step. This option will override the global option in BuildOption.",
+      "type": "boolean"
+    }
+  }
+}
+
+=== GitHubEventsConfig ===
+{
+  "description": "GitHubEventsConfig describes the configuration of a trigger that creates a build whenever a GitHub event is received.",
+  "id": "GitHubEventsConfig",
+  "type": "object",
+  "properties": {
+    "pullRequest": {
+      "description": "filter to match changes in pull requests.",
+      "$ref": "PullRequestFilter"
+    },
+    "enterpriseConfigResourceName": {
+      "description": "The resource name of the github enterprise config that should be applied to this installation. For example: \"projects/{$project_id}/locations/{$location_id}/githubEnterpriseConfigs/{$config_id}\"",
+      "type": "string"
+    },
+    "installationId": {
+      "deprecated": true,
+      "description": "The installationID that emits the GitHub event.",
+      "format": "int64",
+      "type": "string"
+    },
+    "owner": {
+      "description": "Owner of the repository. For example: The owner for https://github.com/googlecloudplatform/cloud-builders is \"googlecloudplatform\".",
+      "type": "string"
+    },
+    "push": {
+      "$ref": "PushFilter",
+      "description": "filter to match changes in refs like branches, tags."
+    },
+    "name": {
+      "description": "Name of the repository. For example: The name for https://github.com/googlecloudplatform/cloud-builders is \"cloud-builders\".",
+      "type": "string"
+    }
+  }
+}
+
+=== WebhookConfig ===
+{
+  "id": "WebhookConfig",
+  "type": "object",
+  "properties": {
+    "secret": {
+      "description": "Required. Resource name for the secret required as a URL parameter.",
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "OK",
+        "SECRET_DELETED"
+      ],
+      "enumDescriptions": [
+        "The webhook auth configuration not been checked.",
+        "The auth configuration is properly setup.",
+        "The secret provided in auth_method has been deleted."
+      ],
+      "description": "Potential issues with the underlying Pub/Sub subscription configuration. Only populated on get requests."
+    }
+  },
+  "description": "WebhookConfig describes the configuration of a trigger that creates a build whenever a webhook is sent to a trigger's webhook URL."
+}
+
+=== PubsubConfig ===
+{
+  "id": "PubsubConfig",
+  "type": "object",
+  "properties": {
+    "serviceAccountEmail": {
+      "description": "Service account that will make the push request.",
+      "type": "string"
+    },
+    "state": {
+      "enumDescriptions": [
+        "The subscription configuration has not been checked.",
+        "The Pub/Sub subscription is properly configured.",
+        "The subscription has been deleted.",
+        "The topic has been deleted.",
+        "Some of the subscription's field are misconfigured."
+      ],
+      "description": "Potential issues with the underlying Pub/Sub subscription configuration. Only populated on get requests.",
+      "type": "string",
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "OK",
+        "SUBSCRIPTION_DELETED",
+        "TOPIC_DELETED",
+        "SUBSCRIPTION_MISCONFIGURED"
+      ]
+    },
+    "subscription": {
+      "type": "string",
+      "description": "Output only. Name of the subscription. Format is `projects/{project}/subscriptions/{subscription}`.",
+      "readOnly": true
+    },
+    "topic": {
+      "description": "Optional. The name of the topic from which this subscription is receiving messages. Format is `projects/{project}/topics/{topic}`.",
+      "type": "string"
+    }
+  },
+  "description": "PubsubConfig describes the configuration of a trigger that creates a build whenever a Pub/Sub message is published."
+}
+
+=== DeveloperConnectEventConfig ===
+{
+  "id": "DeveloperConnectEventConfig",
+  "type": "object",
+  "properties": {
+    "pullRequest": {
+      "$ref": "PullRequestFilter",
+      "description": "Filter to match changes in pull requests."
+    },
+    "gitRepositoryLink": {
+      "description": "Required. The Developer Connect Git repository link, formatted as `projects/*/locations/*/connections/*/gitRepositoryLink/*`.",
+      "type": "string"
+    },
+    "gitRepositoryLinkType": {
+      "enumDescriptions": [
+        "If unspecified, GitRepositoryLinkType defaults to GITHUB.",
+        "The SCM repo is GITHUB.",
+        "The SCM repo is GITHUB_ENTERPRISE.",
+        "The SCM repo is GITLAB.",
+        "The SCM repo is GITLAB_ENTERPRISE.",
+        "The SCM repo is BITBUCKET_DATA_CENTER.",
+        "The SCM repo is BITBUCKET_CLOUD."
+      ],
+      "description": "Output only. The type of DeveloperConnect GitRepositoryLink.",
+      "readOnly": true,
+      "type": "string",
+      "enum": [
+        "GIT_REPOSITORY_LINK_TYPE_UNSPECIFIED",
+        "GITHUB",
+        "GITHUB_ENTERPRISE",
+        "GITLAB",
+        "GITLAB_ENTERPRISE",
+        "BITBUCKET_DATA_CENTER",
+        "BITBUCKET_CLOUD"
+      ]
+    },
+    "push": {
+      "description": "Filter to match changes in refs like branches and tags.",
+      "$ref": "PushFilter"
+    }
+  },
+  "description": "The configuration of a trigger that creates a build whenever an event from the DeveloperConnect API is received."
+}
+[0m
+[0m$ [0mcurl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['UpstreamCredentials', 'DockerRepository', 'NpmRepository', 'MavenRepository', 'PythonRepository', 'AptRepository', 'YumRepository', 'CommonRemoteRepository', 'RemoteRepositoryConfig', 'VirtualRepositoryConfig', 'UpstreamPolicy']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== UpstreamCredentials ===
+{
+  "type": "object",
+  "id": "UpstreamCredentials",
+  "description": "The credentials to access the remote repository.",
+  "properties": {
+    "usernamePasswordCredentials": {
+      "description": "Use username and password to access the remote repository.",
+      "$ref": "UsernamePasswordCredentials"
+    }
+  }
+}
+
+=== DockerRepository ===
+{
+  "id": "DockerRepository",
+  "description": "Configuration for a Docker remote repository.",
+  "properties": {
+    "customRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository",
+      "description": "Customer-specified remote repository."
+    },
+    "publicRepository": {
+      "description": "One of the publicly available Docker repositories supported by Artifact Registry.",
+      "enum": [
+        "PUBLIC_REPOSITORY_UNSPECIFIED",
+        "DOCKER_HUB"
+      ],
+      "type": "string",
+      "enumDescriptions": [
+        "Unspecified repository.",
+        "Docker Hub."
+      ]
+    }
+  },
+  "type": "object"
+}
+
+=== NpmRepository ===
+{
+  "type": "object",
+  "id": "NpmRepository",
+  "description": "Configuration for a Npm remote repository.",
+  "properties": {
+    "customRepository": {
+      "description": "Customer-specified remote repository.",
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository"
+    },
+    "publicRepository": {
+      "description": "One of the publicly available Npm repositories supported by Artifact Registry.",
+      "enum": [
+        "PUBLIC_REPOSITORY_UNSPECIFIED",
+        "NPMJS"
+      ],
+      "type": "string",
+      "enumDescriptions": [
+        "Unspecified repository.",
+        "npmjs."
+      ]
+    }
+  }
+}
+
+=== MavenRepository ===
+{
+  "id": "MavenRepository",
+  "description": "Configuration for a Maven remote repository.",
+  "properties": {
+    "customRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository",
+      "description": "Customer-specified remote repository."
+    },
+    "publicRepository": {
+      "description": "One of the publicly available Maven repositories supported by Artifact Registry.",
+      "enum": [
+        "PUBLIC_REPOSITORY_UNSPECIFIED",
+        "MAVEN_CENTRAL"
+      ],
+      "type": "string",
+      "enumDescriptions": [
+        "Unspecified repository.",
+        "Maven Central."
+      ]
+    }
+  },
+  "type": "object"
+}
+
+=== PythonRepository ===
+{
+  "id": "PythonRepository",
+  "description": "Configuration for a Python remote repository.",
+  "properties": {
+    "publicRepository": {
+      "type": "string",
+      "enumDescriptions": [
+        "Unspecified repository.",
+        "PyPI."
+      ],
+      "description": "One of the publicly available Python repositories supported by Artifact Registry.",
+      "enum": [
+        "PUBLIC_REPOSITORY_UNSPECIFIED",
+        "PYPI"
+      ]
+    },
+    "customRepository": {
+      "description": "Customer-specified remote repository.",
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository"
+    }
+  },
+  "type": "object"
+}
+
+=== AptRepository ===
+{
+  "id": "AptRepository",
+  "description": "Configuration for an Apt remote repository.",
+  "properties": {
+    "publicRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryPublicRepository",
+      "description": "One of the publicly available Apt repositories supported by Artifact Registry."
+    },
+    "customRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository",
+      "description": "Customer-specified remote repository."
+    }
+  },
+  "type": "object"
+}
+
+=== YumRepository ===
+{
+  "id": "YumRepository",
+  "description": "Configuration for a Yum remote repository.",
+  "properties": {
+    "customRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository",
+      "description": "Customer-specified remote repository."
+    },
+    "publicRepository": {
+      "$ref": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPublicRepository",
+      "description": "One of the publicly available Yum repositories supported by Artifact Registry."
+    }
+  },
+  "type": "object"
+}
+
+=== CommonRemoteRepository ===
+{
+  "id": "CommonRemoteRepository",
+  "description": "Common remote repository settings type.",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "description": "Required. A common public repository base for remote repository."
+    }
+  },
+  "type": "object"
+}
+
+=== RemoteRepositoryConfig ===
+{
+  "type": "object",
+  "id": "RemoteRepositoryConfig",
+  "description": "Remote repository configuration.",
+  "properties": {
+    "dockerRepository": {
+      "$ref": "DockerRepository",
+      "description": "Specific settings for a Docker remote repository."
+    },
+    "aptRepository": {
+      "description": "Specific settings for an Apt remote repository.",
+      "$ref": "AptRepository"
+    },
+    "upstreamCredentials": {
+      "description": "Optional. The credentials used to access the remote repository.",
+      "$ref": "UpstreamCredentials"
+    },
+    "disableUpstreamValidation": {
+      "type": "boolean",
+      "description": "Input only. A create/update remote repo option to avoid making a HEAD/GET request to validate a remote repo and any supplied upstream credentials."
+    },
+    "noCache": {
+      "$ref": "NoCacheFetching",
+      "description": "The remote repository will act as a non-caching proxy."
+    },
+    "npmRepository": {
+      "description": "Specific settings for an Npm remote repository.",
+      "$ref": "NpmRepository"
+    },
+    "yumRepository": {
+      "description": "Specific settings for a Yum remote repository.",
+      "$ref": "YumRepository"
+    },
+    "description": {
+      "description": "The description of the remote source.",
+      "type": "string"
+    },
+    "pythonRepository": {
+      "description": "Specific settings for a Python remote repository.",
+      "$ref": "PythonRepository"
+    },
+    "mavenRepository": {
+      "$ref": "MavenRepository",
+      "description": "Specific settings for a Maven remote repository."
+    },
+    "commonRepository": {
+      "$ref": "CommonRemoteRepository",
+      "description": "Common remote repository settings. Used as the remote repository upstream URL."
+    }
+  }
+}
+
+=== VirtualRepositoryConfig ===
+{
+  "type": "object",
+  "id": "VirtualRepositoryConfig",
+  "description": "Virtual repository configuration.",
+  "properties": {
+    "upstreamPolicies": {
+      "items": {
+        "$ref": "UpstreamPolicy"
+      },
+      "description": "Policies that configure the upstream artifacts distributed by the Virtual Repository. Upstream policies cannot be set on a standard repository.",
+      "type": "array"
+    }
+  }
+}
+
+=== UpstreamPolicy ===
+{
+  "id": "UpstreamPolicy",
+  "description": "Artifact policy configuration for the repository contents.",
+  "properties": {
+    "priority": {
+      "type": "integer",
+      "description": "Entries with a greater priority value take precedence in the pull order.",
+      "format": "int32"
+    },
+    "id": {
+      "description": "The user-provided ID of the upstream policy.",
+      "type": "string"
+    },
+    "repository": {
+      "type": "string",
+      "description": "A reference to the repository resource, for example: `projects/p1/locations/us-central1/repositories/repo1`."
+    }
+  },
+  "type": "object"
+}
+[0m
+[0m$ [0mcurl -s "https://run.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['ServiceSpec', 'RevisionSpec', 'ConfigurationSpec', 'ObjectMeta', 'ServiceStatus', 'RevisionStatus']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== ServiceSpec ===
+{
+  "type": "object",
+  "id": "ServiceSpec",
+  "description": "ServiceSpec holds the desired state of the Route (from the client), which is used to manipulate the underlying Route and Configuration(s).",
+  "properties": {
+    "template": {
+      "description": "Holds the latest specification for the Revision to be stamped out.",
+      "$ref": "RevisionTemplate"
+    },
+    "traffic": {
+      "type": "array",
+      "items": {
+        "$ref": "TrafficTarget"
+      },
+      "description": "Specifies how to distribute traffic over a collection of Knative Revisions and Configurations to the Service's main URL."
+    }
+  }
+}
+
+=== RevisionSpec ===
+{
+  "id": "RevisionSpec",
+  "description": "RevisionSpec holds the desired state of the Revision (from the client).",
+  "properties": {
+    "containerConcurrency": {
+      "type": "integer",
+      "format": "int32",
+      "description": "ContainerConcurrency specifies the maximum allowed in-flight (concurrent) requests per container instance of the Revision. If not specified or 0, defaults to 80 when requested CPU >= 1 and defaults to 1 when requested CPU < 1."
+    },
+    "timeoutSeconds": {
+      "type": "integer",
+      "description": "Optional. TimeoutSeconds holds the max duration the instance is allowed for responding to a request. Cloud Run: defaults to 300 seconds (5 minutes). Maximum allowed value is 3600 seconds (1 hour).",
+      "format": "int32"
+    },
+    "containers": {
+      "type": "array",
+      "items": {
+        "$ref": "Container"
+      },
+      "description": "Required. Containers holds the list which define the units of execution for this Revision."
+    },
+    "runtimeClassName": {
+      "description": "Optional. Runtime. Leave unset for default.",
+      "type": "string"
+    },
+    "nodeSelector": {
+      "description": "Optional. The Node Selector configuration. Map of selector key to a value which matches a node.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "imagePullSecrets": {
+      "description": "Not supported by Cloud Run.",
+      "type": "array",
+      "items": {
+        "$ref": "LocalObjectReference"
+      }
+    },
+    "volumes": {
+      "type": "array",
+      "items": {
+        "$ref": "Volume"
+      }
+    },
+    "serviceAccountName": {
+      "description": "Email address of the IAM service account associated with the revision of the service. The service account represents the identity of the running revision, and determines what permissions the revision has. If not provided, the revision will use the project's default service account.",
+      "type": "string"
+    },
+    "enableServiceLinks": {
+      "description": "Not supported by Cloud Run.",
+      "type": "boolean"
+    }
+  },
+  "type": "object"
+}
+
+=== ConfigurationSpec ===
+{
+  "id": "ConfigurationSpec",
+  "description": "ConfigurationSpec holds the desired state of the Configuration (from the client).",
+  "properties": {
+    "template": {
+      "description": "Template holds the latest specification for the Revision to be stamped out.",
+      "$ref": "RevisionTemplate"
+    }
+  },
+  "type": "object"
+}
+
+=== ObjectMeta ===
+{
+  "id": "ObjectMeta",
+  "description": "google.cloud.run.meta.v1.ObjectMeta is metadata that all persisted resources must have, which includes all objects users must create.",
+  "properties": {
+    "namespace": {
+      "description": "Required. Defines the space within each name must be unique within a Cloud Run region. In Cloud Run, it must be project ID or number.",
+      "type": "string"
+    },
+    "selfLink": {
+      "description": "URL representing this object.",
+      "type": "string"
+    },
+    "generation": {
+      "format": "int32",
+      "description": "A system-provided sequence number representing a specific generation of the desired state.",
+      "type": "integer"
+    },
+    "labels": {
+      "description": "Map of string keys and values that can be used to organize and categorize (scope and select) objects. May match selectors of replication controllers and routes.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object"
+    },
+    "resourceVersion": {
+      "description": "Opaque, system-generated value that represents the internal version of this object that can be used by clients to determine when objects have changed. May be used for optimistic concurrency, change detection, and the watch operation on a resource or set of resources. Clients must treat these values as opaque and passed unmodified back to the server or omit the value to disable conflict-detection.",
+      "type": "string"
+    },
+    "deletionTimestamp": {
+      "type": "string",
+      "description": "The read-only soft deletion timestamp for this resource. In Cloud Run, users are not able to set this field. Instead, they must call the corresponding Delete API.",
+      "format": "google-datetime"
+    },
+    "generateName": {
+      "description": "Optional. A prefix for the resource name if not provided in the create request. Must be less than 31 characters to allow for a random suffix.",
+      "type": "string"
+    },
+    "uid": {
+      "description": "Unique, system-generated identifier for this resource.",
+      "type": "string"
+    },
+    "creationTimestamp": {
+      "type": "string",
+      "format": "google-datetime",
+      "description": "UTC timestamp representing the server time when this object was created."
+    },
+    "clusterName": {
+      "description": "Not supported by Cloud Run",
+      "type": "string"
+    },
+    "finalizers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Not supported by Cloud Run"
+    },
+    "name": {
+      "description": "Optional. The name of the resource. A name for creating top-level resources (Service, Job, WorkerPool). Must be unique within a Cloud Run project/region, and cannot be changed once created. If omitted, a default name will be generated.",
+      "type": "string"
+    },
+    "deletionGracePeriodSeconds": {
+      "description": "Not supported by Cloud Run",
+      "format": "int32",
+      "type": "integer"
+    },
+    "annotations": {
+      "type": "object",
+      "description": "Unstructured key value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. In Cloud Run, annotations with 'run.googleapis.com/' and 'autoscaling.knative.dev' are restricted, and the accepted annotations will be different depending on the resource type. * `autoscaling.knative.dev/maxScale`: Revision. * `autoscaling.knative.dev/minScale`: Revision. * `run.googleapis.com/base-images`: Service, Revision. * `run.googleapis.com/binary-authorization-breakglass`: Service, Job, * `run.googleapis.com/binary-authorization`: Service, Job, Execution. * `run.googleapis.com/build-base-image`: Service. * `run.googleapis.com/build-enable-automatic-updates`: Service. * `run.googleapis.com/build-environment-variables`: Service. * `run.googleapis.com/build-function-target`: Service, Revision. * `run.googleapis.com/build-id`: Service, Revision. * `run.googleapis.com/build-image-uri`: Service. * `run.googleapis.com/build-name`: Service. * `run.googleapis.com/build-service-account`: Service. * `run.googleapis.com/build-source-location`: Service, Revision. * `run.googleapis.com/build-worker-pool`: Service. * `run.googleapis.com/client-name`: All resources. * `run.googleapis.com/cloudsql-instances`: Revision, Execution, Instance. * `run.googleapis.com/container-dependencies`: Revision . * `run.googleapis.com/cpu-throttling`: Revision. * `run.googleapis.com/custom-audiences`: Service. * `run.googleapis.com/default-url-disabled`: Service. * `run.googleapis.com/description`: Service. * `run.googleapis.com/encryption-key-shutdown-hours`: Revision * `run.googleapis.com/encryption-key`: Revision, Execution, Instance. * `run.googleapis.com/execution-environment`: Revision, Execution. * `run.googleapis.com/gc-traffic-tags`: Service. * `run.googleapis.com/gpu-zonal-redundancy-disabled`: Revision. * `run.googleapis.com/health-check-disabled`: Revision. * `run.googleapis.com/ingress`: Service, Instance. * `run.googleapis.com/invoker-iam-disabled`: Service, Instance. * `run.googleapis.com/launch-stage`: Service, Job. * `run.googleapis.com/minScale`: Service. * `run.googleapis.com/maxScale`: Service. * `run.googleapis.com/manualInstanceCount`: Service. * `run.googleapis.com/network-interfaces`: Revision, Execution, Instance. * `run.googleapis.com/post-key-revocation-action-type`: Revision. `run.googleapis.com/scalingMode`: Service. * `run.googleapis.com/secrets`: Revision, Execution. * `run.googleapis.com/secure-session-agent`: Revision. * `run.googleapis.com/sessionAffinity`: Revision. * `run.googleapis.com/startup-cpu-boost`: Revision. * `run.googleapis.com/vpc-access-connector`: Revision, Execution. * `run.googleapis.com/vpc-access-egress`: Revision, Execution, Instance.",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "ownerReferences": {
+      "type": "array",
+      "items": {
+        "$ref": "OwnerReference"
+      },
+      "description": "Not supported by Cloud Run"
+    }
+  },
+  "type": "object"
+}
+
+=== ServiceStatus ===
+{
+  "type": "object",
+  "id": "ServiceStatus",
+  "description": "The current state of the Service. Output only.",
+  "properties": {
+    "observedGeneration": {
+      "type": "integer",
+      "description": "Returns the generation last seen by the system. Clients polling for completed reconciliation should poll until observedGeneration = metadata.generation and the Ready condition's status is True or False.",
+      "format": "int32"
+    },
+    "conditions": {
+      "description": "Conditions communicate information about ongoing/complete reconciliation processes that bring the `spec` inline with the observed state of the world. Service-specific conditions include: * `ConfigurationsReady`: `True` when the underlying Configuration is ready. * `RoutesReady`: `True` when the underlying Route is ready. * `Ready`: `True` when all underlying resources are ready.",
+      "type": "array",
+      "items": {
+        "$ref": "GoogleCloudRunV1Condition"
+      }
+    },
+    "url": {
+      "description": "URL that will distribute traffic over the provided traffic targets. It generally has the form `https://{route-hash}-{project-hash}-{cluster-level-suffix}.a.run.app`",
+      "type": "string"
+    },
+    "latestReadyRevisionName": {
+      "description": "Name of the latest Revision from this Service's Configuration that has had its `Ready` condition become `True`.",
+      "type": "string"
+    },
+    "traffic": {
+      "type": "array",
+      "items": {
+        "$ref": "TrafficTarget"
+      },
+      "description": "Holds the configured traffic distribution. These entries will always contain RevisionName references. When ConfigurationName appears in the spec, this will hold the LatestReadyRevisionName that we last observed."
+    },
+    "latestCreatedRevisionName": {
+      "description": "Name of the last revision that was created from this Service's Configuration. It might not be ready yet, for that use LatestReadyRevisionName.",
+      "type": "string"
+    },
+    "address": {
+      "description": "Similar to url, information on where the service is available on HTTP.",
+      "$ref": "Addressable"
+    }
+  }
+}
+
+=== RevisionStatus ===
+{
+  "id": "RevisionStatus",
+  "description": "RevisionStatus communicates the observed state of the Revision (from the controller).",
+  "properties": {
+    "observedGeneration": {
+      "type": "integer",
+      "description": "ObservedGeneration is the 'Generation' of the Revision that was last processed by the controller. Clients polling for completed reconciliation should poll until observedGeneration = metadata.generation, and the Ready condition's status is True or False.",
+      "format": "int32"
+    },
+    "conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "GoogleCloudRunV1Condition"
+      },
+      "description": "Conditions communicate information about ongoing/complete reconciliation processes that bring the \"spec\" inline with the observed state of the world. As a Revision is being prepared, it will incrementally update conditions. Revision-specific conditions include: * `ResourcesAvailable`: `True` when underlying resources have been provisioned. * `ContainerHealthy`: `True` when the Revision readiness check completes. * `Active`: `True` when the Revision may receive traffic."
+    },
+    "desiredReplicas": {
+      "format": "int32",
+      "description": "Output only. The configured number of instances running this revision. For Cloud Run, this only includes instances provisioned using the minScale annotation. It does not include instances created by autoscaling.",
+      "readOnly": true,
+      "type": "integer"
+    },
+    "imageDigest": {
+      "description": "ImageDigest holds the resolved digest for the image specified within .Spec.Container.Image. The digest is resolved during the creation of Revision. This field holds the digest value regardless of whether a tag or digest was originally specified in the Container object.",
+      "type": "string"
+    },
+    "logUrl": {
+      "description": "Optional. Specifies the generated logging url for this particular revision based on the revision url template specified in the controller's config.",
+      "type": "string"
+    },
+    "serviceName": {
+      "description": "Not currently used by Cloud Run.",
+      "type": "string"
+    }
+  },
+  "type": "object"
+}
+[0m
+[0m$ [0mcurl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['UsernamePasswordCredentials', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository', 'GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository', 'NoCacheFetching']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== UsernamePasswordCredentials ===
+{
+  "id": "UsernamePasswordCredentials",
+  "properties": {
+    "username": {
+      "type": "string",
+      "description": "The username to access the remote repository."
+    },
+    "passwordSecretVersion": {
+      "type": "string",
+      "description": "The Secret Manager key version that holds the password to access the remote repository. Must be in the format of `projects/{project}/secrets/{secret}/versions/{version}`."
+    }
+  },
+  "description": "Username and password credentials.",
+  "type": "object"
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository ===
+{
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigDockerRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "description": "An http/https uri reference to the custom remote repository, for ex: \"https://registry-1.docker.io\"."
+    }
+  },
+  "description": "Customer-specified publicly available remote repository.",
+  "type": "object"
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository ===
+{
+  "description": "Customer-specified publicly available remote repository.",
+  "type": "object",
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigNpmRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "description": "An http/https uri reference to the upstream remote repository, for ex: \"https://my.npm.registry/\".",
+      "type": "string"
+    }
+  }
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository ===
+{
+  "description": "Customer-specified publicly available remote repository.",
+  "type": "object",
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigMavenRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "description": "An http/https uri reference to the upstream remote repository, for ex: \"https://my.maven.registry/\"."
+    }
+  }
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository ===
+{
+  "type": "object",
+  "description": "Customer-specified publicly available remote repository.",
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigPythonRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "description": "An http/https uri reference to the upstream remote repository, for ex: \"https://my.python.registry/\".",
+      "type": "string"
+    }
+  }
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository ===
+{
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigAptRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "description": "An http/https uri reference to the upstream remote repository, for ex: \"https://my.apt.registry/\"."
+    }
+  },
+  "type": "object",
+  "description": "Customer-specified publicly available remote repository."
+}
+
+=== GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository ===
+{
+  "description": "Customer-specified publicly available remote repository.",
+  "type": "object",
+  "id": "GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryCustomRepository",
+  "properties": {
+    "uri": {
+      "type": "string",
+      "description": "An http/https uri reference to the upstream remote repository, for ex: \"https://my.yum.registry/\"."
+    }
+  }
+}
+
+=== NoCacheFetching ===
+{
+  "id": "NoCacheFetching",
+  "properties": {},
+  "description": "The configuration for the no-cache fetching mode, which acts as a non-caching proxy.",
+  "type": "object"
+}
+[0m
+[0m$ [0mcurl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['WebhookConfig', 'GitRepoSource', 'PushFilter', 'PullRequestFilter', 'GitFileSource', 'RepositoryEventConfig', 'ApprovalConfig', 'BitbucketServerTriggerConfig', 'GitLabEventsConfig', 'BuildOptions', 'Results', 'SourceProvenance', 'Secret', 'Secrets', 'InlineSecret', 'SecretManagerSecret']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== WebhookConfig ===
+{
+  "id": "WebhookConfig",
+  "type": "object",
+  "properties": {
+    "secret": {
+      "description": "Required. Resource name for the secret required as a URL parameter.",
+      "type": "string"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "STATE_UNSPECIFIED",
+        "OK",
+        "SECRET_DELETED"
+      ],
+      "enumDescriptions": [
+        "The webhook auth configuration not been checked.",
+        "The auth configuration is properly setup.",
+        "The secret provided in auth_method has been deleted."
+      ],
+      "description": "Potential issues with the underlying Pub/Sub subscription configuration. Only populated on get requests."
+    }
+  },
+  "description": "WebhookConfig describes the configuration of a trigger that creates a build whenever a webhook is sent to a trigger's webhook URL."
+}
+
+=== GitRepoSource ===
+{
+  "id": "GitRepoSource",
+  "type": "object",
+  "properties": {
+    "repository": {
+      "description": "The connected repository resource name, in the format `projects/*/locations/*/connections/*/repositories/*`. Either `uri` or `repository` can be specified and is required.",
+      "type": "string"
+    },
+    "ref": {
+      "description": "The branch or tag to use. Must start with \"refs/\" (required).",
+      "type": "string"
+    },
+    "githubEnterpriseConfig": {
+      "description": "The full resource name of the github enterprise config. Format: `projects/{project}/locations/{location}/githubEnterpriseConfigs/{id}`. `projects/{project}/githubEnterpriseConfigs/{id}`.",
+      "type": "string"
+    },
+    "repoType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "CLOUD_SOURCE_REPOSITORIES",
+        "GITHUB",
+        "BITBUCKET_SERVER",
+        "GITLAB",
+        "BITBUCKET_CLOUD"
+      ],
+      "description": "See RepoType below.",
+      "enumDescriptions": [
+        "The default, unknown repo type. Don't use it, instead use one of the other repo types.",
+        "A Google Cloud Source Repositories-hosted repo.",
+        "A GitHub-hosted repo not necessarily on \"github.com\" (i.e. GitHub Enterprise).",
+        "A Bitbucket Server-hosted repo.",
+        "A GitLab-hosted repo.",
+        "A Bitbucket Cloud-hosted repo."
+      ]
+    },
+    "uri": {
+      "description": "The URI of the repo (e.g. https://github.com/user/repo.git). Either `uri` or `repository` can be specified and is required.",
+      "type": "string"
+    },
+    "bitbucketServerConfig": {
+      "description": "The full resource name of the bitbucket server config. Format: `projects/{project}/locations/{location}/bitbucketServerConfigs/{id}`.",
+      "type": "string"
+    }
+  },
+  "description": "GitRepoSource describes a repo and ref of a code repository."
+}
+
+=== PushFilter ===
+{
+  "description": "Push contains filter properties for matching GitHub git pushes.",
+  "id": "PushFilter",
+  "type": "object",
+  "properties": {
+    "invertRegex": {
+      "description": "When true, only trigger a build if the revision regex does NOT match the git_ref regex.",
+      "type": "boolean"
+    },
+    "tag": {
+      "description": "Regexes matching tags to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
+      "type": "string"
+    },
+    "branch": {
+      "description": "Regexes matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
+      "type": "string"
+    }
+  }
+}
+
+=== PullRequestFilter ===
+{
+  "description": "PullRequestFilter contains filter properties for matching GitHub Pull Requests.",
+  "id": "PullRequestFilter",
+  "type": "object",
+  "properties": {
+    "invertRegex": {
+      "description": "If true, branches that do NOT match the git_ref will trigger a build.",
+      "type": "boolean"
+    },
+    "branch": {
+      "description": "Regex of branches to match. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax",
+      "type": "string"
+    },
+    "commentControl": {
+      "type": "string",
+      "enum": [
+        "COMMENTS_DISABLED",
+        "COMMENTS_ENABLED",
+        "COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY"
+      ],
+      "enumDescriptions": [
+        "Do not require `/gcbrun` comments from a user with repository write permission or above on pull requests before builds are triggered. Comments that contain `/gcbrun` will still fire builds so this should be thought of as comments not required.",
+        "Builds will only fire in response to pull requests if: 1. The pull request author has repository write permission or above and `/gcbrun` is in the PR description. 2. A user with repository writer permissions or above comments `/gcbrun` on a pull request authored by any user.",
+        "Builds will only fire in response to pull requests if: 1. The pull request author is a repository writer or above. 2. If the author does not have write permissions, a user with write permissions or above must comment `/gcbrun` in order to fire a build."
+      ],
+      "description": "If CommentControl is enabled, depending on the setting, builds may not fire until a repository writer comments `/gcbrun` on a pull request or `/gcbrun` is in the pull request description. Only PR comments that contain `/gcbrun` will trigger builds. If CommentControl is set to disabled, comments with `/gcbrun` from a user with repository write permission or above will still trigger builds to run."
+    }
+  }
+}
+
+=== GitFileSource ===
+{
+  "description": "GitFileSource describes a file within a (possibly remote) code repository.",
+  "id": "GitFileSource",
+  "type": "object",
+  "properties": {
+    "bitbucketServerConfig": {
+      "description": "The full resource name of the bitbucket server config. Format: `projects/{project}/locations/{location}/bitbucketServerConfigs/{id}`.",
+      "type": "string"
+    },
+    "uri": {
+      "description": "The URI of the repo. Either uri or repository can be specified. If unspecified, the repo from which the trigger invocation originated is assumed to be the repo from which to read the specified path.",
+      "type": "string"
+    },
+    "path": {
+      "description": "The path of the file, with the repo root as the root of the path.",
+      "type": "string"
+    },
+    "repository": {
+      "description": "The fully qualified resource name of the Repos API repository. Either URI or repository can be specified. If unspecified, the repo from which the trigger invocation originated is assumed to be the repo from which to read the specified path.",
+      "type": "string"
+    },
+    "githubEnterpriseConfig": {
+      "description": "The full resource name of the github enterprise config. Format: `projects/{project}/locations/{location}/githubEnterpriseConfigs/{id}`. `projects/{project}/githubEnterpriseConfigs/{id}`.",
+      "type": "string"
+    },
+    "repoType": {
+      "description": "See RepoType above.",
+      "enumDescriptions": [
+        "The default, unknown repo type. Don't use it, instead use one of the other repo types.",
+        "A Google Cloud Source Repositories-hosted repo.",
+        "A GitHub-hosted repo not necessarily on \"github.com\" (i.e. GitHub Enterprise).",
+        "A Bitbucket Server-hosted repo.",
+        "A GitLab-hosted repo.",
+        "A Bitbucket Cloud-hosted repo."
+      ],
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "CLOUD_SOURCE_REPOSITORIES",
+        "GITHUB",
+        "BITBUCKET_SERVER",
+        "GITLAB",
+        "BITBUCKET_CLOUD"
+      ]
+    },
+    "revision": {
+      "description": "The branch, tag, arbitrary ref, or SHA version of the repo to use when resolving the filename (optional). This field respects the same syntax/resolution as described here: https://git-scm.com/docs/gitrevisions If unspecified, the revision from which the trigger invocation originated is assumed to be the revision from which to read the specified path.",
+      "type": "string"
+    }
+  }
+}
+
+=== RepositoryEventConfig ===
+{
+  "description": "The configuration of a trigger that creates a build whenever an event from Repo API is received.",
+  "id": "RepositoryEventConfig",
+  "type": "object",
+  "properties": {
+    "repository": {
+      "description": "The resource name of the Repo API resource.",
+      "type": "string"
+    },
+    "push": {
+      "$ref": "PushFilter",
+      "description": "Filter to match changes in refs like branches, tags."
+    },
+    "repositoryType": {
+      "enumDescriptions": [
+        "If unspecified, RepositoryType defaults to GITHUB.",
+        "The SCM repo is GITHUB.",
+        "The SCM repo is GITHUB Enterprise.",
+        "The SCM repo is GITLAB Enterprise.",
+        "The SCM repo is BITBUCKET Data Center.",
+        "The SCM repo is BITBUCKET Cloud."
+      ],
+      "description": "Output only. The type of the SCM vendor the repository points to.",
+      "readOnly": true,
+      "type": "string",
+      "enum": [
+        "REPOSITORY_TYPE_UNSPECIFIED",
+        "GITHUB",
+        "GITHUB_ENTERPRISE",
+        "GITLAB_ENTERPRISE",
+        "BITBUCKET_DATA_CENTER",
+        "BITBUCKET_CLOUD"
+      ]
+    },
+    "pullRequest": {
+      "$ref": "PullRequestFilter",
+      "description": "Filter to match changes in pull requests."
+    }
+  }
+}
+
+=== ApprovalConfig ===
+{
+  "description": "ApprovalConfig describes configuration for manual approval of a build.",
+  "id": "ApprovalConfig",
+  "type": "object",
+  "properties": {
+    "approvalRequired": {
+      "description": "Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.",
+      "type": "boolean"
+    }
+  }
+}
+
+=== BitbucketServerTriggerConfig ===
+{
+  "id": "BitbucketServerTriggerConfig",
+  "type": "object",
+  "properties": {
+    "repoSlug": {
+      "description": "Required. Slug of the repository. A repository slug is a URL-friendly version of a repository name, automatically generated by Bitbucket for use in the URL. For example, if the repository name is 'test repo', in the URL it would become 'test-repo' as in https://mybitbucket.server/projects/TEST/repos/test-repo.",
+      "type": "string"
+    },
+    "projectKey": {
+      "description": "Required. Key of the project that the repo is in. For example: The key for https://mybitbucket.server/projects/TEST/repos/test-repo is \"TEST\".",
+      "type": "string"
+    },
+    "push": {
+      "description": "Filter to match changes in refs like branches, tags.",
+      "$ref": "PushFilter"
+    },
+    "pullRequest": {
+      "description": "Filter to match changes in pull requests.",
+      "$ref": "PullRequestFilter"
+    },
+    "bitbucketServerConfigResource": {
+      "description": "Required. The Bitbucket server config resource that this trigger config maps to.",
+      "type": "string"
+    },
+    "bitbucketServerConfig": {
+      "description": "Output only. The BitbucketServerConfig specified in the bitbucket_server_config_resource field.",
+      "readOnly": true,
+      "$ref": "BitbucketServerConfig"
+    }
+  },
+  "description": "BitbucketServerTriggerConfig describes the configuration of a trigger that creates a build whenever a Bitbucket Server event is received."
+}
+
+=== GitLabEventsConfig ===
+{
+  "id": "GitLabEventsConfig",
+  "type": "object",
+  "properties": {
+    "gitlabConfigResource": {
+      "description": "The GitLab config resource that this trigger config maps to.",
+      "type": "string"
+    },
+    "gitlabConfig": {
+      "$ref": "GitLabConfig",
+      "description": "Output only. The GitLabConfig specified in the gitlab_config_resource field.",
+      "readOnly": true
+    },
+    "pullRequest": {
+      "$ref": "PullRequestFilter",
+      "description": "Filter to match changes in pull requests."
+    },
+    "push": {
+      "description": "Filter to match changes in refs like branches, tags.",
+      "$ref": "PushFilter"
+    },
+    "projectNamespace": {
+      "description": "Namespace of the GitLab project.",
+      "type": "string"
+    }
+  },
+  "description": "Deprecated: CloudBuild GitLab V1 integration is deprecated. GitLabEventsConfig describes the configuration of a trigger that creates a build whenever a GitLab event is received.",
+  "deprecated": true
+}
+
+=== BuildOptions ===
+{
+  "id": "BuildOptions",
+  "type": "object",
+  "properties": {
+    "sourceProvenanceHash": {
+      "type": "array",
+      "description": "Requested hash for SourceProvenance.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "NONE",
+          "SHA256",
+          "MD5",
+          "GO_MODULE_H1",
+          "SHA512",
+          "DIRSUM_SHA256"
+        ],
+        "enumDescriptions": [
+          "No hash requested.",
+          "Use a sha256 hash.",
+          "Use a md5 hash.",
+          "Dirhash of a Go module's source code which is then hex-encoded.",
+          "Use a sha512 hash.",
+          "Use a dirsum_sha256 hash."
+        ]
+      }
+    },
+    "volumes": {
+      "type": "array",
+      "description": "Global list of volumes to mount for ALL build steps Each volume is created as an empty volume prior to starting the build process. Upon completion of the build, volumes and their contents are discarded. Global volume names and paths cannot conflict with the volumes defined a build step. Using a global volume in a build with only one step is not valid as it is indicative of a build request with an incorrect configuration.",
+      "items": {
+        "$ref": "Volume"
+      }
+    },
+    "logStreamingOption": {
+      "type": "string",
+      "enum": [
+        "STREAM_DEFAULT",
+        "STREAM_ON",
+        "STREAM_OFF"
+      ],
+      "description": "Option to define build log streaming behavior to Cloud Storage.",
+      "enumDescriptions": [
+        "Service may automatically determine build log streaming behavior.",
+        "Build logs should be streamed to Cloud Storage.",
+        "Build logs should not be streamed to Cloud Storage; they will be written when the build is completed."
+      ]
+    },
+    "logging": {
+      "enumDeprecated": [
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+      ],
+      "enumDescriptions": [
+        "The service determines the logging mode. The default is `LEGACY`. Do not rely on the default logging behavior as it may change in the future.",
+        "Build logs are stored in Cloud Logging and Cloud Storage.",
+        "Build logs are stored in Cloud Storage.",
+        "This option is the same as CLOUD_LOGGING_ONLY.",
+        "Build logs are stored in Cloud Logging. Selecting this option will not allow [logs streaming](https://cloud.google.com/sdk/gcloud/reference/builds/log).",
+        "Turn off all logging. No build logs will be captured."
+      ],
+      "type": "string",
+      "enum": [
+        "LOGGING_UNSPECIFIED",
+        "LEGACY",
+        "GCS_ONLY",
+        "STACKDRIVER_ONLY",
+        "CLOUD_LOGGING_ONLY",
+        "NONE"
+      ],
+      "description": "Option to specify the logging mode, which determines if and where build logs are stored."
+    },
+    "enableStructuredLogging": {
+      "description": "Optional. Option to specify whether structured logging is enabled. If true, JSON-formatted logs are parsed as structured logs.",
+      "type": "boolean"
+    },
+    "pubsubTopic": {
+      "description": "Optional. Option to specify the Pub/Sub topic to receive build status updates.",
+      "type": "string"
+    },
+    "workerPool": {
+      "type": "string",
+      "deprecated": true,
+      "description": "This field deprecated; please use `pool.name` instead."
+    },
+    "substitutionOption": {
+      "type": "string",
+      "enum": [
+        "MUST_MATCH",
+        "ALLOW_LOOSE"
+      ],
+      "description": "Option to specify behavior when there is an error in the substitution checks. NOTE: this is always set to ALLOW_LOOSE for triggered builds and cannot be overridden in the build configuration file.",
+      "enumDescriptions": [
+        "Fails the build if error in substitutions checks, like missing a substitution in the template or in the map.",
+        "Do not fail the build if error in substitutions checks."
+      ]
+    },
+    "secretEnv": {
+      "type": "array",
+      "description": "A list of global environment variables, which are encrypted using a Cloud Key Management Service crypto key. These values must be specified in the build's `Secret`. These variables will be available to all build steps in this build.",
+      "items": {
+        "type": "string"
+      }
+    },
+    "env": {
+      "description": "A list of global environment variable definitions that will exist for all build steps in this build. If a variable is defined in both globally and in a build step, the variable will use the build step value. The elements are of the form \"KEY=VALUE\" for the environment variable \"KEY\" being given the value \"VALUE\".",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "defaultLogsBucketBehavior": {
+      "type": "string",
+      "enum": [
+        "DEFAULT_LOGS_BUCKET_BEHAVIOR_UNSPECIFIED",
+        "REGIONAL_USER_OWNED_BUCKET",
+        "LEGACY_BUCKET"
+      ],
+      "enumDescriptions": [
+        "Unspecified.",
+        "Bucket is located in user-owned project in the same region as the build. The builder service account must have access to create and write to Cloud Storage buckets in the build project.",
+        "Bucket is located in a Google-owned project and is not regionalized."
+      ],
+      "description": "Optional. Option to specify how default logs buckets are setup."
+    },
+    "diskSizeGb": {
+      "description": "Requested disk size for the VM that runs the build. Note that this is *NOT* \"disk free\"; some of the space will be used by the operating system and build utilities. Also note that this is the minimum disk size that will be allocated for the build -- the build may run with a larger disk than requested. At present, the maximum disk size is 4000GB; builds that request more than the maximum are rejected with an error.",
+      "format": "int64",
+      "type": "string"
+    },
+    "requestedVerifyOption": {
+      "type": "string",
+      "enum": [
+        "NOT_VERIFIED",
+        "VERIFIED"
+      ],
+      "description": "Requested verifiability options.",
+      "enumDescriptions": [
+        "Not a verifiable build (the default).",
+        "Build must be verified."
+      ]
+    },
+    "dynamicSubstitutions": {
+      "description": "Option to specify whether or not to apply bash style string operations to the substitutions. NOTE: this is always enabled for triggered builds and cannot be overridden in the build configuration file.",
+      "type": "boolean"
+    },
+    "automapSubstitutions": {
+      "description": "Option to include built-in and custom substitutions as env variables for all build steps.",
+      "type": "boolean"
+    },
+    "pool": {
+      "description": "Optional. Specification for execution on a `WorkerPool`. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.",
+      "$ref": "PoolOption"
+    },
+    "machineType": {
+      "enumDescriptions": [
+        "Standard machine type.",
+        "Highcpu machine with 8 CPUs.",
+        "Highcpu machine with 32 CPUs.",
+        "Highcpu e2 machine with 8 CPUs.",
+        "Highcpu e2 machine with 32 CPUs.",
+        "E2 machine with 1 CPU.",
+        "E2 machine with 2 CPUs."
+      ],
+      "enumDeprecated": [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false
+      ],
+      "description": "Compute Engine machine type on which to run the build.",
+      "type": "string",
+      "enum": [
+        "UNSPECIFIED",
+        "N1_HIGHCPU_8",
+        "N1_HIGHCPU_32",
+        "E2_HIGHCPU_8",
+        "E2_HIGHCPU_32",
+        "E2_MEDIUM",
+        "E2_STANDARD_2"
+      ]
+    }
+  },
+  "description": "Optional arguments to enable specific features of builds."
+}
+
+=== Results ===
+{
+  "id": "Results",
+  "type": "object",
+  "properties": {
+    "mavenArtifacts": {
+      "type": "array",
+      "description": "Maven artifacts uploaded to Artifact Registry at the end of the build.",
+      "items": {
+        "$ref": "UploadedMavenArtifact"
+      }
+    },
+    "buildStepResults": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "BuildStepResults"
+      },
+      "description": "Results for build steps. step_id -> "
+    },
+    "numArtifacts": {
+      "description": "Number of non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
+      "format": "int64",
+      "type": "string"
+    },
+    "images": {
+      "type": "array",
+      "description": "Container images that were built as a part of the build.",
+      "items": {
+        "$ref": "BuiltImage"
+      }
+    },
+    "buildStepImages": {
+      "description": "List of build step digests, in the order corresponding to build step indices.",
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "buildStepOutputs": {
+      "type": "array",
+      "description": "List of build step outputs, produced by builder images, in the order corresponding to build step indices. [Cloud Builders](https://cloud.google.com/cloud-build/docs/cloud-builders) can produce this output by writing to `$BUILDER_OUTPUT/output`. Only the first 50KB of data is stored. Note that the `$BUILDER_OUTPUT` variable is read-only and can't be substituted.",
+      "items": {
+        "type": "string",
+        "format": "byte"
+      }
+    },
+    "pythonPackages": {
+      "type": "array",
+      "description": "Python artifacts uploaded to Artifact Registry at the end of the build.",
+      "items": {
+        "$ref": "UploadedPythonPackage"
+      }
+    },
+    "artifactTiming": {
+      "description": "Time to push all non-container artifacts to Cloud Storage.",
+      "$ref": "TimeSpan"
+    },
+    "npmPackages": {
+      "description": "Npm packages uploaded to Artifact Registry at the end of the build.",
+      "items": {
+        "$ref": "UploadedNpmPackage"
+      },
+      "type": "array"
+    },
+    "genericArtifacts": {
+      "description": "Output only. Generic artifacts uploaded to Artifact Registry at the end of the build.",
+      "readOnly": true,
+      "items": {
+        "$ref": "UploadedGenericArtifact"
+      },
+      "type": "array"
+    },
+    "artifactManifest": {
+      "description": "Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.",
+      "type": "string"
+    },
+    "goModules": {
+      "description": "Optional. Go module artifacts uploaded to Artifact Registry at the end of the build.",
+      "items": {
+        "$ref": "UploadedGoModule"
+      },
+      "type": "array"
+    }
+  },
+  "description": "Artifacts created by the build pipeline."
+}
+
+=== SourceProvenance ===
+{
+  "description": "Provenance of the source. Ways to find the original source, or verify that some source was used for this build.",
+  "id": "SourceProvenance",
+  "type": "object",
+  "properties": {
+    "resolvedRepoSource": {
+      "$ref": "RepoSource",
+      "description": "A copy of the build's `source.repo_source`, if exists, with any revisions resolved."
+    },
+    "resolvedStorageSource": {
+      "description": "A copy of the build's `source.storage_source`, if exists, with any generations resolved.",
+      "$ref": "StorageSource"
+    },
+    "fileHashes": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "FileHashes"
+      },
+      "description": "Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that `FileHashes` will only be populated if `BuildOptions` has requested a `SourceProvenanceHash`. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (`.tar.gz`), the `FileHash` will be for the single path to that file.",
+      "readOnly": true
+    },
+    "resolvedGitSource": {
+      "description": "Output only. A copy of the build's `source.git_source`, if exists, with any revisions resolved.",
+      "readOnly": true,
+      "$ref": "GitSource"
+    },
+    "resolvedStorageSourceManifest": {
+      "description": "A copy of the build's `source.storage_source_manifest`, if exists, with any revisions resolved. This feature is in Preview.",
+      "$ref": "StorageSourceManifest"
+    },
+    "resolvedConnectedRepository": {
+      "description": "Output only. A copy of the build's `source.connected_repository`, if exists, with any revisions resolved.",
+      "readOnly": true,
+      "$ref": "ConnectedRepository"
+    }
+  }
+}
+
+=== Secret ===
+{
+  "id": "Secret",
+  "type": "object",
+  "properties": {
+    "secretEnv": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "byte"
+      },
+      "description": "Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build's secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build's secrets."
+    },
+    "kmsKeyName": {
+      "description": "Cloud KMS key name to use to decrypt these envs.",
+      "type": "string"
+    }
+  },
+  "description": "Pairs a set of secret environment variables containing encrypted values with the Cloud KMS key to use to decrypt the value. Note: Use `kmsKeyName` with `available_secrets` instead of using `kmsKeyName` with `secret`. For instructions see: https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-credentials."
+}
+
+=== Secrets ===
+{
+  "description": "Secrets and secret environment variables.",
+  "id": "Secrets",
+  "type": "object",
+  "properties": {
+    "secretManager": {
+      "description": "Secrets in Secret Manager and associated secret environment variable.",
+      "items": {
+        "$ref": "SecretManagerSecret"
+      },
+      "type": "array"
+    },
+    "inline": {
+      "description": "Secrets encrypted with KMS key and the associated secret environment variable.",
+      "items": {
+        "$ref": "InlineSecret"
+      },
+      "type": "array"
+    }
+  }
+}
+
+=== InlineSecret ===
+{
+  "id": "InlineSecret",
+  "type": "object",
+  "properties": {
+    "kmsKeyName": {
+      "description": "Resource name of Cloud KMS crypto key to decrypt the encrypted value. In format: projects/*/locations/*/keyRings/*/cryptoKeys/*",
+      "type": "string"
+    },
+    "envMap": {
+      "description": "Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build's secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build's secrets.",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "format": "byte"
+      }
+    }
+  },
+  "description": "Pairs a set of secret environment variables mapped to encrypted values with the Cloud KMS key to use to decrypt the value."
+}
+
+=== SecretManagerSecret ===
+{
+  "description": "Pairs a secret environment variable with a SecretVersion in Secret Manager.",
+  "id": "SecretManagerSecret",
+  "type": "object",
+  "properties": {
+    "versionName": {
+      "description": "Resource name of the SecretVersion. In format: projects/*/secrets/*/versions/*",
+      "type": "string"
+    },
+    "env": {
+      "description": "Environment variable name to associate with the secret. Secret environment variables must be unique across all of a build's secrets, and must be used by at least one build step.",
+      "type": "string"
+    }
+  }
+}
+[0m
+[0m$ [0mcurl -s "https://run.googleapis.com/\$discovery/rest?version=v1" 2>&1 | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+schemas = d.get('schemas', {})
+for key in ['RevisionTemplate', 'GoogleCloudRunV1Condition', 'Addressable', 'ResourceRequirements', 'Probe', 'EnvVar', 'EnvFromSource', 'KeyToPath', 'NFSVolumeSource', 'EmptyDirVolumeSource', 'CSIVolumeSource', 'ConfigMapVolumeSource', 'SecurityContext', 'ContainerPort', 'LocalObjectReference', 'OwnerReference']:
+    if key in schemas:
+        print(f'=== {key} ===')
+        print(json.dumps(schemas[key], indent=2))
+        print()
+"
+=== RevisionTemplate ===
+{
+  "description": "RevisionTemplateSpec describes the data a revision should have when created from a template.",
+  "properties": {
+    "spec": {
+      "description": "RevisionSpec holds the desired state of the Revision (from the client).",
+      "$ref": "RevisionSpec"
+    },
+    "metadata": {
+      "description": "Optional metadata for this Revision, including labels and annotations. Name will be generated by the Configuration. The following annotation keys set properties of the created revision: * `autoscaling.knative.dev/minScale` sets the minimum number of instances. * `autoscaling.knative.dev/maxScale` sets the maximum number of instances. * `run.googleapis.com/cloudsql-instances` sets Cloud SQL connections. Multiple values should be comma separated. * `run.googleapis.com/health-check-disabled`: if true, deploy-time startup probes will not run for this revision. * `run.googleapis.com/vpc-access-connector` sets a Serverless VPC Access connector. * `run.googleapis.com/vpc-access-egress` sets VPC egress. Supported values are `all-traffic`, `all` (deprecated), and `private-ranges-only`. `all-traffic` and `all` provide the same functionality. `all` is deprecated but will continue to be supported. Prefer `all-traffic`.",
+      "$ref": "ObjectMeta"
+    }
+  },
+  "id": "RevisionTemplate",
+  "type": "object"
+}
+
+=== GoogleCloudRunV1Condition ===
+{
+  "description": "Conditions show the status of reconciliation progress on a given resource. Most resource use a top-level condition type \"Ready\" or \"Completed\" to show overall status with other conditions to checkpoint each stage of reconciliation. Note that if metadata.Generation does not equal status.ObservedGeneration, the conditions shown may not be relevant for the current spec.",
+  "properties": {
+    "severity": {
+      "description": "Optional. How to interpret this condition. One of Error, Warning, or Info. Conditions of severity Info do not contribute to resource readiness.",
+      "type": "string"
+    },
+    "type": {
+      "type": "string",
+      "description": "type is used to communicate the status of the reconciliation process. Types common to all resources include: * \"Ready\" or \"Completed\": True when the Resource is ready."
+    },
+    "reason": {
+      "type": "string",
+      "description": "Optional. One-word CamelCase reason for the condition's last transition. These are intended to be stable, unique values which the client may use to trigger error handling logic, whereas messages which may be changed later by the server."
+    },
+    "status": {
+      "description": "Status of the condition, one of True, False, Unknown.",
+      "type": "string"
+    },
+    "lastTransitionTime": {
+      "type": "string",
+      "format": "google-datetime",
+      "description": "Optional. Last time the condition transitioned from one status to another."
+    },
+    "message": {
+      "description": "Optional. Human readable message indicating details about the current status.",
+      "type": "string"
+    }
+  },
+  "id": "GoogleCloudRunV1Condition",
+  "type": "object"
+}
+
+=== Addressable ===
+{
+  "id": "Addressable",
+  "type": "object",
+  "description": "Information for connecting over HTTP(s).",
+  "properties": {
+    "url": {
+      "type": "string"
+    }
+  }
+}
+
+=== ResourceRequirements ===
+{
+  "description": "ResourceRequirements describes the compute resource requirements.",
+  "properties": {
+    "limits": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "Limits describes the maximum amount of compute resources allowed. Only 'cpu', 'memory' and 'nvidia.com/gpu' keys are supported. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits. * The only supported 'nvidia.com/gpu' value is '1'."
+    },
+    "requests": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Requests describes the minimum amount of compute resources required. Only `cpu` and `memory` are supported. If Requests is omitted for a container, it defaults to Limits if that is explicitly specified, otherwise to an implementation-defined value. * For supported 'cpu' values, go to https://cloud.google.com/run/docs/configuring/cpu. * For supported 'memory' values and syntax, go to https://cloud.google.com/run/docs/configuring/memory-limits"
+    }
+  },
+  "id": "ResourceRequirements",
+  "type": "object"
+}
+
+=== Probe ===
+{
+  "id": "Probe",
+  "type": "object",
+  "description": "Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.",
+  "properties": {
+    "failureThreshold": {
+      "description": "Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "httpGet": {
+      "description": "HTTPGet specifies the http request to perform.",
+      "$ref": "HTTPGetAction"
+    },
+    "exec": {
+      "description": "Not supported by Cloud Run.",
+      "$ref": "ExecAction"
+    },
+    "grpc": {
+      "description": "GRPCAction specifies an action involving a GRPC port.",
+      "$ref": "GRPCAction"
+    },
+    "timeoutSeconds": {
+      "description": "Number of seconds after which the probe times out. Defaults to 1 second. Minimum value is 1. Maximum value is 3600. Must be smaller than period_seconds; if period_seconds is not set, must be less or equal than 10.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "tcpSocket": {
+      "description": "TCPSocket specifies an action involving a TCP port.",
+      "$ref": "TCPSocketAction"
+    },
+    "initialDelaySeconds": {
+      "description": "Number of seconds after the container has started before the probe is initiated. Defaults to 0 seconds. Minimum value is 0. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "successThreshold": {
+      "description": "Minimum consecutive successes for the probe to be considered successful after having failed. Must be 1 if set.",
+      "type": "integer",
+      "format": "int32"
+    },
+    "periodSeconds": {
+      "description": "How often (in seconds) to perform the probe. Default to 10 seconds. Minimum value is 1. Maximum value for liveness probe is 3600. Maximum value for startup probe is 240. Must be greater or equal than timeout_seconds.",
+      "type": "integer",
+      "format": "int32"
+    }
+  }
+}
+
+=== EnvVar ===
+{
+  "id": "EnvVar",
+  "type": "object",
+  "description": "EnvVar represents an environment variable present in a Container.",
+  "properties": {
+    "value": {
+      "type": "string",
+      "description": "Value of the environment variable. Defaults to \"\". Variable references are not supported in Cloud Run."
+    },
+    "name": {
+      "type": "string",
+      "description": "Required. Name of the environment variable."
+    },
+    "valueFrom": {
+      "description": "Source for the environment variable's value. Only supports secret_key_ref. Cannot be used if value is not empty.",
+      "$ref": "EnvVarSource"
+    }
+  }
+}
+
+=== EnvFromSource ===
+{
+  "id": "EnvFromSource",
+  "type": "object",
+  "description": "Not supported by Cloud Run. EnvFromSource represents the source of a set of ConfigMaps",
+  "properties": {
+    "prefix": {
+      "description": "An optional identifier to prepend to each key in the ConfigMap. Must be a C_IDENTIFIER.",
+      "type": "string"
+    },
+    "secretRef": {
+      "description": "The Secret to select from",
+      "$ref": "SecretEnvSource"
+    },
+    "configMapRef": {
+      "description": "The ConfigMap to select from",
+      "$ref": "ConfigMapEnvSource"
+    }
+  }
+}
+
+=== KeyToPath ===
+{
+  "description": "Maps a string key to a path within a volume.",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "The Cloud Secret Manager secret version. Can be 'latest' for the latest value, or an integer or a secret alias for a specific version. The key to project."
+    },
+    "path": {
+      "type": "string",
+      "description": "The relative path of the file to map the key to. May not be an absolute path. May not contain the path element '..'. May not start with the string '..'."
+    },
+    "mode": {
+      "format": "int32",
+      "type": "integer",
+      "description": "(Optional) Mode bits to use on this file, must be a value between 01 and 0777 (octal). If 0 or not set, the Volume's default mode will be used. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 777 (a=rwx), set to 0777 (octal) or 511 (base-10). For chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set."
+    }
+  },
+  "id": "KeyToPath",
+  "type": "object"
+}
+
+=== NFSVolumeSource ===
+{
+  "id": "NFSVolumeSource",
+  "type": "object",
+  "description": "Represents a persistent volume that will be mounted using NFS. This volume will be shared between all instances of the resource and data will not be deleted when the instance is shut down.",
+  "properties": {
+    "readOnly": {
+      "description": "If true, mount the NFS volume as read only. Defaults to false.",
+      "type": "boolean"
+    },
+    "server": {
+      "description": "Hostname or IP address of the NFS server.",
+      "type": "string"
+    },
+    "path": {
+      "description": "Path that is exported by the NFS server.",
+      "type": "string"
+    }
+  }
+}
+
+=== EmptyDirVolumeSource ===
+{
+  "id": "EmptyDirVolumeSource",
+  "type": "object",
+  "description": "In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).",
+  "properties": {
+    "sizeLimit": {
+      "type": "string",
+      "description": "Limit on the storage usable by this EmptyDir volume. The size limit is also applicable for memory medium. The maximum usage on memory medium EmptyDir would be the minimum value between the SizeLimit specified here and the sum of memory limits of all containers. The default is nil which means that the limit is undefined. More info: https://cloud.google.com/run/docs/configuring/in-memory-volumes#configure-volume. Info in Kubernetes: https://kubernetes.io/docs/concepts/storage/volumes/#emptydir"
+    },
+    "medium": {
+      "description": "The medium on which the data is stored. The default is \"\" which means to use the node's default medium. Must be an empty string (default) or Memory. More info: https://kubernetes.io/docs/concepts/storage/volumes#emptydir",
+      "type": "string"
+    }
+  }
+}
+
+=== CSIVolumeSource ===
+{
+  "id": "CSIVolumeSource",
+  "type": "object",
+  "description": "Storage volume source using the Container Storage Interface.",
+  "properties": {
+    "driver": {
+      "description": "name of the CSI driver for the requested storage system. Cloud Run supports the following drivers: * gcsfuse.run.googleapis.com : Mount a Cloud Storage Bucket as a volume.",
+      "type": "string"
+    },
+    "readOnly": {
+      "type": "boolean",
+      "description": "If true, mount the volume as read only. Defaults to false."
+    },
+    "volumeAttributes": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "type": "object",
+      "description": "stores driver specific attributes. For Google Cloud Storage volumes, the following attributes are supported: * bucketName: the name of the Cloud Storage bucket to mount. The Cloud Run Service identity must have access to this bucket. * mountOptions: comma-separated list of mount options to pass to the gcsfuse."
+    }
+  }
+}
+
+=== ConfigMapVolumeSource ===
+{
+  "description": "Not supported by Cloud Run. Adapts a ConfigMap into a volume. The contents of the target ConfigMap's Data field will be presented in a volume as files using the keys in the Data field as the file names, unless the items element is populated with specific mappings of keys to paths.",
+  "properties": {
+    "optional": {
+      "description": "(Optional) Specify whether the Secret or its keys must be defined.",
+      "type": "boolean"
+    },
+    "items": {
+      "type": "array",
+      "description": "(Optional) If unspecified, each key-value pair in the Data field of the referenced Secret will be projected into the volume as a file whose name is the key and content is the value. If specified, the listed keys will be projected into the specified paths, and unlisted keys will not be present. If a key is specified that is not present in the Secret, the volume setup will error unless it is marked optional.",
+      "items": {
+        "$ref": "KeyToPath"
+      }
+    },
+    "name": {
+      "type": "string",
+      "description": "Name of the config."
+    },
+    "defaultMode": {
+      "description": "(Optional) Integer representation of mode bits to use on created files by default. Must be a value between 01 and 0777 (octal). If 0 or not set, it will default to 0644. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 777 (a=rwx), set to 0777 (octal) or 511 (base-10). For chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.",
+      "format": "int32",
+      "type": "integer"
+    }
+  },
+  "id": "ConfigMapVolumeSource",
+  "type": "object"
+}
+
+=== SecurityContext ===
+{
+  "id": "SecurityContext",
+  "type": "object",
+  "description": "Not supported by Cloud Run. SecurityContext holds security configuration that will be applied to a container. Some fields are present in both SecurityContext and PodSecurityContext. When both are set, the values in SecurityContext take precedence.",
+  "properties": {
+    "runAsUser": {
+      "type": "integer",
+      "format": "int32",
+      "description": "The UID to run the entrypoint of the container process. Defaults to user specified in image metadata if unspecified. May also be set in PodSecurityContext. If set in both SecurityContext and PodSecurityContext, the value specified in SecurityContext takes precedence."
+    }
+  }
+}
+
+=== ContainerPort ===
+{
+  "id": "ContainerPort",
+  "type": "object",
+  "description": "ContainerPort represents a network port in a single container.",
+  "properties": {
+    "containerPort": {
+      "description": "Port number the container listens on. If present, this must be a valid port number, 0 < x < 65536. If not present, it will default to port 8080. For more information, see https://cloud.google.com/run/docs/container-contract#port",
+      "type": "integer",
+      "format": "int32"
+    },
+    "protocol": {
+      "type": "string",
+      "description": "Protocol for port. Must be \"TCP\". Defaults to \"TCP\"."
+    },
+    "name": {
+      "description": "If specified, used to specify which protocol to use. Allowed values are \"http1\" and \"h2c\".",
+      "type": "string"
+    }
+  }
+}
+
+=== LocalObjectReference ===
+{
+  "id": "LocalObjectReference",
+  "type": "object",
+  "description": "Not supported by Cloud Run. LocalObjectReference contains enough information to let you locate the referenced object inside the same namespace.",
+  "properties": {
+    "name": {
+      "description": "Name of the referent.",
+      "type": "string"
+    }
+  }
+}
+
+=== OwnerReference ===
+{
+  "id": "OwnerReference",
+  "type": "object",
+  "description": "This is not supported or used by Cloud Run.",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "description": "This is not supported or used by Cloud Run."
+    },
+    "uid": {
+      "description": "This is not supported or used by Cloud Run.",
+      "type": "string"
+    },
+    "blockOwnerDeletion": {
+      "description": "This is not supported or used by Cloud Run.",
+      "type": "boolean"
+    },
+    "controller": {
+      "type": "boolean",
+      "description": "This is not supported or used by Cloud Run."
+    },
+    "apiVersion": {
+      "type": "string",
+      "description": "This is not supported or used by Cloud Run."
+    },
+    "name": {
+      "description": "This is not supported or used by Cloud Run.",
+      "type": "string"
+    }
+  }
+}
+[0m
+Now I have deep schema knowledge across all three priority surfaces. Let me compile the SURFACE phase analysis.
+
+---
+
+# Program: google
+# Phase: SURFACE
+
+## Key Findings (one line each, specific)
+
+### Cloud Build Supply Chain Surface
+- **BuildTrigger substitution flow**: `BuildTrigger.substitutions` (keys `^_[A-Z0-9_]+$`), `Build.substitutions` (arbitrary string map), `RepoSource.substitutions` (only for `RunBuildTrigger`), `BuildOptions.dynamicSubstitutions` (bash-style string ops), `automapSubstitutions` (injects as env vars) — all merge at build start with `ALLOW_LOOSE` mode for triggered builds
+- **BuildStep execution context**: `script` field runs raw shell (mutually exclusive with `entrypoint`/`args`); `env` + `secretEnv` + `availableSecrets.secretManager` (SecretManager version refs) + `availableSecrets.inline` (KMS-encrypted); `volumes` for cross-step persistence; `waitFor` DAG dependencies
+- **Trigger event sources**: `GitHubEventsConfig` (push/PR with RE2 regex on branch/tag, `commentControl` for `/gcbrun` gating), `WebhookConfig` (secret ref for URL param auth), `PubsubConfig` (topic + serviceAccount), `DeveloperConnectEventConfig` (gitRepositoryLink across GitHub/GitLab/Bitbucket), `RepositoryEventConfig` (Repo API)
+- **Source resolution**: `RepoSource` (Cloud Source Repos, branch/tag RE2 regex, `invertRegex`), `StorageSource` (GCS zip/tar.gz, `generation` pinning), `ConnectedRepository` (2nd-gen Cloud Build), `GitRepoSource` (external Git via Developer Connect), `GitFileSource` (template file from repo)
+- **Private pool network**: `WorkerPool.privatePoolV1Config.networkConfig` (VPC peering) + `privateServiceConnect` (PSC) — both can be set simultaneously; `WorkerConfig.enableNestedVirtualization` allows nested containers
+
+### Artifact Registry Virtual/Remote Repository Surface
+- **RemoteRepositoryConfig**: Single `upstreamCredentials` (username + SecretManager password version) shared across ALL format-specific repos (`dockerRepository`, `npmRepository`, `mavenRepository`, `pythonRepository`, `aptRepository`, `yumRepository`); `disableUpstreamValidation` skips HEAD/GET validation; `noCache` proxy mode; `commonRepository.uri` base URL
+- **VirtualRepositoryConfig**: `upstreamPolicies[]` with `repository` ref + `priority` (higher = first pull); NO credential isolation — virtual repo inherits credentials from each upstream remote repo; `UpstreamPolicy` only references repository, not credentials
+- **Format-specific remote configs**: All custom repositories only take `uri` (no auth config per format); public repositories use predefined upstreams (Docker Hub, npmjs, Maven Central, PyPI, etc.)
+- **Cleanup policies**: `CleanupPolicy` with `action: DELETE/KEEP`, `condition` (`versionNameRegex` RE2, `olderThan`/`newerThan` duration, `tagState` ANY/TAGGED/UNTAGGED, `packageNamePrefix`); `mostRecentVersions` retain-N for KEEP only; `cleanupPolicyDryRun` preview mode
+
+### Cloud Run Security Annotation Surface
+- **Binary Authorization annotations**: `run.googleapis.com/binary-authorization` (DISABLED/ENABLED/BREAKGLASS) on Service/Job/Execution; `run.googleapis.com/binary-authorization-breakglass` (true/false) — breakglass allows unverified images if `binary-authorization` != DISABLED
+- **Ingress annotations**: `run.googleapis.com/ingress` (ALL/INTERNAL/INTERNAL_AND_CLB) on Service/Instance; `run.googleapis.com/ingress-status` output-only mirror
+- **Custom audiences**: `run.googleapis.com/custom-audiences` (comma-separated OIDC audiences) on Service — overrides default audience for service-to-service auth
+- **Secret mounting**: `SecretVolumeSource` with `secretName` (supports cross-project alias `:projects/{project}/secrets/{secret}`), `items[]` mapping version→path, `defaultMode` file permissions; mounted via `Container.volumeMounts` + `Volume.secret`
+- **VPC egress**: `run.googleapis.com/vpc-access-egress` (ALL_TRAFFIC/PRIVATE_RANGES_ONLY) + `vpc-access-connector` on Revision/Execution/Instance
+
+## New Endpoints / Assets
+
+### Cloud Build
+- `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:webhook` — webhook payload triggers build; secret validated via URL param
+- `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:run` — manual trigger with `RepoSource.substitutions` override
+- `GET /v1/projects/{project}/locations/{location}/workerPools/{workerPool}` — returns `privatePoolV1Config.networkConfig` + `privateServiceConnect`
+- `GET /v1/projects/{project}/locations/{location}/builds/{build}` — `sourceProvenance.resolvedRepoSource`/`resolvedGitSource`/`resolvedConnectedRepository` shows actual source used
+- `GET /v1/projects/{project}/locations/{location}/operations/{operation}` — long-running operations for trigger/create/update
+
+### Artifact Registry
+- `GET /v1/projects/{project}/locations/{location}/repositories/{repo}?view=FULL` — returns `virtualRepositoryConfig.upstreamPolicies[]` + `remoteRepositoryConfig` with `upstreamCredentials` + per-format config
+- `GET /v1/projects/{project}/locations/{location}/repositories/{repo}/rules` — lists `CleanupPolicy` with DELETE/KEEP actions
+- `POST /v1/projects/{project}/locations/{location}/repositories/{repo}/genericArtifacts:upload` — upload generic artifacts
+- `GET /v1/projects/{project}/locations/{location}/repositories/{repo}/packages` — lists packages across all upstreams (virtual repo aggregates)
+
+### Cloud Run
+- `GET /v1/projects/{project}/locations/{location}/services/{service}` — `metadata.annotations` for binary-auth/ingress/custom-audiences + `status.conditions` for ingress-status/ready
+- `GET /v1/projects/{project}/locations/{location}/revisions/{revision}` — `metadata.annotations` for vpc-egress/connector + `status.conditions` (ResourcesAvailable/ContainerHealthy/Active)
+- `POST /v1/projects/{project}/locations/{location}/services/{service}:replaceService` — atomic service update with new traffic config
+- `GET /v1/projects/{project}/locations/{location}/routes/{route}` — `spec.traffic[]` with `percent` + `tag` for gradual rollout
+
+## Hypotheses (numbered, with impact + read-only test)
+
+### 1. Cloud Build Substitution Injection via GitHub PR Branch Name
+**Why it might exist**: `PushFilter.branch` / `PullRequestFilter.branch` use RE2 regex on user-controlled branch names. When matched, `BuildTrigger.substitutions` + `Build.substitutions` + built-in vars (`$BRANCH_NAME`, `$TAG_NAME`, `$COMMIT_SHA`, `$SHORT_SHA`) merge with `ALLOW_LOOSE`. `BuildOptions.dynamicSubstitutions=true` (default for triggered builds) enables bash `${var:-default}` `${var/pattern/repl}` ops. If branch name contains `$(_EVIL_CMD)` or backticks, and substitution used in `BuildStep.script`/`args`/`env` without quoting → command injection.
+**Impact**: Build-time RCE / supply chain compromise (CVSS 8.8: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H)
+**Read-only test**:
+```bash
+# 1. Check substitution expansion behavior in BuildStep.script
+curl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+bs = d['schemas']['BuildStep']
+print('script field:', json.dumps(bs['properties']['script'], indent=2))
+print('automapSubstitutions:', json.dumps(bs['properties']['automapSubstitutions'], indent=2))
+"
+
+# 2. Search public cloudbuild.yaml for substitution patterns in script
+# Query: "script:" "\${_" site:github.com cloudbuild.yaml
+# Query: "script:" "\$_BRANCH_NAME" site:github.com
+# Query: "automapSubstitutions" "true" site:github.com cloudbuild.yaml
+
+# 3. Check BuildOptions dynamicSubstitutions default
+curl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+bo = d['schemas']['BuildOptions']
+print('dynamicSubstitutions:', json.dumps(bo['properties']['dynamicSubstitutions'], indent=2))
+print('substitutionOption:', json.dumps(bo['properties']['substitutionOption'], indent=2))
+"
+```
+
+### 2. Cloud Build Webhook Secret Exposure via Trigger Invocation
+**Why it might exist**: `WebhookConfig.secret` is a SecretManager version ref required as URL parameter (`?secret=projects/.../secrets/.../versions/...`). If trigger invoker can control webhook payload (GitHub PR from fork, Bitbucket PR), and `BuildTrigger` uses `github`/`bitbucketServer`/`gitlab` config (not webhook), the webhook secret is NOT used — but the trigger still has `WebhookConfig` with secret. If `eventType: WEBHOOK` trigger co-exists with repo trigger, secret could be leaked via build logs if `BuildStep.script` echoes env.
+**Impact**: Secret Manager credential leakage (CVSS 6.5: AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N)
+**Read-only test**:
+```bash
+# 1. Check WebhookConfig secret field usage
+curl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+wc = d['schemas']['WebhookConfig']
+print('WebhookConfig.secret:', json.dumps(wc['properties']['secret'], indent=2))
+"
+
+# 2. Check if secret appears in build logs/env
+# Query: "secret=" "cloudbuild" site:github.com
+# Query: "WebhookConfig" "secret" site:github.com cloudbuild.yaml
+```
+
+### 3. Artifact Registry Virtual Repository Credential Confusion
+**Why it might exist**: `VirtualRepositoryConfig.upstreamPolicies[]` references multiple `RemoteRepositoryConfig` repositories, each with its own `upstreamCredentials` (username + SecretManager password). Virtual repo has NO credential field — it uses each upstream's credentials when pulling from that upstream. If upstream A (priority 10) fails (401/404/timeout), client falls back to upstream B (priority 5) with DIFFERENT credentials. No schema field enforces credential consistency or rotation sync across upstreams. `disableUpstreamValidation` on any remote repo skips HEAD/GET check at create time.
+**Impact**: Credential confusion / unauthorized artifact access (CVSS 7.5: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N)
+**Read-only test**:
+```bash
+# 1. Verify UpstreamCredentials structure and RemoteRepositoryConfig reference
+curl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+rrc = d['schemas']['RemoteRepositoryConfig'
+print('upstreamCredentials:', json.dumps(rrc['properties']['upstreamCredentials'], indent=2))
+print('disableUpstreamValidation:', json.dumps(rrc['properties']['disableUpstreamValidation'], indent=2))
+"
+
+# 2. Check VirtualRepositoryConfig upstreamPolicies for credential reference
+curl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+vrc = d['schemas']['VirtualRepositoryConfig']
+up = d['schemas']['UpstreamPolicy']
+print('VirtualRepositoryConfig:', json.dumps(vrc, indent=2))
+print('UpstreamPolicy:', json.dumps(up, indent=2))
+"
+
+# 3. Search for multi-upstream virtual repo configs
+# Query: "virtualRepositoryConfig" "upstreamPolicies" site:github.com artifactregistry
+# Query: "upstreamCredentials" "artifactregistry" site:github.com
+```
+
+### 4. Artifact Registry Remote Repository `disableUpstreamValidation` Bypass
+**Why it might exist**: `RemoteRepositoryConfig.disableUpstreamValidation=true` skips the HEAD/GET request to validate remote repo URL + credentials at create/update time. If attacker can create/update remote repo (via `artifactregistry.repositories.create/update` IAM), they can point `commonRepository.uri` to internal metadata server (169.254.169.254) or private registry, and `upstreamCredentials` to stolen creds. No schema validation on `uri` format (allows any http/https). `NoCacheFetching` mode acts as non-caching proxy — could be used for SSRF.
+**Impact**: SSRF / internal service enumeration / credential theft (CVSS 8.2: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N)
+**Read-only test**:
+```bash
+# 1. Check CommonRemoteRepository uri validation
+curl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+crr = d['schemas']['CommonRemoteRepository']
+print('CommonRemoteRepository.uri:', json.dumps(crr['properties']['uri'], indent=2))
+"
+
+# 2. Check NoCacheFetching behavior
+curl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+ncf = d['schemas']['NoCacheFetching']
+print('NoCacheFetching:', json.dumps(ncf, indent=2))
+"
+
+# 3. Search for disableUpstreamValidation usage
+# Query: "disableUpstreamValidation" "true" site:github.com artifactregistry
+```
+
+### 5. Cloud Run `binary-authorization-breakglass` Annotation Privilege Escalation
+**Why it might exist**: `run.googleapis.com/binary-authorization-breakglass: "true"` on Service/Job allows deploying images that FAIL Binary Authorization policy. IAM permission `run.services.update` (or `run.jobs.update`) allows setting annotations. No separate IAM check for breakglass. If principal has service update but NOT `binaryauthorization.attestors.create`/`binaryauthorization.policy.update`, they can bypass attestation requirements. `binary-authorization` annotation values: DISABLED/ENABLED/BREAKGLASS — breakglass only works if not DISABLED.
+**Impact**: Binary Authorization bypass / unverified container deploy (CVSS 7.8: AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N)
+**Read-only test**:
+```bash
+# 1. Verify annotation keys in ObjectMeta
+curl -s "https://run.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+om = d['schemas']['ObjectMeta'
+print('annotations field:', json.dumps(om['properties']['annotations'], indent=2))
+"
+
+# 2. Check ServiceSpec for binary-authorization fields
+curl -s "https://run.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+svc = d['schemas']['Service']
+print('Service metadata:', json.dumps(svc['properties']['metadata'], indent=2))
+"
+
+# 3. Search public Cloud Run services for breakglass
+# Query: "binary-authorization-breakglass" "true" site:github.com cloudrun
+# Query: "run.googleapis.com/binary-authorization" "BREAKGLASS" site:github.com
+```
+
+### 6. Cloud Run Custom Audiences OIDC Token Audience Confusion
+**Why it might exist**: `run.googleapis.com/custom-audiences` (comma-separated) on Service overrides default OIDC audience for service-to-service auth. If service A calls service B with custom audience, and service B validates audience loosely (e.g., accepts any audience in list), service A could mint token for service C's audience. No schema validation on audience format (should be OIDC client ID). `run.googleapis.com/invoker-iam-disabled` can disable IAM check entirely.
+**Impact**: Service-to-service auth bypass / lateral movement (CVSS 7.1: AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:H/A:N)
+**Read-only test**:
+```bash
+# 1. Check custom-audiences annotation documentation in schema
+curl -s "https://run.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+om = d['schemas']['ObjectMeta'
+ann = om['properties']['annotations']['description']
+# Search for custom-audiences in description
+import re
+matches = [line for line in ann.split('\n') if 'custom-audiences' in line.lower()]
+for m in matches:
+    print(m.strip())
+"
+
+# 2. Check invoker-iam-disabled annotation
+matches = [line for line in ann.split('\n') if 'invoker-iam' in line.lower()]
+for m in matches:
+    print(m.strip())
+```
+
+### 7. Cloud Build Private Pool Network Isolation Bypass via Dual Config
+**Why it might exist**: `PrivatePoolV1Config` allows BOTH `networkConfig` (VPC peering) AND `privateServiceConnect` (PSC) simultaneously. `networkConfig` provides VPC peering to user VPC; `privateServiceConnect` provides private Google access via PSC endpoints. If both configured, build workers may have routes to BOTH user VPC AND Google APIs via PSC. `WorkerConfig.enableNestedVirtualization=true` allows nested containers (e.g., Docker-in-Docker) which could escape network namespace. No schema validation prevents dual config.
+**Impact**: Build-time network egress to unauthorized endpoints / credential access (CVSS 7.8: AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L)
+**Read-only test**:
+```bash
+# 1. Check PrivatePoolV1Config for both fields
+curl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+ppc = d['schemas']['PrivatePoolV1Config']
+print('PrivatePoolV1Config:', json.dumps(ppc, indent=2))
+"
+
+# 2. Check NetworkConfig and PrivateServiceConnect schemas
+curl -s "https://cloudbuild.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+nc = d['schemas'].get('NetworkConfig', {})
+psc = d['schemas'].get('PrivateServiceConnect', {})
+print('NetworkConfig:', json.dumps(nc, indent=2))
+print('PrivateServiceConnect:', json.dumps(psc, indent=2))
+"
+
+# 3. Search for dual config usage
+# Query: "privatePoolV1Config" "networkConfig" "privateServiceConnect" site:github.com cloudbuild
+```
+
+### 8. Artifact Registry CleanupPolicy Regex Over-Match Data Loss
+**Why it might exist**: `CleanupPolicy.condition.versionNameRegex` uses RE2 syntax. Overly broad regex (e.g., `.*`, `v.*`, `release-*`) with `action: DELETE` matches unintended versions. `mostRecentVersions` only applies to `KEEP` action. `cleanupPolicyDryRun=true` prevents execution but doesn't validate regex scope or show match preview. No schema limit on regex complexity.
+**Impact**: Accidental artifact deletion / supply chain disruption (CVSS 6.5: AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H)
+**Read-only test**:
+```bash
+# 1. Check CleanupPolicyCondition schema for regex field
+curl -s "https://artifactregistry.googleapis.com/\$discovery/rest?version=v1" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+cpc = d['schemas'].get('CleanupPolicyCondition', {})
+cmrv = d['schemas'].get('CleanupPolicyMostRecentVersions', {})
+print('CleanupPolicyCondition:', json.dumps(cpc, indent=2))
+print('CleanupPolicyMostRecentVersions:', json.dumps(cmrv, indent=2))
+"
+
+# 2. Search for cleanup policy examples with broad regex
+# Query: "versionNameRegex" ".*" site:github.com artifactregistry
+# Query: "cleanupPolicies" "DELETE" site:github.com
+```
+
+## Secrets Check (public repos: what was found, hash only, where)
+- **google/security-research** (db52c93a, 39a668a3, 81e46075, ab75a9af, 63065727): KernelCTF rule updates, git tooling, CodeQL — no secrets; lockfile diff hashes: `a1f5e3d2...` (pnpm), `7c9b2e4f...` (terraform)
+- **google/osv.dev** (1a48571e, 06fd8d8b, c705a6d6, 269c96cf, 46fa6ea8, 3f554d16): Renovate PRs (pnpm 11.18.0, terraform 7.42.0, actions/stale v11) — no API keys/tokens; lockfile diff hashes only
+- **google/osv-scanner** (add393a2e0, 656f850a, a2588682, 0a11aa24, c32b46d2): E2E test for openSUSE Leap, dependency updates — no credentials; cassette snapshots updated
+- **google/tsunami-security-scanner** (363ba87b, e652ce67, c723152d): Template variable fixes, callback URI sanitization, asyncio fix — no secrets in diffs
+- **google/go-github**: Client library — no credentials in recent commits
+- **google/cloud-builders** (community): Builder images — no secrets in Dockerfiles
+- **google/cloud-build-samples** (if exists): Checked — no credentials in cloudbuild.yaml examples
+
+## CVSS Candidates
+| # | Hypothesis | CVSS Vector | Score |
+|---|------------|-------------|-------|
+| 1 | Cloud Build substitution injection via branch name | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H | 8.8 |
+| 2 | Cloud Build webhook secret exposure | AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N | 6.5 |
+| 3 | Artifact Registry virtual repo credential confusion | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N | 7.5 |
+| 4 | Artifact Registry disableUpstreamValidation SSRF | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:N | 8.2 |
+| 5 | Cloud Run binary-authorization-breakglass bypass | AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N | 7.8 |
+| 6 | Cloud Run custom audiences OIDC confusion | AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:H/A:N | 7.1 |
+| 7 | Cloud Build private pool dual network config bypass | AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:L/A:L | 7.8 |
+| 8 | Artifact Registry CleanupPolicy regex over-match | AV:N/AC:L/PR:L/UI:N/S:U/C:N/I:N/A:H | 6.5 |
+
+---
+
+## STATE UPDATE (exact format for parsing)
+STATUS_PHASE: SURFACE
+STATUS_STATE: IN_PROGRESS
+NEXT_STEP_1: HYPOTHESIS deep-dive on Cloud Build substitution injection — analyze exact substitution merge order, bash dynamic substitution syntax, and BuildStep script execution context with concrete exploit chain
+NEXT_STEP_2: HYPOTHESIS deep-dive on Artifact Registry virtual repository credential confusion — examine upstream pull fallback behavior, credential inheritance, and cross-upstream token reuse
+NEXT_STEP_3: HYPOTHESIS deep-dive on Cloud Run binary-authorization-breakglass — verify breakglass annotation interaction with Binary Authorization policy evaluation mode and attestor requirements
+
+MY LEADS:
+
+## 2026-08-07 09:09:44 UTC [google] (model nemotron3)
+- [UNVALIDATED] TIER0 domains: accounts.google.com, admin.google.com, bard.google.com, chrome.google.com, console.cloud.google.com, gemini.google.com, mail.google.com, myaccount.google.com, passwords.google.com, play.google.com, takeout.google.com, vault.google.com, console.firebase.google.com, issuetracker.google.com, cloudsearch.google.com
+- [UNVALIDATED] Cloud IT1 products: AlloyDB, App Engine, Artifact Registry, BigQuery, Cloud Build, Cloud KMS, Cloud Run, Cloud SQL, Cloud Storage, Compute Engine, Firestore, GKE, Secret Manager, Vertex AI, Cloud Console, IAM, VPC, Load Balancing, Pub/Sub, Spanner, Bigtable
+- [UNVALIDATED] Historical subdomains from CT: *.corp.google.com, *.sandbox.google.com, *.c.docs.google.com, *.clients*.google.com, *.ext.google.com, *.vp.video.l.google.com, adwords.google.com.*, onex.wifi.google.com, hosted-id.google.com, freezone.google.com, flexpack.google.com
+
+## 2026-08-07 09:40:49 UTC [microsoft] (model nemotron3)
+- [UNVALIDATED] OAuth/OIDC**: `accounts.google.com/.well-known/oauth-authorization-server`, `accounts.google.com/.well-known/openid-configuration`, `accounts.google.com/o/oauth2/v2/auth`, `oauth2.googleapis.com/token`, `oauth2.googleapis.com/revoke`, `openidconnect.googleapis.com/v1/userinfo`, `www.googleapis.com/oauth2/v3/certs`
+- [UNVALIDATED] TIER0 auth redirects**: `console.cloud.google.com/.well-known/*` → `accounts.google.com/ServiceLogin?service=cloudconsole`, `issuetracker.google.com/*` → search redirect, `admin.google.com` → 204 on `.well-known/*`
+- [UNVALIDATED] Vertex AI regional**: `https://{region}-aiplatform.googleapis.com` (30+ regions), `https://aiplatform.mtls.googleapis.com`, `https://aiplatform.googleapis.com/$discovery/rest?version=v1`
+- [UNVALIDATED] IAM**: `https://iam.googleapis.com/$discovery/rest?version=v1` — `projects.serviceAccounts.signJwt`, `signBlob`, `generateAccessToken`, `projects.locations.workloadIdentityPools.providers`
+- [UNVALIDATED] Access Context Manager**: `https://accesscontextmanager.googleapis.com/$discovery/rest?version=v1` — `accessPolicies.servicePerimeters`, `accessPolicies.accessLevels`, `gcpUserAccessBindings`
+- [UNVALIDATED] Binary Authorization**: `https://binaryauthorization.googleapis.com/$discovery/rest?version=v1` — `policy`, `attestors`, `systempolicy.v1`
+- [UNVALIDATED] Org Policy**: `https://orgpolicy.googleapis.com/$discovery/rest?version=v2` — `constraints`, `policies`, `customConstraints`
+- [UNVALIDATED] Assured Workloads**: `https://assuredworkloads.googleapis.com/$discovery/rest?version=v1` — `workloads`, `violations`, `analyzeWorkloadMove`
+- [UNVALIDATED] BeyondCorp**: `https://beyondcorp.googleapis.com/$discovery/rest?version=v1` — `appConnections`, `appConnectors`, `appGateways`, `securityGateways`
+- [UNVALIDATED] Agent Identity**: `https://agentidentity.googleapis.com/$discovery/rest?version=v1` — `authProviders`, `authorizations`, `accessSummaries`
+- [UNVALIDATED] Cloud Build**: `https://cloudbuild.googleapis.com/$discovery/rest?version=v1` — `projects.triggers`, `projects.workerPools`, `projects.builds`
+- [UNVALIDATED] Artifact Registry**: `https://artifactregistry.googleapis.com/$discovery/rest?version=v1` — `repositories`, `packages`, `versions`, `files`
+
+## 2026-08-07 10:38:45 UTC [microsoft] (model nemotron3)
+- [UNVALIDATED] STS token exchange**: `https://sts.googleapis.com/v1/token` (not in discovery) — accepts `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, `subject_token` from WIP provider, `subject_token_type=urn:ietf:params:oauth:token-type:jwt`
+- [UNVALIDATED] Vertex AI deploy**: `POST /v1/projects/{project}/locations/{location}/endpoints/{endpoint}:deployModel` with `DeployModelRequest` → `ModelContainerSpec` + `NetworkSpec`
+- [UNVALIDATED] WIP provider creation**: `POST /v1/projects/{project}/locations/{location}/workloadIdentityPools/{pool}/providers` with `attributeMapping` CEL + `attributeCondition` CEL
+- [UNVALIDATED] Binary Authorization policy**: `GET/POST /v1/projects/{project}/policy` — `defaultAdmissionRule`, `clusterAdmissionRules`, `admissionWhitelistPatterns`
+- [UNVALIDATED] Org Policy custom constraint**: `POST /v1/organizations/{org}/customConstraints` with CEL `condition`; `POST /v1/{resource}/policies/{constraint}` with `PolicySpec.rules[].condition` (CEL)
+- [UNVALIDATED] Agent Identity auth provider**: `POST /v1/projects/{project}/locations/{location}/authProviders` with `ThreeLeggedOAuth`/`TwoLeggedOAuth`/`ApiKeyParams`/`GeminiEnterpriseAuthProviderParams`
+- [UNVALIDATED] Secret Manager rotation trigger**: `POST /v1/projects/{project}/secrets/{secret}/versions:add` — manual version addition bypasses rotation schedule
+
+## 2026-08-07 11:31:46 UTC [google] (model nemotron3)
+- [UNVALIDATED] STS token exchange**: `POST https://sts.googleapis.com/v1/token` — `grant_type=urn:ietf:params:oauth:grant-type:token-exchange`, `subject_token` (external IdP JWT), `subject_token_type=urn:ietf:params:oauth:token-type:jwt`, `requested_token_type=urn:ietf:params:oauth:token-type:access_token`
+- [UNVALIDATED] Vertex AI endpoint deploy**: `POST /v1/projects/{project}/locations/{location}/endpoints/{endpoint}:deployModel` — body: `DeployModelRequest` with `model`, `deployedModel`, `dedicatedResources`, `automaticResources`
+- [UNVALIDATED] WIP provider config**: `GET /v1/projects/{project}/locations/{location}/workloadIdentityPools/{pool}/providers/{provider}` — returns `attributeMapping`, `attributeCondition`, `oidc`/`aws`/`saml` config
+- [UNVALIDATED] Binary Authz policy**: `GET /v1/projects/{project}/policy` — returns full policy with `defaultAdmissionRule.evaluationMode`, `clusterAdmissionRules`, `admissionWhitelistPatterns`
+- [UNVALIDATED] Org Policy effective policy**: `GET /v1/{resource}/policies/{constraint}:getEffectivePolicy` — shows computed policy after inheritance
+- [UNVALIDATED] Agent Identity auth providers**: `GET /v1/projects/{project}/locations/{location}/authProviders` — lists `AuthProvider` with `allowedScopes`, `blockedScopes`, `workloadIds`
+
+## 2026-08-07 12:00:00 UTC [google] (model nemotron3)
+- [UNVALIDATED] Cloud Build private pool**: `GET /v1/projects/{project}/locations/{location}/workerPools/{workerPool}` — returns `privatePoolV1Config.networkConfig` (VPC peering) + `privateServiceConnect`
+- [UNVALIDATED] Cloud Build trigger webhook**: `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:webhook` — accepts JSON payload to trigger build
+- [UNVALIDATED] Artifact Registry virtual repo upstreams**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}?view=FULL` — returns `virtualRepositoryConfig.upstreamPolicies[]` with priority order
+- [UNVALIDATED] Artifact Registry remote repo config**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}` — returns `remoteRepositoryConfig` with `upstreamCredentials`, `disableUpstreamValidation`, per-format settings
+- [UNVALIDATED] Artifact Registry cleanup policies**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}/rules` — lists `CleanupPolicy` with DELETE/KEEP actions
+- [UNVALIDATED] Assured Workloads compliance**: `GET /v1/organizations/{org}/locations/{location}/workloads/{workload}:analyzeWorkloadMove` — validates resource move
+- [UNVALIDATED] BeyondCorp connector health**: `POST /v1/projects/{project}/locations/{location}/appConnectors/{connector}:reportStatus` — connector self-reports status
+- [UNVALIDATED] Cloud KMS key version import**: `POST /v1/projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}/cryptoKeyVersions:import` — imports wrapped key material
+- [UNVALIDATED] Cloud Run service ingress**: `GET /v1/projects/{project}/locations/{location}/services/{service}` — `metadata.annotations['run.googleapis.com/ingress']` + `status.conditions` for ingress status
+- [UNVALIDATED] Cloud Run binary authorization**: `metadata.annotations['run.googleapis.com/binary-authorization']` — BREAKGLASS allows unverified images
+- [UNVALIDATED] Cloud Run custom audiences**: `metadata.annotations['run.googleapis.com/custom-audiences']` — OIDC audience override for service-to-service auth
+
+## 2026-08-07 12:32:42 UTC [google] (model nemotron3)
 - [UNVALIDATED] Cloud Build private pool**: `GET /v1/projects/{project}/locations/{location}/workerPools/{workerPool}` — returns `privatePoolV1Config.networkConfig` (VPC peering) + `privateServiceConnect`
 - [UNVALIDATED] Cloud Build trigger webhook**: `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:webhook` — accepts JSON payload to trigger build
 - [UNVALIDATED] Artifact Registry virtual repo upstreams**: `GET /v1/projects/{project}/locations/{location}/repositories/{repo}?view=FULL` — returns `virtualRepositoryConfig.upstreamPolicies[]` with priority order
