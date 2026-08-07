@@ -2663,3 +2663,8 @@ Index: /home/runner/work/hunt-lab/hunt-lab/ctx-leads.txt
 [0m
 > build · longcat-2.0-free
 [0m
+
+===== RUN 2026-08-07 14:44:32 UTC | model longcat | target google =====
+[0m
+> build · longcat-2.0-free
+[0m
