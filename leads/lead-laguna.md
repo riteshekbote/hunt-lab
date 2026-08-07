@@ -101,3 +101,49 @@ Flagged-for-scope (googleapis.com identity infra): identitytoolkit.googleapis.co
 - [UNVALIDATED] H4 — INCONCLUSIVE (transient).** `GET oauth2.googleapis.com/tokeninfo?id_token=<malformed>` returned HTTP 500 once, then 3× HTTP 400 on the identical payload → non-reproducible handler-path fluke; retest w/ valid-but-expired id_token recommended.
 - [UNVALIDATED] NEW SURFACE (bughunters report flow)** — `/report/captcha`, `/reports`, `/reports/upload`, `/kintaro/form`, `/profiles/search` all 404 (client-side SPA, no SSR). Root `/` hardened: HSTS `max-age=2592000;includeSubDomains`, `X-Frame-Options: DENY`, `nosniff`. No passive finding.
 - [UNVALIDATED] Secrets** — boringssl/mundane/mantis READMEs: 0 real secrets (prose noise only, sha256 hashes logged: `e1643e2ba…`, `80cb6a41b…`).
+## 2026-08-07 16:11:13 UTC [google] (model laguna)
+[NEW] login.microsoftonline.com OIDC discovery: v2.0 (issuer login.microsoftonline.com/{tid}/v2.0; JWKS /discovery/v2.0/keys, 8 RSA keys; mtls alias mtlsauth.microsoft.com; tls_client_certificate_bound_access_tokens=true) + v1.0 (issuer sts.windows.net/{tid}; JWKS /discovery/keys, 5 RSA keys; response_types add implicit `token` + hybrid `token id_token` absent in v2.0) — GET 200 on both discovery docs
+[NEW] Graph $metadata: 1,183 EntityTypes, 326 Functions across microsoft.graph.identityGovernance + microsoft.graph.security + microsoft.graph.entraRecoveryServices; 22 filterByCurrentUser bindings — GET /v1.0/$metadata HTTP 200 (2.9MB)
+[NEW] Graph API 405 anomaly: unauth HEAD/GET to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+[NEW] v2.0 authorize HTTP 200 error rendering: GET /oauth2/v2.0/authorize?response_type=token (unsupported in v2.0) → HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400, "We received a bad request") instead of HTTP 400 — verified passively
+[NEW] oauth2.googleapis.com/tokeninfo public introspection oracle: accepts ?access_token= / ?id_token= query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→400)
+[NEW] bughunters.google.com root `/` → HTTP 200, hardened (HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff)
+[PRIO] login.microsoftonline.com OAuth2/OIDC (authorize+token+discovery+mTLS): score 9.2 | a=9 b=10 t=9 g=10 c=6 f=10
+[PRIO] graph.microsoft.com ($metadata + identityGovernance + 405 anomaly): score 7.55 | a=8 b=9 t=7 g=3 c=8 f=10
+[PRIO] oauth2.googleapis.com tokeninfo oracle: score 5.85 | a=5 b=4 t=6 g=10 c=3 f=9
+[PRIO] bughunters.google.com (report SPA): score 4.45 | a=3 b=3 t=3 g=10 c=3 f=7
+[HYP] Issuer-confusion / cross-protocol token replay (v1.0 ↔ v2.0)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid} issuer + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 issuer + 8-key JWKS; v1.0-only response_types: `token`, `token id_token`)
+confidence: 45
+reasoning: Two distinct issuer namespaces serve the same tenant with divergent JWKS endpoints (5 vs 8 RSA keys) and v1.0-exclusive response types (implicit `token`, hybrid `token id_token`). Both discovery docs returned HTTP 200. If any token-accepting resource (Graph, Entra) validates `iss`/`aud` loosely (regex/substring/none), a v1.0-issued token could be accepted against a v2.0-only resource → MFA/auth bypass.
+evidence_needed: (1) discovery docs HTTP 200 with divergent issuers + JWKS (confirmed); (2) kid overlap between v1.0 and v2.0 JWKS (passive); (3) a v1.0 token accepted by a v2.0-only endpoint or an issuer-validation error oracle.
+verify_steps: PASSIVE: GET /common/discovery/keys and /common/discovery/v2.0/keys, diff `kid` sets for overlap. AUTH_HELPED: replay a v1.0 id_token against graph.microsoft.com/v1.0/me and compare 200 vs 401/400.
+impact: MFA bypass / auth bypass on Microsoft Identity ($100,000). Attacker reuses v1.0 token against v2.0-only resources.
+testability: AUTH_HELPED
+[HYP] Graph API 405 anomaly — missing Bearer challenge / IDOR masking
+class: MISCONFIG
+asset: graph.microsoft.com/v1.0, /v1.0/me, /v1.0/users, /v1.0/organization
+confidence: 45
+reasoning: Unauth HEAD/GET returns HTTP 405 (not 401) with Content-Length 0 and NO `WWW-Authenticate: Bearer` — verified (4×405). RFC 6750 §3 requires 401 + Bearer challenge. 405 (vs 401/403) masks resource existence: enumeration returns 405 regardless of whether a resource exists, hiding IDOR probing; SDKs waiting on the Bearer challenge won't auto-acquire tokens.
+evidence_needed: consistent 405 + absence of WWW-Authenticate across Graph endpoints (verified).
+verify_steps: PASSIVE: curl -sI https://graph.microsoft.com/v1.0/ ; curl -sI https://graph.microsoft.com/v1.0/me ; curl -sI https://graph.microsoft.com/v1.0/users — confirm 405 + no WWW-Authenticate (done).
+impact: IDOR enumeration obfuscation + SDK auth-flow breakage. Info/hygiene class; borderline bounty. Graph Directory/Identity tabs in-scope.
+testability: PASSIVE
+[HYP] OAuth2 tokeninfo amplification oracle
+class: OATH
+asset: oauth2.googleapis.com/tokeninfo (?access_token= / ?id_token= query introspection; returns aud/scope/expiry, no auth header)
+confidence: 30
+reasoning: tokeninfo introspects via query params (no Authorization header), returning decoded aud/scope/expiry. Verified: missing token → 400, malformed → 400. The 500 seen earlier is non-reproducible (3×400 on retry). Any token leaked into a referer-visible URL becomes a one-call oracle.
+evidence_needed: deterministic 500 on a structurally-valid-but-expired id_token; a real leaked token resolved.
+verify_steps: PASSIVE: GET oauth2.googleapis.com/tokeninfo?id_token=<malformed×5> for 500 determinism; GET tokeninfo?access_token=<expired> for expiry-vs-invalid parity (partial done).
+impact: Token-leak amplification only (informational; Google no-reward category). Low severity.
+testability: PASSIVE
+[PARKED] tokeninfo amplification oracle: confidence 30 (<40); informational amplification only; Google no-reward category; 500 non-reproducible.
+[FINAL] re-ranked:
+[NEXT] PROBE: diff v1.0 JWKS vs v2.0 JWKS key IDs —
+[LEARN] ACCEPTED v2.0 HTTP-200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (embedded JS error 700038, iHttpErrorCode 400) instead of HTTP 400 — violates RFC 6749 §3; status-checking clients may misparse as success.
+[LEARN] ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth GET/HEAD returns HTTP 405 (not 401), no WWW-Authenticate Bearer, Content-Length 0 — violates RFC 6750 §3; masks IDOR enumeration + breaks SDK auto-auth.
+[LEARN] REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient frontend error, no deterministic parse branch.
+[RISK] google: 22 | narrow passive surface (identitytoolkit 403-gated, tokeninfo amplification-only no-reward, bughunters hardened SPA, delegatedProjectNumber IDOR already REJECTED/IAM-bound). No ungated cross-project read surface; secrets scans clean. Low exposure.
+[RISK] microsoft: 68 | high-value Identity surface (dual v1.0/v2.0 issuer, mTLS cert-bound tokens, 1,183 Graph entities / 326 functions / 22 filterByCurrentUser bindings) with $100k MFA-bypass ceiling + two verified anomalies (v2.0 HTTP-200 error rendering, Graph 405/IDOR-masking). High-impact exploits require AUTH_HELPED (active token flow) which passive rules forbid — exposure is moderate-high but exploitability is passive-blocked.

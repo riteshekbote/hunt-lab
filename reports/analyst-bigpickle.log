@@ -1,0 +1,103 @@
+===== ANALYST bigpickle 2026-08-07 16:11:28 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab 2>/dev/null | head -50
+total 128
+drwxr-xr-x 11 runner runner  4096 Aug  7 15:59 .
+drwxr-xr-x  3 runner runner  4096 Aug  7 15:59 ..
+drwxr-xr-x  7 runner runner  4096 Aug  7 15:59 .git
+drwxr-xr-x  3 runner runner  4096 Aug  7 15:59 .github
+-rw-r--r--  1 runner runner  1022 Aug  7 15:59 README.md
+-rw-r--r--  1 runner runner    32 Aug  7 15:59 analyst-out.txt
+-rw-r--r--  1 runner runner 25406 Aug  7 15:59 analyst-prompt.txt
+-rw-r--r--  1 runner runner 23111 Aug  7 15:59 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 leads
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 reports
+drwxr-xr-x  4 runner runner  4096 Aug  7 15:59 reposcan-raw
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 research
+-rw-r--r--  1 runner runner  1650 Aug  7 15:59 scope.yml
+-rw-r--r--  1 runner runner    44 Aug  7 15:59 state_bigpickle.json
+-rw-r--r--  1 runner runner    51 Aug  7 15:59 state_laguna.json
+-rw-r--r--  1 runner runner    43 Aug  7 15:59 state_ling3.json
+-rw-r--r--  1 runner runner    45 Aug  7 15:59 state_longcat.json
+-rw-r--r--  1 runner runner    41 Aug  7 15:59 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  7 15:59 triage
+[0m
+[0m✱ [0mGlob "**/*.{md,json,txt,yml,yaml}"[90m 48 matches[0m
+[0m→ [0mRead scope.yml
+[0m→ [0mRead state_bigpickle.json
+[0m→ [0mRead leads/lead-bigpickle.md
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead leads/reposcan-2026-08-07-15-54.md
+[0m→ [0mRead research/bigpickle.md
+[0m→ [0mRead reports/hypotheses.md
+[[Read-only pass: no live probes run this cycle; only repo/grep artifacts in the workspace were used. All requests below are AUTH_HELPED / test-tenant designs, gated by program passive rules and scope.yml.]]
+
+## STEP 1 — DELTA
+- [NEW] reposcan 2026-08-07 15:54:42 (google orgs): 205 hits → all TEST_OR_EXAMPLE / staging; no live secrets. adk-go cloudrun secret-ref = correct Secret-Manager pattern; osv.dev run-staging.yaml leaks only a public OAuth client ID (175272184261-…apps.googleusercontent.com) + internal URL pantheon.corp.google.com — both no-report. Closes the ADK/osv.dev hardcoded-secret thread.
+- [NEW] reports/hypotheses.md is empty (only header 15:49:41) — prior ranked-hypothesis output was never committed; this run must persist it.
+- [CHANGED] D2E S2S / Agent Registration / PolicySettings surfaces (15:45/14:45) already folded into KB tail — no further change vs last leads.
+- Otherwise NO_DELTA.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] Copilot Studio D2E S2S conversations API — priority 7.25 | attack 8, business 8, tech 9, gate 2, cloud 7, fresh 9. Private-preview S2S; code-verbatim conversation-ID non-validation; JWT+SSE+orchestrated stack.
+- [PRIO] /beta/copilot/agentRegistrations — priority 6.80 | attack 7, business 8, tech 8, gate 3, cloud 6, fresh 8. GA-transition surface; client-supplied createdBy; PATCH rewrites owner/card of any registration.
+- [PRIO] Entra Agent ID three-hop user_fic token chain — priority 6.50 | attack 6, business 9, tech 9, gate 2, cloud 6, fresh 5. idtyp=user delegated mint; exotic grant; alternate-key username selector.
+- [PRIO] /v1.0|copilot/admin/catalog/packages — priority 5.50 | attack 5, business 6, tech 6, gate 5, cloud 5, fresh 6. GA read; role-vs-scope + cross-tenant package-id untested.
+- [PRIO] /beta/copilot/admin/policySettings/{id} (Exchange arbitration mailbox) — priority 5.60 | attack 5, business 6, tech 7, gate 4, cloud 5, fresh 7.
+
+## STEP 3 — HYPOTHESES
+[HYP] D2E conversation-ID resumption / cross-app hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations{,/{id}} — api-version=2022-03-01-preview
+confidence: 55
+reasoning: copilotStudioWebChat.ts:40-44 verbatim — server "does not validate conversation IDs; a non-existent GUID will silently create a new conversation under that ID." Documented turn-time guardrails (CallerIdentityMismatch/CallerIdentityTypeMismatch/D2EAccessDenied) are unproven for cross-app resumption and subscribe+Last-Event-Id replay. Envhost fully derivable from EnvironmentId GUID (H-19); de-facto secrets = schemaName + share-ACL.
+evidence_needed: second principal resumes a conversation created by another app under a chosen GUID and reads/continues the turn stream (history disclosure / active-session injection).
+verify_steps: AUTH_HELPED (test-tenant; prerequisites: MSRC clarify scope of *.powerplatform.com envhost, then admin-consented CopilotStudio.Copilots.Invoke on resourceAppId 8578e004-…): 1) app A POST start with x-ms-conversation-id=attacker-chosen GUID → 2) app B POST turn to …/conversations/{same GUID} with its own Bearer → 3) observe whether CallerIdentityMismatch fires or the conversation resumes. Passive equivalent: none (POST-only) — PPAPI error-differentiation on 401/403/424 is the only passive signal (recon only).
+impact: conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Agent Registration ownership boundary (foreign PATCH/DELETE)
+class: IDOR
+asset: POST/GET/PATCH/DELETE /beta/copilot/agentRegistrations{,/{id}} (perm AgentRegistration.ReadWrite.All, Global cloud)
+confidence: 50
+reasoning: create requires CLIENT-SUPPLIED createdBy (+sourceCreated/LastModifiedDateTime); PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard of any registration id; docs show no ownership enforcement beyond scope (AgentIdentityId = Agent 365 backend bdc49611-…). Retired Agent Registry (2026-06-15) had same-shape managedBy/ownerIds fields.
+evidence_needed: principal B PATCHes agentCard/ownerIds on a registration created by principal A in same tenant and succeeds (or 204 no-op rather than 403).
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POSTs registration → 2) B GET /beta/copilot/agentRegistrations to test undocumented enumeration (metadata is Collection) → 3) B PATCH /beta/copilot/agentRegistrations/{A's id} {"agentCard":<rewrite>} → 4) observe status. Passive: none (auth-gated 401).
+impact: agent card rewrite = agent impersonation / supply-chain; forgeable audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] user_fic Hop-3 subject validation (arbitrary user_id/username)
+class: AUTH
+asset: POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token — grant_type=user_fic
+confidence: 45
+reasoning: three-hop flow code-exact (entrabot teams.py:126-221): Hop3 takes client_assertion=T1 + user_federated_identity_credential=T2 + user_id={oid} OR username={upn} + requested_token_use=on_behalf_of → idtyp=user. H-1 knob = alternate-key subject selector; identityParentId 1:1 linkage enforcement by ESTS is the unknown. Hardening noted: single-tenant agent identities, sponsor-gated creation, blocked interactive/ROPC — lowers prior but flow is high-value if broken.
+evidence_needed: ESTS returns a token with idtyp=user and oid=victim for user_id of a user NOT the agent's parent — or rejects; username alternate-key accepted vs user_id.
+verify_steps: AUTH_HELPED (test-tenant; needs blueprint+agent cert+client_assertion chain): 1) acquire T1/T2 per documented FIC flow → 2) POST token with user_id={unrelated second user's oid} → 3) decode idtyp/oid/identityParentId; repeat with username={other.upn}. Passive: none.
+impact: delegated idtyp=user token for arbitrary subject = full-user impersonation to every M365 API. CVSS 9.1–9.8 if real.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- [PARKED] H-17 x-ms-d2e-experimental → SDK promotes host to DirectConnectUrl: requires the header to reflect attacker input; no evidence mechanism; confidence <40.
+- [PARKED] H-18 orchestrated InvokeTool tool-confusion: 'internal use only' undocumented surface; toolSchemaName validation against agent registry has no doc anchor; weak.
+- [PARKED] H-19 envhost derivability: recon-only, not a vulnerability by itself (informs H-A envhost, not reportable alone).
+- [PARKED] H-20 DirectLine no-admin-consent parity: design-note, attribution gap, no exploit primitive.
+- [PARKED] H-15 policySettings↔Exchange arbitration mailbox: requires an unknown non-admin path into Exchange mailbox infra; no concrete verify_steps (docs silent) — keep as recon tail.
+- [PARKED] H-10 package API role-vs-scope: revised down (server-side SKU check), admin-consent-required app role path unverifiable passively.
+- [PARKED] H-7 agentCard JWS trust: M365 SDK (microsoft/agents) has 0 signature-verify code — runtime-side verification still unknown, but requires authenticated agent-card manipulation first (subsumed by H-B).
+- [FINAL] 1) H-A D2E convId IDOR (55)  2) H-B Agent Registration ownership IDOR (50)  3) H-C user_fic subject AUTH (45)
+
+## STEP 5 — NEXT ACTION
+[NEXT] RAG: In microsoft/Agents + @microsoft/agents-copilotstudio-client (both in-scope orgs), grep for CallerIdentityMismatch / CallerIdentityTypeMismatch / D2EAccessDenied handlers and the subscribe path (Last-Event-Id, x-ms-conversation-id) to determine whether conversationId is bound to the caller's app identity/share-ACL server-side or trusted from the client — this decides whether H-A needs a full test-tenant run or is a dead end. No live requests (scope.yml passive_only).
+
+## STEP 6 — LEARNING
+- [LEARN] ACCEPTED broken-object-authorization class @ copilotstudio D2E conversations: code-verbatim "does not validate conversation IDs" = a genuine testable resumption-boundary family (new, private-preview).
+- [LEARN] REJECTED hardcoded-secret class in google ADK repos (adk-go/adk-python/osv.dev): 15:54 scan → all runtime/env/test-fixture; thread closed.
+- [LEARN] REJECTED Agent Registry API ownership class @ /beta/agentRegistry: API retired 2026-06-15 (MC1297981); hypotheses must migrate to /beta/copilot/agentRegistrations (H-B) — do not re-report on retired surface.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 22 — surface exhausted/blocked at consumer-identity boundary (Firebase 403, GCP discovery all API-key/OAuth-gated); reposcan clean; remaining threads (firebaseauth IAM, STS/WIP) require authorized-token testing.
+- [RISK] microsoft: 58 — fast-expanding agentic Graph beta + Copilot Studio D2E private preview; open ownership/consent/subject-boundary hypotheses on brand-new surfaces; all gated by admin-consent/scopes so non-trivial but high ceiling.

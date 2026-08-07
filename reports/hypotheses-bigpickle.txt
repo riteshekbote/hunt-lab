@@ -1,0 +1,29 @@
+## 2026-08-07 16:00:46 UTC [google] (model bigpickle)
+[HYP] D2E conversation-ID resumption / cross-app hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed|prebuilt/authenticated/bots/{schemaName}/conversations{,/{id}} — api-version=2022-03-01-preview
+confidence: 55
+reasoning: copilotStudioWebChat.ts:40-44 verbatim — server "does not validate conversation IDs; a non-existent GUID will silently create a new conversation under that ID." Documented turn-time guardrails (CallerIdentityMismatch/CallerIdentityTypeMismatch/D2EAccessDenied) are unproven for cross-app resumption and subscribe+Last-Event-Id replay. Envhost fully derivable from EnvironmentId GUID (H-19); de-facto secrets = schemaName + share-ACL.
+evidence_needed: second principal resumes a conversation created by another app under a chosen GUID and reads/continues the turn stream (history disclosure / active-session injection).
+verify_steps: AUTH_HELPED (test-tenant; prerequisites: MSRC clarify scope of *.powerplatform.com envhost, then admin-consented CopilotStudio.Copilots.Invoke on resourceAppId 8578e004-…): 1) app A POST start with x-ms-conversation-id=attacker-chosen GUID → 2) app B POST turn to …/conversations/{same GUID} with its own Bearer → 3) observe whether CallerIdentityMismatch fires or the conversation resumes. Passive equivalent: none (POST-only) — PPAPI error-differentiation on 401/403/424 is the only passive signal (recon only).
+impact: conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+[HYP] Agent Registration ownership boundary (foreign PATCH/DELETE)
+class: IDOR
+asset: POST/GET/PATCH/DELETE /beta/copilot/agentRegistrations{,/{id}} (perm AgentRegistration.ReadWrite.All, Global cloud)
+confidence: 50
+reasoning: create requires CLIENT-SUPPLIED createdBy (+sourceCreated/LastModifiedDateTime); PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard of any registration id; docs show no ownership enforcement beyond scope (AgentIdentityId = Agent 365 backend bdc49611-…). Retired Agent Registry (2026-06-15) had same-shape managedBy/ownerIds fields.
+evidence_needed: principal B PATCHes agentCard/ownerIds on a registration created by principal A in same tenant and succeeds (or 204 no-op rather than 403).
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POSTs registration → 2) B GET /beta/copilot/agentRegistrations to test undocumented enumeration (metadata is Collection) → 3) B PATCH /beta/copilot/agentRegistrations/{A's id} {"agentCard":<rewrite>} → 4) observe status. Passive: none (auth-gated 401).
+impact: agent card rewrite = agent impersonation / supply-chain; forgeable audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] user_fic Hop-3 subject validation (arbitrary user_id/username)
+class: AUTH
+asset: POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token — grant_type=user_fic
+confidence: 45
+reasoning: three-hop flow code-exact (entrabot teams.py:126-221): Hop3 takes client_assertion=T1 + user_federated_identity_credential=T2 + user_id={oid} OR username={upn} + requested_token_use=on_behalf_of → idtyp=user. H-1 knob = alternate-key subject selector; identityParentId 1:1 linkage enforcement by ESTS is the unknown. Hardening noted: single-tenant agent identities, sponsor-gated creation, blocked interactive/ROPC — lowers prior but flow is high-value if broken.
+evidence_needed: ESTS returns a token with idtyp=user and oid=victim for user_id of a user NOT the agent's parent — or rejects; username alternate-key accepted vs user_id.
+verify_steps: AUTH_HELPED (test-tenant; needs blueprint+agent cert+client_assertion chain): 1) acquire T1/T2 per documented FIC flow → 2) POST token with user_id={unrelated second user's oid} → 3) decode idtyp/oid/identityParentId; repeat with username={other.upn}. Passive: none.
+impact: delegated idtyp=user token for arbitrary subject = full-user impersonation to every M365 API. CVSS 9.1–9.8 if real.
+testability: AUTH_HELPED
+[NEXT] RAG: In microsoft/Agents + @microsoft/agents-copilotstudio-client (both in-scope orgs), grep for CallerIdentityMismatch / CallerIdentityTypeMismatch / D2EAccessDenied handlers and the subscribe path (Last-Event-Id, x-ms-conversation-id) to determine whether conversationId is bound to the caller's app identity/share-ACL server-side or trusted from the client — this decides whether H-A needs a full test-tenant run or is a dead end. No live requests (scope.yml passive_only).
