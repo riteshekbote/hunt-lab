@@ -179,3 +179,28 @@ testability: AUTH_HELPED
 [NEXT] PROBE: GET `https://login.microsoftonline.com/common/discovery/keys` and `https://login.microsoftonline.com/common/discovery/v2.0/keys` — diff `kid` sets for overlap (passive-first step; if overlap exists, supports issuer-confusion replay hypothesis; if disjoint, weakens that path) → feeds into ranking priority #3
 [RISK] google: 22 | narrow passive surface (identitytoolkit 403-gated, tokeninfo amplification-only no-reward, bughunters hardened SPA); no ungated cross-project read surface; secrets scans clean
 [RISK] microsoft: 82 | multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), dual v1.0/v2.0 issuer namespaces, Graph 405 anomaly, v2.0 HTTP-200 error rendering
+## 2026-08-07 17:38:19 UTC [google] (model laguna)
+class: IDOR
+asset: `graph.microsoft.com/beta/copilot/agentRegistrations`
+confidence: 75
+reasoning: API accepts client-supplied `createdBy` on create; PATCH on any registration ID rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard` with NO documented ownership enforcement; Agent Registration API is the GA replacement for deprecated May-2026 `agentRegistry`; 0 refs in Graph `$metadata` confirms undocumented status.
+evidence_needed: PATCH `/beta/copilot/agentRegistrations/{foreign_id}` with modified `ownerIds`/`agentCard` returns 200/204 and mutation persists across different principal.
+verify_steps: AUTH_HELPED: In test tenant, create registration A as User1, note ID; as User2 (same tenant, different identity), PATCH that ID with attacker-controlled `agentCard` + `owneyIds`; GET to confirm mutation. PASSIVE: GET `/beta/copilot/agentRegistrations/$count` to test enumeration (already 405-confirmed).
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+class: AUTH
+asset: `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential`
+confidence: 70
+reasoning: SPA clientId `8c59…` scopes token to itself; backend contract shows only `GuestIsNotAllowedToIssueVerifiedId` / `TenantIsNotInAllowedToIssueVerifiedId` checks in client-side source map — no admin/role validation visible; source map `main.4e6e3dc6.js.map` (35MB, 4922 paths) available for schema confirmation.
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential.
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST `/api/issueVerifiedEmployeeCredential`; download source map `main.4e6e3dc6.js.map` to confirm request schema.
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing; CVSS 7.1–9.1
+testability: AUTH_HELPED
+class: AUTH
+asset: `login.microsoftonline.com` (sts.windows.net/{tid} vs login.microsoftonline.com/{tid}/v2.0; shared JWKS)
+confidence: 50
+reasoning: v1.0 JWKS (5 RSA kids) is strict subset of v2.0 JWKS (8 RSA kids) — all 5 v1.0 signing keys present in v2.0 JWKS; v1.0 issuer `sts.windows.net/{tid}/` vs v2.0 issuer `login.microsoftonline.com/{tid}/v2.0`; if token-accepting resources validate signature+kid but not strict `iss`, v1.0 token replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (with `iss=sts.windows.net/{tid}/`) accepted by v2.0-only resource.
+verify_steps: PASSIVE: confirmed v1.0 kids ⊆ v2.0 kids. AUTH_HELPED: replay v1.0 id_token against graph.microsoft.com/v1.0/me (v1.0 accepts both — test against a v2.0-only endpoint).
+impact: MFA bypass / auth bypass on Microsoft Identity ($100,000)
+testability: AUTH_HELPED

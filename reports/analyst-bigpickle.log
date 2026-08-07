@@ -275,3 +275,80 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 [RISK] google: 35 — remaining live surface (tokeninfo oracle, codelab keys) largely REJECTED/fixed/DUP; all GCP control-plane reads consumer-identity gated; no unauthenticated exploitable branch identified.
 [RISK] microsoft: 78 — identity SPAs ship production source maps; Bearer-only Verified ID mint endpoint lacks per-subject proof; consent-grant primitive takes caller-chosen resourceId; off-metadata agentSession/agentRegistrations + D2E POST surface all in play behind auth.
+===== ANALYST bigpickle 2026-08-07 17:38:33 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m◈ [0mParallel Web Search "copilotstudio dataverse-backed authenticated bots conversations x-ms-conversation-id Last-Event-Id"
+[0m◈ [0mParallel Web Search "microsoft/agents-copilotstudio-client CallerIdentityMismatch conversation github"
+[0m% [0mWebFetch https://raw.githubusercontent.com/microsoft/Agents-for-js/main/packages/agents-copilotstudio-client/src/copilotStudioClient.ts
+## STEP 1 — DELTA
+
+- [CHANGED] Aggregated RANKED HYPOTHESES 16:42:10: `agentRegistrations` [75] (nemotron3) is now global top; my `oauth2PermissionGrants` [52] ranked #2; my D2E [55] slipped below it — but see RAG delta below (D2E materially strengthened).
+- [NEW] RAG @ `microsoft/Agents-for-js/packages/agents-copilotstudio-client/src/copilotStudioClient.ts` (verified source): `startConversationStreaming(StartRequest.conversationId)`, `executeStreaming(activity, conversationId)`, `subscribeAsync(conversationId, lastReceivedEventId)` all place a **caller-chosen conversation ID into the URL path verbatim** with **zero client-side ownership checks**; subscribe sends `Last-Event-ID` for event resumption.
+- [NEW] RAG fact: SDK contains **no** references to `CallerIdentityMismatch`/`CallerIdentityTypeMismatch`/`D2EAccessDenied` — those guards, if enforced, exist only server-side (envhost/Dataverse ACL); the client never validates conversationId against the token.
+- [NEW] RAG fact: response header `x-ms-conversationid` (no hyphen); experimental `x-ms-d2e-experimental` header causes the client to auto-switch all subsequent Bearer requests to the server-provided URL (`useExperimentalEndpoint=true`).
+- [NEW] RAG fact: required scope `CopilotStudio.Copilots.Invoke` (delegated or app) on Power Platform API; URL pattern `{env-prefix}.{env-suffix}.environment.api.powerplatform.com/copilotstudio/dataverse-backed/authenticated/bots/{schemaName}/conversations?api-version=2022-03-01-preview` confirmed in official docs + Power-CAT issue #556.
+
+## STEP 2 — PRIORITIZE
+
+- [PRIO] `graph.microsoft.com/beta/copilot/agentRegistrations` — **6.70** — a7 b8 t7 g2 c7 f9
+- [PRIO] `login.microsoftonline.com/{t}/oauth2/v2.0/token` user_fic 3-hop — **6.65** — a5 b10 t9 g1 c6 f8
+- [PRIO] `{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` D2E — **6.50** — a7 b7 t8 g2 c7 f8
+- [PRIO] `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — **6.40** — a5 b9 t8 g2 c6 f8
+- [PRIO] `graph.microsoft.com/v1.0/oauth2PermissionGrants` — **6.15** — a6 b8 t7 g2 c6 f7
+- [PRIO] AgentIdentityBlueprint.managerApplications — **5.50** — a5 b7 t6 g2 c6 f7
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Agent Registration ownership boundary / undocumented collection enumeration
+class: IDOR
+asset: GET/POST/PATCH/DELETE https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All, Global cloud)
+confidence: 50
+reasoning: create accepts CLIENT-SUPPLIED `createdBy`; PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard` of any registration id; docs show no ownership enforcement beyond scope; metadata typed Collection so a bare GET may enumerate all tenant registrations. Convergence with nemotron3 [75] noted — differentiated sub-claim here is the **enumeration** probe, not the PATCH.
+evidence_needed: principal B (no ownership) enumerates collection via GET and/or PATCHes A's registration → 200/204 list/rewrite vs 403.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration → 2) B GET `/beta/copilot/agentRegistrations` (tests undocumented enumeration) → 3) B PATCH `/beta/copilot/agentRegistrations/{A's id}` `{"agentCard":<rewrite>}` → 4) observe 200/204 vs 403. Passive: none (401-gated).
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forgeable audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] user_fic Hop-3 subject validation (arbitrary user_id / username)
+class: AUTH
+asset: POST https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token — grant_type=user_fic
+confidence: 45
+reasoning: Hop3 takes client_assertion=T1 + user_federated_identity_credential=T2 + user_id={oid} OR username={upn} → requested_token_use=on_behalf_of → idtyp=user. Alternate-key selector is the H-1 knob; ESTS 1:1 linkage of subject-to-agent-parent is the unknown. Hardening (single-tenant agent identity, sponsor-gated creation, no interactive/ROPC) lowers prior.
+evidence_needed: ESTS returns idtyp=user+oid for a user_id unrelated to the agent's parent, or accepts username alternate-key vs user_id — else rejects.
+verify_steps: AUTH_HELPED (test-tenant; needs blueprint+agent cert+client_assertion chain): 1) acquire T1/T2 → 2) POST token `user_id={unrelated user oid}` → 3) decode idtyp/oid/identityParentId; repeat with `username={other.upn}`. Passive: none.
+impact: delegated idtyp=user token for arbitrary subject = full-user impersonation to every M365 API. CVSS 9.1–9.8 if real.
+testability: AUTH_HELPED
+
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schemaName}/conversations{,/{id}}?api-version=2022-03-01-preview (scope CopilotStudio.Copilots.Invoke)
+confidence: 55
+reasoning: RAG PROVES the official JS SDK threads a caller-chosen conversationId into the URL path for start (`StartRequest.conversationId`), execute (`executeStreaming`), and subscribe (`subscribeAsync` + `Last-Event-ID`), with zero client-side ownership checks and no client handling of CallerIdentityMismatch/D2EAccessDenied. Only the server-side envhost/Dataverse ACL remains as the guard.
+evidence_needed: principal B executes a turn or subscribes (with Last-Event-ID) against a conversation A created under a caller-chosen GUID; either the turn stream resumes (bind failure) or a documented guard error fires (bind enforced).
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm `*.powerplatform.com` envhost in scope): 1) app A POST start with `StartRequest.conversationId`=attacker-chosen GUID → 2) app B POST `…/conversations/{same GUID}` + GET subscribe with `Last-Event-ID` using its own Bearer → 3) observe whether conversation resumes or guard error returns. Passive: none (Bearer-gated, SSE only).
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+
+- [PARKED] Agent Registration ownership (my variant): converges 1:1 with nemotron3 [75] already in the global ranked list; keeping a separate identical line would duplicate. Merged — enumeration sub-claim carried into the merged item.
+- user_fic (45): above cutoff, concrete AUTH_HELPED steps, not on REJECTED list → KEEP, but flag high prerequisites (cert chain + blueprint + two principals) and gate_ease=1.
+- D2E (55): RAG-strengthened this turn (client-side trust now proven), verify steps concrete → KEEP.
+- oauth2PermissionGrants (52), Verified ID mint (50), Blueprint managerApplications (45): all pass the three drop tests → KEEP.
+- [FINAL] 1. agentRegistrations ownership/enumeration [75 merged, AUTH_HELPED] · 2. D2E conversation resumption [55, AUTH_HELPED] · 3. oauth2PermissionGrants caller-chosen resourceId [52, AUTH_HELPED] · 4. Verified ID employee credential mint [50, AUTH_HELPED] · 5. user_fic Hop-3 subject [45, AUTH_HELPED] · 6. Blueprint managerApplications [45, AUTH_HELPED]
+
+## STEP 5 — NEXT ACTION
+
+- [NEXT] HUMAN: RAG fork resolved (no client-side conversationId binding — server-side is the sole control), so run the authorized two-principal D2E test: app A `POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schemaName}/conversations?api-version=2022-03-01-preview` with `StartRequest.conversationId`=attacker-chosen GUID (Bearer, scope CopilotStudio.Copilots.Invoke on resourceAppId 8578e004-…), then app B with its own Bearer POSTs `…/conversations/{same GUID}` and GET-subscribes with `Last-Event-ID`; record whether the turn stream resumes or a guard error fires. Prereq: MSRC confirm `*.powerplatform.com` envhost is in scope before the run.
+
+## STEP 6 — LEARNING
+
+- [LEARN] ACCEPTED conversationId client-trust @ copilotstudio dataverse-backed D2E: official `@microsoft/agents-copilotstudio-client` SDK sends caller-chosen conversationId verbatim in the URL path for start/execute/subscribe (`Last-Event-ID` resumption) with no client ownership checks and no handling of CallerIdentityMismatch/D2EAccessDenied — server-side envhost/Dataverse ACL is the only remaining control, unproven.
+- [LEARN] REJECTED (no new branch) @ all prior passive surfaces (v2.0 authorize, graph /v1.0 405, tokeninfo, mysignins/myaccount SPAs): fourth cycle yields no new passive-exploitable branch; all residual value is in AUTH_HELPED test-tenant runs.
+
+## STEP 7 — RISK SCORE
+
+- [RISK] google: 35 — unchanged; remaining surface (tokeninfo oracle, codelab keys) is accepted-low or fixed/DUP; all GCP control-plane reads identity-gated; no unauth exploitable branch.
+- [RISK] microsoft: 78 — identity SPAs ship prod source maps; Verified ID mint endpoint lacks per-subject employee proof; consent-grant primitive takes caller-chosen resourceId; D2E conversationId now proven client-trusted with server binding unproven; all top items auth-gated and none passively provable.
