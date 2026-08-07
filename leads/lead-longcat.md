@@ -12,3 +12,4 @@
 - [UNVALIDATED] 10. **CVE-2026-47391**: PraisonAI official A2A example — unauthenticated + `eval()` tool = RCE.
 - [UNVALIDATED] 11. **GCP OAuth redirect_uri URL parsing confusion** (Benchikh, Apr 2025): IPv6 parser discrepancy → account takeover.
 - [UNVALIDATED] 12. **Tenable TRA-2025-45**: SSRF in GCP Action Hub DataRobot action → IP allowlist bypass on Looker.
+## 2026-08-07 15:49:41 UTC [google] (model longcat)
