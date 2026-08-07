@@ -92,14 +92,19 @@ jobs:
               txt = open('triage-output.txt', errors='ignore').read()
           except Exception:
               txt = ''
-          valid = re.findall(r'\*\*VALID\*\*|VERDICT: VALID|\[VALID\]|^VALID[: ]', txt, re.M | re.I)
-          if valid:
+          # count ONLY real verdict declarations: a line with standalone VALID,
+          # excluding any line that mentions INVALID (the old regex matched
+          # '**VALID**' inside 'If yes -> **VALID**' and counted INVALID verdicts)
+          verdict_lines = [l.strip() for l in txt.split('\n')
+                           if re.search(r'(?<!IN)\bVALID\b', l, re.I)
+                           and not re.search(r'\bINVALID\b', l, re.I)
+                           and re.search(r'verdict|^\||^\s*\*\*VALID|^\s*VALID', l, re.I)]
+          if verdict_lines:
               with open('reports/valid-bugs.md', 'a') as f:
                   stamp = __import__('datetime').datetime.now(__import__('datetime').timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-                  f.write(f"\n- {len(valid)} lead(s) marked VALID at {stamp}\n")
-                  # extract the valid lead lines (best-effort)
-                  for m in re.finditer(r'(?m)^\s*(VALID|\[VALID\]|\*\*VALID\*\*)\s*[:\-]\s*(.{20,240})', txt):
-                      f.write(f"  - {m.group(2).strip()}\n")
+                  f.write(f"\n- {len(verdict_lines)} lead(s) marked VALID at {stamp}\n")
+                  for vl in verdict_lines[:20]:
+                      f.write(f"  - {vl[:200]}\n")
               # print running count
               total = open('reports/valid-bugs.md').read().count('lead(s) marked VALID')
               print(f"RUNNING VALID COUNT: {total}")
