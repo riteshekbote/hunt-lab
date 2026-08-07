@@ -136,3 +136,27 @@
 
 ## RANKED HYPOTHESES 2026-08-07 21:55:35 UTC
 - [60] GET/POST/PATCH: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-bigpickle.txt)
+
+## RANKED HYPOTHESES 2026-08-07 22:40:57 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations with client-set createdBy + owne
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Execute the still-unexecuted two-principal test-tenant probe of the top hypothesis — A: POST /beta/copilot/agentRegistrations with client-set createdBy/o
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST /beta/copilot/agentRegistrations with client-set createdBy + owne
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), a
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm
+- LEARN: ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only c
+- LEARN: ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET ret
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either ac
+- LEARN: ACCEPTED bughunters.google.com root hardening: HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff — verif
+- LEARN: REJECTED login.live.com/oauth20_desktop.srf full removal: returns stub 200 page with "You have reached a page that is not normally shown" + client-side JS appen
+- LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+- LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/ag
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict
+- LEARN: ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serv
+- LEARN: ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_to
+- LEARN: ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error cod
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- LEARN: ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Co

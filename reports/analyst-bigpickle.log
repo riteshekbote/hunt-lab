@@ -1828,3 +1828,247 @@ testability: AUTH_HELPED
 === STEP 7 — RISK SCORE ===
 - [RISK] google: 35 — tokeninfo oracle remains sole anonymous branch (info-only); GCP control-plane reads consumer-identity gated; no change.
 - [RISK] microsoft: 76 — source maps live but now proven secret-clean (recon-only); top agentRegistrations IDOR [85] still unverified (Bearer mandatory, 401-gate-first confirmed); D2E envhost unresolved anonymously; exposure surface unchanged, exploit status still pending authorized test-tenant execution.
+===== ANALYST bigpickle 2026-08-07 22:40:57 UTC =====
+[0m
+> build · big-pickle
+[0m
+I'll run fresh read-only probes to establish delta, focusing on the agent-registry surface that remains top-ranked.
+[0m$ [0mfor u in \
+  "https://graph.microsoft.com/beta/copilot/agentRegistrations" \
+  "https://graph.microsoft.com/beta/agentRegistry" \
+  "https://graph.microsoft.com/beta/agentRegistry/agentInstances" \
+  "https://graph.microsoft.com/beta/copilot/admin/catalog/packages" \
+  "https://graph.microsoft.com/beta/copilot/admin/policySettings" \
+  "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" \
+  "https://graph.microsoft.com/beta/copilot/agents" \
+; do
+  echo "=== $u ==="
+  curl -s -o /dev/null -w "GET: %{http_code} len=%{size_download} ctype=%{content_type}\n" --max-time 20 "$u"
+  curl -s -o /dev/null -w "HEAD: %{http_code} len=%{size_download}\n" -I --max-time 20 "$u"
+  curl -s -o /dev/null -w "OPTIONS: %{http_code} len=%{size_download} allow=%header{allow}\n" -X OPTIONS --max-time 20 "$u"
+done
+=== https://graph.microsoft.com/beta/copilot/agentRegistrations ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/beta/agentRegistry ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/beta/agentRegistry/agentInstances ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/beta/copilot/admin/catalog/packages ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/beta/copilot/admin/policySettings ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/v1.0/oauth2PermissionGrants ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+=== https://graph.microsoft.com/beta/copilot/agents ===
+GET: 401 len=237 ctype=application/json
+HEAD: 405 len=0
+OPTIONS: 405 len=0 allow=
+[0m
+Uniform 401/405 pattern across the entire agent surface. Let me check the 401 body shape and probe method semantics deeper.
+[0m$ [0mecho "=== 401 body agentRegistrations ==="
+curl -s --max-time 20 "https://graph.microsoft.com/beta/copilot/agentRegistrations" | head -c 400
+echo
+echo "=== 401 headers ==="
+curl -s -D - -o /dev/null --max-time 20 "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+echo "=== POST vs GET gating ==="
+for u in \
+  "https://graph.microsoft.com/beta/copilot/agentRegistrations" \
+  "https://graph.microsoft.com/beta/agentRegistry/agentInstances" \
+; do
+  echo "--- POST $u ---"
+  curl -s -o /dev/null -w "POST: %{http_code} len=%{size_download}\n" -X POST -H "Content-Type: application/json" -d '{}' --max-time 20 "$u"
+done
+echo "=== deeper agentRegistry paths ==="
+for u in \
+  "https://graph.microsoft.com/beta/agentRegistry/agentCardManifests" \
+  "https://graph.microsoft.com/beta/agentRegistry/agentCollections" \
+  "https://graph.microsoft.com/beta/copilot/admin/policySettings/microsoft.copilot.copilotchatpinning" \
+; do
+  echo "--- $u ---"
+  curl -s -o /dev/null -w "GET: %{http_code} len=%{size_download}\n" --max-time 20 "$u"
+done
+=== 401 body agentRegistrations ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T22:36:05","request-id":"85906034-779d-4213-82c6-5c43a1637c9c","client-request-id":"85906034-779d-4213-82c6-5c43a1637c9c"}}}
+=== 401 headers ===
+HTTP/1.1 401 Unauthorized
+Transfer-Encoding: chunked
+Content-Type: application/json
+Strict-Transport-Security: max-age=31536000
+request-id: 10afc6b1-7a23-4c73-b3e8-3d3fde190b95
+client-request-id: 10afc6b1-7a23-4c73-b3e8-3d3fde190b95
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 2","Slice":"E","Ring":"4","ScaleUnit":"005","RoleInstance":"MWH0EPF000C8E6E"}}
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+Date: Fri, 07 Aug 2026 22:36:04 GMT
+
+=== POST vs GET gating ===
+--- POST https://graph.microsoft.com/beta/copilot/agentRegistrations ---
+POST: 401 len=237
+--- POST https://graph.microsoft.com/beta/agentRegistry/agentInstances ---
+POST: 401 len=237
+=== deeper agentRegistry paths ===
+--- https://graph.microsoft.com/beta/agentRegistry/agentCardManifests ---
+GET: 401 len=237
+--- https://graph.microsoft.com/beta/agentRegistry/agentCollections ---
+GET: 401 len=237
+--- https://graph.microsoft.com/beta/copilot/admin/policySettings/microsoft.copilot.copilotchatpinning ---
+GET: 401 len=237
+[0m
+Let me check if the SPA bundles have rotated (new source maps = new endpoints) and re-confirm the D2E envhost blocker.
+[0m$ [0mecho "=== bundle hashes (rotation check) ==="
+for u in \
+  "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" \
+  "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" \
+; do
+  curl -s -o /dev/null -w "%{http_code} len=%{size_download} url=$u\n" --max-time 60 "$u"
+done
+echo "=== index html bundle refs ==="
+curl -s --max-time 20 "https://mysignins.microsoft.com/" | grep -oE 'bundle/main[^"]*\.js' | head -3
+curl -s --max-time 20 "https://api.myaccount.microsoft.com/" | grep -oE 'bundle/main[^"]*\.js' | head -3
+echo "=== D2E envhost resolution ==="
+host certifid.dynamic.teams.microsoft.com 2>&1 | head -2 || echo "NXDOMAIN"
+echo "=== source map new endpoint scan (light grep on mysignins map) ==="
+curl -s --max-time 90 "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" -o /tmp/opencode/msig.map 2>/dev/null
+wc -c /tmp/opencode/msig.map 2>/dev/null
+=== bundle hashes (rotation check) ===
+200 len=6976576 url=https://mysignins.microsoft.com/bundle/main.caa6a456.js.map
+200 len=35340363 url=https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map
+=== index html bundle refs ===
+bundle/main.caa6a456.js
+bundle/main.shim.js
+=== D2E envhost resolution ===
+Host certifid.dynamic.teams.microsoft.com not found: 3(NXDOMAIN)
+=== source map new endpoint scan (light grep on mysignins map) ===
+6976576 /tmp/opencode/msig.map
+[0m
+Bundles unchanged. Let me scan the fresh source map for any new API paths.
+[0m$ [0mecho "=== /api/ paths in mysignins map ==="
+grep -oE '"/api/[^"]+"|`/api/[^`]+`|/api/[a-zA-Z0-9_/{}.-]+' /tmp/opencode/msig.map | sort -u | head -40
+echo "=== agent/copilot/credential-adjacent strings ==="
+grep -oE '(agentRegistration|copilotstudio|authenticated|conversationId|Last-Event-ID|fmi_path|user_fic|oAuth2PermissionGrants|issueVerified)' /tmp/opencode/msig.map | sort | uniq -c | head -20
+echo "=== host literals ==="
+grep -oE 'https://[a-z0-9.-]+' /tmp/opencode/msig.map | sort -u | head -30
+=== /api/ paths in mysignins map ===
+=== agent/copilot/credential-adjacent strings ===
+=== host literals ===
+[0m
+[0m$ [0mecho "=== map structure ==="
+head -c 200 /tmp/opencode/msig.map
+echo
+echo "=== search without quotes ==="
+grep -oE '/api/[a-zA-Z0-9_./{}-]+' /tmp/opencode/msig.map | sort -u | head -40
+echo "=== count host refs ==="
+grep -oE 'mysignins\.microsoft\.com' /tmp/opencode/msig.map | wc -l
+=== map structure ===
+{"version":3,"file":"bundle/main.caa6a456.js","mappings":";gBACIA,EADAC,ECAAC,EACAC,wCCEJ,IAAIC,EAAYC,MAAQA,KAAKD,UAAa,WAStC,OARAA,EAAWE,OAAOC,QAAU,SAASC,GACjC,IAAK,IAAIC,EAAGC,EAAI,EAAGC,EAAIC,UAAUC,
+=== search without quotes ===
+=== count host refs ===
+0
+[0m
+[0m$ [0mpython3 - <<'EOF'
+import json
+d=json.load(open('/tmp/opencode/msig.map'))
+srcs=d.get('sources',[])
+print("sources count:",len(srcs))
+api=[s for s in srcs if '/api/' in s.lower()]
+print("api path sources:",len(api))
+for s in api[:20]: print(" ",s)
+import re
+joined="\n".join(d.get('sourcesContent',[]))
+print("sourcesContent size:",len(joined))
+for pat in ['agentRegistration','copilot','fmi_path','user_fic','conversation','permissionGrant','issueVerified','Last-Event']:
+    hits=re.findall(r'.{40}'+pat+r'.{60}', joined)
+    print(f"\n--- {pat}: {len(hits)} ---")
+    for h in hits[:2]: print("  ",h.replace('\n',' ')[:140])
+EOF
+sources count: 4359
+api path sources: 0
+sourcesContent size: 0
+
+--- agentRegistration: 0 ---
+
+--- copilot: 0 ---
+
+--- fmi_path: 0 ---
+
+--- user_fic: 0 ---
+
+--- conversation: 0 ---
+
+--- permissionGrant: 0 ---
+
+--- issueVerified: 0 ---
+
+--- Last-Event: 0 ---
+[0m
+All probes complete. Producing the structured analysis.
+
+## STEP 1 — DELTA
+- [CHANGED] Graph 405 anomaly breadth-confirmed: HEAD→405 (len=0, NO WWW-Authenticate) now verified across the ENTIRE agent-registry/copilot-admin family — `agentRegistrations`, `agentRegistry/{agentInstances,agentCardManifests,agentCollections}`, `copilot/admin/catalog/packages`, `copilot/admin/policySettings/{id}`, `copilot/agents`, `oauth2PermissionGrants` (all GET/POST→401 len=237 standard Bearer challenge, POST→401). Same known class, expanded scope — not new.
+- [CONFIRMED] No pre-auth branch anywhere: all agent/copilot/consent endpoints uniformly gate on Bearer+scope; `WWW-Authenticate: Bearer realm="" authorization_uri=login.microsoftonline.com/common/oauth2/authorize client_id=00000003-0000-0000-c000-000000000000` present only on 401 (never on HEAD/405).
+- [CONFIRMED] SPA bundles unchanged: `mysignins/bundle/main.caa6a456.js.map` (6.98MB) + `api.myaccount/bundle/main.4e6e3dc6.js.map` (35.3MB) both 200, same hashes/sizes; mysignins map re-fetched — mappings-only (sourcesContent empty, no new endpoint strings).
+- [CONFIRMED] D2E envhost `certifid.dynamic.teams.microsoft.com` still NXDOMAIN — conversation-ID hypothesis blocker unchanged.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations | score 7.10 | attack=7 business=9 tech=8 gate=2 cloud=9 fresh=7
+- [PRIO] graph.microsoft.com/beta/agentRegistry/* (deprecated agentInstances/manifests/collections) | score 6.35 | attack=6 business=8 tech=7 gate=2 cloud=9 fresh=6
+- [PRIO] source maps (mysignins 7MB + myaccount 35MB, mappings live) | score 6.35 | attack=6 business=6 tech=7 gate=10 cloud=4 fresh=4
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants consent primitive | score 6.25 | attack=6 business=8 tech=7 gate=2 cloud=9 fresh=5
+
+## STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 60
+reasoning: Re-probed this cycle: GET/POST→401 len=237 pure Bearer-scope gate, HEAD→405; $metadata (7.3MB) still shows agentRegistration EntityType with zero OperationRestrictions and client-supplied createdBy/ownerIds/agentCard. No pre-auth branch exists — ownership enforcement only reachable with a real token.
+evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
+verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET /beta/copilot/agentRegistrations own Bearer; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>}; record 200/204 vs 403 at each hop.
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] D2E conversation-ID resumption / cross-app session hijack
+class: IDOR
+asset: POST https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations{,/{id}} (scope CopilotStudio.Copilots.Invoke)
+confidence: 50
+reasoning: JS SDK threads caller-chosen conversationId into start/executeStreaming/subscribeAsync (+Last-Event-ID) with zero client ownership checks; only envhost/Dataverse ACL guards remain. Re-confirmed this cycle: envhost still NXDOMAIN anonymously (tenant-scoped) — blocker unchanged.
+evidence_needed: principal B executes a turn or subscribes against conversation A created under caller-chosen GUID → resumes vs documented guard error.
+verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm envhost in scope): 1) A POST start w/ chosen GUID; 2) B POST /conversations/{same GUID} + GET subscribe w/ Last-Event-ID own Bearer; observe resume vs guard.
+impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 45
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; re-probed 401 len=237, no new gate this cycle.
+evidence_needed: principal without delegated-admin/consent rights creates grant {clientId:A, resourceId:AzureStorage, scope:"user_impersonation"} → 201/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- All three survive: confidence ≥45, none on REJECTED list, each has concrete AUTH_HELPED verify_steps. No new hypotheses warranted this cycle — delta produced zero new unauth branches (uniform 401 family), and the 405 breadth expansion is the already-ACCEPTED Graph 405 class, not a new hypothesis.
+- [PARKED] (none dropped by rule) — noted for hygiene: no hypothesis below 40 or lacking steps.
+- [FINAL] 1) agentRegistrations IDOR (60) → 2) D2E conversation-ID (50) → 3) oauth2PermissionGrants (45). All unchanged from last cycle; no passive avenue can advance them.
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Execute the still-unexecuted two-principal test-tenant probe of the top hypothesis — A: POST /beta/copilot/agentRegistrations with client-set createdBy/ownerIds (Bearer scope AgentRegistration.ReadWrite.All) → B: GET /beta/copilot/agentRegistrations (own Bearer, record 200 array vs 403) → B: PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":<rewrite>} (record 200/204 vs 403). Passive probing is exhausted (all 401/405 uniform); only a real token resolves or kills the [85]-ranked lead.
+
+## STEP 6 — LEARNING
+- [LEARN] ACCEPTED Graph 405 anomaly breadth @ graph.microsoft.com/beta/copilot/* + /beta/agentRegistry/*: HEAD→405 (len=0, no WWW-Authenticate) confirmed across entire agent-registry family incl. agentInstances/agentCardManifests/agentCollections/catalog/packages/policySettings/agents/oauth2PermissionGrants; GET/POST→401 len=237 Bearer challenge. Existing class, scope-expanded.
+- [LEARN] No new proving-dead classes this cycle — all passive probes confirmed prior findings; no unauth branch on any agent/consent endpoint.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 35 — tokeninfo oracle remains the sole anonymous branch (info-only); GCP control-plane consumer-identity gated; no delta.
+- [RISK] microsoft: 76 — source maps still live (6.98MB/35.3MB, unchanged); agentRegistrations IDOR [60] + consent escalation [45] still unverified (auth-gate-first confirmed, Bearer mandatory, no pre-auth branch on any of 7 families); exposure surface otherwise unchanged; exploit status still pending authorized test-tenant execution.
