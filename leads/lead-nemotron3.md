@@ -47,3 +47,10 @@
 - [UNVALIDATED] Cloud Run service ingress**: `GET /v1/projects/{project}/locations/{location}/services/{service}` — `metadata.annotations['run.googleapis.com/ingress']` + `status.conditions` for ingress status
 - [UNVALIDATED] Cloud Run binary authorization**: `metadata.annotations['run.googleapis.com/binary-authorization']` — BREAKGLASS allows unverified images
 - [UNVALIDATED] Cloud Run custom audiences**: `metadata.annotations['run.googleapis.com/custom-audiences']` — OIDC audience override for service-to-service auth
+
+## 2026-08-07 15:41:41 UTC [microsoft] (model nemotron3)
+- [UNVALIDATED] `POST /v1/projects/{project}/locations/{location}/triggers/{trigger}:run` — manual trigger with `RepoSource.substitutions` override
+- [UNVALIDATED] `GET /v1/projects/{project}/locations/{location}/repositories/{repo}?view=FULL` — virtual repo upstreams + credentials
+- [UNVALIDATED] `GET /v1/projects/{project}/policy` (Binary Authz) — admission rules, attestors, global policy mode
+- [UNVALIDATED] `GET /v1/projects/{project}/locations/{location}/services/{service}` — Cloud Run annotations (breakglass, custom-audiences, ingress)
+- [UNVALIDATED] `GET /v1/projects/{project}/locations/{location}/workerPools/{workerPool}` — private pool dual network config
