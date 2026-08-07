@@ -1,4 +1,4 @@
-name: Mega Hunt - 5 Models every 10 min
+name: Senior Hunter - Analyst Pipeline (google + microsoft)
 
 on:
   schedule:
@@ -10,7 +10,7 @@ permissions:
   actions: write
 
 jobs:
-  hunter:
+  analyst:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     concurrency:
@@ -40,200 +40,138 @@ jobs:
           export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
           opencode --version
 
-      - name: Decide Target (round-robin google/microsoft)
+      - name: Prepare context (RAG + state + inventory + last cycle)
         run: |
-          SLOT=$(( $(date +%s) / 600 % 2 ))
-          if [ "$SLOT" = "0" ]; then
-            echo "TARGET=google" >> $GITHUB_ENV
-          else
-            echo "TARGET=microsoft" >> $GITHUB_ENV
-          fi
-          echo "This run hunts: $TARGET"
-
-      - name: Load State
-        run: |
-          STATE_FILE="state_${MODEL_NAME}.json"
-          if [ -f "$STATE_FILE" ] && grep -q '"phase"' "$STATE_FILE" 2>/dev/null; then
-            python3 << 'PYTHON_EOF'
-          import json, os
-          with open(f'state_{os.environ["MODEL_NAME"]}.json') as f:
-              st = json.load(f)
-          with open(os.environ['GITHUB_ENV'], 'a') as env:
-              env.write(f"CURRENT_PHASE={st.get('phase','RECON')}\n")
-              env.write(f"CURRENT_STATUS={st.get('status','IN_PROGRESS')}\n")
-          PYTHON_EOF
-          else
-            echo "CURRENT_PHASE=RECON" >> $GITHUB_ENV
-            echo "CURRENT_STATUS=FRESH" >> $GITHUB_ENV
-          fi
-
-      - name: Build Context (truncated, ARG_MAX-safe)
-        run: |
-          mkdir -p research leads triage reports
-          touch research/${MODEL_NAME}.md leads/lead-${MODEL_NAME}.md
-          if [ -s research/${MODEL_NAME}.md ]; then
-            tail -n 1500 research/${MODEL_NAME}.md | awk '{ print (length($0) > 3000 ? substr($0,1,3000) "...[TRUNC]" : $0) }' | tail -c 90000 > ctx-research.txt
-          else
-            echo "# no research yet" > ctx-research.txt
-          fi
-          if [ -s leads/lead-${MODEL_NAME}.md ]; then
-            tail -n 400 leads/lead-${MODEL_NAME}.md | tail -c 40000 > ctx-leads.txt
-          else
-            echo "# no leads yet" > ctx-leads.txt
-          fi
-          # Triage verdicts, if any (validated only)
-          if ls triage/*VALID* >/dev/null 2>&1; then
-            tail -c 30000 triage/*VALID* > ctx-valid.txt
-          else
-            echo "# no validated findings yet" > ctx-valid.txt
-          fi
-          # Running validated count
-          if [ -f reports/valid-bugs.md ]; then grep -c '^| V' reports/valid-bugs.md || true; fi
-
-      - name: Create Research Prompt
-        run: |
-          cat > research-prompt.txt << 'PROMPT_START'
-          You are a security research analyst for bug bounty programs.
-          Role: deep research, hypothesis generation, read-only PoC design.
-          NOT: live exploitation, scanning, or invasive testing.
-          TARGET PROGRAM THIS RUN: ${TARGET} (see scope.yml for exact domain list)
-          RUNNING MODEL: ${MODEL_ID}
-          PHASE: ${CURRENT_PHASE} (RECON -> SURFACE -> HYPOTHESIS -> POC, one step deeper per run)
-
-          ===== PROGRAM RULES (MANDATORY) =====
-          1. PASSIVE ONLY. GET/HEAD requests, max 1 per second. No scanners, no
-             fuzzers, no brute force, no account creation, no writes, no state changes.
-          2. Attack surface = the ${TARGET} program domains from scope.yml ONLY.
-             Never touch third-party hosts (CDNs, SaaS, analytics) beyond reading
-             the program's own disclosure policy page.
-          3. Public source code review IS allowed: google/ and microsoft/ GitHub
-             org repos are in scope as code. Never commit raw secrets - write
-             sha256 hashes instead and flag for triage.
-          4. No pre-disclosure. Findings get reported via program channels only.
-
-          ===== PREVIOUS CONTEXT =====
-          PROMPT_START
-          echo "MY RESEARCH JOURNAL:" >> research-prompt.txt
-          cat ctx-research.txt >> research-prompt.txt
-          echo "" >> research-prompt.txt
-          echo "MY LEADS:" >> research-prompt.txt
-          cat ctx-leads.txt >> research-prompt.txt
-          echo "" >> research-prompt.txt
-          echo "VALIDATED FINDINGS (do not re-report):" >> research-prompt.txt
-          cat ctx-valid.txt >> research-prompt.txt
-
-          cat >> research-prompt.txt << 'PROMPT_START'
-          ===== YOUR TASK =====
-          Continue deep research on the ${TARGET} program scope. Go ONE phase deeper
-          than before. Build on previous context - never repeat it. When a phase is
-          exhausted, start RECON on a NEW unexplored surface (new subdomain,
-          new API version, new public repo, new feature).
-
-          ===== PHASES =====
-          PHASE 1 RECON: VDP/disclosure rules, DNS/subdomain inventory (crt.sh,
-          certificate transparency, passive DNS), tech stack, public repos of the
-          ${TARGET} GitHub org, API docs, changelogs.
-          PHASE 2 SURFACE: endpoints, auth mechanisms (OAuth/OIDC/JWT/sessions),
-          permission model, multi-tenant architecture, sensitive data flows.
-          PHASE 3 HYPOTHESIS: for each - why it might exist, impact, read-only
-          PoC design. Prioritize: auth bypass, IDOR, SSRF, OAuth redirect_uri,
-          business logic, cache poisoning, cloud misconfig, leaked secrets in
-          public repos, source maps, debug endpoints, GraphQL abuse.
-          PHASE 4 POC: exact curl (GET/HEAD only), expected signal, CVSS estimate.
-
-          ===== OUTPUT FORMAT =====
-          # Program: ${TARGET}
-          # Phase: [RECON/SURFACE/HYPOTHESIS/POC]
-          ## Key Findings (one line each, specific)
-          ## New Endpoints / Assets
-          ## Hypotheses (numbered, with impact + read-only test)
-          ## Secrets Check (public repos: what was found, hash only, where)
-          ## CVSS Candidates
-
-          ---
-          ## STATE UPDATE (exact format for parsing)
-          STATUS_PHASE: [RECON|SURFACE|HYPOTHESIS|POC]
-          STATUS_STATE: [IN_PROGRESS|EXHAUSTED|HIGH_POTENTIAL]
-          NEXT_STEP_1: ...
-          NEXT_STEP_2: ...
-          NEXT_STEP_3: ...
-
-          ===== RESPONSE RULES =====
-          ALWAYS: be specific, professional, cite sources (URLs).
-          NEVER: claim you tested something live, invent vulnerabilities, run
-          attacks, include raw secrets, reference out-of-scope hosts.
-          Begin research now.
-          PROMPT_START
-
-      - name: Run Model
-        run: |
-          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
-          timeout 18m opencode run --model "$MODEL_ID" < research-prompt.txt > raw_${MODEL_NAME}.txt 2>&1 || true
-          echo "=== Preview ==="; head -25 raw_${MODEL_NAME}.txt
-
-      - name: Parse State
-        run: |
-          python3 << 'PARSE_PYTHON'
-          import re, json, os
-          name = os.environ['MODEL_NAME']
-          with open(f'raw_{name}.txt', errors='ignore') as f:
-              output = f.read()
-          state = {'phase': 'RECON', 'status': 'IN_PROGRESS'}
-          m = re.search(r'STATUS_PHASE:\s*(RECON|SURFACE|HYPOTHESIS|POC)', output, re.IGNORECASE)
-          if m: state['phase'] = m.group(1).upper()
-          m = re.search(r'STATUS_STATE:\s*(IN_PROGRESS|EXHAUSTED|HIGH_POTENTIAL)', output, re.IGNORECASE)
-          if m: state['status'] = m.group(1).upper()
-          with open(f'state_{name}.json', 'w') as f:
-              json.dump(state, f)
-          print(state)
-          PARSE_PYTHON
-
-      - name: Extract Leads
-        run: |
-          python3 << 'EXTRACT_PYTHON'
-          import re, os
-          from datetime import datetime, timezone
-          name = os.environ['MODEL_NAME']
-          tgt = os.environ['TARGET']
-          with open(f'raw_{name}.txt', errors='ignore') as f:
-              output = f.read()
-          leads = []
-          for pat in [r'## Key Findings\n(.*?)(?=\n##|\Z)', r'## New Endpoints / Assets\n(.*?)(?=\n##|\Z)']:
-              m = re.search(pat, output, re.S)
-              if m:
-                  for line in m.group(1).strip().split('\n'):
-                      line = line.strip().lstrip('-* ').strip()
-                      if (len(line) > 8 and not line.startswith('#')
-                          and not line.startswith('STATUS_')
-                          and not line.startswith('NEXT_STEP_')
-                          and 'PROMPT_START' not in line):
-                          leads.append(line)
-          if leads:
-              now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
-              with open(f'leads/lead-{name}.md', 'a') as f:
-                  f.write(f"\n## {now} [{tgt}] (model {name})\n")
-                  for l in leads[:12]:
-                      f.write(f"- [UNVALIDATED] {l}\n")
-              print(f"{len(leads)} leads appended")
-          EXTRACT_PYTHON
-
-      - name: Journal
-        run: |
+          mkdir -p knowledge inventory leads reports
+          [ -f knowledge/index.md ] || echo "# Knowledge Base (seed)" > knowledge/index.md
+          [ -f state_${MODEL_NAME}.json ] || echo '{"phase":"RECON","target":"google"}' > state_${MODEL_NAME}.json
+          TARGET=$(python3 -c "import json;print(json.load(open('state_${MODEL_NAME}.json')).get('target','google'))")
+          echo "TARGET=$TARGET" >> $GITHUB_ENV
+          echo "TARGET_BOTH=$(python3 -c "import json;d=json.load(open('state_${MODEL_NAME}.json'));print('microsoft' if d.get('target')=='google' else 'google')")" >> $GITHUB_ENV
           {
-            echo ""
-            echo "===== RUN $(date -u +'%Y-%m-%d %H:%M:%S UTC') | model $MODEL_NAME | target $TARGET ====="
-            cat raw_${MODEL_NAME}.txt
-          } >> research/${MODEL_NAME}.md
-          if [ "$(wc -c < research/${MODEL_NAME}.md)" -gt 500000 ]; then
-            tail -c 500000 research/${MODEL_NAME}.md > .tmp && mv .tmp research/${MODEL_NAME}.md
-          fi
+            echo "=== KNOWLEDGE BASE ==="
+            cat knowledge/index.md
+            echo "=== MY STATE ==="
+            cat state_${MODEL_NAME}.json
+            echo "=== MY LAST LEADS (tail) ==="
+            tail -60 leads/lead-${MODEL_NAME}.md 2>/dev/null || echo none
+            echo "=== AGGREGATED HYPOTHESES (tail) ==="
+            tail -40 reports/hypotheses.md 2>/dev/null || echo none
+            echo "=== INVENTORY google ==="
+            tail -50 inventory/google.md 2>/dev/null || echo none
+            echo "=== INVENTORY microsoft ==="
+            tail -50 inventory/microsoft.md 2>/dev/null || echo none
+          } > ctx.txt
+
+      - name: Analyst run (8-step methodology)
+        run: |
+          cat ctx.txt > analyst-prompt.txt
+          cat >> analyst-prompt.txt << 'PROMPT_EOF'
+          You are a senior bug bounty hunter ANALYST for the program in TARGET_BOTH (Google VRP / MSRC). Your job is NOT to invent vulnerabilities. Run these 8 steps and output ONLY the structured blocks.
+
+          STEP 1 — DELTA: Compare the inventory + knowledge + your last leads against the current known surface. List only NEW or CHANGED surface items as [NEW]/[CHANGED] (one line each). If nothing is new, state "NO_DELTA".
+
+          STEP 2 — PRIORITIZE: Score the top new assets (or top existing if no delta) on 6 axes 0-10: attack_surface, business_value, tech_exposure (GraphQL/OAuth/JWT/upload/admin/uncommon stacks), gate_ease (10 = no auth needed), cloud_surface (cloud APIs/storage/metadata), freshness. priority = 0.25*attack + 0.25*business + 0.15*tech + 0.15*gate + 0.10*cloud + 0.10*fresh. Emit [PRIO] lines: asset, score, axis breakdown.
+
+          STEP 3 — HYPOTHESES: For the top 3 prioritized assets emit max 1 hypothesis each, strictly this schema:
+          [HYP] <title>
+          class: <IDOR|SSRF|AUTH|XSS|BUSLOGIC|MISCONFIG|OATH|OTHER>
+          asset: <host/endpoint>
+          confidence: <0-100>
+          reasoning: <facts only, 2-3 lines>
+          evidence_needed: <what proves it>
+          verify_steps: <passive-first concrete HTTP requests, or AUTH_HELPED:...>
+          impact: <what attacker gets + severity>
+          testability: <PASSIVE|AUTH_HELPED|HUMAN_ONLY>
+
+          STEP 4 — SELF-CRITIQUE: Re-read your own hypotheses. Drop any that: confidence < 40, or class on the knowledge REJECTED list, or no concrete verify_steps. For dropped ones emit [PARKED] <title>: <why dropped>. Emit [FINAL] with the surviving hypotheses re-ranked (top first).
+
+          STEP 5 — NEXT ACTION: Choose exactly one and emit [NEXT] <PROBE|SCAN|RAG|HUMAN>: <one concrete action, with the exact endpoint/request if PROBE, or the authorized-token test if HUMAN>.
+
+          STEP 6 — LEARNING: Emit [LEARN] lines for any class newly proven dead or alive (one line each, format: REJECTED/ACCEPTED <class> @ <asset>: <reason>).
+
+          STEP 7 — RISK SCORE: Emit [RISK] google: <0-100> reason | microsoft: <0-100> reason (overall exposure of the program surface, not exploit status).
+
+          RULES: facts vs hypotheses strictly separated; no endpoint-map-only output; no class on the REJECTED list; never mention secrets in full (hash them with sha256sum); all claims must trace to the context provided or your own read-only probes.
+          PROMPT_EOF
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          timeout 18m opencode run --model "$MODEL_ID" < analyst-prompt.txt > analyst-out.txt 2>&1 || true
+          grep -E '^\[(NEW|CHANGED|PRIO|HYP|PARKED|FINAL|NEXT|LEARN|RISK)\]|^class:|^confidence:|^asset:|^impact:|^testability:|^verify_steps:|^reasoning:|^evidence_needed:' analyst-out.txt > lead-${MODEL_NAME}.txt || true
+          {
+            echo "## $(date -u +'%Y-%m-%d %H:%M:%S UTC') [$TARGET] (model ${MODEL_NAME})"
+            cat lead-${MODEL_NAME}.txt
+          } >> leads/lead-${MODEL_NAME}.md
+          cp lead-${MODEL_NAME}.txt reports/hypotheses-${MODEL_NAME}.txt
+          {
+            echo "===== ANALYST ${MODEL_NAME} $(date -u +'%Y-%m-%d %H:%M:%S UTC') ====="
+            cat analyst-out.txt
+          } >> reports/analyst-${MODEL_NAME}.log
+
+      - name: Merge + rank + inventory update (python)
+        run: |
+          python3 << 'PY_EOF'
+          import re, glob, json, os, datetime
+          # gather hypotheses from per-model files
+          all_h = []
+          for f in glob.glob('reports/hypotheses-*.txt'):
+              text = open(f).read()
+              m = re.search(r'^\[HYP\] (.*)$', text, re.M)
+              if not m: continue
+              title = m.group(1).strip()
+              c = re.search(r'^confidence:\s*(\d+)', text, re.M)
+              a = re.search(r'^asset:\s*(\S+)', text, re.M)
+              all_h.append((int(c.group(1)) if c else 0, a.group(1) if a else '?', title, f))
+          all_h.sort(reverse=True)
+          stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+          with open('reports/hypotheses.md', 'a') as out:
+              out.write(f"\n## RANKED HYPOTHESES {stamp}\n")
+              seen = set()
+              for conf, asset, title, f in all_h[:8]:
+                  key = title.lower()[:60]
+                  if key in seen: continue
+                  seen.add(key)
+                  out.write(f"- [{conf}] {asset}: {title} (from {f})\n")
+              # next actions
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  n = re.search(r'^\[NEXT\] (.*)$', open(f).read(), re.M)
+                  if n: out.write(f"- NEXT({os.path.basename(f)}): {n.group(1).strip()[:160]}\n")
+              # learnings
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):
+                      out.write(f"- LEARN: {l.strip()[:160]}\n")
+          # knowledge append (dedupe)
+          kpath = 'knowledge/index.md'
+          ktext = open(kpath).read()
+          with open(kpath, 'a') as k:
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[LEARN\] (.*)$', open(f).read(), re.M):
+                      line = f"- {stamp[:10]} {l.strip()}"
+                      if line not in ktext:
+                          k.write(line + "\n")
+          # inventory update
+          target = os.environ.get('TARGET', 'google')
+          inv = f'inventory/{target}.md'
+          with open(inv, 'a') as io:
+              io.write(f"\n## {stamp}\n")
+              for f in glob.glob('reports/hypotheses-*.txt'):
+                  for l in re.findall(r'^\[(NEW|CHANGED)\] (.*)$', open(f).read(), re.M):
+                      io.write(f"- {l[0]} {l[1].strip()[:200]}\n")
+          # state advance
+          sp = f'state_{os.environ["MODEL_NAME"]}.json'
+          st = json.load(open(sp))
+          phases = ['RECON','SURFACE','HYPOTHESIS','POC']
+          if st.get('phase') in phases:
+              st['phase'] = phases[min(phases.index(st['phase'])+1, 3)]
+          json.dump(st, open(sp, 'w'))
+          print('merged', len(all_h), 'hypotheses')
+          PY_EOF
 
       - name: Commit
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add research leads state_*.json || true
-          git diff --cached --quiet || git commit -m "hunt $MODEL_NAME $TARGET $(date -u +'%Y-%m-%d-%H-%M')"
+          git add leads reports knowledge inventory state_*.json || true
+          git diff --cached --quiet || git commit -m "analyst $MODEL_NAME $TARGET $(date -u +'%Y-%m-%d-%H-%M')"
           git pull --rebase || true
           git push || true
 
@@ -243,6 +181,5 @@ jobs:
           curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
-            -H "X-GitHub-Api-Version: 2022-11-28" \
             "https://api.github.com/repos/${{ github.repository }}/actions/workflows/reposcan.yml/dispatches" \
             -d '{"ref":"main"}' || true
