@@ -1,0 +1,233 @@
+name: Mega Hunt - 5 Models every 10 min
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  hunter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: hunt-${{ matrix.model.name }}
+      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        model:
+          - { id: opencode/big-pickle, name: bigpickle }
+          - { id: opencode/nemotron-3-ultra-free, name: nemotron3 }
+          - { id: opencode/longcat-2.0-free, name: longcat }
+          - { id: opencode/ling-3.0-flash-free, name: ling3 }
+          - { id: opencode/laguna-s-2.1-free, name: laguna }
+
+    env:
+      MODEL_ID: ${{ matrix.model.id }}
+      MODEL_NAME: ${{ matrix.model.name }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install OpenCode
+        run: |
+          curl -fsSL https://opencode.ai/install | bash
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          opencode --version
+
+      - name: Decide Target (round-robin google/microsoft)
+        run: |
+          SLOT=$(( $(date +%s) / 600 % 2 ))
+          if [ "$SLOT" = "0" ]; then
+            echo "TARGET=google" >> $GITHUB_ENV
+          else
+            echo "TARGET=microsoft" >> $GITHUB_ENV
+          fi
+          echo "This run hunts: $TARGET"
+
+      - name: Load State
+        run: |
+          STATE_FILE="state_${MODEL_NAME}.json"
+          if [ -f "$STATE_FILE" ] && grep -q '"phase"' "$STATE_FILE" 2>/dev/null; then
+            python3 << 'PYTHON_EOF'
+          import json, os
+          with open(f'state_{os.environ["MODEL_NAME"]}.json') as f:
+              st = json.load(f)
+          with open(os.environ['GITHUB_ENV'], 'a') as env:
+              env.write(f"CURRENT_PHASE={st.get('phase','RECON')}\n")
+              env.write(f"CURRENT_STATUS={st.get('status','IN_PROGRESS')}\n")
+          PYTHON_EOF
+          else
+            echo "CURRENT_PHASE=RECON" >> $GITHUB_ENV
+            echo "CURRENT_STATUS=FRESH" >> $GITHUB_ENV
+          fi
+
+      - name: Build Context (truncated, ARG_MAX-safe)
+        run: |
+          mkdir -p research leads triage reports
+          touch research/${MODEL_NAME}.md leads/lead-${MODEL_NAME}.md
+          if [ -s research/${MODEL_NAME}.md ]; then
+            tail -n 1500 research/${MODEL_NAME}.md | awk '{ print (length($0) > 3000 ? substr($0,1,3000) "...[TRUNC]" : $0) }' | tail -c 90000 > ctx-research.txt
+          else
+            echo "# no research yet" > ctx-research.txt
+          fi
+          if [ -s leads/lead-${MODEL_NAME}.md ]; then
+            tail -n 400 leads/lead-${MODEL_NAME}.md | tail -c 40000 > ctx-leads.txt
+          else
+            echo "# no leads yet" > ctx-leads.txt
+          fi
+          # Triage verdicts, if any (validated only)
+          if ls triage/*VALID* >/dev/null 2>&1; then
+            tail -c 30000 triage/*VALID* > ctx-valid.txt
+          else
+            echo "# no validated findings yet" > ctx-valid.txt
+          fi
+          # Running validated count
+          if [ -f reports/valid-bugs.md ]; then grep -c '^| V' reports/valid-bugs.md || true; fi
+
+      - name: Create Research Prompt
+        run: |
+          cat > research-prompt.txt << 'PROMPT_START'
+          You are a security research analyst for bug bounty programs.
+          Role: deep research, hypothesis generation, read-only PoC design.
+          NOT: live exploitation, scanning, or invasive testing.
+          TARGET PROGRAM THIS RUN: ${TARGET} (see scope.yml for exact domain list)
+          RUNNING MODEL: ${MODEL_ID}
+          PHASE: ${CURRENT_PHASE} (RECON -> SURFACE -> HYPOTHESIS -> POC, one step deeper per run)
+
+          ===== PROGRAM RULES (MANDATORY) =====
+          1. PASSIVE ONLY. GET/HEAD requests, max 1 per second. No scanners, no
+             fuzzers, no brute force, no account creation, no writes, no state changes.
+          2. Attack surface = the ${TARGET} program domains from scope.yml ONLY.
+             Never touch third-party hosts (CDNs, SaaS, analytics) beyond reading
+             the program's own disclosure policy page.
+          3. Public source code review IS allowed: google/ and microsoft/ GitHub
+             org repos are in scope as code. Never commit raw secrets - write
+             sha256 hashes instead and flag for triage.
+          4. No pre-disclosure. Findings get reported via program channels only.
+
+          ===== PREVIOUS CONTEXT =====
+          PROMPT_START
+          echo "MY RESEARCH JOURNAL:" >> research-prompt.txt
+          cat ctx-research.txt >> research-prompt.txt
+          echo "" >> research-prompt.txt
+          echo "MY LEADS:" >> research-prompt.txt
+          cat ctx-leads.txt >> research-prompt.txt
+          echo "" >> research-prompt.txt
+          echo "VALIDATED FINDINGS (do not re-report):" >> research-prompt.txt
+          cat ctx-valid.txt >> research-prompt.txt
+
+          cat >> research-prompt.txt << 'PROMPT_START'
+          ===== YOUR TASK =====
+          Continue deep research on the ${TARGET} program scope. Go ONE phase deeper
+          than before. Build on previous context - never repeat it. When a phase is
+          exhausted, start RECON on a NEW unexplored surface (new subdomain,
+          new API version, new public repo, new feature).
+
+          ===== PHASES =====
+          PHASE 1 RECON: VDP/disclosure rules, DNS/subdomain inventory (crt.sh,
+          certificate transparency, passive DNS), tech stack, public repos of the
+          ${TARGET} GitHub org, API docs, changelogs.
+          PHASE 2 SURFACE: endpoints, auth mechanisms (OAuth/OIDC/JWT/sessions),
+          permission model, multi-tenant architecture, sensitive data flows.
+          PHASE 3 HYPOTHESIS: for each - why it might exist, impact, read-only
+          PoC design. Prioritize: auth bypass, IDOR, SSRF, OAuth redirect_uri,
+          business logic, cache poisoning, cloud misconfig, leaked secrets in
+          public repos, source maps, debug endpoints, GraphQL abuse.
+          PHASE 4 POC: exact curl (GET/HEAD only), expected signal, CVSS estimate.
+
+          ===== OUTPUT FORMAT =====
+          # Program: ${TARGET}
+          # Phase: [RECON/SURFACE/HYPOTHESIS/POC]
+          ## Key Findings (one line each, specific)
+          ## New Endpoints / Assets
+          ## Hypotheses (numbered, with impact + read-only test)
+          ## Secrets Check (public repos: what was found, hash only, where)
+          ## CVSS Candidates
+
+          ---
+          ## STATE UPDATE (exact format for parsing)
+          STATUS_PHASE: [RECON|SURFACE|HYPOTHESIS|POC]
+          STATUS_STATE: [IN_PROGRESS|EXHAUSTED|HIGH_POTENTIAL]
+          NEXT_STEP_1: ...
+          NEXT_STEP_2: ...
+          NEXT_STEP_3: ...
+
+          ===== RESPONSE RULES =====
+          ALWAYS: be specific, professional, cite sources (URLs).
+          NEVER: claim you tested something live, invent vulnerabilities, run
+          attacks, include raw secrets, reference out-of-scope hosts.
+          Begin research now.
+          PROMPT_START
+
+      - name: Run Model
+        run: |
+          export PATH="$HOME/.opencode/bin:$HOME/.local/bin:$PATH"
+          timeout 18m opencode run --model "$MODEL_ID" < research-prompt.txt > raw_${MODEL_NAME}.txt 2>&1 || true
+          echo "=== Preview ==="; head -25 raw_${MODEL_NAME}.txt
+
+      - name: Parse State
+        run: |
+          python3 << 'PARSE_PYTHON'
+          import re, json, os
+          name = os.environ['MODEL_NAME']
+          with open(f'raw_{name}.txt', errors='ignore') as f:
+              output = f.read()
+          state = {'phase': 'RECON', 'status': 'IN_PROGRESS'}
+          m = re.search(r'STATUS_PHASE:\s*(RECON|SURFACE|HYPOTHESIS|POC)', output, re.IGNORECASE)
+          if m: state['phase'] = m.group(1).upper()
+          m = re.search(r'STATUS_STATE:\s*(IN_PROGRESS|EXHAUSTED|HIGH_POTENTIAL)', output, re.IGNORECASE)
+          if m: state['status'] = m.group(1).upper()
+          with open(f'state_{name}.json', 'w') as f:
+              json.dump(state, f)
+          print(state)
+          PARSE_PYTHON
+
+      - name: Extract Leads
+        run: |
+          python3 << 'EXTRACT_PYTHON'
+          import re, os
+          from datetime import datetime, timezone
+          name = os.environ['MODEL_NAME']
+          tgt = os.environ['TARGET']
+          with open(f'raw_{name}.txt', errors='ignore') as f:
+              output = f.read()
+          leads = []
+          for pat in [r'## Key Findings\n(.*?)(?=\n##|\Z)', r'## New Endpoints / Assets\n(.*?)(?=\n##|\Z)']:
+              m = re.search(pat, output, re.S)
+              if m:
+                  for line in m.group(1).strip().split('\n'):
+                      line = line.strip().lstrip('-* ').strip()
+                      if len(line) > 8 and not line.startswith('#'):
+                          leads.append(line)
+          if leads:
+              now = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+              with open(f'leads/lead-{name}.md', 'a') as f:
+                  f.write(f"\n## {now} [{tgt}] (model {name})\n")
+                  for l in leads[:12]:
+                      f.write(f"- [UNVALIDATED] {l}\n")
+              print(f"{len(leads)} leads appended")
+          EXTRACT_PYTHON
+
+      - name: Journal
+        run: |
+          {
+            echo ""
+            echo "===== RUN $(date -u +'%Y-%m-%d %H:%M:%S UTC') | model $MODEL_NAME | target $TARGET ====="
+            cat raw_${MODEL_NAME}.txt
+          } >> research/${MODEL_NAME}.md
+          if [ "$(wc -c < research/${MODEL_NAME}.md)" -gt 500000 ]; then
+            tail -c 500000 research/${MODEL_NAME}.md > .tmp && mv .tmp research/${MODEL_NAME}.md
+          fi
+
+      - name: Commit
+        run: |
+          git config --global user.name "github-actions"
+          git config --global user.email "actions@github.com"
+          git add research leads state_*.json || true
+          git diff --cached --quiet || git commit -m "hunt $MODEL_NAME $TARGET $(date -u +'%Y-%m-%d-%H-%M')"
+          git push || true
