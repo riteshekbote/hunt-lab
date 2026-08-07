@@ -12,7 +12,13 @@
 
 [L6] Explicit OS-bounty GitHub repos to review: azure/azure-sdk(-for-*), microsoft/fluentui, PowerShell/PowerShell, microsoft/typescript, microsoft/vscode, microsoft/agent-framework, microsoft/msquic, microsoft/monaco-editor. (semantic-kernel, autogen excluded.) RECON done. Lead → secrets-scan + source-review (deferred).
 
-## 2026-08-07 09:01:01 UTC [microsoft] (model laguna) — PHASE 2 SURFACE (active)
+[L7] mtlsauth.microsoft.com (in-scope *.windows.net) — POC verified. Active ESTS host; token endpoint returns HTTP 200 (not 405) for GET. Shares backend with login.microsoftonline.com (same x-ms-ests-server version 2.1.24997.11). v2.0 discovery confirms `mtls_endpoint_aliases.token_endpoint=https://mtlsauth.microsoft.com/common/oauth2/v2.0/token` and `tls_client_certificate_bound_access_tokens=true`. Lead → HYPOTHESIS 3 (mTLS cert-binding bypass / cnfl claim validation gap at resource layer).
+
+[L8] microsoft/msquic (GitHub, OS bounty C) — RECON+POC done. 851 src files in src/, integrated with Google OSS-Fuzz CIFuzz (300s fuzz/PR). `src/core/frame.c` reviewed: decode functions use SAL annotations + explicit bounds checks (`BufferLength < sizeof + *Offset`). Structural defensive patterns present — not obviously exploitable via passive review. Lead → next slot: deep-dive packet.c / VarInt decoding hot path.
+
+[L9] SymCrypt source review deferred — API rate-limited (GitHub API returned JSON parse errors). Will retry in next slot.
+
+## 2026-08-07 09:01:01 UTC [microsoft] (model laguna) — PHASE 2 SURFACE
 STATUS_PHASE: SURFACE
 STATUS_STATE: HIGH_POTENTIAL
 NEXT_STEP_1: PHASE 3 HYPOTHESIS — formalize issuer-confusion (sts.windows.net vs login.microsoftonline.com) + mTLS cert-binding bypass + hybrid response_type quirks; design read-only PoCs (GET/HEAD only, no flow completion).
