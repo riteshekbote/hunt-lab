@@ -1,65 +1,109 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256 (truncated) | Verdict |
-|------|------|-------------------|---------|
-| *none* | — | — | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB connection helper |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | Tokenizer special tokens (eot/system/user) |
-| microsoft/.../agent-os/extensions/copilot/smoke-test.js | 76 | `const password = "secret123"` (test fixture) |
-| microsoft/.../control-plane/benchmarks/red_team_dataset.py | 306 | SQLi example `password='newpass123'` |
-| microsoft/.../control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` placeholder |
-| microsoft/.../observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, placeholder value) |
-| microsoft/.../agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` |
-| microsoft/winappCli/.../CertificateService.cs | 49, 207, 282 | `password = "password"` (default for local dev certs) |
-| microsoft/winappCli/.../MsixService.cs | 262 | `certificatePassword = "password"` |
-| microsoft/winappCli/.../MsixService.Bundle.cs | 21 | `certificatePassword = "password"` |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal timestamp server) |
-
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — flag name default, not a secret |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | KUBECONFIG path handling |
-| google/openhtf/.github/workflows/python_publish.yml | 91, 105 | test.pypi.org URLs (legitimate test registry) |
-| google/qwix/.github/workflows/cla.yml | 23 | `github-token: '${{ secrets.GITHUB_TOKEN }}'` — proper secret ref |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
-| microsoft/... (multiple) | various | Cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) in policy backends — known public endpoints, not leaks |
-| microsoft/.../.github/workflows/*.yml | various | `GITHUB_TOKEN`, `GH_TOKEN`, `repo-token` all using `${{ secrets.GITHUB_TOKEN }}` — correct pattern |
+[0m→ [0mRead reposcan-raw/google/emboss/.github/workflows/release.yml[90m [limit=20, offset=20][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh[90m [limit=15, offset=65][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/launcher/spec/launch_spec.go[90m [limit=20, offset=100][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/run_cloudbuild.sh[90m [offset=10, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts[90m [offset=80, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts[90m [limit=20, offset=25][0m
+[0m→ [0mRead reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/microsoft/vscode-mssql/.github/workflows/build-and-test.yml[90m [offset=315, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=30, offset=160][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=48][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [limit=20, offset=22][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=20, offset=10][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs[90m [limit=20, offset=558][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go[90m [limit=20, offset=178][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts[90m [limit=20, offset=8][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts[90m [limit=20, offset=5][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py[90m [limit=20, offset=22][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py[90m [limit=20, offset=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py[90m [offset=35, limit=20][0m
+[0m✗ [0mRead <parameter=filePath>
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py failed[90m [limit=20, offset=97][0m
+[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/<parameter=filePath>
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py
+[0m→ [0mRead reposcan-raw/microsoft/vscode-mssql/extensions/mssql/src/sharedInterfaces/publishDialog.ts[90m [limit=20, offset=30][0m
+Now I have enough context to classify all hits. Let me create the classification tables.
 
 ---
 
-## Verdict List
+## Classification Tables
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| cadvisor StorageDriverPassword flag | no | Flag default name, not a secret value |
-| oss-fuzz test passwords/keys | no | Explicit test fixtures |
-| tunix HF token placeholders | no | Commented examples |
-| chat template tokenizer tokens | no | Parser constants, not secrets |
-| WinApp CLI cert password="password" | no | Default for **local self-signed certs only**; documented as testing-only |
-| agent-governance metadata IPs | no | Well-known public cloud metadata endpoints |
-| ESRP internal timestamp server URL | no | Internal corp endpoint, no auth material |
-| GitHub Actions `${{ secrets.GITHUB_TOKEN }}` refs | no | Correct secret injection pattern |
-| test.pypi.org URLs | no | Legitimate test registry |
-| Gemini API key constant | no | Placeholder value `"gemini_api_key"` |
-| VS Code extension placeholder key | no | Explicit `REPLACE-WITH-YOUR-KEY` |
+### REAL_SECRET (reportable credentials with signs of life)
 
-**No reportable findings in this delta.** All hits are test fixtures, placeholders, proper secret references, or well-known public endpoints.
+| File | Line | SHA256(secret) | Classification |
+|------|------|----------------|----------------|
+| *none* | — | — | No live secrets found in delta |
+
+> The only "secret-like" strings in the delta are test fixtures (`ghp_ABCDEFGHIJKLMNOP`, `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8`, `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ`) — all are placeholder formats used in test/eval code, not real tokens.
+
+---
+
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `const secret = "ghp_ABCDEFGHIJKLMNOP";` — unit test for maskValue() | TEST_OR_EXAMPLE |
+| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `{ text: "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", sensitive: true }` — OCR eval fixture | TEST_OR_EXAMPLE |
+| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `{ text: "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", sensitive: true }` — OCR eval fixture | TEST_OR_EXAMPLE |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — fuzzing harness test key | TEST_OR_EXAMPLE |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server shutdown password | TEST_OR_EXAMPLE |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | `PASSWORD=` + getDatabasePassword() — test DB connection | TEST_OR_EXAMPLE |
+| `microsoft/vscode-mssql/.github/workflows/build-and-test.yml` | 323 | `PASSWORD="${PASS_LOWER}..."` — CI-generated random password for SQL Server container | TEST_OR_EXAMPLE |
+
+---
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/go-tpm-tools/launcher/spec/launch_spec.go` | 108 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` | GCP Confidential Computing autopush env |
+| `google/go-tpm-tools/launcher/spec/launch_spec.go` | 109 | `https://staging-confidentialcomputing.sandbox.googleapis.com` | GCP Confidential Computing staging env |
+| `google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh` | 70 | `http://metadata.google.internal/computeMetadata/v1/instance/...` | GCE metadata server (internal, not a leak) |
+| `google/go-tpm-tools/run_cloudbuild.sh` | 16 | `https://pantheon.corp.google.com/compute/images...` | Internal Google Cloud Console URL (commented) |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168 | `_ID_TOKEN` / `_AUTH_TOKEN` from gcloud — CI token handling, not endpoint | INTERESTING (token flow) |
+| `microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs` | 563-568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | **SSRF blocklist** — defensive, not a leak |
+| `microsoft/agent-governance-toolkit/.../policy_backends.go` | 183-184 | Same blocklist (Go) | SSRF blocklist — defensive |
+| `microsoft/agent-governance-toolkit/.../opa.ts` | 13-14 | Same blocklist (TypeScript) | SSRF blocklist — defensive |
+| `microsoft/agent-governance-toolkit/.../cedar.ts` | 8-14 | Extended blocklist incl. IPv6 ranges | SSRF blocklist — defensive |
+| `microsoft/agent-governance-toolkit/.../managed_identity.py` | 27-33 | IMDS endpoints for Azure/AWS/GCP | **Standard cloud metadata URLs** — not leaks |
+| `microsoft/agent-governance-toolkit/.../entra_agent_id.py` | 24 | `http://169.254.169.254/metadata` | Azure IMDS — standard |
+| `microsoft/agent-governance-toolkit/.../advisory.py` | 39-41 | Blocked hosts for webhook validation | SSRF blocklist — defensive |
+| `microsoft/agent-governance-toolkit/.../safe/http_client.py` | 102-103 | Blocked hosts for HTTP client | SSRF blocklist — defensive |
+
+---
+
+### INTERESTING (unusual configs, debug flags, cloud configs)
+
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `google/emboss/.github/workflows/release.yml` | 28 | `repo_token: '${{ secrets.RELEASE_PAT }}'` | Uses `RELEASE_PAT` secret — **verify PAT scope** (not a secret leak, but config) |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value name, not a key — config constant |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag name constant, not a value |
+| `microsoft/vscode-mssql/.../publishDialog.ts` | 36 | `ContainerAdminPassword: "containerAdminPassword"` | Form field key constant |
+| `microsoft/vscode-mssql/.../form.ts` | 183 | `Password = "password"` | Form field key constant |
+| `microsoft/vscode-mssql/.../telemetry.ts` | 194, 229, 230 | Telemetry event names: `LookupPassword`, `RefreshEntraToken`, `AcquireVsCodeAccountToken` | Telemetry constants — not secrets |
+| `microsoft/agent-governance-toolkit/.../esrp-publish.yml` | 1180 | `/tr "http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer"` | **Internal Microsoft timestamp server** — corp endpoint in CI |
+| `microsoft/agent-governance-toolkit/.../agent-os-vscode/extension.ts` | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Placeholder in extension template |
+
+---
+
+## SHORT VERDICT LIST (REPORT_CANDIDATE)
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| `google/emboss/.github/workflows/release.yml:28` | INTERESTING | **no** | References `secrets.RELEASE_PAT` — secret not in repo; verify PAT scope in repo settings instead |
+| `microsoft/agent-governance-toolkit/.../esrp-publish.yml:1180` | INTERESTING | **no** | Internal timestamp server URL in CI config — corp network only, not actionable externally |
+| `microsoft/agent-governance-toolkit/.../agent-os-vscode/extension.ts:399` | INTERESTING | **no** | Placeholder `sk-REPLACE-WITH-YOUR-KEY` — template, not a real key |
+| All SSRF blocklist entries (10+ files) | ENDPOINT_LEAK | **no** | Defensive coding — blocking cloud metadata IPs is a security control |
+| All IMDS/metadata URLs (6 files) | ENDPOINT_LEAK | **no** | Standard cloud metadata endpoints — public knowledge, not leaks |
+| All test fixtures (7 files) | TEST_OR_EXAMPLE | **no** | Clearly test/eval data, placeholder formats |
+| GCP sandbox/staging URLs (2 files) | ENDPOINT_LEAK | **no** | Publicly documented GCP Confidential Computing environments |
+| `pantheon.corp.google.com` URL (comment) | ENDPOINT_LEAK | **no** | Internal console link in comment — no exploit path |
+
+---
+
+**SUMMARY**: No reportable findings in this delta. All hits are either test fixtures, defensive SSRF blocklists, standard cloud metadata endpoints, CI config referencing secrets (not leaking them), or internal-only URLs with no external attack surface.
