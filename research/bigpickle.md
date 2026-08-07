@@ -5500,3 +5500,909 @@ STATUS_STATE: HIGH_POTENTIAL
 NEXT_STEP_1: Test-tenant execution of H-1 (user_fic): mint for own Agent User vs unrelated `user_id`/`username` — the single highest-value signal of the engagement; if 200 on unrelated, escalate to MSRC immediately.
 NEXT_STEP_2: Test-tenant execution of H-2 (Agent User delegated-consent gate) and enumerate `managerApplications` first-party IDs from public code (H-3).
 NEXT_STEP_3: If test tenant unavailable, RECON the next unexplored in-scope surface: `myaccount.microsoft.com/agents` SPA route internals + retry crt.sh CT inventory for `*agent*.microsoft.com` certs (crt.sh 502 this run), and mine `microsoft/entrabot` remaining docs (`entra-agent-users.md`, OBO decisions) for claim-validation edge cases.
+
+## RUN 2026-08-07 12:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC→RECON (Graph agent-management ecosystem + methodology correction)
+
+### METHODOLOGY CORRECTION (applies retroactively)
+- CONTROL TEST: unauthenticated GET on nonexistent Graph paths (/v1.0/thisdoesnotexistxyz12345, /beta/thisdoesnotexistxyz12345) and on documented POST-only actions (/v1.0/me/revokeSignInSessions, changePassword, sendMail, checkMemberGroups) ALL return HTTP 401 InvalidAuthenticationToken. Graph authenticates BEFORE routing, so an unauthenticated GET cannot distinguish a real route from a nonexistent one. → ALL prior journal claims of the form "GET <graph endpoint> → 401, therefore alive/routed" are NULL signals and are RETRACTED (incl. /me/agentSignInSessions, /me/authentication/methods). Route existence is instead established by public $metadata declarations + MS Learn docs. The non-Graph hosts (api.myaccount / api.mysignins) returned 401+WWW-Authenticate/405 — those remain valid route signals.
+
+### NEW SURFACE — Graph Agent Management ecosystem (recovered from beta $metadata sha256 ca304859… + MS Learn docs; all declared, all auth-gated, Global cloud only)
+- Agent Registry singleton /beta/agentRegistry → agentInstances / agentCardManifests / agentCollections. Docs: learn.microsoft.com/graph/api/agentregistry-list-agentinstances. agentInstance links agentIdentityId + agentUserId + agentIdentityBlueprintId; carries url + additionalInterfaces (transport endpoints), JWS-signed agentCard signatures (alg ES256, kid did:web, type agentcard+jws), ownerIds OR managedBy ("either required"). Permissions: AgentInstance.Read.All / .ReadWrite.All / .ReadWrite.ManagedBy (app); delegated requires Agent Registry Administrator dir role. DEPRECATION: replaced May-2026 by Agent 365 package APIs.
+- agents EntitySet /beta/agents (microsoft.graph.agent, nav copilotTools); /beta/copilot/agents; /beta/auditLogs/agents. copilotRoot (/beta/copilot) also exposes agentRegistrations, admin/catalog/packages (copilotPackageDetail; block/unblock/reassign/update ops; requires Agent 365 license + AI admin or Global admin), admin/policySettings, admin/settings, settings, reports, conversations, interactionHistory, users.
+- ID Protection: /beta/identityProtection/riskyAgents (subtypes riskyAgentIdentity / riskyAgentIdentityBlueprintPrincipal / riskyAgentUser; actions confirmCompromised/confirmSafe/dismiss) + /beta/identityProtection/agentRiskDetections. Scope IdentityRiskyAgent.Read.All; delegated roles Global Reader / Security Operator / Security Reader / Security Administrator.
+- Audit attribution: signIn.agent + summarizedSignIn.agent = agentic.agentSignIn (agentServicePrincipalId, agentSubjectParentId, agentType/agentSubjectType, parentAppId). agentType enum: notAgentic=0, agenticApp=2, agenticAppInstance=3, agentIdentityBlueprintPrincipal=4, agentIDuser=5.
+- Metadata annotations: agentRegistration.agentCard = "Flexible Json manifest … displayName, description, iconUrl, version, provider, capabilities, skills, security"; ownerIds = "either owners or managedby is required".
+
+### CODE REVIEW (microsoft/entrabot, in-scope org) — wire-level consent-grant primitive (H-2 refinement)
+- scripts/create_entra_agent_ids.py: POST /v1.0/oauth2PermissionGrants with clientId={agent-identity-oid}, consentType=Principal, principalId={agent-user-oid}, resourceId={CALLER-CHOSEN SP oid}, scope string. ResourceId is NOT restricted to Graph: same primitive grants Azure Storage user_impersonation (app e406a681-f3d4-42a8-90b6-c2b029497af1) so hop-3 can mint idtyp=user https://storage.azure.com/.default tokens. Grant is one-time, per-principal, non-expiring (startTime only). Provisioner app needs DelegatedPermissionGrant.ReadWrite.All.
+- Application.Read.All granted to agentIdentity SP via appRoleAssignment (app role id 9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30) — Application.Read.All is NOT in the agent blocked-permissions table (only ReadWrite.* are) → agents can enumerate tenant apps/SPs.
+- New subtype navs: GET /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors (beta); GET /oauth2PermissionGrants?$filter=clientId eq '{oid}' and principalId eq '{oid}' (v1); GET /applications/{id}?$select=keyCredentials.
+- UPN uniqueness used as tenant-wide lookup key (find_existing_agent_user_by_upn). entrabot explicitly warns "pooling agent users is an anti-pattern: object-ID recycling → residual permissions attach to next holder" (design acknowledgment of object-id reuse risk).
+- No entrabot reference to agentRegistry/copilot catalog — those are separate first-party surfaces.
+
+### Live checks (passive, 1/sec, in-scope graph.microsoft.com)
+- /beta/agents, /beta/copilot/agents, /beta/agentRegistry{,/agentInstances,/agentCardManifests,/agentCollections}, /beta/auditLogs/agents, /beta/identityProtection/{riskyAgents,agentRiskDetections}, /v1.0/agents, /v1.0/agentRegistry/agentInstances → ALL 401 (now classified NULL signal; route existence rests on $metadata+docs).
+- crt.sh CT inventory for %agent%.microsoft.com: still 502 (3rd consecutive run). agents.microsoft.com previously characterized (parked on adoption.microsoft.com AFD, *.azureedge.net SAN mismatch → 404).
+
+### Hypotheses (test-tenant, read-only design)
+- H-6 [HIGH] Registry ownership boundary: is managedBy enforced = caller appId on POST/PATCH agentInstances, or settable arbitrarily? Can a holder of AgentInstance.ReadWrite.ManagedBy (app) or Agent Registry Administrator (delegated) claim/overwrite another's agentInstance + agentCardManifest (instructions/endpoints)? Also copilot package reassign (POST /copilot/admin/catalog/packages/{id}/reassign) and block/unblock — role boundary. If not enforced → agent supply-chain takeover at M365 runtime. CVSS 7.5–9.0.
+- H-7 [HIGH] agentCard JWS trust: registry stores optional signatures (ES256, did:web kid). Does the consuming runtime verify signature over the card (type agentcard+jws) or trust unsigned manifests? Unsigned/spoofed card → first-party impersonation + instruction injection. Test-tenant. CVSS 6.5–9.0.
+- H-8 [MED] riskyAgents write-op integrity: confirmCompromised/confirmSafe/dismiss on arbitrary agent ids — risk-state tampering vs agent-risk CA. Role-gated (Security Administrator/Global Reader read). CVSS 4–6.
+- H-9 [MED] agent sign-in attribution (signIn.agent: agentServicePrincipalId, parentAppId) as second data source for the agentSignInSessions cross-user hypothesis (PD-A). CVSS 6.5–8.8.
+- H-1 [HIGHEST, unchanged] user_fic Hop-3 subject validation (user_id vs username alternate key). H-2 [HIGH, refined] consent-grant primitive is resource-agnostic (resourceId arbitrary → storage user_impersonation / any first-party resource). H-3 [MED] managerApplications first-party list.
+
+### Secrets check
+- None. entrabot = design/code only (no tokens/keys). Public client IDs, well-known app-role GUID (9a5d68dd-…), MS-doc sample UUIDs. Metadata hashes unchanged: graph_v1_meta.xml 9d84e451…, graph_beta_meta.xml ca304859…. No raw secrets committed.
+
+===== RUN 2026-08-07 12:32:14 UTC | model bigpickle | target google =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /tmp/opencode/ 2>/dev/null | head -60
+total 16
+drwxr-xr-x  2 runner runner  4096 Aug  7 12:24 .
+drwxrwxrwt 14 root   root   12288 Aug  7 12:24 ..
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat scope.yml 2>/dev/null | head -40; echo "---"; cat state_bigpickle.json
+programs:
+  google:
+    name: Google Vulnerability Reward Program
+    disclosure_policy: https://bughunters.google.com/about/rules
+    domains:
+      - google.com
+      - "*.google.com"
+    github_orgs:
+      - google
+  microsoft:
+    name: Microsoft Bounty / MSRC
+    disclosure_policy: https://www.microsoft.com/en-us/msrc/bounty
+    domains:
+      - microsoft.com
+      - "*.microsoft.com"
+      - "*.msn.com"
+      - "*.live.com"
+      - "*.office.com"
+      - "*.bing.com"
+      - "*.azure.com"
+      - "*.azurewebsites.net"
+      - "*.windows.net"
+      - "*.sharepoint.com"
+      - "*.onmicrosoft.com"
+      - "*.outlook.com"
+      - "*.hotmail.com"
+      - "*.xbox.com"
+      - "*.dynamics.com"
+      - "*.powerapps.com"
+    github_orgs:
+      - microsoft
+
+rules:
+  # Both programs require passive, non-disruptive testing.
+  passive_only: true          # GET/HEAD reads only; no scanners, no fuzzers, no auth-bypass attempts on live infra
+  max_requests_per_second: 1  # never hammer
+  no_account_creation: true   # no mass signups (MSRC: banned; Google InTENT: restricted)
+  no_data_modification: true  # no writes, deletes, state changes
+  no_pre_disclosure: true     # never disclose before program response
+  redact_secrets_in_commits: true  # commit sha256 of secrets, never raw values
+---
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+[0m
+[0m$ [0mmkdir -p /tmp/opencode && cd /tmp/opencode && for f in "docs/platform-docs/entra-agent-users.md" "engineering-history/plans/PLAN-agent-identity-by-upn.md" "docs/reference/scripts/provisioning/create-entra-agent-ids-py.md" "docs/reference/scripts/provisioning/assign-agent-user-licenses-py.md" "docs/reference/scripts/diagnostics/list-agent-identities-py.md"; do
+  out="entrabot_$(basename $f .md).md"
+  curl -s --max-time 40 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/entrabot/main/$f" -o "$out"
+  echo "$out: $(wc -c < $out) bytes"
+done
+entrabot_entra-agent-users.md: 10379 bytes
+entrabot_PLAN-agent-identity-by-upn.md: 8269 bytes
+entrabot_create-entra-agent-ids-py.md: 7804 bytes
+entrabot_assign-agent-user-licenses-py.md: 4190 bytes
+entrabot_list-agent-identities-py.md: 2956 bytes
+[0m
+`/tmp/opencode` was reset (prior artifacts gone), but the journal and leads persist. POC live options are exhausted (all hypotheses are test-tenant-gated); per protocol I deepen POC designs via in-scope code review and open RECON on the unexplored Graph **agent registry / agentCard** ecosystem + CT inventory.
+[0m$ [0mcd /tmp/opencode && for f in "scripts/create_entra_agent_ids.py" "scripts/assign_agent_user_licenses.py" "scripts/list_agent_identities.py" "scripts/show_agent_status.py" "scripts/add_agent_sponsor.py" "scripts/deprovision_entra_agent_identity.py"; do
+  out="entrabot_$(basename $f .py).py"
+  curl -s --max-time 40 -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/microsoft/entrabot/main/$f" -o "$out"
+  echo "$out: $(wc -c < $out) bytes"
+done
+entrabot_create_entra_agent_ids.py: 46024 bytes
+entrabot_assign_agent_user_licenses.py: 9257 bytes
+entrabot_list_agent_identities.py: 2930 bytes
+entrabot_show_agent_status.py: 21284 bytes
+entrabot_add_agent_sponsor.py: 4995 bytes
+entrabot_deprovision_entra_agent_identity.py: 8648 bytes
+[0m
+[0m→ [0mRead /tmp/opencode/entrabot_PLAN-agent-identity-by-upn.md
+[0m→ [0mRead /tmp/opencode/entrabot_entra-agent-users.md
+[0m→ [0mRead /tmp/opencode/entrabot_create_entra_agent_ids.py
+Now the wire-level scripts — these contain the actual Graph calls for the three-hop flow:
+[0m
+[0m$ [0mcd /tmp/opencode && for f in entrabot_assign_agent_user_licenses.py entrabot_list_agent_identities.py entrabot_add_agent_sponsor.py entrabot_deprovision_entra_agent_identity.py; do
+  echo "==== $f ===="
+  grep -oE '(https://graph\.microsoft\.com/[a-zA-Z0-9/_.${}?=&-]+|graph_request\("[A-Z]+", "[^"]+"|GET|POST|PATCH|DELETE)"[^"]*")' "$f" | sort -u | head -25
+done
+==== entrabot_assign_agent_user_licenses.py ====
+==== entrabot_list_agent_identities.py ====
+==== entrabot_add_agent_sponsor.py ====
+==== entrabot_deprovision_entra_agent_identity.py ====
+[0m
+[0m$ [0mcd /tmp/opencode && echo "=== show_agent_status.py API calls ===" && grep -oE 'graph_request\("[A-Z]+", "[^"]+"[^)]*\)|requests\.[a-z]+\([^)]*"https://graph\.microsoft\.com[^)]*\)' entrabot_show_agent_status.py | sort -u | head -30
+=== show_agent_status.py API calls ===
+[0m
+This is gold — the script reveals the consent-grant primitive (`resourceId` is caller-specified, can target Azure Storage `user_impersonation`, not just Graph). Let me extract the API surface from the remaining scripts:
+[0m$ [0mcd /tmp/opencode && grep -nE 'graph\.microsoft\.com|/users/|/servicePrincipals|/applications|/oauth2PermissionGrants|assignLicense|checkMemberGroups|getMemberGroups' entrabot_show_agent_status.py | head -40
+96:        f"/servicePrincipals/{agent_oid}"
+112:    path = f"/users/{agent_user_id}?$select=assignedLicenses"
+123:        "/oauth2PermissionGrants"
+136:        path = f"/servicePrincipals/{resource_id}?$select=displayName"
+148:    path = f"/applications/{blueprint_object_id}?$select=keyCredentials"
+[0m
+[0m→ [0mRead /tmp/opencode/entrabot_show_agent_status.py[90m [offset=60, limit=120][0m
+Consent-grant surface confirmed (`GET /oauth2PermissionGrants?$filter=clientId/principalId`, `GET /servicePrincipals/{oid}/microsoft.graph.agentIdentity/sponsors`). Now the NEW unexplored surface — Graph's **agent registry / agentCard** ecosystem in beta $metadata (re-fetch, passive):
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s -o graph_beta_meta.xml "https://graph.microsoft.com/beta/\$metadata" --max-time 120 && wc -c graph_beta_meta.xml
+7298965 graph_beta_meta.xml
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# Entity types with 'agent' (case-insensitive) — full list
+ents=sorted(set(re.findall(r'<EntityType Name="([^"]*[aA]gent[^"]*)"',x)))
+print("== ENTITY TYPES w/ agent (",len(ents),") ==")
+for e in ents: print(" ",e)
+EOF
+== ENTITY TYPES w/ agent ( 21 ) ==
+  agent
+  agentCardManifest
+  agentCollection
+  agentIdentity
+  agentIdentityBlueprint
+  agentIdentityBlueprintPrincipal
+  agentInstance
+  agentRegistration
+  agentRegistry
+  agentRiskDetection
+  agentUser
+  cloudPcAgentPool
+  cloudPcAgentPoolUserAssignment
+  cloudPcBulkReinstallAgent
+  exactMatchUploadAgent
+  onPremisesAgent
+  onPremisesAgentGroup
+  riskyAgent
+  riskyAgentIdentity
+  riskyAgentIdentityBlueprintPrincipal
+  riskyAgentUser
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for name in ['agent','agentRegistry','agentRegistration','agentInstance','agentCardManifest','agentCollection','agentRiskDetection','riskyAgent','riskyAgentUser','riskyAgentIdentity']:
+    m=re.search(r'<EntityType Name="'+name+r'"[^>]*>.*?</EntityType>',x,re.S)
+    if m:
+        body=re.sub(r'\s+',' ',m.group(0))
+        print('---',name)
+        print(body[:900])
+        print()
+EOF
+--- agent
+<EntityType Name="agent" BaseType="graph.entity"><NavigationProperty Name="copilotTools" Type="Collection(graph.copilotTool)" ContainsTarget="true" /></EntityType>
+
+--- agentRegistry
+<EntityType Name="agentRegistry"><NavigationProperty Name="agentCardManifests" Type="Collection(graph.agentCardManifest)" ContainsTarget="true" /><NavigationProperty Name="agentCollections" Type="Collection(graph.agentCollection)" ContainsTarget="true" /><NavigationProperty Name="agentInstances" Type="Collection(graph.agentInstance)" ContainsTarget="true" /></EntityType>
+
+--- agentRegistration
+<EntityType Name="agentRegistration" BaseType="graph.entity"><Property Name="agentCard" Type="graph.Json" /><Property Name="agentIdentityBlueprintId" Type="Edm.String" /><Property Name="agentIdentityId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" Nullable="false" /><Property Name="description" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastPublishedBy" Type="Edm.String" /><Property Name="managedByAppId" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property Name="sourceAgentId" Type="Edm.String" /><Property Name="sourceCreatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" /><Property Name="sourceLastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" /></EntityType>
+
+--- agentInstance
+<EntityType Name="agentInstance" BaseType="graph.entity"><Property Name="additionalInterfaces" Type="Collection(graph.agentInterface)" /><Property Name="agentIdentityBlueprintId" Type="Edm.String" /><Property Name="agentIdentityId" Type="Edm.String" /><Property Name="agentUserId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="managedBy" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property Name="preferredTransport" Type="Edm.String" /><Property Name="signatures" Type="Collection(graph.agentCardSignature)" /><Property Name="sourceAgentId" Type="Edm.String" /><P
+
+--- agentCardManifest
+<EntityType Name="agentCardManifest" BaseType="graph.entity"><Property Name="capabilities" Type="graph.agentCapabilities" Nullable="false" /><Property Name="createdBy" Type="Edm.String" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="defaultInputModes" Type="Collection(Edm.String)" Nullable="false" /><Property Name="defaultOutputModes" Type="Collection(Edm.String)" Nullable="false" /><Property Name="description" Type="Edm.String" Nullable="false" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="documentationUrl" Type="Edm.String" /><Property Name="iconUrl" Type="Edm.String" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="managedBy" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property
+
+--- agentCollection
+<EntityType Name="agentCollection" BaseType="graph.entity"><Property Name="createdBy" Type="Edm.String" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="description" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="managedBy" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><NavigationProperty Name="members" Type="Collection(graph.agentInstance)" /></EntityType>
+
+--- agentRiskDetection
+<EntityType Name="agentRiskDetection" BaseType="graph.entity"><Property Name="activityDateTime" Type="Edm.DateTimeOffset" /><Property Name="additionalInfo" Type="Edm.String" /><Property Name="agentDisplayName" Type="Edm.String" /><Property Name="agentId" Type="Edm.String" /><Property Name="blueprintId" Type="Edm.String" /><Property Name="clientSessionId" Type="Edm.String" /><Property Name="detectedDateTime" Type="Edm.DateTimeOffset" /><Property Name="detectionTimingType" Type="graph.riskDetectionTimingType" Nullable="false" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="identityId" Type="Edm.String" Nullable="false" /><Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" /><Property Name="risk
+
+--- riskyAgent
+<EntityType Name="riskyAgent" BaseType="graph.entity"><Property Name="agentDisplayName" Type="Edm.String" /><Property Name="blueprintId" Type="Edm.String" /><Property Name="identityType" Type="graph.agentIdentityType" Nullable="false" /><Property Name="isDeleted" Type="Edm.Boolean" Nullable="false" /><Property Name="isEnabled" Type="Edm.Boolean" Nullable="false" /><Property Name="isProcessing" Type="Edm.Boolean" Nullable="false" /><Property Name="riskDetail" Type="graph.riskDetail" Nullable="false" /><Property Name="riskLastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="riskLevel" Type="graph.riskLevel" Nullable="false" /><Property Name="riskState" Type="graph.riskState" Nullable="false" /></EntityType>
+
+--- riskyAgentUser
+<EntityType Name="riskyAgentUser" BaseType="graph.riskyAgent"><NavigationProperty Name="agentUser" Type="graph.agentUser" /></EntityType>
+
+--- riskyAgentIdentity
+<EntityType Name="riskyAgentIdentity" BaseType="graph.riskyAgent"><NavigationProperty Name="agentIdentity" Type="graph.agentIdentity" /></EntityType>
+[0m
+Full agent ecosystem identified — `agent`, `agentRegistry`, `agentRegistration`, `agentInstance`, `agentCardManifest`, `agentCollection`, plus `riskyAgent*` (ID Protection). Extracting definitions + functions/actions:
+[0m$ [0mcd /tmp/opencode && echo "=== Functions/Actions w/ agent (beta) ===" && grep -oE '<(Function|Action) Name="[^"]*[aA]gent[^"]*"' graph_beta_meta.xml | sort -u && echo "=== agentRegistry/agentCard/agentCollection refs ===" && grep -c "agentRegistry" graph_beta_meta.xml && grep -c "agentCardManifest" graph_beta_meta.xml && grep -c "agentRegistration" graph_beta_meta.xml
+=== Functions/Actions w/ agent (beta) ===
+<Action Name="configureAgent"
+<Action Name="deployAgent"
+<Action Name="getUnhealthyDefenderAgentsReport"
+<Action Name="retryPartnerAgentInstallation"
+<Function Name="retrieveDeployAgentActionResults"
+=== agentRegistry/agentCard/agentCollection refs ===
+1
+1
+1
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# EntitySets and Singletons with agent
+for kind in ['EntitySet','Singleton']:
+    hits=re.findall(r'<'f'{kind} Name="([^"]*[aA]gent[^"]*)"[^>]*/>',x)
+    print(kind,'w/agent:',hits)
+# count references to agentRegistry/agentCardManifest/agentInstance/agentCollection/agentRegistration anywhere
+for n in ['agentRegistry','agentCardManifest','agentCollection','agentInstance','agentRegistration','agentRiskDetection','riskyAgent','agentCard','agentIdentityType']:
+    c=x.count(n)
+    print(n, 'refs:', c)
+EOF
+EntitySet w/agent: ['agents']
+Singleton w/agent: []
+agentRegistry refs: 9
+agentCardManifest refs: 11
+agentCollection refs: 10
+agentInstance refs: 12
+agentRegistration refs: 19
+agentRiskDetection refs: 6
+riskyAgent refs: 13
+agentCard refs: 15
+agentIdentityType refs: 3
+[0m
+Registry entity types are defined but let me check if they're wired to entity sets/singletons (that determines live reachability):
+[0m$ [0mcd /tmp/opencode && echo "=== complex types w/ agent ===" && grep -oE '<ComplexType Name="[^"]*[aA]gent[^"]*"' graph_beta_meta.xml | sort -u && echo "=== agentRiskDetection/riskyAgent context (surrounding 300 chars) ===" && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for term in ['riskyAgents','agentRiskDetections','agentRiskDetection','identityProtection']:
+    i=x.find(term)
+    if i>=0:
+        print(term, '=>', re.sub(r'\s+',' ',x[max(0,i-150):i+150]))
+    else:
+        print(term, 'NOT FOUND')
+EOF
+=== complex types w/ agent ===
+<ComplexType Name="a365AiInvokeAgent"
+<ComplexType Name="agentAdminActivityRecord"
+<ComplexType Name="agentCapabilities"
+<ComplexType Name="agentCardSignature"
+<ComplexType Name="agentExtension"
+<ComplexType Name="agentExtensionParams"
+<ComplexType Name="agentInterface"
+<ComplexType Name="agentProvider"
+<ComplexType Name="agentSettingAdminActivity"
+<ComplexType Name="agentSignIn"
+<ComplexType Name="agentSkill"
+<ComplexType Name="aiAgent"
+<ComplexType Name="aiAgentDetails"
+<ComplexType Name="aiAgentEvidence"
+<ComplexType Name="aiAgentInfo"
+<ComplexType Name="aiInvokeAgentAuditRecord"
+<ComplexType Name="clientUserAgent"
+<ComplexType Name="cloudPcAgentHealthCheckDetail"
+<ComplexType Name="cloudPcAgentHealthCheckStatusDetail"
+<ComplexType Name="cloudPcAgentHealthCheckSummary"
+<ComplexType Name="cloudPcAgentPoolBillingConfiguration"
+<ComplexType Name="cloudPcAgentPoolCapabilityConfiguration"
+<ComplexType Name="cloudPcAgentPoolScalingPolicy"
+<ComplexType Name="cloudPcAgentPoolSessionUsage"
+<ComplexType Name="cloudPcAgentStatusDetail"
+<ComplexType Name="cloudPcExternalPartnerAgentSetting"
+<ComplexType Name="cloudPcPartnerAgentInstallResult"
+<ComplexType Name="copilotAgentManagementAuditRecord"
+<ComplexType Name="fileStorageContainerTypeAgentSettings"
+<ComplexType Name="hybridAgentUpdaterConfiguration"
+<ComplexType Name="mosAgentInfoRecord"
+<ComplexType Name="mosAgentInfoRecordV2"
+<ComplexType Name="purviewPostureAgentAuditRecord"
+<ComplexType Name="rtiOperationsAgentAuditRecord"
+<ComplexType Name="sensitiveInfoRemediationAgentDataRecord"
+<ComplexType Name="serviceUserAgent"
+<ComplexType Name="targetAgentIdentitySponsorsOrOwners"
+<ComplexType Name="userAgent"
+<ComplexType Name="vivaGlintAgenticCampaignAuditRecord"
+=== agentRiskDetection/riskyAgent context (surrounding 300 chars) ===
+riskyAgents => insTarget="true" /><NavigationProperty Name="riskDetections" Type="Collection(graph.riskDetection)" ContainsTarget="true" /><NavigationProperty Name="riskyAgents" Type="Collection(graph.riskyAgent)" ContainsTarget="true" /><NavigationProperty Name="riskyServicePrincipals" Type="Collection(graph.risk
+agentRiskDetections => tId" Type="Edm.String" /><Property Name="source" Type="Edm.String" /></EntityType><EntityType Name="identityProtectionRoot"><NavigationProperty Name="agentRiskDetections" Type="Collection(graph.agentRiskDetection)" ContainsTarget="true" /><NavigationProperty Name="riskDetections" Type="Collection(gr
+agentRiskDetection => yValue Property="Version" String="2025-02/globalSecureAccess" /></Record></Collection></Annotation></Annotations><Annotations Target="microsoft.graph.agentRiskDetection"><Annotation Term="Org.OData.Capabilities.V1.CountRestrictions"><Record><PropertyValue Property="Countable" Bool="false" /></Record
+identityProtection => lIdentityVerificationCredential, windowsHealthMonitoring, extensions, mxProfileZebraOnly, deviceFirmwareConfigurationInterface, deliveryOptimization, identityProtection, kiosk, overrideGroupPolicy, domainJoinPreview, pkcsImportedCertificate, networkBoundary, endpointProtection, microsoftDefenderAtpW
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# 1. agents EntitySet full definition + container
+m=re.search(r'<EntitySet Name="agents"[^/]*/>',x)
+print('agents EntitySet:', m.group(0) if m else 'NOT FOUND')
+i=x.find('EntitySet Name="agents"')
+print('ctx:', re.sub(r'\s+',' ',x[max(0,i-300):i+200]))
+EOF
+agents EntitySet: <EntitySet Name="agents" EntityType="microsoft.graph.agent" />
+ctx: t Name="agreementAcceptances" EntityType="microsoft.graph.agreementAcceptance" /><EntitySet Name="agreements" EntityType="microsoft.graph.agreement" /><EntitySet Name="riskDetections" EntityType="microsoft.graph.riskDetection" /><EntitySet Name="riskyUsers" EntityType="microsoft.graph.riskyUser" /><EntitySet Name="agents" EntityType="microsoft.graph.agent" /><EntitySet Name="mobilityManagementPolicies" EntityType="microsoft.graph.mobilityManagementPolicy"><NavigationPropertyBinding Path="include
+[0m
+Major discovery: a live `agents` EntitySet and ID Protection's `riskyAgents`/`agentRiskDetections` navs, plus a `agentSignIn` complex type. Let me trace where they're wired:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# 2. agentSignIn complex type definition
+m=re.search(r'<ComplexType Name="agentSignIn"[^>]*>.*?</ComplexType>',x,re.S)
+print('== agentSignIn complex type ==')
+print(re.sub(r'\s+',' ',m.group(0))[:800] if m else 'NOT FOUND')
+# where is agentSignIn referenced?
+print('refs:', x.count('agentSignIn'))
+for mm in re.finditer(r'agentSignIn',x):
+    s=mm.start()
+    seg=x[max(0,s-120):s+120]
+    if '<Property' in seg or 'Type="graph.agentSignIn' in seg:
+        print('CTX:', re.sub(r'\s+',' ',seg))
+EOF
+== agentSignIn complex type ==
+<ComplexType Name="agentSignIn" BaseType="graph.signInIdentity"><Property Name="agentServicePrincipalId" Type="Edm.String" /></ComplexType>
+refs: 4
+CTX:  Type="Edm.Int32" /></EntityType><EntityType Name="signIn" BaseType="graph.entity"><Property Name="agent" Type="agentic.agentSignIn" /><Property Name="appDisplayName" Type="Edm.String" /><Property Name="appId" Type="Edm.String" /><Property 
+CTX: eType="graph.entity" /><EntityType Name="summarizedSignIn" BaseType="graph.entity"><Property Name="agent" Type="agentic.agentSignIn" /><Property Name="aggregationDateTime" Type="Edm.DateTimeOffset" /><Property Name="appDisplayName" Type="Ed
+CTX: ion" BaseType="graph.agreementFileProperties" /><ComplexType Name="signInIdentity" Abstract="true" /><ComplexType Name="agentSignIn" BaseType="graph.signInIdentity"><Property Name="agentServicePrincipalId" Type="Edm.String" /></ComplexType>
+CTX: Name="agentIdentityBlueprintPrincipal" Value="4" /><Member Name="agentIDuser" Value="5" /></EnumType><ComplexType Name="agentSignIn"><Property Name="agentSubjectParentId" Type="Edm.String" /><Property Name="agentSubjectType" Type="agentic.a
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# agentic.agentSignIn (namespace-qualified) full definition
+m=re.search(r'<ComplexType Name="agentSignIn"[^>]*>.*?</ComplexType>',x,re.S)
+print('== agentSignIn (2nd def w/ agentSubjectType) ==')
+print(re.sub(r'\s+',' ',m.group(0)))
+# agentSubjectType enum
+mm=re.search(r'<EnumType Name="[a-zA-Z]*[sS]ubject[A-Za-z]*"',x)
+for en in re.finditer(r'<EnumType Name="([^"]*[sS]ubject[^"]*)"',x):
+    print('ENUM:',en.group(1))
+en=re.search(r'<EnumType Name="agentSubjectType"[^>]*>.*?</EnumType>',x,re.S)
+if en: print('== agentSubjectType ==', re.sub(r'\s+',' ',en.group(0))[:600])
+else:
+    # try namespaced search
+    i=x.find('agentSubjectType')
+    print('agentSubjectType ctx:', re.sub(r'\s+',' ',x[i-250:i+400]))
+EOF
+== agentSignIn (2nd def w/ agentSubjectType) ==
+<ComplexType Name="agentSignIn" BaseType="graph.signInIdentity"><Property Name="agentServicePrincipalId" Type="Edm.String" /></ComplexType>
+ENUM: dataSubjectType
+ENUM: subjectRightsRequestStage
+ENUM: subjectRightsRequestStageStatus
+ENUM: subjectRightsRequestStatus
+ENUM: subjectRightsRequestType
+ENUM: accessPackageSubjectLifecycle
+ENUM: appleSubjectNameFormat
+ENUM: subjectAlternativeNameType
+ENUM: subjectNameFormat
+agentSubjectType ctx: e="unknownFutureValue" Value="6" /><Member Name="agentIdentityBlueprintPrincipal" Value="4" /><Member Name="agentIDuser" Value="5" /></EnumType><ComplexType Name="agentSignIn"><Property Name="agentSubjectParentId" Type="Edm.String" /><Property Name="agentSubjectType" Type="agentic.agentType" Nullable="false" /><Property Name="agentType" Type="agentic.agentType" Nullable="false" /><Property Name="parentAppId" Type="Edm.String" /></ComplexType></Schema><Schema Namespace="microsoft.graph.healthMonitoring" xmlns="http://docs.oasis-open.org/odata/ns/edm"><EnumType Name="alertState"><Member Name="active" Value="0" /><Member Name="resolved" Value="1
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# signIn entity set + container of identityProtectionRoot navs
+m=re.search(r'<EntitySet Name="signIns"[^/]*/>',x)
+print('signIns EntitySet:', m.group(0) if m else 'NOT FOUND')
+# riskyAgents / agentRiskDetections nav bindings
+for term in ['riskyAgents','agentRiskDetections']:
+    i=x.find('Path="'+term+'"')
+    if i>=0:
+        print(term,'binding ctx:', re.sub(r'\s+',' ',x[i-160:i+160]))
+    else:
+        print(term,'no explicit binding (default nav)')
+# riskDetection entity set exists?
+m=re.search(r'<EntitySet Name="riskDetections"[^/]*/>',x)
+print('riskDetections ES:', m.group(0) if m else '-')
+# what contains identityProtectionRoot: entity set
+m=re.search(r'<EntitySet Name="identityProtection"[^/]*/>',x)
+print('identityProtection ES:', m.group(0) if m else 'NOT FOUND')
+EOF
+signIns EntitySet: NOT FOUND
+riskyAgents no explicit binding (default nav)
+agentRiskDetections no explicit binding (default nav)
+riskDetections ES: <EntitySet Name="riskDetections" EntityType="microsoft.graph.riskDetection" />
+identityProtection ES: NOT FOUND
+[0m
+The `signIn` audit entity now carries `agentic.agentSignIn` data (`agentSubjectParentId`/`agentSubjectType`). Extracting the full agentic model + ID Protection wiring:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# full agentic.agentType enum
+i=x.find('EnumType Name="agentType"')
+print('== agentType enum ==')
+print(re.sub(r'\s+',' ',x[i-40:i+700]))
+# signIns entity set (any EntitySet referencing graph.signIn)
+for m in re.finditer(r'<EntitySet Name="([^"]*)" EntityType="[^"]*\.signIn"',x):
+    print('signIn-derived EntitySet:', m.group(1))
+# containers
+for m in re.finditer(r'<EntityContainer Name="([^"]*)"',x):
+    print('CONTAINER:', m.group(1))
+# does any EntitySet/container include identityProtectionRoot?
+for m in re.finditer(r'(<EntitySet Name="([^"]*)" EntityType="[^"]*identityProtectionRoot"[^/]*/>)',x):
+    print('identityProtectionRoot set:', m.group(2), '|', m.group(1))
+for m in re.finditer(r'<Singleton Name="([^"]*)" Type="[^"]*identityProtectionRoot"',x):
+    print('identityProtectionRoot singleton:', m.group(1))
+EOF
+== agentType enum ==
+tp://docs.oasis-open.org/odata/ns/edm"><EnumType Name="agentType"><Member Name="notAgentic" Value="0" /><Member Name="agenticApp" Value="2" /><Member Name="agenticAppInstance" Value="3" /><Member Name="unknownFutureValue" Value="6" /><Member Name="agentIdentityBlueprintPrincipal" Value="4" /><Member Name="agentIDuser" Value="5" /></EnumType><ComplexType Name="agentSignIn"><Property Name="agentSubjectParentId" Type="Edm.String" /><Property Name="agentSubjectType" Type="agentic.agentType" Nullable="false" /><Property Name="agentType" Type="agentic.agentType" Nullable="false" /><Property Name="parentAppId" Type="Edm.String" /></ComplexType></Schema><Schema Namespace="microsoft.graph.healthMonitoring" xmlns="http://docs.oasis-open.org
+CONTAINER: GraphService
+identityProtectionRoot singleton: identityProtection
+[0m
+`agentic.agentType` enum recovered (notAgentic=0 … agentIdentityBlueprintPrincipal=4, agentIDuser=5). Let me pin the auditLogs signIns wiring and then live-verify reachability of the three new surfaces (1 req/sec):
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# find entity set referencing signIn type within GraphService container
+m=re.findall(r'<EntitySet Name="([^"]*)" EntityType="[^"]*\.signIn"',x)
+print('signIn sets:',m)
+# auditLogRoot container?
+m=re.findall(r'<EntitySet Name="([^"]*)" EntityType="microsoft\.graph\.auditLogRoot"',x)
+print('auditLogRoot sets:',m)
+# look for 'auditLogs' singleton/entityset
+for m in re.finditer(r'(EntitySet|Singleton) Name="auditLogs"',x):
+    print('auditLogs:', m.group(0))
+# any navigation bindings with auditLogs
+i=x.find('auditLogs')
+while i>=0 and i < len(x):
+    seg=x[i-80:i+200]
+    if 'EntitySet' in seg or 'Singleton' in seg or 'Path=' in seg:
+        print('ctx:',re.sub(r'\s+',' ',seg)); 
+    i=x.find('auditLogs',i+1)
+    if i> 100000000: break
+EOF
+signIn sets: []
+auditLogRoot sets: []
+auditLogs: Singleton Name="auditLogs"
+ctx: istrationScopeTargets" Target="directoryObjects" /></Singleton><Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" /><Singleton Name="reports" Type="microsoft.graph.reportRoot"><NavigationPropertyBinding Path="correlations/servicePrincipal" Target="servicePrincipals"
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+i=x.find('Singleton Name="auditLogs"')
+print('== auditLogRoot bindings ==')
+seg=x[i:i+1500]
+# extract navigation bindings
+for m in re.finditer(r'<NavigationPropertyBinding Path="([^"]*)" Target="([^"]*)"',seg):
+    print(' ',m.group(1),'->',m.group(2))
+print('--- raw tail ---')
+print(re.sub(r'\s+',' ',seg)[:800])
+EOF
+== auditLogRoot bindings ==
+  correlations/servicePrincipal -> servicePrincipals
+  healthMonitoring/alerts/enrichment/impacts/microsoft.graph.healthMonitoring.directoryObjectImpactSummary/resourceSampling -> directoryObjects
+  agents -> agents
+  agentCollections/members -> agentRegistry/agentInstances
+  agentInstances/agentCardManifest -> agentRegistry/agentCardManifests
+  agentInstances/collections -> agentRegistry/agentCollections
+  backupRestore/exchangeProtectionPolicies/mailboxExclusionUnits -> solutions/microsoft.graph.backupRestoreRoot/backupRestore/mailboxExclusionUnits
+  backupRestore/exchangeProtectionPolicies/mailboxExclusionUnitsBulkAdditionJobs -> solutions/microsoft.graph.backupRestoreRoot/backupRestore/mailboxExclusionUnitsBulkAdditionJobs
+--- raw tail ---
+Singleton Name="auditLogs" Type="microsoft.graph.auditLogRoot" /><Singleton Name="reports" Type="microsoft.graph.reportRoot"><NavigationPropertyBinding Path="correlations/servicePrincipal" Target="servicePrincipals" /><NavigationPropertyBinding Path="healthMonitoring/alerts/enrichment/impacts/microsoft.graph.healthMonitoring.directoryObjectImpactSummary/resourceSampling" Target="directoryObjects" /></Singleton><Singleton Name="copilot" Type="microsoft.graph.copilotRoot"><NavigationPropertyBinding Path="agents" Target="agents" /></Singleton><Singleton Name="agentRegistry" Type="microsoft.graph.agentRegistry"><NavigationPropertyBinding Path="agentCollections/members" Target="agentRegistry/agentInstances" /><NavigationPropertyBinding Path="agentInstances/agentCardManifest" Target="agentRegist
+[0m
+Three new live surfaces confirmed in metadata: `agents` EntitySet, `agentRegistry` **singleton** (`agentCardManifests`/`agentInstances`/`agentCollections`), and `auditLogs/agents`. Live-reachability check (passive GETs, 1/sec):
+[0m$ [0mcd /tmp/opencode && for p in \
+  "/beta/agents" \
+  "/beta/copilot/agents" \
+  "/beta/agentRegistry" \
+  "/beta/agentRegistry/agentInstances" \
+  "/beta/agentRegistry/agentCardManifests" \
+  "/beta/auditLogs/agents" \
+  "/beta/identityProtection/riskyAgents" \
+  "/beta/identityProtection/agentRiskDetections"; do
+  out=$(curl -s -o /tmp/opencode/b.rsp -w "%{http_code}" --max-time 25 "https://graph.microsoft.com$p")
+  sig=$(head -c 120 /tmp/opencode/b.rsp | tr -d '\n')
+  echo "[$out] $p => ${sig:0:100}"
+  sleep 1
+done
+[401] /beta/agents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/copilot/agents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/agentRegistry => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/agentRegistry/agentInstances => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/agentRegistry/agentCardManifests => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/auditLogs/agents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/identityProtection/riskyAgents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[401] /beta/identityProtection/agentRiskDetections => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for name in ['agentCardSignature','agentCapabilities','targetAgentIdentitySponsorsOrOwners','agentSkill','agentProvider','aiAgent','agentInterface']:
+    m=re.search(r'<ComplexType Name="'+name+r'"[^>]*>.*?</ComplexType>',x,re.S)
+    print('---',name)
+    print(re.sub(r'\s+',' ',m.group(0))[:700] if m else 'NOT FOUND')
+    print()
+# where agentRegistration is referenced (non-definition)
+print("== agentRegistration contexts ==")
+for mm in list(re.finditer(r'agentRegistration',x))[1:6]:
+    s=mm.start()
+    print(' >', re.sub(r'\s+',' ',x[max(0,s-140):s+140]))
+EOF
+--- agentCardSignature
+<ComplexType Name="agentCardSignature"><Property Name="header" Type="graph.jwsHeader" /><Property Name="protected" Type="Edm.String" Nullable="false" /><Property Name="signature" Type="Edm.String" Nullable="false" /></ComplexType>
+
+--- agentCapabilities
+<ComplexType Name="agentCapabilities"><Property Name="extensions" Type="Collection(graph.agentExtension)" /><Property Name="pushNotifications" Type="Edm.Boolean" Nullable="false" /><Property Name="stateTransitionHistory" Type="Edm.Boolean" Nullable="false" /><Property Name="streaming" Type="Edm.Boolean" Nullable="false" /></ComplexType>
+
+--- targetAgentIdentitySponsorsOrOwners
+<ComplexType Name="targetAgentIdentitySponsorsOrOwners" BaseType="graph.userSet" /><ComplexType Name="targetUserSponsors" BaseType="graph.userSet" /><EntityType Name="accessPackage" BaseType="graph.entity"><Property Name="catalogId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="description" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" /><Property Name="isHidden" Type="Edm.Boolean" /><Property Name="isRoleScopesVisible" Type="Edm.Boolean" /><Property Name="modifiedBy" Type="Edm.String" /><Property Name="modifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="uniqueName
+
+--- agentSkill
+<ComplexType Name="agentSkill"><Property Name="description" Type="Edm.String" Nullable="false" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="examples" Type="Collection(Edm.String)" /><Property Name="id" Type="Edm.String" Nullable="false" /><Property Name="inputModes" Type="Collection(Edm.String)" /><Property Name="outputModes" Type="Collection(Edm.String)" /><Property Name="security" Type="Collection(graph.securityRequirement)" /><Property Name="tags" Type="Collection(Edm.String)" Nullable="false" /></ComplexType>
+
+--- agentProvider
+<ComplexType Name="agentProvider"><Property Name="organization" Type="Edm.String" Nullable="false" /><Property Name="url" Type="Edm.String" Nullable="false" /></ComplexType>
+
+--- aiAgent
+<ComplexType Name="aiAgent"><Property Name="firstAccessDateTime" Type="Edm.DateTimeOffset" /><Property Name="id" Type="Edm.String" /><Property Name="lastAccessDateTime" Type="Edm.DateTimeOffset" /><Property Name="name" Type="Edm.String" /><Property Name="totalBytesReceived" Type="Edm.Int64" /><Property Name="totalBytesSent" Type="Edm.Int64" /><Property Name="trafficType" Type="microsoft.graph.networkaccess.trafficType" /><Property Name="transactionCount" Type="Edm.Int64" /></ComplexType>
+
+--- agentInterface
+<ComplexType Name="agentInterface"><Property Name="transport" Type="Edm.String" Nullable="false" /><Property Name="url" Type="Edm.String" Nullable="false" /></ComplexType>
+
+== agentRegistration contexts ==
+ > es including their instructions, owners, publishing status,&#xA;and associated tools." /></Annotations><Annotations Target="microsoft.graph.agentRegistration/agentCard"><Annotation Term="Org.OData.Core.V1.Description" String="Flexible Json manifest containing agent card informati
+ > ion, provider,&#xA;capabilities, skills, security, and other manifest-defined fields." /></Annotations><Annotations Target="microsoft.graph.agentRegistration/agentIdentityBlueprintId"><Annotation Term="Org.OData.Core.V1.Description" String="Agent identity blueprint identifier." /
+ > ion Term="Org.OData.Core.V1.Description" String="Agent identity blueprint identifier." /></Annotations><Annotations Target="microsoft.graph.agentRegistration/agentIdentityId"><Annotation Term="Org.OData.Core.V1.Description" String="Entra agent identity identifier." /></Annotation
+ > otation Term="Org.OData.Core.V1.Description" String="Entra agent identity identifier." /></Annotations><Annotations Target="microsoft.graph.agentRegistration/createdBy"><Annotation Term="Org.OData.Core.V1.Description" String="The unique identifier of the user or app who created t
+ >  String="The unique identifier of the user or app who created the agent registration." /></Annotations><Annotations Target="microsoft.graph.agentRegistration/description"><Annotation Term="Org.OData.Core.V1.Description" String="The agent description providing an overview of its p
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# Does signIn entity have agentSignInSessions? check 'signIn' related nav in v1? use v1 too - but not downloaded. Check beta signIn full def
+m=re.search(r'<EntityType Name="signIn" BaseType="graph.entity"[^>]*>.*?</EntityType>',x,re.S)
+body=re.sub(r'\s+',' ',m.group(0)) if m else 'NOT FOUND'
+print('== signIn entity (beta) ==')
+print(body[:1400])
+EOF
+== signIn entity (beta) ==
+<EntityType Name="signIn" BaseType="graph.entity"><Property Name="agent" Type="agentic.agentSignIn" /><Property Name="appDisplayName" Type="Edm.String" /><Property Name="appId" Type="Edm.String" /><Property Name="appliedConditionalAccessPolicies" Type="Collection(graph.appliedConditionalAccessPolicy)" /><Property Name="appliedEventListeners" Type="Collection(graph.appliedAuthenticationEventListener)" /><Property Name="appOwnerTenantId" Type="Edm.String" /><Property Name="appTokenProtectionStatus" Type="graph.tokenProtectionStatus" /><Property Name="authenticationAppDeviceDetails" Type="graph.authenticationAppDeviceDetails" /><Property Name="authenticationAppPolicyEvaluationDetails" Type="Collection(graph.authenticationAppPolicyDetails)" /><Property Name="authenticationContextClassReferences" Type="Collection(graph.authenticationContext)" /><Property Name="authenticationDetails" Type="Collection(graph.authenticationDetail)" /><Property Name="authenticationMethodsUsed" Type="Collection(Edm.String)" /><Property Name="authenticationProcessingDetails" Type="Collection(graph.keyValue)" /><Property Name="authenticationProtocol" Type="graph.protocolType" /><Property Name="authenticationRequirement" Type="Edm.String" /><Property Name="authenticationRequirementPolicies" Type="Collection(graph.authenticationRequirementPolicy)" /><Property Name="autonomousSystemNumber" Type="Edm.Int32" /><
+[0m
+All 8 new endpoints are **routed & auth-gated** (401, not 404) — a confirmed live surface. Now mapping scopes/ownership model from the remaining complex types + where `agentRegistration` binds, and checking v1 parity:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+i=x.find('targetAgentIdentitySponsorsOrOwners')
+while i>=0:
+    seg=re.sub(r'\s+',' ',x[max(0,i-120):i+120])
+    print('>',seg)
+    i=x.find('targetAgentIdentitySponsorsOrOwners',i+1)
+    if i > len(x): break
+# signIn agent property description annotation
+for t in ['microsoft.graph.signIn/agent','signIn/agent','agentSignIn']:
+    i=x.find('Target="'+t+'"')
+    if i>=0: print(t,'ANN:',re.sub(r'\s+',' ',x[i:i+400]))
+EOF
+> roperty Name="description" Type="Edm.String" /><Property Name="id" Type="Edm.String" /></ComplexType><ComplexType Name="targetAgentIdentitySponsorsOrOwners" BaseType="graph.userSet" /><ComplexType Name="targetUserSponsors" BaseType="graph.u
+[0m
+`agentRegistration.agentCard` is a JWS-signed manifest ("instructions, owners, publishing status") and `targetAgentIdentitySponsorsOrOwners` suggests Entra entitlement targeting. Let me find where that userSet binds, and pull documented scopes from MS Learn:
+[0m◈ [0mParallel Web Search "Microsoft Graph API "agentRegistry" OR "agentInstances" OR "agentCardManifests" endpoint permissions documentation"
+Major surface confirmed: the **Agent Registry API** (agentRegistry singleton + agentInstances/agentCardManifests/agentCollections) is now public in Graph docs with dedicated permissions (`AgentCardManifest.Read.All`, `AgentInstance.ReadWrite.ManagedBy`), and the PowerShell sample even references **v1.0**. Verifying v1 parity + the ManagedBy boundary live:
+[0m
+[0m$ [0mcd /tmp/opencode && curl -s -o graph_v1_meta.xml "https://graph.microsoft.com/v1.0/\$metadata" --max-time 90 && wc -c graph_v1_meta.xml && echo "=== v1 agentRegistry refs ===" && grep -c "agentRegistry" graph_v1_meta.xml; grep -c "agentCardManifest" graph_v1_meta.xml; grep -c "agentInstance" graph_v1_meta.xml; echo "=== v1 agents EntitySet ===" && grep -oE '<EntitySet Name="agents"[^/]*/>' graph_v1_meta.xml; echo "=== v1 agentIdentity/sponsor types ===" && grep -oE '<EntityType Name="agent[A-Za-z]*"' graph_v1_meta.xml | sort -u
+2931817 graph_v1_meta.xml
+=== v1 agentRegistry refs ===
+0
+0
+0
+=== v1 agents EntitySet ===
+=== v1 agentIdentity/sponsor types ===
+<EntityType Name="agentIdentity"
+<EntityType Name="agentIdentityBlueprint"
+<EntityType Name="agentIdentityBlueprintPrincipal"
+<EntityType Name="agentUser"
+[0m
+v1 metadata has **no** agentRegistry (beta-only — the third-party v1.0 reference was inaccurate). Let me live-verify the v1.0 routes and extract the registry's documented access model from metadata annotations:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for t in ['agentRegistry','agentInstance','agentCardManifest','agentCollection','agentRegistration','agent']:
+    # find annotations Targets
+    for m in re.finditer(r'<Annotations Target="microsoft\.graph\.'+t+r'"[^>]*>',x):
+        i=m.end()
+        seg=x[i:i+900]
+        desc=re.search(r'<Annotation Term="Org\.OData\.Core\.V1\.Description" String="([^"]*)"',seg)
+        # permission annotations
+        perms=re.findall(r'<Annotation Term="[^"]*Permission"[^>]*>|<Record><PropertyValue Property="Value" String="([^"]*)"',seg)
+        if desc:
+            print(f'[{t}] DESC: {desc.group(1)[:180]}')
+EOF
+[agentRegistration] DESC: Entity that represents an agent registration containing metadata, endpoint&#xA;configuration, tools, and publishing information.&#xA;This entity provides developers and administrat
+[0m
+[0m$ [0mcd /tmp/opencode && for p in "/v1.0/agentRegistry/agentInstances" "/v1.0/agents" "/beta/agentRegistry/agentCardManifests" "/beta/agentRegistry/agentCollections"; do
+  out=$(curl -s -o /tmp/opencode/b.rsp -w "%{http_code}" --max-time 25 "https://graph.microsoft.com$p")
+  sig=$(head -c 100 /tmp/opencode/b.rsp | tr -d '\n')
+  echo "[$out] $p => ${sig:0:80}"
+  sleep 1
+done
+[401] /v1.0/agentRegistry/agentInstances => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/agents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /beta/agentRegistry/agentCardManifests => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /beta/agentRegistry/agentCollections => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# Extract description annotations for all agentRegistry-related targets
+targets=re.findall(r'<Annotations Target="(microsoft\.graph\.(?:agentRegistry|agentCardManifest|agentInstance|agentCollection|agentRegistration)[^"]*)"[^>]*>(.*?)</Annotations>',x,re.S)
+for tgt,body in targets:
+    d=re.search(r'Description" String="([^"]*)"',body,re.S)
+    desc=re.sub(r'\s+',' ',d.group(1)) if d else ''
+    if desc: print(f'{tgt} :: {desc[:200]}')
+EOF
+microsoft.graph.agentRegistration :: Entity that represents an agent registration containing metadata, endpoint&#xA;configuration, tools, and publishing information.&#xA;This entity provides developers and administrators with all details
+microsoft.graph.agentRegistration/agentCard :: Flexible Json manifest containing agent card information following public manifest&#xA;specifications. Can include displayName, description, iconUrl, version, provider,&#xA;capabilities, skills, secur
+microsoft.graph.agentRegistration/agentIdentityBlueprintId :: Agent identity blueprint identifier.
+microsoft.graph.agentRegistration/agentIdentityId :: Entra agent identity identifier.
+microsoft.graph.agentRegistration/createdBy :: The unique identifier of the user or app who created the agent registration.
+microsoft.graph.agentRegistration/description :: The agent description providing an overview of its purpose and capabilities.
+microsoft.graph.agentRegistration/displayName :: Display name for the agent instance.
+microsoft.graph.agentRegistration/lastPublishedBy :: The unique identifier of the last person to publish the agent.
+microsoft.graph.agentRegistration/managedByAppId :: Application identifier managing this agent.
+microsoft.graph.agentRegistration/originatingStore :: Name of the store/system where the agent originated.
+microsoft.graph.agentRegistration/ownerIds :: List of owner identifiers for the agent in case of user registering agent. Either owners or managedby is required
+microsoft.graph.agentRegistration/sourceAgentId :: Original agent identifier from source system.
+microsoft.graph.agentRegistration/sourceCreatedDateTime :: The date and time when the agent instance was created from source.
+microsoft.graph.agentRegistration/sourceLastModifiedDateTime :: The date and time when the agent instance was last modified from source.
+[0m
+**Critical**: `/v1.0/agentRegistry/agentInstances` and `/v1.0/agents` are **also routed (401, not 404)** despite being absent from v1.0 metadata — an undocumented-but-routed v1 surface. Extracting the full registry access model + official scope table:
+[0m% [0mWebFetch https://learn.microsoft.com/en-us/graph/api/agentregistry-list-agentinstances?view=graph-rest-beta&preserve-view=true
+[0m% [0mWebFetch https://learn.microsoft.com/en-us/microsoft-agent-365/admin/graph-api
+Now the migration surface — the Agent 365 admin API that's replacing the registry (new RECON target), plus the ID Protection agent-risk scopes:
+[0m◈ [0mParallel Web Search "Microsoft Graph beta "identityProtection/riskyAgents" OR "agentRiskDetections" permissions role "Identity Risk""
+Before claiming the v1.0 routes are real, a critical control test: does a *nonexistent* path also return 401 (auth-before-routing) or 404? This determines whether the 401s indicate genuine routes:
+[0m
+[0m$ [0mcd /tmp/opencode && for p in "/v1.0/thisdoesnotexistxyz12345" "/beta/thisdoesnotexistxyz12345" "/v1.0/agents" "/v1.0/agentRegistry/agentInstances" "/beta/agentRegistry/agentInstances/xyz/agentCardManifest"; do
+  out=$(curl -s -o /tmp/opencode/b.rsp -w "%{http_code}" --max-time 25 "https://graph.microsoft.com$p")
+  sig=$(head -c 90 /tmp/opencode/b.rsp | tr -d '\n')
+  echo "[$out] $p => ${sig:0:80}"
+  sleep 1
+done
+[401] /v1.0/thisdoesnotexistxyz12345 => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /beta/thisdoesnotexistxyz12345 => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/agents => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/agentRegistry/agentInstances => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /beta/agentRegistry/agentInstances/xyz/agentCardManifest => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[0m
+**Methodological correction discovered**: even a nonexistent Graph path returns 401 — Graph authenticates before routing, so prior "401 = alive" claims for Graph are **null signals**. I need a real routing signal. Testing whether method-mismatch (405) discriminates:
+[0m$ [0mcd /tmp/opencode && for p in "/v1.0/me/revokeSignInSessions" "/v1.0/me/changePassword" "/v1.0/me/sendMail" "/v1.0/me/checkMemberGroups" "/v1.0/users"; do
+  out=$(curl -s -o /tmp/opencode/b.rsp -w "%{http_code}" --max-time 25 "https://graph.microsoft.com$p")
+  sig=$(head -c 90 /tmp/opencode/b.rsp | tr -d '\n')
+  echo "[$out] $p => ${sig:0:80}"
+  sleep 1
+done
+[401] /v1.0/me/revokeSignInSessions => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/me/changePassword => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/me/sendMail => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/me/checkMemberGroups => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[401] /v1.0/users => {"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty."
+[0m
+Confirmed: even documented POST-only actions return 401 pre-auth — **no unauthenticated request can distinguish a Graph route**; the auth gate precedes routing entirely. This is a methodology correction for the whole journal (401 ≠ "alive" for Graph). The surfaces stand on stronger evidence: declared in public `$metadata` + documented on MS Learn. Capturing the last piece — the Agent 365 package API (registry replacement):
+[0m% [0mWebFetch https://learn.microsoft.com/en-us/microsoft-365-copilot/extensibility/api/admin-settings/package/overview
+The Agent 365 Package API (`/copilot/admin/catalog/packages*`) is the replacement surface with block/reassign/update ops. Checking if it's declared in beta $metadata (which would confirm it's a live Graph route vs standalone):
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for term in ['copilotPackage','admin/catalog','catalog/packages','copilotRoot','copilot/admin','declarativeAgent','customEngineAgent']:
+    c=x.count(term)
+    print(term,'refs:',c)
+# copilotRoot singleton definition
+i=x.find('Singleton Name="copilot"')
+if i>=0:
+    print('copilot singleton ctx:', re.sub(r'\s+',' ',x[i-100:i+600]))
+EOF
+copilotPackage refs: 15
+admin/catalog refs: 0
+catalog/packages refs: 0
+copilotRoot refs: 8
+copilot/admin refs: 0
+declarativeAgent refs: 0
+customEngineAgent refs: 0
+copilot singleton ctx: hMonitoring.directoryObjectImpactSummary/resourceSampling" Target="directoryObjects" /></Singleton><Singleton Name="copilot" Type="microsoft.graph.copilotRoot"><NavigationPropertyBinding Path="agents" Target="agents" /></Singleton><Singleton Name="agentRegistry" Type="microsoft.graph.agentRegistry"><NavigationPropertyBinding Path="agentCollections/members" Target="agentRegistry/agentInstances" /><NavigationPropertyBinding Path="agentInstances/agentCardManifest" Target="agentRegistry/agentCardManifests" /><NavigationPropertyBinding Path="agentInstances/collections" Target="agentRegistry/agentCollections" /></Singleton><Singleton Name="solutions" Type="microsoft.graph.solutionsRoot"><Navigatio
+[0m
+`copilotPackage` is declared (15 refs) but the `/copilot/admin/catalog` path is **not** in Graph $metadata — separate surface. Extracting the copilotPackage entity + confirming the agents/copilotTools model:
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+for m in re.finditer(r'<EntityType Name="copilotPackage[^"]*"[^>]*>.*?</EntityType>',x,re.S):
+    print('---', re.sub(r'\s+',' ',m.group(0))[:800])
+for m in re.finditer(r'<ComplexType Name="copilotPackage[^"]*"[^>]*>.*?</ComplexType>',x,re.S):
+    print('---CT', re.sub(r'\s+',' ',m.group(0))[:600])
+# where copilotPackage refs besides def
+idx=[m.start() for m in re.finditer(r'copilotPackage',x)]
+print('ref positions:',len(idx))
+for s in idx[1:6]:
+    print('>', re.sub(r'\s+',' ',x[s-120:s+120]))
+EOF
+--- <EntityType Name="copilotPackage" BaseType="graph.entity"><Property Name="appId" Type="Edm.String" /><Property Name="assetId" Type="Edm.String" /><Property Name="availableTo" Type="graph.packageStatus" Nullable="false" /><Property Name="createdDateTime" Type="Edm.DateTimeOffset" /><Property Name="deployedTo" Type="graph.packageStatus" Nullable="false" /><Property Name="displayName" Type="Edm.String" /><Property Name="elementTypes" Type="Collection(Edm.String)" Nullable="false" /><Property Name="isBlocked" Type="Edm.Boolean" Nullable="false" /><Property Name="lastModifiedDateTime" Type="Edm.DateTimeOffset" /><Property Name="manifestId" Type="Edm.String" /><Property Name="manifestVersion" Type="Edm.String" /><Property Name="ownerId" Type="Edm.String" /><Property Name="platform" Type="Edm.Str
+--- <EntityType Name="copilotPackageDetail" BaseType="graph.copilotPackage"><Property Name="acquireUsersAndGroups" Type="Collection(graph.packageAccessEntity)" Nullable="false" /><Property Name="activeUsers" Type="Edm.Int32" /><Property Name="allowedUsersAndGroups" Type="Collection(graph.packageAccessEntity)" Nullable="false" /><Property Name="categories" Type="Collection(Edm.String)" Nullable="false" /><Property Name="elementDetails" Type="Collection(graph.packageElementDetail)" Nullable="false" /><Property Name="exceptionRate" Type="Edm.Double" /><Property Name="lastUsedDateTime" Type="Edm.DateTimeOffset" /><Property Name="longDescription" Type="Edm.String" /><Property Name="sensitivity" Type="Edm.String" /><Property Name="sharedWithUsersAndGroups" Type="Collection(graph.packageAccessEntity)
+---CT <ComplexType Name="copilotPackageUpdateResponse"><Property Name="id" Type="Edm.String" Nullable="false" /></ComplexType>
+ref positions: 15
+>  users who actively used the package during the reporting period." /></Annotations><Annotations Target="microsoft.graph.copilotPackageDetail/exceptionRate"><Annotation Term="Org.OData.Core.V1.Description" String="The fraction of sessions th
+> t resulted in an exception, expressed as a value between 0 and 1." /></Annotations><Annotations Target="microsoft.graph.copilotPackageDetail/lastUsedDateTime"><Annotation Term="Org.OData.Core.V1.Description" String="The date and time when t
+>  time when the package was last used, in ISO 8601 format and UTC." /></Annotations><Annotations Target="microsoft.graph.copilotPackageDetail/totalRunTimeInHours"><Annotation Term="Org.OData.Core.V1.Description" String="Total hours worked by
+> ata.Core.V1.Description" String="Total hours worked by the agent." /></Annotations><Annotations Target="microsoft.graph.copilotPackageDetail/totalSessions"><Annotation Term="Org.OData.Core.V1.Description" String="The total number of session
+> e="false" /><Property Name="sensitivityLabel" Type="graph.searchSensitivityLabelInfo" /></EntityType><ComplexType Name="copilotPackageUpdateResponse"><Property Name="id" Type="Edm.String" Nullable="false" /></ComplexType><ComplexType Name="
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+# how are copilotPackage objects exposed? look for entity sets of that type + copilotRoot navs + catalog
+for m in re.finditer(r'<EntitySet Name="([^"]*)" EntityType="[^"]*\.copilotPackage"',x):
+    print('copilotPackage EntitySet:',m.group(1))
+for m in re.finditer(r'<EntitySet Name="([^"]*)" EntityType="[^"]*\.copilotPackageDetail"',x):
+    print('copilotPackageDetail EntitySet:',m.group(1))
+# copilotRoot full def
+i=x.find('EntityType Name="copilotRoot"')
+if i>=0:
+    seg=x[i:i+1200]
+    print('== copilotRoot ==', re.sub(r'\s+',' ',seg)[:900])
+# packageStatus / packageAccessEntity / packageElementDetail
+for n in ['packageStatus','packageAccessEntity','packageElementDetail','searchSensitivityLabelInfo']:
+    m=re.search(r'<(EnumType|ComplexType) Name="'+n+r'"[^>]*>.*?</\1>',x,re.S)
+    if m: print('==',n,'==', re.sub(r'\s+',' ',m.group(0))[:400])
+    else:
+        i=x.find(n)
+        print(n,'(def not found; ctx):', re.sub(r'\s+',' ',x[max(0,i-100):i+100]) if i>=0 else 'n/a')
+EOF
+== copilotRoot == EntityType Name="copilotRoot"><NavigationProperty Name="agentRegistrations" Type="Collection(graph.agentRegistration)" ContainsTarget="true" /><NavigationProperty Name="conversations" Type="Collection(graph.copilotConversation)" ContainsTarget="true" /><NavigationProperty Name="admin" Type="graph.copilotAdmin" ContainsTarget="true" /><NavigationProperty Name="agents" Type="Collection(graph.agent)" /><NavigationProperty Name="reports" Type="graph.copilotReportRoot" ContainsTarget="true" /><NavigationProperty Name="settings" Type="graph.copilotSetting" ContainsTarget="true" /><NavigationProperty Name="communications" Type="graph.copilotCommunicationsRoot" ContainsTarget="true" /><NavigationProperty Name="interactionHistory" Type="graph.aiInteractionHistory" ContainsTarget="true" /><NavigationProperty Name="users" Type="Collection(graph.aiUser)" ContainsTarget="true" /></EntityType><EntityT
+== packageStatus == <EnumType Name="packageStatus"><Member Name="none" Value="0" /><Member Name="some" Value="1" /><Member Name="all" Value="2" /><Member Name="unknownFutureValue" Value="3" /></EnumType>
+== packageAccessEntity == <ComplexType Name="packageAccessEntity"><Property Name="resourceId" Type="Edm.String" Nullable="false" /><Property Name="resourceType" Type="graph.accessEntityType" Nullable="false" /></ComplexType>
+== packageElementDetail == <ComplexType Name="packageElementDetail"><Property Name="elements" Type="Collection(graph.packageElement)" Nullable="false" /><Property Name="elementType" Type="Edm.String" /></ComplexType>
+== searchSensitivityLabelInfo == <ComplexType Name="searchSensitivityLabelInfo"><Property Name="color" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" /><Property Name="priority" Type="Edm.Int32" /><Property Name="sensitivityLabelId" Type="Edm.String" /><Property Name="tooltip" Type="Edm.String" /></ComplexType>
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+m=re.search(r'<EntityType Name="copilotAdmin"[^>]*>.*?</EntityType>',x,re.S)
+print('== copilotAdmin ==')
+print(re.sub(r'\s+',' ',m.group(0))[:1200] if m else 'NOT FOUND')
+# catalog refs
+for term in ['catalog','catalogRoot']:
+    c=x.count(term); print(term,'refs:',c)
+i=x.find('catalog')
+if i>=0: print('ctx:', re.sub(r'\s+',' ',x[max(0,i-150):i+150]))
+EOF
+== copilotAdmin ==
+<EntityType Name="copilotAdmin" BaseType="graph.entity"><NavigationProperty Name="catalog" Type="graph.copilotAdminCatalog" ContainsTarget="true" /><NavigationProperty Name="policySettings" Type="Collection(graph.copilotPolicySetting)" ContainsTarget="true" /><NavigationProperty Name="settings" Type="graph.copilotAdminSetting" ContainsTarget="true" /></EntityType>
+catalog refs: 78
+catalogRoot refs: 0
+ctx: oft.graph.deviceManagementConfigurationSettingVisibility/settingsCatalog"><Annotation Term="Org.OData.Core.V1.Description" String="Visible to setting catalog policy type." /></Annotations><Annotations Target="microsoft.graph.deviceManagementConfigurationSettingVisibility/template"><Annotation Term="
+[0m
+[0m$ [0mcd /tmp/opencode && python3 - << 'EOF'
+import re
+x=open('graph_beta_meta.xml').read()
+m=re.search(r'<EntityType Name="copilotAdminCatalog"[^>]*>.*?</EntityType>',x,re.S)
+print('== copilotAdminCatalog ==')
+print(re.sub(r'\s+',' ',m.group(0))[:1200] if m else 'NOT FOUND')
+EOF
+== copilotAdminCatalog ==
+<EntityType Name="copilotAdminCatalog" BaseType="graph.entity"><NavigationProperty Name="packages" Type="Collection(graph.copilotPackageDetail)" ContainsTarget="true" /></EntityType>
+[0m
+[0m$ [0mcd /tmp/opencode && sha256sum graph_v1_meta.xml graph_beta_meta.xml
+9d84e4510aa8d6bc95f14ae0bde05ea01c967fcd29478269b58e7cfdd2bdc16a  graph_v1_meta.xml
+ca3048596553b16c06004d1dacfae221de85b8e58878d7228feb15a7aeda2ebe  graph_beta_meta.xml
+[0m
+Full model recovered. `copilot/admin/catalog/packages` maps to `copilotAdminCatalog.packages` (copilotPackageDetail) — the Agent 365 surface IS in the beta schema. Retrying CT inventory + hashing artifacts, then finalizing:
+[0m$ [0msleep 1 && cd /tmp/opencode && curl -s --max-time 60 "https://crt.sh/?q=%25agent%25.microsoft.com&output=json" -o ct_agent.json 2>/dev/null; echo "bytes: $(wc -c < ct_agent.json 2>/dev/null)"; python3 -c "
+import json
+try:
+    d=json.load(open('ct_agent.json'))
+    names=set()
+    for e in d:
+        for n in e.get('name_value','').split('\n'):
+            n=n.strip().lower()
+            if n and '*' not in n: names.add(n)
+    print('names:',len(names))
+    for n in sorted(names): print(' ',n)
+except Exception as ex: print('ERR',ex)
+" 2>/dev/null | head -50
+bytes: 150
+ERR Expecting value: line 1 column 1 (char 0)
+[0m
+[0m$ [0mcd /tmp/opencode && grep -rliE "agentRegistry|agentCardManifest|copilot/admin|copilotPackage|riskyAgent|agentRegistration" entrabot_* 2>/dev/null; echo "---"; grep -oE "agentIdentity[A-Za-z]*|agentUserId|identityParentId|fmi_path|user_fic" entrabot_create_entra_agent_ids.py | sort | uniq -c | sort -rn | head
+---
+      8 identityParentId
+      5 agentIdentityBlueprintId
+      2 agentIdentity
+      1 user_fic
+      1 agentIdentityBlueprintPrincipal
+      1 agentIdentityBlueprint
+[0m
+crt.sh still down (502); metadata hashes match prior runs (`9d84e451…`/`ca304859…`) — confirming the registry/copilot/risk surface was already in beta schema and simply unextracted earlier. Final check — does entrabot reference the registry/catalog APIs:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat >> research/bigpickle.md <<'EOF'
+
+## RUN 2026-08-07 12:45:00 (big-pickle) — TARGET: microsoft — PHASE: POC→RECON (Graph agent-management ecosystem + methodology correction)
+
+### METHODOLOGY CORRECTION (applies retroactively)
+- CONTROL TEST: unauthenticated GET on nonexistent Graph paths (/v1.0/thisdoesnotexistxyz12345, /beta/thisdoesnotexistxyz12345) and on documented POST-only actions (/v1.0/me/revokeSignInSessions, changePassword, sendMail, checkMemberGroups) ALL return HTTP 401 InvalidAuthenticationToken. Graph authenticates BEFORE routing, so an unauthenticated GET cannot distinguish a real route from a nonexistent one. → ALL prior journal claims of the form "GET <graph endpoint> → 401, therefore alive/routed" are NULL signals and are RETRACTED (incl. /me/agentSignInSessions, /me/authentication/methods). Route existence is instead established by public $metadata declarations + MS Learn docs. The non-Graph hosts (api.myaccount / api.mysignins) returned 401+WWW-Authenticate/405 — those remain valid route signals.
+
+### NEW SURFACE — Graph Agent Management ecosystem (recovered from beta $metadata sha256 ca304859… + MS Learn docs; all declared, all auth-gated, Global cloud only)
+- Agent Registry singleton /beta/agentRegistry → agentInstances / agentCardManifests / agentCollections. Docs: learn.microsoft.com/graph/api/agentregistry-list-agentinstances. agentInstance links agentIdentityId + agentUserId + agentIdentityBlueprintId; carries url + additionalInterfaces (transport endpoints), JWS-signed agentCard signatures (alg ES256, kid did:web, type agentcard+jws), ownerIds OR managedBy ("either required"). Permissions: AgentInstance.Read.All / .ReadWrite.All / .ReadWrite.ManagedBy (app); delegated requires Agent Registry Administrator dir role. DEPRECATION: replaced May-2026 by Agent 365 package APIs.
+- agents EntitySet /beta/agents (microsoft.graph.agent, nav copilotTools); /beta/copilot/agents; /beta/auditLogs/agents. copilotRoot (/beta/copilot) also exposes agentRegistrations, admin/catalog/packages (copilotPackageDetail; block/unblock/reassign/update ops; requires Agent 365 license + AI admin or Global admin), admin/policySettings, admin/settings, settings, reports, conversations, interactionHistory, users.
+- ID Protection: /beta/identityProtection/riskyAgents (subtypes riskyAgentIdentity / riskyAgentIdentityBlueprintPrincipal / riskyAgentUser; actions confirmCompromised/confirmSafe/dismiss) + /beta/identityProtection/agentRiskDetections. Scope IdentityRiskyAgent.Read.All; delegated roles Global Reader / Security Operator / Security Reader / Security Administrator.
+- Audit attribution: signIn.agent + summarizedSignIn.agent = agentic.agentSignIn (agentServicePrincipalId, agentSubjectParentId, agentType/agentSubjectType, parentAppId). agentType enum: notAgentic=0, agenticApp=2, agenticAppInstance=3, agentIdentityBlueprintPrincipal=4, agentIDuser=5.
+- Metadata annotations: agentRegistration.agentCard = "Flexible Json manifest … displayName, description, iconUrl, version, provider, capabilities, skills, security"; ownerIds = "either owners or managedby is required".
+
+### CODE REVIEW (microsoft/entrabot, in-scope org) — wire-level consent-grant primitive (H-2 refinement)
+- scripts/create_entra_agent_ids.py: POST /v1.0/oauth2PermissionGrants with clientId={agent-identity-oid}, consentType=Principal, principalId={agent-user-oid}, resourceId={CALLER-CHOSEN SP oid}, scope string. ResourceId is NOT restricted to Graph: same primitive grants Azure Storage user_impersonation (app e406a681-f3d4-42a8-90b6-c2b029497af1) so hop-3 can mint idtyp=user https://storage.azure.com/.default tokens. Grant is one-time, per-principal, non-expiring (startTime only). Provisioner app needs DelegatedPermissionGrant.ReadWrite.All.
+- Application.Read.All granted to agentIdentity SP via appRoleAssignment (app role id 9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30) — Application.Read.All is NOT in the agent blocked-permissions table (only ReadWrite.* are) → agents can enumerate tenant apps/SPs.
+- New subtype navs: GET /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors (beta); GET /oauth2PermissionGrants?$filter=clientId eq '{oid}' and principalId eq '{oid}' (v1); GET /applications/{id}?$select=keyCredentials.
+- UPN uniqueness used as tenant-wide lookup key (find_existing_agent_user_by_upn). entrabot explicitly warns "pooling agent users is an anti-pattern: object-ID recycling → residual permissions attach to next holder" (design acknowledgment of object-id reuse risk).
+- No entrabot reference to agentRegistry/copilot catalog — those are separate first-party surfaces.
+
+### Live checks (passive, 1/sec, in-scope graph.microsoft.com)
+- /beta/agents, /beta/copilot/agents, /beta/agentRegistry{,/agentInstances,/agentCardManifests,/agentCollections}, /beta/auditLogs/agents, /beta/identityProtection/{riskyAgents,agentRiskDetections}, /v1.0/agents, /v1.0/agentRegistry/agentInstances → ALL 401 (now classified NULL signal; route existence rests on $metadata+docs).
+- crt.sh CT inventory for %agent%.microsoft.com: still 502 (3rd consecutive run). agents.microsoft.com previously characterized (parked on adoption.microsoft.com AFD, *.azureedge.net SAN mismatch → 404).
+
+### Hypotheses (test-tenant, read-only design)
+- H-6 [HIGH] Registry ownership boundary: is managedBy enforced = caller appId on POST/PATCH agentInstances, or settable arbitrarily? Can a holder of AgentInstance.ReadWrite.ManagedBy (app) or Agent Registry Administrator (delegated) claim/overwrite another's agentInstance + agentCardManifest (instructions/endpoints)? Also copilot package reassign (POST /copilot/admin/catalog/packages/{id}/reassign) and block/unblock — role boundary. If not enforced → agent supply-chain takeover at M365 runtime. CVSS 7.5–9.0.
+- H-7 [HIGH] agentCard JWS trust: registry stores optional signatures (ES256, did:web kid). Does the consuming runtime verify signature over the card (type agentcard+jws) or trust unsigned manifests? Unsigned/spoofed card → first-party impersonation + instruction injection. Test-tenant. CVSS 6.5–9.0.
+- H-8 [MED] riskyAgents write-op integrity: confirmCompromised/confirmSafe/dismiss on arbitrary agent ids — risk-state tampering vs agent-risk CA. Role-gated (Security Administrator/Global Reader read). CVSS 4–6.
+- H-9 [MED] agent sign-in attribution (signIn.agent: agentServicePrincipalId, parentAppId) as second data source for the agentSignInSessions cross-user hypothesis (PD-A). CVSS 6.5–8.8.
+- H-1 [HIGHEST, unchanged] user_fic Hop-3 subject validation (user_id vs username alternate key). H-2 [HIGH, refined] consent-grant primitive is resource-agnostic (resourceId arbitrary → storage user_impersonation / any first-party resource). H-3 [MED] managerApplications first-party list.
+
+### Secrets check
+- None. entrabot = design/code only (no tokens/keys). Public client IDs, well-known app-role GUID (9a5d68dd-…), MS-doc sample UUIDs. Metadata hashes unchanged: graph_v1_meta.xml 9d84e451…, graph_beta_meta.xml ca304859…. No raw secrets committed.
+EOF
+echo "journal lines: $(wc -l < research/bigpickle.md)"
+journal lines: 5535
+[0m
+entrabot only touches the identity chain (no registry/catalog usage) — confirming those are separate first-party surfaces. All analysis complete; writing journal, leads, and state:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat >> leads/lead-bigpickle.md <<'EOF'
+
+## 2026-08-07 12:45:00 UTC [microsoft] (model bigpickle) — POC->RECON (Graph agent ecosystem + methodology fix)
+
+- [METHODOLOGY-CORRECTION] Control test: nonexistent Graph paths AND documented POST-only actions all return 401 pre-routing (graph.microsoft.com authenticates before routing). All prior "401 = endpoint alive" claims for Graph (incl. /me/agentSignInSessions, /me/authentication/methods) are RETRACTED as null signals. Route existence must come from $metadata + docs. api.myaccount/api.mysignins 401/405 statuses remain valid.
+- [NEW-SURFACE] Agent Registry (beta): /beta/agentRegistry singleton -> agentInstances/agentCardManifests/agentCollections (agentInstance links agentIdentityId+agentUserId+agentIdentityBlueprintId; url+additionalInterfaces; JWS agentCard signatures ES256 did:web agentcard+jws; ownerIds OR managedBy). Perms: AgentInstance.Read.All / ReadWrite.All / ReadWrite.ManagedBy; delegated requires Agent Registry Administrator role. Global cloud only. Deprecated May-2026 in favor of Agent 365.
+- [NEW-SURFACE] Copilot agent management (beta): /beta/agents (nav copilotTools), /beta/copilot/agents, /beta/copilot/agentRegistrations, /beta/copilot/admin/catalog/packages (copilotPackageDetail; list/get/update/block/unblock/reassign; Agent 365 license + AI admin/Global admin), /beta/auditLogs/agents.
+- [NEW-SURFACE] ID Protection agent risk (beta): /beta/identityProtection/riskyAgents (riskyAgentIdentity/riskyAgentIdentityBlueprintPrincipal/riskyAgentUser; confirmCompromised/confirmSafe/dismiss) + /beta/identityProtection/agentRiskDetections. Scope IdentityRiskyAgent.Read.All; roles Global Reader/Security Operator/Reader/Administrator.
+- [NEW-SURFACE] Audit: signIn.agent = agentic.agentSignIn (agentServicePrincipalId, agentSubjectParentId, agentType/agentSubjectType, parentAppId); agentType enum notAgentic=0 agenticApp=2 agenticAppInstance=3 agentIdentityBlueprintPrincipal=4 agentIDuser=5.
+- [LEAD-HIGH H-6] Agent Registry ownership boundary: managedBy enforced=caller appId? reassign/block role boundary? If not -> claim/overwrite any agent card manifest (instructions+endpoints). CVSS 7.5-9.0.
+- [LEAD-HIGH H-7] agentCard JWS trust: is signature verified by M365 runtime or advisory? Unsigned/spoofed card = first-party impersonation. CVSS 6.5-9.0.
+- [LEAD-MED H-8] riskyAgents write ops (confirmCompromised/Safe/dismiss) integrity vs agent-risk CA. CVSS 4-6. [LEAD-MED H-9] signIn.agent attribution as 2nd source for agentSignInSessions cross-user (PD-A). CVSS 6.5-8.8.
+- [CODE-REVIEW] entrabot create_entra_agent_ids.py: consent grant POST /v1.0/oauth2PermissionGrants with CALLER-CHOSEN resourceId (Graph OR Azure Storage user_impersonation e406a681-...); one-time per-principal non-expiring; needs DelegatedPermissionGrant.ReadWrite.All. Application.Read.All NOT agent-blocked (role 9a5d68dd-...). Subtype navs: /servicePrincipals/{id}/microsoft.graph.agentIdentity/sponsors. Pooling anti-pattern note: object-id recycling residual-permission risk (design-acknowledged).
+EOF
+cat > state_bigpickle.json <<'EOF'
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+EOF
+cat state_bigpickle.json; echo; echo "leads lines: $(wc -l < leads/lead-bigpickle.md)"
+{"phase": "POC", "status": "HIGH_POTENTIAL"}
+
+leads lines: 96
+[0m
+# Program: microsoft
+# Phase: POC (design) → RECON (new surface: Graph Agent Management ecosystem; + methodology correction)
+
+## Key Findings
+- **Methodology correction (applies retroactively):** control-tested that unauthenticated GETs to *nonexistent* Graph paths and to *documented POST-only actions* all return `401 InvalidAuthenticationToken` — Graph authenticates **before** routing, so prior journal claims of "401 ⇒ endpoint alive" for Graph (incl. `/me/agentSignInSessions`, `/me/authentication/methods`) are **null signals and retracted**. Route existence now rests on public `$metadata` declarations + MS Learn docs. (api.myaccount / api.mysignins 401/405/404 remain valid signals — non-Graph hosts.)
+- **NEW surface — Agent Registry API** (`/beta/agentRegistry` singleton → `agentInstances`/`agentCardManifests`/`agentCollections`), declared in beta `$metadata` (sha256 `ca304859…`, unchanged from prior runs) + documented at learn.microsoft.com/graph/api/agentregistry-list-agentinstances. `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBlueprintId`, carries runtime endpoint `url`/`additionalInterfaces`, JWS-signed agent cards (`ES256`, `did:web` kid, `agentcard+jws`), and `ownerIds` **OR** `managedBy` ("either required"). Permissions: `AgentInstance.Read.All`/`.ReadWrite.All`/`.ReadWrite.ManagedBy`; delegated callers need **Agent Registry Administrator** role. Global cloud only; **deprecated May-2026** in favor of Agent 365.
+- **NEW surface — Copilot/agent admin** (beta): `/beta/agents` (nav `copilotTools`), `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, and `/beta/copilot/admin/catalog/packages` (copilotPackageDetail; list/get/update/**block/unblock/reassign**; Agent 365 license + AI admin/Global admin), plus `/beta/auditLogs/agents`.
+- **NEW surface — ID Protection agent risk** (beta): `/beta/identityProtection/riskyAgents` (subtypes riskyAgentIdentity / riskyAgentIdentityBlueprintPrincipal / riskyAgentUser; actions confirmCompromised/confirmSafe/dismiss) + `/beta/identityProtection/agentRiskDetections`. Scope `IdentityRiskyAgent.Read.All`; roles Global Reader/Security Operator/Reader/Administrator.
+- **NEW surface — audit attribution:** `signIn.agent` = `agentic.agentSignIn` (`agentServicePrincipalId`, `agentSubjectParentId`, `agentType`/`agentSubjectType`, `parentAppId`); enum `notAgentic=0, agenticApp=2, agenticAppInstance=3, agentIdentityBlueprintPrincipal=4, agentIDuser=5`.
+- **Code review (microsoft/entrabot):** consent-grant primitive is **resource-agnostic** — `POST /v1.0/oauth2PermissionGrants` with caller-chosen `resourceId` (Graph **or** Azure Storage `user_impersonation` `e406a681…`), one-time per-principal non-expiring. `Application.Read.All` is **not** in the agent blocked-permissions table (only `ReadWrite.*` are). entrabot design-docs acknowledge object-ID recycling/residual-permission risk ("pooling is an anti-pattern").
+
+## New Endpoints / Assets
+- Graph beta (all declared in `$metadata`, auth-gated): `/agentRegistry`, `/agentRegistry/agentInstances`, `/agentRegistry/agentCardManifests`, `/agentRegistry/agentCollections`, `/agents`, `/copilot/agents`, `/copilot/agentRegistrations`, `/copilot/admin/catalog/packages` (+`/{id}/block|unblock|reassign`), `/auditLogs/agents`, `/identityProtection/riskyAgents`, `/identityProtection/agentRiskDetections`.
+- Graph beta entity model: `agent` (copilotTools), `agentRegistry`, `agentRegistration` (agentCard JSON manifest: iconUrl/provider/skills/security), `agentInstance` (signatures, url, interfaces), `agentCardManifest`, `agentCollection`, `copilotPackage`/`copilotPackageDetail` (allowedUsersAndGroups, sensitivityLabel), `riskyAgent*`, `agentic.agentSignIn` on `signIn`/`summarizedSignIn`.
+- Graph API surface (entrabot): `POST /v1.0/oauth2PermissionGrants` (caller-chosen resourceId), `POST /v1.0/servicePrincipals/{oid}/appRoleAssignments` (Application.Read.All role `9a5d68dd…`), `GET /servicePrincipals/{oid}/microsoft.graph.agentIdentity/sponsors`, `GET /users?$filter=identityParentId eq '{oid}'`.
+
+## Hypotheses (impact + read-only test)
+1. **[H-6 HIGH]** Registry ownership boundary: is `managedBy` enforced = caller appId on POST/PATCH, and are `reassign`/`block` role-gated? If not, any app with `AgentInstance.ReadWrite.ManagedBy` claims/overwrites another agent's card manifest (instructions + endpoints) → supply-chain takeover at M365 runtime. CVSS 7.5–9.0.
+2. **[H-7 HIGH]** agentCard JWS trust: does the consuming runtime verify the `agentcard+jws` signature or trust unsigned manifests? Spoofed card → first-party impersonation. CVSS 6.5–9.0.
+3. **[H-8 MED]** riskyAgents write ops (`confirmCompromised`/`confirmSafe`/`dismiss`) — risk-state tampering vs agent-risk Conditional Access. CVSS 4–6.
+4. **[H-9 MED]** `signIn.agent` attribution as a second data source for the agentSignInSessions cross-user IDOR (PD-A). CVSS 6.5–8.8.
+5. **[H-1 HIGHEST, unchanged]** `user_fic` Hop-3 subject validation (`user_id` vs `username` alternate key) → arbitrary-user minting. CVSS 9.1–9.8.
+6. **[H-2 HIGH, refined]** consent-grant primitive is resource-agnostic (arbitrary `resourceId` incl. storage `user_impersonation`) — whether self-consent is admin-gated is the test. CVSS 7.5–8.8.
+
+## Secrets Check
+None. entrabot = design/code only (no tokens/keys). Only public client IDs, well-known app-role GUID (`9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30`), MS-doc sample UUIDs. Artifact hashes only: `graph_v1_meta.xml 9d84e451…`, `graph_beta_meta.xml ca304859…`.
+
+## CVSS Candidates
+H-6 7.5–9.0; H-7 6.5–9.0; H-8 4–6; H-9 6.5–8.8; H-1 9.1–9.8; H-2 7.5–8.8.
+
+---
+## STATE UPDATE
+STATUS_PHASE: POC
+STATUS_STATE: HIGH_POTENTIAL
+NEXT_STEP_1: Test-tenant execution of H-1 (user_fic Hop-3: mint for own Agent User vs unrelated `user_id`/`username`; 200 on unrelated ⇒ escalate to MSRC) and H-2 (self-consent gate via `POST /v1.0/oauth2PermissionGrants` with arbitrary resourceId).
+NEXT_STEP_2: Test-tenant H-6/H-7: create agentInstance/card with foreign `managedBy`/`ownerIds` (is it accepted?) and unsigned card signature; enumerate copilot package `reassign`/`block` role boundary.
+NEXT_STEP_3: If no test tenant, RECON next unexplored surface: retry crt.sh CT inventory for `*agent*.microsoft.com` (down 3 runs), enumerate Agent 365 package API host binding, and mine `microsoft/entrabot` `docs/reference/scripts/operations/show-agent-status` + `entra_provisioning.py` for provisioner scopes/cert handling.
