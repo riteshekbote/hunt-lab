@@ -248,3 +248,4 @@ verify_steps: AUTH_HELPED (test-tenant, two app principals; prereq MSRC confirm 
 impact: cross-app conversation hijack / transcript disclosure / active-session prompt injection. CVSS 6.5–9.0.
 testability: AUTH_HELPED
 ## 2026-08-07 18:28:48 UTC [google] (model bigpickle)
+## 2026-08-07 18:48:39 UTC [google] (model bigpickle)

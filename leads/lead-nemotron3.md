@@ -265,3 +265,46 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400)
 [RISK] google: 35 reason: GCP control-plane APIs all auth-gated (API key/OAuth); Firebase identitytoolkit 403 unregistered-callers gate; ADK issues are SDK-level not live Google service; no new unauthenticated attack surface discovered in this cycle; tokeninfo oracle is rate-limited public introspection only
 [RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), Copilot Studio D2E (conversation-ID not validated), Agent User `user_fic` subject knobs — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels
+## 2026-08-07 18:48:13 UTC [google] (model nemotron3)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, 7.80, attack=8 business=9 tech=8 gate=5 cloud=7 fresh=9
+[PRIO] copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations, 7.65, attack=8 business=8 tech=9 gate=4 cloud=7 fresh=10
+[HYP] Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 75
+reasoning: API accepts client-supplied `createdBy` on create; PATCH on any registration ID rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard` with NO documented ownership enforcement beyond scope; Agent 365 GA transition makes this the canonical registration surface
+evidence_needed: PATCH `/beta/copilot/agentRegistrations/{foreign_id}` with modified `ownerIds`/`agentCard` returns 200/204 and mutation persists (cross-tenant or cross-user)
+verify_steps: AUTH_HELPED: In test tenant, create registration A as User1, note ID; as User2 (same tenant, different identity), PATCH that ID with attacker-controlled `agentCard` + `ownerIds`; GET to confirm mutation. Passive: GET `/beta/copilot/agentRegistrations` (no-list doc) to test enumeration
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, supply-chain compromise of any agent registration in tenant; CVSS 7.5-9.0
+testability: AUTH_HELPED
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 70
+reasoning: SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2` scopes token to itself; backend contract shows only `GuestIsNotAllowedToIssueVerifiedId` / `TenantIsNotInAllowedToIssueVerifiedId` checks — no admin/role validation visible in client schema (source map confirms); Entra Verified ID = high-value employee credential
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential; or 403 with error revealing missing admin check
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2` as regular member user (non-admin); POST `/api/issueVerifiedEmployeeCredential` (empty body per source map); observe response. Passive: download source map `main.4e6e3dc6.js.map` → extract request schema for endpoint
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, access to Verified ID-gated resources; CVSS 7.1-9.1
+testability: AUTH_HELPED
+[HYP] Copilot Studio D2E conversation-ID validation bypass — server does not validate conversation IDs
+class: IDOR
+asset: https://{envhost}/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 65
+reasoning: Official doc (copilotStudioWebChat.ts:40-44) states: "server does not validate conversation IDs. A non-existent GUID will silently create a new conversation under that ID"; `x-ms-conversation-id` header on start; modes: True S2S (app-only, agent=No-Auth) / OBO (Integrated auth); admin-consent scope `CopilotStudio.Copilots.Invoke`
+evidence_needed: Start conversation with random GUID → observe silent creation; resume/hijack existing conversation via guessed/predicted GUID; cross-app resumption with stolen `conversationId`
+verify_steps: AUTH_HELPED: In test tenant with D2E access, POST start with random `conversationId` → verify 201 + new conversation; GET/POST to same `conversationId` from different client/app → observe cross-session access. Passive: review SDK code `CopilotClient.cs:509-517` for `x-ms-d2e-experimental` header promotion logic
+impact: Conversation hijack, history disclosure, active-session prompt injection, agent impersonation; CVSS 6.5-9.0
+testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list, and have concrete AUTH_HELPED verify_steps
+[FINAL] 1. Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 75, priority 8.55)
+[FINAL] 2. Verified ID minting without admin role — backend gates only on Guest/Tenant flags (AUTH, api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, confidence 70, priority 7.80)
+[FINAL] 3. Copilot Studio D2E conversation-ID validation bypass — server does not validate conversation IDs (IDOR, copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations, confidence 65, priority 7.65)
+[NEXT] PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token, scope `AgentRegistration.ReadWrite.All`) — tests enumeration of registrations (doc says no LIST but Collection type may allow); if 200 with array, confirms cross-registration visibility for PATCH targeting
+[LEARN] ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→400)
+[LEARN] ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+[LEARN] ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+[LEARN] ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400)
+[LEARN] No new proving-dead classes this cycle
+[RISK] google: 35 reason: GCP control-plane APIs all auth-gated (API key/OAuth); Firebase identitytoolkit 403 unregistered-callers gate; ADK issues are SDK-level not live Google service; no new unauthenticated attack surface discovered in this cycle; tokeninfo oracle is rate-limited public introspection only
+[RISK] microsoft: 82 reason: Multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), Copilot Studio D2E (conversation-ID not validated), Agent User `user_fic` subject knobs — all in active GA/preview transition, test-tenant reachable, Entra/Copilot identity plane = crown jewels

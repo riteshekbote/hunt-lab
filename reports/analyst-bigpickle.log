@@ -909,3 +909,160 @@ All context gathered; pending RAG completed against the live npm package. Final 
 **STEP 7 — RISK SCORE**
 - [RISK] google: 28 — reposcan exhausted with 0 secrets; all GCP control-plane reads consumer-identity gated; tokeninfo oracle is public introspection with no exploit branch; remaining accepted items are hardening/error-rendering quirks only.
 - [RISK] microsoft: 78 — Agent Registration (client-controlled ownership + possible collection enumeration) and Verified ID mint (no per-subject proof) remain test-tenant reachable on in-scope hosts; D2E conversation hijack stays high-impact but is scope-blocked on `*.powerplatform.com`; H-17 removed from live surface.
+===== ANALYST bigpickle 2026-08-07 18:56:45 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sS -o /dev/null -w "myaccount: %{http_code}\n" -H "User-Agent: Mozilla/5.0" https://api.myaccount.microsoft.com/ 2>&1; curl -sS -o /dev/null -w "mysignins: %{http_code}\n" -H "User-Agent: Mozilla/5.0" https://mysignins.microsoft.com/ 2>&1
+myaccount: 200
+mysignins: 200
+[0m
+[0m$ [0mcurl -sS -m 20 -H "User-Agent: Mozilla/5.0" "https://mysignins.microsoft.com/" | grep -oE 'bundle/main\.[a-f0-9]+\.js' | head -5; echo "---"; curl -sS -m 20 -H "User-Agent: Mozilla/5.0" "https://api.myaccount.microsoft.com/" | grep -oE 'bundle/main\.[a-f0-9]+\.js' | head -5
+bundle/main.caa6a456.js
+---
+[0m
+[0m$ [0mcurl -sS -m 20 -H "User-Agent: Mozilla/5.0" "https://api.myaccount.microsoft.com/" | grep -oE '(src|href)="[^"]+\.(js|css)[^"]*"' | head -10
+src="/bundle/main.shim.js"
+[0m
+[0m$ [0mcurl -sS -m 20 -H "User-Agent: Mozilla/5.0" "https://api.myaccount.microsoft.com/" | grep -oE 'main\.[a-f0-9]+\.js' | head -5; echo "---"; curl -sS -m 20 -o /dev/null -w "%{http_code}\n" "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map"
+---
+200
+[0m
+[0m$ [0mcurl -sS -m 20 -H "User-Agent: Mozilla/5.0" "https://api.myaccount.microsoft.com/bundle/main.shim.js" | grep -oE 'main\.[a-f0-9]+\.js' | head -5
+main.4e6e3dc6.js
+[0m
+[0m$ [0mfor p in "/beta/copilot/agentRegistrations" "/beta/agents" "/beta/agentRegistry/agentInstances" "/beta/me/agentSignInSessions" "/beta/copilot/agents" "/beta/me/agentSignInSessions"; do code=$(curl -sS -m 15 -o /dev/null -w "%{http_code}" "https://graph.microsoft.com$p"); echo "$code  $p"; done
+401  /beta/copilot/agentRegistrations
+401  /beta/agents
+401  /beta/agentRegistry/agentInstances
+401  /beta/me/agentSignInSessions
+401  /beta/copilot/agents
+401  /beta/me/agentSignInSessions
+[0m
+[0m$ [0mcurl -sS -m 20 -o /dev/null -w "mtls keys: %{http_code}\n" "https://mtlsauth.microsoft.com/common/discovery/v2.0/keys"; curl -sS -m 20 -o /dev/null -w "mtls authorize: %{http_code}\n" "https://mtlsauth.microsoft.com/common/oauth2/v2.0/authorize"
+mtls keys: 404
+mtls authorize: 404
+[0m
+[0m$ [0mcurl -sS -m 20 "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" | grep -iE "mtls|alias" | head -5
+{"token_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/token","token_endpoint_auth_methods_supported":["client_secret_post","private_key_jwt","client_secret_basic","self_signed_tls_client_auth"],"jwks_uri":"https://login.microsoftonline.com/common/discovery/v2.0/keys","response_modes_supported":["query","fragment","form_post"],"subject_types_supported":["pairwise"],"id_token_signing_alg_values_supported":["RS256"],"response_types_supported":["code","id_token","code id_token","id_token token"],"scopes_supported":["openid","profile","email","offline_access"],"issuer":"https://login.microsoftonline.com/{tenantid}/v2.0","request_uri_parameter_supported":false,"userinfo_endpoint":"https://graph.microsoft.com/oidc/userinfo","authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/authorize","device_authorization_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/devicecode","http_logout_supported":true,"frontchannel_logout_supported":true,"end_session_endpoint":"https://login.microsoftonline.com/common/oauth2/v2.0/logout","claims_supported":["sub","iss","cloud_instance_name","cloud_instance_host_name","cloud_graph_host_name","msgraph_host","aud","exp","iat","auth_time","acr","nonce","preferred_username","name","tid","ver","at_hash","c_hash","email"],"kerberos_endpoint":"https://login.microsoftonline.com/common/kerberos","mtls_endpoint_aliases":{"token_endpoint":"https://mtlsauth.microsoft.com/common/oauth2/v2.0/token"},"tls_client_certificate_bound_access_tokens":true,"tenant_region_scope":null,"cloud_instance_name":"microsoftonline.com","cloud_graph_host_name":"graph.windows.net","msgraph_host":"graph.microsoft.com","rbac_url":"https://pas.windows.net"}
+[0m
+[0m$ [0mcurl -sS -m 20 -o /dev/null -w "mtls token: %{http_code}\n" "https://mtlsauth.microsoft.com/common/oauth2/v2.0/token"; curl -sS -m 20 -o /dev/null -w "mtls tls config: %{http_code}\n" "https://mtlsauth.microsoft.com/common/oauth2/v2.0/token/.well-known/openid-configuration"
+mtls token: 200
+mtls tls config: 404
+[0m
+[0m$ [0mfor u in "https://graph.microsoft.com/oidc/userinfo" "https://login.microsoftonline.com/common/kerberos" "https://login.microsoftonline.com/common/devicecode"; do code=$(curl -sS -m 15 -o /dev/null -w "%{http_code}" "$u"); echo "$code  $u"; done
+401  https://graph.microsoft.com/oidc/userinfo
+200  https://login.microsoftonline.com/common/kerberos
+404  https://login.microsoftonline.com/common/devicecode
+[0m
+[0m$ [0mfor p in "/" "/metadata/json/1" "/api" "/v1.0" "/authentication/v1" "/rbac" "/management"; do code=$(curl -sS -m 15 -o /dev/null -w "%{http_code}" "https://pas.windows.net$p"); echo "$code  pas.windows.net$p"; done
+404  pas.windows.net/
+404  pas.windows.net/metadata/json/1
+404  pas.windows.net/api
+404  pas.windows.net/v1.0
+404  pas.windows.net/authentication/v1
+404  pas.windows.net/rbac
+404  pas.windows.net/management
+[0m
+[0m$ [0mcurl -sS -m 20 -i "https://login.microsoftonline.com/common/kerberos" | head -40
+HTTP/1.1 200 OK
+Cache-Control: no-store, no-cache
+Pragma: no-cache
+Content-Type: application/octet-stream
+Expires: -1
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+P3P: CP="DSP CUR OTPi IND OTRi ONL FIN"
+x-ms-request-id: b5da825c-ae94-4a74-abdd-65286dc00100
+x-ms-ests-server: 2.1.25074.12 - WUS3 ProdSlices
+x-ms-srs: 1.P
+Content-Security-Policy-Report-Only: object-src 'none'; base-uri 'self'; script-src 'self' 'nonce-SMlOPSQE6vhSBvXl7f-0Cg' 'unsafe-inline' 'unsafe-eval' https://*.msauth.net https://*.msftauth.net https://*.msftauthimages.net https://*.msauthimages.net https://*.msidentity.com https://*.microsoftonline-p.com https://*.microsoftazuread-sso.com https://*.azureedge.net https://*.outlook.com https://*.office.com https://*.office365.com https://*.microsoft.com https://*.bing.com 'report-sample'; report-uri https://csp.microsoft.com/report/ESTS-UX-All
+X-XSS-Protection: 0
+Set-Cookie: fpc=Ahl-m08SKuZGowP9mlqS6AQ; expires=Sun, 06-Sep-2026 18:47:18 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: x-ms-gateway-slice=estsfd; path=/; secure; samesite=none; httponly
+Set-Cookie: stsservicecookie=estsfd; path=/; secure; samesite=none; httponly
+Date: Fri, 07 Aug 2026 18:47:17 GMT
+Content-Length: 121
+
+0w�us   o~m0k���uФ20260807184718Z� �<�common�common�0�
+�
+0krbtgt�EmptyRequestBody
+[0m
+[0m$ [0mcurl -sS -m 20 -o /dev/null -w "kerberos+resource: %{http_code} %{size_download}B\n" "https://login.microsoftonline.com/common/kerberos?resource=00000002-0000-0000-c000-000000000000"; curl -sS -m 20 -o /dev/null -w "kerberos tenant: %{http_code} %{size_download}B\n" "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/kerberos"; curl -sS -m 20 -o /dev/null -w "devicecode POST: %{http_code}\n" -X POST -H "Content-Type: application/x-www-form-urlencoded" --data "client_id=1950a258-227b-4e31-a9cf-717495945fc2" "https://login.microsoftonline.com/common/devicecode"
+kerberos+resource: 200 121B
+kerberos tenant: 200 185B
+devicecode POST: 404
+[0m
+[0m$ [0mcurl -sS -m 20 -w "\nHTTP %{http_code}\n" -X POST -H "Content-Type: application/x-www-form-urlencoded" --data "client_id=1950a258-227b-4e31-a9cf-717495945fc2" "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/devicecode" | head -20
+HTTP 404
+[0m
+[0m$ [0mcurl -sS -m 20 -i "https://graph.microsoft.com/oidc/userinfo" | head -12
+HTTP/1.1 401 Unauthorized
+Transfer-Encoding: chunked
+Content-Type: application/json
+Strict-Transport-Security: max-age=31536000
+request-id: 00400522-b1ae-4220-bbcf-6be87af76596
+client-request-id: 00400522-b1ae-4220-bbcf-6be87af76596
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"009","RoleInstance":"BL6PEPF00035CF0"}}
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+Date: Fri, 07 Aug 2026 18:48:09 GMT
+
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-07T18:48:09","request-id":"00400522-b1ae-4220-bbcf-6be87af76596","client-request-id":"00400522-b1ae-4220-bbcf-6be87af76596"}}}
+[0m
+STEP 1 — DELTA
+- [NEW] `graph.microsoft.com/oidc/userinfo` (OIDC discovery `userinfo_endpoint`) — alive; unauth returns RFC-6750-compliant 401 + `WWW-Authenticate: Bearer ... client_id="00000003-0000-0000-c000-000000000000"` + JSON `InvalidAuthenticationToken` (properly gated — **contrast** with the /v1.0 405 anomaly).
+- [NEW] `login.microsoftonline.com/common/kerberos` (OIDC discovery `kerberos_endpoint`) — 200 anonymous; returns ASN.1 DER KRB error blob (`krbtgt/COMMON` realm, `EmptyRequestBody`), 121B; tenant-scoped variant 185B; ESTS `x-ms-ests-server: 2.1.25074.12` (newer than ACS 2.1.24997.11).
+- [NEW] `pas.windows.net` (OIDC discovery `rbac_url`) — dead: 404 on `/`, `/api`, `/v1.0`, `/metadata/json/1`, `/authentication/v1`, `/rbac`, `/management`.
+- [NEW] OIDC discovery↔runtime mismatch: `device_authorization_endpoint` = `/common/devicecode` but 404 on GET **and** POST, both `/common` and tenant-scoped.
+- [CHANGED] `mtlsauth.microsoft.com/common/oauth2/v2.0/token` — confirmed 200 (tls_client_certificate_bound token alias live; the `/discovery/v2.0/keys` + `/authorize` aliases 404, only token path mapped).
+
+STEP 2 — PRIORITIZE
+- [PRIO] `login.microsoftonline.com/common/kerberos` — score 6.45 (attack 6 / business 5 / tech 5 / gate 9 / cloud 7 / fresh 9) — fresh anonymous KDC surface, documented feature.
+- [PRIO] `graph.microsoft.com/beta/copilot/agentRegistrations` — score 6.45 (attack 8 / business 8 / tech 6 / gate 1 / cloud 9 / fresh 5) — top existing thread, still unverified, AUTH_HELPED.
+- [PRIO] `graph.microsoft.com/oidc/userinfo` — score 5.70 (attack 5 / business 6 / tech 7 / gate 2 / cloud 8 / fresh 8) — standard OIDC endpoint, properly gated.
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration collection enumeration + cross-app PATCH rewrite (existing top thread, refined)
+class: IDOR
+asset: GET/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 50
+reasoning: create accepts client-supplied `createdBy`; PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard`; docs show no ownership enforcement beyond scope; metadata typed Collection. Passive alive confirmed this cycle (401, present in beta).
+evidence_needed: principal B (no ownership) GET-enumerates the collection or PATCH-rewrites A's registration → 200/204 vs 403.
+verify_steps: AUTH_HELPED (test-tenant, two principals): 1) A POST creates registration → 2) B GET `/beta/copilot/agentRegistrations` → 3) B PATCH `/beta/copilot/agentRegistrations/{A's id}` `{"agentCard":<rewrite>}` → observe 200/204 vs 403. Passive: none (401-gated).
+impact: cross-app agent registration tamper → agent impersonation / supply-chain / forgeable audit attribution. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Anonymous ESTS KDC user/principal differential via AS-REQ
+class: AUTH
+asset: GET https://login.microsoftonline.com/{tenant}/kerberos
+confidence: 35
+reasoning: endpoint is a real anonymous KDC (krbtgt/COMMON, ASN.1 KRB error on empty body, 200). If it answers AS-REQ with per-principal differentials (existing vs nonexistent upn), it becomes an enumeration oracle; if it issues TGTs for non-enrolled tenants, credential-substrate risk.
+evidence_needed: crafted minimal KRB_AS_REQ for known vs unknown principal returns different blob/error, or a TGT for a principal in a tenant without Kerberos enrollment.
+verify_steps: PASSIVE (crafted): send minimal AS-REQ (DER) to `/common/kerberos` and `/{tid}/kerberos`, diff error classes per principal. Requires DER construction; low expected yield.
+impact: username enumeration (no-reward class) or TGT issuance on non-enrolled tenants (credential substrate). CVSS 3–5 if only enumeration.
+testability: PASSIVE
+[HYP] userinfo cross-audience token acceptance (id_token vs access_token)
+class: AUTH
+asset: GET https://graph.microsoft.com/oidc/userinfo
+confidence: 30
+reasoning: WWW-Authenticate advertises Graph resource client_id 00000003-...; spec says userinfo accepts client-audience openid token. If it also accepts id_token or any Graph-audience token regardless of openid scope, claim disclosure widens.
+evidence_needed: token lacking openid scope (or id_token) still returns claim JSON → 200.
+verify_steps: AUTH_HELPED: obtain a Graph-audience token WITHOUT openid scope, GET `/oidc/userinfo` → observe 200 claims vs InvalidAuthenticationToken.
+impact: minor claim-disclosure widening; expected behavior (Graph-hosted). CVSS 3–5.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [PARKED] Anonymous ESTS KDC principal differential: confidence 35 < 40, and differential enumeration = no-reward class (mirrors Firebase sendOobCode) even if real; documented Kerberos-for-Entra feature.
+- [PARKED] userinfo cross-audience token acceptance: confidence 30 < 40; Graph-hosted userinfo advertising its own resource is expected, no evidence of deviation.
+- [FINAL] 1) Agent Registration collection enumeration + cross-app PATCH rewrite (conf 50, AUTH_HELPED) — sole survivor; prior top-ranked thread, still unverified.
+
+STEP 5 — NEXT ACTION
+- [NEXT] AUTH_HELPED PROBE (operator, test-tenant): GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` with a valid Bearer (scope `AgentRegistration.ReadWrite.All`) to test undocumented collection enumeration; if 200 lists other principals' registrations, follow with PATCH rewrite of a second principal's `agentCard` and observe 204 vs 403. Passive leg already done this cycle (401, endpoint present).
+
+STEP 6 — LEARNING
+- [LEARN] REJECTED anonymous KDC enumeration class @ `login.microsoftonline.com/common/kerberos`: documented Kerberos-for-Entra feature; per-principal differentials would be no-reward enumeration — do not re-propose.
+- [LEARN] ACCEPTED OIDC userinfo @ `graph.microsoft.com/oidc/userinfo`: RFC-6750-compliant 401 + WWW-Authenticate Bearer + JSON error — confirms the /v1.0 405 anomaly is path-scoped, not global Graph auth behavior.
+- [LEARN] REJECTED discovery↔runtime drift @ `/common/devicecode`: advertised `device_authorization_endpoint` 404s on GET/POST and both tenant scopes; cosmetic metadata drift, no reachable code path.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 35 — no new google surface this cycle; GCP control-plane all consumer-identity gated; tokeninfo oracle accepted but low-value; nothing exploitable anonymously.
+- [RISK] microsoft: 78 — unchanged high: production source maps on identity SPAs, Bearer-only Verified ID mint without per-subject proof, caller-chosen `resourceId` consent primitive, D2E conversation-ID resumption, off-metadata agentSession — all still live behind auth; this cycle adds fresh (documented/low-value) anonymous surface only.
