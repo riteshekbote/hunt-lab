@@ -892,3 +892,74 @@ Comparing current inventory (2026-08-07 20:26:22 UTC) against last leads (2026-0
 EOF
 cat /tmp/delta_analysis.txt failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
+===== ANALYST nemotron3 2026-08-07 21:55:35 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mdate -u +"%Y-%m-%d %H:%M:%S UTC"
+2026-08-07 21:52:30 UTC
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/analysis_state.json
+{
+  "knowledge_base_rejected": [
+    "Firebase config reads (getProjects/getProjectConfig) @ identitytoolkit.googleapis.com: 403 unregistered callers",
+    "delegatedProjectNumber cross-project lookup @ accounts:lookup: DEPRECATED",
+    "AAD deferred redirect_uri validation @ login.microsoftonline.com",
+    "legacy ACS @ accounts.accesscontrol.windows.net",
+    "internal backend URL leaks in SPA config",
+    "/health metadata leaks",
+    "email/phone enumeration differential (Firebase sendOobCode)",
+    "endpoint maps with all-401 responses (mysignins API map)",
+    "implicit-flow / client-registration hygiene (accounts.google.com)",
+    "Algolia DocSearch apiKey in docusaurus config"
+  ],
+  "knowledge_base_alive": [
+    "mysignins.microsoft.com SPA: MSAL app clientId 19db86c3-b2b9-44cc-b339-36da233a3be2",
+    "api.myaccount.microsoft.com SPA: clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2",
+    "accounts.accesscontrol.windows.net: /metadata/json/1 (4 x509 keys)",
+    "Graph agentic: /v1.0 and /beta me/agentSignInSessions alive (401)",
+    "controlplane.accledger.azure.com: Kestrel /health 200",
+    "GCP control-plane discovery APIs: all require consumer identity",
+    "google/adk-python: /run_sse endpoint exists",
+    "identitytoolkit.googleapis.com: 403 for unregistered callers on ALL methods"
+  ],
+  "last_leads_prio": [
+    "api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential (Verified ID minting), 7.10",
+    "/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} (Orchestrated InvokeTool), 6.85",
+    "oauth2.googleapis.com/tokeninfo (public introspection oracle), 4.20"
+  ],
+  "last_leads_hypotheses": [
+    "Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 80)",
+    "Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation (AUTH, login.microsoftonline.com/{tid}/oauth2/v2.0/token, confidence 70)",
+    "Consent primitive oauth2PermissionGrants caller-chosen resourceId enables privilege escalation (AUTH, graph.microsoft.com/v1.0/oauth2PermissionGrants, confidence 70)"
+  ],
+  "inventory_microsoft_new": [
+    "Source maps live on BOTH identity SPAs: mysignins.microsoft.com/bundle/main.caa6a456.js.map (7MB, 4359 paths) + api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 files)",
+    "Agent Registry API (beta, deprecated May-2026): /beta/agentRegistry → agentInstances/agentCardManifests/agentCollections",
+    "Copilot agent admin (beta): /beta/agents, /beta/copilot/agents, /beta/copilot/admin/catalog/packages (block/unblock/reassign); scope CopilotPackages.Read.All",
+    "Copilot Policy Settings API: /beta/copilot/admin/policySettings/{id} — 5 settings",
+    "Orchestrated API: /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs",
+    "Three-hop Agent User user_fic flow: Hop1 client_credentials+cert+fmi_path → T1; Hop2 FIC exchange → T2; Hop3 grant_type=user_fic with user_id={oid} OR upn",
+    "managerApplications on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without AgentIdentityBlueprintPrincipal.ReadWrite.All",
+    "Consent primitive POST /v1.0/oauth2PermissionGrants with caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681...); Application.Read.All NOT in agent blocked-permissions",
+    "ACS JWKS rotation confirmed: 5 self-signed keys",
+    "login.live.com redirect matrix EXHAUSTED: /oauth20_desktop.srf REMOVED (stub ?removed=true); /oauth20_authorize.srf returns generic 200 for all 8 variants",
+    "login.microsoftonline.com OIDC discovery v2.0: issuer login.microsoftonline.com/{tid}/v2.0; JWKS /discovery/v2.0/keys (8 RSA keys); mtls alias mtlsauth.microsoft.com",
+    "Graph $metadata: 1,183 EntityTypes, 326 Functions across microsoft.graph.identityGovernance + microsoft.graph.security + microsoft.graph.entraRecoveryServices; 22 filterByCurrentUser binding",
+    "Graph API 405 anomaly: unauth HEAD/GET to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer",
+    "v2.0 authorize HTTP 200 error rendering: GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 with embedded JS error code 700038",
+    "oauth2.googleapis.com/tokeninfo public introspection oracle",
+    "bughunters.google.com root hardening"
+  ],
+  "ranked_hypotheses": [
+    "[85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite",
+    "[70] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: Verified ID minting without admin role",
+    "[70] login.microsoftonline.com/{tid}/oauth2/v2.0/token: Three-hop Agent User user_fic Hop3 user_id parameter allows arbitrary user impersonation",
+    "[70] graph.microsoft.com/v1.0/oauth2PermissionGrants: Consent primitive caller-chosen resourceId enables privilege escalation",
+    "[6.85] /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}: Orchestrated InvokeTool"
+  ]
+}
+EOF
+cat /tmp/analysis_state.json failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.

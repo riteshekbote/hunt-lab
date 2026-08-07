@@ -133,3 +133,6 @@
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — oauth2.googleapis.com/tokeninfo accepts ?access_token=/ ?id_token= query params without Authori
 - LEARN: ACCEPTED: bughunters.google.com root hardened confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options:
 - LEARN: REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+
+## RANKED HYPOTHESES 2026-08-07 21:55:35 UTC
+- [60] GET/POST/PATCH: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-bigpickle.txt)

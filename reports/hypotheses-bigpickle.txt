@@ -1,9 +1,9 @@
-## 2026-08-07 21:05:14 UTC [google] (model bigpickle)
+## 2026-08-07 21:54:21 UTC [google] (model bigpickle)
 [HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
 class: IDOR
 asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
 confidence: 60
-reasoning: $metadata types contains-target collection with zero OperationRestrictions; create accepts client `createdBy`; PATCH rewrites ownerIds/managedByAppId/agentCard. Re-probed this cycle: unauth GET 401, HEAD 405, no pre-auth branch — gate is pure Bearer scope check, ownership enforcement only reachable with real token.
+reasoning: $metadata still 7.3MB (200) with agentRegistration EntityType zero OperationRestrictions; create accepts client `createdBy`; PATCH rewrites ownerIds/managedByAppId/agentCard. Re-probed this cycle: GET 401, OPTIONS 405 — pure Bearer scope gate, ownership enforcement only reachable with a real token.
 evidence_needed: principal B GETs collection (200 array) and/or PATCHes A's registration (200/204) vs 403 with no ownership.
 verify_steps: AUTH_HELPED (test-tenant, two app principals): 1) A POST create w/ client-set createdBy/ownerIds; 2) B GET `/beta/copilot/agentRegistrations` own Bearer; 3) B PATCH `/beta/copilot/agentRegistrations/{A-id}` `{"agentCard":<rewrite>}`; record 200/204 vs 403 at each hop.
 impact: cross-app agent registration tamper → agent impersonation / supply-chain / forged audit attribution. CVSS 7.5–9.0.
@@ -21,7 +21,7 @@ testability: AUTH_HELPED
 class: BUSLOGIC
 asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 45
-reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; endpoint remains 401-unauth, no new gate this cycle.
+reasoning: consent primitive accepts caller-chosen resourceId spanning Graph or Azure Storage user_impersonation (e406a681-…); Application.Read.All absent from agent blocked-permissions; endpoint re-probed 401 (len=237), no new gate this cycle.
 evidence_needed: principal without delegated-admin/consent rights creates grant `{clientId:A, resourceId:AzureStorage, scope:"user_impersonation"}` → 201/204 vs 403.
 verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant; 3) observe 201/204 vs 403; 4) if accepted, client_credentials for that resource.
 impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
