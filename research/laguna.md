@@ -3064,3 +3064,126 @@ PHASE 4 POC complete. Advanced one phase deeper (HYPOTHESIS → POC). All findin
 **Deferred PoCs** (require auth flow / OOS): H1 issuer-confusion (v1.0↔v2.0 dual issuer: `sts.windows.net` vs `login.microsoftonline.com`), H3 mTLS `cnf` claim binding at resource layer, H4 Graph IDOR via 22 `filterByCurrentUser` bindings, H5 redirect_uri deferred validation.
 
 **Deliverables persisted:** `state_laguna.json` (`POC`/`HIGH_POTENTIAL`), `leads/lead-laguna.md` (L7-L9 new leads), `research/laguna.md` (POC section appended with exact curls + signals).
+
+===== RUN 2026-08-07 11:30:58 UTC | model laguna | target google =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m# [0mTodos
+[•] RECON on msquic packet ingress path — find packet receive/VarInt decode entry points in src/core/
+[ ] Review VarInt decode + bounds-check patterns for memory-safety gaps
+[ ] Review packet header parsing hot path for integer overflow / OOB read
+[ ] Append new RECON surface findings to research/laguna.md + leads + state
+[0m
+I'm at POC phase for the auth/IDaaS surface (login.microsoftonline.com, graph.microsoft.com, mtlsauth.microsoft.com). Per the phase model, when a phase is exhausted, I start RECON on a NEW unexplored surface. The msquic source deep-dive (L8 lead) is partially explored — I only looked at `frame.c`'s encode/decode skeleton. The packet ingress / VarInt hot path is genuinely unexplored. That's the most security-relevant new surface (OS bounty $750–$15k, memory safety in network parser).
+
+Let me start RECON on that new surface.
+[0m$ [0msleep 2; echo "=== msquic directory listing via github contents API (src/core) ==="; curl -sL -m 20 "https://api.github.com/repos/microsoft/msquic/contents/src/core?ref=main" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    if isinstance(d,list):
+        for t in d:
+            n=t.get('name','')
+            sz=t.get('size',0)
+            if n.endswith(('.c','.h')) and ('packet' in n.lower() or 'var' in n.lower() or 'frame' in n.lower() or 'recv' in n.lower() or 'stream' in n.lower() or 'tls' in n.lower() or 'encr' in n.lower()):
+                print(f'  {n:35s}  {sz} bytes')
+    else:
+        print('Not a list:', d)
+except Exception as e:
+    print('ERR:', e)
+" 2>&1 | head -40
+=== msquic directory listing via github contents API (src/core) ===
+  crypto_tls.c                         72688 bytes
+  frame.c                              59193 bytes
+  frame.h                              25494 bytes
+  packet.c                             29893 bytes
+  packet.h                             17590 bytes
+  packet_builder.c                     39228 bytes
+  packet_builder.h                     6385 bytes
+  packet_space.c                       1837 bytes
+  packet_space.h                       3419 bytes
+  recv_buffer.c                        38893 bytes
+  recv_buffer.h                        7232 bytes
+  sent_packet_metadata.c               3894 bytes
+  sent_packet_metadata.h               5848 bytes
+  stream.c                             36293 bytes
+  stream.h                             28958 bytes
+  stream_recv.c                        40964 bytes
+  stream_send.c                        55264 bytes
+  stream_set.c                         29334 bytes
+  stream_set.h                         4785 bytes
+[0m
+[0m$ [0msleep 1; echo "=== Find packet/VarInt related files in msquic src/ ==="; for f in \
+  "src/core/packet.c" \
+  "src/core/packet.h" \
+  "src/core/varint.c" \
+  "src/core/varint.h" \
+  "src/core/packet_number.c" \
+  "src/core/packet_number.h" \
+  "src/core/receive.c" \
+  "src/core/receive.h" \
+  "src/core/sender.c" \
+  "src/core/conn_stream.c" \
+  "src/core/frame.h" \
+  "src/core/encryption.c" \
+  "src/core/tls.h" \
+  "src/core/packet_space.h" \
+  "src/core/packet_context.h" \
+  "src/core/stream.c"; do
+  code=$(curl -sL -m 12 -o /dev/null -w "%{http_code}" -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/$f" 2>/dev/null)
+  echo "$f -> HTTP $code"
+  sleep 1
+done
+=== Find packet/VarInt related files in msquic src/ ===
+src/core/packet.c -> HTTP 200
+src/core/packet.h -> HTTP 200
+src/core/varint.c -> HTTP 404
+src/core/varint.h -> HTTP 404
+src/core/packet_number.c -> HTTP 404
+src/core/packet_number.h -> HTTP 404
+src/core/receive.c -> HTTP 404
+src/core/receive.h -> HTTP 404
+src/core/sender.c -> HTTP 404
+src/core/conn_stream.c -> HTTP 404
+src/core/frame.h -> HTTP 200
+src/core/encryption.c -> HTTP 404
+src/core/tls.h -> HTTP 404
+src/core/packet_space.h -> HTTP 200
+src/core/packet_context.h -> HTTP 404
+src/core/stream.c -> HTTP 200
+[0m
+[0m$ [0msleep 1; echo "=== Fetch packet.c (packet ingress hot path) ==="; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/src/core/packet.c" 2>/dev/null > /tmp/msquic_packet.c; wc -l /tmp/msquic_packet.c; echo "=== Fetch recv_buffer.c (packet receive buffer processing) ==="; sleep 2; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/src/core/recv_buffer.c" 2>/dev/null > /tmp/msquic_recv_buffer.c; wc -l /tmp/msquic_recv_buffer.c; echo "=== Fetch stream_recv.c (stream frame receive) ==="; sleep 2; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/src/core/stream_recv.c" 2>/dev/null > /tmp/msquic_stream_recv.c; wc -l /tmp/msquic_stream_recv.c
+=== Fetch packet.c (packet ingress hot path) ===
+870 /tmp/msquic_packet.c
+=== Fetch recv_buffer.c (packet receive buffer processing) ===
+1149 /tmp/msquic_recv_buffer.c
+=== Fetch stream_recv.c (stream frame receive) ===
+1259 /tmp/msquic_stream_recv.c
+[0m
+[0m$ [0msleep 2; echo "=== Fetch packet_space.c + frame.h (frame decode helpers, VarInt) ==="; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/src/core/packet_space.c" 2>/dev/null > /tmp/msquic_packet_space.c; curl -sL -m 20 -H "User-Agent: msrc-research-recon" "https://raw.githubusercontent.com/microsoft/msquic/main/src/core/frame.h" 2>/dev/null > /tmp/msquic_frame.h; echo "=== Find QuicVarIntDecode definition location ==="; sleep 2; curl -sL -m 20 "https://api.github.com/search/code?q=QuicVarIntDecode+repo:microsoft/msquic" -H "Accept: application/vnd.github.v3+json" -H "User-Agent: msrc-research-recon" 2>/dev/null | python3 -c "
+import json,sys
+try:
+    d=json.load(sys.stdin)
+    for item in d.get('items',[])[:10]:
+        print('  ', item.get('path'), '(', item.get('html_url',''), ')')
+except Exception as e:
+    print('ERR:', e)
+" 2>&1 | head -12
+=== Fetch packet_space.c + frame.h (frame decode helpers, VarInt) ===
+=== Find QuicVarIntDecode definition location ===
+[0m
+[0m$ [0mecho "=== Find QuicVarInt*Decode in fetched files ==="; grep -rn "QuicVarIntDecode\|QuicVarIntSize\|QuicUint.*Decode" /tmp/msquic_packet.c /tmp/msquic_recv_buffer.c /tmp/msquic_stream_recv.c /tmp/msquic_packet_space.c /tmp/msquic_frame.h /tmp/msquic_frame.c 2>/dev/null | head -30
+=== Find QuicVarInt*Decode in fetched files ===
+/tmp/msquic_packet.c:270:        if (!QuicVarIntDecode(
+/tmp/msquic_packet.c:296:    if (!QuicVarIntDecode(
+/tmp/msquic_packet.c:504:    BOOLEAN Success = QuicVarIntDecode(
+/tmp/msquic_packet.c:691:                if (!QuicVarIntDecode(
+/tmp/msquic_packet.c:718:            if (!QuicVarIntDecode(
+/tmp/msquic_frame.h:436:        QuicVarIntSize(Frame->StreamID);
+/tmp/msquic_frame.h:438:        Size += QuicVarIntSize(Frame->Offset);
+/tmp/msquic_frame.h:927:    return QuicVarIntDecode(BufferLength, Buffer, &Offset, StreamID);
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mRead /tmp/msquic_packet.c failed[90m [limit=120, offset=1][0m
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
