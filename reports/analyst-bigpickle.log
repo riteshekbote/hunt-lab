@@ -101,3 +101,177 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 - [RISK] google: 22 — surface exhausted/blocked at consumer-identity boundary (Firebase 403, GCP discovery all API-key/OAuth-gated); reposcan clean; remaining threads (firebaseauth IAM, STS/WIP) require authorized-token testing.
 - [RISK] microsoft: 58 — fast-expanding agentic Graph beta + Copilot Studio D2E private preview; open ownership/consent/subject-boundary hypotheses on brand-new surfaces; all gated by admin-consent/scopes so non-trivial but high ceiling.
+===== ANALYST bigpickle 2026-08-07 16:42:10 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m✱ [0mGlob "reports/**"[90m 12 matches[0m
+[0m
+[0m$ [0mcurl -sI -m 20 "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" | head -n 12; echo "---"; curl -sI -m 20 "https://mysignins.microsoft.com/bundle/main.caa6a456.js.map" | head -n 12
+HTTP/1.1 200 OK
+Content-Length: 35340363
+Content-Type: text/plain
+Last-Modified: Fri, 24 Jul 2026 15:09:28 GMT
+Accept-Ranges: bytes
+ETag: "1dd1b7e69cd444b"
+Strict-Transport-Security: max-age=2592000
+X-Content-Type-Options: nosniff
+Content-Security-Policy-Report-Only: default-src 'self';img-src 'self' https: data:;font-src 'self' https: data:;script-src 'self';connect-src 'self' https:;style-src 'self' 'unsafe-inline'; frame-src 'self' https:; frame-ancestors 'none'
+Date: Fri, 07 Aug 2026 16:35:16 GMT
+
+---
+HTTP/1.1 200 OK
+Content-Length: 6976576
+Content-Type: text/plain
+Last-Modified: Tue, 28 Jul 2026 09:48:44 GMT
+Accept-Ranges: bytes
+ETag: "1dd1e764741d240"
+x-ms-correlation-id: c7da8342-43da-493a-80c8-4e015112a7ba
+x-ms-mysignins-region: southcentralus
+x-ms-gateway-requestid: c1eb056a-fb2b-4b82-8aef-46414f20425f
+client-request-id: d6a50634-e62e-4c73-bcf3-a6f35fab4d84
+X-Content-Type-Options: nosniff
+Date: Fri, 07 Aug 2026 16:35:16 GMT
+[0m
+[0m$ [0mcurl -sI -m 20 "https://bughunters.google.com/" | head -n 12; echo "---"; curl -s -m 20 -o /dev/null -w "%{http_code} %{size_download}\n" "https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential"
+HTTP/2 200 
+cache-control: max-age=3600
+content-security-policy: object-src 'none'; script-src 'nonce-ZTGiZjyQZL4M3PMVWyqnFccfqxw=' 'report-sample' 'unsafe-inline'; frame-ancestors 'self' https://accounts.google.com; frame-src https://accounts.google.com https://www.youtube.com/ https://docs.google.com/ https://www.google.com/ https://payments.google.com/; base-uri 'self'; report-uri https://csp.withgoogle.com/csp/bughunters/1_0
+strict-transport-security: max-age=2592000; includeSubdomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+content-type: text/html; charset=utf-8
+x-cloud-trace-context: c023384d7fc6a8f8744ce078e997fa46
+date: Fri, 07 Aug 2026 16:35:17 GMT
+server: Google Frontend
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+---
+401 0
+[0m
+Source maps confirmed live. Let me run the passive gate-analysis probe on the myaccount source map to ground the Verified ID hypothesis.
+[0m$ [0mcurl -s -m 90 "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" -o /tmp/myaccount.map && ls -la /tmp/myaccount.map && rg -o -m 20 '.{80}issueVerifiedEmployeeCredential.{80}' /tmp/myaccount.map | head -n 10
+-rw-r--r-- 1 runner runner 35340363 Aug  7 16:35 /tmp/myaccount.map
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mgrep -o '.\{120\}issueVerifiedEmployeeCredential.\{160\}' /tmp/myaccount.map | head -n 6
+ngCredential = () => {\n  const { auth } = useAuth();\n  const url = `${settingsManager.get('myAccountBackendUrl')}/api/issueVerifiedEmployeeCredential`;\n  const clientId = settingsManager.getRequired('clientId');\n\n  return useMutation(async (): Promise<IVerifiedCredential> => {\n    const token = await aut
+[0m
+[0m$ [0mgrep -o '.\{150\}GuestIsNot.\{150\}' /tmp/myaccount.map | head -n 6; echo "=== ERROR CODES ==="; grep -o '.\{100\}VerifiedCredentialRequest\|.\{100\}canVerifiedIdBeIssued.\{100\}' /tmp/myaccount.map | head -n 8
+n      return t('verifyIdFeatureIsDisabled');\r\n    case 'ErrorGettingVerifiedId':\r\n      return t('verifyIdErrorGettingVerifiedId');\r\n    case 'GuestIsNotAllowedToIssueVerifiedId':\r\n      return t('verifyIdGuestIsNotAllowedToIssueVerifiedId', { tenantId });\r\n    case 'TenantNotOnboardedToVerifiedId'
+=== ERROR CODES ===
+const useEnableVerifyId = () => {\n  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;\n  const clientId = settingsManager.getRequired('clientId');\n  const { auth } = useAuth();\n  re
+[0m
+[0m$ [0mgrep -o 'case .[A-Za-z]*.:\s*return t(.{0,120}' /tmp/myaccount.map | grep -i -A1 'verify\|credential\|issue' | head -n 30; echo "=== ALL CASES NEAR VERIFY ==="; grep -o '.\{60\}case .[A-Za-z]*.:.\{0,140\}' /tmp/myaccount.map | grep -i 'verif\|credential\|issu' | head -n 20
+=== ALL CASES NEAR VERIFY ===
+tps://github.com/moment/moment/issues/3375\n                case 'D':\n                    return number + (number === 1 ? 'er' : '');\n\n                // Words with masculine grammatical gender: mois, trime
+n  tenantId?: string,\r\n) => {\r\n  switch (type) {\r\n    case 'FeatureIsDisabled':\r\n      return t('verifyIdFeatureIsDisabled');\r\n    case 'ErrorGettingVerifiedId':\r\n      return t('verifyIdErrorGettingVerifiedId');\
+dGuestIsNotAllowedToIssueVerifiedId', { tenantId });\r\n    case 'TenantNotOnboardedToVerifiedId':\r\n      return t('verifyIdTenantNotOnBoardedToVerifiedId', { tenantId });\r\n    case 'TenantDoesNotHaveVerifiedEmployeeContract':\r\n    
+DoesNotHaveVerifiedEmployeeContract', { tenantId });\r\n    case 'TenantIsNotInAllowedToIssueVerifiedId':\r\n      return t('verifyIdTenantIsNotInAllowedToIssueVerifiedId', { tenantId });\r\n    case 'ErrorTooManyRequests':\r\n      return t('ve
+[0m
+[0m$ [0mgrep -o 'useMutation(async (): Promise<IVerifiedCredential> => {.\{0,500\}' /tmp/myaccount.map | head -n 3; echo "=== IVerifiedCredential ==="; grep -o 'IVerifiedCredential = .\{0,400\}' /tmp/myaccount.map | head -n 3; echo "=== ISSUE fn ==="; grep -o '.\{0,60\}issueVerifiedEmployeeCredential.\{0,800\}' /tmp/myaccount.map | head -n 3
+useMutation(async (): Promise<IVerifiedCredential> => {\n    const token = await auth.acquireToken({ scopes: [clientId] });\n\n    const response = await fetch(url, {\n      method: 'POST',\n      headers: {\n        Authorization: `Bearer ${token}`,\n        'Content-Type': 'application/json',\n      },\n    });\n\n    if (!response.ok) {\n      const error = await response.json();\n      throw error;\n    }\n\n    const json = await response.json();\n    return json as IVerifiedCredential;\n  });\n};\n\nexport const useEnableVerifyId = () => {\n  
+=== IVerifiedCredential ===
+=== ISSUE fn ===
+
+
+<shell_metadata>
+shell tool terminated command after exceeding timeout 120000 ms. If this command is expected to take longer and is not waiting for interactive input, retry with a larger timeout value in milliseconds.
+</shell_metadata>
+[0m
+[0m$ [0mpython3 - <<'EOF'
+data = open('/tmp/myaccount.map', encoding='utf-8', errors='ignore').read()
+import re
+for kw in ['employeeId','jobTitle','verifiedCredentialContract','canVerifiedIdBeIssued','credential','displayName']:
+    idxs = [m.start() for m in re.finditer(kw, data)][:3]
+    print(f"== {kw}: {len(idxs)} sample matches")
+    for i in idxs:
+        print('   ...'+data[max(0,i-140):i+200].replace('\\n',' ')[:340]+'...')
+EOF
+== employeeId: 0 sample matches
+== jobTitle: 3 sample matches
+   ...serInfoUrl = () =>\r   getGraphUrlV1(\r     '/me?',\r     '$select=displayName,userPrincipalName,businessPhones,officeLocation,city,mail,jobTitle,preferredLanguage,givenName,surname',\r   ).toString();\r // https://learn.microsoft.com/en-us/graph/api/rbacapplication-list-roleassignments?view=graph-rest-1.0&tabs=http\r export const g...
+   ...: left;\\r\     white-space: pre-wrap;\\r\     font-weight: $ms-font-weight-semibold;\\r\     margin-top: 0;\\r\   }\\r\ }\\r\ \\r\ .jobTitleAndOffice {\\r\   margin-top: $ms-grid-unit / 2;\\r\   margin-bottom: $ms-grid-unit;\\r\ \\r\   @media (max-width: $ms-screen-max-md) {\\r\     text-align: left;\\r\   }\\r\ }\\r\ \\r\...
+   ...aInfoIcon\": \"QQ4P3KgmmOERrz9i5e2O\", \t\"personaInfoText\": \"i4QYME4ny7lt2dMvj9YG\", \t\"displayName\": \"XFgcGLmNY_BgTKmTe_jA\", \t\"jobTitleAndOffice\": \"b6VPArFstu1DLKFumxaW\", \t\"link\": \"IYUQy96WoK7B0HBCodhT\", \t\"horizontalLine\": \"SjOlhbRMprVnfIt1d97N\" }; module.exports = ___CSS_LOADER_EXPORT___; ","var map = { \t...
+== verifiedCredentialContract: 0 sample matches
+== canVerifiedIdBeIssued: 1 sample matches
+   ...erifiedCredential;   }); };  export const useEnableVerifyId = () => {   const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;   const clientId = settingsManager.getRequired('clientId');   const { auth } = useAuth();   return useQuery({     queryKey: ['enableVerifyId'],     queryFn: async () => {\...
+== credential: 3 sample matches
+   ...ST_PARAMS = \"request.params\",     SCOPES = \"scopes\",     INTERACTION_STATUS_KEY = \"interaction.status\",     CCS_CREDENTIAL = \"ccs.credential\",     CORRELATION_ID = \"request.correlationId\",     NATIVE_REQUEST = \"request.native\",     REDIRECT_CONTEXT = \"request.redirect.context\" }  export enum StaticCacheKeys {     A...
+   ...unexpected_account_type\",         desc: \"Unexpected account type.\"     },     unexpectedCredentialType: {         code: \"unexpected_credential_type\",         desc: \"Unexpected credential type.\"     },     invalidAssertion: {         code: \"invalid_assertion\",         desc: \"Client assertion must meet requirements descri...
+   ...xpected account type.\"     },     unexpectedCredentialType: {         code: \"unexpected_credential_type\",         desc: \"Unexpected credential type.\"     },     invalidAssertion: {         code: \"invalid_assertion\",         desc: \"Client assertion must meet requirements described in https://tools.ietf.org/html/rfc7515\"  ...
+== displayName: 3 sample matches
+   ...n  // Render styles.   useThemeProviderClasses(state);    // Return the rendered content.   return render(state); });  ThemeProvider.displayName = 'ThemeProvider'; ","import { renderThemeProvider as render } from './renderThemeProvider'; import { useThemeProviderState } from './useThemeProviderState'; import { getPropsWithDefaul...
+   ...ues = useFluentProviderContextValues_unstable(state);     return renderFluentProvider_unstable(state, contextValues); }); FluentProvider.displayName = 'FluentProvider'; ","import * as React from 'react'; export function useFluentProviderContextValues_unstable(state) {     const { applyStylesToPortals, // eslint-disable-next-line @ty...
+   ...Tokens, TStyleSet>,   ) => {     const settings: ICustomizationProps<TViewProps, TTokens, TStyleSet> = _getCustomizations(       options.displayName,       React.useContext(CustomizerContext),       options.fields,     );      const stateReducer = options.state;      if (stateReducer) {       // Don't assume state will return a...
+[0m
+All probes complete. Structured analysis below.
+
+## STEP 1 — DELTA
+- [NEW] Both production source maps CONFIRMED live via HEAD: `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (200, 35,340,363 B, Last-Modified 2026-07-24) + `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (200, 6,976,576 B, Last-Modified 2026-07-28, region southcentralus). Enables full passive client-side trust-boundary review.
+- [NEW] Verified ID mint gate surface enumerated from source map (own probe): `/api/issueVerifiedEmployeeCredential` is a **body-less Bearer-only POST** (scope=SPA clientId); client handles exactly 7 server error codes: `FeatureIsDisabled`, `ErrorGettingVerifiedId`, `GuestIsNotAllowedToIssueVerifiedId`, `TenantNotOnboardedToVerifiedId`, `TenantDoesNotHaveVerifiedEmployeeContract`, `TenantIsNotInAllowedToIssueVerifiedId`, `ErrorTooManyRequests`.
+- [CHANGED] Knowledge line "backend gates ONLY on GuestIsNot…" refined: guest is 1 of 6 logical gates, ALL tenant-scoped (onboard/contract/allow-list) — **none is a per-subject employee/HR proof**.
+- [NEW] Source map contains **0 refs to `employeeId`/`verifiedCredentialContract`**; `jobTitle` appears only in an unrelated profile `$select` — client sends/displays no identity claim, so all credential claims are server-derived from the token.
+- [NEW] `canVerifiedIdBeIssued` preflight confirmed in client (`myAccountBackendUrl/api/canVerifiedIdBeIssued`, same Bearer-only useQuery) — mint gating is two-call.
+- [NEW] `/me/agentSignInSessions` (v1.0+beta) fully off-metadata (0 refs in both `$metadata` hashes), alive 401.
+- [NEW] Consent primitive `POST /v1.0/oauth2PermissionGrants` with caller-chosen `resourceId` (Graph OR Azure Storage `user_impersonation` e406a681-…); `Application.Read.All` NOT in agent blocked-permissions list.
+- [NEW] `managerApplications` on AgentIdentityBlueprints: ≤10 first-party apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`.
+- [NEW] login.live.com redirect matrix EXHAUSTED: `/oauth20_desktop.srf` removed (stub `?removed=true`); `/oauth20_authorize.srf` generic-200, deferred validation.
+- [NEW] ACS JWKS rotation 4→5 self-signed keys — EOL platform, no new surface (REJECTED class, listed for completeness).
+- [NEW] bughunters.google.com root hardening VERIFIED (own probe: 200, HSTS, XFO DENY, CSP report-only, Google Frontend).
+
+## STEP 2 — PRIORITIZE
+- [PRIO] Consent primitive oauth2PermissionGrants — score 6.90 (attack 7, business 9, tech 8, gate 2, cloud 6, fresh 8)
+- [PRIO] Verified ID minting endpoint — score 6.50 (attack 6, business 9, tech 8, gate 1, cloud 6, fresh 8)
+- [PRIO] managerApplications on Blueprints — score 5.70 (attack 5, business 8, tech 6, gate 1, cloud 7, fresh 7)
+- [PRIO] Identity-SPA source maps (passive review enabler) — score 5.50 (attack 3, business 6, tech 5, gate 10, cloud 3, fresh 7)
+- [PRIO] /me/agentSignInSessions off-metadata — score 5.45 (attack 5, business 7, tech 6, gate 1, cloud 7, fresh 7)
+
+## STEP 3 — HYPOTHESES
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
+confidence: 52
+reasoning: consent primitive accepts caller-chosen `resourceId` spanning Graph or Azure Storage `user_impersonation` e406a681-…; `Application.Read.All` absent from the agent blocked-permissions list. If grant creation is scoped only by the caller's app-object write and not by an approved-permission policy, a low-privileged principal can mint unapproved resource grants.
+evidence_needed: principal without delegated-admin/consent rights creates a grant with `resourceId`=Azure Storage and scope it never possessed; Graph returns 201/204 (vs 403 Forbidden).
+verify_steps: AUTH_HELPED (test-tenant): 1) create app A (attacker) + app B; 2) principal owning A POSTs /v1.0/oauth2PermissionGrants {clientId:A, resourceId:<e406a681-…>, scope:"user_impersonation"} → 3) observe 201/204 vs 403; 4) if accepted, attempt AAD token for that resource under A's client_credentials. Passive: none (401).
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+[HYP] Verified ID employee credential minting without per-subject employee proof
+class: AUTH
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: own source-map probe proves a body-less Bearer-only POST whose full gate surface is 6 tenant-scoped checks + rate limit, and zero per-caller employee/HR verification; client carries no identity claims, so minting/claims are decided server-side from the token. Any non-guest member of an onboarded tenant is a candidate subject.
+evidence_needed: in an onboarded test tenant, a synthetic member (non-employee, profile containing attacker-set jobTitle/department) mints successfully and the returned credential/QR embeds those directory-derived claims.
+verify_steps: AUTH_HELPED: 1) confirm `/api/canVerifiedIdBeIssued` → 200 for the tenant; 2) acquire SPA-scope Bearer (clientId 8c59ead7-…) as the synthetic member; 3) POST `/api/issueVerifiedEmployeeCredential`; 4) decode returned credential/QR for claim provenance (server vs directory). Passive pre-stage DONE (gate map exhaustive client-side; residual risk = unmapped 500-class server checks).
+impact: self-issued signed employee identity in the Entra Verified ID ecosystem (presentation to any relying party). CVSS 7.5–9.5 if real.
+testability: AUTH_HELPED
+
+[HYP] Blueprint managerApplications trust-boundary bypass
+class: AUTH
+asset: GET/PATCH AgentIdentityBlueprint.managerApplications (Graph beta, entrabot-documented)
+confidence: 45
+reasoning: ≤10 first-party manager apps can manage Blueprints WITHOUT `AgentIdentityBlueprintPrincipal.ReadWrite.All`; unknown whether the manager list is client-writable or whether manager tokens are validated to the exact app id — a client-controlled manager entry = blueprint read/write without the documented permission.
+evidence_needed: non-admin principal enumerates or PATCHes itself into managerApplications and then GET/PATCHes a Blueprint (204/200 vs 403).
+verify_steps: AUTH_HELPED (test-tenant): 1) GET managerApplications → observe whether enumeration demands the R/W scope; 2) PATCH managerApplications with attacker app id → observe 204 vs 403; 3) if writable, PATCH the Blueprint. Passive: none (401).
+impact: agent identity blueprint tamper = agent supply-chain (inherited permissions). CVSS 6.5–8.5.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- HYP-1 (52): kept — concrete two-app test, no rejected class.
+- HYP-2 (50): kept — gate enumeration is probe-verified; severity conditional on unmapped server-side checks, honestly flagged.
+- HYP-3 (45): kept at threshold — weakest endpoint fidelity (path partially inferred from entrabot docs); flagged in reasoning.
+- [PARKED] none this cycle (all ≥40, none on REJECTED list, all have concrete verify steps).
+- [FINAL] re-ranked: 1) HYP-2 (highest business value, probe-grounded), 2) HYP-1 (highest confidence), 3) HYP-3.
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: In an onboarded Verified ID test tenant, run the authorized mint test for HYP-2 — synthetic non-employee member with attacker-set `jobTitle`/`department` → `POST /api/issueVerifiedEmployeeCredential` (SPA-scope Bearer, clientId 8c59ead7-…) → decode the returned credential/QR and trace every claim's provenance (server-derived vs directory-derived). Passive pre-stage already complete (35MB map grepped: 7-code gate surface, body-less POST, no per-subject proof). Do NOT file until a full mint with user-controlled claims is observed.
+
+## STEP 6 — LEARNING
+- [LEARN] ACCEPTED production source-map disclosure @ api.myaccount.microsoft.com + mysignins: live full client source enables exhaustive passive trust-boundary review — server gate surface is fully derivable from client error-code switch/maps; strongest passive technique in this engagement so far.
+- [LEARN] ACCEPTED no-per-subject-verification minting pattern @ api.issueVerifiedEmployeeCredential: gate set provably tenant-scoped (feature/onboard/contract/allow-list) + guest + rate-limit, with zero employee-proof — the residual server-side unknown is the only blocker to a finding.
+
+## STEP 7 — RISK SCORE
+[RISK] google: 35 — remaining live surface (tokeninfo oracle, codelab keys) largely REJECTED/fixed/DUP; all GCP control-plane reads consumer-identity gated; no unauthenticated exploitable branch identified.
+[RISK] microsoft: 78 — identity SPAs ship production source maps; Bearer-only Verified ID mint endpoint lacks per-subject proof; consent-grant primitive takes caller-chosen resourceId; off-metadata agentSession/agentRegistrations + D2E POST surface all in play behind auth.

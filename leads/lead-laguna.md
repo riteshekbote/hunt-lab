@@ -147,3 +147,35 @@ testability: PASSIVE
 [LEARN] REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient frontend error, no deterministic parse branch.
 [RISK] google: 22 | narrow passive surface (identitytoolkit 403-gated, tokeninfo amplification-only no-reward, bughunters hardened SPA, delegatedProjectNumber IDOR already REJECTED/IAM-bound). No ungated cross-project read surface; secrets scans clean. Low exposure.
 [RISK] microsoft: 68 | high-value Identity surface (dual v1.0/v2.0 issuer, mTLS cert-bound tokens, 1,183 Graph entities / 326 functions / 22 filterByCurrentUser bindings) with $100k MFA-bypass ceiling + two verified anomalies (v2.0 HTTP-200 error rendering, Graph 405/IDOR-masking). High-impact exploits require AUTH_HELPED (active token flow) which passive rules forbid — exposure is moderate-high but exploitability is passive-blocked.
+## 2026-08-07 16:34:45 UTC [google] (model laguna)
+[HYP] Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite
+class: IDOR
+asset: `graph.microsoft.com/beta/copilot/agentRegistrations`
+confidence: 75
+reasoning: API accepts client-supplied `createdBy` on create; PATCH on any registration ID rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agentCard` with NO documented ownership enforcement; Agent Registration API is the GA replacement (deprecated May-2026 agentRegistry)
+evidence_needed: PATCH `/beta/copilot/agentRegistrations/{foreign_id}` with modified `ownerIds`/`agentCard` returns 200/204 and mutation persists across different principal
+verify_steps: AUTH_HELPED: In test tenant, create registration A as User1, note ID; as User2 (same tenant, different identity), PATCH that ID with attacker-controlled `agentCard` + `ownerIds`; GET to confirm mutation. PASSIVE: GET `/beta/copilot/agentRegistrations` to test undocumented enumeration
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, supply-chain compromise; CVSS 7.5-9.0
+testability: AUTH_HELPED
+[HYP] Verified ID minting without admin role — backend gates only on Guest/Tenant flags
+class: AUTH
+asset: `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential`
+confidence: 70
+reasoning: SPA clientId `8c59ead7...` scopes token to itself; backend contract shows only `GuestIsNotAllowedToIssueVerifiedId` / `TenantIsNotInAllowedToIssueVerifiedId` checks — no admin/role validation visible in client contract
+evidence_needed: POST with low-priv user token (non-admin, non-guest, tenant allowed) returns 200/204 + credential
+verify_steps: AUTH_HELPED: In test tenant, acquire token for SPA clientId as regular member user (non-admin); POST `/api/issueVerifiedEmployeeCredential`; download source map `main.4e6e3dc6.js.map` to confirm request schema
+impact: Unprivileged user mints Verified Employee Credential (DID-signed VC) — identity spoofing, CVSS 7.1-9.1
+testability: AUTH_HELPED
+[HYP] Issuer-confusion / cross-protocol token replay (v1.0 ↔ v2.0)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid} + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 8-key JWKS)
+confidence: 45
+reasoning: Two distinct issuer namespaces serve same tenant with divergent JWKS (5 vs 8 RSA keys); v1.0-only response_types: implicit `token` + hybrid `token id_token`; if token-accepting resources validate `iss`/`aud` loosely, v1.0 token usable against v2.0-only resource
+evidence_needed: kid overlap between v1.0 and v2.0 JWKS; v1.0 token accepted by v2.0-only endpoint
+verify_steps: PASSIVE: GET /common/discovery/keys and /common/discovery/v2.0/keys, diff `kid` sets for overlap. AUTH_HELPED: replay v1.0 id_token against graph.microsoft.com/v1.0/me
+impact: MFA bypass / auth bypass on Microsoft Identity ($100,000)
+testability: AUTH_HELPED
+[FINAL] re-ranked:
+[NEXT] PROBE: GET `https://login.microsoftonline.com/common/discovery/keys` and `https://login.microsoftonline.com/common/discovery/v2.0/keys` — diff `kid` sets for overlap (passive-first step; if overlap exists, supports issuer-confusion replay hypothesis; if disjoint, weakens that path) → feeds into ranking priority #3
+[RISK] google: 22 | narrow passive surface (identitytoolkit 403-gated, tokeninfo amplification-only no-reward, bughunters hardened SPA); no ungated cross-project read surface; secrets scans clean
+[RISK] microsoft: 82 | multiple high-value NEW surfaces with design-level gaps: Agent Registration (client-controlled ownership), Verified ID minting (missing admin gate), dual v1.0/v2.0 issuer namespaces, Graph 405 anomaly, v2.0 HTTP-200 error rendering

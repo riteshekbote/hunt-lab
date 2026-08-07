@@ -14,3 +14,4 @@
 - [UNVALIDATED] 12. **Tenable TRA-2025-45**: SSRF in GCP Action Hub DataRobot action → IP allowlist bypass on Looker.
 ## 2026-08-07 15:49:41 UTC [google] (model longcat)
 ## 2026-08-07 15:59:22 UTC [google] (model longcat)
+## 2026-08-07 16:34:08 UTC [google] (model longcat)

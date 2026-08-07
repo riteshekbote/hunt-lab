@@ -188,3 +188,34 @@ verify_steps: AUTH_HELPED (test-tenant; needs blueprint+agent cert+client_assert
 impact: delegated idtyp=user token for arbitrary subject = full-user impersonation to every M365 API. CVSS 9.1–9.8 if real.
 testability: AUTH_HELPED
 [NEXT] RAG: In microsoft/Agents + @microsoft/agents-copilotstudio-client (both in-scope orgs), grep for CallerIdentityMismatch / CallerIdentityTypeMismatch / D2EAccessDenied handlers and the subscribe path (Last-Event-Id, x-ms-conversation-id) to determine whether conversationId is bound to the caller's app identity/share-ACL server-side or trusted from the client — this decides whether H-A needs a full test-tenant run or is a dead end. No live requests (scope.yml passive_only).
+## 2026-08-07 16:41:51 UTC [google] (model bigpickle)
+[HYP] OAuth2 permission-grant escalation via caller-chosen resourceId
+class: BUSLOGIC
+asset: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants (and /beta)
+confidence: 52
+reasoning: consent primitive accepts caller-chosen `resourceId` spanning Graph or Azure Storage `user_impersonation` e406a681-…; `Application.Read.All` absent from the agent blocked-permissions list. If grant creation is scoped only by the caller's app-object write and not by an approved-permission policy, a low-privileged principal can mint unapproved resource grants.
+evidence_needed: principal without delegated-admin/consent rights creates a grant with `resourceId`=Azure Storage and scope it never possessed; Graph returns 201/204 (vs 403 Forbidden).
+verify_steps: AUTH_HELPED (test-tenant): 1) create app A (attacker) + app B; 2) principal owning A POSTs /v1.0/oauth2PermissionGrants {clientId:A, resourceId:<e406a681-…>, scope:"user_impersonation"} → 3) observe 201/204 vs 403; 4) if accepted, attempt AAD token for that resource under A's client_credentials. Passive: none (401).
+impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
+testability: AUTH_HELPED
+[HYP] Verified ID employee credential minting without per-subject employee proof
+class: AUTH
+asset: POST https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: own source-map probe proves a body-less Bearer-only POST whose full gate surface is 6 tenant-scoped checks + rate limit, and zero per-caller employee/HR verification; client carries no identity claims, so minting/claims are decided server-side from the token. Any non-guest member of an onboarded tenant is a candidate subject.
+evidence_needed: in an onboarded test tenant, a synthetic member (non-employee, profile containing attacker-set jobTitle/department) mints successfully and the returned credential/QR embeds those directory-derived claims.
+verify_steps: AUTH_HELPED: 1) confirm `/api/canVerifiedIdBeIssued` → 200 for the tenant; 2) acquire SPA-scope Bearer (clientId 8c59ead7-…) as the synthetic member; 3) POST `/api/issueVerifiedEmployeeCredential`; 4) decode returned credential/QR for claim provenance (server vs directory). Passive pre-stage DONE (gate map exhaustive client-side; residual risk = unmapped 500-class server checks).
+impact: self-issued signed employee identity in the Entra Verified ID ecosystem (presentation to any relying party). CVSS 7.5–9.5 if real.
+testability: AUTH_HELPED
+[HYP] Blueprint managerApplications trust-boundary bypass
+class: AUTH
+asset: GET/PATCH AgentIdentityBlueprint.managerApplications (Graph beta, entrabot-documented)
+confidence: 45
+reasoning: ≤10 first-party manager apps can manage Blueprints WITHOUT `AgentIdentityBlueprintPrincipal.ReadWrite.All`; unknown whether the manager list is client-writable or whether manager tokens are validated to the exact app id — a client-controlled manager entry = blueprint read/write without the documented permission.
+evidence_needed: non-admin principal enumerates or PATCHes itself into managerApplications and then GET/PATCHes a Blueprint (204/200 vs 403).
+verify_steps: AUTH_HELPED (test-tenant): 1) GET managerApplications → observe whether enumeration demands the R/W scope; 2) PATCH managerApplications with attacker app id → observe 204 vs 403; 3) if writable, PATCH the Blueprint. Passive: none (401).
+impact: agent identity blueprint tamper = agent supply-chain (inherited permissions). CVSS 6.5–8.5.
+testability: AUTH_HELPED
+[NEXT] HUMAN: In an onboarded Verified ID test tenant, run the authorized mint test for HYP-2 — synthetic non-employee member with attacker-set `jobTitle`/`department` → `POST /api/issueVerifiedEmployeeCredential` (SPA-scope Bearer, clientId 8c59ead7-…) → decode the returned credential/QR and trace every claim's provenance (server-derived vs directory-derived). Passive pre-stage already complete (35MB map grepped: 7-code gate surface, body-less POST, no per-subject proof). Do NOT file until a full mint with user-controlled claims is observed.
+[RISK] google: 35 — remaining live surface (tokeninfo oracle, codelab keys) largely REJECTED/fixed/DUP; all GCP control-plane reads consumer-identity gated; no unauthenticated exploitable branch identified.
+[RISK] microsoft: 78 — identity SPAs ship production source maps; Bearer-only Verified ID mint endpoint lacks per-subject proof; consent-grant primitive takes caller-chosen resourceId; off-metadata agentSession/agentRegistrations + D2E POST surface all in play behind auth.
