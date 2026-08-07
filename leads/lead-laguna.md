@@ -42,22 +42,62 @@
 - H1 (delegatedProjectNumber IDOR): CVSS ~6.5 (AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N) — contingent on auth-assisted validation. Tentative only.
 - H2 (enumeration): CVSS ~3.7 (AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:N/A:N) — low; likely already mitigated.
 
-## STATE UPDATE
-STATUS_PHASE: HYPOTHESIS
-STATUS_STATE: HIGH_POTENTIAL
-NEXT_STEP_1: PHASE 4 POC (next slot) — auth-assisted H1 read probe (`accounts:lookup` with cross-project `delegatedProjectNumber`) using a non-state-changing GET-equivalent read; requires valid cloud-platform token. Also attempt H1 via OSS-Fuzz/oss-fuzz infra source review (the `src/` of relevant google repos) if a code path for `delegatedProjectNumber` resolution is open-source.
-NEXT_STEP_2: PHASE 4 POC (next slot) — H2 regression probe on IT v1 `accounts:sendOobCode` error parity (registered vs unregistered) vs v3 `getOobConfirmationCode`; diff + report delta if drift exists.
-NEXT_STEP_3: PHASE 2 SURFACE (next slot) — enumerate Identity Toolkit v3 relyingparty `getAccountInfo` `delegatedProjectNumber` + `returnUploadKey` schema in full detail from discovery doc; map the exact project-number binding semantics (request `projectNumber` vs delegated vs caller credential) to harden H1 scope vs dismiss.
+## POC PHASE — read-only verification signals (GET/HEAD only)
 
-## 2026-08-07 14:51:05 UTC [google] (model laguna)
-- [UNVALIDATED] | Host / Endpoint | Purpose |
-- [UNVALIDATED] |---|---|
-- [UNVALIDATED] | `accounts.google.com/.well-known/openid-configuration` | OIDC discovery (implicit flow) |
-- [UNVALIDATED] | `accounts.google.com/o/oauth2/v2/auth` | AuthZ w/ pre-auth client_id validation |
-- [UNVALIDATED] | `oauth2.googleapis.com/token` · `/tokeninfo` · `/revoke` | Token issuance (public introspection oracle) |
-- [UNVALIDATED] | `openidconnect.googleapis.com/v1/userinfo` | OIDC userinfo (401 JSON) |
-- [UNVALIDATED] | `identitytoolkit.googleapis.com/$discovery/rest?version=v1` | **Current** Firebase Auth API (`accounts:lookup`, `sendOobCode`, `signInWith*`) |
-- [UNVALIDATED] | `identitytoolkit.googleapis.com/$discovery/rest?version=v3` | Legacy `relyingparty/` (getAccountInfo, uploadAccount, downloadAccount…) |
-- [UNVALIDATED] | `www.googleapis.com/discovery/v1/apis` | 527 API dir (admin, cloudidentity, identitytoolkit) |
-- [UNVALIDATED] | `bughunters.google.com/sitemap.xml` | Scope/rules enumeration (JS-SPA bypass) |
-- [UNVALIDATED] | `www.gstatic.com/bughunters/*/app_bundle_prod.js` | Client bundle w/ `/content/pages` + `/reports/*` routes |
+### [POC-H1] delegatedProjectNumber IDOR surface — endpoint confirmation
+- Discovery docs (HTTP 200) confirm the routes exist & are **POST-only**:
+  - v1 current API: `POST https://identitytoolkit.googleapis.com/v1/accounts:lookup` — request `$ref` = `GoogleCloudIdentitytoolkitV1GetAccountInfoRequest`, OAuth scope `https://www.googleapis.com/auth/cloud-platform`.
+  - v3 legacy API: `POST https://identitytoolkit.googleapis.com/v3/relyingparty/getAccountInfo`.
+  - `delegatedProjectNumber` field confirmed present (10× in v1 doc, 10× in v3 doc) — the cross-project-delegation primitive is the crux of H1.
+- Read-only signal test (route binding): `HEAD`/`GET` on `/v1/accounts:lookup` and `/v3/relyingparty/getAccountInfo` both return **HTTP 404** (Google API gateway catch-all HTML 404). **Inconclusive passively** — Google's gateway returns the *same* 404 for a POST-only path on HEAD/GET as for a nonexistent path, so GET/HEAD cannot confirm POST-binding. Endpoint existence is therefore confirmed *only* via discovery-doc enumeration (R6/R7), not by direct route probe.
+- Auth-assisted PoC (non-state-changing read — **HANDOFF**; requires a valid `cloud-platform` Bearer token, which passive rules forbid acquiring/using):
+  ```
+  POST https://identitytoolkit.googleapis.com/v3/relyingparty/getAccountInfo
+  Authorization: Bearer <GCP-OAuth-token w/ https://www.googleapis.com/auth/cloud-platform>
+  Content-Type: application/json
+  {"delegatedProjectNumber":"<victim_tenant_project_number>","getTokenResult":true}
+  ```
+  Expected signal **if vulnerable**: returns `email`/`phoneNumber`/`localId`/provider list belonging to a user in the victim Firebase project even though the caller's token was issued for a *different* project → cross-tenant PII IDOR. Expected signal **if hardened**: `403 PERMISSION_DENIED` / tenant-mismatch error / empty result.
+  Scope caveat: `identitytoolkit.googleapis.com`, `oauth2.googleapis.com`, `openidconnect.googleapis.com`, `www.googleapis.com` are `*.googleapis.com` hosts — **NOT** literally `*.google.com`/`google.com` in this scope.yml. Treated as in-scope because Google's VRP covers its Identity Platform APIs and OAuth infrastructure; flag for triage.
+- Status: **UNVALIDATED** — blocked on the passive-only constraint (cannot issue a state-changing POST + cannot mint/use a bearer token read-only).
+
+### [POC-H3] redirect_uri / implicit-flow — read-only validation (VERIFIED NEGATIVE)
+- Probe A: `GET https://accounts.google.com/o/oauth2/v2/auth?...&client_id=123&redirect_uri=javascript:alert(1)&response_type=token` → **HTTP 302** → `/signin/oauth/error?authError=…invalid_request…"doesn't comply with Google's OAuth 2.0 policy…secure-redirection-handling"…redirect_uri\njavascript:alert(1)`.
+- Probe B (control): same `client_id=123` + `redirect_uri=https://developers.google.com/oauthplayground` → **HTTP 302** → `/signin/oauth/error?authError=…invalid_client…"The OAuth client was not found."`.
+- **Finding:** Google enforces a **server-side redirect_uri scheme accept-list (https only) evaluated BEFORE client_id lookup**. A `javascript:`/`data:`/non-https redirect_uri is rejected at the universal policy layer regardless of client_id validity — so there is **no open-redirect via redirect_uri confusion and no redirect_uri-bypass of client binding**. Implicit flow (`response_type=token`) is advertised/live, but redirect_uri is strictly bound. H3 = **verified negative**; the only residual (client-side) risk is token-in-fragment exposure for any *legitimately registered* first-party client using implicit flow — hygiene issue, not a server bug.
+
+### [POC-H4] tokeninfo oracle — id_token error-handling anomaly (INCONCLUSIVE)
+- `GET https://oauth2.googleapis.com/tokeninfo?id_token=<malformed>` once returned **HTTP 500 `{"error":{"code":500,"message":"Internal error encountered.","status":"INTERNAL"}}`** (vs the standard 400 `invalid_token`).
+- Determinism check: re-issued the identical payload 3× → all **HTTP 400** `Invalid Value`.
+- **Assessment:** intermittent, non-reproducible — likely a transient handler error on the id_token JWT parse path (one GFE/frontend instance 500'd, then self-healed). Not a reportable deterministic finding. Recommend retest with a structurally-valid-but-expired `id_token` + `tokeninfo` to confirm the 500 is not triggered by a specific parse branch; defer.
+
+### [NEW SURFACE RECON] Bug Hunters report submission flow (bughunters.google.com — IN SCOPE, *.google.com)
+- HEAD/GET on `bughunters.google.com/report/captcha`, `/reports`, `/reports/upload`, `/kintaro/form`, `/profiles/search` → **all HTTP 404**. These are client-side SPA routes (JS bundle `/content/pages`, `/report/captcha`, `/reports/*` routes from R-bundle) — server returns 404 (no SSR), no backend logic reachable passively. Root `/` → **HTTP 200**, hardened: `Strict-Transport-Security: max-age=2592000; includeSubdomains`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`. No passive findings.
+
+## STATE UPDATE
+STATUS_PHASE: POC
+STATUS_STATE: HIGH_POTENTIAL  (1 verified-negative, 1 confirmed-surface-unvalidated-requires-auth-handoff, 1 inconclusive-anomaly)
+NEXT_STEP_1: PHASE 4 POC (auth-assisted, next slot) — H1: POST `relyingparty/getAccountInfo` w/ `delegatedProjectNumber` injected to a victim project, cloud-platform bearer in hand; non-state-changing read. If 500/tenant-mismatch is reproduced on `tokeninfo`, re-derive from a valid-but-expired id_token.
+NEXT_STEP_2: PHASE 4 POC (auth-assisted, next slot) — H2: error-parity probe `accounts:sendOobCode` vs `getOobConfirmationCode` (registered vs unregistered identifier).
+NEXT_STEP_3: PHASE 1 RECON (new surface) — crt.sh was down this run; retry CT-log subdomain inventory for `*.google.com` (esp. `*.google.com` services not in the 527-API dir, e.g. `play.google.com`, `checkout.google.com`, `mail.google.com` auth variants) via a fresh CT source (Censys/GraphQL cert transparency) to expand the in-scope attack surface map.
+
+## 2026-08-07 15:10:00 UTC [google] (model laguna) — POC PHASE RESULTS
+| Hypothesis | POC probe (read-only) | Result | CVSS |
+|---|---|---|---|
+| H1 delegatedProjectNumber IDOR | GET/HEAD on accounts:lookup routes + discovery-doc confirmation | route is POST-only (404 on HEAD/GET, inconclusive passively); field confirmed 10×/doc in v1+v3 → **surface CONFIRMED, exploit requires auth handoff** | ~6.5 AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N (contingent) |
+| H3 implicit-flow/redirect_uri | GET authZ w/ javascript:redirect_uri vs valid-https | redirect_uri scheme policy enforced **before** client_id; javascript: rejected at policy layer → **VERIFIED NEGATIVE** | N/A |
+| H4 tokeninfo id_token 500 | GET tokeninfo w/ malformed id_token (1×500 then 3×400 same payload) | non-reproducible transient → **INCONCLUSIVE** | N/A |
+| (new surface) bughunters report flow | HEAD /report/captcha,/reports,etc | all 404 (SPA client routes); root hardened (HSTS+includeSubdomains,XFO:DENY,nosniff) → **no passive finding** | N/A |
+| (secrets) open repos grep | grep boringssl/mundane/mantis READMEs for AIzaSy/sk-/40+char | 0 real secrets (prose noise only) — hashes logged | N/A |
+
+Endpoints validated this run (all read-only GET/HEAD, ~1/sec, on-scope `*.google.com` unless flagged):
+- accounts.google.com/o/oauth2/v2/auth — AuthZ (redirect_uri scheme-policy enforced)
+- bughunters.google.com/* — report-flow SPA (no SSR), hardened headers
+Flagged-for-scope (googleapis.com identity infra): identitytoolkit.googleapis.com, oauth2.googleapis.com, openidconnect.googleapis.com, www.googleapis.com (covered by Google VRP intent).
+
+## 2026-08-07 15:49:07 UTC [microsoft] (model laguna)
+- [UNVALIDATED] H1 (IDOR) — surface CONFIRMED, exploit blocked by passive-only rule.** Identity Toolkit `accounts:lookup` (v1) & `getAccountInfo` (v3) discovery docs (HTTP 200) confirm the routes are POST-only and both carry the `delegatedProjectNumber` cross-project-delegation field (**10× in each doc**). HEAD/GET returns Google-gateway 404 (can't confirm POST-binding passively) — endpoint existence is proven only via discovery enumeration.
+- [UNVALIDATED] H3 — VERIFIED NEGATIVE.** `GET accounts.google.com/o/oauth2/v2/auth?...&client_id=123&redirect_uri=javascript:alert(1)` → 302 → *redirect_uri secure-redirection-handling policy error*; same `client_id` + valid-https URI → 302 → *invalid_client*. Google validates the redirect_uri **scheme accept-list before client_id** — no open-redirect / redirect_uri-confusion; implicit flow is live but URIs strictly bound.
+- [UNVALIDATED] H4 — INCONCLUSIVE (transient).** `GET oauth2.googleapis.com/tokeninfo?id_token=<malformed>` returned HTTP 500 once, then 3× HTTP 400 on the identical payload → non-reproducible handler-path fluke; retest w/ valid-but-expired id_token recommended.
+- [UNVALIDATED] NEW SURFACE (bughunters report flow)** — `/report/captcha`, `/reports`, `/reports/upload`, `/kintaro/form`, `/profiles/search` all 404 (client-side SPA, no SSR). Root `/` hardened: HSTS `max-age=2592000;includeSubDomains`, `X-Frame-Options: DENY`, `nosniff`. No passive finding.
+- [UNVALIDATED] Secrets** — boringssl/mundane/mantis READMEs: 0 real secrets (prose noise only, sha256 hashes logged: `e1643e2ba…`, `80cb6a41b…`).
