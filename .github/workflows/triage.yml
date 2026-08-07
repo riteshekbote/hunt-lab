@@ -112,10 +112,37 @@ jobs:
               print('no VALID verdicts this cycle')
           PY
 
+      - name: Append learnings to knowledge base
+        run: |
+          python3 << 'PY'
+          import re, os, datetime, glob
+          stamp = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')
+          kpath = 'knowledge/index.md'
+          os.makedirs('knowledge', exist_ok=True)
+          if not os.path.exists(kpath):
+              open(kpath, 'w').write('# Knowledge Base (seed)\n')
+          ktext = open(kpath).read()
+          learnings = []
+          try:
+              txt = open('triage-output.txt', errors='ignore').read()
+          except Exception:
+              txt = ''
+          for m in re.finditer(r'(?im)^\s*(INVALID|HOLD|VALID)\b.*?[-:]\s*(.{10,220})', txt):
+              verdict, why = m.group(1).upper(), m.group(2).strip()
+              if verdict in ('INVALID', 'HOLD'):
+                  line = f"- {stamp[:10]} REJECTED class @ lead: {why}"
+                  if line not in ktext:
+                      learnings.append(line)
+          with open(kpath, 'a') as k:
+              for line in learnings:
+                  k.write(line + '\n')
+          print(f'appended {len(learnings)} learnings to knowledge/index.md')
+          PY
+
       - name: Commit
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
-          git add triage reports leads || true
+          git add triage reports leads knowledge || true
           git diff --cached --quiet || git commit -m "triage $(date -u +'%Y-%m-%d-%H-%M')"
           git push || true
