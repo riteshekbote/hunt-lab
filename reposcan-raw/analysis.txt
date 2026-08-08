@@ -1,66 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN"
-NOT IN SCAN
-[0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java[90m [limit=50, offset=70][0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [offset=20, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=60, offset=10][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts[90m [offset=395, limit=20][0m
-Now I have enough context to classify all hits. Here's the analysis:
-
----
-
 ### Classification Tables
 
-#### REAL_SECRET (reportable credentials with signs of life)
-| File | Line | SHA256 (secret material) | Notes |
-|------|------|--------------------------|-------|
-| *None found in this scan* | | | The previously confirmed `earthengine-api` secret (sha256 `3f3f8d6f...`) is **not in this scan's repo set** |
+#### REAL_SECRET
+| File | Line | SHA256 | Context |
+|------|------|--------|---------|
+| *none* | — | — | No hardcoded live credentials in this delta |
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
-| File | Line(s) | Reason |
-|------|---------|--------|
-| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | Test passwords/tokens: `"testpassword"`, `"test-token-123"` |
-| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | Test passwords: `"testpassword"` |
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test key: `"fuzz test key"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test shutdown password: `"ServerShutdownPassword"` |
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | Test fixture: `"sk-REPLACE-WITH-YOUR-KEY"` (explicit placeholder) |
+#### TEST_OR_EXAMPLE
+| File | Line | Type |
+|------|------|------|
+| microsoft/dbt-fabric/docker-compose.yml | 9 | Local dev password (`L0calTesting!`) |
+| microsoft/monaco-editor/src/languages/definitions/azcli/azcli.ts | 28,29,37 | Tokenizer config |
+| microsoft/monaco-editor/src/languages/definitions/css/css.ts | 54,55,56 | Tokenizer config |
+| microsoft/monaco-editor/src/languages/definitions/pascaligo/pascaligo.ts | 41,42,43 | Tokenizer config |
+| microsoft/monaco-editor/src/languages/definitions/postiats/postiats.ts | 431,432 | Tokenizer config |
+| microsoft/monaco-editor/src/languages/definitions/redis/redis.ts | 36,37,293 | Tokenizer config |
+| microsoft/monaco-editor/src/languages/definitions/typescript/typescript.ts | 310,329,351 | Tokenizer config |
+| microsoft/monaco-editor/website/src/website/components/monaco/MonacoLoader.tsx | 30 | UI color token |
+| microsoft/poml/.github/workflows/publish-pypi.yml | 175 | test.pypi.org CI |
+| microsoft/poml/.github/workflows/test-after-publish.yml | 79 | test.pypi.org CI |
+| microsoft/poml/docs/hooks/commitlinks.py | 7 | Placeholder `__COMMIT_SHA__` |
+| microsoft/qlib/.github/workflows/release.yml | 63,107 | test.pypi.org CI |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Fake GH token `ghp_ABCDEFGHIJKLMNOP` |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19,20,24 | Fake GH/AWS tokens in test fixtures |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Fake GH token in test fixture |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Fake GH token in eval data |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Fake GH token in eval data |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line(s) | Endpoint | Notes |
-|------|---------|----------|-------|
-| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal/computeMetadata/v1/...` | Well-known GCE metadata endpoint (public doc) |
-| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `169.254.169.254/latest/meta-data/iam/` | Well-known AWS IMDS endpoint (public doc) |
-| `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs` | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Standard cloud IMDS IPs (AWS, GCP, Alibaba) |
-| `microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go` | 183, 184 | Same IMDS endpoints | Standard cloud IMDS IPs |
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts` | 13, 14 | Same IMDS endpoints | Standard cloud IMDS IPs |
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts` | 8, 11, 13 | Same IMDS endpoints | Standard cloud IMDS IPs |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | `http://169.254.169.254/latest/meta-data/iam/` |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal) |
 
-#### INTERESTING (debug flags, config references, cloud configs)
-| File | Line | Finding |
-|------|------|---------|
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret reference (not a secret value; references Secret Manager) |
-| `google/copybara/cloudbuild.yaml` | 27 | Artifact Registry docker URL comment |
-| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{secrets.GITHUB_TOKEN}}` — GitHub Actions secret ref |
-| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Test PyPI URLs |
-| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | RFC3161 timestamp server URL (corp) |
-| `microsoft/agent-governance-toolkit/.github/workflows/*.yml` | 20, 41, 20 | `${{secrets.GITHUB_TOKEN}}` refs |
-| `microsoft/agent-governance-toolkit/policy-engine/.../acs-policy-configmap.yaml` | 2 | K8s ConfigMap kind |
-| `microsoft/agent-governance-toolkit/agent-governance-python/.../configmap.yaml` | 2 | K8s ConfigMap kind |
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/ax/manifests/install-ax.sh | 239,241,286 | Password sourced from `existing_pw` / `POSTGRES_PASSWORD` env / `openssl rand -hex 16`; k8s secret created from it |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 302,413,415 | Kubeconfig handling & `kubectl exec` command construction |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer constant names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) — not secrets |
+| google/private-compute-services/.../RenderTokenHint.kt / RenderTokenInsight.kt | 41,43 | Constant `KEY_RENDER_TOKEN = "render_token"` — not a secret |
 
 ---
 
-### Verdict List (REPORT_CANDIDATE)
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `google/adk-go` Cloud Run secret ref | **no** | References Secret Manager, no secret material |
-| All `TEST_OR_EXAMPLE` entries | **no** | Test fixtures, placeholders, fuzz data |
-| All `ENDPOINT_LEAK` entries | **no** | Well-known public metadata endpoints (IMDS) |
-| All `INTERESTING` entries | **no** | Config refs, CI secret refs, public URLs |
-| **Previously confirmed earthengine-api secret** | **yes (pending VRP)** | **Not in this scan** — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` at `python/ee/oauth.py:45` — confirmed live per KB, but native-app by-design status pending VRP determination |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| google/ax/manifests/install-ax.sh password flow | **no** — generates random or uses env; no static secret |
+| microsoft/dbt-fabric/docker-compose.yml SA_PASSWORD | **no** — obvious local-test value |
+| All skill-recorder fixtures | **no** — test data, fake tokens |
+| All monaco-editor language defs | **no** — tokenizer configs |
+| tensorstore metadata endpoints | **no** — well-known IMDS paths |
+| copybara cloudbuild internal URL | **no** — internal build reference |
+| debug-gym kubernetes.py | **no** — client-side command construction |
 
-**Bottom line:** This scan yields **zero new reportable secrets**. The only live credential remains the earthengine-api OAuth client_secret (already tracked in KB, not in this repo set).
+**No reportable secrets in this delta.**
