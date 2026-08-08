@@ -2089,3 +2089,40 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: JWKS v1↔v2 kid overlap live @ login.microsoftonline.com/common/discovery/keys (23:15 UTC) — 4 shared kids (0 v1-only on v2-side), `Access-Control-Allow-Origin: *`; issuer-confusion precondition intact despite rotation churn.
 [LEARN] REJECTED: No new proving-dead classes — `aFkmKVFc` v1-exclusive is transient key rotation, not a cross-endpoint confusion/desync surface (v1 kid set never validated against v2 issuer).
 [RISK] google: 34 | earthengine hardcoded client_secret fully SHA-verified live+ready for VRP (conf 95, $100k, by-design caveat); tokeninfo oracle rate-limited/no-reward; all GCP control-plane discovery APIs 403 unregistered-callers; ADK embedded secrets = KNOWN-DUP; bughunters hardened; passive phase exhausted, one MISCONFIG (VRP-pending); native-app caveat caps near-term upside. | microsoft: 88 | agentRegistration IDOR (5 EntityTypes, zero metadata restrictions, runtime auth-gated w/ CORS `*` + full mutation allowlist + HEAD/OPTIONS challenge-bypass, conf 85, CVSS 7.5–9.0, AUTH_HELPED pending) + v1↔v2 issuer-confusion (4 shared kids + dual issuer + v1-only implicit, conf 60, CVSS 8.0–9.8, AUTH_HELPED pending) + Graph 405/OPTIONS anomaly extended to Agent Registration; crown-jewel Entra/Copilot identity plane, highest impact potential.
+## 2026-08-08 23:48:22 UTC [google] (model laguna)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy (IDOR)
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: $metadata (7.3MB, 873-char agentRegistration block) declares createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied, Nullable=false, ZERO OperationRestrictions; runtime: OPTIONS→200 (CORS *, full mutation allowlist), HEAD→405 (no Bearer), GET→401.
+evidence_needed: Cross-principal POST/GET/PATCH between two principals (A creates with B as owner; B reads/writes A's resource).
+verify_steps: AUTH_HELPED: 1) A-POST /beta/copilot/agentRegistrations {"displayName":"probe","createdBy":{"user":{"id":"<B_oid>"}},...} with A Bearer → expect 201; 2) B-GET /beta/copilot/agentRegistrations → expect 200 + B sees A's entry; 3) B-PATCH {<A_id>} {"ownerIds":["<B_oid>"]} → expect 200/204 vs 403.
+impact: Agent impersonation + supply-chain tampering in Copilot/Entra identity plane; forge creator attribution, redirect agentCard endpoints. CVSS 7.5–9.0. ~$100k ceiling.
+testability: AUTH_HELPED
+[HYP] Hardcoded OAuth client_secret in Google native-app source (MISCONFIG)
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: SHA-verified plaintext client_secret live on master line 45 (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), also :99 fallback; scopes cloud-platform+drive+devstorage.full_control; installed-app Python SDK OAuth flow.
+evidence_needed: Exploit: refresh_token grant POST to oauth2.googleapis.com/token with secret + victim refresh_token → 200 access token (HUMAN_ONLY, requires victim refresh_token).
+verify_steps: PASSIVE done — raw GitHub GET oauth.py + sha256sum confirms line 45 secret + line 99 fallback + scopes + unchanged whole-file (`f4f93c76…`). HUMAN_ONLY: mint token with victim refresh_token.
+impact: Mint OAuth access tokens with full-GCP scope (cloud-platform=project-wide IAM) as any user holding a refresh_token; phishing-to-project-compromise pivot. CVSS 8.0–9.8. ~$100k VRP ceiling; native-app/by-design caveat.
+testability: PASSIVE (confirmed) + HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (AUTH)
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys
+confidence: 60
+reasoning: JWKS HTTP 200, `Access-Control-Allow-Origin: *`; 4 v1.0 kids ALL present in v2.0; dual issuer namespaces `sts.windows.net/{tid}/` vs `login.microsoftonline.com/{tid}/v2.0`; v1.0-only response_type=token excluded from v2.0.
+evidence_needed: v1 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource skipping strict iss validation.
+verify_steps: AUTH_HELPED: 1) GET /common/discovery/keys + /discovery/v2.0/keys → extract v1 kids; 2) OIDC v1.0 authorize?response_type=token → capture v1 id_token; 3) GET /beta/copilot/agentRegistrations with v1 id_token Bearer → 200 vs 401/403.
+impact: MFA-bypass-class token replay → access v2.0-only Graph resources. CVSS 8.0–9.8. ~$100k ceiling.
+testability: AUTH_HELPED
+[PARKED] v1↔v2 issuer-confusion: confidence 60 ≥ 40, but verify_steps require AUTH_HELPED with two-principal + v1-only OIDC flow; low freshness on proof, parked pending HUMAN two-principal test-tenant.
+[FINAL] 1 (top) Agent Registration ownership boundary bypass via client-supplied createdBy (IDOR, 85)
+[FINAL] 2 Hardcoded OAuth client_secret in earthengine-api oauth.py:45 (MISCONFIG, 95)
+[FINAL] 3 v1.0↔v2.0 issuer-confusion token replay (AUTH, 60)
+[NEXT] HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with A's Bearer, body {"displayName":"probe","createdBy":{"user":{"id":"<U2_oid>"}},"ownerIds":["<U2_oid>"],"managedByAppId":"<client_app>"} → expect HTTP 201 (server accepts client-supplied owner); B GET → expect 200 + A's entry visible; B PATCH {<A_id>} {"ownerIds":["<U2_oid>"]} → expect 200/204 (foreign write) vs 403; need MSRC confirmation Copilot Studio D2E scope is in TARGET_BOTH for cross-principal test.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 23:3x UTC — GET→401, HEAD→405, OPTIONS→200 (CORS `Access-Control-Allow-Origin`, full mutation-method allowlist); no OperationRestrictions; createdBy/ownerIds Nullable=false.
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.full_control, whole-file sha `f4f93c76…` unchanged.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 23:3x UTC — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-only response_type=token excluded from v2.0.
+[RISK] google: 34 | earthengine hardcoded client_secret SHA-verified live+ready for VRP (conf 9

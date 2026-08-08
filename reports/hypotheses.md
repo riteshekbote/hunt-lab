@@ -659,3 +659,15 @@
 - LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret liveness confirmed @ 23:15 UTC — value sha256 `3f3f8d6f…d271` + whole-file sha `f4f93c76…` both match KB;
 - LEARN: ACCEPTED: JWKS v1↔v2 kid overlap live @ login.microsoftonline.com/common/discovery/keys (23:15 UTC) — 4 shared kids (0 v1-only on v2-side), `Access-Control-Allo
 - LEARN: REJECTED: No new proving-dead classes — `aFkmKVFc` v1-exclusive is transient key rotation, not a cross-endpoint confusion/desync surface (v1 kid set never valid
+
+## RANKED HYPOTHESES 2026-08-08 23:49:40 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials exchange against `https://oauth2.googleapis.com/token` using earthengine-api `oauth.py:45` client_id + secret (sha256 `3f3f
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with A's Bearer, body {"di
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlie
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), eart
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 23:3x UTC — GET→401, HEAD→405, OPTIONS→200 (CORS `Access-Control-Allow-Origi
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, line :45 + :9
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 23:3x UTC — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-o

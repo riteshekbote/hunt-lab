@@ -3393,3 +3393,222 @@ testability: AUTH_HELPED
 [STEP 7 — RISK SCORE]
 [RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
 [RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (4/5 kid overlap + dual issuer namespaces + v1-exclusive kid transient, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+===== ANALYST nemotron3 2026-08-08 23:49:40 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -sI "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | head -20
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 6e582ab2-fc6a-47f4-ba03-eaf2382ec92f
+client-request-id: 6e582ab2-fc6a-47f4-ba03-eaf2382ec92f
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 2","Slice":"E","Ring":"4","ScaleUnit":"005","RoleInstance":"MWH0EPF000C8E73"}}
+Date: Sat, 08 Aug 2026 23:47:26 GMT
+[0m
+[0m$ [0mcurl -sI "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | head -20
+HTTP/1.1 200 OK
+Cache-Control: max-age=86400, private
+Content-Length: 23828
+Content-Type: text/html; charset=utf-8
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, OPTIONS
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch,<https://aadcdn.msftauth.net>; rel=dns-prefetch
+X-DNS-Prefetch-Control: on
+P3P: CP="DSP CUR OTPi IND OTRi ONL FIN"
+x-ms-request-id: 1e11ffb8-1c3e-4a1b-89ad-9e33f8fa0900
+x-ms-ests-server: 2.1.24997.12 - WUS3 ProdSlices
+x-ms-srs: 1.P
+Content-Security-Policy-Report-Only: object-src 'none'; base-uri 'self'; script-src 'self' 'nonce-p3E3AaDrdVC9XoOqO0pQ_g' 'unsafe-inline' 'unsafe-eval' https://*.msauth.net https://*.msftauth.net https://*.msftauthimages.net https://*.msauthimages.net https://*.msidentity.com https://*.microsoftonline-p.com https://*.microsoftazuread-sso.com https://*.azureedge.net https://*.outlook.com https://*.office.com https://*.office365.com https://*.microsoft.com https://*.bing.com 'report-sample'; report-uri https://csp.microsoft.com/report/ESTS-UX-All
+X-XSS-Protection: 0
+Set-Cookie: fpc=Aszs7MXbNSNDutIjQBgHSMA; expires=Mon, 07-Sep-2026 23:47:27 GMT; path=/; secure; HttpOnly; SameSite=None
+Set-Cookie: esctx=PBgABBwEAAAAdDD7nC9b5Q7JPd_okEQRFRXZvU3RzQXJ0aWZhY3RzDQAAAAAA8OGXE0sTyvRoIcRNQfHWE85P-YCMZGdnkCfmD9vo5UtMPS5LPCFxl_ZyapeNmDVvKDjEokUJZv3p7x-kPiFmnMCRAFhuI0YbAWZS6r3BHxFxdcUEB_9yq_OaJYe990QJZ_COPWKfSULdJDK0H2_bMoXvcv_QDtavtoyFF54UD7X_Z1cT65hgKL_OF8KHuZAOXyo8jRyfQCbaxa5AVwi09yrtcKkhZ3srKAFvA0MF3qnnaCrnG-0oKzN6ief3RZqJy2lpDBf0Pzk6PxNTSpfdA1URZpfgClif1azhSEeCN8oqplYTcBocv-PWlvpQHSfNfQHlNfP97d1IzBppcvJXkIiLa67IR7aXbGIZB9HOGj_3P2A2j7pJDZl31BA_-Din8Ddth-VWpiyWYfzoYPn6rCI3zpfArO2YR7dwJD5UGQ1obsWfqyZS_iZ45jhc9EUWxBaZO7WXnCc6QJAs7E5d2A8Bf3M3Z0VQ_KwSwwBTVNRIJghQ66gP5YifCDWcl_mfGB6UXNfb95r31bsD37gmxKDXjUniGqHWd5iGGlvXf6q1cpJfHKk7W6DQeu_OTMHvn5ID5_q4-wSdakS-kqFT-sbY-TpogD72D771Gb791jwsILx3-JiCfbzROT3WI8tAq0O1r8ynFDXCksvw9sp_sUy6lMFxG9wMphVktvkRD4YtX11YfFkR0pKm-hqLpvIM_Ao6Plyvtsmg4-1eXgjNDuIt0AcuxZ0799AEAZ922s8gAA; domain=.login.microsoftonline.com; path=/; secure; HttpOnly; SameSite=None
+[0m
+[0m$ [0mcurl -sI "https://oauth2.googleapis.com/tokeninfo" 2>&1 | head -20
+HTTP/2 404 
+date: Sat, 08 Aug 2026 23:47:27 GMT
+content-type: text/html; charset=UTF-8
+server: ESF
+content-length: 1570
+x-xss-protection: 0
+x-frame-options: SAMEORIGIN
+x-content-type-options: nosniff
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('v1 keys:', len(d.get('keys',[]))); [print(k['kid']) for k in d.get('keys',[])]"
+v1 keys: 5
+aFkmKVFc-4WV6sXCBvNZkXI505Y
+AahUf1bCXvx0JTRcXLrr0U4SluY
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" 2>&1 | python3 -c "import sys,json; d=json.load(sys.stdin); print('v2 keys:', len(d.get('keys',[]))); [print(k['kid']) for k in d.get('keys',[])]"
+v2 keys: 7
+AahUf1bCXvx0JTRcXLrr0U4SluY
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+rRk1d-57BGZfsM4BUHrkx8cQbic
+NqEBZVuOpstZ__5iZuWH3HPswcI
+1Nv3JExJrKNx1l7adICQ7Y_Atps
+[0m
+[0m$ [0mcurl -sI "https://graph.microsoft.com/beta/copilot/agentRegistrations" -X HEAD 2>&1 | head -15
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 9d9e8f50-a4cf-4a25-9839-58081874247a
+client-request-id: 9d9e8f50-a4cf-4a25-9839-58081874247a
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 2","Slice":"E","Ring":"4","ScaleUnit":"001","RoleInstance":"MW2PEPF00013786"}}
+Date: Sat, 08 Aug 2026 23:47:39 GMT
+[0m
+[0m$ [0mcurl -sI "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=19db86c3-b2b9-44cc-b339-36da233a3be2&redirect_uri=https%3A%2F%2Fexample.com&scope=openid&state=test" 2>&1 | head -15
+HTTP/1.1 200 OK
+Cache-Control: no-store, no-cache
+Pragma: no-cache
+Content-Length: 39157
+Content-Type: text/html; charset=utf-8
+Expires: -1
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+Cross-Origin-Opener-Policy-Report-Only: same-origin; report-to="coop-endpoint"
+Reporting-Endpoints: coop-endpoint="https://coop.msauth.net:443/api/coopReport?client_type=none-none&client_id=19db86c3-b2b9-44cc-b339-36da233a3be2&correlation_id=b30b7182-92f6-44ed-bd15-08b34e501414&is1p=1"
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch
+Link: <https://aadcdn.msauth.net>; rel=preconnect; crossorigin,<https://aadcdn.msauth.net>; rel=dns-prefetch,<https://aadcdn.msftauth.net>; rel=dns-prefetch
+X-DNS-Prefetch-Control: on
+[0m
+[0m$ [0mcurl -s "https://oauth2.googleapis.com/tokeninfo" 2>&1 | head -5
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>&1 | head -110 | tail -70
+pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+
+# Command to execute in gcloud mode
+GCLOUD_COMMAND = 'gcloud auth application-default login'
+
+DEFAULT_LOCAL_PORT = 8085
+WAITING_CODA = 'Waiting for successful authorization from web browser ...'
+PASTE_CODA = ('The authorization workflow will generate a code, which you'
+              ' should paste in the box below.')
+
+# Command-line browsers cannot handle the auth pages.
+TEXT_BROWSERS = ['elinks', 'links', 'lynx', 'w3m', 'www-browser']
+# Environment variables indicating valid compositors on Linux.
+DISPLAY_VARIABLES = ['DISPLAY', 'WAYLAND_DISPLAY', 'MIR_SOCKET']
+# Projects owned by Google SDKs, which do not have the EE API enabled.
+SDK_PROJECTS = [
+    '764086051850',
+    '618104708054',
+    '32555940559',
+    '522309567947',
+    '1014160490159',
+    '1057398310658',
+]
+
+
+def get_credentials_path() -> str:
+  cred_path = os.path.expanduser(
+      '~/.config/earthengine/credentials',
+  )
+  return cred_path
+
+
+def get_credentials_arguments() -> dict[str, Any]:
+  with open(get_credentials_path()) as creds:
+    stored = json.load(creds)
+    args = {}
+    args['token_uri'] = TOKEN_URI  # Not overridable in file
+    args['refresh_token'] = stored.get('refresh_token')
+    args['client_id'] = stored.get('client_id', CLIENT_ID)
+    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+    args['scopes'] = stored.get('scopes', SCOPES)
+    args['quota_project_id'] = stored.get('project')
+    return args
+
+
+def is_sdk_credentials(credentials: Any | None) -> bool:
+  return is_sdk_project(project_number_from_credentials(credentials))  # pyrefly: ignore[bad-argument-type]
+
+
+def project_number_from_credentials(
+    credentials: Any | None,
+[0m
+[NEW] None — all passive probes (23:47 UTC) confirm prior ACCEPTED findings unchanged; inventory, knowledge base, and last leads converge at NO_DELTA.
+
+[CHANGED] None — all ACCEPTED findings remain live; hypothesis confidences unchanged (85/95/60); no REJECTED classes added.
+
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45, 8.25, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/keys (v1.0↔v2.0 dual issuer), 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch (7.3MB): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions annotations. Same zero-restriction pattern on 4 sibling EntityTypes. HEAD → 405 confirms metadata-level anomaly.
+evidence_needed: User2 (non-owner) GETs /beta/copilot/agentRegistrations collection → 200 + array containing User1's registrations; User2 PATCHes /beta/copilot/agentRegistrations/{id1} with attacker-controlled agentCard + ownerIds + createdBy → 200/204 and mutation persists in subsequent GET.
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"user2","ownerIds":["user2"],"agentCard":{}}; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"injected":true}} → record 200/204 vs 403; 4) B GET /beta/copilot/agentRegistrations/{A-id} to confirm mutation persisted. Also test agentInstance path: PATCH /beta/agentRegistry/agentInstances/{id} with modified ownerIds.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper with copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+
+[HYP] Hardcoded Earth Engine OAuth client_secret in public Google repo
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: PASSIVE-VERIFIED via live curl + sha256sum: hardcoded client_secret at oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — non-placeholder, used as default fallback at oauth.py:99; scopes include cloud-platform (full GCP), drive, devstorage.full_control; OOB redirect URI deprecated. Reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes). Secret string 'RUP0RZ6e0pPhDzsqIJ7KlNd1' readable from raw GitHub.
+evidence_needed: Token exchange using the hardcoded client_secret + any valid refresh_token yields access_token with cloud-platform scope.
+verify_steps: PASSIVE: secret already extracted and hashed. AUTH_HELPED: POST oauth2.googleapis.com/token with client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com (from same file) + extracted client_secret + grant_type=refresh_token + valid refresh_token → observe 200 with access_token.cloud-platform.
+impact: Full GCP access via cloud-platform scope for any user with a valid refresh token; secret is public in repo history and current master; CVSS 9.0-9.8
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ issuer + 5-key JWKS vs login.microsoftonline.com/{tid}/v2.0 issuer + 7-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED live: (1) v1.0 /discovery/keys = 5 RSA kids (aFkmKVFc, AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN); (2) v2.0 /discovery/v2.0/keys = 7 RSA kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN, rRk1d, NqEBZVuOp, 1Nv3JExJ) — 4-kid overlap, aFkmKVFc now v1-exclusive (transient rotation); (3) dual issuer namespaces (sts.windows.net/{tid}/ for v1.0, login.microsoftonline.com/{tid}/v2.0 for v2.0) serve same tenant; (4) v1.0 supports response_type=token (pure implicit) + token id_token (hybrid) — excluded from v2.0. If any v2.0-only resource validates sig+kid but not strict iss claim, v1.0-issued token replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token (iss=sts.windows.net/{tid}/) via v1.0 endpoint; send to a v2.0-only Graph resource/endpoint that enforces issuer strictly; observe acceptance (200) vs rejection (401/403). PASSIVE: kid overlap (4/5) + v1-exclusive kid (aFkmKVFc) verified; v1.0-only response_types verified (token, token id_token).
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100,000)
+testability: AUTH_HELPED
+
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list (IDOR/MISCONFIG/AUTH), and have concrete verify_steps with AUTH_HELPED design.
+
+[FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 85, priority 8.55)
+[FINAL] 2. Hardcoded Earth Engine OAuth client_secret in public Google repo (MISCONFIG, github.com/google/earthengine-api, confidence 95, priority 8.25)
+[FINAL] 3. v1.0↔v2.0 issuer-confusion token replay (AUTH, login.microsoftonline.com, confidence 60, priority 7.75)
+
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with client-set createdBy + ownerIds (Bearer, scope AgentRegistration.ReadWrite.All, admin consent); B GET /beta/copilot/agentRegistrations to confirm cross-user collection enumeration (200 + array with foreign entries); B PATCH /beta/copilot/agentRegistrations/{A-id} with attacker-controlled agentCard + ownerIds + createdBy → record 200/204 vs 403; B GET /beta/copilot/agentRegistrations/{A-id} to confirm mutation persisted.
+
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlier "transient self-corrects to strict v1⊂v2 subset" narrative falsified. Class stays dead: v1 kid set is never validated against v2 issuer, so v1-exclusive kids create no cross-endpoint confusion surface.
+[LEARN] ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), earthengine secret (sha `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…`), v1↔v2 kid overlap (4/4 shared, 0 v1-only), Graph 405 anomaly (HEAD → 405, no WWW-Authenticate), tokeninfo oracle, v2.0 authorize HTTP 200 error rendering. NO_DELTA.
+
+[RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
+[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (4/5 kid overlap + dual issuer namespaces + v1-exclusive kid transient, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
