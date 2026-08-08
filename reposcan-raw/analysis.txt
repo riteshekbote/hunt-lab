@@ -1,62 +1,51 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=40, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/gopacket/layers/radiotap.go[90m [limit=20, offset=545][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=115][0m
-### Classification Tables
+Looking at the scan hits, I'll classify each one. Most are test placeholders, constants, or documentation—not real secrets.
 
-#### REAL_SECRET (reportable)
-*None in this delta scan.* The previously confirmed `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f...d271`) is not present in this scan's file set.
+## Classification Tables
 
-#### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Reason |
-|------|------|--------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — identifier, not a key |
-| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` step-output references |
-| `google/gopacket/layers/radiotap.go` | 552, 554, 556 | Radiotap protocol bitmask constants (`"80(20LL)"`, etc.) |
-| `google/jsonnet/.github/workflows/publish-python.yml` | 85, 105 | Workflow conditional PyPI URL templates |
-| `google/jsonnet/doc/third_party/MathJax-2.7.2/localization/*/TeX.js` | 19 | Third-party MathJax localization strings (20 files) |
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag default `StorageDriverPassword = "storage_driver_password"` |
-| `google/adk-python/.../gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path/context: str \| None = None` parameter defaults |
-| `google/adk-python/.../cli/browser/chunk-*.js` | multiple | Minified JS parse-error strings (source-mapped artifacts) |
-| `google/adk-python/.../auth_credential.py` | 126, 238, 247 | Example creds: `"-----BEGIN PRIVATE KEY-----..."`, `"user"/"password"`, `"eyAkaknabna...."` |
-| `google/adk-python/.../auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
-| `google/adk-python/.../auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
-| `google/adk-python/.../sandbox_computer.py` | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `google/langextract/.github/workflows/ci.yaml` | 168–170 | Proper `${{ secrets.GEMINI_API_KEY }}` secret references |
+### REAL_SECRET
+| File | Line | SHA256 | Context | REPORT_CANDIDATE |
+|------|------|--------|---------|------------------|
+| *none in current grep hits* | | | | |
 
-#### ENDPOINT_LEAK
-| File | Line | Reason |
-|------|------|--------|
-| `google/adk-python/.../container_code_executor.py` | 114, 154 | Documents well-known metadata IP `169.254.169.254` (public knowledge, not a leak) |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/gopacket/layers/radiotap.go | 552,554,556 | Radiotap protocol constants (`80(20LL)`, `80(20LU)`, `80(20UL)`) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
+| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions template placeholders (`${{ steps.fetch-token.outputs... }}`) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — default config name |
+| google/adk-python/.../auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` — example placeholder |
+| google/adk-python/.../auth_credential.py | 238 | `HttpCredentials(username="user", password="password")` — test fixture |
+| google/adk-python/.../auth_credential.py | 247 | `HttpCredentials(token="eyAkaknabna....")` — dummy JWT |
+| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` — constant name |
+| google/adk-python/.../auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
+| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — constant name |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` references (not hardcoded) |
 
-#### INTERESTING
-| File | Line | Reason |
-|------|------|--------|
-| `google/adk-python/.../cli_create.py` | 123 | Writes user-supplied `google_api_key` to `.env` file — legitimate dev feature, but `.env` could be committed by users |
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/.../container_code_executor.py | 114,154 | Comments referencing `169.254.169.254` (GCP metadata endpoint) — documentation only |
+
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/.../cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes var to file (check if `google_api_key` source is secret) |
+| google/adk-python/.../gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` params — config surface, not secret |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/... | multiple | Localization strings — noise |
 
 ---
 
-### Verdict List
+## Verdict
 
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| GEMINI_API_KEY enum | agents-cli/auth.py | 43 | TEST_OR_EXAMPLE | **no** |
-| GitHub Actions step refs | agents-cli/staging.yaml | 168, 192 | TEST_OR_EXAMPLE | **no** |
-| Radiotap bitmasks | gopacket/radiotap.go | 552, 554, 556 | TEST_OR_EXAMPLE | **no** |
-| PyPI workflow URLs | jsonnet/publish-python.yml | 85, 105 | TEST_OR_EXAMPLE | **no** |
-| MathJax l10n strings | jsonnet/MathJax/*/TeX.js | 19 | TEST_OR_EXAMPLE | **no** |
-| Cadvisor flag default | cadvisor/flags.go | 54 | TEST_OR_EXAMPLE | **no** |
-| Kubeconfig params | adk-python/gke_code_executor.py | 103, 104, 115 | TEST_OR_EXAMPLE | **no** |
-| Minified JS chunks | adk-python/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | **no** |
-| Example credentials | adk-python/auth_credential.py | 126, 238, 247 | TEST_OR_EXAMPLE | **no** |
-| Auth scheme constant | adk-python/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
-| Placeholder client_secret | adk-python/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
-| State key name | adk-python/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | **no** |
-| Proper secret refs | langextract/ci.yaml | 168–170 | TEST_OR_EXAMPLE | **no** |
-| Metadata IP docs | adk-python/container_code_executor.py | 114, 154 | ENDPOINT_LEAK | **no** |
-| .env writer (user key) | adk-python/cli_create.py | 123 | INTERESTING | **no** |
+**No new REAL_SECRET candidates in this scan delta.** All 332 hits are:
+- Test fixtures / placeholders (`TEST_OR_EXAMPLE`)
+- Documentation / comments (`ENDPOINT_LEAK`, `INTERESTING`)
+- Proper secret references (`${{ secrets.X }}`)
 
-**No reportable findings in this delta.** All hits are test data, templates, protocol constants, third-party code, or legitimate developer tooling.
+The **earthengine-api `oauth.py:45` hardcoded client_secret** (sha256 `3f3f8d6f...d271`) is a **known ACCEPTED finding** from the knowledge base — already tracked, not a new hit.
+
+**REPORT_CANDIDATE: no** for all current grep hits.
