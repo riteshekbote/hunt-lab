@@ -1,4 +1,6 @@
-## 2026-08-08 05:24:31 UTC [google] (model nemotron3)
+## 2026-08-08 06:08:07 UTC [google] (model nemotron3)
+[NEW] None — inventory, knowledge base, and last leads all converge at 2026-08-08 03:14/22:37 UTC re-verification; no new endpoints, schema changes, or surface anomalies since last cycle.
+[CHANGED] None — all ACCEPTED findings remain live; hypothesis confidences unchanged (85/95/60); no REJECTED classes added.
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
 [PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45, 8.50, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
 [PRIO] login.microsoftonline.com v1↔v2.0 issuer-confusion (JWKS kid overlap + dual issuer), 8.25, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
@@ -6,7 +8,7 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations
 confidence: 85
-reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch (7.28MB, 03:14 UTC): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions annotations. Same zero-restriction pattern confirmed on agentInstance (agentUserId, managedBy), agentCollection, agentCardManifest, copilotPackage — 5 EntityTypes total. ContainsTarget=true navigation on copilotRoot enables cross-principal collection access. Scope AgentRegistration.ReadWrite.All (admin consent required).
+reasoning: PASSIVE-VERIFIED via live Graph beta $metadata fetch (7.28MB, 03:14 UTC): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json untyped), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions annotations. Same zero-restriction pattern on agentInstance, agentCollection, agentCardManifest, copilotPackage — 5 EntityTypes total. ContainsTarget=true navigation on copilotRoot enables cross-principal collection access. Scope AgentRegistration.ReadWrite.All (admin consent required).
 evidence_needed: User2 (non-owner) GETs /beta/copilot/agentRegistrations collection → 200 + array containing User1's registrations; User2 PATCHes /beta/copilot/agentRegistrations/{id1} with attacker-controlled agentCard + ownerIds + createdBy → 200/204 and mutation persists in subsequent GET.
 verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"user2","ownerIds":["user2"],"agentCard":{}}; 2) B GET /beta/copilot/agentRegistrations (own Bearer) → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"injected":true}} → record 200/204 vs 403; 4) B GET /beta/copilot/agentRegistrations/{A-id} to confirm mutation persisted. Also test agentInstance path: PATCH /beta/agentRegistry/agentInstances/{id} with modified ownerIds.
 impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper with copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
@@ -29,7 +31,7 @@ evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-o
 verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token (iss=sts.windows.net/{tid}/) via v1.0 endpoint; send to a v2.0-only Graph resource/endpoint that enforces issuer strictly; observe acceptance (200) vs rejection (401/403). PASSIVE: kid overlap already verified (5/5 ⊂ 8); v1.0-only response_types verified (token, token id_token).
 impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100,000)
 testability: AUTH_HELPED
-[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list (IDOR/MISCONFIG/AUTH), and have concrete verify_steps with PASSIVE or AUTH_HELPED design.
+[PARKED] None — all three hypotheses pass confidence ≥40, class not on REJECTED list (IDOR/MISCONFIG/AUTH), and have concrete verify_steps with AUTH_HELPED design.
 [FINAL] 1. Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 85, priority 8.55)
 [FINAL] 2. Hardcoded Earth Engine OAuth client_secret in public Google repo (MISCONFIG, github.com/google/earthengine-api, confidence 95, priority 8.50)
 [FINAL] 3. v1.0↔v2.0 issuer-confusion token replay (AUTH, login.microsoftonline.com, confidence 60, priority 8.25)
