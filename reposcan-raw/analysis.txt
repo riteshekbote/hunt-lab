@@ -1,62 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'fuzz test key'
+e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'password'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'your_client_secret'
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'eyAkaknabna....'
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< '-----BEGIN PRIVATE KEY-----...'
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
+[0m
+### REAL_SECRET
+| File | Line | Secret SHA256 | Classification |
+|------|------|---------------|----------------|
 | *none found in this scan* | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder/example key in test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | Obvious test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Truncated example JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant name |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template for config generation |
+### TEST_OR_EXAMPLE
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | 87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | `password="password"` — test credentials |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | 597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b | `token="eyAkaknabna...."` — fake JWT |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | `PASSWORD = "password"` — test constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f | `client_secret="your_client_secret"` — placeholder |
 
-#### ENDPOINT_LEAK
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Well-known cloud metadata IP (not a leak) |
+### ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL Connector/J docs URL |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Project homepage URL |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | GCP metadata endpoint `169.254.169.254` (well-known) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | GCP metadata endpoint `169.254.169.254` (well-known) |
 
-#### INTERESTING
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` | **Best practice** - fetches secret at runtime |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` | **Best practice** - fetches secret at runtime |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret reference for Cloud Run injection |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | `IPP_CREATE_*_TOKEN` | Metric/timer constant names |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` | Constant key name |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` | Constant key name |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Config parameters |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Parse error messages | Minified source maps (build artifacts) |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Parse error messages | Minified source maps (build artifacts) |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | Standard GitHub Actions pattern |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | Standard GitHub Actions pattern (delta hit) |
+### INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret reference pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| reposcan-raw/google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Token timer constant names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
+| reposcan-raw/google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` |
+| reposcan-raw/google/private-compute-services/.../RenderTokenInsight.kt | 43 | Constant `KEY_RENDER_TOKEN = "render_token"` |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes `GOOGLE_API_KEY={google_api_key}` from variable (not hardcoded) |
+| reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml | 11 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig params (config, not secrets) |
 
 ---
 
-### Verdict List
+### VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| crosvm codecov_wrapper.sh | **no** | Uses Secret Manager correctly (runtime fetch) |
-| crosvm push_to_github.sh | **no** | Uses Secret Manager correctly (runtime fetch) |
-| adk-go Cloud Run secret ref | **no** | Secret reference, not value |
-| adk-python auth_credential.py (3 hits) | **no** | Test fixtures/placeholders |
-| adk-python auth_schemes.py | **no** | Constant name |
-| adk-python openapi auth_helpers.py | **no** | Explicit placeholder |
-| adk-python vmaas sandbox_computer.py | **no** | State key constant |
-| adk-python cli_create.py | **no** | Config template |
-| Container metadata endpoint | **no** | Well-known IP (169.254.169.254) |
-| Private compute timer/render keys | **no** | Metric constant names |
-| GKE kubeconfig params | **no** | Configuration parameters |
-| Source map JS files (adk-go, adk-python) | **no** | Build artifacts |
-| GitHub Actions GITHUB_TOKEN usage (2 repos) | **no** | Standard/required pattern |
+| google/earthengine-api/python/ee/oauth.py:45 (from knowledge base) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...`), REAL_SECRET confirmed live on master, scopes include `cloud-platform` — **already ACCEPTED 2026-08-07** |
+| All hits in this scan | **no** | All classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known), or INTERESTING (config/constant names) — no live credentials |
 
-**No REAL_SECRET findings in this scan delta.** The single new hit (magika workflow) is standard GitHub Actions secret usage. The previously known earthengine-api client_secret (oauth.py:45) was not in this scan's file set.
+**Summary**: This scan produced **zero new reportable secrets**. The only REAL_SECRET in scope remains the previously accepted earthengine-api client_secret.
