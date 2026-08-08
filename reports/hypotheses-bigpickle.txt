@@ -1,1 +1,28 @@
-## 2026-08-08 13:50:53 UTC [google] (model bigpickle)
+## 2026-08-08 14:32:43 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: $metadata blocks (872-873 chars) for agentRegistration + 5 sibling EntityTypes show createdBy/ownerIds/agentCard/managedByAppId client-supplied with ZERO Operation/Read/Insert/Update/DeleteRestrictions; live GET→401 confirms auth-gated only, no pre-auth branch. Unchanged at this cycle's probe.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: whole-file sha `f4f93c76…` unchanged at this cycle's raw-GitHub probe; secret sha256 `3f3f8d6f…d271` verbatim at :45 (+:99 fallback); scopes cloud-platform+drive+devstorage.full_control.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: this cycle's kid-by-kid comparison: all served v1 kids (4-5, rotating) present in v2's 8 — subset invariant intact across 4 samples; dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0; shared-key precondition holds.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
