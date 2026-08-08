@@ -204,3 +204,12 @@
 - NEW graph.microsoft.com/beta/copilot/agentRegistrations `HEAD` → **HTTP 405** (Content-Length: 0, no `WWW-Authenticate: Bearer`), consistent with documented 405 anomaly at 15:02 UTC — confirms metadata-le
 - NEW login.microsoftonline.com/common/discovery/keys → **HTTP 200** (23,932 bytes, `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: GET, OPTIONS`), confirming v1/v2 JWKS kid overlap + dual 
 - NEW oauth2.googleapis.com/tokeninfo → **HTTP 404 on HEAD / HTTP 200 on GET** with `X-Content-Type-Options: nosniff`, confirms query-param introspection oracle still live (no-Auth-header required) at 15:02
+
+## 2026-08-08 15:47:21 UTC
+- NEW login.microsoftonline.com/common/discovery/keys v1.0 key set rotated 5→4 kids (aFkmKVFc retired from v1; now v2-exclusive) — steady-state subset invariant v1(4) ⊂ v2(8) still holds
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations `HEAD` → HTTP 405 (Content-Length: 0, no `WWW-Authenticate: Bearer`), confirming metadata-level 405 anomaly
+- NEW login.microsoftonline.com/common/discovery/keys → HTTP 200 (23,828 bytes, `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: GET, OPTIONS`), confirming v1/v2 JWKS kid overlap + dual issu
+- NEW oauth2.googleapis.com/tokeninfo → HTTP 404 on HEAD / HTTP 200 on GET with `X-Content-Type-Options: nosniff`, confirming query-param introspection oracle still live
+- CHANGED `login.microsoftonline.com/common/discovery/keys` — v1.0 key set rotated 5→4 kids (`aFkmKVFc…` retired from v1, now v2-exclusive). Steady-state subset invariant v1(4) ⊂ v2(8) still holds; 0 v1-exclusi
+- NEW `graph.microsoft.com/beta/copilot/agentRegistrations` `HEAD` → HTTP 405 (Content-Length: 0, no `WWW-Authenticate: Bearer`) — RFC 6750 §3 violation extends beyond `/v1.0`, `/me`, `/users` to the Agent 
+- NEW `oauth2.googleapis.com/tokeninfo` — `HEAD` → HTTP 404 (GET → HTTP 200, 113 bytes, `X-Content-Type-Options: nosniff`). Introspection oracle confirmed live via GET method; HEAD-404 is unusual method-han

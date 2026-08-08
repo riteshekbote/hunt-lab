@@ -1043,3 +1043,31 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ 15:02 UTC — whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 verbatim at :45.
 [LEARN] ACCEPTED Graph 405 anomaly + tokeninfo oracle + v2.0 authorize 200 error rendering confirmed LIVE @ 15:02 UTC (405/0 no WWW-Authenticate; 400/113 invalid_token; 200/23835).
 [RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential on master (native-app by-design caveat caps VRP), public tokeninfo introspection oracle; otherwise uniform all-400/401 passive surface | microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (873-char block, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
+## 2026-08-08 15:43:45 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: fresh $metadata (~15:1x UTC, 7.29MB) — agentRegistration block=873 chars, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/Read/Insert/Update/DeleteRestrictions; live GET→401 auth-gated only; 5 sibling EntityTypes share the pattern.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: this cycle raw-GitHub probe: whole-file sha f4f93c76… unchanged; bare secret sha256 3f3f8d6f…d271 verbatim at :45 (+:99 fallback); scopes cloud-platform+drive+devstorage.full_control; CLIENT_ID 517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: this cycle kid-by-kid: v1(5) {6hXLaIY, AahUf1bC, aFkmKVFc, fEtqrhKT, jvm_-Ttaq} ALL present in v2(8) — subset invariant held across the transient 5→4→5 rotation, no v1-exclusive kid ever persisted; dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0; shared-key precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
