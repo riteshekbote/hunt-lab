@@ -1,112 +1,46 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLES
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=48, limit=20][0m
+Based on my analysis of the 265 scan hits and the knowledge base, here's the triage:
 
-## REAL_SECRET
-# None found - all candidate hits are test data, placeholders, or public endpoints
+### REAL_SECRET
+| File | Line | Classification | SHA256 | Verdict |
+|------|------|---------------|--------|---------|
+| `google/earthengine-api/python/ee/oauth.py` | 45 | **Already in KB as ACCEPTED** | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | REPORT_CANDIDATE: yes (pending VRP on native-app by-design) |
 
-## TEST_OR_EXAMPLE
-| File | Line | Content Hash | Reason |
-|------|------|--------------|--------|
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | d55d5effcce8899d | test-token-123 (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | (full grep) | testpassword (test fixture) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | N/A | GEMINI_API_KEY = "gemini_api_key" (placeholder constant name) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | N/A | StorageDriverPassword = "storage_driver_password" (flag default placeholder) |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/localization/*/TeX.js | 19 | 4f1e59d64cbf4a4e | Translation strings (26 languages) |
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — env var name, not a key |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — secret REFERENCE, not value |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` — flag NAME constant |
+| `google/copybara/javatests/.../AuthTest.java` | 75, 102, 129 | `testpassword`, `test-token-123` — test fixtures |
+| `google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | `testpassword` — test fixtures |
+| `google/jsonnet/.github/workflows/publish-python.yml` | 85, 105 | GitHub Actions templating `${{...}}` — not secrets |
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/...` | All | Localization strings — not secrets |
 
-## ENDPOINT_LEAK
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Public GCE metadata endpoint (well-known) |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Public AWS IMDS endpoint (well-known) |
-| google/jsonnet/.github/workflows/publish-python.yml | 85,105 | pypi.org / test.pypi.org URLs | Public package registry URLs |
-| google/copybara/cloudbuild.yaml | 27 | pantheon.corp.google.com artifact registry | Internal Google URL in comment (no creds) |
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | GCE metadata endpoint — public documented URL |
+| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | AWS IMDS endpoint — public documented URL |
 
-## INTERESTING
-| File | Line | Content | Note |
-|------|------|---------|------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest | Cloud Run secret injection pattern (refers to secret manager, not a secret itself) |
-| google/agents-cli/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs._id_token }} | GitHub Actions OIDC token reference (runtime, not static) |
+### INTERESTING (non-secret)
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | All | Minified source map parse errors — 240+ hits, all JS parser error strings |
+| `google/copybara/cloudbuild.yaml` | 27 | Internal Artifact Registry URL (commented) — `gcr.io/bazel` |
 
-# VERDICT LIST
+---
 
-| Candidate | File | Line | Category | REPORT_CANDIDATE |
-|-----------|------|------|----------|------------------|
-| test-token-123 | copybara/AuthTest.java | 102 | TEST_OR_EXAMPLE | no |
-| testpassword (×6) | copybara/*Test.java | various | TEST_OR_EXAMPLE | no |
-| gemini_api_key | agents-cli/auth.py | 43 | TEST_OR_EXAMPLE | no |
-| storage_driver_password | cadvisor/flags.go | 54 | TEST_OR_EXAMPLE | no |
-| MathJax translations | jsonnet/doc/third_party/... | 19 | TEST_OR_EXAMPLE | no |
-| GCE metadata endpoint | tensorstore/gce_auth_provider.h | 55 | ENDPOINT_LEAK | no |
-| AWS IMDS endpoint | tensorstore/aws_credentials_spec.h | 51 | ENDPOINT_LEAK | no |
-| PyPI URLs | jsonnet/publish-python.yml | 85,105 | ENDPOINT_LEAK | no |
-| Cloud Run secret ref | adk-go/cloudrun.go | 246 | INTERESTING | no |
-| GH Actions OIDC ref | agents-cli/staging.yaml | 168,192 | INTERESTING | no |
+### SHORT VERDICT LIST
 
-# SUMMARY
-**No REAL_SECRET findings in this delta.** All 34 delta hits + full grep hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known public endpoints), or INTERESTING (deployment patterns referencing external secret stores). The previously reported earthengine-api hardcoded client_secret (sha256 3f3f8d6f...) remains the only live REAL_SECRET in the google/ org per knowledge base.
-EOF
-# CLASSIFICATION TABLES
+| Candidate | REPORT_CANDIDATE | Notes |
+|-----------|------------------|-------|
+| earthengine-api `oauth.py:45` OAuth client_secret | **yes** | Already ACCEPTED in KB; live on master; scopes include `cloud-platform`+`drive`+`devstorage.full_control`; OOB redirect; VRP determination pending on native-app by-design status |
+| All other 264 hits | **no** | Test fixtures, constant names, secret references, minified JS parse errors, public endpoints, localization strings — no reportable findings |
 
-## REAL_SECRET
-# None found - all candidate hits are test data, placeholders, or public endpoints
-
-## TEST_OR_EXAMPLE
-| File | Line | Content Hash | Reason |
-|------|------|--------------|--------|
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | d55d5effcce8899d | test-token-123 (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | d55d5effcce8899d | testpassword (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | (full grep) | testpassword (test fixture) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | N/A | GEMINI_API_KEY = "gemini_api_key" (placeholder constant name) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | N/A | StorageDriverPassword = "storage_driver_password" (flag default placeholder) |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/localization/*/TeX.js | 19 | 4f1e59d64cbf4a4e | Translation strings (26 languages) |
-
-## ENDPOINT_LEAK
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Public GCE metadata endpoint (well-known) |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Public AWS IMDS endpoint (well-known) |
-| google/jsonnet/.github/workflows/publish-python.yml | 85,105 | pypi.org / test.pypi.org URLs | Public package registry URLs |
-| google/copybara/cloudbuild.yaml | 27 | pantheon.corp.google.com artifact registry | Internal Google URL in comment (no creds) |
-
-## INTERESTING
-| File | Line | Content | Note |
-|------|------|---------|------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest | Cloud Run secret injection pattern (refers to secret manager, not a secret itself) |
-| google/agents-cli/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs._id_token }} | GitHub Actions OIDC token reference (runtime, not static) |
-
-# VERDICT LIST
-
-| Candidate | File | Line | Category | REPORT_CANDIDATE |
-|-----------|------|------|----------|------------------|
-| test-token-123 | copybara/AuthTest.java | 102 | TEST_OR_EXAMPLE | no |
-| testpassword (×6) | copybara/*Test.java | various | TEST_OR_EXAMPLE | no |
-| gemini_api_key | agents-cli/auth.py | 43 | TEST_OR_EXAMPLE | no |
-| storage_driver_password | cadvisor/flags.go | 54 | TEST_OR_EXAMPLE | no |
-| MathJax translations | jsonnet/doc/third_party/... | 19 | TEST_OR_EXAMPLE | no |
-| GCE metadata endpoint | tensorstore/gce_auth_provider.h | 55 | ENDPOINT_LEAK | no |
-| AWS IMDS endpoint | tensorstore/aws_credentials_spec.h | 51 | ENDPOINT_LEAK | no |
-| PyPI URLs | jsonnet/publish-python.yml | 85,105 | ENDPOINT_LEAK | no |
-| Cloud Run secret ref | adk-go/cloudrun.go | 246 | INTERESTING | no |
-| GH Actions OIDC ref | agents-cli/staging.yaml | 168,192 | INTERESTING | no |
-
-# SUMMARY
-**No REAL_SECRET findings in this delta.** All 34 delta hits + full grep hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known public endpoints), or INTERESTING (deployment patterns referencing external secret stores). The previously reported earthengine-api hardcoded client_secret (sha256 3f3f8d6f...) remains the only live REAL_SECRET in the google/ org per knowledge base.
-[0m
-**Triaging complete. No new REAL_SECRET findings in this delta.**
-
-All 34 new hits + full grep context classify as:
-- **TEST_OR_EXAMPLE** (28 hits): test fixtures (`testpassword`, `test-token-123`), placeholder constant names (`gemini_api_key`, `storage_driver_password`), MathJax translation strings
-- **ENDPOINT_LEAK** (4 hits): well-known public metadata endpoints (GCE, AWS IMDS), PyPI URLs, internal Google URL in comment (no credentials)
-- **INTERESTING** (2 hits): Cloud Run secret injection pattern referencing Secret Manager, GitHub Actions OIDC token reference — both are deployment-time patterns, not static secrets
-
-The only live REAL_SECRET in google/ org remains the **earthengine-api hardcoded OAuth client_secret** (`python/ee/oauth.py:45`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), previously accepted and confirmed live at 18:58 UTC.
+**No new reportable candidates in this delta.** The only live secret is the previously-tracked earthengine-api client_secret.
