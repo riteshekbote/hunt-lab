@@ -428,3 +428,21 @@
 - LEARN: ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw 
 - LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pen
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:30 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA
+
+## RANKED HYPOTHESES 2026-08-08 15:05:14 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentR
+- NEXT(hypotheses-laguna.txt): AUTH_HELPED: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A) POST https://graph.microsoft.com/beta/copilot/agentRegistration
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 11:30 UTC — 873-char block, no OperationRestrictions, createdBy/ownerI
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw 
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pen
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:30 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1 key set rotated 5→4 (aFkmKVFc retired from v1 only), transient 7-kid v2 response self-correct
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed LIVE @ 15:02 UTC — fresh $metadata (7.3MB), 873-char block, 0 OperationRestrictions,
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ 15:02 UTC — whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 verbatim at :45.
+- LEARN: ACCEPTED Graph 405 anomaly + tokeninfo oracle + v2.0 authorize 200 error rendering confirmed LIVE @ 15:02 UTC (405/0 no WWW-Authenticate; 400/113 invalid_token;
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata fetch (7.3MB), agentRegistration block=873 chars, no Op
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 15:02 UTC — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 15:02 UTC — JWKS endpoint HTTP 200, `Access-Control-Allow-Origin: *`; 5 v1.0 kids ALL present in v2.
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (15:02 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.

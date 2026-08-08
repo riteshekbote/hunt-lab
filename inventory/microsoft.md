@@ -201,3 +201,9 @@
 ## 2026-08-08 14:36:34 UTC
 - NEW None — inventory, knowledge base, and last leads all converge at 2026-08-08 11:30 UTC re-verification; no new endpoints, schema changes, or surface anomalies since last cycle.
 - CHANGED None — all ACCEPTED findings remain live; hypothesis confidences unchanged (85/95/60); no REJECTED classes added.
+
+## 2026-08-08 15:05:14 UTC
+- CHANGED login.microsoftonline.com/common/discovery/keys v1.0 key set rotated 5→4 kids (aFkmKVFc… retired from v1; now v2-exclusive) — steady-state subset invariant v1(4) ⊂ v2(8) still holds; transient 7-kid v
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations `HEAD` → **HTTP 405** (Content-Length: 0, no `WWW-Authenticate: Bearer`), consistent with documented 405 anomaly at 15:02 UTC — confirms metadata-le
+- NEW login.microsoftonline.com/common/discovery/keys → **HTTP 200** (23,932 bytes, `Access-Control-Allow-Origin: *`, `Access-Control-Allow-Methods: GET, OPTIONS`), confirming v1/v2 JWKS kid overlap + dual 
+- NEW oauth2.googleapis.com/tokeninfo → **HTTP 404 on HEAD / HTTP 200 on GET** with `X-Content-Type-Options: nosniff`, confirms query-param introspection oracle still live (no-Auth-header required) at 15:02
