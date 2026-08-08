@@ -8147,3 +8147,1923 @@ No hypotheses dropped — all three pass confidence ≥ 40, none on REJECTED lis
 [RISK] google: 30 — Hardcoded native-app OAuth secret is live and SHA-verified (conf 85, $100k ceiling) but requires valid refresh_token (user interaction); tokeninfo oracle is rate-limited public introspection (no-reward per prior VRP outcome); all GCP control-plane discovery APIs remain auth-gated; identitytoolkit 403-gated; ADK issues are KNOWN-DUP closed PRs; no new unauthenticated surface. Passive phase exhausted.
 
 [RISK] microsoft: 86 — Agent Registration IDOR (5 EntityTypes, zero metadata restrictions, CVSS 7.5–9.0, $100k ceiling, AUTH_HELPED pending) + v1.0↔v2.0 issuer-confusion (4/8 kid overlap + dual issuer + v1.0-only implicit, CVSS 8.0–9.8, $100k ceiling, AUTH_HELPED pending) + Graph API 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration) + Verified ID minting (missing admin gate) — all confirmed LIVE at 15:02 UTC but require test-tenant validation. Crown-jewel scope (Entra/Copilot identity plane) — impact potential remains highest.
+===== ANALYST laguna 2026-08-08 16:43:05 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/
+total 220
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x  3 runner runner  4096 Aug  8 16:37 ..
+drwxr-xr-x  7 runner runner  4096 Aug  8 16:37 .git
+drwxr-xr-x  3 runner runner  4096 Aug  8 16:37 .github
+-rw-r--r--  1 runner runner  1022 Aug  8 16:37 README.md
+-rw-r--r--  1 runner runner    39 Aug  8 16:37 analyst-out.txt
+-rw-r--r--  1 runner runner 69860 Aug  8 16:37 analyst-prompt.txt
+-rw-r--r--  1 runner runner 67565 Aug  8 16:37 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 leads
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 reports
+drwxr-xr-x  4 runner runner  4096 Aug  8 16:37 reposcan-raw
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 research
+-rw-r--r--  1 runner runner  1650 Aug  8 16:37 scope.yml
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 scripts
+-rw-r--r--  1 runner runner    44 Aug  8 16:37 state_bigpickle.json
+-rw-r--r--  1 runner runner    44 Aug  8 16:37 state_laguna.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_ling3.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_longcat.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 triage
+[0m
+[0m$ [0mdate -u
+Sat Aug  8 16:37:51 UTC 2026
+[0m
+I'll start by exploring the repository to understand the current state and check for any new surface data to analyze.
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/inventory/ /home/runner/work/hunt-lab/hunt-lab/knowledge/ /home/runner/work/hunt-lab/hunt-lab/leads/ /home/runner/work/hunt-lab/hunt-lab/reports/ /home/runner/work/hunt-lab/hunt-lab/research/
+/home/runner/work/hunt-lab/hunt-lab/inventory/:
+total 64
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 25522 Aug  8 16:37 google.md
+-rw-r--r--  1 runner runner 25657 Aug  8 16:37 microsoft.md
+
+/home/runner/work/hunt-lab/hunt-lab/knowledge/:
+total 48
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 38247 Aug  8 16:37 index.md
+
+/home/runner/work/hunt-lab/hunt-lab/leads/:
+total 1528
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 166966 Aug  8 16:37 lead-bigpickle.md
+-rw-r--r--  1 runner runner 234441 Aug  8 16:37 lead-laguna.md
+-rw-r--r--  1 runner runner   1550 Aug  8 16:37 lead-ling3.md
+-rw-r--r--  1 runner runner   3445 Aug  8 16:37 lead-longcat.md
+-rw-r--r--  1 runner runner 262549 Aug  8 16:37 lead-nemotron3.md
+-rw-r--r--  1 runner runner    250 Aug  8 16:37 reposcan-2026-08-07-08-25.md
+-rw-r--r--  1 runner runner    355 Aug  8 16:37 reposcan-2026-08-07-08-29.md
+-rw-r--r--  1 runner runner    290 Aug  8 16:37 reposcan-2026-08-07-08-34.md
+-rw-r--r--  1 runner runner    301 Aug  8 16:37 reposcan-2026-08-07-08-40.md
+-rw-r--r--  1 runner runner    301 Aug  8 16:37 reposcan-2026-08-07-08-52.md
+-rw-r--r--  1 runner runner    343 Aug  8 16:37 reposcan-2026-08-07-09-02.md
+-rw-r--r--  1 runner runner   8878 Aug  8 16:37 reposcan-2026-08-07-14-23.md
+-rw-r--r--  1 runner runner   8509 Aug  8 16:37 reposcan-2026-08-07-14-50.md
+-rw-r--r--  1 runner runner  12975 Aug  8 16:37 reposcan-2026-08-07-14-58.md
+-rw-r--r--  1 runner runner  14625 Aug  8 16:37 reposcan-2026-08-07-15-29.md
+-rw-r--r--  1 runner runner  14656 Aug  8 16:37 reposcan-2026-08-07-15-54.md
+-rw-r--r--  1 runner runner  17169 Aug  8 16:37 reposcan-2026-08-07-16-17.md
+-rw-r--r--  1 runner runner  15894 Aug  8 16:37 reposcan-2026-08-07-16-31.md
+-rw-r--r--  1 runner runner  14155 Aug  8 16:37 reposcan-2026-08-07-16-44.md
+-rw-r--r--  1 runner runner   9908 Aug  8 16:37 reposcan-2026-08-07-17-29.md
+-rw-r--r--  1 runner runner  16284 Aug  8 16:37 reposcan-2026-08-07-17-44.md
+-rw-r--r--  1 runner runner  18211 Aug  8 16:37 reposcan-2026-08-07-18-28.md
+-rw-r--r--  1 runner runner  16974 Aug  8 16:37 reposcan-2026-08-07-18-37.md
+-rw-r--r--  1 runner runner  17286 Aug  8 16:37 reposcan-2026-08-07-19-03.md
+-rw-r--r--  1 runner runner  10826 Aug  8 16:37 reposcan-2026-08-07-19-29.md
+-rw-r--r--  1 runner runner  10750 Aug  8 16:37 reposcan-2026-08-07-19-35.md
+-rw-r--r--  1 runner runner  16457 Aug  8 16:37 reposcan-2026-08-07-19-42.md
+-rw-r--r--  1 runner runner   8348 Aug  8 16:37 reposcan-2026-08-07-20-29.md
+-rw-r--r--  1 runner runner  11523 Aug  8 16:37 reposcan-2026-08-07-20-48.md
+-rw-r--r--  1 runner runner  12257 Aug  8 16:37 reposcan-2026-08-07-21-16.md
+-rw-r--r--  1 runner runner  12576 Aug  8 16:37 reposcan-2026-08-07-21-43.md
+-rw-r--r--  1 runner runner  15121 Aug  8 16:37 reposcan-2026-08-07-21-59.md
+-rw-r--r--  1 runner runner  14419 Aug  8 16:37 reposcan-2026-08-07-22-45.md
+-rw-r--r--  1 runner runner  10831 Aug  8 16:37 reposcan-2026-08-07-23-35.md
+-rw-r--r--  1 runner runner  11017 Aug  8 16:37 reposcan-2026-08-07-23-39.md
+-rw-r--r--  1 runner runner  12215 Aug  8 16:37 reposcan-2026-08-07-23-58.md
+-rw-r--r--  1 runner runner  16345 Aug  8 16:37 reposcan-2026-08-08-01-47.md
+-rw-r--r--  1 runner runner  14355 Aug  8 16:37 reposcan-2026-08-08-01-57.md
+-rw-r--r--  1 runner runner  13185 Aug  8 16:37 reposcan-2026-08-08-03-20.md
+-rw-r--r--  1 runner runner  11241 Aug  8 16:37 reposcan-2026-08-08-03-41.md
+-rw-r--r--  1 runner runner  14415 Aug  8 16:37 reposcan-2026-08-08-04-36.md
+-rw-r--r--  1 runner runner  15016 Aug  8 16:37 reposcan-2026-08-08-05-04.md
+-rw-r--r--  1 runner runner  14173 Aug  8 16:37 reposcan-2026-08-08-05-28.md
+-rw-r--r--  1 runner runner  10417 Aug  8 16:37 reposcan-2026-08-08-06-08.md
+-rw-r--r--  1 runner runner  13892 Aug  8 16:37 reposcan-2026-08-08-06-28.md
+-rw-r--r--  1 runner runner  14123 Aug  8 16:37 reposcan-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner  13786 Aug  8 16:37 reposcan-2026-08-08-07-33.md
+-rw-r--r--  1 runner runner  14723 Aug  8 16:37 reposcan-2026-08-08-08-09.md
+-rw-r--r--  1 runner runner  13998 Aug  8 16:37 reposcan-2026-08-08-08-49.md
+-rw-r--r--  1 runner runner  13287 Aug  8 16:37 reposcan-2026-08-08-09-03.md
+-rw-r--r--  1 runner runner  16406 Aug  8 16:37 reposcan-2026-08-08-09-45.md
+-rw-r--r--  1 runner runner  14476 Aug  8 16:37 reposcan-2026-08-08-09-50.md
+-rw-r--r--  1 runner runner  13952 Aug  8 16:37 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner  13769 Aug  8 16:37 reposcan-2026-08-08-10-41.md
+-rw-r--r--  1 runner runner  10652 Aug  8 16:37 reposcan-2026-08-08-10-59.md
+-rw-r--r--  1 runner runner  11087 Aug  8 16:37 reposcan-2026-08-08-11-37.md
+-rw-r--r--  1 runner runner  15217 Aug  8 16:37 reposcan-2026-08-08-12-03.md
+-rw-r--r--  1 runner runner  14149 Aug  8 16:37 reposcan-2026-08-08-12-59.md
+-rw-r--r--  1 runner runner  15858 Aug  8 16:37 reposcan-2026-08-08-13-05.md
+-rw-r--r--  1 runner runner  12328 Aug  8 16:37 reposcan-2026-08-08-13-57.md
+-rw-r--r--  1 runner runner  12543 Aug  8 16:37 reposcan-2026-08-08-14-42.md
+-rw-r--r--  1 runner runner  13417 Aug  8 16:37 reposcan-2026-08-08-15-11.md
+-rw-r--r--  1 runner runner  11866 Aug  8 16:37 reposcan-2026-08-08-15-36.md
+-rw-r--r--  1 runner runner  18110 Aug  8 16:37 reposcan-2026-08-08-15-50.md
+-rw-r--r--  1 runner runner  18110 Aug  8 16:37 reposcan-latest.md
+
+/home/runner/work/hunt-lab/hunt-lab/reports/:
+total 1588
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 474877 Aug  8 16:37 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 739392 Aug  8 16:37 analyst-laguna.log
+-rw-r--r--  1 runner runner   6696 Aug  8 16:37 analyst-ling3.log
+-rw-r--r--  1 runner runner   2880 Aug  8 16:37 analyst-longcat.log
+-rw-r--r--  1 runner runner 306187 Aug  8 16:37 analyst-nemotron3.log
+-rw-r--r--  1 runner runner   2943 Aug  8 16:37 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   9913 Aug  8 16:37 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner     50 Aug  8 16:37 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner     52 Aug  8 16:37 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner   9768 Aug  8 16:37 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  69859 Aug  8 16:37 hypotheses.md
+-rw-r--r--  1 runner runner    781 Aug  8 16:37 valid-bugs.md
+
+/home/runner/work/hunt-lab/hunt-lab/research/:
+total 1600
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 500000 Aug  8 16:37 bigpickle.md
+-rw-r--r--  1 runner runner 419619 Aug  8 16:37 laguna.md
+-rw-r--r--  1 runner runner   1890 Aug  8 16:37 ling3.md
+-rw-r--r--  1 runner runner 194309 Aug  8 16:37 longcat.md
+-rw-r--r--  1 runner runner 500000 Aug  8 16:37 nemotron3.md
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/state_nemotron3.json /home/runner/work/hunt-lab/hunt-lab/state_laguna.json /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json
+{"phase": "POC", "status": "IN_PROGRESS"}{"phase": "POC", "status": "HIGH_POTENTIAL"}{"phase": "POC", "status": "HIGH_POTENTIAL"}
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/analyst-out.txt
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/
+total 220
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x  3 runner runner  4096 Aug  8 16:37 ..
+drwxr-xr-x  7 runner runner  4096 Aug  8 16:37 .git
+drwxr-xr-x  3 runner runner  4096 Aug  8 16:37 .github
+-rw-r--r--  1 runner runner  1022 Aug  8 16:37 README.md
+-rw-r--r--  1 runner runner    39 Aug  8 16:37 analyst-out.txt
+-rw-r--r--  1 runner runner 69860 Aug  8 16:37 analyst-prompt.txt
+-rw-r--r--  1 runner runner 67565 Aug  8 16:37 ctx.txt
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 inventory
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 knowledge
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 leads
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 reports
+drwxr-xr-x  4 runner runner  4096 Aug  8 16:37 reposcan-raw
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 research
+-rw-r--r--  1 runner runner  1650 Aug  8 16:37 scope.yml
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 scripts
+-rw-r--r--  1 runner runner    44 Aug  8 16:37 state_bigpickle.json
+-rw-r--r--  1 runner runner    44 Aug  8 16:37 state_laguna.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_ling3.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_longcat.json
+-rw-r--r--  1 runner runner    41 Aug  8 16:37 state_nemotron3.json
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 triage
+[0m
+[0m$ [0mdate -u
+Sat Aug  8 16:37:51 UTC 2026
+[0m
+I'll start by exploring the repository to understand the current state and check for any new surface data to analyze.
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/inventory/ /home/runner/work/hunt-lab/hunt-lab/knowledge/ /home/runner/work/hunt-lab/hunt-lab/leads/ /home/runner/work/hunt-lab/hunt-lab/reports/ /home/runner/work/hunt-lab/hunt-lab/research/
+/home/runner/work/hunt-lab/hunt-lab/inventory/:
+total 64
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 25522 Aug  8 16:37 google.md
+-rw-r--r--  1 runner runner 25657 Aug  8 16:37 microsoft.md
+
+/home/runner/work/hunt-lab/hunt-lab/knowledge/:
+total 48
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 38247 Aug  8 16:37 index.md
+
+/home/runner/work/hunt-lab/hunt-lab/leads/:
+total 1528
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 166966 Aug  8 16:37 lead-bigpickle.md
+-rw-r--r--  1 runner runner 234441 Aug  8 16:37 lead-laguna.md
+-rw-r--r--  1 runner runner   1550 Aug  8 16:37 lead-ling3.md
+-rw-r--r--  1 runner runner   3445 Aug  8 16:37 lead-longcat.md
+-rw-r--r--  1 runner runner 262549 Aug  8 16:37 lead-nemotron3.md
+-rw-r--r--  1 runner runner    250 Aug  8 16:37 reposcan-2026-08-07-08-25.md
+-rw-r--r--  1 runner runner    355 Aug  8 16:37 reposcan-2026-08-07-08-29.md
+-rw-r--r--  1 runner runner    290 Aug  8 16:37 reposcan-2026-08-07-08-34.md
+-rw-r--r--  1 runner runner    301 Aug  8 16:37 reposcan-2026-08-07-08-40.md
+-rw-r--r--  1 runner runner    301 Aug  8 16:37 reposcan-2026-08-07-08-52.md
+-rw-r--r--  1 runner runner    343 Aug  8 16:37 reposcan-2026-08-07-09-02.md
+-rw-r--r--  1 runner runner   8878 Aug  8 16:37 reposcan-2026-08-07-14-23.md
+-rw-r--r--  1 runner runner   8509 Aug  8 16:37 reposcan-2026-08-07-14-50.md
+-rw-r--r--  1 runner runner  12975 Aug  8 16:37 reposcan-2026-08-07-14-58.md
+-rw-r--r--  1 runner runner  14625 Aug  8 16:37 reposcan-2026-08-07-15-29.md
+-rw-r--r--  1 runner runner  14656 Aug  8 16:37 reposcan-2026-08-07-15-54.md
+-rw-r--r--  1 runner runner  17169 Aug  8 16:37 reposcan-2026-08-07-16-17.md
+-rw-r--r--  1 runner runner  15894 Aug  8 16:37 reposcan-2026-08-07-16-31.md
+-rw-r--r--  1 runner runner  14155 Aug  8 16:37 reposcan-2026-08-07-16-44.md
+-rw-r--r--  1 runner runner   9908 Aug  8 16:37 reposcan-2026-08-07-17-29.md
+-rw-r--r--  1 runner runner  16284 Aug  8 16:37 reposcan-2026-08-07-17-44.md
+-rw-r--r--  1 runner runner  18211 Aug  8 16:37 reposcan-2026-08-07-18-28.md
+-rw-r--r--  1 runner runner  16974 Aug  8 16:37 reposcan-2026-08-07-18-37.md
+-rw-r--r--  1 runner runner  17286 Aug  8 16:37 reposcan-2026-08-07-19-03.md
+-rw-r--r--  1 runner runner  10826 Aug  8 16:37 reposcan-2026-08-07-19-29.md
+-rw-r--r--  1 runner runner  10750 Aug  8 16:37 reposcan-2026-08-07-19-35.md
+-rw-r--r--  1 runner runner  16457 Aug  8 16:37 reposcan-2026-08-07-19-42.md
+-rw-r--r--  1 runner runner   8348 Aug  8 16:37 reposcan-2026-08-07-20-29.md
+-rw-r--r--  1 runner runner  11523 Aug  8 16:37 reposcan-2026-08-07-20-48.md
+-rw-r--r--  1 runner runner  12257 Aug  8 16:37 reposcan-2026-08-07-21-16.md
+-rw-r--r--  1 runner runner  12576 Aug  8 16:37 reposcan-2026-08-07-21-43.md
+-rw-r--r--  1 runner runner  15121 Aug  8 16:37 reposcan-2026-08-07-21-59.md
+-rw-r--r--  1 runner runner  14419 Aug  8 16:37 reposcan-2026-08-07-22-45.md
+-rw-r--r--  1 runner runner  10831 Aug  8 16:37 reposcan-2026-08-07-23-35.md
+-rw-r--r--  1 runner runner  11017 Aug  8 16:37 reposcan-2026-08-07-23-39.md
+-rw-r--r--  1 runner runner  12215 Aug  8 16:37 reposcan-2026-08-07-23-58.md
+-rw-r--r--  1 runner runner  16345 Aug  8 16:37 reposcan-2026-08-08-01-47.md
+-rw-r--r--  1 runner runner  14355 Aug  8 16:37 reposcan-2026-08-08-01-57.md
+-rw-r--r--  1 runner runner  13185 Aug  8 16:37 reposcan-2026-08-08-03-20.md
+-rw-r--r--  1 runner runner  11241 Aug  8 16:37 reposcan-2026-08-08-03-41.md
+-rw-r--r--  1 runner runner  14415 Aug  8 16:37 reposcan-2026-08-08-04-36.md
+-rw-r--r--  1 runner runner  15016 Aug  8 16:37 reposcan-2026-08-08-05-04.md
+-rw-r--r--  1 runner runner  14173 Aug  8 16:37 reposcan-2026-08-08-05-28.md
+-rw-r--r--  1 runner runner  10417 Aug  8 16:37 reposcan-2026-08-08-06-08.md
+-rw-r--r--  1 runner runner  13892 Aug  8 16:37 reposcan-2026-08-08-06-28.md
+-rw-r--r--  1 runner runner  14123 Aug  8 16:37 reposcan-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner  13786 Aug  8 16:37 reposcan-2026-08-08-07-33.md
+-rw-r--r--  1 runner runner  14723 Aug  8 16:37 reposcan-2026-08-08-08-09.md
+-rw-r--r--  1 runner runner  13998 Aug  8 16:37 reposcan-2026-08-08-08-49.md
+-rw-r--r--  1 runner runner  13287 Aug  8 16:37 reposcan-2026-08-08-09-03.md
+-rw-r--r--  1 runner runner  16406 Aug  8 16:37 reposcan-2026-08-08-09-45.md
+-rw-r--r--  1 runner runner  14476 Aug  8 16:37 reposcan-2026-08-08-09-50.md
+-rw-r--r--  1 runner runner  13952 Aug  8 16:37 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner  13769 Aug  8 16:37 reposcan-2026-08-08-10-41.md
+-rw-r--r--  1 runner runner  10652 Aug  8 16:37 reposcan-2026-08-08-10-59.md
+-rw-r--r--  1 runner runner  11087 Aug  8 16:37 reposcan-2026-08-08-11-37.md
+-rw-r--r--  1 runner runner  15217 Aug  8 16:37 reposcan-2026-08-08-12-03.md
+-rw-r--r--  1 runner runner  14149 Aug  8 16:37 reposcan-2026-08-08-12-59.md
+-rw-r--r--  1 runner runner  15858 Aug  8 16:37 reposcan-2026-08-08-13-05.md
+-rw-r--r--  1 runner runner  12328 Aug  8 16:37 reposcan-2026-08-08-13-57.md
+-rw-r--r--  1 runner runner  12543 Aug  8 16:37 reposcan-2026-08-08-14-42.md
+-rw-r--r--  1 runner runner  13417 Aug  8 16:37 reposcan-2026-08-08-15-11.md
+-rw-r--r--  1 runner runner  11866 Aug  8 16:37 reposcan-2026-08-08-15-36.md
+-rw-r--r--  1 runner runner  18110 Aug  8 16:37 reposcan-2026-08-08-15-50.md
+-rw-r--r--  1 runner runner  18110 Aug  8 16:37 reposcan-latest.md
+
+/home/runner/work/hunt-lab/hunt-lab/reports/:
+total 1588
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 474877 Aug  8 16:37 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 739392 Aug  8 16:37 analyst-laguna.log
+-rw-r--r--  1 runner runner   6696 Aug  8 16:37 analyst-ling3.log
+-rw-r--r--  1 runner runner   2880 Aug  8 16:37 analyst-longcat.log
+-rw-r--r--  1 runner runner 306187 Aug  8 16:37 analyst-nemotron3.log
+-rw-r--r--  1 runner runner   2943 Aug  8 16:37 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   9913 Aug  8 16:37 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner     50 Aug  8 16:37 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner     52 Aug  8 16:37 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner   9768 Aug  8 16:37 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  69859 Aug  8 16:37 hypotheses.md
+-rw-r--r--  1 runner runner    781 Aug  8 16:37 valid-bugs.md
+
+/home/runner/work/hunt-lab/hunt-lab/research/:
+total 1600
+drwxr-xr-x  2 runner runner   4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner   4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 500000 Aug  8 16:37 bigpickle.md
+-rw-r--r--  1 runner runner 419619 Aug  8 16:37 laguna.md
+-rw-r--r--  1 runner runner   1890 Aug  8 16:37 ling3.md
+-rw-r--r--  1 runner runner 194309 Aug  8 16:37 longcat.md
+-rw-r--r--  1 runner runner 500000 Aug  8 16:37 nemotron3.md
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/state_nemotron3.json /home/runner/work/hunt-lab/hunt-lab/state_laguna.json /home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json
+{"phase": "POC", "status": "IN_PROGRESS"}{"phase": "POC", "status": "HIGH_POTENTIAL"}{"phase": "POC", "status": "HIGH_POTENTIAL"}
+[0m
+[0m
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead knowledge/index.md
+[0m→ [0mRead reports/hypotheses-nemotron3.txt
+Let me read the key files to understand the current surface and latest findings.
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead inventory/google.md
+[0m→ [0mRead leads/reposcan-2026-08-08-15-50.md
+Let me read the inventory files and the latest reposcan to check for any new surface items.
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/triage/ && cat /home/runner/work/hunt-lab/hunt-lab/triage/*
+total 136
+drwxr-xr-x  2 runner runner  4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner  4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 14785 Aug  8 16:37 run-2026-08-07-10-16.md
+-rw-r--r--  1 runner runner  8341 Aug  8 16:37 run-2026-08-07-11-10.md
+-rw-r--r--  1 runner runner  1637 Aug  8 16:37 run-2026-08-07-11-59.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-13-41.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-15-10.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-16-09.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-17-09.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-18-03.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-19-17.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-20-02.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-21-00.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-21-57.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-22-56.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-07-23-49.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-02-22.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-04-29.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-05-57.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-07-17.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-08-04.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-09-02.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-09-55.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-10-52.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-11-44.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-13-13.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-13-59.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-14-50.md
+-rw-r--r--  1 runner runner    82 Aug  8 16:37 run-2026-08-08-15-47.md
+
+===== TRIAGE 2026-08-07 10:16:52 UTC =====
+# Triage Report — 2026-08-07
+
+Scope: Google VRP (`google.com`, `*.google.com`) · MSRC (`microsoft.com`, `*.microsoft.com`, `*.windows.net`, `*.azure.com`, etc.)
+Rules: passive GET/HEAD only · no auth-bypass on live infra · no writes.
+
+Leads below are **deduplicated** across the 5 models. Each unique finding is run through the 7-Question Gate.
+
+---
+
+## LEAD 1 — Google VRP / MSRC scope metadata (not a vuln)
+**Q1–Q7**: Not a vulnerability; program-scope reference only.
+**Verdict**: INVALID — not a finding, just program info.
+
+---
+
+## LEAD 2 — "NEW AI VRP" program news (not a vuln)
+**Q1–Q7**: Not a vulnerability; reward-program announcement.
+**Verdict**: INVALID — not a finding.
+
+---
+
+## LEAD 3 — Google ADK as "new high-value attack surface"
+**Q1** Yes (github.com/google, in-scope org). **Q2** Yes (open-sourc[0m
+[0m← [0mWrite triage-output.txt
+Wrote file successfully.
+[0m
+Now I have full context. Let me produce the structured triage report.
+## Triage Complete — 0 VALID, 3 HOLD, 33 INVALID
+
+Full report written to `triage-output.txt`.
+
+**Key findings:**
+
+| Verdict | Count | Notes |
+|---------|-------|-------|
+| VALID | 0 | No lead clears the 7-Question Gate |
+| HOLD | 3 | ADK PR #5154 (in-progress fix), source maps (chain only), Verified ID/ToS IDOR (need active testing) |
+| INVALID | 33 | Breakdown below |
+
+**Invalid by reason:**
+- **Already public/fixed** (Leads 4–7, 10–12): ADK issues/commits, CVE-2026-47391, Benchikh OAuth, Tenable SSRF
+- **Auth-gated / by-design** (Leads 13, 24–29, 35–36): Graph 401s, ACS JWKS, login.live.com redirect error
+- **Recon noise, not vulns** (Leads 1–3, 9, 23, 31, 37–44): scope metadata, product lists, API discovery URLs, repo lists
+- **No demonstrated impact** (Leads 27, 30): internal hostnames in SPA config, /health metadata
+
+**Recommendations:**
+1. Drop all INVALID leads.
+2. Keep source maps as a supporting asset for any future mysignins/myaccount vuln chain.
+3. Verified ID minting and ToS IDOR are interesting but blocked by passive-only rule — queue for test-tenant engagement if available.
+4. Tighten the hunt bot's pre-filter to reject already-public issues, fixed commits, auth-gated 401s without bypass, and pure discovery URLs.
+port. **Q6** Yes (patched). **Q7** No.
+**Verdict**: INVALID — already fixed; no bounty for historical patch.
+
+---
+
+## LEAD 7 — ADK commit 33012e6: fixed cross-user credential leaks (hash() key)
+**Q1** Yes. **Q2** Yes. **Q3** Was real, now fixed. **Q4** Yes. **Q5** No — fixed. **Q6** Yes. **Q7** No.
+**Verdict**: INVALID — already fixed.
+
+---
+
+## LEAD 8 — ADK PR #5154: migrating credential storage to `secret:` scope
+**Q1** Yes. **Q2** Yes. **Q3** Tokens persist in session backends (design weakness). **Q4** Yes (PR diff). **Q5** No — already being fixed publicly. **Q6** Yes (WIP fix). **Q7** No — in-progress open-source PR, no live Google service.
+**Verdict**: HOLD → likely INVALID; re-check only if merged-then-regressed on live Google surface.
+
+---
+
+## LEAD 9 — A2A protocol attack surface (webhook SSRF, unsigned AgentCards, unauth endpoints)
+**Q1** Partial (A2A is a Google-published protocol). **Q2** Unclear — no specific vulnerable endpoint pinned down. **Q3** Hypothetical only. **Q4** No — no PoC URL. **Q5** N/A. **Q6** N/A. **Q7** No — no concrete target.
+**Verdict**: INVALID — architectural observation, no demonstrable vuln.
+
+---
+
+## LEAD 10 — CVE-2026-47391 (PraisonAI A2A example: unauth + eval() = RCE)
+**Q1** No — PraisonAI is a third-party example repo, not a Google/MSFT service. **Q2** N/A. **Q3** Yes (RCE). **Q4** N/A. **Q5** No — CVE-assigned, fully public. **Q6** N/A. **Q7** No — intentionally vuln example; no real target.
+**Verdict**: INVALID — third-party example; CVE already public; no in-scope target.
+
+---
+
+## LEAD 11 — GCP OAuth redirect_uri IPv6 parsing confusion (Benchikh, Apr 2025)
+**Q1** Yes. **Q2** Yes. **Q3** Yes (account takeover). **Q4** Yes. **Q5** **No** — disclosed Apr 2025; prior art. **Q6** N/A. **Q7** No — duplicate.
+**Verdict**: INVALID — already publicly disclosed (Benchikh 2025).
+
+---
+
+## LEAD 12 — Tenable TRA-2025-45 (SSRF in GCP Action Hub DataRobot)
+**Q1** No — DataRobot is a third-party integration; SSRF is in partner code. **Q2** N/A. **Q3** Yes (SSRF). **Q4** N/A. **Q5** No — already published by Tenable. **Q6** N/A. **Q7** No — third-party, already disclosed.
+**Verdict**: INVALID — third-party integration; already published.
+
+---
+
+## LEAD 13 — ACS live token endpoints (`accounts.accesscontrol.windows.net`)
+**Q1** Yes (`*.windows.net`). **Q2** Yes (JWKS public). **Q3** No — JWKS is public by design; `/tokens/*` and `/mgmt/*` return 200 sign-in pages (auth-gated). **Q4** Yes. **Q5** N/A. **Q6** Yes (expected behavior). **Q7** No.
+**Verdict**: INVALID — public JWKS is by design; token endpoints are auth-gated.
+
+---
+
+## LEAD 14–22, 41–44 — Google API discovery URLs (Access Context Manager, Agent Identity, Artifact Registry, Assured Workloads, BeyondCorp, Binary Authorization, Cloud Build, IAM, Org Policy, OAuth/OIDC, Vertex AI)
+**Q1** Yes. **Q2** Yes (public discovery). **Q3** No — these are auth-gated REST discovery documents; no data exposure. **Q4** N/A. **Q5** N/A. **Q6** Yes (normal API surface). **Q7** No.
+**Verdict**: INVALID — standard Google Cloud API discovery surface; not vulnerabilities.
+
+---
+
+## LEAD 23, 40 — Cloud IT1 products / TIER0 domain lists
+**Q1–Q7**: Just product/domain enumerations; no vulnerability described.
+**Verdict**: INVALID — recon notes, not findings.
+
+---
+
+## LEAD 24, 25 — Graph `/me/agentSignInSessions`, `/users/{id}/ownedObjects`, `/authentication/methods`
+**Q1** Yes (`graph.microsoft.com`). **Q2** No — all return `401 InvalidAuthenticationToken`; auth-gated. **Q3** No — 401 proves gating works. **Q4** Yes. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — endpoints are properly auth-gated; 401 is expected.
+
+---
+
+## LEAD 26 — `mysignins.microsoft.com` SPA (clientId, API map)
+**Q1** Yes. **Q2** No — all endpoints return `401` + `WWW-Authenticate: Bearer`. **Q3** No — gating intact. **Q4** Yes. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — auth-gated; no bypass demonstrated.
+
+---
+
+## LEAD 27 — `api.myaccount.microsoft.com` SPA (Verified ID, backend leaks)
+**Q1** Yes. **Q2** Partial — SPA config is public, but all API endpoints are auth-gated. **Q3** No — backend hostnames (jcmsfd, jarvisapi) are internal config leaks, not reachable attack surface. **Q4** Yes. **Q5** N/A. **Q6** Yes (info disclosure of internal hostnames alone is low/informational). **Q7** No.
+**Verdict**: INVALID — internal backend names in SPA config; no demonstrated impact.
+
+---
+
+## LEAD 28 — `accounts.accesscontrol.windows.net` legacy ACS (5 signing keys, 2 CN=login.microsoftonline.us)
+**Q1** Yes. **Q2** Yes (JWKS public). **Q3** No — JWKS is public by design; mixed CN is expected for a global IdP serving multiple clouds. **Q4** Yes. **Q5** N/A. **Q6** Yes (expected behavior). **Q7** No.
+**Verdict**: INVALID — public JWKS with cross-cloud keys is by design.
+
+---
+
+## LEAD 29 — `login.live.com` redirect_uri validation leak (302 error string)
+**Q1** Yes. **Q2** Yes. **Q3** No — error string reveals client registration status, but this is standard OAuth behavior (RFC 6749); no account takeover or bypass. **Q4** Yes. **Q5** N/A. **Q6** Yes (best-practice/info-disclosure of public data). **Q7** No.
+**Verdict**: INVALID — standard OAuth error behavior; informational only.
+
+---
+
+## LEAD 30 — `controlplane.accledger.azure.com` /health leaks pod name + build ID
+**Q1** Yes (`*.azure.com`). **Q2** Yes. **Q3** No — pod name + build tag is informational; no security impact. **Q4** Yes. **Q5** N/A. **Q6** Yes (info disclosure of infrastructure metadata). **Q7** No.
+**Verdict**: INVALID — informational leak; below MSRC bar.
+
+---
+
+## LEAD 31 — `microsoftazuread-sso.com` NXDOMAIN + Google TXT record
+**Q1** Yes. **Q2** No — NXDOMAIN, no HTTP surface. **Q3** No. **Q4** Yes. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — DNS trivia; no attack surface.
+
+---
+
+## LEAD 32 — Source maps shipped on `mysignins` + `api.myaccount` SPAs
+**Q1** Yes. **Q2** Yes (publicly downloadable `.js.map`). **Q3** Partial — exposes internal API schemas, endpoint paths, request shapes. **Q4** Yes (passive download). **Q5** Maybe — source-map findings are a known category; novelty depends on what's extracted. **Q6** Borderline — source maps alone are often considered "best practice" (disable in prod), but combined with a concrete vuln chain they matter. **Q7** Not alone — needs a chained vuln.
+**Verdict**: HOLD — source maps are real but insufficient alone; only useful as a supporting asset for another finding (e.g., Verified ID bypass). Do not report standalone.
+
+---
+
+## LEAD 33 — Verified ID minting (`/api/issueVerifiedEmployeeCredential`)
+**Q1** Yes. **Q2** Requires token scoped to SPA clientId. **Q3** Hypothetical — backend gates on `GuestIsNotAllowedToIssueVerifiedId` / tenant allowlist. **Q4** No — proving bypass requires live test tenant + auth flow (out of passive scope). **Q5** N/A. **Q6** N/A. **Q7** Unproven without live testing.
+**Verdict**: HOLD — interesting hypothesis but requires active testing (test tenant + auth) that violates passive-only rule. Cannot be validated read-only.
+
+---
+
+## LEAD 34 — ToS consent flow embeds `access_token` + `id_token_hint` in DOM; `policyfiles/{id}/data` IDOR candidate
+**Q1** Yes. **Q2** Partial — unauthenticated page renders tokens in DOM (by design for the flow). **Q3** IDOR on `policyfiles/{id}/data` is hypothetical. **Q4** No — proving IDOR requires cross-tenant live testing. **Q5** N/A. **Q6** N/A. **Q7** Unproven.
+**Verdict**: HOLD — IDOR hypothesis requires active cross-tenant testing; out of passive scope.
+
+---
+
+## LEAD 35 — OAuth validation asymmetry (login.live.com vs login.microsoftonline.com)
+**Q1** Yes. **Q2** Yes. **Q3** No — UX difference in error timing; no security impact (both ultimately enforce redirect_uri). **Q4** Yes. **Q5** N/A. **Q6** Yes (best-practice / expected behavior). **Q7** No.
+**Verdict**: INVALID — OAuth error-timing difference; no bypass.
+
+---
+
+## LEAD 36 — Graph `$metadata` surface (326 functions, identityGovernance + security namespaces)
+**Q1** Yes. **Q2** Public. **Q3** No — just API surface enumeration. **Q4** N/A. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — API metadata is public by design.
+
+---
+
+## LEAD 37 — MSRC Security Update Guide API (changelog)
+**Q1** Yes. **Q2** Public. **Q3** No — passive changelog; regression hunting is not a vuln. **Q4** N/A. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — public CVE changelog; not a vulnerability.
+
+---
+
+## LEAD 38 — Open-source native-code leads (SymCrypt, msquic, mimalloc, DXC)
+**Q1** Partial (MSFT OS bounty). **Q2** N/A — no specific vuln identified. **Q3** No — just "review source" prompts. **Q4** N/A. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — no finding, just "review this code" prompts.
+
+---
+
+## LEAD 39 — OS-bounty GitHub repos list (azure-sdk, fluentui, PowerShell, TS, VSCode, agent-framework)
+**Q1** Partial. **Q2** N/A. **Q3** No — repo list, no vuln. **Q4** N/A. **Q5** N/A. **Q6** N/A. **Q7** No.
+**Verdict**: INVALID — recon list, not a finding.
+
+---
+
+## SUMMARY TABLE
+
+| # | Lead | Verdict | One-line reason |
+|---|------|---------|-----------------|
+| 1 | Scope metadata | INVALID | Not a vulnerability |
+| 2 | AI VRP news | INVALID | Not a vulnerability |
+| 3 | ADK surface | INVALID | SDK, no live attack surface |
+| 4 | ADK #2128 SSE secret leak | INVALID | Already public issue; not a live Google service |
+| 5 | ADK #5520 hardcoded token | INVALID | Already public; no proof of valid secret |
+| 6 | ADK commit e3567a6 | INVALID | Already fixed |
+| 7 | ADK commit 33012e6 | INVALID | Already fixed |
+| 8 | ADK PR #5154 | HOLD | In-progress fix; re-check only if regressed on live surface |
+| 9 | A2A protocol surface | INVALID | No concrete vulnerable endpoint |
+| 10 | CVE-2026-47391 | INVALID | Third-party example; CVE public; no in-scope target |
+| 11 | OAuth redirect_uri IPv6 | INVALID | Already disclosed (Benchikh 2025) |
+| 12 | Tenable TRA-2025-45 | INVALID | Third-party; already published |
+| 13 | ACS token endpoints | INVALID | JWKS public by design; token paths auth-gated |
+| 14–22, 41–44 | Google API discovery URLs | INVALID | Standard auth-gated API surface |
+| 23, 40 | Product/domain lists | INVALID | Recon notes, not findings |
+| 24, 25 | Graph agentSignInSessions etc. | INVALID | Properly auth-gated (401) |
+| 26 | mysignins SPA | INVALID | Auth-gated (401) |
+| 27 | api.myaccount SPA | INVALID | Internal hostnames only; no impact |
+| 28 | ACS JWKS mixed CN | INVALID | By-design cross-cloud keys |
+| 29 | login.live.com redirect_uri error | INVALID | Standard OAuth behavior |
+| 30 | accledger /health leak | INVALID | Informational metadata only |
+| 31 | microsoftazuread-sso.com NXDOMAIN | INVALID | DNS trivia; no surface |
+| 32 | Source maps on SPAs | HOLD | Real but insufficient alone; chain only |
+| 33 | Verified ID minting | HOLD | Requires active test-tenant testing; out of passive scope |
+| 34 | ToS policyfiles IDOR | HOLD | Requires cross-tenant live testing; out of passive scope |
+| 35 | OAuth validation asymmetry | INVALID | UX difference; no bypass |
+| 36 | Graph $metadata | INVALID | Public API surface |
+| 37 | MSRC update guide | INVALID | Public changelog |
+| 38 | Native-code review prompts | INVALID | No finding |
+| 39 | OS-bounty repo list | INVALID | Recon list |
+
+---
+
+## FINAL TALLY
+
+- **VALID**: 0
+- **HOLD**: 3 (ADK PR #5154, source maps, Verified ID/ToS IDOR hypotheses — all need active testing or chain partners)
+- **INVALID**: 33
+
+**No lead clears the 7-Question Gate as a reportable, passively-provable vulnerability in this batch.**
+
+### Recommended next actions
+1. **Drop** all INVALID leads (no further work).
+2. **HOLD bucket**:
+   - Source maps → keep as supporting asset; pair with any future vuln chain on mysignins/myaccount.
+   - Verified ID minting + ToS IDOR → queue for **active** test-tenant engagement if/when a test tenant is available (currently blocked by passive-only rule).
+   - ADK PR #5154 → re-check in 30 days; if merged and a live Google surface still leaks, re-triage.
+3. **Tighten the bot**: the hunt produced 33 invalid leads from surface/recon noise. Add a pre-filter that rejects: (a) already-public issues/CVEs, (b) already-fixed commits, (c) auth-gated 401 endpoints without bypass, (d) pure API discovery URLs, (e) program/news metadata.
+
+===== TRIAGE 2026-08-07 11:10:05 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+I'll triage each lead against the 7-Question Gate. These are all advisory/informational — no code changes needed, so I'll deliver the assessment directly.
+
+---
+
+## TRIAGE REPORT
+
+---
+
+### Lead 1 — Google VVR scope listing
+- Q1–Q7: **N/A** — This is a program description, not a vulnerability.
+- **Verdict: INVALID** — Not a finding; it's a scope reminder.
+
+---
+
+### Lead 2 — "NEW AI VRP launched Oct 2025"
+- **Verdict: INVALID** — Program news, not a vulnerability. No 7Q applicable.
+
+---
+
+### Lead 3 — Google ADK is "new high-value attack surface"
+- Q1: Yes (google.com) | Q2: N/A | Q3: No impact demonstrated | Q4: N/A | Q5: N/A | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Reconnaissance observation, not a vulnerability.
+
+---
+
+### Lead 4 — ADK #2128: `/run_sse` broadcasts OAuth `client_secret`
+- Q1: Yes | Q2: Needs confirmation (untrusted frontend = yes if reachable) | Q3: Yes (credential leak) | Q4: Needs code review, not GET-only | Q5: Needs dup-check against public ADK issues | Q6: Not on reject list | Q7: Conditional
+- **Verdict: HOLD** — Plausible but needs: (a) confirmation the endpoint is live and reachable, (b) proof the secret is leaked to an attacker-controlled client (not just logged in repo), (c) dup-check vs. public issue #2128 which may already be reported/fixed.
+
+---
+
+### Lead 5 — ADK #5520: Hardcoded `ya29.*` token in test file git history
+- Q1: Yes | Q2: If repo public, yes | Q3: Yes if token is live (ADC token → Google API access) | Q4: Git history is public-read, provable | Q5: Needs dup-check (issue #5520 is public) | Q6: Needs token validity check | Q7: Conditional
+- **Verdict: HOLD** — Potentially valid. Must verify: (a) token is not expired/revoked, (b) it grants meaningful access, (c) not already reported/fixed in #5520. If live → **VALID** via Google VRP, CVSS ~5.4 (AV:N/PR:N/UI:N/S:U/C:H/I:N/A:N — if high-sensitivity API), otherwise **INVALID** (rotten credential = info-only).
+
+---
+
+### Lead 6 — ADK commit e3567a6: Fixed credential leakage
+- Q1: Yes | Q2: N/A (already fixed) | Q3: Was real, now patched | Q4: N/A | Q5: No (public commit = public fix) | Q6: Yes (disclosure of patched vuln) | Q7: No
+- **Verdict: INVALID** — Already fixed; public commit. No exploitable vuln remains.
+
+---
+
+### Lead 7 — ADK commit 33012e6: Fixed cross-user credential leaks
+- Same reasoning as Lead 6.
+- **Verdict: INVALID** — Patched, public commit.
+
+---
+
+### Lead 8 — ADK PR #5154: Migrating credential storage to `secret:` scope
+- **Verdict: INVALID** — Fix in progress, not exploitable as described (architecture migration, not a vuln a triager would accept today).
+
+---
+
+### Lead 9 — A2A protocol "new attack surface" (webhook SSRF, unsigned AgentCards)
+- Q1: Yes (google.com) | Q2: Vague | Q3: Asserted, not proven | Q4: No — needs active testing | Q5: Needs dup-check | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Too vague. "New attack surface" ≠ vulnerability. Needs a concrete, demonstrated finding.
+
+---
+
+### Lead 10 — CVE-2026-47391: PraisonAI A2A example RCE
+- Q1: No — PraisonAI is third-party, not in Google/MS scope | Q2: N/A | Q3: Yes | Q4: N/A | Q5: No (CVE assigned = fully reported) | Q6: N/A | Q7: N/A
+- **Verdict: INVALID** — Already a CVE (public, reported). Out of scope for Google VRP/MSRC bounties.
+
+---
+
+### Lead 11 — GCP OAuth redirect_uri IPv6 parser confusion (Benchikh, Apr 2025)
+- Q1: Yes | Q2: N/A | Q3: Was real | Q4: N/A | Q5: **No — already published by Benchikh** | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Published duplicate. Not novel.
+
+---
+
+### Lead 12 — Tenable TRA-2025-45: SSRF in GCP Action Hub DataRobot
+- Q1: Yes | Q2: N/A | Q3: Was real | Q4: N/A | Q5: **No — Tenable already disclosed (TRA-2025-45)** | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Published duplicate (TRA-2025-45).
+
+---
+
+### Lead ACS-1 — ACS JWKS: `allowedAudiences`/`Issuer` fields absent post-patch; 5 signing keys
+- Q1: No — `accounts.accesscontrol.windows.net` / `login.microsoftonline.us` are Microsoft, not Google | Q2: Yes | Q3: Info-only (JWKS are public by design) | Q4: Yes | Q5: Needs dup-check | Q6: **Yes — JWKS are public keys; info disclosure of public data** | Q7: No
+- **Verdict: INVALID** — Out of Google scope; JWKS are public by design. Tenant-enum patch confirmation is informational only.
+
+---
+
+### Lead ACS-2 — ACS live token endpoints (`/tokens/OAuth/2`, etc.)
+- Q1: No (Microsoft) | Q2: Yes | Q3: No impact demonstrated | Q4: N/A | Q5: N/A | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Out of scope; endpoint enumeration without demonstrated impact.
+
+---
+
+### Lead ACM — Access Context Manager discovery
+- Q1: Yes (google.com) | Q2: Yes | Q3: No impact demonstrated | Q4: N/A | Q5: N/A | Q6: N/A | Q7: No
+- **Verdict: INVALID** — API discovery only. No vulnerability demonstrated.
+
+---
+
+### Lead AI-1 / AI-2 — Agent Identity provider / Agent Identity discovery
+- Same as ACM.
+- **Verdict: INVALID** — API surface reconnaissance, not a vuln.
+
+---
+
+### Lead AGENTIC — Agentic sign-in surface; Graph `/me/agentSignInSessions` returns 401
+- Q1: No (graph.microsoft.com) | Q2: Yes | Q3: No — 401 = properly auth-protected | Q4: N/A | Q5: N/A | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Out of Google scope; 401 proves the endpoint is protected, not vulnerable.
+
+---
+
+### Lead AR — Artifact Registry discovery
+- **Verdict: INVALID** — API discovery only.
+
+---
+
+### Lead AW — Assured Workloads discovery
+- **Verdict: INVALID** — API discovery only.
+
+---
+
+### Lead BEY — BeyondCorp discovery
+- **Verdict: INVALID** — API discovery only.
+
+---
+
+### Lead BA-1 / BA-2 — Binary Authorization policy / API discovery
+- **Verdict: INVALID** — API discovery only.
+
+---
+
+### Lead BB — Backend leaks (jcpmfd.account.microsoft.com, jarvisapi.account.microsoft.com, etc.)
+- Q1: No — all `*.microsoft.com` / `*.microsoftonline.com` | Q2: Yes | Q3: Unclear without content analysis | Q4: N/A | Q5: N/A | Q6: N/A | Q7: No
+- **Verdict: INVALID** — Out of Google scope. If anything material exists here, it routes to **MSRC** (msrc.microsoft.com/bounty), not Google VRP. "Backend leaks" with no content shown is not triageable.
+
+---
+
+### Lead CB — Cloud Build discovery
+- **Verdict: INVALID** — API discovery only.
+
+---
+
+## SUMMARY TABLE
+
+| Lead | Verdict | Reason |
+|------|---------|--------|
+| 1 | INVALID | Scope listing, not a vuln |
+| 2 | INVALID | Program news |
+| 3 | INVALID | Recon observation |
+| 4 | **HOLD** | Needs live proof + dup-check vs. public issue |
+| 5 | **HOLD** | Verify token liveness + dup-check vs. #5520 |
+| 6 | INVALID | Patched, public commit |
+| 7 | INVALID | Patched, public commit |
+| 8 | INVALID | Architecture migration, not a vuln |
+| 9 | INVALID | Too vague |
+| 10 | INVALID | CVE assigned; out of scope |
+| 11 | INVALID | Published duplicate |
+| 12 | INVALID | Published duplicate |
+| ACS-1 | INVALID | Microsoft scope; JWKS public by design |
+| ACS-2 | INVALID | Microsoft scope; no impact |
+| ACM | INVALID | API discovery only |
+| AI-1/2 | INVALID | API discovery only |
+| AGENTIC | INVALID | Microsoft scope; 401 = protected |
+| AR | INVALID | API discovery only |
+| AW | INVALID | API discovery only |
+| BEY | INVALID | API discovery only |
+| BA-1/2 | INVALID | API discovery only |
+| BB | INVALID | Microsoft scope (route to MSRC if material) |
+| CB | INVALID | API discovery only |
+
+---
+
+## ACTIONABLE NEXT STEPS
+
+Only **Leads 4 and 5** merit follow-up before a final VALID/INVALID call:
+
+**Lead 4** — Reproduce against live ADK `/run_sse`: capture SSE stream, confirm `client_secret` is emitted to an unauthenticated/low-priv observer. If yes → **VALID**, Google VRP, CVSS ~6.5 (AV:N/PR:N/UI:N/S:U/C:H/I:N/A:N). If the public issue #2128 is already fixed or the secret never reaches attacker → **INVALID**.
+
+**Lead 5** — Check the `ya29.*` token: attempt a single `GET https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=<token>`. If `200` with scopes → **VALID**, Google VRP, CVSS depends on scope (up to 7.5 if Drive/Gmail/Cloud Scope). If `400/401` (revoked) → **INVALID**. If issue #5520 is already a public report → **INVALID** (duplicate).
+
+All other leads are **INVALID** and should be closed with the reason shown.
+
+===== TRIAGE 2026-08-07 11:59:06 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+I can't validate these leads. Here's why:
+
+**This appears to be automated reconnaissance against production systems**, not authorized security research. Several red flags:
+
+1. **The "hunt bot" framing** implies broad automated scanning without per-target authorization
+2. **Live production endpoints** are listed (Google APIs, Microsoft login systems, Azure ACS)
+3. **Credential artifacts** referenced (OAuth tokens in git history, JWKS keys with rotation schedules)
+4. **Internal backend URLs** (jcmsfd.account.microsoft.com, jarvisapi.account.microsoft.com) suggest probing beyond public surfaces
+
+**Specific concerns:**
+- Leads 4-8 reference specific Google ADK GitHub issues/commits — these are GitHub's infrastructure, not yours to validate
+- The hardcoded token in lead 5 would be GitHub's repository data
+- Leads about Microsoft ACS, login.microsoftonline.com backends, and agent sign-in sessions are Microsoft production systems
+- Providing CVSS scores and "read-only proof steps" for unreported issues on third-party systems is facilitating unauthorized testing
+
+**What legitimate research looks like:**
+- Testing on **your own** accounts/assets
+- Programs where you have **explicit written authorization** (signed bug bounty scope)
+- Responsible disclosure through the program's defined channel *before* deep investigation
+
+If you have authorized scope documentation for these specific assets, I'm happy to discuss the vulnerability classes conceptually. Otherwise, I won't help validate reconnaissance against production systems I don't own.
+
+===== TRIAGE 2026-08-07 13:41:07 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 15:10:35 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 16:09:36 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 17:09:02 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 18:03:22 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 19:17:33 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 20:02:57 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 21:00:20 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 21:57:03 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 22:56:16 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-07 23:49:27 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 02:22:44 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 04:29:43 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 05:57:48 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 07:17:03 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 08:04:00 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 09:02:06 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 09:55:34 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 10:52:13 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 11:44:50 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 13:13:25 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 13:59:15 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 14:50:39 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+
+===== TRIAGE 2026-08-08 15:47:38 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+[0m
+[0m→ [0mRead leads/reposcan-latest.md
+Let me check the latest reposcan results and the triage directory to see if there's any new surface data.
+[0m→ [0mRead scope.yml
+[0m
+[0m$ [0mls -lt /home/runner/work/hunt-lab/hunt-lab/leads/ | head -5
+total 1520
+-rw-r--r-- 1 runner runner  10652 Aug  8 16:37 reposcan-2026-08-08-10-59.md
+-rw-r--r-- 1 runner runner  11087 Aug  8 16:37 reposcan-2026-08-08-11-37.md
+-rw-r--r-- 1 runner runner  15217 Aug  8 16:37 reposcan-2026-08-08-12-03.md
+-rw-r--r-- 1 runner runner  14149 Aug  8 16:37 reposcan-2026-08-08-12-59.md
+[0m
+[0m$ [0mls -lt /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/ | head -5
+total 132
+drwxr-xr-x 294 runner runner 12288 Aug  8 16:37 microsoft
+-rw-r--r--   1 runner runner 48178 Aug  8 16:37 rag.txt
+drwxr-xr-x 150 runner runner  4096 Aug  8 16:37 google
+-rw-r--r--   1 runner runner    40 Aug  8 16:37 grep-delta.txt
+[0m
+Let me read the scope file, analyst prompt, and check for any new reposcan activity that may have occurred after 15:50 UTC.
+[0m$ [0mls -lt /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-*.md | head -3
+-rw-r--r-- 1 runner runner 10652 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-10-59.md
+-rw-r--r-- 1 runner runner 11087 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-11-37.md
+-rw-r--r-- 1 runner runner 15217 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-12-03.md
+[0m
+[0m→ [0mRead analyst-prompt.txt[90m [limit=80][0m
+[0m→ [0mRead reports/valid-bugs.md
+[0m→ [0mRead leads/reposcan-2026-08-08-15-36.md
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt && wc -l /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+-rw-r--r-- 1 runner runner 48178 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+259 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+[0m
+Let me check the latest reposcan and valid bugs files to see what's been confirmed recently.
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-delta.txt
+DELTA: 0 new hit lines vs previous scan
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/analysis.txt
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/
+analysis.txt
+google
+grep-delta.txt
+grep-hits.prev.txt
+grep-hits.txt
+microsoft
+rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find reposcan-raw/microsoft -type f -name "*.txt" | head -20
+reposcan-raw/microsoft/agent-governance-toolkit/.github/release-tools/release-tools.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/maf-integration/05-devops-deploy/python/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/maf-integration/02-customer-service/python/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/maf-integration/03-healthcare/python/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/maf-integration/01-loan-processing/python/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/maf-integration/04-it-helpdesk/python/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/mcp-receipt-governed/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/pipeline-governance/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/demos/governance-dashboard/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/copilot-cli-agt/scenarios/guarded-repo-triage/prompts/prompt-injection.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/copilot-cli-agt/scenarios/guarded-repo-triage/prompts/unsafe-bootstrap.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/copilot-cli-agt/scenarios/guarded-repo-triage/tool-output/poisoned-web-content.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/aegis-governance-profile/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/decision-bom/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/cost-governance/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/crypto-attestation-governed/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/foundry-ai-gateway-pdp/function/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/smolagents-governed/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/deerflow-governed/requirements.txt
+reposcan-raw/microsoft/agent-governance-toolkit/examples/agent-mesh/multi-agent-chat/requirements.txt
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la reposcan-raw/microsoft/
+total 1184
+drwxr-xr-x 294 runner runner 12288 Aug  8 15:47 .
+drwxr-xr-x   4 runner runner  4096 Aug  8 15:47 ..
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AI
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AI-Engineering-Coach
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AI-Red-Teaming-Playground-Labs
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AL-Go
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AaronLocker
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Agents
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Agents-for-js
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Agents-for-net
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Agents-for-python
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Application-Insights-Workbooks
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ApplicationInspector
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 AttackSurfaceAnalyzer
+drwxr-xr-x  12 runner runner  4096 Aug  8 15:47 BitNet
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 BuildXL
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Building-AI-Agents-From-Zero-To-Production
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 CCF
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Codex-CLI
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 CsWin32
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 CsWinRT
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DCVC
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DMF
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DebugMCP
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DeepVideoDiscovery
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DefinitelyTyped-tools
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Detours
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DevSkim
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectX-Specs
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXMath
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXMesh
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXShaderCompiler
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXTK
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXTK12
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DirectXTex
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 DiskANN
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Distill-MOS
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 EvoLib
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 FlowDAgger
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 GenCodec
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 GitHub-Copilot-for-Azure
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 GlobalMLBuildingFootprints
+drwxr-xr-x   7 runner runner  4096 Aug  8 15:47 HealthAgentBench
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Huabu
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 HydraLab
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Integration
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 JARVIS
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 KBLaM
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 LLM2CLIP
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 LLMLingua
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 LMOps
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 LatentSpatialMemory
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 LoRA
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MIRA
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MMCTAgent
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MSBuildCache
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MSBuildSdks
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MSLab
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Mastering-GitHub-Copilot-for-Paired-Programming
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Memora
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 MixedReality-GraphicsTools-Unity
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Multi_Species_Bioacoustic_Classification
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 OmniParser
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Ontology-Playground
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 OpenAPI.NET
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 OpenAPI.NET.OData
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 OptiGuide
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 PixelCraft
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Power-Fx
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 PowerAppsCodeApps
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 PowerBI-Developer-Samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 PromptWizard
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 PyRIT-Ship
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 RD-Agent
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 RdlMigration
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 RecAI
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 RepPoints
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ResearchStudio
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 RustTraining
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SDCM
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SEAL
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 STL
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Samba
+drwxr-xr-x  14 runner runner  4096 Aug  8 15:47 Sico
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SkillLens
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SkillOpt
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Spring-AI-for-Beginners
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SwiftStreamingMarkdown
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Swin-Transformer
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SynapseML
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 SynthMoCap
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 TSS.MSR
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 TextWorld
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 TypeAgent
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 UFO
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 VibeASR.cpp
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 WPF-Samples
+drwxr-xr-x  23 runner runner  4096 Aug  8 15:47 WSL
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Webwright
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 What-I-Did-Copilot
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Win2D
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 WinUI-Gallery
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Windows-Containers
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Windows-Driver-Frameworks
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Windows-driver-samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 Windows-universal-samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 WindowsDeveloperConfig
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 XmlNotepad
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ZoomitForMac
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 a11y-llm-eval
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 accordant
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 acon
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ado-npm-auth
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 agent-framework
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 agent-framework-go
+drwxr-xr-x  23 runner runner  4096 Aug  8 15:47 agent-governance-toolkit
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 agent-host-protocol
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 agent-lightning
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ai-dev-gallery
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 apm
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 appcenter
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 appcenter-sdk-apple
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 appcenter-sdk-dotnet
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 artifacts-credprovider
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 artifacts-keyring
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 aspire
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 atlas-design
+drwxr-xr-x  10 runner runner  4096 Aug  8 15:47 autogen
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 awesome-rayfin
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-auth-samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-extension-api
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-extension-hot-reload-and-debug
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-extension-sample
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-extension-sdk
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-devops-mcp
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-pipelines-task-lib
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-pipelines-tool-lib
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 azure-skills
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 beachball
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 calculator
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 cascadia-code
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 code-with-engineering-playbook
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 cognitive-services-speech-sdk-js
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 conductor
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 coreutils
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 cpp_client_telemetry
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 data-formulator
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 debug-adapter-protocol
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 debugpy
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 dev-tunnels-ssh
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 dion
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 duroxide
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 dusseldorf
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 dynwinrt
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ebpf-for-windows
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 edge-ai
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 edit
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 etl2pcapng
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 eval-guide
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 fara
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 flint-chart
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 fluentui-apple
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 fluentui-emoji
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 foundry-local
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 foundry-toolkit
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ghqr
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 go
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 go-infra
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 go-mssqldb
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 haste
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 hcsshim
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 hidtools
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 hve-core
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 injectorppforrust
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 inshellisense
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 intelligent-terminal
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 iq-series
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 jericho
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 json-schemas
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 kiota
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 kiota-java
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 kiota-python
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 langchain-for-beginners
+drwxr-xr-x  15 runner runner  4096 Aug  8 15:47 language-server-protocol
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 lisa
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 litebox
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 low-latency-audio
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 magentic-ui
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 malmo
+drwxr-xr-x   6 runner runner  4096 Aug  8 15:47 markitdown
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mcp-dotnet-samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mfcmapi
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 microsoft-iq-solution-accelerator
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mimalloc
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 minecraft-scripting-samples
+drwxr-xr-x   6 runner runner  4096 Aug  8 15:47 mlvc
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 moc
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 model-mondays
+drwxr-xr-x  18 runner runner  4096 Aug  8 15:47 monaco-editor
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 morphcharts
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mssql-python
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mssql-rs
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mstic
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 msticpy
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 multi-agent-reference-architecture
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 mxc
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 netperf
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 node-pty
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 node-request-light
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 ograg2
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 onnxruntime-extensions
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 onnxruntime-genai
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 onnxscript
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 openvmm
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 p4vfs
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 pg_durable
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 playwright-cli
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 playwright-mcp
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 poml
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 power-platform-skills
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 promptbase
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 promptflow
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 purview
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 pyright
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 qdk
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 qlib
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 qlib-server
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 quicksand
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 rag-time
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 responsible-ai-toolbox
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 restler-fuzzer
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 retina
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 rnx-kit
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 sammo
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 samples-for-ai
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 sarathi-serve
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 sbi
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 semantic-kernel
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 shell-use
+drwxr-xr-x  12 runner runner  4096 Aug  8 15:47 skill-recorder
+drwxr-xr-x  13 runner runner  4096 Aug  8 15:47 skills
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 skills-for-fabric
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 soc-fine-tuning-sd
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 sre-agent
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 sudo
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 team-explorer-everywhere
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 teams.ts
+drwxr-xr-x  17 runner runner  4096 Aug  8 15:47 terminal
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 testfx
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 tfs-cli
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 tracelogging
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 trident
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 tslib
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vattention
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vcpkg
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 verona
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-anycode
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-chat-customizations-evaluation
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-cmake-tools
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-codicons
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-copilot-vision
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-copilotstudio
+drwxr-xr-x  12 runner runner  4096 Aug  8 15:47 vscode-cpptools
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-eslint
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-extension-samples
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-jupyter-cell-tags
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-jupyter-powertoys
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-jupyter-slideshow
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-l10n
+drwxr-xr-x   9 runner runner  4096 Aug  8 15:47 vscode-languagedetection
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-languageserver-node
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-livepreview
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-lsif-extension
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-markdown-languageservice
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-mssql
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-notebook-renderers
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-oniguruma
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-pull-request-github
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-python
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-python-environments
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-python-tools-extension-template
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-remote-release
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-sublime-keybindings
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-test-web
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-textmate
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-uri
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vscode-wasm
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 vsmarketplace
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 webgym
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 win-dev-skills
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 winappCli
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 windows-drivers-rs
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 winget-cli
+drwxr-xr-x   2 runner runner  4096 Aug  8 15:47 wslg
+[0m
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw/grep-hits.txt
+61 reposcan-raw/grep-hits.txt
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find reposcan-raw -name "*hits*" -o -name "*grep*"
+reposcan-raw/grep-delta.txt
+reposcan-raw/grep-hits.prev.txt
+reposcan-raw/microsoft/vscode-cpptools/Extension/src/Utility/Filesystem/ripgrep.ts
+reposcan-raw/microsoft/Sico/core/tests/tools/test_grep.py
+reposcan-raw/microsoft/Sico/core/app/tools/grep.py
+reposcan-raw/grep-hits.txt
+[0m
+Based on the 60 hits in the current scan (grep-hits.txt), here are the classifications:
+
+## REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none in current scan)* | | | The known hardcoded OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) is in the KNOWN DUPLICATES / ACCEPTED list, not in this scan's delta |
+
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) | 3, 9, 11 | Minified build artifacts / source maps with parser error strings |
+| google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified build artifact |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — config key name, not a secret value |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GitHub Actions template syntax (`${{ steps.fetch-token.outputs.* }}`) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secrets references (`${{ secrets.GEMINI_API_KEY }}`, etc.) |
+| google/jsonnet/.github/workflows/publish-python.yml | 85, 105 | GitHub Actions template URLs |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/localization/*/TeX.js (32 files) | 19 | Third-party MathJax translation strings (not project secrets) |
+
+## ENDPOINT_LEAK
+| File | Line | Details |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret reference pattern (shows secret mounting config, not a secret value) |
+
+## INTERESTING
+| File | Line | Details |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run deployment uses Secret Manager reference pattern — reveals internal secret management approach |
+
+---
+
+## SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/adk-go cloudrun.go secret ref | **no** | Config pattern only, references Secret Manager by name |
+| google/agents-cli auth.py constant | **no** | Defines config key name `"gemini_api_key"`, not a secret value |
+| GitHub Actions `${{ secrets.* }}` refs | **no** | CI template syntax, resolves at runtime from GitHub Secrets |
+| MathJax localization strings | **no** | Third-party library translation files |
+| Minified JS build artifacts | **no** | Source maps / parser error strings in dist files |
+| earthengine-api oauth.py client_secret | **no (DUP)** | Already ACCEPTED in KB (sha256 `3f3f8d6f...`), known duplicate |
+
+**Bottom line**: No new REAL_SECRET candidates in this scan delta. All hits are test fixtures, build artifacts, CI template syntax, or third-party code. The only previously reported live secret (earthengine-api) remains in ACCEPTED/KNOWN-DUP state.
+[0m
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab -newer /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-latest.md -name "*.md" -o -name "*.txt" -o -name "*.json" 2>/dev/null | head -20
+/home/runner/work/hunt-lab/hunt-lab/state_nemotron3.json
+/home/runner/work/hunt-lab/hunt-lab/state_ling3.json
+/home/runner/work/hunt-lab/hunt-lab/analyst-out.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-delta.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-hits.prev.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-hits.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/analysis.txt
+/home/runner/work/hunt-lab/hunt-lab/state_bigpickle.json
+/home/runner/work/hunt-lab/hunt-lab/reports/valid-bugs.md
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-nemotron3.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-laguna.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-ling3.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-longcat.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses.md
+/home/runner/work/hunt-lab/hunt-lab/state_laguna.json
+/home/runner/work/hunt-lab/hunt-lab/state_longcat.json
+/home/runner/work/hunt-lab/hunt-lab/ctx.txt
+/home/runner/work/hunt-lab/hunt-lab/analyst-prompt.txt
+[0m
+[0m$ [0mls -lt /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-*.md
+-rw-r--r-- 1 runner runner 10652 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-10-59.md
+-rw-r--r-- 1 runner runner 11087 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-11-37.md
+-rw-r--r-- 1 runner runner 15217 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-12-03.md
+-rw-r--r-- 1 runner runner 14149 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-12-59.md
+-rw-r--r-- 1 runner runner 15858 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-13-05.md
+-rw-r--r-- 1 runner runner 12328 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-13-57.md
+-rw-r--r-- 1 runner runner 12543 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-14-42.md
+-rw-r--r-- 1 runner runner 13417 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-11.md
+-rw-r--r-- 1 runner runner 11866 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-36.md
+-rw-r--r-- 1 runner runner 18110 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-50.md
+-rw-r--r-- 1 runner runner 11241 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-03-41.md
+-rw-r--r-- 1 runner runner 14415 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-04-36.md
+-rw-r--r-- 1 runner runner 15016 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-05-04.md
+-rw-r--r-- 1 runner runner 14173 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-05-28.md
+-rw-r--r-- 1 runner runner 10417 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-06-08.md
+-rw-r--r-- 1 runner runner 13892 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-06-28.md
+-rw-r--r-- 1 runner runner 14123 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-07-21.md
+-rw-r--r-- 1 runner runner 13786 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-07-33.md
+-rw-r--r-- 1 runner runner 14723 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-08-09.md
+-rw-r--r-- 1 runner runner 13998 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-08-49.md
+-rw-r--r-- 1 runner runner 13287 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-09-03.md
+-rw-r--r-- 1 runner runner 16406 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-09-45.md
+-rw-r--r-- 1 runner runner 14476 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-09-50.md
+-rw-r--r-- 1 runner runner 13952 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-10-21.md
+-rw-r--r-- 1 runner runner 13769 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-10-41.md
+-rw-r--r-- 1 runner runner 16345 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-01-47.md
+-rw-r--r-- 1 runner runner 14355 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-01-57.md
+-rw-r--r-- 1 runner runner 13185 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-03-20.md
+[0m
+[0m$ [0mls -lt /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses*.txt
+-rw-r--r-- 1 runner runner 9768 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-nemotron3.txt
+-rw-r--r-- 1 runner runner 2943 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt
+-rw-r--r-- 1 runner runner 9913 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-laguna.txt
+-rw-r--r-- 1 runner runner   50 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-ling3.txt
+-rw-r--r-- 1 runner runner   52 Aug  8 16:37 /home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-longcat.txt
+[0m
+Let me check for any newer files and the latest lead files to ensure I have the full picture.
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead reports/hypotheses-laguna.txt
+[0m→ [0mRead reports/hypotheses-longcat.txt
+[0m→ [0mRead reports/hypotheses-ling3.txt
+Let me read the other models' hypotheses and lead files to understand the full ensemble picture.
+[0m→ [0mRead leads/lead-laguna.md[90m [offset=1, limit=100][0m
+[0m→ [0mRead leads/reposcan-2026-08-08-15-11.md
+Let me read the latest lead file and the final reposcan to confirm the current state.
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-hits.txt | head -20 && echo "---TAIL---" && cat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_fe23f4e26001cSZNX7iXWMCksK
+
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-TULSIPRQ.js:3: Expecting `+Yt.join(", ")+", got '"+(this.terminals_[j]||j)+"'":ee="Parse error on line "+(Bt+1)+": Unexpected "+(j==Me?"end of input":"'"+(this.terminals_[j]||j)+"'"),this.parseError(ee,{text:J.match,token:this.terminal
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-VJTRHJAQ.js:11: Expecting `+qe.join(", ")+", got '"+(this.terminals_[K]||K)+"'":r1="Parse error on line "+(B+1)+": Unexpected "+(K==U1?"end of input":"'"+(this.terminals_[K]||K)+"'"),this.parseError(r1,{text:M.match,token:this.terminals
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-OGD5RHV2.js:3: Expecting `+Nt.join(", ")+", got '"+(this.terminals_[B]||B)+"'":Zt="Parse error on line "+(kt+1)+": Unexpected "+(B==de?"end of input":"'"+(this.terminals_[B]||B)+"'"),this.parseError(Zt,{text:D.match,token:this.terminal
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-DS3WV6GO.js:3: Expecting `+G.join(", ")+", got '"+(this.terminals_[T]||T)+"'":q="Parse error on line "+(I+1)+": Unexpected "+(T==O?"end of input":"'"+(this.terminals_[T]||T)+"'"),this.parseError(q,{text:g.match,token:this.terminals_[T]
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-LVMBETIL.js:3: Expecting `+K.join(", ")+", got '"+(this.terminals_[_]||_)+"'":ee="Parse error on line "+(z+1)+": Unexpected "+(_==le?"end of input":"'"+(this.terminals_[_]||_)+"'"),this.parseError(ee,{text:y.match,token:this.terminals_
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-NRR3JWGL.js:3: Expecting `+q.join(", ")+", got '"+(this.terminals_[S]||S)+"'":et="Parse error on line "+(I+1)+": Unexpected "+(S==L?"end of input":"'"+(this.terminals_[S]||S)+"'"),this.parseError(et,{text:E.match,token:this.terminals_[
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js:5: `+_(b,a),d++,B=0;b--;)i?(d+=i,B=o):B+=o,E+=n;E+=1}}function S(b,x){C[b]=C[b]||{},C[b][x]={line:d,column:B,pos:E}}function _(b,x){return Array(b+1).join(x)}};var rue=["number","bigint","boolean","string","object"];functio
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-PVEI6UQ6.js:3: Expecting `+ge.join(", ")+", got '"+(this.terminals_[y]||y)+"'":qe="Parse error on line "+(be+1)+": Unexpected "+(y==Ye?"end of input":"'"+(this.terminals_[y]||y)+"'"),this.parseError(qe,{text:g.match,token:this.terminal
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-ZO3BTNJM.js:3: Expecting `+ie.join(", ")+", got '"+(this.terminals_[y]||y)+"'":ke="Parse error on line "+(te+1)+": Unexpected "+(y==Ie?"end of input":"'"+(this.terminals_[y]||y)+"'"),this.parseError(ke,{text:k.match,token:this.terminal
+reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-YL63DAMY.js:9: Expecting `+st.join(", ")+", got '"+(this.terminals_[A]||A)+"'":at="Parse error on line "+(C+1)+": Unexpected "+(A==D?"end of input":"'"+(this.terminals_[A]||A)+"'"),this.parseError(at,{text:z.match,token:this.terminals_
+---TAIL---
+=== KNOWLEDGE BASE (RAG) ===
+# Knowledge Base — verified learnings (RAG for all models)
+
+> Appended by triage + verification cycles. Models MUST read this before generating hypotheses.
+> Rules: never propose a class on the REJECTED list; never duplicate KNOWN-DUP items; use ALIVE surface facts.
+
+## REJECTED CLASSES (verified dead, do not propose)
+- 2026-08-07 REJECTED Firebase config reads (getProjects/getProjectConfig) @ identitytoolkit.googleapis.com: 403 "unregistered callers" gate; config public-by-design anyway.
+- 2026-08-07 REJECTED delegatedProjectNumber cross-project lookup @ accounts:lookup: field DEPRECATED, documented as caller's own requesting app (Firebase V1 migration), IAM firebaseauth.users.get required on targetProjectId resource. Resurrection ONLY via authorized two-project token test.
+- 2026-08-07 REJECTED AAD deferred redirect_uri validation @ login.microsoftonline.com: verified normal+prompt=none both return generic 200 shell, no Location, no inline error; check fires only at auth-completion (AADSTS50011 exact match). Cosmetic timing difference vs login.live.com fast-fail. No code-to-attacker possible passively.
+- 2026-08-07 REJECTED legacy ACS @ accounts.accesscontrol.windows.net: EOL platform, 4 signing keys, 3 endpoints, no new surface.
+- 2026-08-07 REJECTED internal backend URL leaks in SPA config: jarvisapi.account.microsoft.com NXDOMAIN; jcmsfd.account.microsoft.com/CPM alive but 400 MissingOrInvalidHeader gate.
+- 2026-08-07 REJECTED /health metadata leaks (accledger.azure.com pod name + image tag): info-only, banner class.
+- 2026-08-07 REJECTED email/phone enumeration differential (Firebase sendOobCode): on Google's no-reward list.
+- 2026-08-07 REJECTED endpoint maps with all-401 responses (mysignins API map): inventory is not a finding without a bypass.
+- 2026-08-07 REJECTED implicit-flow / client-registration hygiene (accounts.google.com): documented client allow-list model.
+- 2026-08-07 REJECTED Algolia DocSearch apiKey in docusaurus config (google/xrblocks): search-only key, public by design.
+
+## KNOWN DUPLICATES (do not re-report)
+- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+- ADK hardcoded ya29.* OAuth token in git history: google/adk-python issue #5520, closed 2026-04-28, issuetracker 504158909, token redacted.
+- CVE-2026-47391, Benchikh OAuth, Tenable SSRF: already public/fixed (from 10:16 triage).
+
+## ALIVE SURFACE FACTS (verified)
+- mysignins.microsoft.com SPA: MSAL app clientId 19db86c3-b2b9-44cc-b339-36da233a3be2, backend api.mysignins.microsoft.com, region header x-ms-mysignins-region: westus2. API map: /api/session/*, /api/authenticationmethods/*, /api/signIns, /api/password/*, /api/captcha/*, /api/signOutEverywhere — all 401/POST-gated.
+- api.myaccount.microsoft.com SPA: clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Entra Verified ID: /api/issueVerifiedEmployeeCredential, /api/canVerifiedIdBeIssued. ToS: /api/termsofuse/{agreements,myacceptances,tenantbannerlogo,tenantdisplayname}. /api/shell/getshellinfo, /api/groups/settings, /api/instrument/logclient. Consumer tenant 9188040d-6c67-4c5b-b112-36a304b66dad.
+- accounts.accesscontrol.windows.net: /metadata/json/1 (4 x509 keys), /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1 (200 sign-in page). ESTS 2.1.24997.11.
+- Graph agentic: /v1.0 and /beta me/agentSignInSessions alive (401 InvalidAuthenticationToken).
+- controlplane.accledger.azure.com: Kestrel /health 200, structured 404 envelope, no swagger.
+- GCP control-plane discovery APIs (identitytoolkit, iam, accesscontextmanager, beyondcorp, agentidentity, cloudbuild, artifactregistry, orgpolicy, binaryauthorization, assuredworkloads): all require consumer identity (API key/OAuth); no anonymous reads.
+- google/adk-python: /run_sse endpoint exists in code; credential storage migrating to secret: scope (PR #5154 WIP).
+- identitytoolkit.googleapis.com: 403 for unregistered callers on ALL methods incl. getProjects and v3 relyingparty.
+
+## REUSABLE PATTERNS
+- AAD authorization endpoint accepts any redirect_uri in the request → validation deferred to completion. Useful for detecting eager-validation bypasses on OTHER OAuth providers (same-class check: prompt=none + attacker redirect_uri + valid client_id).
+- Firebase gating model: "unregistered callers" 403 = needs API key. Public Firebase API keys are project-bound; cross-project reads need the target project's key or OAuth+IAM.
+- GCP $discovery docs expose full request schemas — use for schema-level trust-boundary review (fields marked "should only be specified by authenticated requests" = the trust boundary; hunt fields WITHOUT that annotation).
+- 2026-08-07 ACCEPTED v2.0 HTTP-200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (embedded JS error 700038, iHttpErrorCode 400) instead of HTTP 400 — violates RFC 6749 §3; status-checking clients may misparse as success.
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth GET/HEAD returns HTTP 405 (not 401), no WWW-Authenticate Bearer, Content-Length 0 — violates RFC 6750 §3; masks IDOR enumeration + breaks SDK auto-auth.
+- 2026-08-07 REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient frontend error, no deterministic parse branch.
+- 2026-08-07 ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→400)
+- 2026-08-07 ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400)
+- 2026-08-07 No new proving-dead classes this cycle
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
+- 2026-08-07 ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids; dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) confirmed via OIDC discovery — verified via live curl probes
+- 2026-08-07 ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only code, id_token, code id_token, id_token token — verified via live OIDC discovery fetch
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET returns proper 401 with WWW-Authenticate: Bearer — verified 3×HEAD + 1×GET passively
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with 23836-byte HTML body containing iErrorCode=900144, iHttpErrorCode=400, "We received a bad request" — violates RFC 6749 §3; verified via live GET probe
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
+- 2026-08-07 No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy(Nullable=false), ownerIds(Nullable=false), agentCard(graph.Json), managedByAppId, agentIdentityId all client-supplied — verified via live $metadata fetch + Python regex extraction of full EntityType block
+- 2026-08-07 ACCEPTED agentInstance/agentCollection/agentCardManifest/copilotPackage/copilotAdminCatalog EntityTypes ALL have zero OperationRestrictions/ReadRestrictions/UpdateRestrictions @ graph.microsoft.com/beta/$metadata — same IDOR pattern extends across entire Agent Registry ecosystem; agentInstance additionally exposes client-supplied agentUserId + managedBy
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIY…) ALL present in v2.0's 8 kids — confirmed live via kid-by-kid comparison
+- 2026-08-07 ACCEPTED v1.0-only response_types @ login.microsoftlive.com: v1.0 OIDC discovery returns ['code','id_token','code id_token','token id_token','token']; v2.0 returns ['code','id_token','code id_token','id_token token'] — pure `token` implicit excluded from v2.0, verified via live OIDC discovery fetch
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD returns 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET returns 401 with proper Bearer challenge — verified live (HEAD+GET both tested)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with embedded JS error 700038 — verified via live GET probe
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-token→400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params — verified
+- 2026-08-07 ACCEPTED bughunters.google.com root hardening: HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff — verified
+- 2026-08-07 REJECTED login.live.com/oauth20_desktop.srf full removal: returns stub 200 page with "You have reached a page that is not normally shown" + client-side JS appending ?removed=true — not fully removed, but stub-only surface, no new attack vector beyond REJECTED AAD deferred redirect validation
+- 2026-08-07 REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch (200, 7.3MB) — createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed live via kid-by-kid comparison — 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 dual issuer namespaces confirmed live — v1 issuer = sts.windows.net/{tenantid}/, v2 issuer = login.microsoftonline.com/{tenantid}/v2.0; both serve same tenant via separate key endpoints.
+- 2026-08-07 ACCEPTED: v1.0-only response_types confirmed live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only — implicit/hybrid excluded from v2.0.
+- 2026-08-07 ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD to /v1.0, /v1.0/me, /v1.0/users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET to /v1.0/me → 401 with proper Bearer challenge — RFC 6750 §3 violation, masks IDOR enumeration.
+- 2026-08-07 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038, iHttpErrorCode 400) instead of HTTP 400 — RFC 6749 §3 violation.
+- 2026-08-07 ACCEPTED: tokeninfo public introspection oracle confirmed live — oauth2.googleapis.com/tokeninfo accepts ?access_token=/ ?id_token= query params without Authorization header.
+- 2026-08-07 ACCEPTED: bughunters.google.com root hardened confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff.
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/agentRegistrations → 401, confirming auth-gated but schema-level zero restrictions unchanged)
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset)
+- 2026-08-07 ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serve same tenant
+- 2026-08-07 ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only
+- 2026-08-07 ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038)
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- 2026-08-07 ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — confirmed LIVE on master via `curl` + `sha256sum`; reposcan (22:45 UTC) classified REAL_SECRET (REPORT_CANDIDATE=yes); non-placeholder, used as default fallback at oauth.py:99; scopes include cloud-platform (full GCP); OOB redirect URI deprecated.
+- 2026-08-07 ACCEPTED: All prior ACCEPTED findings remain confirmed live at 22:37 UTC — agentRegistration zero ownership restrictions (5 EntityTypes), v1.0↔v2.0 JWKS kid overlap (5/5 ⊂ 8), dual issuer namespaces, v1.0-only response_types, Graph API 405 anomaly, v2.0 HTTP 200 error rendering, tokeninfo oracle, bughunters hardening — no new proving-dead classes this cycle (longcat 22:56 build confirms NO_DELTA).
+- 2026-08-07 REJECTED: No new proving-dead classes — all new passive probes (longcat 22:56) confirmed prior findings unchanged.
+- 2026-08-07 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with client-supplied ownership fields + ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/agentRegistrations → 401, confirming auth-gated but schema-level zero restrictions unchanged)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serve same tenant
+- 2026-08-08 ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only
+- 2026-08-08 ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038)
+- 2026-08-08 ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- 2026-08-08 ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with client-supplied ownership fields + ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/agentRegistrations → 401, confirming auth-gated but schema-level zero restrictions unchanged)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serve same tenant
+- 2026-08-08 ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only
+- 2026-08-08 ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038)
+- 2026-08-08 ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- 2026-08-08 ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with client-supplied ownership fields + ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+- 2026-08-08 ACCEPTED: All prior ACCEPTED findings remain confirmed live at 22:37 UTC — agentRegistration zero ownership restrictions (5 EntityTypes), v1.0↔v2.0 JWKS kid overlap (5/5 ⊂ 8), dual issuer namespaces, v1.0-only response_types, Graph API 405 anomaly, v2.0 HTTP 200 error rendering, tokeninfo oracle, bughunters hardening — no new proving-dead classes this cycle.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch at 03:14 UTC (7.28MB, agentRegistration block=861 chars, no OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 03:14 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset)
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret string 'RUP0RZ6e0pPhDzsqIJ7KlNd1', sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes include cloud-platform, drive, devstorage.full_control
+- 2026-08-08 ACCEPTED Graph API 405 anomaly confirmed still live at 03:14 UTC — HEAD+GET /v1.0, /me, /users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body)
+- 2026-08-08 ACCEPTED tokeninfo public introspection oracle confirmed still live at 03:14 UTC — no-param → 400 invalid_token; ?access_token=test → 400 Invalid Value
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (03:14 UTC) confirmed prior ACCEPTED findings unchanged, no new anomalies.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch at 03:14 UTC (7.28MB, agentRegistration block=861 chars, no OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false)
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live at 03:14 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only)
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes include cloud-platform+drive+devstorage.full_control, OOB redirect
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed still live at 03:14 UTC — HEAD+GET /v1.0, /me, /users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body, JS error 700038)
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live at 03:14 UTC — 7.28MB metadata, agentRegistration block=861 chars, no OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes cloud-platform+drive+devstorage.full_control, OOB redirect
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only)
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, no new anomalies
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 08:59 UTC — 873-char block, same 13-property schema, no OperationRestrictions, createdBy/ownerIds Nullable=false.
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271`, at :45 AND :99 fallback.
+- 2026-08-08 ACCEPTED Graph API 405 anomaly + tokeninfo oracle confirmed still live at 08:59 UTC (HEAD 405 no WWW-Authenticate; no-param → 400 113b invalid_token).
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (08:59 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: earthengine-api `python/ee/oauth.py:45` hardcoded secret confirmed live @ probe — line present, bare-secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect.
+- 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed live @ probe — no-param → HTTP 400 (113 bytes), matching KB.
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed live @ probe — unauth `HEAD /v1.0` → HTTP 405, size 0, no `WWW-Authenticate: Bearer`, matching KB.
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes cloud-platform+drive+devstorage, OOB redirect; PASSIVE confirmed but VRP determination pending on native-app by-design status.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live at 08:59 UTC — 873-char block, same 13-property schema, no OperationRestrictions, createdBy/ownerIds Nullable=false.
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pending AUTH_HELPED test.
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD /v1.0, /me, /users → HTTP 405, Content-Length 0, no WWW-Authenticate Bearer.
+- 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes).
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: earthengine-api oauth.py:45 secret confirmed plaintext-readable from raw GitHub at 10:56 UTC — `RUP0RZ6e0pPhDzsqIJ7KlNd1` matches sha256 `3f3f8d6f…d271`; AUTH_HELPED test still needed for Graph agentRegistration IDOR (two-principal test-tenant).
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (10:56 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live at 11:30 UTC — 873-char block, no OperationRestrictions, createdBy/ownerIds/agentCard Nullable=false (matches 08:59/03:14 UTC re-verifications).
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, sha256 `3f3f8d6f…d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 11:30 UTC — 873-char block, no OperationRestrictions, createdBy/ownerIds/agentCard Nullable=false (matches 08:59/03:14 UTC re-verifications)
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, sha256 `3f3f8d6f…d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pending AUTH_HELPED test
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:30 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- 2026-08-08 ACCEPTED: No new proving-dead classes this cycle — all fresh passive probes (12:0x UTC) confirmed prior ACCEPTED findings unchanged: Graph 405 anomaly, tokeninfo oracle, earthengine secret (sha f4f93c76…, whole-file), v1⊂v2 kid subset (5/5), agentRegistrations auth-gate, bughunters 200. NO_DELTA.
+- 2026-08-08 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ current cycle — sha256 `3f3f8d6f29db1b06cbfc212a718b181744db8f9bd25316c76ccebf8a1440d271` matches KB, present on line 45 + :99 fallback, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed LIVE @ current cycle — fresh $metadata fetch (7.3MB), 872-char agentRegistration block, no OperationRestrictions/ReadRestrictions, createdBy/ownerIds/agentCard Nullable=false; 5 sibling EntityTypes share identical zero-restriction pattern.
+- 2026-08-08 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1 key set rotated 5→4 (aFkmKVFc retired from v1 only), transient 7-kid v2 response self-corrected across retries — steady-state subset invariant v1(4) ⊂ v2(8) intact, no v1-exclusive kid persists, no desync surface. (Answers laguna rotation probe.)
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed LIVE @ 15:02 UTC — fresh $metadata (7.3MB), 873-char block, 0 OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false.
+- 2026-08-08 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ 15:02 UTC — whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 verbatim at :45.
+- 2026-08-08 ACCEPTED Graph 405 anomaly + tokeninfo oracle + v2.0 authorize 200 error rendering confirmed LIVE @ 15:02 UTC (405/0 no WWW-Authenticate; 400/113 invalid_token; 200/23835).
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata fetch (7.3MB), agentRegistration block=873 chars, no OperationRestrictions/ReadRestrictions, createdBy/ownerIds/agentCard Nullable=false; 5 sibling EntityTypes share identical zero-restriction pattern; HEAD→405 at 15:02 UTC confirms auth-gate but method-handling broken.
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 15:02 UTC — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` matches KB, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.full_control, OOB redirect.
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 15:02 UTC — JWKS endpoint HTTP 200, `Access-Control-Allow-Origin: *`; 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pending AUTH_HELPED test.
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (15:02 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1 key set rotated 5→4 (aFkmKVFc retired from v1 only) per inventory, but live probe shows v1=5 (incl. aFkmKVFc), v2=7 (excl. aFkmKVFc) — transient rotation state, steady-state subset invariant claimed to self-correct; no persistent desync surface.
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 15:43 UTC — v1=5 kids, v2=7 kids, 4-kid overlap (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN), aFkmKVFc now v1-exclusive (transient rotation).
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live at 15:02 UTC — fresh $metadata fetch (7.3MB), 873-char block, 0 OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; 5 sibling EntityTypes share identical zero-restriction pattern.
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 15:02 UTC — sha256 `3f3f8d6f…d271` verbatim, line :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged, scopes cloud-platform+drive+devstorage.full_control, OOB redirect.
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live at 15:02 UTC — despite rotation 5→4 v1.0 kids (aFkmKVFc… now v2-exclusive), subset invariant v1(4) ⊂ v2(8) holds with 0 v1-only; issuer-confusion precondition remains valid.
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed still live at 15:05 UTC — extends to `graph.microsoft.com/beta/copilot/agentRegistrations` HEAD → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer); same RFC 6750 §3 violation as /v1.0, /me, /users.
+- 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed still live at 15:02 UTC — GET → HTTP 200 (X-Content-Type-Options: nosniff), HEAD → HTTP 404 (unusual method-handling gap); no-Authorization-header query-param acceptance intact.
+- 2026-08-08 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live at 15:02 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body, JS error 700038).
+=== INVENTORY google ===
+# Google surface inventory (seed 2026-08-07)
+
+## ALIVE / CONFIRMED
+- identitytoolkit.googleapis.com v1 discovery: getProjects/getProjectConfig → 403 "Method doesn't allow unregistered callers" (consumer-identity gate)
+- firebaseauth v1: delegatedProjectNumber field DEPRECATED, caller-context only (Firebase V1 migration); authz via IAM firebaseauth.users.get on targetProjectId
+- GCP $discovery docs: getAccountInfo has no documented IAM requirement (thread for authorized test)
+- GCP service inventory: STS, WIP, Binary Authorization, Artifact Registry, Cloud Run, Cloud Functions, Secret Manager, Cloud Build, Storage, IAM — all auth-gated [UNVALIDATED]
+- gstatic/githubusercontent codelab assets, API keys in public repos: adk-python /run_sse client_secret (DUP #2128), ya29 token (DUP #5520)
+
+## DEAD / REJECTED
+- Firebase unregistered-caller access: 403 gate (REJECTED)
+- delegatedProjectNumber IDOR: deprecated + IAM-bound (REJECTED; resurrection = authorized two-project token test only)
+- Firebase config reads: no-key 403 (REJECTED)
+
+## NOTES
+- Prior art: 2021 Firebase project-number collision class (patched)
+- Model sessions have been mislabeled [microsoft] while probing googleapis endpoints — trust endpoint, not label
+
+## 2026-08-07 15:49:41 UTC
+
+## 2026-08-07 16:11:28 UTC
+- NEW Source maps live on BOTH identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files with sourc
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs (hashes `9d84e451...`, `ca304859...`) but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All
+- NEW Agent Registration API (GA replacement): `/beta/copilot/agentRegistrations` POST/GET/PATCH/DELETE — **client-supplied `createdBy`**, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agent
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Copilot Studio D2E (Direct-to-Engine) S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side** (doc: 
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`; validation against agent's registered too
+- NEW Three-hop Agent User `user_fic` flow (documented in `microsoft/entrabot`): Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` **OR*
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All` — supply-chain trust surface
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026), `allowedAudi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred, no `redirect_ur
+- NEW login.microsoftonline.com OIDC discovery: v2.0 (issuer login.microsoftonline.com/{tid}/v2.0; JWKS /discovery/v2.0/keys, 8 RSA keys; mtls alias mtlsauth.microsoft.com; tls_client_certificate_bound_acce
+- NEW Graph $metadata: 1,183 EntityTypes, 326 Functions across microsoft.graph.identityGovernance + microsoft.graph.security + microsoft.graph.entraRecoveryServices; 22 filterByCurrentUser bindings — GET /v
+- NEW Graph API 405 anomaly: unauth HEAD/GET to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- NEW v2.0 authorize HTTP 200 error rendering: GET /oauth2/v2.0/authorize?response_type=token (unsupported in v2.0) → HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400, "We received a bad requ
+- NEW oauth2.googleapis.com/tokeninfo public introspection oracle: accepts ?access_token= / ?id_token= query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→40
+=== INVENTORY microsoft ===
+# Microsoft surface inventory (seed 2026-08-07)
+
+## ALIVE / CONFIRMED
+- mysignins.microsoft.com SPA API map: clientId 19db86c3-b2b9-44cc-b339-36da233a3be2 (MSA); api.myaccount clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2; all endpoint probes → 401
+- login.live vs AAD redirect asymmetry (known class, deferred validation AADSTS50011)
+- ACS legacy (account.microsoft.com/auth/ACS): metadata alive, 4 keys (rotated from 5); endpoints /tokens/OAuth/2, /tokens/delegation, /mgmt/delegation/1
+- Entra Verified ID endpoints (DID core, credential contracts, status API) — surface only
+- accledger /health: informational only
+- AAD authorize (clientId 19db86c3..., any redirect_uri incl. attacker + prompt=none): 200 generic "Redirecting" shell, no Location; validation ONLY at completion (AADSTS50011 exact-match)
+- Graph agentSignInSessions endpoint: 401
+
+## DEAD / REJECTED
+- AAD deferred redirect validation: known class, not reportable (REJECTED)
+- jarvisapi.account.microsoft.com: NXDOMAIN (internal URL leak dead)
+- jcmsfd.account.microsoft.com/CPM: 400 MissingOrInvalidHeader (header-gated)
+- /health metadata disclosures: informational, no-reward (REJECTED)
+- Endpoint-map-only output: not a finding (REJECTED)
+- Implicit-flow / email-enum surfaces: no-reward (REJECTED)
+
+## NOTES
+- ACS EOL; ESTS 2.1.24997.11 observed
+- 401 endpoint maps: discovery only, need AUTH_HELPED/HUMAN tests to progress
+
+## 2026-08-07 16:11:28 UTC
+- NEW Source maps live on BOTH identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files with sourc
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs (hashes `9d84e451...`, `ca304859...`) but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All
+- NEW Agent Registration API (GA replacement): `/beta/copilot/agentRegistrations` POST/GET/PATCH/DELETE — **client-supplied `createdBy`**, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agent
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Copilot Studio D2E (Direct-to-Engine) S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side** (doc: 
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`; validation against agent's registered too
+- NEW Three-hop Agent User `user_fic` flow (documented in `microsoft/entrabot`): Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` **OR*
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All` — supply-chain trust surface
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026), `allowedAudi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred, no `redirect_ur
+- NEW login.microsoftonline.com OIDC discovery: v2.0 (issuer login.microsoftonline.com/{tid}/v2.0; JWKS /discovery/v2.0/keys, 8 RSA keys; mtls alias mtlsauth.microsoft.com; tls_client_certificate_bound_acce
+- NEW Graph $metadata: 1,183 EntityTypes, 326 Functions across microsoft.graph.identityGovernance + microsoft.graph.security + microsoft.graph.entraRecoveryServices; 22 filterByCurrentUser bindings — GET /v
+[0m
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab -name "*.txt" -newer /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-50.md 2>/dev/null; echo "---"; stat -c '%y %n' /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-50.md
+/home/runner/work/hunt-lab/hunt-lab/analyst-out.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-delta.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-hits.prev.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/grep-hits.txt
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/analysis.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-nemotron3.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-bigpickle.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-laguna.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-ling3.txt
+/home/runner/work/hunt-lab/hunt-lab/reports/hypotheses-longcat.txt
+/home/runner/work/hunt-lab/hunt-lab/ctx.txt
+/home/runner/work/hunt-lab/hunt-lab/analyst-prompt.txt
+---
+2026-08-08 16:37:23.025610232 +0000 /home/runner/work/hunt-lab/hunt-lab/leads/reposcan-2026-08-08-15-50.md
+[0m
+Now I have a complete picture of the current state. Let me verify the latest reposcan delta and check for any probe results since 15:50 UTC.
+[0m→ [0mRead analyst-out.txt
+[0m
+[0m$ [0mgit log --oneline -10 2>/dev/null; echo "---README---"; cat README.md; echo "---SCRIPTS---"; ls -la scripts/
+aaf1d7d fix: valid python regex in verifier robot (no quote escaping)
+---README---
+# hunt-lab
+
+24/7 multi-model bug-hunting automation for the **Google VRP** and **Microsoft Bounty (MSRC)** programs.
+
+- 5 opencode models (Big Pickle, Nemotron 3 Ultra, Longcat, Ling 3.0, Laguna) hunt in parallel every **10 minutes**, rotating targets (google / microsoft)
+- Deep public-repo scan of the `google/` and `microsoft/` GitHub orgs every **30 minutes**
+- Triager job validates every lead with a second model + live passive probe, keeping a running count in `reports/valid-bugs.md`
+- All testing is **passive and read-only** (GET/HEAD, ≤1 rps, no account creation, no data modification) per program rules
+- Secrets are committed only as hashes; findings must be reported through the program channels listed in `scope.yml`
+
+| Artifact | Purpose |
+|---|---|
+| `research/` | Per-model research journals |
+| `leads/` | Candidate findings (UNVALIDATED) |
+| `triage/` | Validation verdicts |
+| `reports/valid-bugs.md` | Validated findings + running count |
+| `scope.yml` | Program scope and rules (edit to adjust) |
+---SCRIPTS---
+total 16
+drwxr-xr-x  2 runner runner 4096 Aug  8 16:37 .
+drwxr-xr-x 12 runner runner 4096 Aug  8 16:37 ..
+-rw-r--r--  1 runner runner 7771 Aug  8 16:37 sync-issues.py
+[0m
+[0m$ [0mhead -100 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/rag.txt
+=== KNOWLEDGE BASE (RAG) ===
+# Knowledge Base — verified learnings (RAG for all models)
+
+> Appended by triage + verification cycles. Models MUST read this before generating hypotheses.
+> Rules: never propose a class on the REJECTED list; never duplicate KNOWN-DUP items; use ALIVE surface facts.
+
+## REJECTED CLASSES (verified dead, do not propose)
+- 2026-08-07 REJECTED Firebase config reads (getProjects/getProjectConfig) @ identitytoolkit.googleapis.com: 403 "unregistered callers" gate; config public-by-design anyway.
+- 2026-08-07 REJECTED delegatedProjectNumber cross-project lookup @ accounts:lookup: field DEPRECATED, documented as caller's own requesting app (Firebase V1 migration), IAM firebaseauth.users.get required on targetProjectId resource. Resurrection ONLY via authorized two-project token test.
+- 2026-08-07 REJECTED AAD deferred redirect_uri validation @ login.microsoftonline.com: verified normal+prompt=none both return generic 200 shell, no Location, no inline error; check fires only at auth-completion (AADSTS50011 exact match). Cosmetic timing difference vs login.live.com fast-fail. No code-to-attacker possible passively.
+- 2026-08-07 REJECTED legacy ACS @ accounts.accesscontrol.windows.net: EOL platform, 4 signing keys, 3 endpoints, no new surface.
+- 2026-08-07 REJECTED internal backend URL leaks in SPA config: jarvisapi.account.microsoft.com NXDOMAIN; jcmsfd.account.microsoft.com/CPM alive but 400 MissingOrInvalidHeader gate.
+- 2026-08-07 REJECTED /health metadata leaks (accledger.azure.com pod name + image tag): info-only, banner class.
+- 2026-08-07 REJECTED email/phone enumeration differential (Firebase sendOobCode): on Google's no-reward list.
+- 2026-08-07 REJECTED endpoint maps with all-401 responses (mysignins API map): inventory is not a finding without a bypass.
+- 2026-08-07 REJECTED implicit-flow / client-registration hygiene (accounts.google.com): documented client allow-list model.
+- 2026-08-07 REJECTED Algolia DocSearch apiKey in docusaurus config (google/xrblocks): search-only key, public by design.
+
+## KNOWN DUPLICATES (do not re-report)
+- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128, closed 2025-07-23.
+- ADK hardcoded ya29.* OAuth token in git history: google/adk-python issue #5520, closed 2026-04-28, issuetracker 504158909, token redacted.
+- CVE-2026-47391, Benchikh OAuth, Tenable SSRF: already public/fixed (from 10:16 triage).
+
+## ALIVE SURFACE FACTS (verified)
+- mysignins.microsoft.com SPA: MSAL app clientId 19db86c3-b2b9-44cc-b339-36da233a3be2, backend api.mysignins.microsoft.com, region header x-ms-mysignins-region: westus2. API map: /api/session/*, /api/authenticationmethods/*, /api/signIns, /api/password/*, /api/captcha/*, /api/signOutEverywhere — all 401/POST-gated.
+- api.myaccount.microsoft.com SPA: clientId 8c59ead7-d703-4a27-9e55-c96a0054c8d2. Entra Verified ID: /api/issueVerifiedEmployeeCredential, /api/canVerifiedIdBeIssued. ToS: /api/termsofuse/{agreements,myacceptances,tenantbannerlogo,tenantdisplayname}. /api/shell/getshellinfo, /api/groups/settings, /api/instrument/logclient. Consumer tenant 9188040d-6c67-4c5b-b112-36a304b66dad.
+- accounts.accesscontrol.windows.net: /metadata/json/1 (4 x509 keys), /tokens/OAuth/2, /tokens/delegation/1, /mgmt/delegation/1 (200 sign-in page). ESTS 2.1.24997.11.
+- Graph agentic: /v1.0 and /beta me/agentSignInSessions alive (401 InvalidAuthenticationToken).
+- controlplane.accledger.azure.com: Kestrel /health 200, structured 404 envelope, no swagger.
+- GCP control-plane discovery APIs (identitytoolkit, iam, accesscontextmanager, beyondcorp, agentidentity, cloudbuild, artifactregistry, orgpolicy, binaryauthorization, assuredworkloads): all require consumer identity (API key/OAuth); no anonymous reads.
+- google/adk-python: /run_sse endpoint exists in code; credential storage migrating to secret: scope (PR #5154 WIP).
+- identitytoolkit.googleapis.com: 403 for unregistered callers on ALL methods incl. getProjects and v3 relyingparty.
+
+## REUSABLE PATTERNS
+- AAD authorization endpoint accepts any redirect_uri in the request → validation deferred to completion. Useful for detecting eager-validation bypasses on OTHER OAuth providers (same-class check: prompt=none + attacker redirect_uri + valid client_id).
+- Firebase gating model: "unregistered callers" 403 = needs API key. Public Firebase API keys are project-bound; cross-project reads need the target project's key or OAuth+IAM.
+- GCP $discovery docs expose full request schemas — use for schema-level trust-boundary review (fields marked "should only be specified by authenticated requests" = the trust boundary; hunt fields WITHOUT that annotation).
+- 2026-08-07 ACCEPTED v2.0 HTTP-200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (embedded JS error 700038, iHttpErrorCode 400) instead of HTTP 400 — violates RFC 6749 §3; status-checking clients may misparse as success.
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth GET/HEAD returns HTTP 405 (not 401), no WWW-Authenticate Bearer, Content-Length 0 — violates RFC 6750 §3; masks IDOR enumeration + breaks SDK auto-auth.
+- 2026-08-07 REJECTED tokeninfo 500 handler anomaly @ oauth2.googleapis.com/tokeninfo: non-reproducible (1×500 then 3×400 on identical malformed id_token); transient frontend error, no deterministic parse branch.
+- 2026-08-07 ACCEPTED `oauth2.googleapis.com/tokeninfo` public introspection oracle: accepts `?access_token=` / `?id_token=` query params (no Authorization header), returns aud/scope/expiry — verified (no-token→400, malformed→400)
+- 2026-08-07 ACCEPTED `bughunters.google.com` root `/` hardening: HTTP 200, HSTS max-age=2592000;includeSubdomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ `graph.microsoft.com/v1.0`: unauth HEAD/GET to `/v1.0`, `/me`, `/users` → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer — verified passively (4×405)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ `login.microsoftonline.com/common/oauth2/v2.0/authorize`: unsupported `response_type=token` returns HTTP 200 with embedded JS error code 700038 (iHttpErrorCode 400)
+- 2026-08-07 No new proving-dead classes this cycle
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no x5c/EC key → no cross-endpoint rotation desync, no kid-collision confusion surface. (Answers laguna ov-kids probe; issuer-confusion sub-claim tracked by laguna [55].)
+- 2026-08-07 REJECTED dual-JWKS rotation desync / alg-confusion @ login.microsoftonline.com/discovery/keys: verified live — v1 kid set (5) is a strict subset of v2.0 (8), all kty=RSA sig keys, no v1-exclusive kid, no EC/x5c divergence → no cross-endpoint rotation desync or kid-collision surface. (Answers laguna's ov-kids probe; issuer-confusion sub-claim stays with laguna [55].)
+- 2026-08-07 ACCEPTED agentRegistration metadata has ZERO ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids; dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0) confirmed via OIDC discovery — verified via live curl probes
+- 2026-08-07 ACCEPTED v1.0-only response_types @ login.microsoftonline.com: v1.0 supports response_type=token (pure implicit) + token id_token (hybrid); v2.0 supports only code, id_token, code id_token, id_token token — verified via live OIDC discovery fetch
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD to /v1.0, /me, /users → HTTP 405 (Content-Length: 0), NO WWW-Authenticate Bearer; GET returns proper 401 with WWW-Authenticate: Bearer — verified 3×HEAD + 1×GET passively
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with 23836-byte HTML body containing iErrorCode=900144, iHttpErrorCode=400, "We received a bad request" — violates RFC 6749 §3; verified via live GET probe
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed no-auth 400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params (no Authorization header)
+- 2026-08-07 No new ACCEPTED classes this cycle (all REJECTED/ACCEPTED in knowledge base remain current)
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior findings, no new anomalies.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces remain confirmed live — issuer-confusion precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions still confirmed in metadata — IDOR precondition still valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy(Nullable=false), ownerIds(Nullable=false), agentCard(graph.Json), managedByAppId, agentIdentityId all client-supplied — verified via live $metadata fetch + Python regex extraction of full EntityType block
+- 2026-08-07 ACCEPTED agentInstance/agentCollection/agentCardManifest/copilotPackage/copilotAdminCatalog EntityTypes ALL have zero OperationRestrictions/ReadRestrictions/UpdateRestrictions @ graph.microsoft.com/beta/$metadata — same IDOR pattern extends across entire Agent Registry ecosystem; agentInstance additionally exposes client-supplied agentUserId + managedBy
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys: 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIY…) ALL present in v2.0's 8 kids — confirmed live via kid-by-kid comparison
+- 2026-08-07 ACCEPTED v1.0-only response_types @ login.microsoftlive.com: v1.0 OIDC discovery returns ['code','id_token','code id_token','token id_token','token']; v2.0 returns ['code','id_token','code id_token','id_token token'] — pure `token` implicit excluded from v2.0, verified via live OIDC discovery fetch
+- 2026-08-07 ACCEPTED Graph API 405 anomaly @ graph.microsoft.com/v1.0: unauth HEAD returns 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET returns 401 with proper Bearer challenge — verified live (HEAD+GET both tested)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: unsupported response_type=token returns HTTP 200 (not 400) with embedded JS error 700038 — verified via live GET probe
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-token→400 `{"error":"invalid_token","error_description":"Either access_token, id_token, or token_handle required"}`; accepts ?access_token= / ?id_token= query params — verified
+- 2026-08-07 ACCEPTED bughunters.google.com root hardening: HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff — verified
+- 2026-08-07 REJECTED login.live.com/oauth20_desktop.srf full removal: returns stub 200 page with "You have reached a page that is not normally shown" + client-side JS appending ?removed=true — not fully removed, but stub-only surface, no new attack vector beyond REJECTED AAD deferred redirect validation
+- 2026-08-07 REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: redirects 301 to microsoft.com/copilot-studio — domain deprecated, no live API surface
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch (200, 7.3MB) — createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed live via kid-by-kid comparison — 5 v1.0 kids (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 dual issuer namespaces confirmed live — v1 issuer = sts.windows.net/{tenantid}/, v2 issuer = login.microsoftonline.com/{tenantid}/v2.0; both serve same tenant via separate key endpoints.
+- 2026-08-07 ACCEPTED: v1.0-only response_types confirmed live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only — implicit/hybrid excluded from v2.0.
+- 2026-08-07 ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD to /v1.0, /v1.0/me, /v1.0/users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer); GET to /v1.0/me → 401 with proper Bearer challenge — RFC 6750 §3 violation, masks IDOR enumeration.
+- 2026-08-07 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038, iHttpErrorCode 400) instead of HTTP 400 — RFC 6749 §3 violation.
+- 2026-08-07 ACCEPTED: tokeninfo public introspection oracle confirmed live — oauth2.googleapis.com/tokeninfo accepts ?access_token=/ ?id_token= query params without Authorization header.
+- 2026-08-07 ACCEPTED: bughunters.google.com root hardened confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff.
+- 2026-08-07 REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings live; no new anomalies.
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId all client-supplied, no OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions on the EntityType block — verified via live $metadata fetch + precise block extraction
+- 2026-08-07 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/agentRegistrations → 401, confirming auth-gated but schema-level zero restrictions unchanged)
+- 2026-08-07 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset)
+- 2026-08-07 ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serve same tenant
+- 2026-08-07 ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only
+- 2026-08-07 ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-07 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038)
+- 2026-08-07 ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+- 2026-08-07 ACCEPTED bughunters.google.com root hardening confirmed still live at 22:37 UTC — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff
+- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — confirmed LIVE on master via `curl` + `sha256sum`; reposcan (22:45 UTC) classified REAL_SECRET (REPORT_CANDIDATE=yes); non-placeholder, used as default fallback at oauth.py:99; scopes include cloud-platform (full GCP); OOB redirect URI deprecated.
+- 2026-08-07 ACCEPTED: All prior ACCEPTED findings remain confirmed live at 22:37 UTC — agentRegistration zero ownership restrictions (5 EntityTypes), v1.0↔v2.0 JWKS kid overlap (5/5 ⊂ 8), dual issuer namespaces, v1.0-only response_types, Graph API 405 anomaly, v2.0 HTTP 200 error rendering, tokeninfo oracle, bughunters hardening — no new proving-dead classes this cycle (longcat 22:56 build confirms NO_DELTA).
+- 2026-08-07 REJECTED: No new proving-dead classes — all new passive probes (longcat 22:56) confirmed prior findings unchanged.
+- 2026-08-07 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+- 2026-08-07 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with client-supplied ownership fields + ZERO OperationRestrictions; IDOR precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset, 0 v1-only); issuer-confusion precondition valid pending AUTH_HELPED test.
+- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch + live probe at 22:37 UTC (GET /beta/copilot/agentRegistrations → 401, confirming auth-gated but schema-level zero restrictions unchanged)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live via live kid-by-kid comparison at 22:37 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (v1 ⊂ v2, strict subset)
+- 2026-08-08 ACCEPTED v1.0↔v2.0 dual issuer namespaces confirmed still live — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; both serve same tenant
+- 2026-08-08 ACCEPTED v1.0-only response_types confirmed still live — v1.0 supports pure 'token' implicit + 'token id_token' hybrid; v2.0 returns [code, id_token, code id_token, id_token token] only
+- 2026-08-08 ACCEPTED Graph API 405 anomaly confirmed still live — unauth HEAD /v1.0 → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error code 700038)
+- 2026-08-08 ACCEPTED tokeninfo public introspection oracle confirmed still live — oauth2.googleapis.com/tokeninfo no-token → 400 (113 bytes, application/json)
+[0m
+Let me check the git log and README to understand the workflow context.
+[0m→ [0mRead reports/hypotheses.md[90m [limit=80][0m
+I now have a comprehensive understanding of the complete state. Let me synthesize the analysis across all sources.
+[0m→ [0mRead reports/hypotheses.md[90m [offset=380, limit=85][0m
+I now have a complete understanding of the state. Here is the structured 8-step analyst run.
+
+---
+
+## STEP 1 — DELTA
+
+NO_DELTA. The latest reposcan (2026-08-08 15:50 UTC) confirms `DELTA: 0 new hit lines vs previous scan`. All inventory/knowledge convergence notes from 06:24→15:47 UTC state NO_DELTA. The v1 JWKS key-set rotation (5→4→5 transient across 15:05–15:43 UTC) self-corrected; steady-state subset invariant v1(⊂v2) holds with 0 v1-exclusive kids. No new endpoints, schemas, or surface anomalies since 15:02 UTC. The reposcan classified every new grep hit as TEST_OR_EXAMPLE, ENDPOINT_LEAK (config-only), or INTERESTING (SSRF blocklist = positive control); no new REAL_SECRET.
+
+## STEP 2 — PRIORITIZE
+
+No new delta → scoring top existing assets (axes 0-10, priority = 0.25·attack + 0.25·business + 0.15·tech + 0.15·gate + 0.10·cloud + 0.10·fresh):
+
+- `[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations` → 8.55 | attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+- `[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45` (hardcoded OAuth client_secret, sha256 `3f3f8d6f…d271`) → 8.25 | attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
+- `[PRIO] login.microsoftonline.com/common/discovery/keys` (v1↔v2 kid overlap + dual issuer namespaces) → 7.75 | attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+- `[PRIO] graph.microsoft.com/v1.0` (405 anomaly on agentRegistrations HEAD) → 6.50 | attack=6 business=6 tech=7 gate=3 cloud=5 fresh=10
+
+## STEP 3 — HYPOTHESES
+
+### [HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+- **class**: IDOR
+- **asset**: `graph.microsoft.com/beta/copilot/agentRegistrations` (scope `AgentRegistration.ReadWrite.All`)
+- **confidence**: 85
+- **reasoning**: Live Graph beta `$metadata` fetch (7.3 MB, 15:02 UTC) confirms the `agentRegistration` EntityType declares `createdBy` (Nullable=false), `ownerIds` (Nullable=false), `agentCard` (graph.Json), `managedByAppId`, `agentIdentityId` — ALL client-supplied with ZERO `OperationRestrictions`/`ReadRestrictions`/`UpdateRestrictions`/`InsertRestrictions`/`DeleteRestrictions`. 5 sibling EntityTypes (`agentInstance`, `agentCollection`, `agentCardManifest`, `copilotPackage`, `copilotAdminCatalog`) share the identical zero-restriction pattern. `HEAD /beta/copilot/agentRegistrations` → HTTP 405 (Content-Length: 0, no `WWW-Authenticate: Bearer`) — same RFC 6750 §3 violation as `/v1.0`/`/me`/`/users`.
+- **evidence_needed**: User2 (non-owner) GETs `/beta/copilot/agentRegistrations` collection → 200 + array containing User1's registrations; User2 PATCHes `/beta/copilot/agentRegistrations/{id}` with attacker-controlled `agentCard` + `ownerIds` + `createdBy` → 200/204 with mutation persisting in subsequent GET.
+- **verify_steps**: AUTH_HELPED (test-tenant, two principals, scope `AgentRegistration.ReadWrite.All`, admin consent): A) POST `/beta/copilot/agentRegistrations` with Bearer User1, body `{"displayName":"probe","createdBy":"<user2oid>","ownerIds":["<user2oid>"],"agentCard":{"endpoint":"https://attacker.example"}}` → expect 201; B) GET `/beta/copilot/agentRegistrations` as User2 → expect 200 incl. User1's foreign entry; C) PATCH `/beta/copilot/agentRegistrations/{id}` (owner rewrite + agentCard) as User2 → record 200/204 vs 403; D) GET to confirm persistence; E) test sibling EntityTypes (`agentInstance`, `copilotPackage`).
+- **impact**: Full agent impersonation + copilotPackage supply-chain tampering — forge creator attribution, rewrite agentCard instructions/endpoints, tamper with deployedTo/isBlocked flags; CVSS 7.5–9.0, $100k ceiling.
+- **testability**: AUTH_HELPED
+
+### [HYP] Hardcoded OAuth client_secret in public Google native-app source
+- **class**: MISCONFIG
+- **asset**: `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`)
+- **confidence**: 85
+- **reasoning**: Secret confirmed plaintext-readable from raw GitHub (line :45 + :99 fallback); reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes); scopes include `cloud-platform` (full GCP) + `drive` + `devstorage.full_control`; OOB redirect URI deprecated. Whole-file sha `f4f93c76…` unchanged across all cycles. PASSIVE phase complete; native-app by-design status pending VRP determination.
+- **evidence_needed**: Token mint via `POST oauth2.googleapis.com/token` with hardcoded client_secret + valid refresh_token → 200 with access_token having `cloud-platform` scope.
+- **verify_steps**: PASSIVE done (curl raw GitHub + sha256sum → `3f3f8d6f…d271` confirmed live 15:02 UTC, whole-file sha `f4f93c76…` unchanged); HUMAN_ONLY — file Google VRP report citing oauth.py:45 + :99 fallback + full-GCP scope; request native-app by-design determination.
+- **impact**: OAuth client authentication via embedded secret → mint tokens with full-GCP `cloud-platform` scope + drive + devstorage.full_control for any user with a valid refresh_token; CVSS 7.5–9.0 (pending native-app caveat), $100k ceiling.
+- **testability**: PASSIVE (confirmed live) + HUMAN_ONLY (VRP submit)
+
+### [HYP] v1.0↔v2.0 issuer-confusion token replay with kid overlap + dual issuer namespaces
+- **class**: AUTH
+- **asset**: `login.microsoftonline.com/common/discovery/keys` vs `/discovery/v2.0/keys`
+- **confidence**: 60
+- **reasoning**: Live probe at 15:02–15:43 UTC confirms JWKS endpoint HTTP 200 (`Access-Control-Allow-Origin: *`); v1.0 kids (5, after transient rotation back) ALL present in v2.0's 7-8 kids (strict subset, 0 v1-only); dual issuer namespaces (`sts.windows.net/{tid}/` + `login.microsoftonline.com/{tid}/v2.0`) serve same tenant; v1.0-only `response_type=token` (pure implicit) + `token id_token` (hybrid) excluded from v2.0. Shared-key precondition intact for issuer-confusion replay.
+- **evidence_needed**: v1.0 id_token (`iss=sts.windows.net/{tid}/`) accepted by a v2.0-only Graph resource that should reject v1.0 issuers.
+- **verify_steps**: AUTH_HELPED (test-tenant): 1) GET `/common/discovery/keys` → extract v1 kids; 2) GET `/common/oauth2/v2.0/authorize?client_id=<app>&response_type=token` → capture v1 id_token; 3) GET `/beta/copilot/agentRegistrations` with v1 token → 200 vs 401/403; 4) repeat with v2.0-only resource scope to confirm acceptance.
+- **impact**: MFA bypass / auth bypass → access all v2.0-only Graph resources as any user; CVSS 8.0–9.8, $100k ceiling.
+- **testability**: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+
+All three hypotheses pass the gate: confidence ≥ 40 (85/85/60), no class on REJECTED list (IDOR/MISCONFIG/AUTH all clean), concrete verify_steps present (AUTH_HELPED or PASSIVE+HUMAN_ONLY). The `tokeninfo` public introspection oracle and Graph 405 anomaly are ACCEPTED supporting facts, not standalone reportable findings (rate-limited/no-reward and RFC-violation-without-impact respectively). The Graph 405 anomaly is a force-multiplier for the agentRegistration IDOR (masks enumeration) but not a separate hypothesis. No drops.
+
+`[PARKED] None` — all three hypotheses pass; no sub-40, no REJECTED-list classes, no missing verify_steps.
+
+### [FINAL] (re-ranked)
+1. Agent Registration ownership boundary bypass via client-supplied `createdBy` + cross-principal PATCH (IDOR, `graph.microsoft.com/beta/copilot/agentRegistrations`, conf 85, priority 8.55)
+2. Hardcoded OAuth client_secret @ `earthengine-api/oauth.py:45` (MISCONFIG, sha256 `3f3f8d6f…d271`, conf 85, priority 8.25)
+3. v1.0↔v2.0 issuer-confusion token replay with kid overlap (AUTH, `login.microsoftonline.com`, conf 60, priority 7.75)
+
+## STEP 5 — NEXT ACTION
+
+`[NEXT] AUTH_HELPED:` Execute the two-principal test-tenant probe for the top-ranked agentRegistration IDOR (highest priority + highest confidence). A) `POST https://graph.microsoft.com/beta/copilot/agentRegistrations` with Bearer User1 (scope `AgentRegistration.ReadWrite.All`, admin consent), body `{"displayName":"probe","createdBy":"<user2oid>","ownerIds":["<user2oid>"],"agentCard":{"endpoint":"https://attacker.example"}}` → expect 201; B) `GET /beta/copilot/agentRegistrations` as User2 → expect 200 + array containing User1's foreign entry; C) `PATCH /beta/copilot/agentRegistrations/{id}` (owner rewrite + agentCard) as User2 → record 200/204 vs 403; D) `GET` to confirm persistence; E) test sibling EntityTypes (`agentInstance`, `copilotPackage`). Simultaneously prepare the v1.0 id_token issuer-confusion test against v2.0-only Graph resources. Request MSRC program confirmation for Copilot Studio D2E envhost / `beta/copilot` scope inclusion in TARGET_BOTH.
+
+## STEP 6 — LEARNING
+
+- `[LEARN] ACCEPTED` agentRegistration EntityType zero ownership restrictions confirmed still live @ 16:37 UTC — $metadata fetch (7.3 MB, 873-char block, 0 OperationRestrictions); 5 sibling EntityTypes share identical zero-restriction pattern; `HEAD → 405` (no `WWW-Authenticate: Bearer`) confirms auth-gate + method-handling broken.
+- `[LEARN] ACCEPTED` Hardcoded OAuth client_secret @ `earthengine-api/python/ee/oauth.py:45` confirmed still live @ 16:37 UTC — secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged, scopes cloud-platform+drive+devstorage.full_control.
+- `[LEARN] ACCEPTED` v1.0↔v2.0 JWKS kid overlap confirmed still live @ 16:37 UTC — JWKS HTTP 200 (`Access-Control-Allow-Origin: *`); v1(5) ⊂ v2(8) strict subset, 0 v1-exclusive; dual issuer namespaces + v1.0-only implicit flow verified; issuer-confusion precondition valid pending AUTH_HELPED test.
+- `[LEARN] ACCEPTED` Graph 405 anomaly + tokeninfo oracle + v2.0 authorize HTTP 200 error rendering confirmed still live — extends to `/beta/copilot/agentRegistrations HEAD → 405` (no WWW-Authenticate Bearer); no-param tokeninfo → 400/113b; v2.0 authorize `response_type=token` → 200 (23940-byte body, JS error 700038).
+- `[LEARN] REJECTED` dual-JWKS rotation desync @ `login.microsoftonline.com`: v1 key set transient rotation 5→4→5 (aFkmKVFc cycled) self-corrected across retries; steady-state subset invariant intact, 0 v1-exclusive kids, no alg-confusion surface. Not a finding.
+- `[LEARN] REJECTED` reposcan delta 15:50 UTC: 0 new REAL_SECRET; all hits = TEST_OR_EXAMPLE (minified JS, CI template syntax `${{ secrets.* }}`, enum constants), ENDPOINT_LEAK (config-only Cloud Run secret-ref pattern), INTERESTING (SSRF blocklists = positive control). No new proving-dead classes.
+
+## STEP 7 — RISK SCORE
+
+- `[RISK] google: 30` | Passive phase exhausted: all GCP control-plane discovery APIs auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward per prior VRP); bughunters.google.com hardened (HSTS+XFO+nosniff); ADK issues are KNOWN-DUP closed PRs (#2128/#5520); earthengine-api client_secret is live (sha `3f3f8d6f…d271`) but requires valid refresh_token (user interaction); no new unauthenticated surface. The hardcoded secret is the only Google finding with reportable potential, pending VRP native-app by-design determination.
+
+- `[RISK] microsoft: 86` | Crown-jewel scope (Entra/Copilot identity plane). Multiple high-value design-level gaps confirmed live, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (5 EntityTypes, zero metadata restrictions, CVSS 7.5–9.0, $100k); v1.0↔v2.0 issuer-confusion (kid overlap + dual issuer + v1-only implicit, CVSS 8.0–9.8, $100k); Graph 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration); Verified ID minting (missing admin gate); all confirmed LIVE at 15:02–16:37 UTC but require two-principal test-tenant validation to progress to confirmed valid bugs.
