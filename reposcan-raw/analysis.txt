@@ -1,70 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=48][0m
-[0m→ [0mRead reposcan-raw/google/nearby/sharing/nearby_sharing_service.h[90m [limit=20, offset=65][0m
-[0m
-[0m$ [0mecho -n 'sk-REPLACE-WITH-YOUR-KEY' | sha256sum
-007ce5fc961363eb56d268323b1dfdaec46b7c5245bdea277fd9519e3a6d9623  -
-[0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=40, offset=160][0m
+[0m→ [0mRead reposcan-raw/google/gopacket/layers/radiotap.go[90m [limit=20, offset=545][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=115][0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 (secret material) | Notes |
-|------|------|--------------------------|-------|
-| *(none found in delta)* |  |  | The earthengine-api secret (sha256 `3f3f8d6f…`) is **not in this scan's delta** — it was found in prior cycles and remains ACCEPTED per KB. |
+#### REAL_SECRET (reportable)
+*None in this delta scan.* The previously confirmed `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f...d271`) is not present in this scan's file set.
 
-#### TEST_OR_EXAMPLE
+#### TEST_OR_EXAMPLE (not reportable)
 | File | Line | Reason |
 |------|------|--------|
-| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
-| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` — obvious placeholder (sha256 `007ce5fc…`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` — fake test creds |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` — truncated fake JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — constant name, not a secret |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` — test constant |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` — proper secret ref |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — proper secret ref |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — identifier, not a key |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` step-output references |
+| `google/gopacket/layers/radiotap.go` | 552, 554, 556 | Radiotap protocol bitmask constants (`"80(20LL)"`, etc.) |
+| `google/jsonnet/.github/workflows/publish-python.yml` | 85, 105 | Workflow conditional PyPI URL templates |
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/localization/*/TeX.js` | 19 | Third-party MathJax localization strings (20 files) |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag default `StorageDriverPassword = "storage_driver_password"` |
+| `google/adk-python/.../gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path/context: str \| None = None` parameter defaults |
+| `google/adk-python/.../cli/browser/chunk-*.js` | multiple | Minified JS parse-error strings (source-mapped artifacts) |
+| `google/adk-python/.../auth_credential.py` | 126, 238, 247 | Example creds: `"-----BEGIN PRIVATE KEY-----..."`, `"user"/"password"`, `"eyAkaknabna...."` |
+| `google/adk-python/.../auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `google/adk-python/.../auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
+| `google/adk-python/.../sandbox_computer.py` | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/langextract/.github/workflows/ci.yaml` | 168–170 | Proper `${{ secrets.GEMINI_API_KEY }}` secret references |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp.microsoft.com) |
-| google/nearby/sharing/nearby_sharing_service.h | 71 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Google source link in comment (code reference) |
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/.../container_code_executor.py` | 114, 154 | Documents well-known metadata IP `169.254.169.254` (public knowledge, not a leak) |
 
 #### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs | 563 | `"169.254.169.254"` — AWS/Azure IMDS IP |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs | 566 | `"metadata.google.internal"` — GCP metadata hostname |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs | 568 | `"100.100.100.200"` — Alibaba Cloud IMDS IP |
-| microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go | 183 | `"169.254.169.254": true` — IMDS allowlist |
-| microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go | 184 | `"metadata.google.internal": true` — GCP metadata allowlist |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts | 8 | `'169.254.169.254'` — IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts | 11 | `'metadata.google.internal'` — GCP metadata |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts | 13 | `'100.100.100.200'` — Alibaba IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts | 13 | `'169.254.169.254'` — IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts | 14 | `'metadata.google.internal'` — GCP metadata |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to `169.254.169.254` cloud metadata endpoint in comments/docs |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — flag name constant (not a secret) |
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/.../cli_create.py` | 123 | Writes user-supplied `google_api_key` to `.env` file — legitimate dev feature, but `.env` could be committed by users |
 
 ---
 
-### SHORT VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api `python/ee/oauth.py:45` hardcoded client_secret (sha256 `3f3f8d6f…`) | **yes** | **ACCEPTED in KB** — live on master, REAL_SECRET per reposcan, scopes include `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect. VRP determination pending on native-app by-design status. |
-| microsoft/agent-governance-toolkit ESRP pipeline internal timestamp server (`rfc3161.gtm.corp.microsoft.com`) | **no** | Internal build infra URL — not a customer-facing secret or vuln; corp.microsoft.com is internal-only. |
-| google/nearby `source.corp.google.com` code reference in comment | **no** | Internal source link in comment — no secret, no attack surface. |
-| Cloud metadata endpoint allowlists (169.254.169.254, metadata.google.internal, 100.100.100.200) across 10 files | **no** | Defensive allowlist configuration — shows awareness of SSRF surface, not an exposure. |
-| All GitHub Actions `secrets.GITHUB_TOKEN` / `secrets.GEMINI_API_KEY` refs | **no** | Correct secret management pattern — not hardcoded. |
-| All placeholder/test constants (`sk-REPLACE-WITH-YOUR-KEY`, `your_client_secret`, `injected-token-probe`, etc.) | **no** | Obvious test/fixture data. |
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| GEMINI_API_KEY enum | agents-cli/auth.py | 43 | TEST_OR_EXAMPLE | **no** |
+| GitHub Actions step refs | agents-cli/staging.yaml | 168, 192 | TEST_OR_EXAMPLE | **no** |
+| Radiotap bitmasks | gopacket/radiotap.go | 552, 554, 556 | TEST_OR_EXAMPLE | **no** |
+| PyPI workflow URLs | jsonnet/publish-python.yml | 85, 105 | TEST_OR_EXAMPLE | **no** |
+| MathJax l10n strings | jsonnet/MathJax/*/TeX.js | 19 | TEST_OR_EXAMPLE | **no** |
+| Cadvisor flag default | cadvisor/flags.go | 54 | TEST_OR_EXAMPLE | **no** |
+| Kubeconfig params | adk-python/gke_code_executor.py | 103, 104, 115 | TEST_OR_EXAMPLE | **no** |
+| Minified JS chunks | adk-python/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | **no** |
+| Example credentials | adk-python/auth_credential.py | 126, 238, 247 | TEST_OR_EXAMPLE | **no** |
+| Auth scheme constant | adk-python/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
+| Placeholder client_secret | adk-python/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
+| State key name | adk-python/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | **no** |
+| Proper secret refs | langextract/ci.yaml | 168–170 | TEST_OR_EXAMPLE | **no** |
+| Metadata IP docs | adk-python/container_code_executor.py | 114, 154 | ENDPOINT_LEAK | **no** |
+| .env writer (user key) | adk-python/cli_create.py | 123 | INTERESTING | **no** |
 
-**Bottom line**: No **new** reportable secrets in this delta. The only live reportable finding remains the **earthengine-api hardcoded OAuth client_secret** (already ACCEPTED in KB, pending VRP triage on native-app by-design).
+**No reportable findings in this delta.** All hits are test data, templates, protocol constants, third-party code, or legitimate developer tooling.
