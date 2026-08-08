@@ -533,3 +533,14 @@
 - LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, iHttpErrorC
 - LEARN: ACCEPTED: bughunters.google.com root hardening confirmed still live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-O
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (18:08 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-08 19:32:21 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` with client-
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP for hardcoded OAuth client_secret @ earthengine-api oauth.py:45 — cite sha256 `3f3f8d6f…d271` (present at :45 + :99 fallback), scopes clo
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across 15:43 and current probes (v1=5, v2=7, 4-kid overl
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live @ 18:08 UTC — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestric
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:58 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gate
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…` unchanged, scope
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl

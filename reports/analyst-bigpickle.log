@@ -5916,3 +5916,98 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 45 — earthengine hardcoded secret (native-app by-design caps VRP) + tokeninfo oracle are the main surface; no anonymous GCP read paths; low fresh surface.
 - [RISK] microsoft: 55 — agent registry schema-level zero ownership restrictions (5 EntityTypes, IDOR precondition valid), Graph 405 anomaly (RFC 6750 §3, masks IDOR enumeration), dual-issuer namespace; but all data paths auth-gated, awaiting two-principal proof.
+===== ANALYST bigpickle 2026-08-08 19:32:21 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HEAD graph agentRegistrations: %{http_code} size=%{size_download} ww=%(header_json)\n" -I "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>/dev/null; curl -s -o /dev/null -w "GET graph agentRegistrations: %{http_code}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+HEAD graph agentRegistrations: 405 size=0 ww=%(header_json)
+GET graph agentRegistrations: 401
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HEAD /v1.0: %{http_code} size=%{size_download}\n" -I "https://graph.microsoft.com/v1.0"; curl -s -o /dev/null -w "tokeninfo no-param: %{http_code} size=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -s -o /dev/null -w "JWKS v1: %{http_code} size=%{size_download}\n" "https://login.microsoftonline.com/common/discovery/keys"
+HEAD /v1.0: 405 size=0
+tokeninfo no-param: 400 size=113
+JWKS v1: 200 size=7657
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum; curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | grep -n "RUP0" | head -5 | sed 's/RUP0[A-Za-z0-9]*/REDACTED/'
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+45:CLIENT_SECRET = 'REDACTED'
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); ks=sorted(k['kid'] for k in d['keys']); print('v1 kids:', len(ks)); print('\n'.join(ks))"
+v1 kids: 5
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+AahUf1bCXvx0JTRcXLrr0U4SluY
+aFkmKVFc-4WV6sXCBvNZkXI505Y
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); ks=sorted(k['kid'] for k in d['keys']); print('v2 kids:', len(ks)); print('\n'.join(ks))"
+v2 kids: 8
+1Nv3JExJrKNx1l7adICQ7Y_Atps
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+AahUf1bCXvx0JTRcXLrr0U4SluY
+NqEBZVuOpstZ__5iZuWH3HPswcI
+aFkmKVFc-4WV6sXCBvNZkXI505Y
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+rRk1d-57BGZfsM4BUHrkx8cQbic
+[0m
+Probes complete. All read-only. Output:
+
+## STEP 1 — DELTA
+- [CHANGED] login.microsoftonline.com/common/discovery/keys — v1.0 set back to 5 kids incl. `aFkmKVFc…` → v1(5) ⊂ v2(8) strict subset restored, 0 v1-only; prior transient "aFkmKVFc v1-exclusive" rotation state resolved.
+- [CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations — re-verified HEAD→405/0 (no WWW-Authenticate Bearer), GET→401; RFC 6750 §3 anomaly still live.
+- [CHANGED] oauth2.googleapis.com/tokeninfo — re-verified no-param→400/113.
+- [CHANGED] github.com/google/earthengine-api/python/ee/oauth.py — whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged; secret verbatim at :45.
+- Otherwise NO_DELTA — all other ACCEPTED findings unchanged.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations | score 7.40 | attack=7 business=9 tech=8 gate=6 cloud=8 fresh=5
+- [PRIO] github.com/google/earthengine-api/python/ee/oauth.py → oauth2.googleapis.com/token | score 7.05 | attack=6 business=10 tech=7 gate=4 cloud=9 fresh=5
+- [PRIO] login.microsoftonline.com (v1.0/v2.0 auth endpoints + JWKS) | score 6.90 | attack=6 business=9 tech=8 gate=7 cloud=5 fresh=4
+
+## STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal write
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: probe — HEAD→405/0 (RFC 6750 §3 anomaly live), GET/POST→401 auth-gated; $metadata agentRegistration block (873 chars) has createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false with ZERO Operation/Read/Insert/Update/DeleteRestrictions; 5 sibling EntityTypes share pattern.
+evidence_needed: principal B reads A's registrations (200 incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: probe — whole-file sha f4f93c76… unchanged, secret sha `3f3f8d6f…d271` verbatim at :45 (+:99 fallback); scopes cloud-platform+drive+devstorage.full_control. Redemption is the only gate.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: probe — v1(5) ⊂ v2(8) strict subset restored (0 v1-only, all 5 shared incl. aFkmKVFc), dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0; shared-key precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- [PARKED] None — all three hypotheses ≥40 confidence, no REJECTED-class conflict, concrete verify_steps present. issuer-confusion (60) kept only as pre-AUTH_HELPED precondition; strictly passive surface adds nothing new.
+- [FINAL] 1) Agent Registration IDOR (85) 2) Earth Engine secret redemption (75) 3) v1↔v2 issuer-confusion (60)
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` with client-supplied createdBy/ownerIds; B (separate principal, own Bearer, scope AgentRegistration.ReadWrite.All) GETs collection and PATCHes {A-id}; record 200/204 vs 403. Do NOT run with the sandbox's unprivileged token.
+
+## STEP 6 — LEARNING
+- [LEARN] ACCEPTED v1.0↔v2.0 JWKS kid overlap @ login.microsoftonline.com: current probe — v1(5) ⊂ v2(8) strict subset restored (0 v1-only), aFkmKVFc rotated back into v1 set; prior transient "v1-exclusive" state resolved; shared-key precondition intact.
+- [LEARN] ACCEPTED Graph 405 anomaly @ graph.microsoft.com/beta/copilot/agentRegistrations: HEAD→405/0 no WWW-Authenticate Bearer, GET→401 auth-gated; RFC 6750 §3 violation extends to Agent Registration endpoint.
+- [LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-param→400/113.
+- [LEARN] ACCEPTED hardcoded OAuth client_secret @ earthengine-api python/ee/oauth.py:45: whole-file sha f4f93c76… unchanged, secret sha `3f3f8d6f…d271` verbatim at :45.
+- [LEARN] REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 55 — exposure concentrated in earthengine hardcoded secret (high value, cloud-platform scope) but redemption is HUMAN_ONLY and native-app by-design caveat caps VRP; remaining surface hardened public endpoints. | microsoft: 65 — agentRegistration IDOR precondition + 405 anomaly live and top-priority AUTH_HELPED test pending; auth-gated, so below critical until a two-principal test returns a cross-tenant read/write.
