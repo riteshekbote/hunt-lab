@@ -1,61 +1,140 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[0m$ [0mcat << 'EOF'
+# REAL_SECRET candidates
+# None found in this scan - all apparent secrets are test data, placeholders, or syntax definitions
 
-#### REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *none* | — | — | No hardcoded live credentials in this delta |
+# TEST_OR_EXAMPLE
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82 | const val IPP_CREATE_TERMINAL_TOKEN = "IPP_CREATE_TERMINAL_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 88 | const val IPP_CREATE_PROXY_TOKEN = "IPP_CREATE_PROXY_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 91 | const val IPP_GET_PROXY_TOKEN = "IPP_GET_PROXY_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | private const val KEY_RENDER_TOKEN = "render_token" | Constant identifier, not secret |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | private const val KEY_RENDER_TOKEN = "render_token" | Constant identifier, not secret |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GitHub Actions secret ref |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | private static String g_shutdownPassword = "ServerShutdownPassword" | Test password |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + getDatabasePassword() + ";") | Test code |
+| microsoft/dbt-fabric/docker-compose.yml | 9 | SA_PASSWORD: "L0calTesting!" | Local dev password |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | const secret = "ghp_ABCDEFGHIJKLMNOP" | Test placeholder |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ" | Test fixture |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8" | Test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180) | Test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Multiple fake ghp_/AKIA tokens in assertions | Test fixtures |
+| microsoft/poml/docs/hooks/commitlinks.py | 7 | _TOKEN = "__COMMIT_SHA__" | Placeholder |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Type |
-|------|------|------|
-| microsoft/dbt-fabric/docker-compose.yml | 9 | Local dev password (`L0calTesting!`) |
-| microsoft/monaco-editor/src/languages/definitions/azcli/azcli.ts | 28,29,37 | Tokenizer config |
-| microsoft/monaco-editor/src/languages/definitions/css/css.ts | 54,55,56 | Tokenizer config |
-| microsoft/monaco-editor/src/languages/definitions/pascaligo/pascaligo.ts | 41,42,43 | Tokenizer config |
-| microsoft/monaco-editor/src/languages/definitions/postiats/postiats.ts | 431,432 | Tokenizer config |
-| microsoft/monaco-editor/src/languages/definitions/redis/redis.ts | 36,37,293 | Tokenizer config |
-| microsoft/monaco-editor/src/languages/definitions/typescript/typescript.ts | 310,329,351 | Tokenizer config |
-| microsoft/monaco-editor/website/src/website/components/monaco/MonacoLoader.tsx | 30 | UI color token |
-| microsoft/poml/.github/workflows/publish-pypi.yml | 175 | test.pypi.org CI |
-| microsoft/poml/.github/workflows/test-after-publish.yml | 79 | test.pypi.org CI |
-| microsoft/poml/docs/hooks/commitlinks.py | 7 | Placeholder `__COMMIT_SHA__` |
-| microsoft/qlib/.github/workflows/release.yml | 63,107 | test.pypi.org CI |
-| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Fake GH token `ghp_ABCDEFGHIJKLMNOP` |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19,20,24 | Fake GH/AWS tokens in test fixtures |
-| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Fake GH token in test fixture |
-| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Fake GH token in eval data |
-| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Fake GH token in eval data |
+# ENDPOINT_LEAK
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | GCE metadata endpoint (comment) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | AWS IMDS endpoint (comment) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com/doc/connector-j/8.0/en/... | Documentation URL (comment) |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 302 | kube_config: Path to kubeconfig or "incluster" | Config reference (comment) |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 413 | kubeconfig = f"--kubeconfig {self.kube_config} " | Config path construction |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 415 | kubectl exec command with namespace/pod | K8s API interaction code |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | `http://169.254.169.254/latest/meta-data/iam/` |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal) |
+# INTERESTING
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/ax/manifests/install-ax.sh | 241 | pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}" | Secure random password generation |
+| google/ax/manifests/install-ax.sh | 286 | secret_args+=(--from-literal=password="${pg_password}") | K8s secret creation pattern |
+| microsoft/monaco-editor/src/languages/definitions/* | Various | Language syntax delimiter definitions | Syntax highlighting rules (7 new delta hits) |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/ax/manifests/install-ax.sh | 239,241,286 | Password sourced from `existing_pw` / `POSTGRES_PASSWORD` env / `openssl rand -hex 16`; k8s secret created from it |
-| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 302,413,415 | Kubeconfig handling & `kubectl exec` command construction |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer constant names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) — not secrets |
-| google/private-compute-services/.../RenderTokenHint.kt / RenderTokenInsight.kt | 41,43 | Constant `KEY_RENDER_TOKEN = "render_token"` — not a secret |
+# VERDICT
+REPORT_CANDIDATE: no
+- No REAL_SECRET findings in this scan
+- All credential-like hits are test fixtures, placeholders, constant identifiers, or syntax definitions
+- The earthengine-api hardcoded secret (from KB) was NOT in this repo scan delta
+- Monaco-editor "hits" are language grammar token definitions for delimiters (%, (, ), {, }, [, ]) - false positives
+EOF
+# REAL_SECRET candidates
+# None found in this scan - all apparent secrets are test data, placeholders, or syntax definitions
+
+# TEST_OR_EXAMPLE
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82 | const val IPP_CREATE_TERMINAL_TOKEN = "IPP_CREATE_TERMINAL_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 88 | const val IPP_CREATE_PROXY_TOKEN = "IPP_CREATE_PROXY_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 91 | const val IPP_GET_PROXY_TOKEN = "IPP_GET_PROXY_TOKEN" | Constant identifier, not secret |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | private const val KEY_RENDER_TOKEN = "render_token" | Constant identifier, not secret |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | private const val KEY_RENDER_TOKEN = "render_token" | Constant identifier, not secret |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GitHub Actions secret ref |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | private static String g_shutdownPassword = "ServerShutdownPassword" | Test password |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + getDatabasePassword() + ";") | Test code |
+| microsoft/dbt-fabric/docker-compose.yml | 9 | SA_PASSWORD: "L0calTesting!" | Local dev password |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | const secret = "ghp_ABCDEFGHIJKLMNOP" | Test placeholder |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ" | Test fixture |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8" | Test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180) | Test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Multiple fake ghp_/AKIA tokens in assertions | Test fixtures |
+| microsoft/poml/docs/hooks/commitlinks.py | 7 | _TOKEN = "__COMMIT_SHA__" | Placeholder |
+
+# ENDPOINT_LEAK
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | GCE metadata endpoint (comment) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | AWS IMDS endpoint (comment) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com/doc/connector-j/8.0/en/... | Documentation URL (comment) |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 302 | kube_config: Path to kubeconfig or "incluster" | Config reference (comment) |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 413 | kubeconfig = f"--kubeconfig {self.kube_config} " | Config path construction |
+| microsoft/debug-gym/debug_gym/gym/terminals/kubernetes.py | 415 | kubectl exec command with namespace/pod | K8s API interaction code |
+
+# INTERESTING
+| File | Line | Content | Classification |
+|------|------|---------|----------------|
+| google/ax/manifests/install-ax.sh | 241 | pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}" | Secure random password generation |
+| google/ax/manifests/install-ax.sh | 286 | secret_args+=(--from-literal=password="${pg_password}") | K8s secret creation pattern |
+| microsoft/monaco-editor/src/languages/definitions/* | Various | Language syntax delimiter definitions | Syntax highlighting rules (7 new delta hits) |
+
+# VERDICT
+REPORT_CANDIDATE: no
+- No REAL_SECRET findings in this scan
+- All credential-like hits are test fixtures, placeholders, constant identifiers, or syntax definitions
+- The earthengine-api hardcoded secret (from KB) was NOT in this repo scan delta
+- Monaco-editor "hits" are language grammar token definitions for delimiters (%, (, ), {, }, [, ]) - false positives
+[0m
+**REAL_SECRET**: None
+
+**TEST_OR_EXAMPLE** (16 findings)
+| File | Line | Classification |
+|------|------|----------------|
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Constant identifiers (`IPP_*_TOKEN`) |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant identifier (`KEY_RENDER_TOKEN`) |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Constant identifier (`KEY_RENDER_TOKEN`) |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | GH Actions secret ref `${{secrets.GITHUB_TOKEN}}` |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Explicit test fixture `"fuzz test key"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test password `"ServerShutdownPassword"` |
+| microsoft/dbt-fabric/docker-compose.yml | 9 | Local dev password `"L0calTesting!"` |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Test placeholder `"ghp_ABCDEFGHIJKLMNOP"` |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Test fixture fake GH token |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Test fixture fake GH token |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test fixture fake GH token |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Test fixtures fake GH/AWS tokens |
+| microsoft/poml/docs/hooks/commitlinks.py | 7 | Placeholder `"__COMMIT_SHA__"` |
+
+**ENDPOINT_LEAK** (6 findings)
+| File | Line | Classification |
+|------|------|----------------|
+| google/tensorstore/.../gce_auth_provider.h | 55 | GCE metadata endpoint (comment) |
+| google/tensorstore/.../aws_credentials_spec.h | 51 | AWS IMDS endpoint (comment) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL (comment) |
+| microsoft/debug-gym/.../kubernetes.py | 302,413,415 | Kubeconfig paths & kubectl commands |
+
+**INTERESTING** (3 findings)
+| File | Line | Classification |
+|------|------|----------------|
+| google/ax/manifests/install-ax.sh | 241 | Secure pattern: `openssl rand -hex 16` fallback |
+| google/ax/manifests/install-ax.sh | 286 | K8s secret creation from generated password |
+| microsoft/monaco-editor/src/languages/definitions/* | 7 files | Syntax grammar delimiter tokens (%, (, ), {, }, [, ]) — **false positives** |
 
 ---
 
-### Verdict List
+**VERDICT: REPORT_CANDIDATE: no**
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| google/ax/manifests/install-ax.sh password flow | **no** — generates random or uses env; no static secret |
-| microsoft/dbt-fabric/docker-compose.yml SA_PASSWORD | **no** — obvious local-test value |
-| All skill-recorder fixtures | **no** — test data, fake tokens |
-| All monaco-editor language defs | **no** — tokenizer configs |
-| tensorstore metadata endpoints | **no** — well-known IMDS paths |
-| copybara cloudbuild internal URL | **no** — internal build reference |
-| debug-gym kubernetes.py | **no** — client-side command construction |
-
-**No reportable secrets in this delta.**
+- Zero REAL_SECRET findings in this delta scan
+- All 313 hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (comments), or INTERESTING (secure patterns/syntax definitions)
+- The 7 "new delta hits" are monaco-editor language grammar token definitions for delimiters — not secrets
+- The known earthengine-api hardcoded secret (KB: `oauth.py:45`, sha256 `3f3f8d6f...`) was **not present** in this reposcan corpus
