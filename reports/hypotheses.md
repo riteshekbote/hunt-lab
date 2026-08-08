@@ -544,3 +544,14 @@
 - LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:58 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gate
 - LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…` unchanged, scope
 - LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
+
+## RANKED HYPOTHESES 2026-08-08 20:01:18 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP for hardcoded OAuth client_secret @ earthengine-api oauth.py:45 — cite sha256 `3f3f8d6f…d271` (present at :45 + :99 fallback), scopes clo
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:58 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gate
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…` unchanged, scope
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:58 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gate
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…` unchanged, scope
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
