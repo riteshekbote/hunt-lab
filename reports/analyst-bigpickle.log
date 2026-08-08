@@ -4809,3 +4809,112 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential persisting on Google master (native-app by-design caveat caps VRP), public tokeninfo introspection oracle; otherwise uniform all-401/400 passive surface.
 - [RISK] microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (860-char block, 13 props, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
+===== ANALYST bigpickle 2026-08-08 12:59:55 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "graph HEAD /v1.0: %{http_code} len=%{size_download} wwwauth=%header{www-authenticate}\n" -I --max-time 20 https://graph.microsoft.com/v1.0
+graph HEAD /v1.0: 405 len=0 wwwauth=
+[0m
+[0m$ [0mcurl -s --max-time 20 "https://oauth2.googleapis.com/tokeninfo" | head -c 300; echo; echo "---"; curl -s -o /dev/null -w "bughunters root: %{http_code}\n" --max-time 20 https://bughunters.google.com/
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+---
+bughunters root: 200
+[0m
+[0m$ [0mcurl -s --max-time 30 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sed -n '40,50p'; echo "---"; curl -s --max-time 30 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+---
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+[0m$ [0mcurl -s --max-time 30 "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import json,sys; d=json.load(sys.stdin); print('v1 kids:', len(d['keys']), [k['kid'] for k in d['keys']])"
+v1 kids: 5 ['aFkmKVFc-4WV6sXCBvNZkXI505Y', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug']
+[0m
+[0m$ [0mcurl -s --max-time 30 "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import json,sys; d=json.load(sys.stdin); print('v2 kids:', len(d['keys']), [k['kid'] for k in d['keys']])"
+v2 kids: 8 ['aFkmKVFc-4WV6sXCBvNZkXI505Y', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'NqEBZVuOpstZ__5iZuWH3HPswcI', '1Nv3JExJrKNx1l7adICQ7Y_Atps']
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "agentRegistrations GET: %{http_code}\n" --max-time 30 "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+agentRegistrations GET: 401
+[0m
+All probes confirm prior findings live. Producing analysis.
+
+---
+
+**STEP 1 — DELTA**
+```
+NO_DELTA — fresh passive probes (12:0x UTC): Graph 405 anomaly (HEAD /v1.0 → 405 len=0 no wwwauth) live; tokeninfo oracle (no-param → 400 invalid_token) live; bughunters root 200; earthengine oauth.py whole-file sha f4f93c76… unchanged, secret verbatim at :45; v1 kids=5 ALL ⊂ v2 kids=8 (0 v1-only); agentRegistrations GET → 401 (auth-gated, schema unchanged). No new endpoints/schema/anomalies since 11:59 UTC cycle.
+```
+
+**STEP 2 — PRIORITIZE**
+```
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 7.05 (attack 8, business 9, tech 8, gate 2, cloud 8, fresh 5)
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py — score 6.65 (attack 7, business 8, tech 7, gate 3, cloud 9, fresh 5)
+[PRIO] login.microsoftonline.com v1.0↔v2.0 identity namespace — score 6.35 (attack 7, business 8, tech 8, gate 2, cloud 7, fresh 4)
+```
+
+**STEP 3 — HYPOTHESES**
+```
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: fresh $metadata at 11:30 UTC: agentRegistration block ~873 chars, 13 props, createdBy/ownerIds/agentCard/managedByAppId client-supplied, ZERO Operation/Read/Insert/Update/DeleteRestrictions; live GET→401 (auth-gated only, no pre-auth branch) — unchanged at 12:0x UTC probe.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: 12:0x UTC: whole-file sha f4f93c76… unchanged; secret verbatim at :45 (fallback :99); scopes cloud-platform+drive+devstorage.full_control; CLIENT_ID 517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: 12:0x UTC: v1 kids=5 (aFkmKVFc…, AahUf1bC…, fEtqrhKT…, jvm_-Ttaq…, 6hXLaIYN…) ALL present in v2 kids=8 (strict subset, 0 v1-only); dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0 — shared-key precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+```
+
+**STEP 4 — SELF-CRITIQUE**
+```
+No hypotheses dropped: all ≥60 confidence, none on REJECTED list, all have concrete verify_steps. (earthengine secret: native-app by-design caveat caps VRP but class NOT rejected; keeping at 75 with HUMAN_ONLY verify.)
+[FINAL] 1) agentRegistration IDOR (85) 2) earthengine secret redemption (75) 3) issuer-confusion replay (60)
+```
+
+**STEP 5 — NEXT ACTION**
+```
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations w/ own Bearer → 200 array incl. A's entries vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} persistence. Passive surface fully exhausted (uniform 401/405, NO_DELTA); only a real token resolves or kills the [85] lead.
+```
+
+**STEP 6 — LEARNING**
+```
+[LEARN] ACCEPTED: No new proving-dead classes this cycle — all fresh passive probes (12:0x UTC) confirmed prior ACCEPTED findings unchanged: Graph 405 anomaly, tokeninfo oracle, earthengine secret (sha f4f93c76…, whole-file), v1⊂v2 kid subset (5/5), agentRegistrations auth-gate, bughunters 200. NO_DELTA.
+```
+
+**STEP 7 — RISK SCORE**
+```
+[RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential on master (native-app by-design caveat caps VRP), public tokeninfo introspection oracle; otherwise uniform all-400/401 passive surface | microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (873-char block, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
+```
