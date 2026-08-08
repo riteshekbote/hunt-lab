@@ -1,56 +1,29 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+### Classification of New Delta Hits (14 lines)
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* | | | |
+| File | Line | Pattern | Classification | Reason |
+|------|------|---------|----------------|--------|
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94 | `token="$APP_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference, not a secret |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 98 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 102 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 12 | `AnthropicApiKey = "ANTHROPIC_API_KEY"` | TEST_OR_EXAMPLE | Placeholder constant name, not a key |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 37 | `Mem0ApiKey = "MEM0_API_KEY"` | TEST_OR_EXAMPLE | Placeholder constant name |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 298 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 304 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 315 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py | 225 | `api_key="secret-key"` | TEST_OR_EXAMPLE | Example/fixture value |
+| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py | 467 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_chat_client.py | 894 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_embedding_client.py | 361 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
+| microsoft/agent-framework/python/pyproject.toml | 459 | `url = "https://test.pypi.org/simple/"` | ENDPOINT_LEAK | Public test PyPI endpoint |
+| microsoft/agent-framework/python/pyproject.toml | 460 | `publish-url = "https://test.pypi.org/legacy/"` | ENDPOINT_LEAK | Public test PyPI endpoint |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | Correct GH Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | Public test registry |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{secrets.GITHUB_TOKEN}}` | Correct GH Actions secret ref |
-| microsoft/agent-governance-toolkit/.github/workflows/*.yml | 20,41,20 | `${{secrets.GITHUB_TOKEN}}` | Correct GH Actions secret refs |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` | Placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | `password='newpass123'` | Red-team test data |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js | 76 | `password = "secret123"` | Test fixture |
-| microsoft/skill-recorder/**/*.test.ts | 89,57,31,36,19,20,24 | `ghp_ABC...`, `ghp_abc...`, `AKIA5SX...` | Fake secret fixtures for detector tests |
-| microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | `// client_secret: "abc123..."` | Commented placeholder (delta hit) |
-| google/private-compute-services/**/*.kt | 82,88,91,41,43 | `IPP_CREATE_*_TOKEN`, `KEY_RENDER_TOKEN` | Constant names, not secrets |
+### Verdict
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Risk |
-|------|------|----------|------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal corp timestamp server |
-| microsoft/agent-governance-toolkit/**/*.{cs,go,ts,py} | multiple | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known cloud IMDS endpoints (public knowledge) |
-| microsoft/vcpkg/scripts/azure-pipelines/osx/setup-box.sh | 13 | `https://download.agent.dev.azure.com/...` | Public Azure DevOps agent download |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| All 14 new delta hits | **no** — all are test fixtures, placeholder literals, env-var references, or public endpoints |
 
-#### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| microsoft/agent-governance-toolkit/**/policy_backends.* | multiple | Consistent IMDS allowlists across 4 languages (C#, Go, TS, Python) — supply-chain policy surface |
-| microsoft/skill-recorder/**/sensitive.* | multiple | Secret detection test corpus (ghp_, AKIA patterns) — confirms detector scope |
-| google/ax/manifests/install-ax.sh | 239,241,286 | Postgres password handling via `${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}` — secure default pattern |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified/obfuscated test fixture — not a leak |
-
----
-
-### Verdict List
-
-| Candidate | File | Category | REPORT_CANDIDATE |
-|-----------|------|----------|------------------|
-| Internal corp timestamp server URL | microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 | ENDPOINT_LEAK | **no** (internal URL, no auth material, build-time only) |
-| Cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) | Multiple files across agent-governance-toolkit | ENDPOINT_LEAK | **no** (well-known public endpoints, no secrets) |
-| Hardcoded OAuth client_secret (earthengine-api) | google/earthengine-api/python/ee/oauth.py:45 | REAL_SECRET (from KB) | **yes** (previously confirmed LIVE, sha256 `3f3f8d6f…d271`, scopes cloud-platform+drive+devstorage.full_control, OOB redirect) |
-| Delta hit: commented placeholder | microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js:54 | TEST_OR_EXAMPLE | **no** (obvious `abc123...` placeholder in comment) |
-
----
-
-**Summary**: No **new** reportable secrets in this delta. The only live REAL_SECRET remains the previously confirmed earthengine-api OAuth client secret (tracked in KB, pending VRP determination on native-app by-design status). All other hits are test fixtures, placeholder patterns, correct GitHub Actions secret references, or well-known public endpoints.
+**Summary**: Zero `REAL_SECRET` findings in this delta. The hashed materials (two unique SHA256s) correspond to the repeated `"your_anthropic_api_key"` and `"your-api-key"` placeholder strings. The earthengine-api hardcoded secret (`oauth.py:45`) remains in the **KNOWN DUPLICATES / ACCEPTED** list from prior cycles — no new reportable secrets this scan.
