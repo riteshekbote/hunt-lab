@@ -124,3 +124,8 @@
 - 2026-08-08 ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body)
 - 2026-08-08 ACCEPTED tokeninfo public introspection oracle confirmed still live at 03:14 UTC — no-param → 400 invalid_token; ?access_token=test → 400 Invalid Value
 - 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (03:14 UTC) confirmed prior ACCEPTED findings unchanged, no new anomalies.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch at 03:14 UTC (7.28MB, agentRegistration block=861 chars, no OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false)
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live at 03:14 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only)
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes include cloud-platform+drive+devstorage.full_control, OOB redirect
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed still live at 03:14 UTC — HEAD+GET /v1.0, /me, /users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- 2026-08-08 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body, JS error 700038)

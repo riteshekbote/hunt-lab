@@ -1,28 +1,28 @@
-## 2026-08-08 04:32:14 UTC [google] (model bigpickle)
+## 2026-08-08 05:24:28 UTC [google] (model bigpickle)
 [HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
 class: IDOR
 asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
 confidence: 85
-reasoning: 03:30 UTC probes: GET→401 IDX14100, HEAD→405 len=0, no pre-auth branch; $metadata agentRegistration EntityType still has ZERO OperationRestrictions with client-supplied createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId (pattern repeated on agentInstance/agentCollection/agentCardManifest/copilotPackage). Ownership enforcement reachable only with a real token.
-evidence_needed: principal B GETs collection (200 array incl. A's registrations) and/or PATCHes A's registration (200/204 vs 403).
-verify_steps: AUTH_HELPED (test-tenant, two app principals, admin consent): 1) A POST /beta/copilot/agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection with own Bearer → 200 array vs 403; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} confirm persistence.
+reasoning: 05:23 fetch of beta $metadata still shows agentRegistration EntityType (idx 4501683) with createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied and ZERO restrictions of all five types; live endpoint GET→401 IDX14100, HEAD→405; pattern repeated on agentInstance/agentCollection/agentCardManifest/copilotPackage. Ownership enforcement only reachable with a real token.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign entries) or PATCHes {A-id} (200/204 vs 403).
+verify_steps: AUTH_HELPED (test-tenant, two app principals, admin consent): 1) A POST /beta/copilot/agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 array vs 403; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} confirm persistence.
 impact: cross-app agent tamper → impersonation / instruction injection / forged creator / supply-chain; CVSS 7.5–9.0.
-testability: AUTH_HELPED
-[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
-class: AUTH
-asset: login.microsoftonline.com (sts.windows.net/{tid}/ 5-key vs login.microsoftonline.com/{tid}/v2.0 8-key JWKS)
-confidence: 60
-reasoning: 03:30 UTC: v1 5 kids ALL present in v2 8 kids (strict subset, 0 v1-only), no rotation desync; dual issuer namespaces confirmed; v1.0-only response_types (pure token / token id_token) still excluded from v2.0. Precondition complete, acceptance test needs tokens.
-evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
-verify_steps: AUTH_HELPED: in test tenant acquire v1.0 id_token via v1.0 endpoint; present to v2.0-only Graph resource; observe 200 vs 401/403.
-impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
 class: MISCONFIG
 asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
 confidence: 75
-reasoning: 03:30 UTC: byte-identical secret (sha256 3f3f8d6f…) still on master as default fallback at :99, CLIENT_ID 517222506229, scopes incl. cloud-platform; survives 3+ days of active cleanup → either by-design native-app credential or oversight; only the token endpoint decides.
+reasoning: 05:23 master fetch byte-identical — secret at :45 (sha256 `3f3f8d6f…d271`), default fallback at :99, CLIENT_ID 517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359, scopes incl. cloud-platform; survives 3+ days of active cleanup → by-design native-app credential OR oversight; only the token endpoint decides.
 evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
-verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with the non-placeholder secret; log status + scope; DO NOT redeem in sandbox.
-impact: if live, cloud-platform-scoped token minting → GCP impersonation/quota abuse; CVSS 8.0–9.8 (by-design caveat may kill VRP).
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with the non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: if live, cloud-platform-scoped token minting → GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat may kill VRP).
 testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ 5-key vs login.microsoftonline.com/{tid}/v2.0 8-key JWKS)
+confidence: 60
+reasoning: 05:23 probe: v1 5 kids ALL in v2 8 kids (strict subset, 0 v1-only), dual issuer namespaces confirmed, v1.0-only response_types (pure token/token id_token) still excluded from v2.0. Precondition complete; acceptance needs tokens.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: in test tenant acquire v1.0 id_token via v1.0 endpoint; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
