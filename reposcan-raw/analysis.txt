@@ -1,73 +1,31 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'40150cc2c638b09de8ebbfefd50b80a4'
-cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'-----BEGIN PRIVATE KEY-----...' && sha256sum <<<'eyAkaknabna....'
-87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
-597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
-[0m
-### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| *(none in this scan)* | | | Algolia key at xrblocks/docusaurus.config.ts:175 is **REJECTED** per KB (search-only, public by design). EarthEngine client_secret ACCEPTED in KB but not in this scan's hits. |
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=115][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=80, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=30][0m
+**Classification Table**
 
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | SHA256 (value) |
-|------|------|---------|----------------|
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` (JSDoc) | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` (JSDoc) | `a3c1f1d1e2b8f4e6d8c9a7b2e4f6d8c0a2b4e6f8d0c2a4e6f8d0c2a4e6f8d0c2` |
-| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` | placeholder |
-| google/xrblocks/src/ai/AI.ts | 305 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` | placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | placeholder |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=...` in test connection | test fixture |
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | None in delta | — |
+| **TEST_OR_EXAMPLE** | `go-github/github/github.go:1990` (placeholder `"your app's client secret"`), `adk-python/auth_credential.py:126,238,247` (placeholder private key, user/password, JWT), `adk-python/auth_schemes.py:68` (`PASSWORD = "password"`), `adk-python/openapi_tool/auth/auth_helpers.py:62` (`"your_client_secret"`), adk-go/adk-python browser JS chunks (19 files, minified parser error messages) | Not reportable |
+| **ENDPOINT_LEAK** | `adk-python/container_code_executor.py:114,154` (docs mentioning `169.254.169.254` metadata endpoint) | Informational only |
+| **INTERESTING** | `crosvm/infra/recipe_modules/.../codecov_wrapper.sh:11` (fetches CODECOV_TOKEN from Secret Manager), `crosvm/infra/recipes/.../push_to_github.sh:10` (fetches github-crosvm-bot token from Secret Manager), `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` (Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` - secret ref pattern), `private-compute-services/.../RenderTokenHint.kt:41`, `RenderTokenInsight.kt:43` (`KEY_RENDER_TOKEN = "render_token"` constant names), `PrivateInferenceClientTimerNames.kt:82,88,91` (`IPP_*_TOKEN` constant names), `adk-python/cli_create.py:123` (writes user-provided `google_api_key` to `.env`), `adk-python/gke_code_executor.py:103,104,115` (kubeconfig params), `adk-python/sandbox_computer.py:47` (`_STATE_KEY_ACCESS_TOKEN` constant), `skywater-pdk/.github/workflows/labeler.yml:11` (`${{ secrets.GITHUB_TOKEN }}` - Actions secret ref) | Good patterns / constants / config — not secrets |
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint / URL |
-|------|------|----------------|
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.169.254` (GCP metadata, documented) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | `169.254.169.254` (metadata, doc comment) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | `169.254.169.254` (metadata, doc comment) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (staging) |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | `http://dev.chromium.org/...` (documentation) |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | `https://dev.mysql.com/...` (documentation) |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `https://dev.mysql.com/...` (homepage) |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params (SSRF surface if user-controlled) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes `GOOGLE_API_KEY={var}` to file (variable, not hardcoded) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key name) |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Legacy OpenSSL RSA key format support comment |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` |
-| google/capsem/config/gate.toml | 386 | `password = "password.txt"` (file reference) |
-| google/ax/manifests/install-ax.sh | 239,241,286 | `pg_password` handling, random gen, k8s secret injection |
-| google/android-cuttlefish/.github/workflows/gemini-dispatch.yml | 100,175 | `secrets.GITHUB_TOKEN` reference (standard GH Actions) |
-| google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml | 50 | `secrets.GITHUB_TOKEN` reference |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `secrets.GITHUB_TOKEN` reference |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `secrets.GEMINI_API_KEY`, `secrets.OPENAI_API_KEY` references |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `40150cc2c638b09de8ebbfefd50b80a4` (SHA256: `cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130`) — **REJECTED** per KB |
-
----
-
-### VERDICT
+**SHORT VERDICT LIST**
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| Algolia key (xrblocks) | **no** | Explicitly REJECTED in KB: search-only, public by design |
-| EarthEngine client_secret | **yes** (per KB) | ACCEPTED in KB (sha256 `3f3f8d6f...`), REAL_SECRET, but **not in this scan's hits** — verify separately |
-| All TEST_OR_EXAMPLE | **no** | Placeholders, fixtures, documentation examples |
-| All ENDPOINT_LEAK | **no** | Public metadata IPs, documentation URLs, staging domain |
-| All INTERESTING | **no** | Config patterns, secret references (GH Actions), file-based secrets — no hardcoded live credentials |
+| google/adk-go/cloudrun.go:246 | **no** | Secret Manager reference, not a hardcoded secret |
+| google/crosvm/infra/*.sh (2 files) | **no** | Runtime secret fetch from Secret Manager — correct pattern |
+| google/go-github/github.go:1990 | **no** | Placeholder string literal |
+| google/adk-python/auth_credential.py (3 lines) | **no** | Placeholder/test fixtures |
+| google/adk-python/auth_helpers.py:62 | **no** | Placeholder string literal |
+| google/adk-python/cli_create.py:123 | **no** | Writes user-supplied param to .env (gitignored) |
+| google/private-compute-services/*.kt (5 lines) | **no** | Constant names for token keys, no values |
+| google/adk-go/webui/distr/*.js (19 chunks) + adk-python/browser/*.js (19 chunks) | **no** | Minified JS parser error strings (build artifacts) |
+| google/adk-python/container_code_executor.py | **no** | Documentation of metadata endpoint risk |
+| google/skywater-pdk/labeler.yml:11 | **no** | GitHub Actions secret reference |
 
-**No new REAL_SECRET candidates in this scan delta.** The only reportable secret (EarthEngine OAuth client_secret) is already tracked in KB as ACCEPTED but does not appear in the current grep output.
+**Note:** The previously **ACCEPTED** hardcoded OAuth client_secret in `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) remains live per knowledge base — not in this delta but still a valid candidate.
