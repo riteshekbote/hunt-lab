@@ -1,87 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/
-BUILD
-RenderTokenHint.kt
-RenderTokenInsight.kt
+[0m$ [0mls -la reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN"
+NOT IN SCAN
 [0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenInsight.kt
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/privateinference/library/oakutil/PrivateInferenceClientTimerNames.kt
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h[90m [offset=45, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java[90m [limit=40, offset=70][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts[90m [limit=10, offset=395][0m
-Based on my analysis of all hits, here are the classifications:
+[0m$ [0mgrep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/ 2>/dev/null || echo "earthengine secret not in current scan"
+earthengine secret not in current scan
+[0m
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Context |
+|------|------|-----------------|---------|
+| *(none in this delta)* | — | — | — |
+
+> **Note:** `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) is a **previously ACCEPTED** finding (live on master, REAL_SECRET per reposcan) but **not present in this scan delta**.
 
 ---
 
-### **REAL_SECRET** (reportable hardcoded credentials)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *None found in this delta* | — | — | The only live hardcoded secret is the known `earthengine-api` OAuth client_secret (already tracked in KB) |
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB connection helper |
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` — unit test fixtures |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` — unit test fixtures |
+| microsoft/agent-governance-toolkit/.../extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` — placeholder in example code |
 
 ---
 
-### **TEST_OR_EXAMPLE** (test fixtures, placeholders, secret references)
-| File | Line | Context |
-|------|------|---------|
-| `google/copybara/javatests/.../AuthTest.java` | 75 | `password = "testpassword"` |
-| `google/copybara/javatests/.../AuthTest.java` | 102 | `token = "test-token-123"` |
-| `google/copybara/javatests/.../AuthTest.java` | 129 | `password = "testpassword"` |
-| `google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | `password = "testpassword"` |
-| `microsoft/.../agent-os-vscode/src/extension.ts` | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` (placeholder in test comment) |
-| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` (Actions secret ref) |
-| `microsoft/.../labeler.yml` | 20 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
-| `microsoft/.../auto-merge-dependabot.yml` | 41 | `GH_TOKEN: "${{ secrets.GH_TOKEN }}"` |
-| `microsoft/.../pr-size.yml` | 20 | `GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` |
+### ENDPOINT_LEAK
+| File | Line | Leak Type |
+|------|------|-----------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | GCE metadata endpoint (commented) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | AWS IMDS endpoint (commented) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name `storage_driver_password` (not a value) |
+| google/copybara/cloudbuild.yaml | 27 | Internal `pantheon.corp.google.com` artifact URL |
+| microsoft/agent-governance-toolkit/.../esrp-publish.yml | 1180 | Internal `rfc3161.gtm.corp.microsoft.com` timestamp server |
 
 ---
 
-### **ENDPOINT_LEAK** (internal/dev/staging URLs, well-known metadata endpoints)
-| File | Line | Endpoint |
-|------|------|----------|
-| `google/tensorstore/.../gce_auth_provider.h` | 55 | `metadata.google.internal/computeMetadata/v1/...` (GCE IMDS, public doc) |
-| `google/tensorstore/.../aws_credentials_spec.h` | 51 | `169.254.169.254/latest/meta-data/iam/` (AWS IMDS, public doc) |
-| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com/artifacts/...` (internal Google Artifact Registry) |
-| `microsoft/.../OpaPolicyBackend.cs` | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (cloud IMDS, public) |
-| `microsoft/.../policy_backends.go` | 183, 184 | Same IMDS endpoints |
-| `microsoft/.../opa.ts` | 13, 14 | Same IMDS endpoints |
-| `microsoft/.../cedar.ts` | 8, 11, 13 | Same IMDS endpoints |
-| `microsoft/.../esrp-publish.yml` | 1180 | `rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal timestamp server) |
-| `microsoft/.../managed_identity.py` | 27, 29, 30 | Azure/AWS IMDS endpoints |
-| `microsoft/.../entra_agent_id.py` | 24 | Azure IMDS endpoint |
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-go/.../cloudrun.go | 246 | Cloud Run `--set-secrets` pattern (correct secret ref) |
+| google/magika/.../github-issue-labeler.yml | 20 | Proper `${{secrets.GITHUB_TOKEN}}` usage |
+| google/magika/.../python-build-and-release-package.yml | 407, 437 | Public test.pypi.org URLs |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82, 88, 91 | Timer metric constants (`IPP_*_TOKEN`) |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | Shared-prefs key constant `render_token` |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Same key constant |
+| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563, 566, 568 | IMDS allow-list (AWS/Azure/GCE/Alibaba) |
+| microsoft/agent-governance-toolkit/.../policy_backends.go | 183, 184 | Same IMDS allow-list (Go) |
+| microsoft/agent-governance-toolkit/.../opa.ts | 13, 14 | Same IMDS allow-list (TS) |
+| microsoft/agent-governance-toolkit/.../cedar.ts | 8, 11, 13 | Same IMDS allow-list (Cedar) |
+| microsoft/agent-governance-toolkit/.../labeler.yml | 20 | Proper `${{secrets.GITHUB_TOKEN}}` |
+| microsoft/agent-governance-toolkit/.../auto-merge-dependabot.yml | 41 | Proper `${{secrets.GITHUB_TOKEN}}` |
+| microsoft/agent-governance-toolkit/.../pr-size.yml | 20 | Proper `${{secrets.GITHUB_TOKEN}}` |
 
 ---
 
-### **INTERESTING** (debug flags, config patterns, constants)
-| File | Line | Description |
-|------|------|-------------|
-| `google/adk-go/.../cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run Secret Manager ref pattern) |
-| `google/cadvisor/.../flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` (flag name constant, not a value) |
-| `google/private-compute-services/.../RenderTokenHint.kt` | 41 | `KEY_RENDER_TOKEN = "render_token"` (Android Bundle key for parcelable) |
-| `google/private-compute-services/.../RenderTokenInsight.kt` | 43 | Same Bundle key constant |
-| `google/private-compute-services/.../PrivateInferenceClientTimerNames.kt` | 82, 88, 91 | Timer metric names: `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, `IPP_GET_PROXY_TOKEN` |
-| `microsoft/.../acs-policy-configmap.yaml` | 2 | `kind: ConfigMap` (K8s resource) |
-| `microsoft/.../configmap.yaml` | 2 | `kind: ConfigMap` (K8s resource) |
-| `google/magika/tests_data/.../code.js` | 31 | Minified test JS fixture |
-
----
-
-### **VERDICT LIST**
-
+### VERDICT
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `private-compute-services` `KEY_RENDER_TOKEN` / `IPP_*_TOKEN` constants | **no** | Bundle serialization keys & timer metric names — not secrets |
-| `adk-go` Cloud Run `--set-secrets` flag | **no** | References Secret Manager; no secret material in code |
-| `cadvisor` `StorageDriverPassword` flag name | **no** | CLI flag identifier constant |
-| `tensorstore` GCE/AWS IMDS endpoints | **no** | Well-known public metadata endpoints |
-| `copybara` test passwords / internal URL | **no** | Test fixtures (`testpassword`) + internal build URL |
-| `magika` placeholder / Actions secret refs | **no** | `sk-REPLACE-WITH-YOUR-KEY` placeholder; `${{secrets.*}}` refs |
-| `agent-governance-toolkit` IMDS endpoints / ConfigMaps / Actions refs | **no** | Public cloud metadata endpoints; K8s kinds; Actions secret refs |
-| `agent-governance-toolkit` ESRP timestamp server | **no** | Internal Microsoft service URL, no auth material |
-
-**No new reportable secrets in this delta.** The only live hardcoded credential remains the `google/earthengine-api` OAuth client_secret at `python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`), already tracked in KB.
+| earthengine-api oauth.py:45 (known) | **yes** | Previously confirmed LIVE, REAL_SECRET, scopes=cloud-platform+drive+devstorage.full_control, OOB redirect — pending VRP determination on native-app by-design |
+| All current-delta hits | **no** | All classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URLs only), or INTERESTING (cloud config/IMDS allow-lists/proper secret refs) — no new hardcoded credentials with signs of life |
