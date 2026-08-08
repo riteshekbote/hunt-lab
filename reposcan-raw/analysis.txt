@@ -1,78 +1,88 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la reposcan-raw/
+total 104
+drwxr-xr-x   4 runner runner  4096 Aug  8 12:55 .
+drwxr-xr-x  12 runner runner  4096 Aug  8 12:56 ..
+-rw-r--r--   1 runner runner    43 Aug  8 12:56 analysis.txt
+drwxr-xr-x 138 runner runner  4096 Aug  8 12:55 google
+-rw-r--r--   1 runner runner  5451 Aug  8 12:56 grep-delta.txt
+-rw-r--r--   1 runner runner 11464 Aug  8 12:55 grep-hits.prev.txt
+-rw-r--r--   1 runner runner 11497 Aug  8 12:56 grep-hits.txt
+drwxr-xr-x 283 runner runner 12288 Aug  8 12:55 microsoft
+-rw-r--r--   1 runner runner 42089 Aug  8 12:56 rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/analysis.txt
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=45][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml[90m [limit=20, offset=1170][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs[90m [limit=20, offset=555][0m
+Now I have a clear picture. Let me classify all hits:
 
-## REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret "RUP0RZ6e0pPhDzsqIJ7KlNd1", used as default fallback at :99, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect |
+---
 
-## TEST_OR_EXAMPLE
+### REAL_SECRET
+
+| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
+|------|------|---------------|---------|------------------|
+| *(none in this delta)* | | | | |
+
+> **Note**: The `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) was **already ACCEPTED** in the knowledge base (2026-08-07/08) — not a new delta hit.
+
+---
+
+### TEST_OR_EXAMPLE
+
 | File | Line | Reason |
 |------|------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Placeholder private_key with "..." truncation |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Test credentials: username="user", password="password" |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Test token: "eyAkaknabna...." (truncated) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant: PASSWORD = "password" |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder: client_secret="your_client_secret" |
-| google/go-github/github/github.go | 1990 | Placeholder: "your app's client secret" |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name: GEMINI_API_KEY = "gemini_api_key" |
-| google/private-compute-services/.../oakutil/PrivateInferenceClientTimerNames.kt | 82,88,91 | Constant names: IPP_CREATE_TERMINAL_TOKEN, etc. |
-| google/private-compute-services/.../rendertoken/RenderTokenHint.kt | 41 | Constant name: KEY_RENDER_TOKEN |
-| google/private-compute-services/.../rendertoken/RenderTokenInsight.kt | 43 | Constant name: KEY_RENDER_TOKEN |
-| google/adk-java/dev/browser/*.js | - | Minified source map chunks |
-| google/adk-python/src/google/adk/cli/browser/*.js | - | Minified source map chunks |
-| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | - | Minified source map |
-
-## ENDPOINT_LEAK
-| File | Line | Type |
-|------|------|------|
-| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | Staging endpoint: api.test.osv.dev |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | Staging endpoints: api.test.osv.dev |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Internal URL ref: pantheon.corp.google.com (comment) |
-| google/osv.dev/deployment/clouddeploy/*/skaffold.yaml | - | Staging config references |
-| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | Staging URL: test.osv.dev |
-| google/osv.dev/docs/_config.yml | 78 | Staging URL: test.osv.dev |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | IMDS documentation ref: 169.254.169.254 (not a leak) |
-
-## INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context params (config, not secrets) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secret usage: ${{ secrets.GEMINI_API_KEY }} |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Proper secret usage: ${{ steps.fetch-token.outputs._id_token }} |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Doc reference: dev.mysql.com |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test connection string construction |
+| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL only |
+| `google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test JS fixture |
+| `google/go-github/github/github.go` | 1990 | `ClientSecret: "your app's client secret"` — placeholder |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126, 238, 247 | Example credentials in docstrings |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — constant name, not secret |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` — placeholder |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name `_vmaas_access_token` |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Template code emitting `GOOGLE_API_KEY=` |
 
 ---
 
-## VERDICT LIST
+### ENDPOINT_LEAK
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Hardcoded OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **YES** | CONFIRMED LIVE (KB 2026-08-07/08), REAL_SECRET, scopes include cloud-platform, used as default fallback |
-| ADK /run_sse client_secret | google/adk-python | **NO** | KNOWN DUP #2128 (closed 2025-07-23) |
-| ADK ya29 token in git history | google/adk-python | **NO** | KNOWN DUP #5520 (closed 2026-04-28) |
-| All auth_credential.py hits | google/adk-python/src/google/adk/auth/auth_credential.py | **NO** | TEST_OR_EXAMPLE (placeholders) |
-| All auth_schemes.py hits | google/adk-python/src/google/adk/auth/auth_schemes.py | **NO** | TEST_OR_EXAMPLE (test constant) |
-| openapi_tool auth_helpers.py | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | **NO** | TEST_OR_EXAMPLE (placeholder) |
-| go-github ClientSecret | google/go-github/github/github.go | **NO** | TEST_OR_EXAMPLE (placeholder) |
-| agents-cli GEMINI_API_KEY | google/agents-cli/src/google/agents/cli/auth.py | **NO** | TEST_OR_EXAMPLE (constant name) |
-| private-compute-services tokens | google/private-compute-services/... | **NO** | TEST_OR_EXAMPLE (constant names) |
-| osv.dev staging URLs | google/osv.dev/... | **NO** | ENDPOINT_LEAK (staging/internal, not prod) |
-| adk-python IMDS refs | google/adk-python/src/google/adk/code_executors/container_code_executor.py | **NO** | ENDPOINT_LEAK (documentation, not leak) |
-| adk-python vmaas state key | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | **NO** | INTERESTING (constant name only) |
-| adk-python gke kubeconfig | google/adk-python/src/google/adk/code_executors/gke_code_executor.py | **NO** | INTERESTING (config params) |
-| langextract/agents-ci workflows | google/*/.github/workflows/ | **NO** | INTERESTING (proper secret usage) |
-| Source map chunks | google/adk-python/src/google/adk/cli/browser/*.js, google/adk-java/dev/browser/*.js | **NO** | TEST_OR_EXAMPLE (minified build artifacts) |
+| File | Line | Endpoint | Severity |
+|------|------|----------|----------|
+| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | **HIGH** — internal Microsoft timestamp server (corp TLD) |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407 | `https://test.pypi.org/p/magika` | LOW — public test PyPI |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 437 | `https://test.pypi.org/legacy/` | LOW — public test PyPI |
 
 ---
 
-## SUMMARY
-**Only 1 reportable candidate**: The hardcoded OAuth client_secret in `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`), already **ACCEPTED** in knowledge base (2026-08-07/08 confirmations). All other hits are test fixtures, placeholders, staging refs, or build artifacts. No new reportable findings in this delta.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+### INTERESTING
+
+| File | Line | Why |
+|------|------|-----|
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` — **flag name constant** (not a secret; defines CLI flag `--storage_driver_password`) |
+| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment documenting cloud metadata endpoint `169.254.169.254` |
+| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service → SSRF risk |
+| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: metadata endpoint SSRF, DNS-based SSRF out of scope |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments warning about `169.254.169.254` metadata endpoint |
+| `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs` | 563, 566, 568 | **Defensive blocklist** of cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) — security control, not leak |
+| `google/magika/.github/workflows/*.yml` + `microsoft/agent-governance-toolkit/.github/workflows/*.yml` | various | Proper `${{ secrets.GITHUB_TOKEN }}` usage — **correct pattern**, not a leak |
+
+---
+
+### SHORT VERDICT
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180` (internal timestamp server URL) | **yes** — ENDPOINT_LEAK (corp TLD in public pipeline) |
+| `google/cadvisor/lib/cadvisorflags/flags.go:54` (StorageDriverPassword flag) | no — flag name constant, not a secret |
+| All TEST_OR_EXAMPLE hits | no — fixtures/placeholders |
+| All INTERESTING hits | no — comments, defensive code, or correct patterns |
+| `google/earthengine-api` oauth secret | **already reported/accepted** (KB: 2026-08-07/08 ACCEPTED) |
+
+**Only one actionable finding in this delta**: the internal Microsoft timestamp server URL (`rfc3161.gtm.corp.microsoft.com`) exposed in a public Azure DevOps pipeline YAML.
