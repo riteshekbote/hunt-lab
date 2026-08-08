@@ -1,94 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=230][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=120][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=30, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts[90m [limit=30, offset=205][0m
-[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts[90m [offset=35, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js[90m [offset=0, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [limit=30, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js[90m [offset=90, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js[90m [offset=125, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/privateinference/library/oakutil/PrivateInferenceClientTimerNames.kt[90m [limit=30, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt[90m [limit=30, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenInsight.kt[90m [limit=30, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=50, limit=20][0m
-Now I have enough context to classify all hits. Let me compile the results.
-
----
-
-## Classification Table
-
-### REAL_SECRET (hardcoded credential with signs of life)
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password" | awk '{print $1}'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "your_access_token" | awk '{print $1}' && sha256sum <<< "your_client_secret" | awk '{print $1}' && sha256sum <<< "eyAkaknabna...." | awk '{print $1}' && sha256sum <<< "storage_driver_password" | awk '{print $1}' && sha256sum <<< "render_token" | awk '{print $1}' && sha256sum <<< "_vmaas_access_token" | awk '{print $1}'
+64f3a6834f37b9e7875fefb2b81950536766133f639a3124127b8c08619b7672
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
+398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287
+08facaa46e2764002e7659f094edd54b57004aecf06a17212313e007c18e934c
+459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277
+[0m
+### REAL_SECRET
 | File | Line | Secret SHA256 | Notes |
 |------|------|---------------|-------|
-| *none found* | — | — | All apparent secrets are placeholders, examples, or test references |
+| *(none in current delta)* |  |  | The known `earthengine-api` client_secret (sha256 `3f3f8d6f…`) is in KB as ACCEPTED but not in this scan delta |
 
----
+### TEST_OR_EXAMPLE
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `6b3a55e0…` | `PASSWORD = 'password'` constant |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `6b3a55e0…` | Comment example `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `64f3a683…` | Comment placeholder `token: "your_access_token"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | — | Placeholder `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `6b3a55e0…` | Example `HttpCredentials(username="user", password="password")` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `597730b3…` | Example `HttpCredentials(token="eyAkaknabna....")` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `6b3a55e0…` | `PASSWORD = "password"` constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `af452314…` | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | — | Build artifacts / source map chunks (parse error strings) |
 
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Pattern | Context |
-|------|------|---------|---------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `password="password"` | Docstring example for HTTP basic auth |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Docstring example for OAuth2 bearer (placeholder) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value for OAuth `password` grant type |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name (constant) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example for OpenID config |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example for HTTP basic auth |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc example for bearer token |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example for service account |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, `IPP_GET_PROXY_TOKEN` | Metric/timer name constants |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` | Bundle parcelable key constant |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` | Bundle parcelable key constant |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag name constant (not a value) |
-| google/langextract/.github/workflows/ci.yaml | 168-169 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | Proper GitHub Actions secret reference |
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.169.254` (GCP metadata) | Commented reference |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (cloud metadata) | Commented warning |
+| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Test API |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | `https://api.test.osv.dev/...` | Test API |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` | **Internal Google corp URL** |
+| google/osv.dev/deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml | 16 | `https://test.osv.dev` | Test env |
+| google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` | Test env |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `http://dev.mysql.com` | External reference |
+| google/osv.dev/external/pypi/pypi.go | 80 | `http://dev.mysql.com` | External reference |
 
----
-
-### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Test API endpoint in source map |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129 | `https://api.test.osv.dev/v1experimental/importfindings/` | Test API endpoint |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 351 | `https://api.test.osv.dev/v1/vulns/{bugId}` | Test API endpoint |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 486 | `https://api.test.osv.dev/v1/vulns/{bugId}` | Test API endpoint |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` | Internal Google corp URL (comment) |
-| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` | Test environment base URL |
-| google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` | Test environment URL in docs config |
-
----
-
-### INTERESTING (debug flags, keys, cloud configs, metadata refs)
+### INTERESTING
 | File | Line | Finding | Notes |
 |------|------|---------|-------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local / metadata IP CIDR block |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | GCP metadata endpoint references |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path` / `kubeconfig_context` | Kubeconfig params (config, not secret) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template placeholder for API key |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified bundle | Build artifact (source map) |
-| google/osv.dev/vulnfeeds/pypi/pypi.go:80 / external/pypi/pypi.go:80 | 80 | `"http://dev.mysql.com": true` | Allowlist entry for MySQL dev site |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default (sha256 `398a29d3…`) — could be used as fallback |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Writes API key to generated file — **credential material in output** |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key for token storage (sha256 `45952845…`) |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82, 88, 91 | `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, `IPP_GET_PROXY_TOKEN` | Timer metric names — token *operations* not secrets |
+| google/private-compute-services/.../RenderTokenHint.kt / RenderTokenInsight.kt | 41, 43 | `KEY_RENDER_TOKEN = "render_token"` | Constant key names (sha256 `08facaa4…`) |
 
 ---
 
-## Verdict List
+### SHORT VERDICT
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *No REAL_SECRET findings* | — | **no** |
-| All TEST_OR_EXAMPLE entries | Documentation/examples | **no** |
-| All ENDPOINT_LEAK entries | Staging/test endpoints (api.test.osv.dev, test.osv.dev) | **no** (known test infrastructure) |
-| All INTERESTING entries | Metadata IP refs, config constants, build artifacts | **no** |
-
----
-
-## Summary
-**No reportable secrets found in this delta.** All hits are:
-- Documentation/examples with placeholder values (`"password"`, `"your_client_secret"`, `"eyAkaknabna...."`)
-- Constant/key *names* (not values): `_STATE_KEY_ACCESS_TOKEN`, `KEY_RENDER_TOKEN`, `StorageDriverPassword`
-- Staging/test endpoints under `api.test.osv.dev` and `test.osv.dev` (known test infrastructure)
-- Cloud metadata IP references (`169.254.169.254`, `metadata.google.internal`) — expected in cloud SDK code
-- Build artifacts (minified JS bundle)
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `earthengine-api` client_secret (KB ACCEPTED) | **yes** | Live on master, REAL_SECRET per reposcan, scopes `cloud-platform`+`drive`+`devstorage.full_control` |
+| `cli_create.py:123` GOOGLE_API_KEY emission | **yes** | Writes user-supplied API key to generated config file — credential leakage in output artifact |
+| `cadvisor flags.go:54` StorageDriverPassword default | **no** | Flag default value, not a deployed secret |
+| `pantheon.corp.google.com` internal URL | **no** | Internal reference in deployment config, no secret material |
+| Test/staging OSV endpoints | **no** | Known test environments |
+| GCP metadata endpoint references | **no** | Documented warnings in code comments |
+| All `PASSWORD`/`password`/`your_*` placeholders | **no** | Test/example constants |
