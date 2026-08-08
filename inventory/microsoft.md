@@ -245,3 +245,7 @@
 - CHANGED `login.microsoftonline.com/common/discovery/keys` — v1.0 key set rotated 5→4 kids (`aFkmKVFc…` retired from v1, now v2-exclusive). Steady-state subset invariant v1(4) ⊂ v2(8) still holds; 0 v1-exclusi
 - NEW `graph.microsoft.com/beta/copilot/agentRegistrations` `HEAD` → HTTP 405 (Content-Length: 0, no `WWW-Authenticate: Bearer`) — RFC 6750 §3 violation extends beyond `/v1.0`, `/me`, `/users` to the Agent 
 - NEW `oauth2.googleapis.com/tokeninfo` — `HEAD` → HTTP 404 (GET → HTTP 200, 113 bytes, `X-Content-Type-Options: nosniff`). Introspection oracle confirmed live via GET method; HEAD-404 is unusual method-han
+
+## 2026-08-08 22:09:10 UTC
+- NEW None — all passive probes (18:08/18:58/19:32/20:01/20:39/21:06/21:48 UTC) confirm prior ACCEPTED findings unchanged; inventory, knowledge base, and last leads converge at NO_DELTA.
+- CHANGED None — all ACCEPTED findings remain live; hypothesis confidences unchanged (85/95/60); no REJECTED classes added.

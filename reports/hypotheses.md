@@ -617,3 +617,20 @@
 - LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
 - LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer), extends
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-08 22:09:10 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- [65] login.microsoftonline.com: v1.0↔v2.0 issuer-confusion token replay via 4 modulus-shared signing keys + dual issuer namespaces (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` (own Bearer, AgentRegis
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite sha256-verified secret `3f3f8d6f…d271` (plainte
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live @ 21:48 UTC — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestric
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across 15:43 and current probes (v1=5, v2=7, 4-kid overl
+- LEARN: ACCEPTED agentRegistration path-shape auth gate @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: fresh probe — GET {00000000-…} and {id}/agentCard → 
+- LEARN: ACCEPTED v1⊂v2 kid subset restored @ login.microsoftonline.com/discovery/keys: fresh probe — v1=4 kids ALL in v2=8, 0 v1-only (aFkmKVFc… rotated back to v2-excl
+- LEARN: ACCEPTED all prior findings remain live @ 22:5x UTC — Graph 405 anomaly (HEAD 405/0), agentRegistrations auth-gate (GET 401/237), tokeninfo oracle (400/113), ea
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271` verbatim, line :45 + :99 fallback, scopes cl
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata (7.3MB, 873-char block, 0 OperationRestrictions), GET→
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer), extends
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
