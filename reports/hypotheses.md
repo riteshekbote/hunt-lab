@@ -506,3 +506,15 @@
 - LEARN: ACCEPTED all prior findings confirmed live @ current cycle — Graph 405 anomaly (HEAD /v1.0 + /beta/copilot/agentRegistrations), tokeninfo oracle (GET 400/113, H
 - LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live at 17:04 UTC via robot probe — GET /beta/copilot/agentRegistrations → HT
 - LEARN: ACCEPTED: All prior ACCEPTED findings remain live — v1↔v2 kid overlap (4/4 shared, 0 v1-only), earthengine secret (sha `3f3f8d6f…d271` verbatim), tokeninfo orac
+
+## RANKED HYPOTHESES 2026-08-08 18:08:02 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A) POST `https://graph.microsoft.com/beta/copilot/agentRegistrations` wi
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live @ 17:43 UTC — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestric
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 17:43 UTC — robot probe confirms GET /beta/copilot/agentRegistrations 
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file s
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live @ 17:43 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bear
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed still live — GET → 400 invalid_token (113 bytes, `X-Content-Type-Options: nosniff`), accepts ?access_t
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (16:43/17:04/17:43 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
