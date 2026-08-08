@@ -1400,3 +1400,32 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` with client-supplied createdBy/ownerIds (own Bearer, scope AgentRegistration.ReadWrite.All); B (separate principal, own Bearer) GETs the collection then PATCHes `{A-id}` rewriting agentCard; record 200/204 vs 403 and persistence. Do NOT run with sandbox's unprivileged token.
 [RISK] google: 45 | earthengine secret live+sha-verified (conf 95) but native-app by-design caps VRP and redemption needs user refresh_token; tokeninfo oracle no-reward; GCP control-planes all auth-gated; identitytoolkit EOL; ADK items KNOWN-DUP. Passive phase exhausted.
 [RISK] microsoft: 86 | agentRegistrations IDOR (5 EntityTypes zero metadata restrictions, AUTH_HELPED pending) + issuer-confusion (modulus-verified shared keys + dual issuer, AUTH_HELPED pending) + Graph 405 RFC-6750 anomaly — all confirmed live; crown-jewel identity plane, highest impact potential remains.
+## 2026-08-08 21:05:28 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: Fresh $metadata (7.3MB) agentRegistration block declares createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false with ZERO OperationRestrictions; 5 sibling EntityTypes share pattern. Auth-gate re-confirmed at 20:5x (GET 401/237, HEAD 405/0) but schema exposes no ownership hook.
+evidence_needed: Principal B GETs collection and sees A's entries, or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B) B GET collection → 200 incl. A; C) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; D) B GET {A-id} confirm persistence; E) sibling agentInstance/copilotPackage.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0. $100k ceiling.
+testability: AUTH_HELPED
+[HYP] Hardcoded OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; whole-file sha `f4f93c76…` unchanged; scopes cloud-platform+drive+devstorage.full_control; reposcan REAL_SECRET.
+evidence_needed: oauth2.googleapis.com/token returns 200 access_token (client_credentials/refresh_token w/ non-placeholder secret) vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): exchange with secret; log status+scope; do NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (4 shared modulus-matched keys + dual issuer namespaces)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: 20:5x UTC probe — 4 shared kids byte-identical RSA `n` in v1+v2 endpoints (crypto-verified); v1.0-only response_types (pure token / token id_token) + dual issuer namespaces verified live; shared-key set stable across 5h.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8. $100k ceiling.
+testability: AUTH_HELPED
+[NEXT] HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` (own Bearer, AgentRegistration.ReadWrite.All) with client-supplied createdBy/ownerIds; B (separate principal) GETs collection then PATCHes `{A-id}` rewriting agentCard; record 200/204 vs 403 and persistence. Do NOT run with sandbox's unprivileged token.

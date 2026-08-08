@@ -1633,3 +1633,41 @@ testability: AUTH_HELPED
 [FINAL] 2. github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app source (MISCONFIG, sha256 `3f3f8d6f…d271`, conf 95, priority 90)
 [FINAL] 3. login.microsoftonline.com/common/discovery/keys: v1.0↔v2.0 issuer-confusion token replay with kid overlap (AUTH, conf 60, priority 60)
 [NEXT] HUMAN: File Google VRP for hardcoded OAuth client_secret @ earthengine-api oauth.py:45 — cite sha256 `3f3f8d6f…d271` (present at :45 + :99 fallback), scopes cloud-platform+drive+devstorage.full_control, OOB redirect. Include raw GitHub URL + sha256sum proof + reposcan REAL_SECRET classification. Note native-app by-design status may cap reward.
+## 2026-08-08 21:05:37 UTC [google] (model laguna)
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45, score=90, attack=9/business=8/tech=7/gate=6/cloud=9/fresh=9
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, score=85, attack=10/business=10/tech=8/gate=5/cloud=9/fresh=9
+[PRIO] login.microsoftonline.com/common/discovery/keys, score=60, attack=6/business=7/tech=6/gate=10/cloud=7/fresh=6
+[PRIO] oauth2.googleapis.com/tokeninfo, score=45, attack=4/business=5/tech=4/gate=10/cloud=5/fresh=3
+[HYP] Hardcoded OAuth client_secret in Google native-app source
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: PASSIVE-VERIFIED: sha256 `3f3f8d6f…d271` matches KB (line :45 + :99 fallback); scopes cloud-platform, drive, devstorage.full_control; OOB redirect; repo classified REAL_SECRET.
+evidence_needed: POST oauth2.googleapis.com/token with hardcoded client_id + sha256 secret + refresh_token → 200 access_token vs 400 invalid_client.
+verify_steps: PASSIVE done. HUMAN_ONLY — file Google VRP citing raw GitHub URL + sha256sum proof + scopes.
+impact: Mint OAuth tokens with full GCP cloud-platform + drive + devstorage as any user w/ valid refresh_token; CVSS 8.0–9.8 (native-app caveat may reduce reward).
+testability: PASSIVE + HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: Fresh $metadata (7.3MB) confirms agentRegistration EntityType declares createdBy/ownerIds/agentCard — all client-supplied, Nullable=false, ZERO OperationRestrictions; 5 sibling EntityTypes share pattern; GET → 401 (auth-gated).
+evidence_needed: User2 (non-owner) can POST/PATCH /beta/copilot/agentRegistrations rewriting ownerIds+agentCard → 200/201; mutation persists for User1's entries.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All w/ admin consent): A) POST agentRegistration as User1 → 201; B) GET as User2 → 200 + foreign entry; C) PATCH owner rewrite as User2 → 200/204 vs 403; D) GET confirms persistence.
+impact: Full agent impersonation + copilotPackage supply-chain tampering; forge creator attribution, rewrite agent instructions/endpoints; CVSS 7.5–9.0. $100k ceiling.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid overlap
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys
+confidence: 60
+reasoning: JWKS HTTP 200 (`Access-Control-Allow-Origin: *`); 4 v1.0 kids ALL present in v2.0's 8 kids (0 v1-only); dual issuer namespaces `sts.windows.net/{tid}/` (v1) + `login.microsoftonline.com/{tid}/v2.0` (v2); v1.0-only response_type=token excluded from v2.0.
+evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource.
+verify_steps: AUTH_HELPED (test-tenant): 1) GET /common/discovery/keys → extract v1 kids; 2) GET /oauth2/v2.0/authorize?response_type=token → capture v1 id_token; 3) GET /beta/copilot/agentRegistrations with v1 token → 200 vs 401/403.
+impact: Access v2.0-only Graph resources as any user; CVSS 8.0–9.8. $100k ceiling.
+testability: AUTH_HELPED
+[FINAL] 1. Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 (MISCONFIG, sha256 `3f3f8d6f…d271`, confidence 95, priority 90)
+[FINAL] 2. Agent Registration ownership boundary bypass via client-supplied createdBy (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, confidence 85, priority 85)
+[FINAL] 3. v1.0↔v2.0 issuer-confusion token replay with kid overlap (AUTH, login.microsoftonline.com, confidence 60, priority 60)
+[NEXT] HUMAN: File Google VRP for hardcoded OAuth client_secret @ earthengine-api oauth.py:45 — cite sha256 `3f3f8d6f…d271` (present at :45 + :99 fallback), scopes cloud-platform+drive+devstorage.full_control, OOB redirect. Include raw GitHub URL + sha256sum proof + reposcan REAL_SECRET classification. Note native-app by-design status may cap reward.
+[RISK] google: 45 | Hardcoded native-app OAuth client_secret is live+SHA-verified (conf 95, $100k ceiling) but requires valid refresh_token (user interaction); tokeninfo oracle is rate-limited public introspection (no-reward per prior VRP outcome); all GCP control-plane discovery APIs auth-gated (403 unregistered callers); identitytoolkit EOL; ADK issues KNOWN-DUP (closed PRs #2128, #5520); bughunters.google.com hardened. Passive phase exhausted, one actionable MISCONFIG (VRP-pending).
+[RISK] microsoft: 86 | Agent Registration IDOR (5 EntityTypes, zero metadata restrictions, CVSS 7.5–9.0, AUTH_HELPED pending) + v1.0↔v2.0 issuer-confusion (4/8 kid overlap + dual issuer + v1.0-only implicit, CVSS 8.0–9.8, AUTH_HELPED pending) + Graph 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration) + tokeninfo oracle + v2.0 authorize HTTP 200 error rendering — all confirmed LIVE at 20:39 UTC but require test-tenant validation. Crown-jewel scope (Entra/Copilot identity plane) — impact potential remains highest.

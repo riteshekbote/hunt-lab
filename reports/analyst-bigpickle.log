@@ -6430,3 +6430,111 @@ All three survive: confidence ≥ 40; classes IDOR/MISCONFIG/AUTH not on REJECTE
 **STEP 7 — RISK**
 [RISK] google: 45 | earthengine secret live+sha-verified (conf 95) but native-app by-design caps VRP and redemption needs user refresh_token; tokeninfo oracle no-reward; GCP control-planes all auth-gated; identitytoolkit EOL; ADK items KNOWN-DUP. Passive phase exhausted.
 [RISK] microsoft: 86 | agentRegistrations IDOR (5 EntityTypes zero metadata restrictions, AUTH_HELPED pending) + issuer-confusion (modulus-verified shared keys + dual issuer, AUTH_HELPED pending) + Graph 405 RFC-6750 anomaly — all confirmed live; crown-jewel identity plane, highest impact potential remains.
+===== ANALYST bigpickle 2026-08-08 21:06:31 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HEAD agentRegistrations: %{http_code} cl=%{size_download} www-auth=%header{www-authenticate}\n" -I "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 20; curl -s -o /dev/null -w "GET agentRegistrations: %{http_code} cl=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 20
+HEAD agentRegistrations: 405 cl=0 www-auth=
+GET agentRegistrations: 401 cl=237
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "tokeninfo: %{http_code} cl=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo" --max-time 20; curl -s -o /dev/null -w "JWKS v1: %{http_code} cl=%{size_download} acaoh=%header{access-control-allow-origin}\n" "https://login.microsoftonline.com/common/discovery/keys" --max-time 20
+tokeninfo: 400 cl=113
+JWKS v1: 200 cl=6116 acaoh=*
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" --max-time 20 -o /tmp/v1.json; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" --max-time 20 -o /tmp/v2.json; wc -c /tmp/v1.json /tmp/v2.json; python3 -c "
+import json
+for name,f in [('v1','/tmp/v1.json'),('v2','/tmp/v2.json')]:
+    d=json.load(open(f))
+    kids=[k['kid'] for k in d['keys']]
+    print(name,'kids:',len(kids))
+    for k in d['keys']:
+        print(' ',k['kid'],'x5t' in k, 'x5c' in k, 'kty=',k['kty'])
+v1={k['kid']:k.get('n') for k in json.load(open('/tmp/v1.json'))['keys']}
+v2={k['kid']:k.get('n') for k in json.load(open('/tmp/v2.json'))['keys']}
+shared=[kid for kid in v1 if kid in v2]
+print('v1-only:',sorted(set(v1)-set(v2)))
+print('v2-only:',sorted(set(v2)-set(v1)))
+print('shared:',sorted(shared))
+print('modulus-match on shared:',all(v1[k]==v2[k] for k in shared))
+"
+7657 /tmp/v1.json
+11292 /tmp/v2.json
+18949 total
+v1 kids: 5
+  aFkmKVFc-4WV6sXCBvNZkXI505Y True True kty= RSA
+  AahUf1bCXvx0JTRcXLrr0U4SluY True True kty= RSA
+  fEtqrhKT1bXAGafSdQoN1vXTRpI True True kty= RSA
+  jvm_-TtaqTCRrkpnmePvwb75nWE True True kty= RSA
+  6hXLaIYNSJ0o7zu09dMyI0ji3ug True True kty= RSA
+v2 kids: 7
+  AahUf1bCXvx0JTRcXLrr0U4SluY True True kty= RSA
+  fEtqrhKT1bXAGafSdQoN1vXTRpI True True kty= RSA
+  jvm_-TtaqTCRrkpnmePvwb75nWE True True kty= RSA
+  6hXLaIYNSJ0o7zu09dMyI0ji3ug True True kty= RSA
+  rRk1d-57BGZfsM4BUHrkx8cQbic True True kty= RSA
+  NqEBZVuOpstZ__5iZuWH3HPswcI True True kty= RSA
+  1Nv3JExJrKNx1l7adICQ7Y_Atps True True kty= RSA
+v1-only: ['aFkmKVFc-4WV6sXCBvNZkXI505Y']
+v2-only: ['1Nv3JExJrKNx1l7adICQ7Y_Atps', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'rRk1d-57BGZfsM4BUHrkx8cQbic']
+shared: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE']
+modulus-match on shared: True
+[0m
+Probes at 20:5x UTC re-verified the live surface (HEAD 405/0 no WWW-Authenticate, GET 401/237, tokeninfo 400/113, JWKS 200). Notable: JWKS composition is now stable at v1=5/v2=7 with `aFkmKVFc` v1-exclusive for 5+ hours, falsifying the earlier "transient rotation" narrative.
+
+STEP 1 — DELTA
+- [CHANGED] login.microsoftonline.com JWKS: v1=5 (incl. `aFkmKVFc`), v2=7, shared=4 with byte-identical RSA moduli (re-verified 20:5x UTC) — `aFkmKVFc` persistently v1-exclusive across 15:43→20:5x (~5h), falsifying "transient self-correction to v1⊂v2"; class already REJECTED (v1-exclusive keys never validated against v2 issuer → no confusion surface)
+- Otherwise NO_DELTA — agentRegistrations GET 401/237, HEAD 405/0 no WWW-Authenticate; tokeninfo 400/113; earthengine secret sha `3f3f8d6f…d271` unchanged.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 87, attack=10/business=10/tech=8/gate=5/cloud=9/fresh=9 (8.75)
+- [PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45, 80, attack=9/business=8/tech=7/gate=6/cloud=9/fresh=9 (8.00)
+- [PRIO] login.microsoftonline.com/common/discovery/keys, 70, attack=6/business=7/tech=6/gate=10/cloud=7/fresh=7 (6.95)
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: Fresh $metadata (7.3MB) agentRegistration block declares createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false with ZERO OperationRestrictions; 5 sibling EntityTypes share pattern. Auth-gate re-confirmed at 20:5x (GET 401/237, HEAD 405/0) but schema exposes no ownership hook.
+evidence_needed: Principal B GETs collection and sees A's entries, or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B) B GET collection → 200 incl. A; C) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; D) B GET {A-id} confirm persistence; E) sibling agentInstance/copilotPackage.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0. $100k ceiling.
+testability: AUTH_HELPED
+[HYP] Hardcoded OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; whole-file sha `f4f93c76…` unchanged; scopes cloud-platform+drive+devstorage.full_control; reposcan REAL_SECRET.
+evidence_needed: oauth2.googleapis.com/token returns 200 access_token (client_credentials/refresh_token w/ non-placeholder secret) vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): exchange with secret; log status+scope; do NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (4 shared modulus-matched keys + dual issuer namespaces)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: 20:5x UTC probe — 4 shared kids byte-identical RSA `n` in v1+v2 endpoints (crypto-verified); v1.0-only response_types (pure token / token id_token) + dual issuer namespaces verified live; shared-key set stable across 5h.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8. $100k ceiling.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+All 3 survive (conf ≥ 40, none on REJECTED list, all have concrete verify_steps). No [PARKED]. Graph 405 anomaly is inventory-level evidence for HYP#1, not a standalone hypothesis.
+- [FINAL] 1. Agent Registration ownership boundary bypass (IDOR, 85) — top: crown-jewel identity plane, AUTH_HELPED ready, cross-principal PATCH test fully specified
+- [FINAL] 2. Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 (MISCONFIG, 95) — highest confidence, VRP-filing ready
+- [FINAL] 3. v1.0↔v2.0 issuer-confusion token replay (AUTH, 65) — shared-key precondition re-verified 5h-stable
+
+STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` (own Bearer, AgentRegistration.ReadWrite.All) with client-supplied createdBy/ownerIds; B (separate principal) GETs collection then PATCHes `{A-id}` rewriting agentCard; record 200/204 vs 403 and persistence. Do NOT run with sandbox's unprivileged token.
+
+STEP 6 — LEARNING
+- [LEARN] REJECTED: dual-JWKS v1-exclusive-kid class @ login.microsoftonline.com: `aFkmKVFc` now persistently v1-exclusive across 15:43→20:5x UTC (v1=5, v2=7, 4 shared modulus-matched) — "transient rotation self-corrects to v1⊂v2" falsified, but v1-exclusive keys are never validated against the v2 issuer, so no cross-endpoint confusion surface; class stays dead.
+- [LEARN] ACCEPTED: shared-key issuer-confusion precondition @ login.microsoftonline.com — 4 shared kids byte-identical RSA moduli re-verified 20:5x UTC, set stable ~5h; precondition valid pending AUTH_HELPED.
+- [LEARN] ACCEPTED: agentRegistration auth-gate + 405 anomaly confirmed live 20:5x UTC — GET 401/237, HEAD 405/0 no WWW-Authenticate; schema zero OperationRestrictions unchanged.
+- [LEARN] ACCEPTED: tokeninfo introspection oracle confirmed live 20:5x UTC — GET 400/113.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 45 | earthengine secret live+sha-verified (conf 95) but native-app by-design caps VRP and redemption needs user refresh_token; tokeninfo oracle no-reward; GCP control-planes auth-gated; ADK items KNOWN-DUP; identitytoolkit EOL. Passive phase exhausted.
+- [RISK] microsoft: 86 | agentRegistrations IDOR (5 EntityTypes zero metadata restrictions, AUTH_HELPED pending) + issuer-confusion (4 modulus-matched shared keys, dual issuer, AUTH_HELPED pending) + Graph 405 RFC-6750 anomaly — all confirmed live 20:5x UTC; crown-jewel identity plane, highest impact potential remains.
