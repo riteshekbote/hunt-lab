@@ -911,3 +911,4 @@ evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-o
 verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
 impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
 testability: AUTH_HELPED
+## 2026-08-08 11:29:21 UTC [google] (model bigpickle)

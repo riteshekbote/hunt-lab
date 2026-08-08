@@ -147,3 +147,5 @@
 - 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD /v1.0, /me, /users → HTTP 405, Content-Length 0, no WWW-Authenticate Bearer.
 - 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes).
 - 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: earthengine-api oauth.py:45 secret confirmed plaintext-readable from raw GitHub at 10:56 UTC — `RUP0RZ6e0pPhDzsqIJ7KlNd1` matches sha256 `3f3f8d6f…d271`; AUTH_HELPED test still needed for Graph agentRegistration IDOR (two-principal test-tenant).
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (10:56 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
