@@ -30,3 +30,8 @@ https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401
 
 ## 2026-08-08 20:01:18 UTC
 https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id -> HTTP 401
+
+## 2026-08-08 20:39:44 UTC
+https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id -> HTTP 401
+https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401
+https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401

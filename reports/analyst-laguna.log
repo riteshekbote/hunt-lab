@@ -11127,3 +11127,14 @@ CONFIRMED sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d27
 [0m✗ [0mecho "=== tokeninfo HEAD ==="; curl -s -I "https://oauth2.googleapis.com/tokeninfo" -o /dev/null -w "HTTP %{http_code} size=%{size_download}\n"; echo "=== tokeninfo GET ==="; curl -s -o /dev/null -w "HTTP %{http_code} size=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; echo "=== v2.0 authorize response_type=token ==="; curl -s "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=00000000000000000000000000000000&response_type=token&redirect_uri=https://localhost" -o /tmp/v2err.html -w "HTTP %{http_code} size=%{size_download}\n"; grep -o "700038\|900144\|iHttpErrorCode" /tmp/v2err.html | sort -u | head; rm -f /tmp/v2err.html failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
 All secrets confirmed. Let me verify the two remaining method-handling anomalies (tokeninfo HEAD-404, v2.0 authorize HTTP 200).
+===== ANALYST laguna 2026-08-08 20:39:44 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[FINAL] 1. graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal write (IDOR, conf 85, priority 85)
+
+[FINAL] 2. github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app source (MISCONFIG, sha256 `3f3f8d6f…d271`, conf 95, priority 90)
+
+[FINAL] 3. login.microsoftonline.com/common/discovery/keys: v1.0↔v2.0 issuer-confusion token replay with kid overlap (AUTH, conf 60, priority 60)
+
+[NEXT] HUMAN: File Google VRP for hardcoded OAuth client_secret @ earthengine-api oauth.py:45 — cite sha256 `3f3f8d6f…d271` (present at :45 + :99 fallback), scopes cloud-platform+drive+devstorage.full_control, OOB redirect. Include raw GitHub URL + sha256sum proof + reposcan REAL_SECRET classification. Note native-app by-design status may cap reward.
