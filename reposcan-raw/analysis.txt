@@ -1,57 +1,31 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=20][0m
-### Classification Tables
+Let me analyze the scan results and classify each hit according to the categories provided. I need to be careful not to print full secret values, only file, line, and sha256 of the secret material.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* | | | |
+Let me go through each hit:
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified build artifacts (parse error messages) |
-| adk-python/src/google/adk/cli/browser/*.js | multiple | Minified build artifacts (parse error messages) |
-| adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified build artifact |
-| adk-python/src/google/adk/auth/auth_credential.py | 126 | Docstring placeholder: `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| adk-python/src/google/adk/auth/auth_credential.py | 238 | Docstring example: `username="user", password="password"` |
-| adk-python/src/google/adk/auth/auth_credential.py | 247 | Docstring placeholder: `token="eyAkaknabna...."` |
-| adk-python/src/google/adk/auth/auth_schemes.py | 68 | Enum value: `PASSWORD = "password"` (OAuth grant type identifier) |
-| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Docstring placeholder: `client_secret="your_client_secret"` |
-| oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Documentation URL reference |
-| oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Homepage URL |
-| oss-fuzz/projects/flask/fuzz_json.py | 27 | Test literal: `secret_key = "fuzz test key"` |
-| private-compute-services/.../RenderTokenHint.kt | 41 | Constant: `KEY_RENDER_TOKEN = "render_token"` |
-| private-compute-services/.../RenderTokenInsight.kt | 43 | Constant: `KEY_RENDER_TOKEN = "render_token"` |
+**Google hits:**
 
-#### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References to cloud metadata endpoint `169.254.169.254` |
+1. `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558: os << ctx << ".secret_key = " << sk << "\n";`
+   - This looks like it's printing a secret_key variable to output. The hash is `6aab10651402fc1b`. This could be a REAL_SECRET if `sk` contains actual key material.
 
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
-| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`/`kubeconfig_context` parameters for GKE auth |
-| adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-supplied `GOOGLE_API_KEY` to `.env` file |
-| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82, 88, 91 | Timer constants: `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, `IPP_GET_PROXY_TOKEN` |
+2. `reposcan-raw/google/heir/scripts/author_stats.py:16: # TOKEN = "your_github_token_here"`
+   - This is clearly a placeholder/comment. Hash `a427bc6b187488ae`. TEST_OR_EXAMPLE.
 
----
+3. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:13: private static String g_shutdownPassword = "ServerShutdownPassword"; // needs to be non-empty string`
+   - This is a hardcoded password in test code. Hash `680e5b27a7ece10f`. This is TEST_OR_EXAMPLE (test fixture).
 
-### SHORT VERDICT LIST
+4. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:55: return getConnection("PASSWORD=" + getDatabasePassword() + ";");`
+   - Uses the password from above. TEST_OR_EXAMPLE.
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api OAuth client_secret (prior scan) | **yes** | Already ACCEPTED in KB (sha256 `3f3f8d6f...`), LIVE on master, scopes include `cloud-platform` |
-| All hits in **this delta scan** | **no** | No new REAL_SECRETs; all hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known metadata IP), or INTERESTING config patterns |
+5. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"`
+   - Placeholder in comment. Hash `b0032b5012b0eea2`. TEST_OR_EXAMPLE.
 
-**No new reportable secrets in this delta.** The only REAL_SECRET remains the previously triaged `google/earthengine-api` hardcoded OAuth client_secret.
+6. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"`
+   - Same as above. TEST_OR_EXAMPLE.
+
+7. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")`
+   - This is setting KUBECONFIG from config, not a secret. INTERESTING (cloud config).
+
+8. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195: eot_token="
