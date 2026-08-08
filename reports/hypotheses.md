@@ -644,3 +644,18 @@
 - LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271` verbatim, line :45 + :99 fallback, scopes cl
 - LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata (7.3MB, 873-char block, 0 OperationRestrictions), GET→
 - LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact.
+
+## RANKED HYPOTHESES 2026-08-08 23:21:45 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app source (earthengine-api) (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` (own Bearer, AgentRegis
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite value sha256 `3f3f8d6f29db1b06cbfc212a718c18174
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlie
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), eart
+- LEARN: ACCEPTED agentRegistration zero ownership restrictions @ graph.microsoft.com/beta/$metadata: re-confirmed fresh this cycle — 4 v1 kids ⊂ 7 v2 kids (0 v1-only), 
+- LEARN: REJECTED no new proving-dead classes this cycle — reposcan 22:50/23:00 (27,432 files) produced zero REAL_SECRET (all fixtures/placeholders/`${{secrets.*}}`); al
+- LEARN: ACCEPTED: agentRegistrations method-matrix auth-challenge inconsistency @ graph.microsoft.com/beta/copilot/agentRegistrations — OPTIONS→200 (CORS *, full mutati
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret liveness confirmed @ 23:15 UTC — value sha256 `3f3f8d6f…d271` + whole-file sha `f4f93c76…` both match KB;
+- LEARN: ACCEPTED: JWKS v1↔v2 kid overlap live @ login.microsoftonline.com/common/discovery/keys (23:15 UTC) — 4 shared kids (0 v1-only on v2-side), `Access-Control-Allo
+- LEARN: REJECTED: No new proving-dead classes — `aFkmKVFc` v1-exclusive is transient key rotation, not a cross-endpoint confusion/desync surface (v1 kid set never valid

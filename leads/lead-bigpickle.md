@@ -1526,3 +1526,90 @@ evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
 verify_steps: HUMAN_ONLY (program-authorized): client_credentials/refresh_token exchange with non-placeholder secret; log status+scope; do NOT redeem in sandbox.
 impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
 testability: HUMAN_ONLY
+## 2026-08-08 23:13:33 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: live probe — GET collection /{id} /{id}/agentCard all 401/237 (auth before ID resolution), HEAD 405/0. $metadata agentRegistration block=873 chars: createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions; 5 sibling EntityTypes share the pattern.
+evidence_needed: principal B sees or mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B) B GET collection (own Bearer) → 200 incl. A vs 403; C) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; D) B GET {A-id} confirm persistence; E) sibling agentInstance/copilotPackage.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel, $100k ceiling.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via 5 modulus-shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe — v1=5 kids (aFkmKVFc back in v1, 6hXLaIYN/AahUf1bC/fEtqrhKT/jvm_-Ttaq) ALL present in v2's 8, 0 v1-only; steady-state v1⊂v2 invariant holds. v1.0-only response_types (pure token/token id_token) + dual issuer namespaces verified across cycles.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant (response_type=token), present to v2.0 Graph resource, observe 200 vs 401/403; record body of rejection if 4xx.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8; $100k ceiling.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: fresh probe — whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged; secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` verbatim at :45 + :99 fallback; scopes cloud-platform+drive+devstorage.full_control; reposcan REAL_SECRET.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials/refresh_token exchange with non-placeholder secret; log status+scope; do NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: live probe — GET collection /{id} /{id}/agentCard all 401/237 (auth before ID resolution), HEAD 405/0. $metadata agentRegistration block=873 chars: createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions; 5 sibling EntityTypes share the pattern.
+evidence_needed: principal B sees or mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B) B GET collection (own Bearer) → 200 incl. A vs 403; C) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; D) B GET {A-id} confirm persistence; E) sibling agentInstance/copilotPackage.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel, $100k ceiling.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via 5 modulus-shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe — v1=5 kids (aFkmKVFc back in v1, 6hXLaIYN/AahUf1bC/fEtqrhKT/jvm_-Ttaq) ALL present in v2's 8, 0 v1-only; steady-state v1⊂v2 invariant holds. v1.0-only response_types (pure token/token id_token) + dual issuer namespaces verified across cycles.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant (response_type=token), present to v2.0 Graph resource, observe 200 vs 401/403; record body of rejection if 4xx.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8; $100k ceiling.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: fresh probe — whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged; secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` verbatim at :45 + :99 fallback; scopes cloud-platform+drive+devstorage.full_control; reposcan REAL_SECRET.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials/refresh_token exchange with non-placeholder secret; log status+scope; do NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: fresh probe this cycle — GET collection → 401/237 (auth before ID resolution), HEAD → 405/0; $metadata agentRegistration block=873 chars: createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false, ZERO Operation/ReadRestrictions; 5 sibling EntityTypes share pattern.
+evidence_needed: principal B sees or mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant, AgentRegistration.ReadWrite.All): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B) B GET collection (own Bearer) → 200 incl. A vs 403; C) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; D) B GET {A-id} confirm persistence; E) sibling agentInstance/copilotPackage.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel, $100k ceiling.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: fresh probe this cycle — whole-file sha `f4f93c76…` unchanged, secret line count=1 at :45 (+ :99 fallback); sha256 `3f3f8d6f…d271`; scopes cloud-platform+drive+devstorage.full_control; reposcan REAL_SECRET at cycle 1. Live evidence static (public repo) — dynamic proof needs token exchange.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials/refresh_token exchange with the non-placeholder secret; log status+scope; do NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay via shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe this cycle — v1=4, v2=7, 4-kid overlap, 0 v1-only; steady-state subset invariant holds across all cycles; v1.0-only response_types (pure token/token id_token) + dual issuer namespaces verified.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant (response_type=token), present to v2.0 Graph resource, observe 200 vs 401/403; record body of rejection if 4xx.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8; $100k ceiling.
+testability: AUTH_HELPED
+[NEXT] HUMAN: Two-principal test-tenant probe of agentRegistration IDOR — A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` (own Bearer, AgentRegistration.ReadWrite.All) with client-supplied createdBy/ownerIds/agentCard; B (separate principal, own Bearer) GETs collection then PATCHes `{A-id}` rewriting agentCard; record 200/204 vs 403 and persistence; then sibling agentInstance/copilotPackage. Do NOT use sandbox's unprivileged token.
+[LEARN] ACCEPTED agentRegistration zero ownership restrictions @ graph.microsoft.com/beta/$metadata: re-confirmed fresh this cycle — 4 v1 kids ⊂ 7 v2 kids (0 v1-only), agentRegistrations GET 401/237, HEAD 405/0, earthengine whole-file sha `f4f93c76…` unchanged, tokeninfo 400/113. NO_DELTA.
+[LEARN] REJECTED no new proving-dead classes this cycle — reposcan 22:50/23:00 (27,432 files) produced zero REAL_SECRET (all fixtures/placeholders/`${{secrets.*}}`); all fresh passive probes (23:1x UTC) confirmed prior ACCEPTED findings unchanged.
+[RISK] google: 45 | Passive surface exhausted; earthengine secret (conf 95) live + sha-verified but native-app by-design caps VRP and redemption is HUMAN_ONLY; tokeninfo oracle no-reward; GCP control-planes all auth-gated; identitytoolkit EOL; reposcan now yielding NO_DELTA for many cycles.
+[RISK] microsoft: 86 | Agent Registry IDOR precondition (5 EntityTypes zero metadata restrictions) + issuer-confusion shared-key precondition both re-confirmed live this cycle; Graph 405 RFC-6750 anomaly extends to crown-jewel Agent Registration endpoint; but every high-value path (IDOR POC, token replay) is blocked on authorized two-principal test-tenant testing that passive probes cannot reach.
