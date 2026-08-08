@@ -1,301 +1,126 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | head -60 | tail -15
-Containerd                   = "containerd"
-	EnableLoadReader             = "enable_load_reader"
-	EventStorageAgeLimit         = "event_storage_age_limit"
-	EventStorageEventLimit       = "event_storage_event_limit"
-	GlobalHousekeepingInterval   = "global_housekeeping_interval"
-	LogCadvisorUsage             = "log_cadvisor_usage"
-	MachineIDFile                = "machine_id_file"
-	StorageDriverUser            = "storage_driver_user"
-	StorageDriverPassword        = "storage_driver_password"
-	StorageDriverHost            = "storage_driver_host"
-	StorageDriverDB              = "storage_driver_db"
-	StorageDriverTable           = "storage_driver_table"
-	StorageDriverSecure          = "storage_driver_secure"
-	StorageDriverBufferDuration  = "storage_driver_buffer_duration"
-	ContainerdNamespace          = "containerd-namespace"
-[0m
-[0m$ [0mcat reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | head -30
-name: New issue labeler
-on:
-  # Runs on newly opened issues
-  issues:
-    types: [opened]
+[0m$ [0mcat << 'EOF'
+# CLASSIFICATION TABLES
 
-# Sets permissions of the GITHUB_TOKEN
-permissions:
-  issues: write
-  contents: read
+## REAL_SECRET (reportable candidates)
+| File | Line | SHA256 (truncated) | Context | REPORT_CANDIDATE |
+|------|------|-------------------|---------|------------------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06... | Hardcoded OAuth client_secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1', used as fallback at line 99, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect | YES |
 
-jobs:
-  triage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: github/issue-labeler@c1b0f9f52a63158c4adc09425e858e87b32e9685 # pin@v3.4
-        with:
-          configuration-path: .github/labeler.yml
-          enable-versioned-regex: 0
-          repo-token: "${{secrets.GITHUB_TOKEN}}"
-[0m
-[0m$ [0mcat reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | head -420 | tail -20
-if: github.event_name == 'push' && github.ref_type == 'tag' && contains(github.ref_name, 'python')
-    needs: [test-wheels, test-pure-python-wheel, test-sdist]
-    runs-on: ubuntu-latest
-
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/magika
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-    steps:
-      - name: Download all the artifacts (binary wheels, pure python wheel, sdist)
-        uses: actions/download-artifact@v8
-        with:
-          path: artifacts/
-
-      - name: Flatten artifacts structure
-        run: |
-          # List all files for debugging
-[0m
-[0m$ [0mcat reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | head -180 | tail -15
-},
-      ],
-    },
-    prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-    },
-    algolia: {
-      appId: 'WRVGZCGOJP',
-      apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-      indexName: 'XR Blocks Docs Crawler',
-      contextualSearch: true,
-      // Optional: Replace parts of the item URLs from Algolia. Useful when
-      // using the same search index for multiple deployments using a different
-      // baseUrl. You can use regexp or string in the `from` param. For example:
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -250 | tail -30
-class AuthCredential(BaseModelWithConfig):
-  """Data class representing an authentication credential.
-
-  To exchange for the actual credential, please use
-  CredentialExchanger.exchange_credential().
-
-  Examples: API Key Auth
-  AuthCredential(
-      auth_type=AuthCredentialTypes.API_KEY,
-      api_key="1234",
-  )
-
-  Example: HTTP Auth
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
-
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | head -70 | tail -15
-Example:
-      config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-
-  client_id: str
-  auth_uri: str
-  token_uri: str
-  client_secret: str
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | head -55 | tail -15
-logger = logging.getLogger("google_adk." + __name__)
-
-# Session state keys for sharing resources across sessions
-_STATE_KEY_AGENT_ENGINE_NAME = "_vmaas_agent_engine_name"
-_STATE_KEY_SANDBOX_NAME = "_vmaas_sandbox_name"
-_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-_STATE_KEY_TOKEN_EXPIRY = "_vmaas_token_expiry"
-
-# Default token timeout in seconds
-_DEFAULT_TOKEN_TIMEOUT = 3600
-
-# Buffer time before token expiry to trigger refresh (60 seconds)
-_TOKEN_REFRESH_BUFFER = 60
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -130 | tail -15
-with open(dotenv_file_path, "w", encoding="utf-8") as f:
-    lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | head -250 | tail -15
-})
-}
-
-// gcloudDeployToCloudRun invokes gcloud to deploy source on CloudRun
-func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
-	return util.LogStartStop("Deploying to Cloud Run",
-		func(p util.Printer) error {
-			params := []string{
-				"run", "deploy", f.cloudRun.serviceName,
-				"--source", ".",
-				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
-				"--region", f.gcloud.region,
-				"--project", f.gcloud.projectName,
-				"--ingress", "all",
-				"--no-allow-unauthenticated",
-[0m
-[0m$ [0mcat reposcan-raw/google/nearby/sharing/nearby_sharing_service.h | head -80 | tail -15
-// Bluetooth or WiFi hardware ran into an irrecoverable state. User PC needs
-    // to be restarted.
-    kIrrecoverableHardwareError = 6,
-    // Method argument is invalid.
-    // TODO(b/341292610): update dart side to use kInvalidArgument.
-    // https://source.corp.google.com/piper///depot/google3/location/nearby/cpp/sharing/clients/dart/platform/lib/types/models.dart;rcl=637648200;l=21
-    kInvalidArgument = 7,
-    kMaxValue = kInvalidArgument
-  };
-
-  enum class ReceiveSurfaceState {
-    // Default, invalid state.
-    kUnknown,
-    // Background receive surface advertises only to contacts.
-    kBackground,
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | head -160 | tail -15
-predefined image. Either docker_path or image must be set.
-  """
-
-  network_enabled: bool = False
-  """
-  Whether to start the code execution container with networking enabled.
-
-  Defaults to False so that untrusted, model-generated code cannot reach the
-  network -- in particular the cloud metadata endpoint at 169.254.169.254
-  (which can yield the host's service-account credentials), internal services,
-  or arbitrary exfiltration destinations. Set to True only if the executed
-  code must make network requests and you trust it.
-  """
-
-  # Overrides the BaseCodeExecutor attribute: unlike the base default of None,
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | head -55 | tail -10
-* A fixed, non-semantic token injected into the server's environment and reflected back by the
- * `whoami` tool and `mem://greeting` resource.
- */
-const val INJECTED_TOKEN = "injected-token-probe"
-
-/** Values treated as truthy for the `*_DISABLE_IT` gates. */
-private val TRUTHY_VALUES = setOf("true", "t", "yes", "y", "1")
-
-/**
- * Reads an environment variable, treating a blank value the same as unset (returns `null`). GitHub
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | head -75 | tail -15
-class OAuthGrantType(str, Enum):
-  """Represents the OAuth2 flow (or grant type)."""
-
-  CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
-[0m
-Now I have enough context to classify all hits. Let me create the tables.
-
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256 | Classification Notes |
-|------|------|--------|---------------------|
-| *(none found in current delta)* | | | No live hardcoded credentials detected in new hits |
-
-### TEST_OR_EXAMPLE
+## TEST_OR_EXAMPLE (not reportable - placeholders, fixtures, test data)
 | File | Line | Reason |
 |------|------|--------|
-| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Config flag constant `StorageDriverPassword = "storage_driver_password"` — flag name, not a secret |
-| `reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml` | 20 | GitHub Actions `${{secrets.GITHUB_TOKEN}}` reference — standard built-in token, not hardcoded |
-| `reposcan-raw/google/xrblocks/src/ai/AI.ts` | 304-305 | Placeholder `'YOUR_GEMINI_API_KEY_HERE'` / `'YOUR_OPENAI_API_KEY_HERE'` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 126, 238, 247 | Example credentials in docstrings (`"-----BEGIN PRIVATE KEY-----..."`, `"user"/"password"`, `"eyAkaknabna...."`) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` — grant type name |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring placeholder `"your_client_secret"` |
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Session state key constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `reposcan-raw/google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt` | 49 | Test constant `INJECTED_TOKEN = "injected-token-probe"` |
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Secret Manager reference `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — not a hardcoded value |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` secret references |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` secret reference |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test fixture code |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS source map chunks |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126,238,247 | Example credentials in docstrings/comments |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` constant placeholder |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` placeholder |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS chunk |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` test constant |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94,98,102 | `$APP_TOKEN`, `$FALLBACK_TOKEN` variable references |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 12 | `AnthropicApiKey = "ANTHROPIC_API_KEY"` test placeholder |
+| microsoft/agent-framework/python/packages/anthropic/.../_chat_client.py | 298,304,315 | `api_key="your_anthropic_api_key"` placeholders |
+| microsoft/agent-framework/python/packages/mistral/.../_chat_client.py | 894 | `api_key="your-api-key"` placeholder |
+| microsoft/agent-framework/python/packages/mistral/.../_embedding_client.py | 361 | `api_key="your-api-key"` placeholder |
+| microsoft/agent-framework/python/packages/core/.../_serialization.py | 225,467 | `api_key="secret-key"`, `api_key="your-api-key"` placeholders |
+| microsoft/fabric-cli/src/fabric_cli/core/fab_constant.py | 48,52,54 | `FAB_TOKEN="fab_token"`, `FAB_SPN_CLIENT_SECRET="fab_spn_client_secret"`, `FAB_SPN_CERT_PASSWORD="fab_spn_cert_password"` constant placeholders |
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| `reposcan-raw/google/nearby/sharing/nearby_sharing_service.h` | 71 | `https://source.corp.google.com/...` | Internal Google source browser (corp-only) |
-| `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml` | 407 | `https://test.pypi.org/p/magika` | Public TestPyPI URL — benign |
-| `reposcan-raw/google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED per KB** — search-only key, public by design |
-
-### INTERESTING
-| File | Line | Finding |
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Details |
 |------|------|---------|
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Writes `GOOGLE_API_KEY={google_api_key}` to `.env` — variable interpolation, not hardcoded |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents cloud metadata endpoint `169.254.169.254` risk — defensive coding |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path` / `kubeconfig_context` params — config surface |
-| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` | (many) | Minified JS build artifacts — source maps in dist |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js` | (many) | Minified JS build artifacts — source maps in dist |
-| `reposcan-raw/google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js` | 5 | Minified JS build artifact |
+| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal corp source link: `source.corp.google.com/piper///depot/google3/...` |
 
----
+## INTERESTING (unusual configs, debug flags, cloud metadata refs, test endpoints)
+| File | Line | Details |
+|------|------|---------|
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | Test PyPI URLs: `test.pypi.org/p/magika`, `test.pypi.org/legacy/` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context parameters (config surface) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` variable interpolation pattern |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` internal constant |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` default placeholder |
+| microsoft/agent-framework/python/pyproject.toml | 459,460 | Test PyPI URLs: `test.pypi.org/simple/`, `test.pypi.org/legacy/` |
 
-## Verdict List
+# VERDICT LIST
+- google/earthengine-api/python/ee/oauth.py:45 → REPORT_CANDIDATE: YES (hardcoded OAuth client_secret, live on master, scopes include cloud-platform, tracked in KB as ACCEPTED finding)
+- All other hits → REPORT_CANDIDATE: NO (placeholders, test fixtures, secret references, or config patterns)
+EOF
+# CLASSIFICATION TABLES
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `cadvisorflags/flags.go:54` | **no** | Config flag name, not a secret |
-| `magika github-issue-labeler.yml:20` | **no** | Standard `${{secrets.GITHUB_TOKEN}}` reference |
-| `magika python-build-and-release-package.yml:407` | **no** | Public TestPyPI URL |
-| `xrblocks AI.ts:304-305` | **no** | Explicit placeholders |
-| `xrblocks docusaurus.config.ts:175` | **no** | **REJECTED per KB** — Algolia DocSearch public key |
-| `adk-python auth_credential.py:126,238,247` | **no** | Docstring examples |
-| `adk-python auth_schemes.py:68` | **no** | Enum constant |
-| `adk-python auth_helpers.py:62` | **no** | Docstring placeholder |
-| `adk-python sandbox_computer.py:47` | **no** | Session state key name |
-| `adk-kotlin McpIntegrationTestSupport.kt:49` | **no** | Test probe token |
-| `adk-go cloudrun.go:246` | **no** | Secret Manager reference |
-| `nearby_sharing_service.h:71` | **no** | Internal corp URL (source.corp.google.com) — not exploitable externally |
-| `adk-python cli_create.py:123` | **no** | Variable interpolation to .env |
-| `adk-python container_code_executor.py:114,154` | **no** | Security documentation |
-| `adk-python gke_code_executor.py:103-115` | **no** | Config parameters |
-| Minified JS bundles (adk-go, adk-python, adk-kotlin) | **no** | Build artifacts; source maps present but no secrets in new delta |
+## REAL_SECRET (reportable candidates)
+| File | Line | SHA256 (truncated) | Context | REPORT_CANDIDATE |
+|------|------|-------------------|---------|------------------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06... | Hardcoded OAuth client_secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1', used as fallback at line 99, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect | YES |
 
-**No REAL_SECRET candidates in this delta.** All 3 new hits are benign (config flag, GH Actions secret ref, public TestPyPI URL). The full grep hits are all previously-known TEST_OR_EXAMPLE / REJECTED / INTERESTING items.
+## TEST_OR_EXAMPLE (not reportable - placeholders, fixtures, test data)
+| File | Line | Reason |
+|------|------|--------|
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` secret references |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` secret reference |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test fixture code |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS source map chunks |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126,238,247 | Example credentials in docstrings/comments |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` constant placeholder |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` placeholder |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS chunk |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` test constant |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94,98,102 | `$APP_TOKEN`, `$FALLBACK_TOKEN` variable references |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 12 | `AnthropicApiKey = "ANTHROPIC_API_KEY"` test placeholder |
+| microsoft/agent-framework/python/packages/anthropic/.../_chat_client.py | 298,304,315 | `api_key="your_anthropic_api_key"` placeholders |
+| microsoft/agent-framework/python/packages/mistral/.../_chat_client.py | 894 | `api_key="your-api-key"` placeholder |
+| microsoft/agent-framework/python/packages/mistral/.../_embedding_client.py | 361 | `api_key="your-api-key"` placeholder |
+| microsoft/agent-framework/python/packages/core/.../_serialization.py | 225,467 | `api_key="secret-key"`, `api_key="your-api-key"` placeholders |
+| microsoft/fabric-cli/src/fabric_cli/core/fab_constant.py | 48,52,54 | `FAB_TOKEN="fab_token"`, `FAB_SPN_CLIENT_SECRET="fab_spn_client_secret"`, `FAB_SPN_CERT_PASSWORD="fab_spn_cert_password"` constant placeholders |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Details |
+|------|------|---------|
+| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal corp source link: `source.corp.google.com/piper///depot/google3/...` |
+
+## INTERESTING (unusual configs, debug flags, cloud metadata refs, test endpoints)
+| File | Line | Details |
+|------|------|---------|
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | Test PyPI URLs: `test.pypi.org/p/magika`, `test.pypi.org/legacy/` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context parameters (config surface) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` variable interpolation pattern |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` internal constant |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` default placeholder |
+| microsoft/agent-framework/python/pyproject.toml | 459,460 | Test PyPI URLs: `test.pypi.org/simple/`, `test.pypi.org/legacy/` |
+
+# VERDICT LIST
+- google/earthengine-api/python/ee/oauth.py:45 → REPORT_CANDIDATE: YES (hardcoded OAuth client_secret, live on master, scopes include cloud-platform, tracked in KB as ACCEPTED finding)
+- All other hits → REPORT_CANDIDATE: NO (placeholders, test fixtures, secret references, or config patterns)
+[0m
+**CLASSIFICATION TABLES**
+
+## REAL_SECRET (reportable candidates)
+| File | Line | SHA256 (truncated) | Context | REPORT_CANDIDATE |
+|------|------|-------------------|---------|------------------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06... | Hardcoded OAuth client_secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1', used as fallback at line 99, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect | YES |
+
+## TEST_OR_EXAMPLE (not reportable - placeholders, fixtures, test data)
+| File | Line | Reason |
+|------|------|--------|
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` secret references |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` secret reference |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test fixture code |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS source map chunks |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126,238,247 | Example credentials in docstrings/comments |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` constant placeholder |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` placeholder |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS chunk |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` test constant |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94,98,102 | `$APP_TOKEN`, `$FALLBACK_TOKEN` variable references |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 12 | `AnthropicApiKey = "ANTHROPIC_API_KEY"` test placeholder |
+| microsoft/agent-framework/python/packages/anthropic/.../_chat_client.py | 298,304,315 | `api_key="your_anthropic_api_key"` placeholders |
+| microsoft/agent-framework/python/packages/mistral/.../_chat_client.py | 894 | `api_key="your-api-key"` placeholder |
+| microsoft/agent-framework/python/packages/mistral/.../_embedding_client.py | 361 | `api_key="your-api-key"` placeholder |
+|
