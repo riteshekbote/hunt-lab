@@ -409,3 +409,14 @@
 - LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pen
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:30 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA
 - LEARN: ACCEPTED: No new proving-dead classes this cycle — all fresh passive probes (12:0x UTC) confirmed prior ACCEPTED findings unchanged: Graph 405 anomaly, tokeninf
+
+## RANKED HYPOTHESES 2026-08-08 13:54:16 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite sha256-verified secret `3f3f8d6f…d271` (plainte
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 11:30 UTC — 873-char block, no OperationRestrictions, createdBy/ownerI
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw 
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only); issuer-confusion precondition held pen
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:30 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ current cycle — sha256 `3f3f8d6f29db1b06cbfc212a718b181744db8f9bd25316c76ccebf8a1440d271`
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed LIVE @ current cycle — fresh $metadata fetch (7.3MB), 872-char agentRegistration blo
