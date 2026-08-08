@@ -1,222 +1,78 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/microsoft/OpenAPI.NET.OData/.azure-pipelines/ci-build.yml | head -150 | tail -20
-"parameterName": "FileDigest",
-                            "parameterValue": "/fd \"SHA256\""
-                        },
-                        {
-                            "parameterName": "PageHash",
-                            "parameterValue": "/NPH"
-                        },
-                        {
-                            "parameterName": "TimeStamp",
-                            "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-                        }
-                        ],
-                        "toolName": "sign",
-                        "toolVersion": "1.0"
-                    },
-                    {
-                        "keyCode": "CP-230012",
-                        "operationSetCode": "SigntoolVerify",
-                        "parameters": [ ],
-                        "toolName": "sign",
-[0m
-[0m$ [0mcat reposcan-raw/microsoft/OpenAPI.NET.OData/src/AssemblyInfo/AssemblyKeys.cs
-//---------------------------------------------------------------------
-// <copyright file="AssemblyKeys.cs" company="Microsoft">
-//      Copyright (C) Microsoft Corporation. All rights reserved. See License.txt in the project root for license information.
-// </copyright>
-//---------------------------------------------------------------------
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-/// <summary>
-/// Sets public key string for friend assemblies.
-/// </summary>
-internal static class AssemblyRef
-{
-#if DelaySignKeys
-    /// <summary>ProductPublicKey is an official MS supported public key for external releases.</summary>
-    internal const string ProductPublicKey = ", PublicKey=0024000004800000940000000602000000240000525341310004000001000100B5FC90E7027F67871E773A8FDE8938C81DD402BA65B9201D60593E96C492651E889CC13F1415EBB53FAC1131AE0BD333C5EE6021672D9718EA31A8AEBD0DA0072F25D87DBA6FC90FFD598ED4DA35E44C398C454307E8E33B8426143DAEC9F596836F97C8F74750E5975C64E2189F45DEF46B2A2B1247ADC3652BF5C308055DA9";
-
-    /// <summary>TestPublicKey is an unsupported strong key for testing purpose only.</summary>
-    internal const string TestPublicKey = ", PublicKey=0024000004800000940000000602000000240000525341310004000001000100197c25d0a04f73cb271e8181dba1c0c713df8deebb25864541a66670500f34896d280484b45fe1ff6c29f2ee7aa175d8bcbd0c83cc23901a894a86996030f6292ce6eda6e6f3e6c74b3c5a3ded4903c951e6747e6102969503360f7781bf8bf015058eb89b7621798ccc85aaca036ff1bc1556bb7f62de15908484886aa8bbae";
-
-    /// <summary>Product public key token.</summary>
-    internal const string ProductPublicKeyToken = "31bf3856ad364e35";
-
-#elif TestSignKeys
-    /// <summary>Dont know what this is</summary>
-    internal const string TestPublicKey = ", PublicKey=0024000004800000940000000602000000240000525341310004000001000100197c25d0a04f73cb271e8181dba1c0c713df8deebb25864541a66670500f34896d280484b45fe1ff6c29f2ee7aa175d8bcbd0c83cc23901a894a86996030f6292ce6eda6e6f3e6c74b3c5a3ded4903c951e6747e6102969503360f7781bf8bf015058eb89b7621798ccc85aaca036ff1bc1556bb7f62de15908484886aa8bbae";
-
-    /// <summary>Dont know what this is</summary>
-    internal const string ProductPublicKey = TestPublicKey;
-
-    /// <summary>Dont know what this is</summary>
-    internal const string ProductPublicKeyToken = "69c3241e6f0468ca";
-
-#else
-    /// <summary>No signing</summary>
-    internal const string ProductPublicKey = "";
-
-    /// <summary>No signing</summary>
-    internal const string TestPublicKey = "";
-
-    /// <summary>No signing</summary>
-    internal const string ProductPublicKeyToken = "";
-
-#endif
-}
-[0m
-[0m$ [0mcat reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | head -100 | tail -20
-rank: 30,
-  };
-  const kept = resolveOverlaps([lower, higher]);
-  assert.equal(kept.length, 1);
-  assert.equal(kept[0].label, "GitHub token");
-});
-
-test("maskValue never returns the original and hides the middle", () => {
-  const secret = "ghp_ABCDEFGHIJKLMNOP";
-  const masked = maskValue(secret);
-  assert.notEqual(masked, secret);
-  assert.ok(!masked.includes("CDEFGHIJKLMN"));
-  assert.ok(masked.includes("••••"));
-  assert.equal(maskValue("short"), "••••");
-  assert.equal(maskValue(""), "");
-});
-
-test("redactText masks every match in place and leaves the rest intact", () => {
-  const text = "email jane@example.com and card 4111 1111 1111 1111 today";
-  const matches = scanStructuredPii(text);
-[0m
-[0m$ [0mcat reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | head -40
-// Fixed corpus for the frame OCR + blur evals (the opt-in Advanced-protection
-// image channel). Real frames are OCR'd on-device with tesseract; here we supply
-// the recognized words + their pixel boxes directly, so the box-mapping logic —
-// join words → run the shared detectors → paint every word whose char span
-// overlaps a match — is exercised deterministically without tesseract or sharp.
-//
-// Each word carries `sensitive: true` when its box MUST be blurred. Words are laid
-// out left-to-right on one row with wide gaps, so a padded box only ever overlaps
-// its own word (no ambiguous neighbor overlap during scoring).
-
-export interface FrameWord {
-  text: string;
-  /** True when this word's box must be covered before the frame is sent. */
-  sensitive?: boolean;
-}
-
-export interface FrameCase {
-  id: string;
-  about: string;
-  words: FrameWord[];
-  /** Values already detected in the session's text (cross-feed blur). */
-  knownValues?: string[];
-}
-
-export const frameCorpus: FrameCase[] = [
-  {
-    id: "frame-github-token",
-    about: "A GitHub token visible on screen (secretlint over OCR text)",
-    words: [
-      { text: "run" },
-      { text: "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", sensitive: true },
-      { text: "now" },
-    ],
-  },
-  {
-    id: "frame-email",
-    about: "An email address on screen (structured PII over OCR text)",
-    words: [
-      { text: "contact" },
-      { text: "jane.doe@example.com", sensitive: true },
-[0m
-[0m$ [0mcat reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | head -70 | tail -20
-const cases: OcrImageCase[] = [
-  {
-    id: "eng-secret-token",
-    about: "GitHub token on screen amid ordinary log lines (English)",
-    rows: [
-      { text: "Deployment log for release build", sensitive: false },
-      { text: "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", sensitive: true },
-      { text: "Status: completed successfully", sensitive: false },
-    ],
-  },
-  {
-    id: "eng-card-and-email",
-    about: "Credit card + email on screen (English)",
-    rows: [
-      { text: "Customer billing record", sensitive: false },
-      { text: "Card 4111 1111 1111 1111 exp 09 27", sensitive: true },
-      { text: "Contact jordan.blake@example.com", sensitive: true },
-      { text: "Notes: follow up next week", sensitive: false },
-    ],
-  },
-[0m
-Now I have enough context to classify all hits. Let me create the classification tables.
-
-## Classification Tables
-
-### REAL_SECRET
+## REAL_SECRET
 | File | Line | SHA256 | Context |
 |------|------|--------|---------|
-| *none new* | - | - | The earthengine-api secret was already ACCEPTED in KB |
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret "RUP0RZ6e0pPhDzsqIJ7KlNd1", used as default fallback at :99, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect |
 
-### TEST_OR_EXAMPLE
-| File | Line | Type | Reason |
-|------|------|------|--------|
-| `microsoft/OpenAPI.NET.OData/.github/workflows/auto-merge-dependabot.yml` | 24 | GitHub Actions secret ref | `${{ secrets.GITHUB_TOKEN }}` - standard secret injection |
-| `microsoft/OpenAPI.NET.OData/.github/workflows/sonarcloud.yml` | 65, 69 | SonarCloud token ref | `${{ secrets.SONAR_TOKEN }}` - standard secret injection |
-| `microsoft/OpenAPI.NET.OData/docs/oas3_0_0/graph1.0_withSecurity.json` | 5682 | Example payload | Fake ID `0123456789abc` in OAS example |
-| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | Test fixture | `ghp_ABCDEFGHIJKLMNOP` - placeholder for masking tests |
-| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | Test corpus | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` - OCR eval fixture |
-| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | Test corpus | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` - OCR eval fixture |
-| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Test constant | `PASSWORD = 'password'` |
-| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | Example in comments | Example password/token in JSDoc |
-| `google/go-github/github/github.go` | 1990 | Example in comment | `"your app's client secret"` placeholder |
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test key | `secret_key = "fuzz test key"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test constants | `ServerShutdownPassword` test password |
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Placeholder private_key with "..." truncation |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Test credentials: username="user", password="password" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Test token: "eyAkaknabna...." (truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant: PASSWORD = "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder: client_secret="your_client_secret" |
+| google/go-github/github/github.go | 1990 | Placeholder: "your app's client secret" |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name: GEMINI_API_KEY = "gemini_api_key" |
+| google/private-compute-services/.../oakutil/PrivateInferenceClientTimerNames.kt | 82,88,91 | Constant names: IPP_CREATE_TERMINAL_TOKEN, etc. |
+| google/private-compute-services/.../rendertoken/RenderTokenHint.kt | 41 | Constant name: KEY_RENDER_TOKEN |
+| google/private-compute-services/.../rendertoken/RenderTokenInsight.kt | 43 | Constant name: KEY_RENDER_TOKEN |
+| google/adk-java/dev/browser/*.js | - | Minified source map chunks |
+| google/adk-python/src/google/adk/cli/browser/*.js | - | Minified source map chunks |
+| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | - | Minified source map |
 
-### ENDPOINT_LEAK
-| File | Line | Leak Type | Details |
-|------|------|-----------|---------|
-| `microsoft/OpenAPI.NET.OData/.azure-pipelines/ci-build.yml` | 140 | Internal timestamp server | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` - corp Microsoft RFC3161 TSP |
-| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 16 | Staging URL | `https://test.osv.dev` - staging environment |
-| `google/osv.dev/docs/_config.yml` | 78 | Staging URL | `https://test.osv.dev/linter/` |
-| `google/osv.dev/tools/datafix/reimport_gcs_record.py` | 86 | Staging URL | `https://test.osv.dev/` |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Secret refs | GEMINI_API_KEY, OPENAI_API_KEY - GitHub Actions secret refs |
-| `google/adk-python-community/.github/workflows/*.yml` | multiple | Secret refs | GITHUB_TOKEN, GEMINI_API_KEY, GOOGLE_API_KEY - all `${{ secrets.* }}` |
+## ENDPOINT_LEAK
+| File | Line | Type |
+|------|------|------|
+| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | Staging endpoint: api.test.osv.dev |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | Staging endpoints: api.test.osv.dev |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Internal URL ref: pantheon.corp.google.com (comment) |
+| google/osv.dev/deployment/clouddeploy/*/skaffold.yaml | - | Staging config references |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | Staging URL: test.osv.dev |
+| google/osv.dev/docs/_config.yml | 78 | Staging URL: test.osv.dev |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | IMDS documentation ref: 169.254.169.254 (not a leak) |
 
-### INTERESTING
-| File | Line | Finding | Significance |
-|------|------|---------|--------------|
-| `microsoft/OpenAPI.NET.OData/src/AssemblyInfo/AssemblyKeys.cs` | 20, 30 | .NET public key tokens | `31bf3856ad364e35` (well-known MS key), `69c3241e6f0468ca` (test key) - not secrets, but supply-chain relevant |
-| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | SSRF guard | Blocks `169.254.0.0/16` (GCP metadata) - defensive coding |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | SSRF guard | Blocks metadata endpoints `169.254.169.254`, `fd00:ec2::254` |
-| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | SSRF guard | Blocks cloud metadata endpoints |
-| `google/private-compute-services/.../oakutil/PrivateInferenceClientTimerNames.kt` | 82, 88, 91 | Token constants | `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, `IPP_GET_PROXY_TOKEN` - internal token names |
-| `google/private-compute-services/.../rendertoken/RenderTokenHint.kt` | 41 | Token constant | `KEY_RENDER_TOKEN = "render_token"` |
-| `google/private-compute-services/.../rendertoken/RenderTokenInsight.kt` | 43 | Token constant | `KEY_RENDER_TOKEN = "render_token"` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Config key name | `GEMINI_API_KEY = "gemini_api_key"` - config key name, not value |
-
----
-
-## Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| microsoft/OpenAPI.NET.OData `.azure-pipelines/ci-build.yml` timestamp server | **no** | Internal corp endpoint leak; no auth bypass, no secret |
-| microsoft/OpenAPI.NET.OData AssemblyKeys public key tokens | **no** | Public key tokens are not secrets; well-known Microsoft values |
-| All skill-recorder test fixtures (ghp_* tokens) | **no** | Synthetic test data in `evals/sensitive/` and `*.test.ts` |
-| All GitHub Actions `${{ secrets.* }}` references | **no** | Standard CI secret injection, not hardcoded values |
-| google/adk-js/auth_schemes.ts PASSWORD constant | **no** | Test constant `'password'` |
-| google/osv.dev staging URLs (test.osv.dev) | **no** | Public staging environment, not internal leak |
-| google/private-compute-services token name constants | **no** | Constant names for internal token types, no values |
-| google/go-containerregistry SSRF guards | **no** | Defensive coding (blocking metadata endpoints) |
-| google/agents-cli auth.py GEMINI_API_KEY config name | **no** | Config key identifier, not a secret value |
-| **earthengine-api oauth.py:45 hardcoded client_secret** | **yes** | **Already ACCEPTED in KB (2026-08-07/08)** - LIVE on master, REAL_SECRET, scopes=cloud-platform+drive+devstorage.full_control, OOB redirect; pending VRP determination on native-app by-design status |
+## INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context params (config, not secrets) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secret usage: ${{ secrets.GEMINI_API_KEY }} |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Proper secret usage: ${{ steps.fetch-token.outputs._id_token }} |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Doc reference: dev.mysql.com |
 
 ---
 
-**Summary**: No **new** reportable secrets in this delta. The only live REAL_SECRET is the previously-accepted earthengine-api OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`). All other hits are test fixtures, example code, secret references, or internal endpoint references without exploitable value.
+## VERDICT LIST
+
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Hardcoded OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **YES** | CONFIRMED LIVE (KB 2026-08-07/08), REAL_SECRET, scopes include cloud-platform, used as default fallback |
+| ADK /run_sse client_secret | google/adk-python | **NO** | KNOWN DUP #2128 (closed 2025-07-23) |
+| ADK ya29 token in git history | google/adk-python | **NO** | KNOWN DUP #5520 (closed 2026-04-28) |
+| All auth_credential.py hits | google/adk-python/src/google/adk/auth/auth_credential.py | **NO** | TEST_OR_EXAMPLE (placeholders) |
+| All auth_schemes.py hits | google/adk-python/src/google/adk/auth/auth_schemes.py | **NO** | TEST_OR_EXAMPLE (test constant) |
+| openapi_tool auth_helpers.py | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | **NO** | TEST_OR_EXAMPLE (placeholder) |
+| go-github ClientSecret | google/go-github/github/github.go | **NO** | TEST_OR_EXAMPLE (placeholder) |
+| agents-cli GEMINI_API_KEY | google/agents-cli/src/google/agents/cli/auth.py | **NO** | TEST_OR_EXAMPLE (constant name) |
+| private-compute-services tokens | google/private-compute-services/... | **NO** | TEST_OR_EXAMPLE (constant names) |
+| osv.dev staging URLs | google/osv.dev/... | **NO** | ENDPOINT_LEAK (staging/internal, not prod) |
+| adk-python IMDS refs | google/adk-python/src/google/adk/code_executors/container_code_executor.py | **NO** | ENDPOINT_LEAK (documentation, not leak) |
+| adk-python vmaas state key | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | **NO** | INTERESTING (constant name only) |
+| adk-python gke kubeconfig | google/adk-python/src/google/adk/code_executors/gke_code_executor.py | **NO** | INTERESTING (config params) |
+| langextract/agents-ci workflows | google/*/.github/workflows/ | **NO** | INTERESTING (proper secret usage) |
+| Source map chunks | google/adk-python/src/google/adk/cli/browser/*.js, google/adk-java/dev/browser/*.js | **NO** | TEST_OR_EXAMPLE (minified build artifacts) |
+
+---
+
+## SUMMARY
+**Only 1 reportable candidate**: The hardcoded OAuth client_secret in `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`), already **ACCEPTED** in knowledge base (2026-08-07/08 confirmations). All other hits are test fixtures, placeholders, staging refs, or build artifacts. No new reportable findings in this delta.
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
