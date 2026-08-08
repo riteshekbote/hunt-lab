@@ -296,3 +296,14 @@
 - LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body)
 - LEARN: ACCEPTED tokeninfo public introspection oracle confirmed still live at 03:14 UTC — no-param → 400 invalid_token; ?access_token=test → 400 Invalid Value
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (03:14 UTC) confirmed prior ACCEPTED findings unchanged, no new anomalies.
+
+## RANKED HYPOTHESES 2026-08-08 08:05:29 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch at 03:14 UTC (7.28MB, agentRegistration block=8
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 03:14 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset)
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret string 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+- LEARN: ACCEPTED Graph API 405 anomaly confirmed still live at 03:14 UTC — HEAD+GET /v1.0, /me, /users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body)
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed still live at 03:14 UTC — no-param → 400 invalid_token; ?access_token=test → 400 Invalid Value
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (03:14 UTC) confirmed prior ACCEPTED findings unchanged, no new anomalies.
