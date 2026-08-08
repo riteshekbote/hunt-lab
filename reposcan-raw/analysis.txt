@@ -1,67 +1,191 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt[90m [offset=35, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenInsight.kt[90m [offset=38, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/privateinference/library/oakutil/PrivateInferenceClientTimerNames.kt[90m [limit=25, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=15, offset=118][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=15, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=48, limit=15][0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -50 reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+import os
+from typing import Optional
+
+import click
+
+from ..apps.app import validate_app_name
+from .utils import _onboarding
+
+_INIT_PY_TEMPLATE = """\
+from . import agent
+"""
+
+_AGENT_PY_TEMPLATE = """\
+from google.adk.agents.llm_agent import Agent
+
+root_agent = Agent(
+    model='{model_name}',
+    name='root_agent',
+    description='A helpful assistant for user questions.',
+    instruction='Answer user questions to the best of your knowledge',
+)
+"""
+
+_AGENT_CONFIG_TEMPLATE = """\
+# yaml-language-server: $schema=https://raw.githubusercontent.com/google/adk-python/refs/heads/main/src/google/adk/agents/config_schemas/AgentConfig.json
+name: root_agent
+description: A helpful assistant for user questions.
+instruction: Answer user questions to the best of your knowledge
+model: {model_name}
+"""
+
+
+_OTHER_MODEL_MSG = """
+Please see below guide to configure other models:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '110,140p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+dotenv_file_path = os.path.join(agent_folder, ".env")
+  init_file_path = os.path.join(agent_folder, "__init__.py")
+  agent_py_file_path = os.path.join(agent_folder, "agent.py")
+  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+
+  with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+      f.write(_AGENT_CONFIG_TEMPLATE.format(model_name=model))
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write("")
+    click.secho(
+        _SUCCESS_MSG_CONFIG.format(agent_folder=agent_folder),
+        fg="green",
+    )
+  else:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '115,140p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+token_uri: The token URI.
+    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
+    client_x509_cert_url: URL for the client's X.509 cert.
+    universe_domain: The universe domain.
+
+  Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+  """
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '240,255p' reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
+	return util.LogStartStop("Deploying to Cloud Run",
+		func(p util.Printer) error {
+			params := []string{
+				"run", "deploy", f.cloudRun.serviceName,
+				"--source", ".",
+				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+				"--region", f.gcloud.region,
+				"--project", f.gcloud.projectName,
+				"--ingress", "all",
+				"--no-allow-unauthenticated",
+			}
+
+			cmd := exec.Command("gcloud", params...)
+
+			cmd.Dir = f.build.tempDir
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "earthengine" reposcan-raw/ 2>/dev/null | head -5
+reposcan-raw/rag.txt:- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — confirmed LIVE on master via `curl` + `sha256sum`; reposcan (22:45 UTC) classified REAL_SECRET (REPORT_CANDIDATE=yes); non-placeholder, used as default fallback at oauth.py:99; scopes include cloud-platform (full GCP); OOB redirect URI deprecated.
+reposcan-raw/rag.txt:- 2026-08-07 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+reposcan-raw/rag.txt:- 2026-08-07 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+reposcan-raw/rag.txt:- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — confirmed LIVE on master via curl + sha256sum; reposcan classified REAL_SECRET (REPORT_CANDIDATE=yes)
+reposcan-raw/rag.txt:- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f…) confirmed LIVE on master — REAL_SECRET per reposcan, used as default fallback at oauth.py:99, scopes include cloud-platform (full GCP); pending VRP determination on native-app by-design status.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -c "reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr" reposcan-raw/rag.txt 2>/dev/null || echo "not in rag"
+0
+not in rag
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
 | File | Line | SHA256 | Verdict |
 |------|------|--------|---------|
-| *(none in this delta)* | | | |
+| *(none in current delta — earthengine-api already in KB as ACCEPTED)* | | | |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` — enum constant name |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | JSDoc example: `password: "password"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | JSDoc example: `token: "your_access_token"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum value: `GEMINI_API_KEY = "gemini_api_key"` |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168 | GH Actions template: `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 192 | GH Actions template: `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name: `StorageDriverPassword = "storage_driver_password"` |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref syntax: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` (scheme type, not secret) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | JSDoc example values (`"password"`, `"your_access_token"`) |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified parser bundles (build artifacts, ~19 files) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser bundles (build artifacts, ~19 files) |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82, 88, 91 | Timer metric constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | SharedPreferences key name `KEY_RENDER_TOKEN = "render_token"` |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Same key name constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Config key name `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/.../staging.yaml | 168, 192 | GitHub Actions templated vars (`${{ steps.fetch-token.outputs... }}`) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name `StorageDriverPassword = "storage_driver_password"` |
+| google/adk-python/.../gke_code_executor.py | 103, 104, 115 | Parameter definitions (`kubeconfig_path`, `kubeconfig_context`) |
+| google/adk-python/.../auth_credential.py | 126 | Doc example placeholder `private_key="-----BEGIN PRIVATE KEY-----..."` |
 
 #### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Check for `metadata.google.internal` |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | CIDR `169.254.0.0/16` (GCP metadata 169.254.169.254) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | Docstring ref to `169.254.169.254` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Docstring ref to `169.254.169.254` |
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Check for `metadata.google.internal` (GCP metadata hostname) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | CIDR `169.254.0.0/16` with comment referencing GCP metadata 169.254.169.254 |
+| google/adk-python/.../container_code_executor.py | 114, 154 | Comments warning about cloud metadata endpoint at 169.254.169.254 |
 
 #### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | Bundle key const `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Bundle key const `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82 | Timer metric `IPP_CREATE_TERMINAL_TOKEN` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 88 | Timer metric `IPP_CREATE_PROXY_TOKEN` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 91 | Timer metric `IPP_GET_PROXY_TOKEN` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes `GOOGLE_API_KEY={google_api_key}` from user input (not hardcoded) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig path params (config, not secrets) |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified build artifacts (source-mapped JS chunks) |
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Secret Manager ref pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| google/adk-python/.../cli/cli_create.py | 123 | Writes user-supplied `google_api_key` to `.env` (credential handling pattern) |
 
 ---
 
 ### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| private-compute-services token constants | **no** | Bundle keys / timer metric names, not secrets |
-| adk-js auth examples | **no** | Test fixtures / enum names / JSDoc placeholders |
-| adk-go Cloud Run secret ref | **no** | Deployment syntax referencing secret manager, not a secret value |
-| adk-python auth_credential example | **no** | Docstring placeholder (`...`) |
-| agents-cli enum / GH Actions templates | **no** | Enum discriminant & CI variable placeholders |
-| cadvisor flag name | **no** | Command-line flag identifier |
-| GCP metadata endpoint refs | **no** | Well-known IP (169.254.169.254) documented publicly |
-| adk-python cli_create GOOGLE_API_KEY write | **no** | Writes user-supplied value to .env, not hardcoded |
-| adk-go/adk-python minified JS chunks | **no** | Build artifacts, not source secrets |
-
-**No REAL_SECRET findings in this delta.** The 5 new "delta" hits are all constant string identifiers for Android Bundle serialization and timer metrics — not credential material.
+| Candidate | REPORT_CANDIDATE | Notes |
+|-----------|------------------|-------|
+| earthengine-api OAuth client_secret (KB) | **yes** | Already ACCEPTED in KB (sha256 `3f3f8d6f...`), live on master, scopes=cloud-platform+drive+devstorage.full_control, OOB redirect. Pending VRP determination on native-app by-design. |
+| All current delta hits | **no** | 0 new real secrets. All hits are test fixtures, build artifacts, config key names, metadata endpoint references, or legitimate credential-handling code. |
+| adk-go cloudrun secret ref | **no** | References Secret Manager by name (`GOOGLE_API_KEY:latest`), does not contain secret material. |
+| adk-python cli_create .env write | **no** | Writes user-provided key to local `.env` (expected behavior for CLI scaffold). |
+| GCP metadata endpoint references | **no** | Defensive coding / SSRF surface documentation, not leaks. |
