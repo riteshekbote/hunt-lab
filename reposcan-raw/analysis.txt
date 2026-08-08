@@ -1,88 +1,101 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la reposcan-raw/
-total 104
-drwxr-xr-x   4 runner runner  4096 Aug  8 12:55 .
-drwxr-xr-x  12 runner runner  4096 Aug  8 12:56 ..
--rw-r--r--   1 runner runner    43 Aug  8 12:56 analysis.txt
-drwxr-xr-x 138 runner runner  4096 Aug  8 12:55 google
--rw-r--r--   1 runner runner  5451 Aug  8 12:56 grep-delta.txt
--rw-r--r--   1 runner runner 11464 Aug  8 12:55 grep-hits.prev.txt
--rw-r--r--   1 runner runner 11497 Aug  8 12:56 grep-hits.txt
-drwxr-xr-x 283 runner runner 12288 Aug  8 12:55 microsoft
--rw-r--r--   1 runner runner 42089 Aug  8 12:56 rag.txt
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "your app's client secret" | awk '{print $1}'
+8b792523067f1a980039623f744dac8ea84ec419f90b087628079325f66aaced
 [0m
-[0m→ [0mRead reposcan-raw/analysis.txt
-[0m→ [0mRead reposcan-raw/grep-delta.txt
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=45][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml[90m [limit=20, offset=1170][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs[90m [limit=20, offset=555][0m
-Now I have a clear picture. Let me classify all hits:
-
----
-
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "storage_driver_password" | awk '{print $1}'
+398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key" | awk '{print $1}'
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "-----BEGIN PRIVATE KEY-----..." | awk '{print $1}'
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "user" | awk '{print $1}'
+6d9010b2b7a1483b256ae7477738dba7c530bd9ba53db1d6691441e74b83608a
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password" | awk '{print $1}'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "eyAkaknabna...." | awk '{print $1}'
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password" | awk '{print $1}'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "your_client_secret" | awk '{print $1}'
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "_vmaas_access_token" | awk '{print $1}'
+459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "fuzz test key" | awk '{print $1}'
+e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "ServerShutdownPassword" | awk '{print $1}'
+1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782
+[0m
 ### REAL_SECRET
-
-| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
-|------|------|---------------|---------|------------------|
-| *(none in this delta)* | | | | |
-
-> **Note**: The `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) was **already ACCEPTED** in the knowledge base (2026-08-07/08) — not a new delta hit.
-
----
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *(none in this scan delta)* | — | — | The known live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) was **not caught** by this scan's grep patterns |
 
 ### TEST_OR_EXAMPLE
-
-| File | Line | Reason |
-|------|------|--------|
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server fixture |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test connection string construction |
-| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL only |
-| `google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test JS fixture |
-| `google/go-github/github/github.go` | 1990 | `ClientSecret: "your app's client secret"` — placeholder |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126, 238, 247 | Example credentials in docstrings |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — constant name, not secret |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` — placeholder |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name `_vmaas_access_token` |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Template code emitting `GOOGLE_API_KEY=` |
-
----
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| google/go-github/github/github.go | 1990 | `8b792523…aced` | Placeholder: `"your app's client secret"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `1a539ef3…b52` | Placeholder: `"gemini_api_key"` |
+| google/agents-cli/…/staging.yaml | 168 | (templated) | GH Actions `${{ steps.fetch-token.outputs._id_token }}` |
+| google/agents-cli/…/staging.yaml | 192 | (templated) | GH Actions `${{ steps.fetch-token.outputs._auth_token }}` |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `398a29d3…287` | Placeholder: `"storage_driver_password"` |
+| google/adk-python/…/auth_credential.py | 126 | `87fc30e9…582` | Placeholder: `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/…/auth_credential.py | 238 | `6d9010b2…08a` / `6b3a55e0…10f4e` | Placeholder: `username="user", password="password"` |
+| google/adk-python/…/auth_credential.py | 247 | `597730b3…651b` | Placeholder: `token="eyAkaknabna...."` |
+| google/adk-python/…/auth_schemes.py | 68 | `6b3a55e0…10f4e` | Constant: `PASSWORD = "password"` |
+| google/adk-python/…/auth_helpers.py | 62 | `af452314…a31f` | Placeholder: `"your_client_secret"` |
+| google/skywater-pdk/…/labeler.yml | 11 | (templated) | GH Actions `${{ secrets.GITHUB_TOKEN }}` |
+| google/langextract/…/ci.yaml | 168–170 | (templated) | GH Actions `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
+| google/magika/…/github-issue-labeler.yml | 20 | (templated) | GH Actions `${{secrets.GITHUB_TOKEN}}` |
+| google/oss-fuzz/…/fuzz_json.py | 27 | `e5dfd035…e2e5` | Test key: `"fuzz test key"` |
+| google/oss-fuzz/…/TestServer.java | 13 | `1731c395…c782` | Test password: `"ServerShutdownPassword"` |
+| google/oss-fuzz/…/TestServer.java | 55 | (code) | Test connection string builder |
+| microsoft/agent-governance-toolkit/…/labeler.yml | 20 | (templated) | GH Actions `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/…/auto-merge-dependabot.yml | 41 | (templated) | GH Actions `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/…/pr-size.yml | 20 | (templated) | GH Actions `${{ secrets.GITHUB_TOKEN }}` |
 
 ### ENDPOINT_LEAK
-
-| File | Line | Endpoint | Severity |
-|------|------|----------|----------|
-| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | **HIGH** — internal Microsoft timestamp server (corp TLD) |
-| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407 | `https://test.pypi.org/p/magika` | LOW — public test PyPI |
-| `google/magika/.github/workflows/python-build-and-release-package.yml` | 437 | `https://test.pypi.org/legacy/` | LOW — public test PyPI |
-
----
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-python/…/gke_code_executor.py | 103,104,115 | `kubeconfig_path` / `kubeconfig_context` params (config references) |
+| google/magika/…/python-build-and-release-package.yml | 407,437 | Public PyPI test URLs (`test.pypi.org`) |
+| google/oss-fuzz/…/TestServer.java | 33 | Public MySQL docs URL |
+| google/oss-fuzz/…/project.yaml | 1 | Public MySQL homepage URL |
+| microsoft/agent-governance-toolkit/…/esrp-publish.yml | 1180 | **Internal Microsoft TSP endpoint**: `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
 
 ### INTERESTING
-
-| File | Line | Why |
-|------|------|-----|
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` — **flag name constant** (not a secret; defines CLI flag `--storage_driver_password`) |
-| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment documenting cloud metadata endpoint `169.254.169.254` |
-| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service → SSRF risk |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: metadata endpoint SSRF, DNS-based SSRF out of scope |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments warning about `169.254.169.254` metadata endpoint |
-| `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs` | 563, 566, 568 | **Defensive blocklist** of cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) — security control, not leak |
-| `google/magika/.github/workflows/*.yml` + `microsoft/agent-governance-toolkit/.github/workflows/*.yml` | various | Proper `${{ secrets.GITHUB_TOKEN }}` usage — **correct pattern**, not a leak |
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-python/…/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` referenced in SSRF context |
+| google/adk-python/…/sandbox_computer.py | 47 | State key `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (sha256 `45952845…d277`) |
+| google/go-containerregistry/…/fetcher.go | 85 | Comment: 302 to metadata service `169.254.169.254` → SSRF |
+| google/go-containerregistry/…/bearer.go | 91,151 | Comments: metadata endpoint SSRF, DNS-based SSRF noted out of scope |
+| google/go-containerregistry/…/list.go | 206 | Comment: cloud metadata endpoints `169.254.169.254` |
+| microsoft/agent-governance-toolkit/…/OpaPolicyBackend.cs | 563 | Blocked IMDS IP: `169.254.169.254` (AWS/Azure) |
+| microsoft/agent-governance-toolkit/…/OpaPolicyBackend.cs | 566 | Blocked GCP metadata hostname: `metadata.google.internal` |
+| microsoft/agent-governance-toolkit/…/OpaPolicyBackend.cs | 568 | Blocked Alibaba IMDS IP: `100.100.100.200` |
 
 ---
 
 ### SHORT VERDICT
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180` (internal timestamp server URL) | **yes** — ENDPOINT_LEAK (corp TLD in public pipeline) |
-| `google/cadvisor/lib/cadvisorflags/flags.go:54` (StorageDriverPassword flag) | no — flag name constant, not a secret |
-| All TEST_OR_EXAMPLE hits | no — fixtures/placeholders |
-| All INTERESTING hits | no — comments, defensive code, or correct patterns |
-| `google/earthengine-api` oauth secret | **already reported/accepted** (KB: 2026-08-07/08 ACCEPTED) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/earthengine-api/python/ee/oauth.py:45` (known live, sha256 `3f3f8d6f…d271`) | **yes** | **Not in this scan's hits** — confirmed live in KB; hardcoded OAuth client_secret with `cloud-platform`+`drive`+`devstorage.full_control` scopes, OOB redirect; pending VRP determination on native-app by-design status |
+| `microsoft/agent-governance-toolkit/…/esrp-publish.yml:1180` | **no** | Internal Microsoft timestamp server URL (corp network), not a credential |
+| All TEST_OR_EXAMPLE entries | **no** | Placeholders, test fixtures, GH Actions secret refs |
+| All INTERESTING entries | **no** | SSRF surface documentation / IMDS blocklists — defensive code, not vuln |
+| All ENDPOINT_LEAK (public) | **no** | Public documentation / package URLs |
 
-**Only one actionable finding in this delta**: the internal Microsoft timestamp server URL (`rfc3161.gtm.corp.microsoft.com`) exposed in a public Azure DevOps pipeline YAML.
+**Action**: The earthengine-api secret is the only reportable finding but was **missed by this scan's grep**. Recommend adding a targeted check for that file/path in future scans.
