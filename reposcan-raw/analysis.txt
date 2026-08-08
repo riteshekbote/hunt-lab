@@ -1,38 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'40150cc2c638b09de8ebbfefd50b80a4'
-cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
-[0m
-| Category | File:Line | Secret SHA256 | Notes |
-|---|---|---|---|
-| **REAL_SECRET** | *(none new in this scan)* | | EarthEngine secret (sha256 `3f3f8d6f…d271`) already ACCEPTED in KB; not in this delta |
-| **TEST_OR_EXAMPLE** | xrblocks/src/ai/AI.ts:304-305 | (placeholders) | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| | xrblocks/docs/docusaurus.config.ts:175 | `cfaa7fabcf9b17f5…` | Algolia DocSearch key — **REJECTED in KB** (search-only, public by design) |
-| | agents-cli/auth.py:43 | (const name) | `GEMINI_API_KEY = "gemini_api_key"` — const identifier |
-| | agents-cli/staging.yaml:168,192 | (GH Actions expr) | `${{ steps.fetch-token.outputs._id_token }}` — workflow expression |
-| | adk-python/auth_credential.py:126 | (truncated) | `-----BEGIN PRIVATE KEY-----...` — example placeholder |
-| | adk-python/auth_credential.py:238 | (literal) | `username="user", password="password"` — test creds |
-| | adk-python/auth_credential.py:247 | (truncated JWT) | `token="eyAkaknabna...."` — example JWT |
-| | adk-python/auth_schemes.py:68 | (literal) | `PASSWORD = "password"` — const definition |
-| | adk-python/openapi_tool/auth_helpers.py:62 | (placeholder) | `client_secret="your_client_secret"` |
-| | adk-python/vmaas/sandbox_computer.py:47 | (const name) | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| | adk-kotlin/McpIntegrationTestSupport.kt:49 | (test token) | `INJECTED_TOKEN = "injected-token-probe"` |
-| | adk-go/**/*.js, adk-python/**/*.js, adk-kotlin/**/*.js | (build artifacts) | Minified JS bundles — parse error strings, not secrets |
-| **ENDPOINT_LEAK** | nearby/sharing/nearby_sharing_service.h:71 | N/A | `source.corp.google.com/piper///depot/google3/…` — internal corp source link |
-| **INTERESTING** | adk-python/gke_code_executor.py:103,104,115 | N/A | `kubeconfig_path`, `kubeconfig_context` params — cloud config surface |
-| | adk-python/container_code_executor.py:114,154 | N/A | Documents `169.254.169.254` metadata endpoint — known attack surface |
-| | adk-python/cli_create.py:123 | N/A | `GOOGLE_API_KEY={google_api_key}` — writes key to config file (variable) |
-| | adk-go/cloudrun.go:246 | N/A | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — secret ref pattern |
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this scan)* | | | |
+
+### TEST_OR_EXAMPLE
+| File | Line | Context | REPORT_CANDIDATE |
+|------|------|---------|------------------|
+| google/xrblocks/src/ai/AI.ts | 304 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}` | no |
+| google/xrblocks/src/ai/AI.ts | 305 | `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` | no |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` (Algolia DocSearch, public by design) | no |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret ref, not value) | no |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name) | no |
+| google/agents-cli/.../staging.yaml | 168 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` template | no |
+| google/agents-cli/.../staging.yaml | 192 | GitHub Actions `${{ steps.fetch-token.outputs._auth_token }}` template | no |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) | no |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `HttpCredentials(username="user", password="password")` (test) | no |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `HttpCredentials(token="eyAkaknabna....")` (truncated test token) | no |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (constant name) | no |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` (placeholder) | no |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (constant name) | no |
+| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `const val INJECTED_TOKEN = "injected-token-probe"` (test) | no |
+
+### ENDPOINT_LEAK
+| File | Line | Context | REPORT_CANDIDATE |
+|------|------|---------|------------------|
+| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal Google source link (piper) | no |
+| google/adk-python/.../container_code_executor.py | 114 | Comment ref: `169.254.169.254` (public metadata IP) | no |
+| google/adk-python/.../container_code_executor.py | 154 | Comment ref: `169.254.169.254` (public metadata IP) | no |
+
+### INTERESTING
+| File | Line | Context | REPORT_CANDIDATE |
+|------|------|---------|------------------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes API key to generated file; worth reviewing secret-handling pattern | no |
 
 ---
 
-**VERDICT**
+## Verdict Summary
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|---|---|---|
-| EarthEngine `oauth.py:45` (sha256 `3f3f8d6f…d271`) | **yes** | Already ACCEPTED in KB — hardcoded OAuth client_secret, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect; pending VRP native-app by-design determination |
-| xrblocks Algolia key | **no** | REJECTED in KB — search-only key, public by design |
-| All TEST_OR_EXAMPLE hits | **no** | Placeholders, test fixtures, build artifacts, const names |
-| Internal corp URL (nearby) | **no** | Information disclosure only; no auth bypass / secret |
-| Config/cloud metadata references | **no** | Documented attack surface, not exploitable finding |
+**No REAL_SECRET candidates in this scan.** All hits are test fixtures, placeholders, documentation examples, or public-by-design keys (Algolia). The previously confirmed earthengine-api hardcoded secret (`python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not present in this scan's hits** — it was validated in prior cycles and remains live per knowledge base.
+
+**REPORT_CANDIDATE: no** for all entries above.
