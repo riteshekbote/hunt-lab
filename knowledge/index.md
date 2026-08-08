@@ -133,3 +133,11 @@
 - 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes cloud-platform+drive+devstorage.full_control, OOB redirect
 - 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only)
 - 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, no new anomalies
+- 2026-08-08 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 08:59 UTC — 873-char block, same 13-property schema, no OperationRestrictions, createdBy/ownerIds Nullable=false.
+- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271`, at :45 AND :99 fallback.
+- 2026-08-08 ACCEPTED Graph API 405 anomaly + tokeninfo oracle confirmed still live at 08:59 UTC (HEAD 405 no WWW-Authenticate; no-param → 400 113b invalid_token).
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (08:59 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: earthengine-api `python/ee/oauth.py:45` hardcoded secret confirmed live @ probe — line present, bare-secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect.
+- 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed live @ probe — no-param → HTTP 400 (113 bytes), matching KB.
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed live @ probe — unauth `HEAD /v1.0` → HTTP 405, size 0, no `WWW-Authenticate: Bearer`, matching KB.
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.

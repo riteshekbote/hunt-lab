@@ -324,3 +324,25 @@
 - LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — sha256 `3f3f8d6f29db1b06cbfc212a718c181
 - LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset, 0 v1-only)
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, no new anomalies
+
+## RANKED HYPOTHESES 2026-08-08 09:46:51 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [85] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in public Google native-app source (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentR
+- NEXT(hypotheses-laguna.txt): HUMAN: Execute the two-principal test-tenant probe of the Agent Registration IDOR (resolves the confidence-85 top finding; gate_ease 0 = auth-gated but zero own
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live via fresh $metadata fetch at 03:14 UTC (7.28MB, agentRegistration block=8
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 03:14 UTC — 5 v1.0 kids ALL present in v2.0's 8 kids (strict subset)
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret string 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+- LEARN: ACCEPTED Graph API 405 anomaly confirmed still live at 03:14 UTC — HEAD+GET /v1.0, /me, /users → HTTP 405 (Content-Length: 0, NO WWW-Authenticate Bearer)
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed still live at 03:14 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body)
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed still live at 03:14 UTC — no-param → 400 invalid_token; ?access_token=test → 400 Invalid Value
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (03:14 UTC) confirmed prior ACCEPTED findings unchanged, no new anomalies.
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 08:59 UTC — 873-char block, same 13-property schema, no OperationRestr
+- LEARN: ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — whole-file sha `f4f93c76…` unchanged, se
+- LEARN: ACCEPTED Graph API 405 anomaly + tokeninfo oracle confirmed still live at 08:59 UTC (HEAD 405 no WWW-Authenticate; no-param → 400 113b invalid_token).
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (08:59 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- LEARN: ACCEPTED: earthengine-api `python/ee/oauth.py:45` hardcoded secret confirmed live @ probe — line present, bare-secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live @ probe — no-param → HTTP 400 (113 bytes), matching KB.
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed live @ probe — unauth `HEAD /v1.0` → HTTP 405, size 0, no `WWW-Authenticate: Bearer`, matching KB.
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.

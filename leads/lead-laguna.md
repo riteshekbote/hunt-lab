@@ -975,3 +975,46 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, no new anomalies
 [RISK] google: 85 | Hardcoded OAuth client_secret (sha256 `3f3f8d6f…`) granting cloud-platform+drive+devstorage scopes via deprecated OOB flow, confirmed live; tokeninfo public introspection oracle (ACCEPTED, live) provides unauthenticated token metadata disclosure; passive phase exhausted (identitytoolkit 403-gated, ADK secrets KNOWN-DUP)
 [RISK] microsoft: 85 | agentRegistration IDOR (5 EntityTypes/6 total, zero metadata restrictions, priority 85); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit flows, CVSS 8.0–9.8, $100k ceiling); Graph API 405 anomaly (RFC 6750 §3 violation masking IDOR enumeration); all CONFIRMED LIVE at 03:14 UTC but require AUTH_HELPED test-tenant validation
+## 2026-08-08 09:46:40 UTC [google] (model laguna)
+[PRIO] `github.com/google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth secret — score **8.6** — attack_surf 8, business 9, tech 9, gate 8, cloud 9, fresh 9
+[PRIO] `graph.microsoft.com/beta/copilot/agentRegistrations` Agent Registration IDOR — score **7.55** — attack_surf 10, business 9, tech 8, gate 0, cloud 7, fresh 9
+[PRIO] `oauth2.googleapis.com/tokeninfo` public introspection oracle — score **7.55** — attack_surf 7, business 6, tech 8, gate 10, cloud 7, fresh 9 *(lower impact — see PARKED)*
+[PRIO] `login.microsoftonline.com/common/discovery/keys` v1.0↔v2.0 issuer-confusion — score **7.4** — attack_surf 8, business 9, tech 9, gate 2, cloud 6, fresh 9
+[HYP] Hardcoded OAuth client_secret in public Google native-app source
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 85
+reasoning: Confirmed LIVE on master @ probe (line 45 present, bare-secret sha256 = `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`); used as default fallback at oauth.py:99; scopes `cloud-platform`+`drive`+`devstorage.full_control`; `REDIRECT_URI = urn:ietf:wg:oauth:2.0:oob` (deprecated OOB flow).
+evidence_needed: Secret used at oauth2.googleapis.com/token to mint `cloud-platform` tokens; Google VRP confirmation that embedded native-app secret is reportable.
+verify_steps: PASSIVE done — `curl https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | sed -n '40,55p'`; bare-secret `sha256sum` → `3f3f8d6f…`. HUMAN_ONLY — VRP report to Google for OOB embedded secret + native-app policy determination.
+impact: OAuth client auth via embedded secret → token minting with full-GCP `cloud-platform` scope. CVSS 7.5 (caveat: may be by-design per Google native-app policy).
+testability: PASSIVE (confirmed live @ probe) + HUMAN_ONLY (VRP submit)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: Fresh $metadata (7.28MB @ 03:14 UTC) confirms `agentRegistration` EntityType + 4 siblings (`agentInstance`/`agentCollection`/`agentCardManifest`/`copilotPackage`) carry ZERO `OperationRestrictions`; `createdBy`/`ownerIds`/`agentCard`/`managedByAppId`/`agentIdentityId` all client-supplied (`Nullable=false`).
+evidence_needed: Non-owner User2 `PATCH /beta/copilot/agentRegistrations/{id}` → 200/204 with persisted mutation; cross-user `GET` returns foreign entries.
+verify_steps: AUTH_HELPED (test-tenant, two principals): A) `POST /beta/copilot/agentRegistrations {"displayName":"probe","createdBy":"user2","ownerIds":["user2"],"agentCard":{...}}` as User1 → expect 201; B) `GET /beta/copilot/agentRegistrations` as User2 → expect 200 + array incl. User1's entry; C) `PATCH /beta/copilot/agentRegistrations/{id} {"agentCard":{"endpoint":"https://attacker.example"},"ownerIds":["user2"],"createdBy":"user2"}` as User2 → expect 200/204 vs 403; D) `GET /beta/copilot/agentRegistrations/{id}` → confirm persisted.
+impact: Full agent impersonation + copilotPackage supply-chain tampering; forge creator attribution + rewrite agentCard instructions. CVSS 7.5–9.0, $100k ceiling.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid overlap
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: 5 v1.0 kids (`aFkmKVFc…`,`AahUf1bC…`,`fEtqrhKT…`,`jvm_-Ttaq…`,`6hXLaIYN…`) ALL present in v2.0's 8 kids (strict subset, 0 v1-only); dual issuer namespaces serve same tenant; v1.0 supports `response_type=token` (pure implicit, excluded from v2.0) — verified live @ probe + KB.
+evidence_needed: v1.0 `id_token` (iss=`sts.windows.net/{tid}/`) accepted by a v2.0-only Graph resource that does not strictly validate `iss`.
+verify_steps: AUTH_HELPED (test-tenant): 1) Acquire v1.0 `id_token` via `/oauth2/v2.0/authorize` v1.0 path (`response_type=token`); 2) `GET /beta/copilot/agentRegistrations` with that token; 3) Observe 200 vs 401/403.
+impact: MFA bypass / auth bypass → access all v2.0-only Graph resources as any user. CVSS 8.0–9.8, $100k ceiling. (issuer-confusion sub-claim tracked per KB [55]; REJECTED class is *desync/alg-confusion*, not this precondition.)
+testability: AUTH_HELPED
+[FINAL] 1. Hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` (score 8.6, conf 85, PASSIVE live + HUMAN_ONLY VRP)
+[FINAL] 2. Agent Registration IDOR @ graph.microsoft.com/beta/copilot/agentRegistrations (score 7.55, conf 85, AUTH_HELPED)
+[FINAL] 3. v1.0↔v2.0 issuer-confusion @ login.microsoftonline.com (score 7.4, conf 60, AUTH_HELPED)
+[PARKED] tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confidence 70, priority 7.55 — retained in ACCEPTED inventory, demoted from hypothesis set for low impact (CVSS 5.3 info-disclosure) vs. auth-bypass findings.
+[NEXT] HUMAN: Execute the two-principal test-tenant probe of the Agent Registration IDOR (resolves the confidence-85 top finding; gate_ease 0 = auth-gated but zero ownership checks):
+[LEARN] ACCEPTED: earthengine-api `python/ee/oauth.py:45` hardcoded secret confirmed live @ probe — line present, bare-secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect.
+[LEARN] ACCEPTED: tokeninfo public introspection oracle confirmed live @ probe — no-param → HTTP 400 (113 bytes), matching KB.
+[LEARN] ACCEPTED: Graph API 405 anomaly confirmed live @ probe — unauth `HEAD /v1.0` → HTTP 405, size 0, no `WWW-Authenticate: Bearer`, matching KB.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+[RISK] google: 85 | Real native-app OAuth secret live (sha256 `3f3f8d6f…`, full-GCP `cloud-platform` scope) @ earthengine-api:45 — PASSIVE-confirmed; tokeninfo oracle (info-disclosure) live; identitytoolkit 403-gated; ADK embedded secrets = KNOWN-DUP (issue #2128/#5520 closed).
+[RISK] microsoft: 85 | Agent Registration IDOR (5 EntityTypes/6 total, zero metadata restrictions, conf 85); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit, CVSS 8.0–9.8, $100k ceiling); Graph API 405 anomaly (RFC 6750 §3 violation); all confirmed LIVE @ 03:14 UTC / probe-now; AUTH_HELPED test-tenant validation pending.
