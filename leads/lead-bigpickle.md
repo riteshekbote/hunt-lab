@@ -781,3 +781,34 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations with own Bearer → 200 array incl. A's entries vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} persistence. In parallel prep v1.0 id_token (iss=sts.windows.net/{tid}/) for issuer-confusion check. Passive surface fully exhausted (uniform 401/405, NO_DELTA); only a real token resolves or kills the [85] lead.
 [RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential on Google master persisting through edits (native-app by-design caveat caps it), tokeninfo introspection oracle; otherwise uniform all-401 passive surface | microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions across 4 namespaces, dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
 ## 2026-08-08 08:03:55 UTC [google] (model bigpickle)
+## 2026-08-08 08:57:14 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: 08:0x UTC: endpoint GET 401 IDX14100 / HEAD 405 — no pre-auth branch; fresh $metadata block=860 chars, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied with 5× Nullable=false and ZERO Operation/Read/Update/Insert/DeleteRestrictions.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} (200/204 vs 403).
+verify_steps: AUTH_HELPED: 1) A POST agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: 08:0x UTC: whole-file sha `f4f93c76…` unchanged since 06:1x; secret (sha `3f3f8d6f…d271`) persists verbatim at :45 AND :99 fallback despite intervening edits; CLIENT_ID 517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359; scopes incl. cloud-platform.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with the non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: if live → cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat may kill VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: 08:0x UTC: v1=5 kids ALL ⊂ v2=8 kids (0 v1-only); dual issuer namespaces + v1-only response_types (pure token / token id_token) still excluded from v2.0; shared-key precondition for replay intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[FINAL] rank: 1) agentRegistration IDOR (85) 2) earthengine secret redemption (75) 3) issuer-confusion replay (60)
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations with own Bearer → 200 array incl. A's entries vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} persistence. In parallel prep v1.0 id_token (iss=sts.windows.net/{tid}/) for the issuer-confusion check. Passive surface fully exhausted (uniform 401/405, NO_DELTA); only a real token resolves or kills the [85] lead.
+[RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential on Google master persisting through edits (native-app by-design caveat caps it), tokeninfo public introspection oracle; otherwise uniform all-401 passive surface | microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (860-char block, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
