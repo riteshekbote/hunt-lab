@@ -518,3 +518,18 @@
 - LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live @ 17:43 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bear
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed still live — GET → 400 invalid_token (113 bytes, `X-Content-Type-Options: nosniff`), accepts ?access_t
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (16:43/17:04/17:43 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-08 18:58:10 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal write (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of agentRegistration IDOR hypothesis. A) POST `https://graph.microsoft.com/beta/copilot/agentRegistrations` with Bearer U
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across 15:43 and current probes (v1=5, v2=7, 4-kid overl
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live @ 17:43 UTC — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestric
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:08 UTC — 873-char block, 0 OperationRestrictions, createdBy/ownerId
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readab
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-onl
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live @ 18:08 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bear
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed still live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Auth
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, iHttpErrorC
+- LEARN: ACCEPTED: bughunters.google.com root hardening confirmed still live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-O
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (18:08 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.

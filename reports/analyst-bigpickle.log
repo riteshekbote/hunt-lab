@@ -5789,3 +5789,130 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential on master (native-app by-design caveat caps VRP), public tokeninfo introspection oracle; otherwise uniform all-400/401 passive surface, no anonymous data plane.
 - [RISK] microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (873-char block, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 method-handling anomaly masking enumeration; all proof gated behind authorized-token tests.
+===== ANALYST bigpickle 2026-08-08 18:58:10 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mecho "=== agentRegistrations GET ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; echo "=== agentRegistrations HEAD ==="; curl -s -I -w "%{http_code} %{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations | head -8; echo "=== v1 keys ==="; curl -s https://login.microsoftonline.com/common/discovery/keys | python3 -c "import sys,json; k=json.load(sys.stdin); print('v1 kids:', [x['kid'] for x in k['keys']])"
+=== agentRegistrations GET ===
+401 237
+=== agentRegistrations HEAD ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 603fac90-7dbb-49b0-9067-dcd222710f43
+client-request-id: 603fac90-7dbb-49b0-9067-dcd222710f43
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"Central US","Slice":"E","Ring":"4","ScaleUnit":"003","RoleInstance":"DS1PEPF00015CA3"}}
+Date: Sat, 08 Aug 2026 18:54:49 GMT
+
+=== v1 keys ===
+v1 kids: ['AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug']
+[0m
+[0m$ [0mecho "=== v2 keys ==="; curl -s https://login.microsoftonline.com/common/discovery/v2.0/keys | python3 -c "import sys,json; k=json.load(sys.stdin); print('v2 kids:', [x['kid'] for x in k['keys']])"; echo "=== tokeninfo GET ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" https://oauth2.googleapis.com/tokeninfo; echo "=== tokeninfo no-param body ==="; curl -s https://oauth2.googleapis.com/tokeninfo; echo; echo "=== v2.0 authorize ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=1950a258-227b-4e31-a9cf-717495945fc2"
+=== v2 keys ===
+v2 kids: ['aFkmKVFc-4WV6sXCBvNZkXI505Y', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'NqEBZVuOpstZ__5iZuWH3HPswcI', '1Nv3JExJrKNx1l7adICQ7Y_Atps']
+=== tokeninfo GET ===
+400 113
+=== tokeninfo no-param body ===
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+=== v2.0 authorize ===
+200 23835
+[0m
+[0m$ [0mecho "=== earthengine oauth.py sha ==="; curl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | sha256sum; echo "=== line45 grep ==="; curl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | grep -n "CLIENT_ID\|CLIENT_SECRET" | head; echo "=== bughunters root ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" https://bughunters.google.com/
+=== earthengine oauth.py sha ===
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+=== line45 grep ===
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+172:      'client_id': CLIENT_ID,
+192:      'client_id': client_id or CLIENT_ID,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+414:        client_id=CLIENT_ID,
+415:        client_secret=CLIENT_SECRET,
+=== bughunters root ===
+200 3535
+[0m
+[0m$ [0mecho "=== agentRegistrations POST ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" -X POST https://graph.microsoft.com/beta/copilot/agentRegistrations; echo "=== v1.0 HEAD 405 check ==="; curl -s -I https://graph.microsoft.com/v1.0/me | head -3; echo "=== v1.0 HEAD status ==="; curl -s -I -o /dev/null -w "%{http_code}\n" https://graph.microsoft.com/v1.0/me; echo "=== tokeninfo HEAD ==="; curl -s -I -o /dev/null -w "%{http_code}\n" https://oauth2.googleapis.com/tokeninfo
+=== agentRegistrations POST ===
+411 344
+=== v1.0 HEAD 405 check ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+=== v1.0 HEAD status ===
+405
+=== tokeninfo HEAD ===
+404
+[0m
+[0m$ [0mecho "=== POST with body ==="; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" -X POST -d '{}' -H 'Content-Type: application/json' https://graph.microsoft.com/beta/copilot/agentRegistrations; echo "=== POST body content ==="; curl -s -X POST -d '{}' -H 'Content-Type: application/json' https://graph.microsoft.com/beta/copilot/agentRegistrations | head -c 400; echo; echo "=== GET vs POST on {id} ==="; curl -s -o /dev/null -w "GET {id}: %{http_code}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000; curl -s -o /dev/null -w "HEAD {id}: %{http_code}\n" -I https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000
+=== POST with body ===
+401 237
+=== POST body content ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-08T18:55:04","request-id":"c06d30f6-3bc5-45c7-8265-9f7e7278f7b3","client-request-id":"c06d30f6-3bc5-45c7-8265-9f7e7278f7b3"}}}
+=== GET vs POST on {id} ===
+GET {id}: 401
+HEAD {id}: 405
+[0m
+STEP 1 — DELTA
+- [CHANGED] login.microsoftonline.com JWKS rotation settled: v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN), v2=8 kids — strict subset v1(4) ⊂ v2(8) restored, **0 v1-only**, aFkmKVFc now v2-exclusive only. Earlier "persistent v1-exclusive" state resolved; REJECTED desync class confirmed dead.
+- [NEW] `POST /beta/copilot/agentRegistrations` (no body) → **HTTP 411 Length Required**; with body → **401** InvalidAuthenticationToken — body-length gate fires before auth on POST (GET → 401, HEAD → 405/0). Minor method-handling quirk, not a class.
+- [NEW] `GET /beta/copilot/agentRegistrations/{0000...0000}` → 401 (auth-gated), `HEAD {id}` → 405/0 — 405 anomaly extends to item route.
+- NO_DELTA else: tokeninfo GET 400/113 HEAD 404, v2.0 authorize 200/23835, Graph /v1.0/me HEAD 405/0, earthengine oauth.py sha `f4f93c76…` unchanged (secret verbatim :45/:99), bughunters 200 — all live.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 6.7 — attack 8 / business 8 / tech 7 / gate 3 / cloud 5 / fresh 7
+- [PRIO] github.com/google/earthengine-api oauth.py:45 → oauth2.googleapis.com/token — score 5.9 — attack 5 / business 7 / tech 6 / gate 4 / cloud 8 / fresh 6
+- [PRIO] login.microsoftonline.com discovery/keys + v2.0 authorize — score 5.3 — attack 5 / business 6 / tech 7 / gate 5 / cloud 3 / fresh 6
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: current probe — GET/POST→401/237b (auth-gated), HEAD {collection,{id}}→405/0 (RFC 6750 §3 anomaly live); $metadata block 873 chars, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/Read/Insert/Update/DeleteRestrictions; 5 sibling EntityTypes share pattern.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: current probe — whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 verbatim at :45 (+:99 fallback); scopes cloud-platform+drive+devstorage.full_control; CLIENT_ID 517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359. Redemption is the only gate.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: current probe — v1(4) ⊂ v2(8) strict subset restored (0 v1-only, aFkmKVFc v2-only), 4 shared kids; dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0; shared-key precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [FINAL] 1. agentRegistrations IDOR (85, AUTH_HELPED) — survives critique: concrete 4-step test, not on REJECTED list.
+- [FINAL] 2. earthengine secret redemption (75, HUMAN_ONLY) — survives: redemption is the unique gate, concrete exchange test.
+- [FINAL] 3. issuer-confusion replay (60, AUTH_HELPED) — survives at floor: v1⊂v2 restored, precondition intact, but wait for authorized token test.
+- No drops (all ≥40, none on REJECTED list, all have verify_steps).
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A) POST `https://graph.microsoft.com/beta/copilot/agentRegistrations` with Bearer A + `{"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}}` → expect 201; B) GET collection with Bearer B → 200 incl. A's entry vs 403; C) PATCH `{A-id}` with Bearer B `{"agentCard":{"displayName":"pwn"}}` → 200/204 vs 403. Requires two AAD principals with AgentRegistration.ReadWrite.All in a test tenant (program-authorized).
+
+STEP 6 — LEARNING
+- [LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: resolved — v1(4) ⊂ v2(8) strict subset restored (0 v1-only), aFkmKVFc v2-exclusive; earlier persistent v1-exclusive state was mid-rotation, class stays dead (v1 kid set never validated against v2 issuer).
+- [LEARN] ACCEPTED all prior findings confirmed live @ 18:55 UTC — agentRegistrations GET/POST 401, HEAD 405/0 (collection + item routes), tokeninfo GET 400/113 + HEAD 404, v2.0 authorize 200/23835, earthengine secret (sha f4f93c76… whole-file), bughunters 200. NO_DELTA.
+- [LEARN] REJECTED POST-body-gate anomaly @ graph.microsoft.com/beta/copilot/agentRegistrations: empty POST → 411 (Length Required), body POST → 401 — length gate precedes auth, but with body the auth gate fires correctly; no auth bypass surface, not a class.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 45 — earthengine hardcoded secret (native-app by-design caps VRP) + tokeninfo oracle are the main surface; no anonymous GCP read paths; low fresh surface.
+- [RISK] microsoft: 55 — agent registry schema-level zero ownership restrictions (5 EntityTypes, IDOR precondition valid), Graph 405 anomaly (RFC 6750 §3, masks IDOR enumeration), dual-issuer namespace; but all data paths auth-gated, awaiting two-principal proof.

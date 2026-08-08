@@ -192,3 +192,11 @@
 - 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed still live @ 17:43 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer), extends RFC 6750 §3 violation to Agent Registration endpoint.
 - 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed still live — GET → 400 invalid_token (113 bytes, `X-Content-Type-Options: nosniff`), accepts ?access_token=/ ?id_token= query params without Authorization header.
 - 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (16:43/17:04/17:43 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 18:08 UTC — 873-char block, 0 OperationRestrictions, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false.
+- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, whole-file sha `f4f93c76…` unchanged.
+- 2026-08-08 ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-only response_type=token/hybrid excluded from v2.0.
+- 2026-08-08 ACCEPTED: Graph API 405 anomaly confirmed still live @ 18:08 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer).
+- 2026-08-08 ACCEPTED: tokeninfo public introspection oracle confirmed still live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorization header.
+- 2026-08-08 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, iHttpErrorCode 400) vs RFC 6749 §3.
+- 2026-08-08 ACCEPTED: bughunters.google.com root hardening confirmed still live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options: nosniff.
+- 2026-08-08 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (18:08 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
