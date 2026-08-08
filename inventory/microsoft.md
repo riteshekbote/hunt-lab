@@ -218,3 +218,5 @@
 - NEW `oauth2.googleapis.com/tokeninfo` — `HEAD` → HTTP 404 (GET → HTTP 200, 113 bytes, `X-Content-Type-Options: nosniff`). Introspection oracle confirmed live via GET method; HEAD-404 is unusual method-han
 
 ## 2026-08-08 16:43:05 UTC
+
+## 2026-08-08 17:04:48 UTC
