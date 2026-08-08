@@ -493,3 +493,16 @@
 - LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live at 15:47 UTC — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bea
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed still live at 15:47 UTC — GET → HTTP 200 (X-Content-Type-Options: nosniff), HEAD → HTTP 404; no-Author
 - LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live at 15:47 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23940-byte body
+
+## RANKED HYPOTHESES 2026-08-08 17:43:46 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A) POST `https://graph.microsoft.com/beta/copilot/agentRegistrations` wi
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across 15:43 and current probes (v1=5, v2=7, 4-kid overl
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed LIVE @ 15:02 UTC — fresh $metadata (7.3MB), 873-char block, 0 OperationRestrictions,
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ 15:02 UTC — whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 verbatim at :45.
+- LEARN: ACCEPTED Graph 405 anomaly + tokeninfo oracle + v2.0 authorize 200 error rendering confirmed LIVE @ 15:02 UTC (405/0 no WWW-Authenticate; 400/113 invalid_token;
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 15:43 UTC — v1=5 kids, v2=7 kids, 4-kid overlap (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN), aFkmKVFc 
+- LEARN: ACCEPTED all prior findings confirmed live @ current cycle — Graph 405 anomaly (HEAD /v1.0 + /beta/copilot/agentRegistrations), tokeninfo oracle (GET 400/113, H
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live at 17:04 UTC via robot probe — GET /beta/copilot/agentRegistrations → HT
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live — v1↔v2 kid overlap (4/4 shared, 0 v1-only), earthengine secret (sha `3f3f8d6f…d271` verbatim), tokeninfo orac
