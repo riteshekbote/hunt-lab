@@ -2731,3 +2731,179 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 - [RISK] google: 42 — single real candidate is the earthengine secret (sha256 3f3f8d6f…, cloud-platform scope) still live on master; but likely by-design native-app embedded secret (reduces severity), tokeninfo oracle is no-reward public introspection, all GCP control-plane APIs remain API-key/OAuth-gated with no anonymous read path, ADK items KNOWN-DUP. Passive phase fully exhausted.
 - [RISK] microsoft: 66 — live zero-ownership agent-registration schema (5 EntityTypes), caller-chosen-resourceId consent primitive, dual-issuer/kid-overlap precondition, and two public 7MB/35MB identity-SPA source maps remain real preconditions; residual guard is entirely tenant-token enforcement, which passive means cannot disprove. Crown-jewel Entra/Copilot identity plane, highest impact potential; all validation gated on AUTH_HELPED.
+===== ANALYST bigpickle 2026-08-08 03:18:22 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HEAD graph /v1.0 -> %{http_code} len=%{size_download} wwwauth=%header{www-authenticate}\n" -I https://graph.microsoft.com/v1.0 --max-time 15; curl -s -o /dev/null -w "GET graph /beta/copilot/agentRegistrations -> %{http_code} len=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations --max-time 15; curl -s -o /dev/null -w "GET tokeninfo no-token -> %{http_code} len=%{size_download} ctype=%{content_type}\n" "https://oauth2.googleapis.com/tokeninfo" --max-time 15
+HEAD graph /v1.0 -> 405 len=0 wwwauth=
+GET graph /beta/copilot/agentRegistrations -> 401 len=237
+GET tokeninfo no-token -> 400 len=113 ctype=application/json; charset=UTF-8
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "bughunters root -> %{http_code} HSTS=%header{strict-transport-security} XFO=%header{x-frame-options}\n" -D - https://bughunters.google.com/ --max-time 15 -o /dev/null 2>&1 | head -1; curl -s -D - https://bughunters.google.com/ -o /dev/null --max-time 15 | grep -iE "^(HTTP|strict-transport|x-frame|x-content|x-xss)" | head -8
+HTTP/2 200 
+HTTP/2 200 
+strict-transport-security: max-age=2592000; includeSubdomains
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+[0m
+[0m$ [0mecho "--- v1.0 keys ---"; curl -s https://login.microsoftonline.com/common/discovery/keys --max-time 15 | python3 -c "import sys,json; d=json.load(sys.stdin); print(' '.join(sorted(k['kid'] for k in d['keys'])))"; echo "--- v2.0 keys ---"; curl -s https://login.microsoftonline.com/common/discovery/v2.0/keys --max-time 15 | python3 -c "import sys,json; d=json.load(sys.stdin); print(' '.join(sorted(k['kid'] for k in d['keys'])))"
+--- v1.0 keys ---
+6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY fEtqrhKT1bXAGafSdQoN1vXTRpI jvm_-TtaqTCRrkpnmePvwb75nWE
+--- v2.0 keys ---
+1Nv3JExJrKNx1l7adICQ7Y_Atps 6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY NqEBZVuOpstZ__5iZuWH3HPswcI aFkmKVFc-4WV6sXCBvNZkXI505Y fEtqrhKT1bXAGafSdQoN1vXTRpI jvm_-TtaqTCRrkpnmePvwb75nWE rRk1d-57BGZfsM4BUHrkx8cQbic
+[0m
+[0m$ [0mcurl -s --max-time 20 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum; curl -s --max-time 20 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | grep -nE "client_id|client_secret|OOB|redirect" | head -20
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+112:  client_id = credentials and getattr(credentials, 'client_id', None)
+113:  return _project_number_from_client_id(client_id)
+167:    redirect_uri: str | None = None,
+172:      'client_id': CLIENT_ID,
+174:      'redirect_uri': redirect_uri or REDIRECT_URI,
+184:    client_id: str | None = None,
+185:    client_secret: str | None = None,
+186:    redirect_uri: str | None = None,
+192:      'client_id': client_id or CLIENT_ID,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+194:      'redirect_uri': redirect_uri or REDIRECT_URI,
+254:def _project_number_from_client_id(client_id: str | None) -> str | None:
+258:  substrings = (client_id or '').split('-')
+266:    redirect_uri: str | None = None,
+274:  if redirect_uri:
+275:    client_info['redirect_uri'] = redirect_uri
+290:    client_info = {k: fetched_info[k] for k in ['client_id', 'client_secret']}
+295:  project = _project_number_from_client_id(client_info.get('client_id'))
+[0m
+[0m$ [0mcurl -s --max-time 20 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/opencode/oauth.py; wc -l /tmp/opencode/oauth.py; grep -nE "CLIENT_ID|CLIENT_SECRET|REDIRECT_URI" /tmp/opencode/oauth.py | head; echo "--- head of file ---"; sed -n '35,60p' /tmp/opencode/oauth.py
+647 /tmp/opencode/oauth.py
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+52:REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+172:      'client_id': CLIENT_ID,
+174:      'redirect_uri': redirect_uri or REDIRECT_URI,
+192:      'client_id': client_id or CLIENT_ID,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+194:      'redirect_uri': redirect_uri or REDIRECT_URI,
+--- head of file ---
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+[0m
+[0m$ [0mcurl -s --max-time 20 "https://api.github.com/repos/google/earthengine-api/commits?path=python/ee/oauth.py&per_page=5" | python3 -c "import sys,json; [print(c['sha'][:12], c['commit']['committer']['date'], c['commit']['message'][:60].replace(chr(10),' ')) for c in json.load(sys.stdin)]"
+229706143faf 2026-08-07T20:55:27Z python: Fix pyrefly checks  PiperOrigin-RevId: 961105519
+d2c359c38bd8 2026-08-07T19:52:07Z Internal cleanup.  PiperOrigin-RevId: 953565107
+951742b7a513 2026-05-14T23:48:50Z oauth: Reauthenticate when requested scopes are not a subset
+354d951a23dc 2025-11-13T00:14:12Z oauth.py: Lint and add test coverage  PiperOrigin-RevId: 831
+96168e6c42f4 2025-10-31T19:45:18Z python/ee: `pyupgrade --py310 *.py`.  PiperOrigin-RevId: 826
+[0m
+[0m$ [0mprintf '%s' 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum; echo "--- v1.0 keys recount ---"; curl -s https://login.microsoftonline.com/common/discovery/keys --max-time 15 | python3 -c "import sys,json; d=json.load(sys.stdin); ks=[k['kid'] for k in d['keys']]; print('count',len(ks)); print('aFkmKVFc in v1.0:', any(k.startswith('aFkmKVFc') for k in ks))"; curl -s https://login.microsoftonline.com/common/discovery/v2.0/keys --max-time 15 | python3 -c "import sys,json; d=json.load(sys.stdin); ks=[k['kid'] for k in d['keys']]; print('v2.0 count',len(ks)); print('aFkmKVFc in v2.0:', any(k.startswith('aFkmKVFc') for k in ks))"
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+--- v1.0 keys recount ---
+count 4
+aFkmKVFc in v1.0: False
+v2.0 count 7
+aFkmKVFc in v2.0: False
+[0m
+[0m$ [0mcurl -s --max-time 20 "https://api.github.com/repos/google/earthengine-api/commits?path=python/ee/oauth.py&per_page=100" | python3 -c "import sys,json; c=json.load(sys.stdin); [print(x['sha'][:12], x['commit']['committer']['date']) for x in c]" | tail -8; echo "--- oldest blob probe 2019 ---"; curl -s --max-time 20 "https://raw.githubusercontent.com/google/earthengine-api/99f21e7ff5e3afec2b0b8b4b1d8c2e4f6a7b8c9d/python/ee/oauth.py" -o /tmp/opencode/oauth2019.py; wc -l /tmp/opencode/oauth2019.py 2>/dev/null
+e5655a8eb6a0 2019-08-30T18:11:49Z
+0c3a3b63250e 2019-07-15T22:36:13Z
+58d4d4ffef60 2019-07-12T21:22:55Z
+6cd43f32eabb 2019-05-31T21:26:31Z
+7e95f2c92a18 2018-11-30T22:48:25Z
+3bd71785c0c8 2017-02-03T19:09:33Z
+3a487985094f 2016-07-22T18:07:10Z
+9369d5509d5c 2016-07-01T17:44:56Z
+--- oldest blob probe 2019 ---
+0 /tmp/opencode/oauth2019.py
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "POST tokeninfo-style introspection (query id_token=foo) -> %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo?id_token=abc.def.ghi" --max-time 15; curl -s -o /dev/null -w "HEAD login.microsoftonline.com/.well-known/openid-configuration -> %{http_code}\n" -I "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration" --max-time 15
+POST tokeninfo-style introspection (query id_token=foo) -> 400 len=71
+HEAD login.microsoftonline.com/.well-known/openid-configuration -> 200
+[0m
+## STEP 1 — DELTA
+- [CHANGED] JWKS live rotation @ login.microsoftonline.com: kid `aFkmKVFc…` retired from BOTH endpoints within minutes — v1.0 discovery/keys 5→4 kids, v2.0 keys 8→7. Strict-subset invariant persists (all 4 v1.0 kids ⊂ 7 v2.0 kids). Dual-issuer shared-signing-key precondition intact.
+- [CHANGED] google/earthengine-api `python/ee/oauth.py` touched twice 2026-08-07 (pyrefly fix 229706143faf, internal cleanup d2c359c38bd8) yet hardcoded CLIENT_SECRET byte-identical (sha256 `3f3f8d6f…`); file lineage back to 2016-07-01.
+- NO_DELTA else: Graph HEAD `/v1.0`→405 len=0 (no WWW-Authenticate), tokeninfo→400 (113B), bughunters 200+HSTS+XFO, GET `/beta/copilot/agentRegistrations`→401 (237B) — all re-confirmed live this cycle.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations | score 7.55 | attack 9, business 9, tech 8, gate 2, cloud 8, fresh 7
+- [PRIO] login.microsoftonline.com dual-issuer/JWKS (issuer-confusion) | score 7.20 | attack 8, business 9, tech 8, gate 1, cloud 7, fresh 9 (rotation caught mid-flight)
+- [PRIO] github.com/google/earthengine-api oauth.py | score 6.90 | attack 7, business 8, tech 6, gate 5, cloud 9, fresh 6
+
+## STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: GET→401 (237B, IDX14100 pure Bearer gate), HEAD→405 len=0; $metadata still shows agentRegistration EntityType with ZERO OperationRestrictions and client-supplied createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId; same pattern on agentInstance/agentCollection/agentCardManifest/copilotPackage. Ownership check only reachable with real token.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign entries) or PATCHes {A-id} (200/204 vs 403).
+verify_steps: AUTH_HELPED (test-tenant, two app principals, admin consent): A POST /beta/copilot/agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B GET collection with own Bearer → 200 array vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} confirm persistence.
+impact: cross-app agent tamper → agent impersonation / instruction injection / forged creator / supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ + 4-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 7-key JWKS)
+confidence: 60
+reasoning: Fresh probes this cycle: v1.0 keys (4) are strict subset of v2.0 keys (7); aFkmKVFc… retired from both, v1.0 removed it first then v2.0 — endpoints converge, no desync observed. Dual issuers confirmed. v1.0-only response_types (pure token + token id_token) still excluded from v2.0.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: in test tenant acquire v1.0 id_token via v1.0 endpoint; present to v2.0-only Graph resource; observe 200 vs 401/403. PASSIVE: subset + dual-issuer already verified (4/4 ⊂ 7).
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine OAuth client_secret still redeemable (survived 2026-08-07 cleanup)
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: Byte-identical secret (sha256 `3f3f8d6f…`) on master despite two commits 2026-08-07; default fallback at oauth.py:99; scopes incl. cloud-platform; constant present since ≤2016 (10-yr legacy). Surviving active cleanup suggests by-design native-app credential OR oversight — only token endpoint decides.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with the non-placeholder secret; log status + scope; DO NOT redeem in sandbox.
+impact: if live, cloud-platform-scoped token minting → GCP impersonation/quota abuse; CVSS 8.0–9.8 (caveat: native-app by-design may kill VRP).
+testability: HUMAN_ONLY
+
+## STEP 4 — SELF-CRITIQUE
+All three survive (≥40, no REJECTED class, concrete verify steps). Notes: (a) observed rotation direction (v1.0 retired aFkmKVFc… before v2.0) further reduces any desync risk — the REJECTED dual-JWKS-desync class stays dead; issuer-confusion replay remains a distinct, un-killed precondition, confidence held at 60 not raised; (b) earthengine 10-yr lineage + surviving cleanup leans by-design native-app — confidence held at 75, HUMAN_ONLY keeps it honest.
+- [FINAL] 1. Agent Registration ownership boundary bypass (IDOR, graph.microsoft.com/beta/copilot/agentRegistrations, 85)
+- [FINAL] 2. Earth Engine hardcoded OAuth client_secret (MISCONFIG, github.com/google/earthengine-api, 75)
+- [FINAL] 3. v1.0↔v2.0 issuer-confusion token replay (AUTH, login.microsoftonline.com, 60)
+- [PARKED] none
+
+## STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations with own Bearer → 200 array incl. A's entries vs 403; B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} confirm persistence. In parallel prep v1.0 id_token (iss=sts.windows.net/{tid}/) for issuer-confusion check against v2.0-only Graph resource. Passive surface is fully exhausted (uniform 401/405); only a real token resolves or kills the [85] lead.
+
+## STEP 6 — LEARNING
+- [LEARN] ACCEPTED issuer-confusion precondition @ login.microsoftonline.com: live rotation caught mid-flight — aFkmKVFc… retired from v1.0 (5→4) then v2.0 (8→7); endpoints independently published yet converging; strict subset 4/4 ⊂ 7 persists.
+- [LEARN] ACCEPTED MISCONFIG @ github.com/google/earthengine-api: CLIENT_SECRET survived 2026-08-07 cleanup commits byte-identical (sha256 `3f3f8d6f…`), lineage to 2016 → legacy by-design indicator, VRP determination open.
+- [LEARN] REJECTED: No new proving-dead classes this cycle — all passive probes confirmed prior ACCEPTED findings; rotation is converging (no desync), not a new class.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 30 — earthengine secret is the only live credential class; 10-yr legacy + native-app by-design likely caps VRP value; no new unauthenticated GCP surface (control-plane APIs auth-gated, tokeninfo no-reward, bughunters hardened). Passive phase exhausted.
+- [RISK] microsoft: 85 — unchanged: agentRegistration IDOR (85), issuer-confusion (60), consent resourceId (70), Verified-ID minting all await AUTH_HELPED test-tenant; live JWKS rotation proves active identity-plane change cadence; crown-jewel scope, highest impact ceiling.

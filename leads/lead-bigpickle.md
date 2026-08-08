@@ -634,3 +634,32 @@ verify_steps: AUTH_HELPED (test-tenant): 1) apps A+B; 2) owner of A POSTs grant;
 impact: unapproved cross-resource consent grants → tenant storage/data exposure, permission creep. CVSS 6.5–8.5.
 testability: AUTH_HELPED
 [NEXT] HUMAN: Execute the still-unexecuted two-principal test-tenant probe — A: POST /beta/copilot/agentRegistrations (Bearer scope AgentRegistration.ReadWrite.All) with client-set createdBy/ownerIds → record 201 body → B: GET /beta/copilot/agentRegistrations with own Bearer (200 array incl. A's entries vs 403) → B: PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → record 200/204 vs 403 → B: GET {A-id} to confirm persistence. Passive probing is fully exhausted (uniform 401/405 across all 9 endpoints); only a real token resolves or kills the [85] lead. In parallel, prepare v1.0 id_token (iss=sts.windows.net/{tid}/) for the issuer-confusion test against v2.0-only Graph resources.
+## 2026-08-08 03:14:48 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: GET→401 (237B, IDX14100 pure Bearer gate), HEAD→405 len=0; $metadata still shows agentRegistration EntityType with ZERO OperationRestrictions and client-supplied createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId; same pattern on agentInstance/agentCollection/agentCardManifest/copilotPackage. Ownership check only reachable with real token.
+evidence_needed: principal B reads A's registrations (200 array incl. foreign entries) or PATCHes {A-id} (200/204 vs 403).
+verify_steps: AUTH_HELPED (test-tenant, two app principals, admin consent): A POST /beta/copilot/agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; B GET collection with own Bearer → 200 array vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} confirm persistence.
+impact: cross-app agent tamper → agent impersonation / instruction injection / forged creator / supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ + 4-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 7-key JWKS)
+confidence: 60
+reasoning: Fresh probes this cycle: v1.0 keys (4) are strict subset of v2.0 keys (7); aFkmKVFc… retired from both, v1.0 removed it first then v2.0 — endpoints converge, no desync observed. Dual issuers confirmed. v1.0-only response_types (pure token + token id_token) still excluded from v2.0.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: in test tenant acquire v1.0 id_token via v1.0 endpoint; present to v2.0-only Graph resource; observe 200 vs 401/403. PASSIVE: subset + dual-issuer already verified (4/4 ⊂ 7).
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret still redeemable (survived 2026-08-07 cleanup)
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: Byte-identical secret (sha256 `3f3f8d6f…`) on master despite two commits 2026-08-07; default fallback at oauth.py:99; scopes incl. cloud-platform; constant present since ≤2016 (10-yr legacy). Surviving active cleanup suggests by-design native-app credential OR oversight — only token endpoint decides.
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with the non-placeholder secret; log status + scope; DO NOT redeem in sandbox.
+impact: if live, cloud-platform-scoped token minting → GCP impersonation/quota abuse; CVSS 8.0–9.8 (caveat: native-app by-design may kill VRP).
+testability: HUMAN_ONLY
+[NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations with own Bearer → 200 array incl. A's entries vs 403; B PATCH /beta/copilot/agentRegistrations/{A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} confirm persistence. In parallel prep v1.0 id_token (iss=sts.windows.net/{tid}/) for issuer-confusion check against v2.0-only Graph resource. Passive surface is fully exhausted (uniform 401/405); only a real token resolves or kills the [85] lead.
