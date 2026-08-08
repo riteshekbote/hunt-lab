@@ -634,3 +634,13 @@
 - LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata (7.3MB, 873-char block, 0 OperationRestrictions), GET→
 - LEARN: ACCEPTED: Graph API 405 anomaly confirmed still live — HEAD /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer), extends
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-08 22:47:49 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite sha256-verified secret, scopes cloud-platform+d
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlie
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), eart
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271` verbatim, line :45 + :99 fallback, scopes cl
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live — fresh $metadata (7.3MB, 873-char block, 0 OperationRestrictions), GET→
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed still live — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact.
