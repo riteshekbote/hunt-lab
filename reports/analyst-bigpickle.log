@@ -4666,3 +4666,146 @@ v1 kids: 5
 v2 kids: 8
 5
 [0m
+===== ANALYST bigpickle 2026-08-08 11:59:45 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/agentreg.xml -w "%{http_code} %{size_download}\n" https://graph.microsoft.com/beta/$metadata 2>&1; python3 -c "
+import re
+d=open('/tmp/agentreg.xml','rb').read().decode('utf-8','ignore')
+i=d.find('EntityType Name=\"microsoft.graph.agentRegistration\"')
+print('idx',i)
+if i>0:
+    j=d.find('</EntityType>',i)
+    print('block_len',j-i)
+    block=d[i:j]
+    print('op_restrict', 'OperationRestriction' in block, 'read_restrict','ReadRestriction' in block)
+    print('createdBy' in block, 'ownerIds' in block, 'agentCard' in block, 'managedByAppId' in block)
+"
+200 8643
+idx -1
+[0m
+[0m$ [0mv1=$(curl -s https://login.microsoftonline.com/common/discovery/keys | python3 -c "import sys,json;d=json.load(sys.stdin);print(' '.join(sorted(k['kid'] for k in d['keys'])))"); v2=$(curl -s https://login.microsoftonline.com/common/discovery/v2.0/keys | python3 -c "import sys,json;d=json.load(sys.stdin);print(' '.join(sorted(k['kid'] for k in d['keys'])))"); echo "v1: $v1"; echo "v2: $v2"; comm -23 <(echo $v1 | tr ' ' '\n' | sort) <(echo $v2 | tr ' ' '\n' | sort) | wc -l
+v1: 6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY aFkmKVFc-4WV6sXCBvNZkXI505Y fEtqrhKT1bXAGafSdQoN1vXTRpI jvm_-TtaqTCRrkpnmePvwb75nWE
+v2: 1Nv3JExJrKNx1l7adICQ7Y_Atps 6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY NqEBZVuOpstZ__5iZuWH3HPswcI aFkmKVFc-4WV6sXCBvNZkXI505Y fEtqrhKT1bXAGafSdQoN1vXTRpI jvm_-TtaqTCRrkpnmePvwb75nWE rRk1d-57BGZfsM4BUHrkx8cQbic
+0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "oauth.py:%{http_code} " https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py; curl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | sha256sum; curl -s -o /dev/null -w "graph-head:%{http_code}\n" -I https://graph.microsoft.com/v1.0; curl -s -o /dev/null -w "tokeninfo:%{http_code}\n" "https://oauth2.googleapis.com/tokeninfo"
+oauth.py:200 f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+graph-head:405
+tokeninfo:400
+[0m
+[0m$ [0mhead -c 600 /tmp/agentreg.xml; echo; echo "---"; curl -s -o /dev/null -w "%{http_code} %{size_download}\n" -H "Accept: application/xml" "https://graph.microsoft.com/beta/\$metadata?ApiVersion=2026-03-01"
+{"@odata.context":"https://graph.microsoft.com/beta/$metadata","value":[{"name":"directoryObjects","kind":"EntitySet","url":"directoryObjects"},{"name":"servicePrincipals","kind":"EntitySet","url":"servicePrincipals"},{"name":"invitations","kind":"EntitySet","url":"invitations"},{"name":"users","kind":"EntitySet","url":"users"},{"name":"activitystatistics","kind":"EntitySet","url":"activitystatistics"},{"name":"applicationTemplates","kind":"EntitySet","url":"applicationTemplates"},{"name":"groups","kind":"EntitySet","url":"groups"},{"name":"authenticationMethodConfigurations","kind":"EntitySet
+---
+200 7298965
+[0m
+The metadata fetch returned only 8.6KB (normally 7.28MB) — let me check what that was.
+Full metadata (7.29MB) retrievable with explicit Accept. Parsing the agentRegistration block:
+[0m$ [0mcurl -s -H "Accept: application/xml" -o /tmp/fullmeta.xml "https://graph.microsoft.com/beta/\$metadata"; python3 -c "
+d=open('/tmp/fullmeta.xml','rb').read().decode('utf-8','ignore')
+i=d.find('EntityType Name=\"microsoft.graph.agentRegistration\"')
+print('idx',i)
+if i>0:
+    j=d.find('</EntityType>',i)
+    print('block_len',j-i)
+    block=d[i:j]
+    import re
+    props=re.findall(r'Property Name=\"(\w+)\"',block)
+    print('props:',props)
+    print('op_restrict','OperationRestriction' in block,'read_restrict','ReadRestriction' in block,'insert','InsertRestriction' in block,'update','UpdateRestriction' in block,'delete','DeleteRestriction' in block)
+"
+idx -1
+[0m
+[0m$ [0mpython3 -c "
+d=open('/tmp/fullmeta.xml','rb').read().decode('utf-8','ignore')
+import re
+print('total len', len(d))
+print('agentRegistration count', d.count('agentRegistration'))
+print('agentRegistrations count', d.count('agentRegistrations'))
+i=d.find('agentRegistration')
+print(d[i-100:i+200] if i>0 else 'none')
+print('--- EntityType Name agent count:', len(re.findall(r'EntityType Name=\"[^\"]*[Aa]gent[^\"]*\"', d)))
+print(re.findall(r'EntityType Name=\"([^\"]*[Aa]gent[^\"]*)\"', d)[:20])
+"
+total len 7298756
+agentRegistration count 19
+agentRegistrations count 3
+andard way to represent a Json blob on Graph." /></Annotations><Annotations Target="microsoft.graph.agentRegistration"><Annotation Term="Org.OData.Core.V1.Description" String="Entity that represents an agent registration containing metadata, endpoint&#xA;configuration, tools, and publishing informat
+--- EntityType Name agent count: 21
+['agentIdentity', 'agentRegistration', 'agent', 'agentCardManifest', 'agentCollection', 'agentInstance', 'agentRegistry', 'cloudPcAgentPool', 'cloudPcAgentPoolUserAssignment', 'cloudPcBulkReinstallAgent', 'exactMatchUploadAgent', 'agentIdentityBlueprint', 'agentIdentityBlueprintPrincipal', 'agentUser', 'onPremisesAgent', 'onPremisesAgentGroup', 'agentRiskDetection', 'riskyAgent', 'riskyAgentIdentity', 'riskyAgentIdentityBlueprintPrincipal']
+[0m
+[0m$ [0mpython3 -c "
+d=open('/tmp/fullmeta.xml','rb').read().decode('utf-8','ignore')
+import re
+i=d.find('Name=\"agentRegistration\"')
+print('idx',i)
+if i>0:
+    start=d.rfind('<EntityType',0,i)
+    j=d.find('</EntityType>',i)
+    print('start',start,'end',j,'block_len',j-start)
+    block=d[start:j]
+    print(block[:1500])
+"
+idx 4501694
+start 4501682 end 4502542 block_len 860
+<EntityType Name="agentRegistration" BaseType="graph.entity"><Property Name="agentCard" Type="graph.Json" /><Property Name="agentIdentityBlueprintId" Type="Edm.String" /><Property Name="agentIdentityId" Type="Edm.String" /><Property Name="createdBy" Type="Edm.String" Nullable="false" /><Property Name="description" Type="Edm.String" /><Property Name="displayName" Type="Edm.String" Nullable="false" /><Property Name="lastPublishedBy" Type="Edm.String" /><Property Name="managedByAppId" Type="Edm.String" /><Property Name="originatingStore" Type="Edm.String" /><Property Name="ownerIds" Type="Collection(Edm.String)" Nullable="false" /><Property Name="sourceAgentId" Type="Edm.String" /><Property Name="sourceCreatedDateTime" Type="Edm.DateTimeOffset" Nullable="false" /><Property Name="sourceLastModifiedDateTime" Type="Edm.DateTimeOffset" Nullable="false" />
+[0m
+STEP 1 — DELTA
+- [CHANGED] `graph.microsoft.com/beta/$metadata` content negotiation: default `Accept: */*` (bare curl) now returns a JSON service document (8.6KB entity-set catalog) instead of CSDL XML; full 7.29MB XML only via explicit `Accept: application/xml` (or `?ApiVersion=2026-03-01`). Divergence on the metadata endpoint, previously uniform XML at all prior probes.
+- [CHANGED] agentRegistration EntityType re-extracted: block = 860 chars (13 props, createdBy/ownerIds Nullable=false, agentCard=graph.Json, ZERO Operation/Read/Insert/Update/DeleteRestrictions) — schema unchanged from prior cycles.
+- Otherwise NO_DELTA — v1 kids (5) ALL ⊂ v2 (8), 0 v1-only; oauth.py whole-file sha `f4f93c76…` unchanged; HEAD /v1.0 → 405 (size 0, no WWW-Authenticate); tokeninfo no-param → 400.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 7.25 (attack 7, business 9, tech 8, gate 3, cloud 8, fresh 8)
+- [PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — score 7.25 (attack 6, business 8, tech 7, gate 8, cloud 9, fresh 6)
+- [PRIO] login.microsoftonline.com v1/v2 issuer confusion — score 6.35 (attack 6, business 9, tech 8, gate 2, cloud 6, fresh 5)
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: GET/POST/PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} (scope AgentRegistration.ReadWrite.All)
+confidence: 85
+reasoning: fresh $metadata (11:32 UTC): agentRegistration block=860 chars, 13 props, createdBy/ownerIds/agentCard/managedByAppId client-supplied, ZERO Operation/Read/Insert/Update/DeleteRestrictions; live GET→401 / HEAD→405 (auth-gated only, no pre-auth branch).
+evidence_needed: principal B reads A's registrations (200 array incl. foreign) or PATCHes {A-id} → 200/204 vs 403.
+verify_steps: AUTH_HELPED: 1) A POST agentRegistrations {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}} → 201; 2) B GET collection w/ own Bearer → 200 incl. A entries vs 403; 3) B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; 4) B GET {A-id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret live and redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 75
+reasoning: whole-file sha `f4f93c76…` unchanged at 11:32 UTC; secret present verbatim at :45 (and :99 fallback); scopes cloud-platform+drive+devstorage.full_control; CLIENT_ID 517222506229-….
+evidence_needed: token endpoint returns 200 access_token vs 400 invalid_client for the non-placeholder secret.
+verify_steps: HUMAN_ONLY (program-authorized): client_credentials-style exchange with non-placeholder secret; log status+scope; DO NOT redeem in sandbox.
+impact: cloud-platform token minting, GCP impersonation/quota abuse; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay (shared signing keys + dual issuers)
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 60
+reasoning: 11:32 UTC: v1=5 kids ALL ⊂ v2=8 (0 v1-only, confirmed via comm); dual issuer namespaces + v1-only response_types (pure token / token id_token) excluded from v2.0 — shared-key precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss.
+verify_steps: AUTH_HELPED: acquire v1.0 id_token in test tenant; present to v2.0-only Graph resource; observe 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- All three survive (≥60, none on REJECTED list, concrete verify_steps). $metadata content-negotiation divergence dropped as a hypothesis source (endpoint-map-only, no bypass = REJECTED class "endpoint maps without bypass").
+- [PARKED] none.
+- [FINAL] 1) agentRegistration IDOR (85) 2) earthengine secret redemption (75) 3) issuer-confusion replay (60)
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR — A POST https://graph.microsoft.com/beta/copilot/agentRegistrations (Bearer, AgentRegistration.ReadWrite.All, admin consent) with client-set createdBy/ownerIds → record 201 body; B GET /beta/copilot/agentRegistrations with own Bearer → 200 array incl. A's entries vs 403; B PATCH {A-id} {"agentCard":{"displayName":"pwn"}} → 200/204 vs 403; B GET {A-id} persistence. Passive surface fully exhausted (uniform 401/405, NO_DELTA); only a real token resolves or kills the [85] lead.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed still live at 11:32 UTC — 860-char block, 13 props, createdBy/ownerIds/agentCard/managedByAppId client-supplied, ZERO Operation/Read/Insert/Update/DeleteRestrictions.
+- [LEARN] ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed still live at 11:32 UTC — 5 v1.0 kids ALL present in v2.0's 8 (strict subset, 0 v1-only).
+- [LEARN] ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — whole-file sha `f4f93c76…` unchanged, bare-secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`.
+- [LEARN] ACCEPTED Graph API 405 anomaly + tokeninfo oracle confirmed still live at 11:32 UTC (HEAD /v1.0 → 405 size 0 no WWW-Authenticate; no-param → 400 113b invalid_token).
+- [LEARN] CHANGED Graph /beta/$metadata content negotiation — default */* returns JSON entity-set catalog (8.6KB), full CSDL gated behind Accept: application/xml (inventory-level, not a vulnerability class).
+- [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes (11:32 UTC) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 68 — live hardcoded cloud-platform-scoped OAuth credential persisting on Google master (native-app by-design caveat caps VRP), public tokeninfo introspection oracle; otherwise uniform all-401/400 passive surface.
+- [RISK] microsoft: 72 — large auth-gated Graph beta agent-registry surface with schema-level zero ownership restrictions (860-char block, 13 props, 5 EntityTypes), dual-issuer/shared-key identity precondition, 405/401 anomaly masking enumeration; all proof gated behind authorized-token tests.
