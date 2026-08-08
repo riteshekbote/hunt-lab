@@ -366,3 +366,8 @@
 - LEARN: ACCEPTED: Graph API 405 anomaly confirmed live — unauth HEAD /v1.0, /me, /users → HTTP 405, Content-Length 0, no WWW-Authenticate Bearer.
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes).
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-08 10:56:09 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + PATCH rewrite (from reports/hypotheses-nemotron3.txt)
+- [85] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in public Google native-app source (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Execute the two-principal test-tenant probe of the Agent Registration IDOR — `POST https://graph.microsoft.com/beta/copilot/agentRegistrations` (Bearer, 

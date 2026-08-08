@@ -1063,3 +1063,38 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
 [RISK] google: 85 | Real native-app OAuth secret live (sha256 `3f3f8d6f…`, full-GCP `cloud-platform` scope + drive + devstorage) @ earthengine-api:45 — PASSIVE-confirmed; tokeninfo oracle (CVSS 5.3 info-disclosure) live; identitytoolkit 403-gated; ADK embedded secrets = KNOWN-DUP (issue #2128/#5520 closed).
 [RISK] microsoft: 85 | Agent Registration IDOR (5 EntityTypes/6 total, zero metadata restrictions, conf 85, CVSS 7.5–9.0, $100k ceiling); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit, CVSS 8.0–9.8, $100k ceiling); Graph API 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration); all confirmed LIVE @ 03:14 UTC / 08:59 UTC but require AUTH_HELPED test-tenant validation.
+## 2026-08-08 10:55:57 UTC [google] (model laguna)
+[HYP] Hardcoded OAuth client_secret in public Google native-app source
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 85
+reasoning: Secret string live on master (line 45) and re-fetched at 08:59 UTC; sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, also wired as default fallback at oauth.py:99; scopes `cloud-platform`+`drive`+`devstorage.full_control`; OOB redirect `urn:ietf:wg:oauth:2.0:oob`.
+evidence_needed: Token mint at oauth2.googleapis.com/token using secret+client_id → GCP `cloud-platform` access; Google VRP determination that native-app embedded secret is reportable (not "by-design" per native-app policy).
+verify_steps: PASSIVE done (`curl` raw + `sha256sum` → `3f3f8d6f…`); HUMAN_ONLY — file Google VRP report citing oauth.py:45 + oauth.py:99 fallback + full-GCP scope; request by-design determination.
+impact: OAuth client auth via embedded secret → mint tokens with full-GCP `cloud-platform` scope. CVSS 7.5 (pending native-app by-design caveat).
+testability: PASSIVE (confirmed live) + HUMAN_ONLY (VRP submit)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: Fresh $metadata (7.28MB @ 03:14, re-confirmed 08:59 UTC) shows agentRegistration + 4 sibling EntityTypes (agentInstance, agentCollection, agentCardManifest, copilotPackage) carry ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false.
+evidence_needed: Non-owner User2 cross-tenant/tenant PATCH rewrite persisted; cross-user GET returns foreign entries with attacker-rewritten agentCard.
+verify_steps: AUTH_HELPED (test-tenant, two principals): A) `POST /beta/copilot/agentRegistrations {"displayName":"probe","createdBy":"<user2oid>","ownerIds":["<user2oid>"],"agentCard":{...}}` as User1 → expect 201; B) `GET /beta/copilot/agentRegistrations` as User2 → expect 200 incl. User1's entry; C) `PATCH /beta/copilot/agentRegistrations/{id} {"agentCard":{"endpoint":"https://attacker.example"},"ownerIds":["<user2oid>"]}` as User2 → 200/204 vs 403; D) confirm persisted.
+impact: Full agent impersonation + copilotPackage supply-chain tampering; forge creator attribution + rewrite agentCard instructions as any user. CVSS 7.5–9.0, $100k ceiling.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid overlap
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: 5 v1.0 kids (strict subset) ALL present in v2.0's 8 kids (0 v1-only); dual issuer namespaces `sts.windows.net/{tid}/` + `login.microsoftonline.com/{tid}/v2.0` serve same tenant; v1.0-only `response_type=token` implicit flow excluded from v2.0 — stable since 22:37/03:14/08:59 UTC.
+evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource that does not strictly validate iss.
+verify_steps: AUTH_HELPED (test-tenant): 1) `GET /common/oauth2/v2.0/authorize?...&response_type=token` via v1.0 path → capture v1 id_token; 2) `GET /beta/copilot/agentRegistrations` with that token; 3) 200 vs 401/403.
+impact: MFA bypass / auth bypass → access v2.0-only Graph resources as any user. CVSS 8.0–9.8, $100k ceiling.
+testability: AUTH_HELPED
+[PARKED] tokeninfo public introspection oracle: confidence 70, priority 7.55 — retained in ACCEPTED inventory but parked from top-3 (CVSS 5.3 info-disclosure) per prior cycle; not re-derived, already live @ 03:14+08:59 UTC.
+[FINAL] 1. Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 (8.6, conf 85, PASSIVE+HUMAN_ONLY)
+[FINAL] 2. Agent Registration IDOR @ graph.microsoft.com/beta/copilot/agentRegistrations (7.55, conf 85, AUTH_HELPED)
+[FINAL] 3. v1.0↔v2.0 issuer-confusion @ login.microsoftonline.com (7.4, conf 60, AUTH_HELPED)
+[NEXT] HUMAN: Execute the two-principal test-tenant probe of the Agent Registration IDOR — `POST https://graph.microsoft.com/beta/copilot/agentRegistrations` (Bearer, body with client-supplied createdBy/ownerIds/agentCard) as User1, then `GET /beta/copilot/agentRegistrations` + `PATCH .../{id}` (owner rewrite) as User2; observe 200/201 vs 403 and persistence. This resolves the confidence-85 top finding (gate_ease 0 = auth-gated but zero ownership checks). Separately, the earthengine secret is HUMAN_ONLY (Google VRP submit).
+[RISK] google: 85 | Native-app OAuth secret live (sha256 `3f3f8d6f…`, full-GCP `cloud-platform`+drive+devstorage scope) @ earthengine-api:45 PASSIVE-confirmed; tokeninfo introspection oracle (CVSS 5.3) live; identitytoolkit 403-gated; ADK embedded secrets = KNOWN-DUP (issues #2128/#5520 closed).
+[RISK] microsoft: 85 | Agent Registration IDOR (5 EntityTypes/6 total, zero metadata restrictions, CVSS 7.5–9.0, $100k ceiling); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit, CVSS 8.0–9.8, $100k ceiling); Graph API 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration); all confirmed LIVE but require AUTH_HELPED test-tenant validation.
