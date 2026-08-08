@@ -1,60 +1,66 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml[90m [offset=1175, limit=15][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml
+[0m$ [0mls reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN"
+NOT IN SCAN
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java[90m [limit=50, offset=70][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [offset=20, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=60, offset=10][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts[90m [offset=395, limit=20][0m
+Now I have enough context to classify all hits. Here's the analysis:
+
+---
+
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *none in this scan* | — | — | The earthengine-api OAuth secret (sha256 `3f3f8d6f...`) is in KB as ACCEPTED from prior cycle, not in current scan delta |
+#### REAL_SECRET (reportable credentials with signs of life)
+| File | Line | SHA256 (secret material) | Notes |
+|------|------|--------------------------|-------|
+| *None found in this scan* | | | The previously confirmed `earthengine-api` secret (sha256 `3f3f8d6f...`) is **not in this scan's repo set** |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` — test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` — test fixtures |
-| google/magika/.github/workflows/... | 20, 407, 437 | `${{secrets.GITHUB_TOKEN}}`, test.pypi.org — CI secret refs / test registry |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` — fuzz harness |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword`, `getDatabasePassword()` — test DB |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` — CI secret ref |
-| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `GH_TOKEN: ${{secrets.GITHUB_TOKEN}}` — CI secret ref |
-| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}` — CI secret ref |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` — placeholder |
+#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
+| File | Line(s) | Reason |
+|------|---------|--------|
+| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | Test passwords/tokens: `"testpassword"`, `"test-token-123"` |
+| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | Test passwords: `"testpassword"` |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test key: `"fuzz test key"` |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test shutdown password: `"ServerShutdownPassword"` |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | Test fixture: `"sk-REPLACE-WITH-YOUR-KEY"` (explicit placeholder) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamping server (corp network) |
+#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line(s) | Endpoint | Notes |
+|------|---------|----------|-------|
+| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal/computeMetadata/v1/...` | Well-known GCE metadata endpoint (public doc) |
+| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `169.254.169.254/latest/meta-data/iam/` | Well-known AWS IMDS endpoint (public doc) |
+| `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs` | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Standard cloud IMDS IPs (AWS, GCP, Alibaba) |
+| `microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go` | 183, 184 | Same IMDS endpoints | Standard cloud IMDS IPs |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts` | 13, 14 | Same IMDS endpoints | Standard cloud IMDS IPs |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts` | 8, 11, 13 | Same IMDS endpoints | Standard cloud IMDS IPs |
 
-#### INTERESTING
+#### INTERESTING (debug flags, config references, cloud configs)
 | File | Line | Finding |
 |------|------|---------|
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS chunks with parser error messages — source map artifacts, not sensitive |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82, 88, 91 | Timer constant names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) — internal metrics |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` — constant name |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` — constant name |
-| google/tensorstore/.../gce_auth_provider.h | 55 | Comment: `metadata.google.internal` — documented GCE metadata endpoint |
-| google/tensorstore/.../aws_credentials_spec.h | 51 | Comment: AWS IMDS `169.254.169.254` — documented endpoint |
-| google/copybara/cloudbuild.yaml | 27 | Comment: `pantheon.corp.google.com` — internal Google URL in comment |
-| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563, 566, 568 | IMDS allowlist: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` — well-known cloud metadata endpoints |
-| microsoft/agent-governance-toolkit/.../policy_backends.go | 183, 184 | Same IMDS allowlist |
-| microsoft/agent-governance-toolkit/.../opa.ts | 13, 14 | Same IMDS allowlist |
-| microsoft/agent-governance-toolkit/.../cedar.ts | 8, 11, 13 | Same IMDS allowlist |
-| microsoft/agent-governance-toolkit/.../acs-policy-configmap.yaml | 2 | `kind: ConfigMap` — K8s policy manifest (ReGO rules) |
-| microsoft/agent-governance-toolkit/.../configmap.yaml | 2 | `kind: ConfigMap` — Helm template for AgentMesh governance policy (delta hit) |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret reference (not a secret value; references Secret Manager) |
+| `google/copybara/cloudbuild.yaml` | 27 | Artifact Registry docker URL comment |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{secrets.GITHUB_TOKEN}}` — GitHub Actions secret ref |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Test PyPI URLs |
+| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | RFC3161 timestamp server URL (corp) |
+| `microsoft/agent-governance-toolkit/.github/workflows/*.yml` | 20, 41, 20 | `${{secrets.GITHUB_TOKEN}}` refs |
+| `microsoft/agent-governance-toolkit/policy-engine/.../acs-policy-configmap.yaml` | 2 | K8s ConfigMap kind |
+| `microsoft/agent-governance-toolkit/agent-governance-python/.../configmap.yaml` | 2 | K8s ConfigMap kind |
 
 ---
 
 ### Verdict List (REPORT_CANDIDATE)
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| ESRP pipeline internal timestamping URL (`rfc3161.gtm.corp.microsoft.com`) | ENDPOINT_LEAK | **no** — internal build infra endpoint, not customer-facing; corp-network only |
-| All TEST_OR_EXAMPLE entries | TEST_OR_EXAMPLE | **no** — test fixtures, CI secret references, placeholders |
-| All INTERESTING entries | INTERESTING | **no** — documented cloud metadata endpoints, source map artifacts, policy manifests, constant names |
-| ConfigMap.yaml (delta hit) | INTERESTING | **no** — Helm template with governance policy config (trustThreshold, rateLimit, etc.) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/adk-go` Cloud Run secret ref | **no** | References Secret Manager, no secret material |
+| All `TEST_OR_EXAMPLE` entries | **no** | Test fixtures, placeholders, fuzz data |
+| All `ENDPOINT_LEAK` entries | **no** | Well-known public metadata endpoints (IMDS) |
+| All `INTERESTING` entries | **no** | Config refs, CI secret refs, public URLs |
+| **Previously confirmed earthengine-api secret** | **yes (pending VRP)** | **Not in this scan** — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` at `python/ee/oauth.py:45` — confirmed live per KB, but native-app by-design status pending VRP determination |
 
-**No reportable findings in this scan delta.** The single new hit (ConfigMap.yaml) is a benign Helm template. The internal timestamping server URL is build-infrastructure only.
+**Bottom line:** This scan yields **zero new reportable secrets**. The only live credential remains the earthengine-api OAuth client_secret (already tracked in KB, not in this repo set).
