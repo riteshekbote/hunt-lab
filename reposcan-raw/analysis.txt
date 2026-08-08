@@ -1,51 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan hits, I'll classify each one. Most are test placeholders, constants, or documentation—not real secrets.
-
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | SHA256 | Context | REPORT_CANDIDATE |
-|------|------|--------|---------|------------------|
-| *none in current grep hits* | | | | |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/gopacket/layers/radiotap.go | 552,554,556 | Radiotap protocol constants (`80(20LL)`, `80(20LU)`, `80(20UL)`) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions template placeholders (`${{ steps.fetch-token.outputs... }}`) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — default config name |
-| google/adk-python/.../auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` — example placeholder |
-| google/adk-python/.../auth_credential.py | 238 | `HttpCredentials(username="user", password="password")` — test fixture |
-| google/adk-python/.../auth_credential.py | 247 | `HttpCredentials(token="eyAkaknabna....")` — dummy JWT |
-| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` — constant name |
-| google/adk-python/.../auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
-| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — constant name |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` references (not hardcoded) |
-
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/adk-python/.../container_code_executor.py | 114,154 | Comments referencing `169.254.169.254` (GCP metadata endpoint) — documentation only |
-
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/adk-python/.../cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes var to file (check if `google_api_key` source is secret) |
-| google/adk-python/.../gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` params — config surface, not secret |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/... | multiple | Localization strings — noise |
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/copybara/cloudbuild.yaml[90m [offset=20, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=120][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=115][0m
+[0m→ [0mRead reposcan-raw/google/gopacket/layers/radiotap.go[90m [limit=20, offset=545][0m
+Based on my analysis of all hits, here are the classifications:
 
 ---
 
-## Verdict
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Verdict |
+|------|------|-----------------|---------|
+| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **REPORT_CANDIDATE: yes** — Hardcoded OAuth client_secret (plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1`), used as fallback at :99, scopes: `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect. Confirmed LIVE on master (KB: 2026-08-08 ACCEPTED). |
 
-**No new REAL_SECRET candidates in this scan delta.** All 332 hits are:
-- Test fixtures / placeholders (`TEST_OR_EXAMPLE`)
-- Documentation / comments (`ENDPOINT_LEAK`, `INTERESTING`)
-- Proper secret references (`${{ secrets.X }}`)
+---
 
-The **earthengine-api `oauth.py:45` hardcoded client_secret** (sha256 `3f3f8d6f...d271`) is a **known ACCEPTED finding** from the knowledge base — already tracked, not a new hit.
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified JS build artifacts (source maps) — parser error strings |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified JS build artifacts (source maps) — parser error strings |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum constant `GEMINI_API_KEY = "gemini_api_key"` (placeholder name) |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` (CI template) |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag default constant `StorageDriverPassword = "storage_driver_password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder `...`) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | Docstring example: `username="user", password="password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | Docstring example: `token="eyAkaknabna...."` (placeholder `....`) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` (scheme type identifier) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring placeholder: `client_secret="your_client_secret"` |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/copybara/javatests/.../AuthTest.java` | 75 | Test fixture: `String password = "testpassword";` |
 
-**REPORT_CANDIDATE: no** for all current grep hits.
+---
+
+### ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| `google/copybara/cloudbuild.yaml` | 27 | Internal Google URL in comment: `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` |
+
+---
+
+### INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — references Secret Manager by name (not a secret itself) |
+| `google/gopacket/layers/radiotap.go` | 552, 554, 556 | Radiotap protocol constants: `80(20LL)`, `80(20LU)`, `80(20UL)` (VHT MCS encoding) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | Kubeconfig path/context parameters (config surface) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents cloud metadata endpoint `169.254.169.254` (well-known) |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Generates `.env` with `GOOGLE_API_KEY={google_api_key}` from user input (config generation pattern) |
+
+---
+
+### SUMMARY VERDICT
+- **1 REAL_SECRET** → **REPORT_CANDIDATE: yes** (earthengine-api OAuth client_secret, already tracked in KB)
+- **0 new REAL_SECRET** findings in this delta
+- **1 ENDPOINT_LEAK** (internal pantheon.corp.google.com URL in copybara cloudbuild.yaml — low severity, internal reference only)
+- All other hits are **TEST_OR_EXAMPLE** or **INTERESTING** (config patterns, protocol constants, documentation) — not reportable.
