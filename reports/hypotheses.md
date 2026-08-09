@@ -703,3 +703,20 @@
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 02:50 UTC — v1=5 kids, v2=7 kids, 4 shared kids (`AahUf1bC`, `fEtqrhKT`, `jvm_-Ttaq`, `6hXLaIYN`), 1 v1-exclusi
 - LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed live @ 02:50 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23835-byte body) instea
 - LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 02:50 UTC — GET /tokeninfo no-param → HTTP 400 (113 bytes invalid_token JSON), accepts ?access_t
+
+## RANKED HYPOTHESES 2026-08-09 04:12:16 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app SDK source (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials exchange against `https://oauth2.googleapis.com/token` using earthengine `oauth.py:45` client_id + sha-`3f3f8d6f…d271` secr
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite secret sha256 `3f3f8d6f29db1b06cbfc212a718c1817
+- LEARN: ACCEPTED: login.microsoftonline.com/common/discovery/keys — v1.0 key set now shows 4 kids (v1) ⊂ 8 kids (v2), 0 v1-exclusive (steady-state subset invariant hold
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 02:50 UTC — plaintext `RUP0RZ6e0pPd1` readable from raw GitHub (200 len=23110), sha256 `
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 02:50 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gated), HE
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 02:50 UTC — v1=4 kids ⊂ v2=8 kids, 4 shared kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN), 0 v1-exclusive; `A
+- LEARN: ACCEPTED: v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_tok
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live @ 02:50 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23835-byte body) inste
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live @ 02:50 UTC — GET /tokeninfo no-param → HTTP 400 (113 bytes invalid_token JSON), accepts ?access_
+- LEARN: ACCEPTED: `oauth2.googleapis.com/tokeninfo` HEAD → 404 while GET → 200 method-handling inconsistency (minor quirk, no new exploit surface beyond already-ACCEPTE
+- LEARN: ACCEPTED: All prior findings remain live @ 2026-08-09 02:54:06 UTC — agentRegistration zero restrictions (873-char block, 0 OperationRestrictions), earthengine 
+- LEARN: ACCEPTED: Dual-issuer + kid-overlap precondition intact for v1↔v2 issuer-confusion — rotation churn (aFkmKVFc v1-exclusive → v2-exclusive → back) resolves to st

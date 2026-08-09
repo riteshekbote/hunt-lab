@@ -262,3 +262,5 @@
 - NEW earthengine-api oauth.py:45 secret value confirmed as `RUP0RZ6e0pPd1` at 00:37 UTC (sha256 matches KB `3f3f8d6f…d271`)
 - NEW graph.microsoft.com/beta/copilot/agentRegistrations HEAD → 405 confirmed (extends Graph 405 anomaly to Agent Registration endpoint)
 - NEW v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_token','id_token token']`; pure `token` implicit excl
+
+## 2026-08-09 04:12:16 UTC
