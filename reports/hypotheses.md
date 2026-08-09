@@ -935,3 +935,8 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issuer
 - LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= wit
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive was transient rotation churn; v1(4)⊂v2(7) steady-state subset holds, v
+
+## RANKED HYPOTHESES 2026-08-09 16:27:02 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs htt
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 16:24 UTC).

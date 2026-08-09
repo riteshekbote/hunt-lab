@@ -2066,3 +2066,4 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…`, secret value sha `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` (re-verified verbatim this cycle); log status + scope only, no sandbox redemption; 200 → Google VRP with liveness sha + scope; 400/401 → promote agentRegistrations two-principal IDOR probe to top.
 [RISK] google: 45 — one confirmed hardcoded OAuth client_secret (native-app by-design caveat pending VRP) + tokeninfo introspection oracle; otherwise hardened root.
 [RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path is auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact.
+## 2026-08-09 16:23:32 UTC [google] (model bigpickle)
