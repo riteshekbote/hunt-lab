@@ -1,88 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/hits_analysis.md
-# Classification of New Scan Hits (2026-08-09)
-
-## REAL_SECRET — hardcoded credential with signs of life
-*None found in this delta.*
-
-## TEST_OR_EXAMPLE — sample/test/fixture data (not reportable)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | Obvious test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant placeholder |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Example placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not secret |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| microsoft/semantic-kernel/dotnet/src/IntegrationTests/Connectors/AzureOpenAI/AzureOpenAIChatClientTests.cs | 83 | `apiKey: "INVALID_KEY"` | Test fixture |
-| microsoft/semantic-kernel/dotnet/src/IntegrationTests/Connectors/AzureOpenAI/AzureOpenAIChatCompletionTests.cs | 84 | `apiKey: "INVALID_KEY"` | Test fixture |
-| microsoft/semantic-kernel/dotnet/src/IntegrationTests/Connectors/OpenAI/OpenAIChatClientTests.cs | 79 | `apiKey: "INVALID_KEY"` | Test fixture |
-| microsoft/semantic-kernel/dotnet/src/IntegrationTests/Connectors/OpenAI/OpenAIChatCompletionTests.cs | 154 | `apiKey: "INVALID_KEY"` | Test fixture |
-| microsoft/semantic-kernel/dotnet/src/IntegrationTests/CrossLanguage/KernelRequestTracer.cs | 54 | `apiKey: "Not used in this test"` | Test fixture |
-| microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py | 103 | `api_key="your-api-key"` | Example placeholder |
-| microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py | 180 | `api_key="your-api-key"` | Example placeholder |
-| microsoft/semantic-kernel/python/semantic_kernel/connectors/memory_stores/azure_cognitive_search/utils.py | 39 | `ENV_VAR_API_KEY = "AZURE_COGNITIVE_SEARCH_ADMIN_KEY"` | Env var name constant |
-
-## ENDPOINT_LEAK — internal/dev/staging URLs, API endpoints
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `pkgs.dev.azure.com/microsoft/Dart/_packaging/uutils-installer/Cargo/index/` | Internal Azure DevOps Cargo registry |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70 | `pkgs.dev.azure.com/microsoft/Dart/_packaging/uutils-installer/Cargo/index/` | Internal Azure DevOps Cargo registry |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 76 | `pkgs.dev.azure.com/microsoft/_packaging/RustTools/nuget/v3/index.json` | Internal Azure DevOps NuGet feed |
-| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal timestamp server (corp network) |
-
-## INTERESTING — unusual patterns (debug flags, keys, cloud configs)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` | Legitimate CI pattern: fetches secret at runtime from Secret Manager |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` | Legitimate CI pattern: fetches GitHub bot token from Secret Manager |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Standard GitHub Actions secret references |
-| google/talkback/braille/brailleime/.../BrailleImePreferencesActivity.java | 66 | `KEYBOARD_ICON_TOKEN = "KEYBOARD_ICON"` | SharedPreferences key name, not a secret |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS parse error messages | Build artifacts, not secrets |
-| microsoft/semantic-kernel/.github/workflows/label-pr.yml | 21 | `${{ secrets.GH_ACTIONS_PR_WRITE }}` | Standard GitHub Actions secret reference |
+Looking at all 29 delta hits + full grep context, here's the classification:
 
 ---
 
-## VERDICT LIST
-
-| Candidate | File | Classification | REPORT_CANDIDATE |
-|-----------|------|----------------|------------------|
-| crosvm codecov token fetch | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | INTERESTING (runtime secret fetch) | **no** |
-| crosvm GitHub bot token fetch | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | INTERESTING (runtime secret fetch) | **no** |
-| langextract GH Actions secrets | google/langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE (secret refs) | **no** |
-| talkback keyboard icon key | google/talkback/braille/.../BrailleImePreferencesActivity.java:66 | TEST_OR_EXAMPLE (pref key name) | **no** |
-| adk-python auth placeholders | google/adk-python/src/google/adk/auth/auth_credential.py:126,238,247 | TEST_OR_EXAMPLE (fixtures) | **no** |
-| adk-python auth_schemes PASSWORD | google/adk-python/src/google/adk/auth/auth_schemes.py:68 | TEST_OR_EXAMPLE (constant) | **no** |
-| adk-python openapi client_secret | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | TEST_OR_EXAMPLE (placeholder) | **no** |
-| adk-python vmaas state key | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | TEST_OR_EXAMPLE (state key) | **no** |
-| oss-fuzz test fixtures | google/oss-fuzz/projects/* | TEST_OR_EXAMPLE (test data) | **no** |
-| heir author_stats commented token | google/heir/scripts/author_stats.py:16 | TEST_OR_EXAMPLE (commented placeholder) | **no** |
-| agents-cli gemini placeholder | google/agents-cli/src/google/agents/cli/auth.py:43 | TEST_OR_EXAMPLE (placeholder) | **no** |
-| coreutils internal Cargo registry | microsoft/coreutils/.cargo/release-windows-ms.toml:11 | ENDPOINT_LEAK (internal feed) | **no** (info only) |
-| coreutils internal NuGet feed | microsoft/coreutils/.pipelines/templates/job-build-project.yml:76 | ENDPOINT_LEAK (internal feed) | **no** (info only) |
-| coreutils internal timestamp server | microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml:33 | ENDPOINT_LEAK (corp endpoint) | **no** (info only) |
-| semantic-kernel GH Actions secret | microsoft/semantic-kernel/.github/workflows/label-pr.yml:21 | TEST_OR_EXAMPLE (secret ref) | **no** |
-| semantic-kernel test INVALID_KEY | microsoft/semantic-kernel/dotnet/src/IntegrationTests/.../*.cs | TEST_OR_EXAMPLE (test fixtures) | **no** |
-| semantic-kernel python placeholders | microsoft/semantic-kernel/python/.../open_ai_text_to_image_base.py | TEST_OR_EXAMPLE (placeholders) | **no** |
-| semantic-kernel env var name | microsoft/semantic-kernel/python/.../azure_cognitive_search/utils.py:39 | TEST_OR_EXAMPLE (const name) | **no** |
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | | | No hardcoded live credentials found in this delta |
 
 ---
 
-## SUMMARY
-**Zero REAL_SECRET findings in this delta.** All hits are either:
-- Runtime secret fetches from Cloud Secret Manager / GitHub Actions (legitimate CI patterns)
-- Obvious test fixtures, placeholders, or example values
-- Internal infrastructure endpoint references (info-only, no credential exposure)
-- Build artifacts / minified JS noise
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/gopacket/layers/radiotap.go | 552,554,556 | Radiotap protocol constants (`80(20LL)`, `80(20LU)`, `80(20UL)`) |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` — Actions secret ref |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | Test PyPI URLs (`test.pypi.org`) |
+| google/myelin-acorn-electron-hardware/third_party/nanopb/tools/make_windows_package.sh | 39 | Microsoft VC90 CRT `publicKeyToken="1fc8b3b9a1e18e3b"` — known public key |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment with dev.chromium.org URL |
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment about OpenSSL RSA key format |
+| microsoft/ALAppExtensions/.github/workflows/CICD.yaml | 93 | `${{ fromJson(steps.ReadSubmodulesToken.outputs.Secrets).gitSubmodulesToken }}` — Actions secret ref |
+| microsoft/ALAppExtensions/.github/workflows/_BuildALGoProject.yaml | 139 | Same pattern — Actions secret ref |
+| microsoft/Memora/app/locomo/conf/config.yaml | 55 | `"${oc.env:OPENAI_API_KEY,}"` — config template, env var reference |
+| microsoft/Memora/app/longmemeval/conf/config.yaml | 48 | Same — config template |
+| microsoft/amplifier-core/scripts/e2e-smoke-test.sh | 190-192 | `-e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"` etc. — shell env var refs |
+| microsoft/qlib/.github/workflows/release.yml | 63, 107 | Test PyPI upload URLs |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` — obvious test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19,20,24 | Test fixtures: `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R`, `AKIA5SXYO7WZ3PLMN8RTV` |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` — test fixture |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` — eval test data |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` — eval test data |
 
-**No reportable candidates for VRP disclosure.**
-EOF
-cat /tmp/hits_analysis.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+---
+
+### ENDPOINT_LEAK
+| File | Line | Note |
+|------|------|------|
+| microsoft/edit/.cargo/release-windows-ms.toml | 11 | `pkgs.dev.azure.com/microsoft/Dart/_packaging/Edit_PublicPackages/Cargo/index/` — public Azure Artifacts feed |
+| microsoft/edit/.pipelines/release.yml | 121, 127 | Same public feed + `RustTools` NuGet feed — public endpoints |
+
+---
+
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| *(none actionable)* | | All items are either public feed URLs, known Microsoft keys, or test fixtures |
+
+---
+
+### VERDICT SUMMARY
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/gopacket radiotap tokens | **no** | Protocol constants, not secrets |
+| google/magika workflow secrets | **no** | `${{secrets.*}}` references, not hardcoded values |
+| google/magika test.pypi.org URLs | **no** | Public test registry endpoints |
+| google/nanopb VC90 publicKeyToken | **no** | Microsoft's public CRT signing key (known) |
+| google/quiche SPDY/OpenSSL comments | **no** | Documentation comments |
+| microsoft/ALAppExtensions workflow tokens | **no** | Actions secret references via `fromJson` |
+| microsoft/Memora config templates | **no** | Env var interpolation (`${oc.env:...}`) |
+| microsoft/amplifier-core e2e script | **no** | Shell env var references (`$VAR`) |
+| microsoft/edit Azure Artifacts feeds | **no** | Public package feed URLs |
+| microsoft/qlib test.pypi.org | **no** | Public test registry |
+| microsoft/skill-recorder test fixtures | **no** | All `ghp_*`/`AKIA*` values are obviously fake test patterns (repeated across test files) |
+
+**NO REPORTABLE FINDINGS IN THIS DELTA** — all 37 hits (29 delta + 8 prior) are TEST_OR_EXAMPLE, secret references, config templates, or public endpoints.
