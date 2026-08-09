@@ -1851,3 +1851,4 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 ## 2026-08-09 09:48:47 UTC [google] (model bigpickle)
+## 2026-08-09 10:18:35 UTC [google] (model bigpickle)

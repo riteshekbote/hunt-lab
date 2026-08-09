@@ -8935,3 +8935,35 @@ fetch json: 200
 </html>
 fetch form: 500
 [0m
+===== ANALYST bigpickle 2026-08-09 10:21:50 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "GET /beta/copilot/agentRegistrations -> %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -I -o /dev/null -w "HEAD /beta/copilot/agentRegistrations -> %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+GET /beta/copilot/agentRegistrations -> 401 len=237
+HEAD /beta/copilot/agentRegistrations -> 405 len=0
+[0m
+[0m$ [0mcurl -s -w " -> %{http_code} len=%{size_download} type=%{content_type}\n" -o /dev/null "https://oauth2.googleapis.com/token"; curl -s -w " -> %{http_code} len=%{size_download}\n" -o /dev/null "https://oauth2.googleapis.com/tokeninfo"
+-> 404 len=0 type=text/html
+ -> 400 len=113
+[0m
+[0m$ [0mcurl -s -w " -> %{http_code} len=%{size_download} type=%{content_type}\n" -o /dev/null "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"; curl -s "https://login.microsoftonline.com/common/discovery/keys" -o /tmp/keys_v1.json -w "v1 keys -> %{http_code}\n"; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" -o /tmp/keys_v2.json -w "v2 keys -> %{http_code}\n"
+-> 200 len=23110 type=text/plain; charset=utf-8
+v1 keys -> 200
+v2 keys -> 200
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcd /tmp && python3 -c "
+import json
+k1=json.load(open('keys_v1.json'))['keys']; k2=json.load(open('keys_v2.json'))['keys']
+s1={x['kid'] for x in k1}; s2={x['kid'] for x in k2}
+print('v1=%d v2=%d shared=%d v1only=%d'%(len(s1),len(s2),len(s1&s2),len(s1-s2)))
+print('v1only:', list(s1-s2))
+" failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/oauth.py && wc -c /tmp/oauth.py && sha256sum /tmp/oauth.py && grep -n "RUP0RZ6e0pPd1\|517222506229-vsmmajv" /tmp/oauth.py | head -5
+23110 /tmp/oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/oauth.py
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+[0m
