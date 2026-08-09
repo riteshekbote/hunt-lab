@@ -2483,3 +2483,13 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 [RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
 [RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+## 2026-08-09 12:03:04 UTC [google] (model nemotron3)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45, 8.25, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/keys (v1.0↔v2.0 dual issuer), 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: PASSIVE-VERIFIED live $metadata (7.3MB): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions. HEAD→405 (no WWW-Authenticate) confirms metadata-level auth-challenge anomaly. 5 sibling EntityTypes share identical zero-restriction pattern.
+evidence_needed: User2 (non-owner) GETs /beta/copilot/

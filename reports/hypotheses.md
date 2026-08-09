@@ -862,3 +862,8 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=7 kids (0 v1-exclusive), `Access-Control-Allow-Or
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorizat
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+
+## RANKED HYPOTHESES 2026-08-09 12:03:16 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…` (:43), sec
