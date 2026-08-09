@@ -1,8 +1,46 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results and classify each hit according to the categories provided. I need to be careful not to print full secret values, only file, line, and sha256.
+[0m→ [0mRead reposcan-raw/microsoft/agent-framework/.github/actions/github-app-token/action.yml
+[0m→ [0mRead reposcan-raw/microsoft/agent-framework/python/pyproject.toml[90m [limit=20, offset=450][0m
+### Classification Tables
 
-Let me go through the hits:
+#### DELTA Hits (5 new since last scan)
 
-1. `reposcan-raw/google/ml-compiler-opt/buildbot/buildbot_init.sh:183: WORKAROUND
+| File | Line | Pattern | Classification | Notes |
+|------|------|---------|----------------|-------|
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94 | `token="$APP_TOKEN"` | TEST_OR_EXAMPLE | Shell var ref to GitHub Actions step output |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 98 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | Shell var ref to action input (provided via `${{ secrets.FALLBACK_TOKEN }}` by caller) |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 102 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | Same as above |
+| microsoft/agent-framework/python/pyproject.toml | 459 | `url = "https://test.pypi.org/simple/"` | ENDPOINT_LEAK (benign) | Public test PyPI index URL |
+| microsoft/agent-framework/python/pyproject.toml | 460 | `publish-url = "https://test.pypi.org/legacy/"` | ENDPOINT_LEAK (benign) | Public test PyPI upload URL |
+
+#### Notable Full Grep Hits (context)
+
+| File | Line | Pattern | Classification | Notes |
+|------|------|---------|----------------|-------|
+| google/ml-compiler-opt/buildbot/buildbot_init.sh | 183 | `WORKER_PASSWORD="$(gcloud storage cat gs://...)"` | INTERESTING | Runtime secret fetch from GCS (proper secrets mgmt pattern) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | TEST_OR_EXAMPLE | Placeholder literal |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | TEST_OR_EXAMPLE | Placeholder in example code |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` | TEST_OR_EXAMPLE | Example credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` | TEST_OR_EXAMPLE | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | TEST_OR_EXAMPLE | Example constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | TEST_OR_EXAMPLE | Placeholder in helper example |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | TEST_OR_EXAMPLE | Proper CI secret references |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | TEST_OR_EXAMPLE | Commented placeholder |
+| google/device-infra/.../adc_credentials.sh | 39,44 | Metadata server calls for SA email/scopes | INTERESTING | ADC bootstrap pattern (normal GCP) |
+
+---
+
+### SHORT Verdict List
+
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| GitHub Action token vars | microsoft/agent-framework/.github/actions/github-app-token/action.yml:94,98,102 | **no** | Shell variable references to CI inputs/outputs; `fallback-token` is an action input meant to be supplied via `${{ secrets.* }}` by the calling workflow |
+| Test PyPI URLs | microsoft/agent-framework/python/pyproject.toml:459,460 | **no** | Public test.pypi.org endpoints (documented, non-sensitive) |
+| GCS password fetch | google/ml-compiler-opt/buildbot/buildbot_init.sh:183 | **no** | Runtime secret retrieval from controlled GCS bucket; no hardcoded secret |
+| ADK auth placeholders | google/adk-python/src/google/adk/auth/*.py | **no** | All are example/placeholder literals in credential helper code |
+| CI secret refs | google/langextract/.github/workflows/ci.yaml:168-170 | **no** | Proper `${{ secrets.* }}` usage |
+| ADC metadata calls | google/device-infra/.../adc_credentials.sh:39,44 | **no** | Standard GCP Application Default Credentials bootstrap |
+
+**No REPORT_CANDIDATE=yes findings in this delta.** All hits are either proper CI patterns, public endpoints, placeholder examples, or legitimate secrets-management code.
