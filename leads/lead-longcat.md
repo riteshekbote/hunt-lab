@@ -112,3 +112,4 @@ testability: HUMAN_ONLY
 [RISK] google: **45** — earthengine secret is real but native-app by-design question limits exploitable impact; GCP control-plane APIs all require consumer identity (no anon reads); bughunters hardened. Residual risk from OAuth client_secret redemption in the wild. | microsoft: **65** — agentRegistration IDOR surface (5 EntityTypes, zero ownership restrictions, full mutation CORS) + Graph 405 anomaly masking IDOR enumeration + v1↔v2 dual-issuer trust boundary + RFC 6749 §3 error-rendering violations represent meaningful, multi-vector exposure across Entra ID + M365 Copilot.
 ## 2026-08-09 13:59:33 UTC [google] (model longcat)
 ## 2026-08-09 14:44:29 UTC [google] (model longcat)
+## 2026-08-09 15:15:21 UTC [google] (model longcat)

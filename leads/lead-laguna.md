@@ -2691,3 +2691,30 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED Graph API 405 anomaly confirmed live @ 14:45 UTC — HEAD /v1.0 + /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer) — RFC 6750 §3 violation.
 [RISK] google: 55 — earthengine-api hardcoded client_secret fully SHA-verified live + VRP-ready (conf 95) but native-app/by-design caveat caps upside (~$100k ceiling, needs victim refresh_token, HUMAN_ONLY); tokeninfo introspection oracle live but low-severity (no-reward per Google program rules, rate-limited); identitytoolkit 403-gated ("unregistered callers"); ADK embedded secrets = KNOWN-DUP (closed); bughunters.google.com hardened (HSTS/CSP/X-Frame); no unauthenticated exploit path beyond public secret read.
 [RISK] microsoft: 89 — Two high-value design-level gaps confirmed live in Entra/Copilot identity plane — agentRegistration IDOR (5 EntityTypes, 873-char zero-restriction metadata, runtime HEAD→405/no-Bearer + OPTIONS→200 CORS * + mutation allowlist, CVSS 7.5–9.0) + v1↔v2 issuer-confusion (4 shared kids + dual issuer namespaces + v1.0-only implicit excluded from v2.0, CVSS 8.0–9.8); crown-jewel Entra/Copilot identity plane, highest impact; all surface requires AUTH_HELPED two-principal test-tenant verification.
+## 2026-08-09 15:15:59 UTC [google] (model laguna)
+[HYP] Hardcoded OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: PASSIVE SHA-VERIFIED live — raw GitHub GET → HTTP 200 len=23110, `RUP0RZ6e0pPd1` at line :45 + :99 fallback, sha256(secret)=`3f3f8d6f…d271` verbatim match, scopes cloud-platform (full GCP)+drive+devstorage.
+evidence_needed: HTTP 200 access_token from oauth2.googleapis.com/token using leaked client_secret + victim refresh_token exchange.
+verify_steps: PASSIVE done (SHA-verified). HUMAN_ONLY: POST https://oauth2.googleapis.com/token `grant_type=refresh_token client_id=517222506229-vsmmajv… client_secret=<leaked> refresh_token=<victim_rt>` → 200 access_token (exploit confirmed) vs 400/401 (native-app by-design gate defeated).
+impact: Mint OAuth access tokens with full cloud-platform scope → full GCP project compromise. CVSS 8.8–9.8. ~$100k VRP ceiling.
+testability: PASSIVE (verified) + HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: Live $metadata (7.3MB, 873-char agentRegistration block): createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId ALL client-supplied (Nullable=false), ZERO OperationRestrictions; 5 sibling EntityTypes share identical zero-restriction pattern; runtime GET→401/237, HEAD→405 (no Bearer), OPTIONS→200 (CORS *, full mutation allowlist).
+evidence_needed: Principal B reads/mutates principal A's registration (200 vs 403) using own Bearer token.
+verify_steps: AUTH_HELPED: 1) Principal A POST {"displayName":"probe","createdBy":{"user":{"id":"<B_oid>"}},"ownerIds":["<B_oid>"]} → expect 201; 2) Principal B GET same endpoint → expect 200 incl. A's foreign entry; 3) Principal B PATCH <A_id> {"agentCard":{...injected...},"ownerIds":["<B_oid>"]} → expect 200/204 vs 403.
+impact: Agent impersonation + supply-chain tampering in Entra/Copilot identity plane; forge creator attribution, redirect agentCard endpoints to attacker infra. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via kid overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys
+confidence: 60
+reasoning: Live JWKS HTTP 200, `Access-Control-Allow-Origin: *`; v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=8 kids (0 v1-exclusive); dual issuer namespaces sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0; v1.0-only response_type=token (pure implicit) excluded from v2.0.
+evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource that skips strict iss validation.
+verify_steps: AUTH_HELPED: 1) GET /common/discovery/keys → confirmed 4 shared kids; 2) OIDC v1.0 authorize `?response_type=id_token` → capture v1 id_token; 3) GET /beta/copilot/agentRegistrations with v1 Bearer → 200 (issuer-confusion replay) vs 401/403 (defeated).
+impact: MFA-bypass-class token replay
