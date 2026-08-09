@@ -1,84 +1,323 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN"
+NOT IN SCAN
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -250 reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
-## REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| (none found in delta) | | | |
+// Package cloudrun handles command line parameters and execution logic for cloudrun deployment.
+package cloudrun
 
-## TEST_OR_EXAMPLE
+import (
+	"fmt"
+	"os"
+	"os/exec"
+	"path"
+	"path/filepath"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/spf13/cobra"
+
+	"google.golang.org/adk/v2/cmd/adkgo/internal/deploy"
+	"google.golang.org/adk/v2/internal/cli/util"
+)
+
+type gCloudFlags struct {
+	region      string
+	projectName string
+}
+
+type triggerConfigFlags struct {
+	maxRetries int
+	baseDelay  time.Duration
+	maxDelay   time.Duration
+	maxRuns    int
+}
+
+type cloudRunServiceFlags struct {
+	serviceName     string
+	serverPort      int
+	a2aAgentCardURL string
+	a2a             bool // enable a2a or not
+	api             bool // enable api or not
+	webui           bool // enable webui or not
+	pubsub          bool // enable pubsub trigger or not
+	pubsubTrigger   triggerConfigFlags
+	eventarc        bool // enable eventarc trigger or not
+	eventarcTrigger triggerConfigFlags
+}
+
+type localProxyFlags struct {
+	port int
+}
+
+type buildFlags struct {
+	tempDir             string
+	execPath            string
+	execFile            string
+	dockerfileBuildPath string
+}
+
+type sourceFlags struct {
+	srcBasePath    string
+	entryPointPath string
+}
+
+type deployCloudRunFlags struct {
+	gcloud   gCloudFlags
+	cloudRun cloudRunServiceFlags
+	proxy    localProxyFlags
+	build    buildFlags
+	source   sourceFlags
+}
+
+var flags deployCloudRunFlags
+
+// cloudrunCmd represents the cloudrun command
+var cloudrunCmd = &cobra.Command{
+	Use:   "cloudrun",
+	Short: "Deploys the application to cloudrun.",
+	Long: `Deployment prepares a Dockerfile which is fed with locally compiled server executable containing Web UI static files.
+	Service on Cloudrun is created using this information. 
+	Local proxy adding authentication is started. 
+	`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return flags.deployOnCloudRun()
+	},
+}
+
+// init creates flags and adds subcommand to parent
+func init() {
+	deploy.DeployCmd.AddCommand(cloudrunCmd)
+
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.gcloud.region, "region", "r", "", "GCP Region")
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.gcloud.projectName, "project_name", "p", "", "GCP Project Name")
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.cloudRun.serviceName, "service_name", "s", "", "Cloud Run Service name")
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.build.tempDir, "temp_dir", "t", "", "Temp dir for build, defaults to os.TempDir() if not specified")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.proxy.port, "proxy_port", 8081, "Local proxy port")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.cloudRun.serverPort, "server_port", 8080, "Cloudrun server port")
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.source.entryPointPath, "entry_point_path", "e", "", "Path to an entry point (go 'main')")
+	cloudrunCmd.PersistentFlags().BoolVar(&flags.cloudRun.a2a, "a2a", true, "Enable A2A")
+	cloudrunCmd.PersistentFlags().StringVarP(&flags.cloudRun.a2aAgentCardURL, "a2a_agent_url", "a", "http://127.0.0.1:8081", "A2A agent card URL as advertised in the public agent card")
+	cloudrunCmd.PersistentFlags().BoolVar(&flags.cloudRun.api, "api", true, "Enable API")
+	cloudrunCmd.PersistentFlags().BoolVar(&flags.cloudRun.webui, "webui", true, "Enable Web UI")
+	cloudrunCmd.PersistentFlags().BoolVar(&flags.cloudRun.pubsub, "pubsub", false, "Enable PubSub subrouter")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.cloudRun.pubsubTrigger.maxRetries, "pubsub_max_retries", 3, "Maximum retries for HTTP 429 errors from PubSub triggers")
+	cloudrunCmd.PersistentFlags().DurationVar(&flags.cloudRun.pubsubTrigger.baseDelay, "pubsub_base_delay", 1*time.Second, "Base delay for PubSub trigger retry exponential backoff")
+	cloudrunCmd.PersistentFlags().DurationVar(&flags.cloudRun.pubsubTrigger.maxDelay, "pubsub_max_delay", 10*time.Second, "Maximum delay for PubSub trigger retry exponential backoff")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.cloudRun.pubsubTrigger.maxRuns, "pubsub_max_concurrent_runs", 100, "Maximum concurrent PubSub trigger runs")
+	cloudrunCmd.PersistentFlags().BoolVar(&flags.cloudRun.eventarc, "eventarc", false, "Enable Eventarc subrouter")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.cloudRun.eventarcTrigger.maxRetries, "eventarc_max_retries", 3, "Maximum retries for HTTP 429 errors from Eventarc triggers")
+	cloudrunCmd.PersistentFlags().DurationVar(&flags.cloudRun.eventarcTrigger.baseDelay, "eventarc_base_delay", 1*time.Second, "Base delay for Eventarc trigger retry exponential backoff")
+	cloudrunCmd.PersistentFlags().DurationVar(&flags.cloudRun.eventarcTrigger.maxDelay, "eventarc_max_delay", 10*time.Second, "Maximum delay for Eventarc trigger retry exponential backoff")
+	cloudrunCmd.PersistentFlags().IntVar(&flags.cloudRun.eventarcTrigger.maxRuns, "eventarc_max_concurrent_runs", 100, "Maximum concurrent Eventarc trigger runs")
+}
+
+// computeFlags uses command line arguments to create a full config
+func (f *deployCloudRunFlags) computeFlags() error {
+	return util.LogStartStop("Computing flags & preparing temp",
+		func(p util.Printer) error {
+			absp, err := filepath.Abs(flags.source.entryPointPath)
+			if err != nil {
+				return fmt.Errorf("cannot make an absolute path from '%v': %w", f.source.entryPointPath, err)
+			}
+			f.source.entryPointPath = absp
+
+			if flags.build.tempDir == "" {
+				flags.build.tempDir = os.TempDir()
+			}
+			absp, err = filepath.Abs(flags.build.tempDir)
+			if err != nil {
+				return fmt.Errorf("cannot make an absolute path from '%v': %w", f.build.tempDir, err)
+			}
+			f.build.tempDir, err = os.MkdirTemp(absp, "cloudrun_"+time.Now().Format("20060102_150405__")+"*")
+			if err != nil {
+				return fmt.Errorf("cannot create a temporary sub directory in '%v': %w", absp, err)
+			}
+			p("Using temp dir:", f.build.tempDir)
+
+			// come up with a executable name based on entry point path
+			dir, file := path.Split(f.source.entryPointPath)
+			f.source.srcBasePath = dir
+			f.source.entryPointPath = file
+			if f.build.execPath == "" {
+				exec, err := util.StripExtension(f.source.entryPointPath, ".go")
+				if err != nil {
+					return fmt.Errorf("cannot strip '.go' extension from entry point path '%v': %w", f.source.entryPointPath, err)
+				}
+				f.build.execFile = exec
+				f.build.execPath = path.Join(f.build.tempDir, exec)
+			}
+			f.build.dockerfileBuildPath = path.Join(f.build.tempDir, "Dockerfile")
+
+			return nil
+		})
+}
+
+func (f *deployCloudRunFlags) cleanTemp() error {
+	return util.LogStartStop("Cleaning temp",
+		func(p util.Printer) error {
+			p("Clean temp starting with", f.build.tempDir)
+			err := os.RemoveAll(f.build.tempDir)
+			if err != nil {
+				return fmt.Errorf("failed to clean temp directory %v: %w", f.build.tempDir, err)
+			}
+			return nil
+		})
+}
+
+// compileEntryPoint builds locally the server using flags and environment variables in order to be run in CloudRun containter
+func (f *deployCloudRunFlags) compileEntryPoint() error {
+	return util.LogStartStop("Compiling server",
+		func(p util.Printer) error {
+			p("Using", f.source.entryPointPath, "as entry point")
+			// for help on ldflags you can run go build -ldflags="--help" ./examples/quickstart/main.go
+			//    -s    disable symbol table
+			//    -w    disable DWARF generation
+			//   using those flags reduces the size of an executable
+			cmd := exec.Command("go", "build", "-ldflags", "-s -w", "-o", f.build.execPath, f.source.entryPointPath)
+
+			cmd.Dir = f.source.srcBasePath
+			// build using staticallly linked libs, for linux/amd64
+			cmd.Env = append(os.Environ(), "CGO_ENABLED=0", "GOOS=linux", "GOARCH=amd64")
+			return util.LogCommand(cmd, p)
+		})
+}
+
+// prepareDockerfile creates a temporary Dockerfile which will be executed by CloudRun
+func (f *deployCloudRunFlags) prepareDockerfile() error {
+	return util.LogStartStop("Preparing Dockerfile",
+		func(p util.Printer) error {
+			p("Writing:", f.build.dockerfileBuildPath)
+
+			var b strings.Builder
+			b.WriteString(`
+FROM gcr.io/distroless/static-debian11
+
+COPY ` + f.build.execFile + `  /app/` + f.build.execFile + `
+EXPOSE ` + strconv.Itoa(flags.cloudRun.serverPort) + `
+# Command to run the executable when the container starts
+CMD ["/app/` + f.build.execFile + `", "web", "-port", "` + strconv.Itoa(flags.cloudRun.serverPort) + `"`)
+
+			if flags.cloudRun.api {
+				b.WriteString(`, "api", "-webui_address", "127.0.0.1:` + strconv.Itoa(f.proxy.port) + `"`)
+			}
+			if flags.cloudRun.a2a {
+				b.WriteString(`, "a2a", "--a2a_agent_url", "` + flags.cloudRun.a2aAgentCardURL + `"`)
+			}
+			if flags.cloudRun.webui {
+				b.WriteString(`, "webui", "--api_server_address", "http://127.0.0.1:` + strconv.Itoa(f.proxy.port) + `/api"`)
+			}
+			if flags.cloudRun.pubsub {
+				b.WriteString(`, "pubsub"`)
+				fmt.Fprintf(&b, `, "--trigger_max_retries", "%d"`, flags.cloudRun.pubsubTrigger.maxRetries)
+				fmt.Fprintf(&b, `, "--trigger_base_delay", "%s"`, flags.cloudRun.pubsubTrigger.baseDelay.String())
+				fmt.Fprintf(&b, `, "--trigger_max_delay", "%s"`, flags.cloudRun.pubsubTrigger.maxDelay.String())
+				fmt.Fprintf(&b, `, "--trigger_max_concurrent_runs", "%d"`, flags.cloudRun.pubsubTrigger.maxRuns)
+			}
+			if flags.cloudRun.eventarc {
+				b.WriteString(`, "eventarc"`)
+				fmt.Fprintf(&b, `, "--trigger_max_retries", "%d"`, flags.cloudRun.eventarcTrigger.maxRetries)
+				fmt.Fprintf(&b, `, "--trigger_base_delay", "%s"`, flags.cloudRun.eventarcTrigger.baseDelay.String())
+				fmt.Fprintf(&b, `, "--trigger_max_delay", "%s"`, flags.cloudRun.eventarcTrigger.maxDelay.String())
+				fmt.Fprintf(&b, `, "--trigger_max_concurrent_runs", "%d"`, flags.cloudRun.eventarcTrigger.maxRuns)
+			}
+			b.WriteString(`]`)
+			return os.WriteFile(f.build.dockerfileBuildPath, []byte(b.String()), 0o600)
+		})
+}
+
+// gcloudDeployToCloudRun invokes gcloud to deploy source on CloudRun
+func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
+	return util.LogStartStop("Deploying to Cloud Run",
+		func(p util.Printer) error {
+			params := []string{
+				"run", "deploy", f.cloudRun.serviceName,
+				"--source", ".",
+				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+				"--region", f.gcloud.region,
+				"--project", f.gcloud.projectName,
+				"--ingress", "all",
+				"--no-allow-unauthenticated",
+[0m
+Now I have full context. Let me classify all hits:
+
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this delta)* | | | |
+
+### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| google/langextract/.github/workflows/ci.yaml | 168 | `${{ secrets.GEMINI_API_KEY }}` secret reference |
-| google/langextract/.github/workflows/ci.yaml | 169 | `${{ secrets.GEMINI_API_KEY }}` secret reference |
-| google/langextract/.github/workflows/ci.yaml | 170 | `${{ secrets.OPENAI_API_KEY }}` secret reference |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` secret reference |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test JS fixture |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` secret ref |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings |
-| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml | 2 | K8s ConfigMap template |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml | 2 | K8s ConfigMap template |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | Fake SQL in red-team benchmark |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented `# smtp_auth_password: 'password'` |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-sre/charts/agent-sre/templates/configmap.yaml | 2 | K8s ConfigMap template |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` placeholder |
-| microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml | 2 | K8s ConfigMap template |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified build artifacts (parse error messages) |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — secret refs |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | Test PyPI URLs |
+| `google/magika/tests_data/basic/javascript/code.js` | 31 | Test data fixture |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| `microsoft/agent-governance-toolkit/.github/workflows/labeler.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| `microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml` | 41 | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| `microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | Placeholder `sk-REPLACE-WITH-YOUR-KEY` |
+| `microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml` | 2 | K8s ConfigMap boilerplate |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml` | 2 | Helm ConfigMap template |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml` | 15 | Commented placeholder `# smtp_auth_password: 'password'` |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh` | 105 | Test PyPI install URL |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py` | 17 | Placeholder `api_key="your-key"` |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py` | 306 | SQLi test vector in benchmark dataset |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-sre/charts/agent-sre/templates/configmap.yaml` | 2 | Helm ConfigMap template |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml` | 2 | Helm ConfigMap template |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Risk |
-|------|------|----------|------|
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | `https://test.pypi.org/p/magika` | Public test PyPI (low) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | `https://test.pypi.org/legacy/` | Public test PyPI (low) |
-| google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal Google source browser |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal MS timestamp server |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS (well-known) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27 | `http://169.254.169.254/metadata/identity/oauth2/token` | Azure IMDS token endpoint |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 29 | `http://169.254.169.254/latest/meta-data/iam` | AWS metadata endpoint |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 30 | `http://169.254.169.254/latest/api/token` | AWS token endpoint |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | `https://test.pypi.org/simple/` | Public test PyPI (low) |
+### ENDPOINT_LEAK
+| File | Line | Leaked Endpoint |
+|------|------|-----------------|
+| `google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h` | 11 | `https://cs.corp.google.com/piper///depot/google3/...` (internal Google source) |
+| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal MS timestamp server) |
 
-## INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | `"169.254.169.254"` AWS/Azure IMDS IP |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | `"metadata.google.internal"` GCP metadata |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 568 | `"100.100.100.200"` Alibaba Cloud IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183 | `"169.254.169.254": true` IMDS allowlist |
-| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 184 | `"metadata.google.internal": true` GCP metadata allowlist |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39 | `"169.254.169.254"` cloud metadata comment |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 40 | `"metadata.google.internal"` GCP metadata comment |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102 | `"169.254.169.254"` AWS metadata comment |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 103 | `"metadata.google.internal"` GCP metadata comment |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | `'169.254.169.254'` AWS/Azure IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 11 | `'metadata.google.internal'` GCP metadata |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 13 | `'100.100.100.200'` Alibaba Cloud IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13 | `'169.254.169.254'` IMDS |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 14 | `'metadata.google.internal'` GCP metadata |
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — **proper** Cloud Run secret injection pattern (not a leak) |
+| `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs` | 563,566,568 | Well-known cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) |
+| `microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go` | 183,184 | Same metadata IPs |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts` | 13,14 | Same metadata IPs |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts` | 8,11,13 | Same metadata IPs |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py` | 27,29,30 | Azure/AWS IMDS endpoint constants |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py` | 24 | Azure IMDS URL constant |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py` | 39,40 | Metadata IP allowlist |
+| `microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py` | 102,103 | Metadata IP allowlist |
 
 ---
 
-# VERDICT LIST
+## Verdict List
 
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| Internal Google source browser URL | google/libultrahdr/.../image_metadata.h | 11 | ENDPOINT_LEAK | **no** (internal reference, not credential) |
-| Internal MS timestamp server | microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | ENDPOINT_LEAK | **no** (internal infra URL, no secret) |
-| Azure IMDS token endpoint | microsoft/agent-governance-toolkit/.../managed_identity.py | 27 | ENDPOINT_LEAK | **no** (well-known public endpoint) |
-| AWS metadata endpoints | microsoft/agent-governance-toolkit/.../managed_identity.py | 29-30 | ENDPOINT_LEAK | **no** (well-known public endpoints) |
-| Test PyPI URLs | google/magika/.../python-build-and-release-package.yml | 407,437 | ENDPOINT_LEAK | **no** (public test infrastructure) |
-| Cloud metadata IPs in policy code | (multiple files) | various | INTERESTING | **no** (documentation of well-known endpoints) |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `google/adk-go` Cloud Run `--set-secrets` | INTERESTING (proper secret injection) | **no** |
+| `google/libultrahdr` internal `cs.corp.google.com` URL | ENDPOINT_LEAK | **no** (internal source link, no secret) |
+| `microsoft/agent-governance-toolkit` internal `rfc3161.gtm.corp.microsoft.com` | ENDPOINT_LEAK | **no** (internal timestamp server, no secret) |
+| All `${{ secrets.* }}` refs | TEST_OR_EXAMPLE | **no** |
+| All placeholder keys (`sk-REPLACE...`, `your-key`) | TEST_OR_EXAMPLE | **no** |
+| All cloud metadata IPs (169.254.169.254, etc.) | INTERESTING | **no** (well-known public endpoints) |
+| All test fixtures / ConfigMap templates | TEST_OR_EXAMPLE | **no** |
 
-**SUMMARY: No REPORT_CANDIDATE=yes findings in this delta.**
-All hits are either secret references (`${{ secrets.* }}`), placeholders (`your-key`, `REPLACE-WITH-YOUR-KEY`), test fixtures, well-known cloud metadata endpoints, or public test infrastructure URLs.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**SUMMARY: 0 reportable findings in this delta.** The scan produced 185 hits but all are either test fixtures, proper secret references (`${{ secrets.* }}`), placeholders, well-known metadata endpoints, or internal URLs without credentials. The prior `earthengine-api` hardcoded OAuth secret (KB `3f3f8d6f...d271`) is **not in this scan's file set**.
