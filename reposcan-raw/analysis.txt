@@ -1,47 +1,66 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=120][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=20, offset=230][0m
-Now I have full context. Let me produce the classification:
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [offset=105, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
+Now I have full context for all hits. Let me classify them:
 
 ---
 
-### Classification Table
+### Classification Tables
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **REAL_SECRET** | — | None new in delta (earthengine-api oauth.py:45 already ACCEPTED in KB) | — |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:126 | `private_key="-----BEGIN PRIVATE KEY-----..."` in docstring example | Not reportable |
-| | adk-python/src/google/adk/auth/auth_credential.py:238 | `password="password"` in basic auth example | Not reportable |
-| | adk-python/src/google/adk/auth/auth_credential.py:247 | `token="eyAkaknabna...."` placeholder JWT in example | Not reportable |
-| | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` constant (test/default) | Not reportable |
-| | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` placeholder | Not reportable |
-| | adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) | Minified parser error messages in build artifacts | Not reportable |
-| | adk-python/src/google/adk/cli/browser/chunk-*.js (18 files) | Same minified build artifacts (duplicated) | Not reportable |
-| | langextract/.github/workflows/ci.yaml:168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — proper CI secret refs | Not reportable |
-| | skywater-pdk/.github/workflows/labeler.yml:11 | `${{ secrets.GITHUB_TOKEN }}` — proper CI secret ref | Not reportable |
-| | magika/.github/workflows/labeler.yml:20 | `${{ secrets.GITHUB_TOKEN }}` — proper CI secret ref | Not reportable |
-| **ENDPOINT_LEAK** | go-containerregistry/pkg/v1/remote/fetcher.go:85 | Comment: `// issuing a 302 to a cloud instance metadata service (e.g. 169.254.169.254)` | Informational only |
-| | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | Docs/comments referencing `169.254.169.254` metadata endpoint | Informational only |
-| **INTERESTING** | adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run Secret Manager ref (correct pattern) | Shows secret handling |
-| | adk-python/src/google/adk/cli/cli_create.py:123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — CLI writes user-supplied key to local .env (expected behavior) | Expected CLI behavior |
-| | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — internal state key name | Internal constant |
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| `github.com/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **Previously ACCEPTED** — hardcoded OAuth client_secret `RUP0RZ6e0pPd1`, used as fallback at :99, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect. Still LIVE per 08-09 02:50 UTC probe. |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant name, not a secret |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168 | GitHub Actions template: `${{ steps.fetch-token.outputs._id_token }}` — workflow variable reference |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 192 | GitHub Actions template: `${{ steps.fetch-token.outputs._auth_token }}` — workflow variable reference |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder in ServiceAccountCredential example |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | Docstring example: `credentials=HttpCredentials(username="user", password="password")` — fake basic auth |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | Docstring example: `credentials=HttpCredentials(token="eyAkaknabna....")` — fake JWT placeholder |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant: `PASSWORD = "password"` — test constant name |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` — placeholder in OpenIdConfig example |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions: `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — secret references |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 11 | GitHub Actions: `${{ secrets.GITHUB_TOKEN }}` — secret reference |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407 | Public test PyPI URL: `https://test.pypi.org/p/magika` — not a secret |
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | GitHub Actions: `${{ secrets.GITHUB_TOKEN }}` — secret reference |
+
+#### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents cloud metadata endpoint `169.254.169.254` as security note (blocked by default) — not a leak |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 115 | `kubeconfig_path` / `kubeconfig_context` parameters — config options, not endpoints |
+
+#### INTERESTING
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run Secret Manager reference (correct pattern) |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Writes user-provided `google_api_key` variable to `.env` — runtime config generation, not hardcoded |
 
 ---
 
-### Short Verdict List
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (hardcoded OAuth client_secret) | **no** | Already ACCEPTED in KB (2026-08-07), known live, pending VRP determination on native-app by-design status |
-| All minified JS chunk files (parser errors) | **no** | Build artifacts, not secrets |
-| All GitHub Actions `${{ secrets.* }}` refs | **no** | Correct CI pattern, not hardcoded |
-| All auth_credential.py / auth_schemes.py / auth_helpers.py placeholders | **no** | Documented examples with obvious placeholders |
-| Cloud metadata endpoint comments (169.254.169.254) | **no** | Informational comments, no live endpoint exposure |
-| adk-go CloudRun `--set-secrets` pattern | **no** | Correct secret management usage |
-| adk-python CLI .env writer | **no** | Expected behavior (user provides key → written to local .env) |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `earthengine-api` oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f...d271`) | **yes** — already ACCEPTED in KB, still live, pending VRP determination on native-app by-design status |
+| All other delta hits (agents-cli auth.py:43, staging.yaml:168/192) | **no** — placeholders / CI templates |
+| All adk-python example/docstring hits | **no** — test fixtures in documentation |
+| All GitHub Actions `${{ secrets.* }}` references | **no** — correct secret injection pattern |
+| Cloud metadata endpoint docs | **no** — security hardening documentation |
+| Cloud Run `--set-secrets` reference | **no** — correct Secret Manager usage |
 
-**No new reportable candidates in this delta.** The only REAL_SECRET (earthengine-api) is already tracked and ACCEPTED in the knowledge base.
+---
+
+**Summary:** Only the previously accepted `earthengine-api` hardcoded OAuth client secret remains a live report candidate. No new REAL_SECRET findings in this delta.
