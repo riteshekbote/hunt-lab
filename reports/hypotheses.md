@@ -1104,3 +1104,15 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap: v1(4)⊂v2(7), 0 v1-exclusive steady-state; dual issuer namespaces intact; rotation-desync class stays REJECTED (v1 kid set neve
 - LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes (token→404 GET, agentRegs→401, scope strings 200/len=14) confirmed prior ACCEPTED fin
 - LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant token endpoint, no GET support); validates existing earthengine secret
+
+## RANKED HYPOTHESES 2026-08-09 23:52:03 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token via POST-only token endpoint (from reports/hypotheses-laguna.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer namespaces
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — raw GitHub GET→200 len=23110, whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param→400/113 invalid_token, accepts ?access_token=/ ?id_token= without Authorization header
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, RFC 6749 §3 viola
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
