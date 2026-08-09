@@ -1,49 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls -la reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml 2>/dev/null
--rw-r--r-- 1 runner runner 1743 Aug  9 13:13 reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py
--rw-r--r-- 1 runner runner 2513 Aug  9 13:13 reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java
--rw-r--r-- 1 runner runner 2114 Aug  9 13:13 reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java
--rw-r--r-- 1 runner runner  274 Aug  9 13:13 reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml
-[0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
-All hits confirmed as test/fixture/placeholder data. Here's the classification:
+Based on the scan results, here's the classification:
 
----
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in new hits)* | — | — | No new hardcoded secrets found in delta |
 
-### CLASSIFICATION TABLE
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` (placeholder constant) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (proper secret refs) |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` (proper secret ref) |
+| google/qwix/.github/workflows/cla.yml | 23 | `${{ secrets.GITHUB_TOKEN }}` (proper secret ref) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, not value) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` (test fixture) |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test passwords |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret ref) |
+| microsoft/winget-cli/src/AppInstallerCLIE2ETests/Helpers/TestIndex.cs | 143,150,157 | `<EXEHASH>`, `<MSIHASH>`, `<MSIHASHV2>` (placeholders) |
+| microsoft/winget-cli/src/AppInstallerCLITests/DownloadFlow.cpp | 64 | `expectedToken = "TestToken"` (test fixture) |
+| microsoft/winget-cli/src/AppInstallerCLITests/RestInterface_1_7.cpp | 451,477,498 | `expectedToken = "TestToken"` (test fixtures) |
+| microsoft/winget-cli/src/AppInstallerRepositoryCore/Rest/Schema/CommonRestConstants.h | 22 | `ContinuationToken = "ContinuationToken"` (constant) |
 
-| Category | File | Line | Match | Verdict |
-|----------|------|------|-------|---------|
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server shutdown password |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | `getConnection("PASSWORD=" + getDatabasePassword())` | Test DB connection helper |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | `https://dev.mysql.com/doc/...` | Public documentation URL (comment) |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | `homepage: "https://dev.mysql.com/..."` | Project config - public docs URL |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example placeholder |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | `username="user", password="password"` | Docstring HTTP basic example |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | `token="eyAkaknabna...."` | Docstring bearer token example |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Docstring config example |
-| **TEST_OR_EXAMPLE** | `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum constant (not a secret value) |
-| **ENDPOINT_LEAK** | `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref pattern (not a secret) |
-| **TEST_OR_EXAMPLE** | `google/qwix/.github/workflows/cla.yml` | 23 | `github-token: '${{ secrets.GITHUB_TOKEN }}'` | Proper GitHub Actions secret ref |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Auth scheme constant name |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key constant |
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | `metadata.google.internal/computeMetadata/v1/...` (GCP metadata) |
+| google/clusterfuzz/docker/base/setup_common.sh | 28 | `metadata.google.internal/computeMetadata/v1/instance/hostname` |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` |
+| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal/computeMetadata/v1/` |
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124,126,131 | `cs.corp.google.com`, `source.corp.google.com` (internal source) |
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459,460 | `source.corp.google.com/file:google3` |
+
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Mock metadata server setup (169.254.169.254 loopback + hosts) |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | Internal buganizer.corp.google.com reference |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | Internal b.corp.google.com TODO ref |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | Internal b.corp.google.com TODO ref |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | Internal b.corp.google.com TODO ref |
+| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | E2E test kubeconfig comment |
+| microsoft/Build26-BRK243-.../WebBrowsingToolOptions.cs | 41 | Documents cloud metadata endpoint 169.254.169.254 |
 
 ---
 
 ### VERDICT LIST
 
-| Candidate | File | Line | SHA256 (secret material) | REPORT_CANDIDATE |
-|-----------|------|------|--------------------------|------------------|
-| (none) | — | — | — | **no** |
-
-**Summary**: 0 REAL_SECRET candidates in this delta. All 14 hits are TEST_OR_EXAMPLE or ENDPOINT_LEAK (Cloud Run secret reference pattern, not an actual secret). The previously reported earthengine-api hardcoded OAuth client_secret remains the only live REAL_SECRET in the google/ org (already in KNOWN DUPLICATES / ACCEPTED list).
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api oauth.py:45 (previously known) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), scopes `cloud-platform+drive+devstorage.full_control`, OOB redirect — **LIVE per KB** |
+| All new delta hits | **no** | No REAL_SECRET in new hits; all are test fixtures, proper secret refs (`${{secrets.*}}`), or endpoint references |
+| Clusterfuzz internal corp URLs | **no** | Internal tooling references (cs.corp, source.corp, buganizer, b.corp) — not externally exploitable |
+| GCP metadata endpoint usage | **no** | Standard GCP pattern (169.254.169.254 / metadata.google.internal) — not a leak |
+| Winget test tokens | **no** | Explicit test fixtures (`TestToken`, `<EXEHASH>` placeholders) |
+| GitHub Actions secret references | **no** | Correct usage (`${{ secrets.* }}`), no values exposed |
