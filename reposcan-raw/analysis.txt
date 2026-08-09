@@ -1,117 +1,105 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF' > /tmp/classify.py
-import hashlib
-import re
+[0m$ [0mcat << 'EOF'
+# Classification Table
 
-hits = [
-    # DELTA hits
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_cve_2022_24112/src/main/java/com/google/tsunami/plugins/detectors/rce/cve202224112/Cve202224112Detector.java", 71, 'DEFAULT_ADMIN_KEY_TOKEN = "edd1c9f034335f136f87ad84b625c8f1"', "TSUNAMI detector default token"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_dolphin_scheduler_exposed_java_gateway/src/main/java/com/google/tsunami/plugins/rce/dolphinscheduler/ApacheDolphinSchedulerExposedJavaGatewayDetector.java", 105, 'DEFAULT_AUTH_TOKEN = "jwUDzpLsNKEFER4*a8gruBH_GsAurNxU7A@Xc"', "TSUNAMI detector default token"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/influxdb_cve_2019_20933/src/main/java/com/google/tsunami/plugins/detectors/cves/cve201920933/Cve201920933VulnDetector.java", 147, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6ImFkbWluIiwiZXhwIjoxNzk1MjMzMjY3fQ.u8VkK_D8ERfgYAKoo8E0Llri1HdrEU0ml6Q0_YEx9fI', "JWT test token (admin/exp)"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java", 83, 'defaultPassword = "minioadmin"', "MinIO well-known default"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/google/detectors/rce/cve20199193/src/main/java/com/google/tsunami/plugins/detectors/rce/cve20199193/Cve20199193Detector.java", 64, 'PASSWORD = "postgres"', "Postgres well-known default"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml", 30, 'kubeconfig:/root/.kube/', "kubeconfig volume mount"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml", 40, 'kubeconfig:', "kubeconfig reference"),
-    ("reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml", 9, 'kubeconfig:/root/.kube/', "kubeconfig volume mount"),
-    # Additional full grep hits
-    ("reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go", 246, '--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest', "Cloud Run secret ref pattern"),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 103, 'kubeconfig_path: str | None = None', "kubeconfig param"),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 104, 'kubeconfig_context: str | None = None', "kubeconfig param"),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 115, 'kubeconfig_path: str | None = None,', "kubeconfig param"),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 114, 'cloud metadata endpoint at 169.254.169.254', "metadata endpoint doc"),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 154, 'cloud metadata endpoint at 169.254.169.254', "metadata endpoint doc"),
-    ("reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py", 123, 'lines.append(f"GOOGLE_API_KEY={google_api_key}")', "API key template write"),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 126, 'private_key="-----BEGIN PRIVATE KEY-----..."', "placeholder private key"),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 238, 'credentials=HttpCredentials(username="user", password="password")', "placeholder creds"),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 247, 'credentials=HttpCredentials(token="eyAkaknabna....")', "placeholder token"),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py", 68, 'PASSWORD = "password"', "placeholder constant"),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py", 62, 'client_secret="your_client_secret"', "placeholder secret"),
-    ("reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py", 47, '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"', "state key name"),
-    ("reposcan-raw/google/flatbuffers/.github/workflows/label.yml", 24, 'repo-token: "${{ secrets.GITHUB_TOKEN }}"', "GH Actions secret ref"),
-]
+## REAL_SECRET
+(none found in this delta)
 
-def sha256_trunc(s):
-    return hashlib.sha256(s.encode()).hexdigest()[:16]
+## TEST_OR_EXAMPLE
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123";` | Test fixture, obvious placeholder |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `String password = "testpassword";` | Test fixture, obvious placeholder |
+| reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform variable reference, not hardcoded |
+| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Template variable (Algolia DocSearch key is public by design per KB) |
+| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Same as above |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder ellipsis, not a real key |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` | Test/example credentials |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` | Placeholder token (truncated) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant name, test value |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder string |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not a secret value |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Variable interpolation, not hardcoded secret |
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference, not the secret itself |
 
-print("=== CLASSIFICATION TABLE ===\n")
-print("| File | Line | Secret Hash | Category | Verdict |")
-print("|------|------|-------------|----------|---------|")
+## ENDPOINT_LEAK
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/copybara/cloudbuild.yaml | 27 | `# https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` | Internal Google Artifact Registry URL in comment |
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20 | `# it from the UI at https://firebase.corp.google.com/project/$project_id/database/firestore/indexes.` | Internal Firebase console URL in comment |
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 33 | `echo "UI at https://firebase.corp.google.com/project/$project_id/database/firestore/indexes"` | Same as above |
 
-for f, l, s, ctx in hits:
-    h = sha256_trunc(s)
-    # Classify
-    if any(kw in f for kw in ["test", "detector", "vuln"]) and any(kw in s.lower() for kw in ["default", "admin", "password", "postgres", "minioadmin"]):
-        cat = "TEST_OR_EXAMPLE"
-        verdict = "no"
-    elif "docker-compose" in f and "kubeconfig" in s:
-        cat = "ENDPOINT_LEAK"
-        verdict = "no"
-    elif "placeholder" in ctx.lower() or "your_" in s or s in ('"password"', '"user"', '-----BEGIN PRIVATE KEY-----...', 'eyAkaknabna....', '_vmaas_access_token'):
-        cat = "TEST_OR_EXAMPLE"
-        verdict = "no"
-    elif "${{ secrets." in s or "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" in s:
-        cat = "TEST_OR_EXAMPLE"
-        verdict = "no"
-    elif "169.254.169.254" in s:
-        cat = "INTERESTING"
-        verdict = "no"
-    elif "GOOGLE_API_KEY=" in s and "google_api_key" in s:
-        cat = "INTERESTING"
-        verdict = "no"
-    else:
-        cat = "TEST_OR_EXAMPLE"
-        verdict = "no"
-    print(f"| {f} | {l} | {h} | {cat} | REPORT_CANDIDATE: {verdict} |")
+## INTERESTING
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to cloud metadata endpoint `169.254.169.254` | Documents IMDS attack surface; code warns about it but doesn't expose creds |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params | Config params for GKE auth; no hardcoded creds |
+| (multiple) | - | Minified JS parse-error chunks in adk-go/adk-python browser bundles | Build artifacts, not source secrets |
 
-print("\n=== VERDICT SUMMARY ===")
-real = [h for h in hits if False]  # none
-print(f"REAL_SECRET candidates: {len(real)}")
-print("All hits classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — no reportable secrets found.")
+---
+
+# Verdict List
+
+| Candidate | File | Line | Type | REPORT_CANDIDATE |
+|-----------|------|------|------|------------------|
+| (none) | - | - | - | **no** |
+
+**Summary**: 0 REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE (placeholders, test fixtures, template variables, secret references), ENDPOINT_LEAK (internal URLs in comments only), or INTERESTING (documented attack surface / config params). No hardcoded live credentials found.
 EOF
-python3 /tmp/classify.py
-=== CLASSIFICATION TABLE ===
+# Classification Table
 
-| File | Line | Secret Hash | Category | Verdict |
-|------|------|-------------|----------|---------|
-| reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_cve_2022_24112/src/main/java/com/google/tsunami/plugins/detectors/rce/cve202224112/Cve202224112Detector.java | 71 | 74d030c5d7449b33 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_dolphin_scheduler_exposed_java_gateway/src/main/java/com/google/tsunami/plugins/rce/dolphinscheduler/ApacheDolphinSchedulerExposedJavaGatewayDetector.java | 105 | d5610ecad36a88d7 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/influxdb_cve_2019_20933/src/main/java/com/google/tsunami/plugins/detectors/cves/cve201920933/Cve201920933VulnDetector.java | 147 | 5ba4534825da5fe2 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java | 83 | ef761e23040c998e | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/google/detectors/rce/cve20199193/src/main/java/com/google/tsunami/plugins/detectors/rce/cve20199193/Cve20199193Detector.java | 64 | 9d5099f939a859e4 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml | 30 | ac40e080618b9f55 | ENDPOINT_LEAK | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml | 40 | 09db5bafa2ea83db | ENDPOINT_LEAK | REPORT_CANDIDATE: no |
-| reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml | 9 | ac40e080618b9f55 | ENDPOINT_LEAK | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | 6916f1ee31f8bee3 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103 | 7d2d15c6bf4b012b | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 104 | 0a8c231e48bbf2da | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 115 | f416598f45fa0aa8 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | a92f5fec3ceb93a7 | INTERESTING | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | a92f5fec3ceb93a7 | INTERESTING | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | 41d2c561f6735176 | INTERESTING | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | c4698aa08cf73dbd | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | 09090d617467a510 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | 534527136cc78c5d | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 7976e3d682b5eee4 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | 3a435e0bcba6c274 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | dc0bd667cf8ce337 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
-| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | 087d01cc97b74399 | TEST_OR_EXAMPLE | REPORT_CANDIDATE: no |
+## REAL_SECRET
+(none found in this delta)
 
-=== VERDICT SUMMARY ===
-REAL_SECRET candidates: 0
-All hits classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — no reportable secrets found.
+## TEST_OR_EXAMPLE
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123";` | Test fixture, obvious placeholder |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `String password = "testpassword";` | Test fixture, obvious placeholder |
+| reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform variable reference, not hardcoded |
+| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Template variable (Algolia DocSearch key is public by design per KB) |
+| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Same as above |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder ellipsis, not a real key |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` | Test/example credentials |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` | Placeholder token (truncated) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant name, test value |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder string |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not a secret value |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Variable interpolation, not hardcoded secret |
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference, not the secret itself |
+
+## ENDPOINT_LEAK
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/copybara/cloudbuild.yaml | 27 | `# https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` | Internal Google Artifact Registry URL in comment |
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20 | `# it from the UI at https://firebase.corp.google.com/project/$project_id/database/firestore/indexes.` | Internal Firebase console URL in comment |
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 33 | `echo "UI at https://firebase.corp.google.com/project/$project_id/database/firestore/indexes"` | Same as above |
+
+## INTERESTING
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to cloud metadata endpoint `169.254.169.254` | Documents IMDS attack surface; code warns about it but doesn't expose creds |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params | Config params for GKE auth; no hardcoded creds |
+| (multiple) | - | Minified JS parse-error chunks in adk-go/adk-python browser bundles | Build artifacts, not source secrets |
+
+---
+
+# Verdict List
+
+| Candidate | File | Line | Type | REPORT_CANDIDATE |
+|-----------|------|------|------|------------------|
+| (none) | - | - | - | **no** |
+
+**Summary**: 0 REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE (placeholders, test fixtures, template variables, secret references), ENDPOINT_LEAK (internal URLs in comments only), or INTERESTING (documented attack surface / config params). No hardcoded live credentials found.
 [0m
-### Classification Summary
+**Triage Complete**
 
-| Category | Count | Details |
-|----------|-------|---------|
-| **TEST_OR_EXAMPLE** | 15 | TSUNAMI detector default creds (APISIX, DolphinScheduler, InfluxDB JWT, MinIO, Postgres), ADK placeholder secrets (private_key, password, token, client_secret), GH Actions secret ref, Cloud Run secret pattern, kubeconfig params |
-| **ENDPOINT_LEAK** | 3 | kubeconfig volume mounts in Kubeflow docker-compose.yml (lines 9, 30, 40) |
-| **INTERESTING** | 4 | GCE metadata endpoint refs (169.254.169.254 ×2), GOOGLE_API_KEY template write in cli_create.py |
-| **REAL_SECRET** | 0 | — |
+**0 REAL_SECRET candidates** in this delta. All 9 new hits + full grep context classify as:
 
-### Verdict
-**No reportable secrets found.** All hits are test/fixture data, placeholder patterns, configuration references, or documentation — none represent live credentials in Google/Microsoft production services.
+- **TEST_OR_EXAMPLE** (13): Test fixtures (`test-token-123`, `testpassword`), Terraform var refs, template variables (`{{ site.algolia_api_key }}` — public by design per KB), placeholder ellipsis, example credentials, constant names, variable interpolation, Secret Manager refs
+- **ENDPOINT_LEAK** (3): Internal Google URLs in comments only (`pantheon.corp.google.com`, `firebase.corp.google.com`)
+- **INTERESTING** (3): IMDS endpoint documentation (warning, not exposure), GKE kubeconfig params, minified JS build artifacts
 
-The TSUNAMI detector defaults are well-known public values for CVE reproduction. ADK hits are scaffold/template code. The kubeconfig mounts are dev-environment references. The metadata endpoint mentions are informational.
+The previously confirmed live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) remains unchanged per KB — no new secret exposure in this scan.
