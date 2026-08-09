@@ -1,69 +1,80 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at all 29 delta hits + full grep context, here's the classification:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'-----BEGIN PRIVATE KEY-----...'
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'password'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'eyAkaknabna....'
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'your_client_secret'
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'_vmaas_access_token'
+459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer'
+fae78c8d036d4ea3a9cdf8ff9c75d01a97bee768946c38b0ce68f89f335fab4c  -
+[0m
+### Classification Tables
 
----
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none)* | — | — | No live hardcoded credentials found in delta |
 
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No hardcoded live credentials found in this delta |
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | SHA256 (of value) |
+|------|------|---------|-------------------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | `459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` (variable interpolation) | — |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (secret refs) | — |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` URLs | — |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` (secret ref) | — |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified source-map parser error strings | — |
+| google/gopacket/layers/radiotap.go | 552,554,556 | RadioTap protocol constants (`"80(20LL)"` etc.) | — |
+| google/myelin-acorn-electron-hardware/third_party/nanopb/tools/make_windows_package.sh | 39 | Windows CRT assembly manifest | — |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | SPDY protocol comment | — |
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Legacy OpenSSL RSA key format comment | — |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Obfuscated test JS | — |
+| microsoft/agent-governance-toolkit/.github/workflows/*.yml | multiple | `${{ secrets.GITHUB_TOKEN }}` (secret refs) | — |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` (placeholder) | — |
 
----
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | SHA256 |
+|------|------|----------|--------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | `fae78c8d036d4ea3a9cdf8ff9c75d01a97bee768946c38b0ce68f89f335fab4c` |
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/gopacket/layers/radiotap.go | 552,554,556 | Radiotap protocol constants (`80(20LL)`, `80(20LU)`, `80(20UL)`) |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` — Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | Test PyPI URLs (`test.pypi.org`) |
-| google/myelin-acorn-electron-hardware/third_party/nanopb/tools/make_windows_package.sh | 39 | Microsoft VC90 CRT `publicKeyToken="1fc8b3b9a1e18e3b"` — known public key |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment with dev.chromium.org URL |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment about OpenSSL RSA key format |
-| microsoft/ALAppExtensions/.github/workflows/CICD.yaml | 93 | `${{ fromJson(steps.ReadSubmodulesToken.outputs.Secrets).gitSubmodulesToken }}` — Actions secret ref |
-| microsoft/ALAppExtensions/.github/workflows/_BuildALGoProject.yaml | 139 | Same pattern — Actions secret ref |
-| microsoft/Memora/app/locomo/conf/config.yaml | 55 | `"${oc.env:OPENAI_API_KEY,}"` — config template, env var reference |
-| microsoft/Memora/app/longmemeval/conf/config.yaml | 48 | Same — config template |
-| microsoft/amplifier-core/scripts/e2e-smoke-test.sh | 190-192 | `-e ANTHROPIC_API_KEY="$ANTHROPIC_API_KEY"` etc. — shell env var refs |
-| microsoft/qlib/.github/workflows/release.yml | 63, 107 | Test PyPI upload URLs |
-| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` — obvious test fixture |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19,20,24 | Test fixtures: `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R`, `AKIA5SXYO7WZ3PLMN8RTV` |
-| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` — test fixture |
-| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` — eval test data |
-| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` — eval test data |
-
----
-
-### ENDPOINT_LEAK
+#### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| microsoft/edit/.cargo/release-windows-ms.toml | 11 | `pkgs.dev.azure.com/microsoft/Dart/_packaging/Edit_PublicPackages/Cargo/index/` — public Azure Artifacts feed |
-| microsoft/edit/.pipelines/release.yml | 121, 127 | Same public feed + `RustTools` NuGet feed — public endpoints |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to cloud metadata endpoint `169.254.169.254` (well-known, not a leak) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` params (config surface) |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563,566,568 | Cloud IMDS endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (well-known) |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183,184 | Same IMDS endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13,14 | Same IMDS endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | Same IMDS endpoints |
 
 ---
 
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| *(none actionable)* | | All items are either public feed URLs, known Microsoft keys, or test fixtures |
+### SHORT VERDICT LIST
 
----
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `esrp-publish.yml:1180` internal timestamp server URL | ENDPOINT_LEAK | **no** (internal infra URL, no auth bypass; corp.microsoft.com subdomain) |
+| All auth_credential.py / auth_schemes.py / auth_helpers.py hits | TEST_OR_EXAMPLE | **no** (placeholder/fixture values, `"..."` truncation, `"your_client_secret"`, `"password"`) |
+| `vmaas_access_token` key name | TEST_OR_EXAMPLE | **no** (storage key name, not a token value) |
+| `GOOGLE_API_KEY={google_api_key}` | TEST_OR_EXAMPLE | **no** (variable interpolation, not hardcoded) |
+| GitHub Actions `${{ secrets.* }}` refs | TEST_OR_EXAMPLE | **no** (correct secret usage pattern) |
+| Cloud IMDS endpoints (`169.254.169.254`, etc.) | INTERESTING | **no** (well-known public metadata IPs) |
+| Source-map JS chunks, radiotap constants, SPDY comments | TEST_OR_EXAMPLE | **no** (build artifacts / protocol constants) |
 
-### VERDICT SUMMARY
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/gopacket radiotap tokens | **no** | Protocol constants, not secrets |
-| google/magika workflow secrets | **no** | `${{secrets.*}}` references, not hardcoded values |
-| google/magika test.pypi.org URLs | **no** | Public test registry endpoints |
-| google/nanopb VC90 publicKeyToken | **no** | Microsoft's public CRT signing key (known) |
-| google/quiche SPDY/OpenSSL comments | **no** | Documentation comments |
-| microsoft/ALAppExtensions workflow tokens | **no** | Actions secret references via `fromJson` |
-| microsoft/Memora config templates | **no** | Env var interpolation (`${oc.env:...}`) |
-| microsoft/amplifier-core e2e script | **no** | Shell env var references (`$VAR`) |
-| microsoft/edit Azure Artifacts feeds | **no** | Public package feed URLs |
-| microsoft/qlib test.pypi.org | **no** | Public test registry |
-| microsoft/skill-recorder test fixtures | **no** | All `ghp_*`/`AKIA*` values are obviously fake test patterns (repeated across test files) |
-
-**NO REPORTABLE FINDINGS IN THIS DELTA** — all 37 hits (29 delta + 8 prior) are TEST_OR_EXAMPLE, secret references, config templates, or public endpoints.
+**No reportable findings in this delta.** All hits are test fixtures, placeholders, proper secret references, or well-known infrastructure endpoints. The single internal URL (`rfc3161.gtm.corp.microsoft.com`) is a timestamp server endpoint with no apparent auth-bypass impact.
