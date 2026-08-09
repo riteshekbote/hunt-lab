@@ -1,68 +1,8 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-### Classification Tables
+Let me analyze the scan results and classify each hit according to the categories provided. I need to be careful not to print full secret values, only file, line, and sha256.
 
-#### REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *(none found in this delta)* | | | |
+Let me go through the hits:
 
-#### TEST_OR_EXAMPLE (sample/test/fixture/placeholder data)
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml` | 11 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` — standard CI pattern |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum constant `GEMINI_API_KEY = "gemini_api_key"` — placeholder name |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Workflow template with `${{ steps.fetch-token.outputs.* }}` templating |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | Example: `HttpCredentials(username="user", password="password")` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | Example: `HttpCredentials(token="eyAkaknabna....")` — truncated placeholder |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` — auth scheme type label |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` |
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret references `${{ secrets.GEMINI_API_KEY }}` etc. |
-| `reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml` | 20 | GitHub Actions secret reference `${{secrets.GITHUB_TOKEN}}` |
-| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` | (multiple) | Minified JS build artifacts (parse error messages) |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js` | (multiple) | Minified JS build artifacts (parse error messages) |
-
-#### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Context |
-|------|------|---------|
-| `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml` | 407 | `url: https://test.pypi.org/p/magika` — public test PyPI endpoint (low risk) |
-
-#### INTERESTING (debug flags, cloud configs, config generators)
-| File | Line | Context |
-|------|------|---------|
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run Secret Manager reference pattern |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path: str \| None = None` — GKE auth config parameter |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | References to GCP metadata endpoint `169.254.169.254` |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — CLI config generator writes user-supplied key to `.env` |
-
----
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `skywater-pdk/.github/workflows/labeler.yml:11` | **no** | Standard `${{ secrets.GITHUB_TOKEN }}` reference — not a hardcoded secret |
-| `adk-go/cloudrun.go:246` | **no** | Secret Manager reference pattern, no secret material |
-| `agents-cli/auth.py:43` | **no** | Enum constant placeholder `"gemini_api_key"` |
-| `agents-cli/staging.yaml:168,192` | **no** | Workflow template with templating syntax |
-| `adk-python/auth_credential.py:126,238,247` | **no** | Docstring examples with obvious placeholders (`...`, `....`) |
-| `adk-python/auth_schemes.py:68` | **no** | Auth scheme type constant `"password"` |
-| `adk-python/auth_helpers.py:62` | **no** | Docstring example `"your_client_secret"` |
-| `adk-python/sandbox_computer.py:47` | **no** | Session state key name constant |
-| `langextract/ci.yaml:168-170` | **no** | GitHub Actions secret references |
-| `magika/labeler.yml:20` | **no** | GitHub Actions secret reference |
-| `magika/release.yml:407` | **no** | Public test.pypi.org URL |
-| `adk-python/gke_code_executor.py` | **no** | Config parameter definition |
-| `adk-python/container_code_executor.py` | **no** | Metadata endpoint reference (public knowledge) |
-| `adk-python/cli_create.py:123` | **no** | Config generator writes user input — no hardcoded secret |
-| All minified `.js` files | **no** | Build artifacts, parse error messages |
-
-**SUMMARY**: No REAL_SECRET findings in this delta. The single new hit (`skywater-pdk` labeler workflow) is a standard GitHub Actions secret reference. All other hits are test fixtures, docstring examples, build artifacts, or config patterns — consistent with the KNOWN DUPLICATES and REJECTED classes in the knowledge base. The previously ACCEPTED `earthengine-api` OAuth client_secret is **not present** in this scan's repo set.
+1. `reposcan-raw/google/ml-compiler-opt/buildbot/buildbot_init.sh:183: WORKAROUND
