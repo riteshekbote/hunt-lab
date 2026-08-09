@@ -720,3 +720,23 @@
 - LEARN: ACCEPTED: `oauth2.googleapis.com/tokeninfo` HEAD → 404 while GET → 200 method-handling inconsistency (minor quirk, no new exploit surface beyond already-ACCEPTE
 - LEARN: ACCEPTED: All prior findings remain live @ 2026-08-09 02:54:06 UTC — agentRegistration zero restrictions (873-char block, 0 OperationRestrictions), earthengine 
 - LEARN: ACCEPTED: Dual-issuer + kid-overlap precondition intact for v1↔v2 issuer-confusion — rotation churn (aFkmKVFc v1-exclusive → v2-exclusive → back) resolves to st
+
+## RANKED HYPOTHESES 2026-08-09 05:22:06 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: earthengine-api oauth.py:45 hardcoded OAuth client_secret in Google native-app SDK (from reports/hypotheses-laguna.txt)
+- [90] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app SDK source (from reports/hypotheses-ling3.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- [65] login.microsoftonline.com: v1.0↔v2.0 issuer-confusion token replay via shared signing keys + dual issuer namespaces (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials exchange against `https://oauth2.googleapis.com/token` using earthengine `oauth.py:45` client_id `517222506229-vsmmajv…` + 
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite secret sha256 `3f3f8d6f29db1b06cbfc212a718c1817
+- NEXT(hypotheses-ling3.txt): AUTH_HELPED: POST https://graph.microsoft.com/beta/copilot/agentRegistrations with a cross-principal createdBy (two different UUIDs) to test whether the IDOR bo
+- LEARN: ACCEPTED: login.microsoftonline.com/common/discovery/keys — v1.0 key set now shows 5 kids (v1) ⊂ 8 kids (v2), 0 v1-exclusive (steady-state subset invariant hold
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 05:18 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub (200 len=23110
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 05:18 UTC — HEAD → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer, 
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 05:18 UTC — v1=5 kids ⊂ v2=8 kids, 5 shared kids, 0 v1-exclusive; `Access-Control-Allow-Origin: *`, dual issue
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed still live @ 2026-08-09 04:12 UTC — raw GitHub `GET /google/earthengine-api/master/python/ee/oa
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed still live @ 2026-08-09 04:12 UTC — GET /beta/copilot/agentRegistrations → HTTP 401
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed still live @ 2026-08-09 04:12 UTC — 4 shared kids (0 v1-exclusive), Access-Control-Allow-Origin *, dual issuer namesp
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed still live @ 2026-08-09 04:12 UTC — no-param → HTTP 400 (113 bytes invalid_token JSON), accepts ?acces
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed still live @ 2026-08-09 04:12 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23835
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.

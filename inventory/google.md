@@ -264,3 +264,5 @@
 - NEW v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_token','id_token token']`; pure `token` implicit excl
 
 ## 2026-08-09 04:12:16 UTC
+
+## 2026-08-09 05:22:06 UTC
