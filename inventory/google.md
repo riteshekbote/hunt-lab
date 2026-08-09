@@ -306,3 +306,6 @@
 ## 2026-08-09 17:06:19 UTC
 
 ## 2026-08-09 17:48:19 UTC
+
+## 2026-08-09 18:19:10 UTC
+- CHANGED non-item — new robot probe `https://www.googleapis.com/auth/cloud-platform` → 404; scope strings are not HTTP endpoints, confirms no new surface.
