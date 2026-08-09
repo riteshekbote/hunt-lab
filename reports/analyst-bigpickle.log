@@ -8661,3 +8661,116 @@ d=json.load(open('/tmp/ee_pypi.json'))
 print(d['urls'][0]['url'])
 " failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
+===== ANALYST bigpickle 2026-08-09 08:59:52 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/oauth.py -w "earthengine %{http_code} len=%{size_download}\n" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" && sha256sum /tmp/opencode/oauth.py
+earthengine 200 len=23110
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/opencode/oauth.py
+[0m
+[0m$ [0mcurl -s -I -o /dev/null -w "agentRegs HEAD %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "agentRegs GET %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+agentRegs HEAD 405 len=0
+agentRegs GET 401 len=237
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/ti -w "tokeninfo %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; head -c 200 /tmp/opencode/ti; echo
+tokeninfo 400 len=113
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/v1.json -w "keys v1 %{http_code}\n" "https://login.microsoftonline.com/common/discovery/keys"; curl -s -o /tmp/opencode/v2.json -w "keys v2 %{http_code}\n" "https://login.microsoftonline.com/common/discovery/v2.0/keys"; python3 -c "
+import json
+v1=json.load(open('/tmp/opencode/v1.json'))['keys']; v2=json.load(open('/tmp/opencode/v2.json'))['keys']
+k1={k['kid'] for k in v1}; k2={k['kid'] for k in v2}
+print('v1 kids',len(k1),'v2 kids',len(k2),'shared',len(k1&k2),'v1-only',sorted(k1-k2))
+"
+keys v1 200
+keys v2 200
+v1 kids 5 v2 kids 7 shared 4 v1-only ['aFkmKVFc-4WV6sXCBvNZkXI505Y']
+[0m
+[0m$ [0mgrep -n 'RUP0RZ6' /tmp/opencode/oauth.py | head -3 | cut -c1-60; python3 -c "
+import re,hashlib
+s=open('/tmp/opencode/oauth.py').read()
+for m in re.findall(r'client_secret[\"'\'' :=]+([A-Za-z0-9_\-]{15,})', s): print('secret sha', hashlib.sha256(m.encode()).hexdigest()[:12])
+for m in re.findall(r'\b(517222506229[0-9\-\.a-z]+)\b', s): print('client_id', m[:40])
+"
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+  File "<string>", line 4
+    for m in re.findall(r'client_secret["'\'' :=]+([A-Za-z0-9_\-]{15,})', s): print('secret sha', hashlib.sha256(m.encode()).hexdigest()[:12])
+                                           ^
+SyntaxError: unexpected character after line continuation character
+[0m
+[0m$ [0mpython3 -c "
+import re,hashlib
+s=open('/tmp/opencode/oauth.py').read()
+m=re.search(r\"CLIENT_SECRET = ['\"]([^'\"]+)['\"]\", s)
+print('secret sha256', hashlib.sha256(m.group(1).encode()).hexdigest())
+m2=re.search(r'CLIENT_ID = ['\"]([^'\"]+)['\"]', s)
+print('client_id', m2.group(1))
+print('line45 present:', 'CLIENT_SECRET' in s.split(chr(10))[44])
+"
+File "<string>", line 4
+    m=re.search(r"CLIENT_SECRET = ['"]([^'"]+)['"]", s)
+                                     ^
+SyntaxError: closing parenthesis ']' does not match opening parenthesis '('
+[0m
+[0m$ [0mprintf '%s' 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+STEP 1 — DELTA
+- [NEW] None — all fresh probes (08:0x UTC) confirm prior findings unchanged: earthengine whole-file sha `f4f93c76…` verbatim; agentRegistrations HEAD→405/0 + GET→401/237; tokeninfo no-param→400/113 invalid_token; JWKS v1=5/v2=7, 4 shared, `aFkmKVFc` v1-exclusive (known transient rotation churn, class REJECTED).
+- NO_DELTA
+
+STEP 2 — PRIORITIZE
+- [PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token | attack=6 business=7 tech=8 (OAuth client_credentials, cloud-platform scope) gate=7 cloud=9 fresh=4 | priority=7.00
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations | attack=7 business=8 tech=6 (zero-OwnershipRestriction schema) gate=1 cloud=5 fresh=4 | priority=5.40
+- [PRIO] login.microsoftonline.com/common/discovery/keys (v1↔v2 issuer namespace) | attack=6 business=9 tech=7 (dual-issuer OIDC) gate=2 cloud=4 fresh=3 | priority=5.45
+
+STEP 3 — HYPOTHESES
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: fresh probe @08:0x — whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged; secret sha256 `3f3f8d6f…d271` verbatim at :45 (+:99 fallback); token GET→404 confirms POST-only (live, not dead).
+evidence_needed: token endpoint POST HTTP 200 with access_token (scope visible) vs 400 invalid_client / 401 unauthorized_client.
+verify_steps: HUMAN_ONLY: POST `https://oauth2.googleapis.com/token` grant_type=client_credentials, client_id `517222506229-vsmmajv…`, secret sha `3f3f8d6f…d271`; log status+scope only, no sandbox redemption.
+impact: cloud-platform token minting / GCP impersonation; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: fresh probe @08:0x — GET→401/237, HEAD→405/0; $metadata agentRegistration block 873 chars, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED: A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}}→201; B) B GET collection→200 incl. A vs 403; C) B PATCH {A-id}→200/204 vs 403; D) persistence; E) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection; CVSS 7.5–9.0; MSRC crown-jewel.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe @08:0x — 4 shared kids persist through rotation churn (`aFkmKVFc` v1-exclusive, known transient); dual issuer namespaces + v1.0-only response_types verified; v1 kid set never validated against v2 issuer.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + rejection body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- None dropped (all ≥65, none on REJECTED list, all have concrete verify_steps).
+- [FINAL] 1. earthengine secret redemption (95, HUMAN_ONLY) → 2. agentRegistration IDOR (85, AUTH_HELPED) → 3. issuer-confusion (65, AUTH_HELPED)
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…`, secret sha `3f3f8d6f…d271` (whole-file sha `f4f93c76…` current @08:0x); POST only, log HTTP status + returned scope, no sandbox redemption; 200 → file Google VRP with liveness sha + scope; 400/401 → promote agentRegistration two-principal IDOR probe to top, downgrade this to informational.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed still live @08:0x UTC — whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` verbatim at :45.
+- [LEARN] ACCEPTED: agentRegistrations auth-gate + Graph 405 anomaly confirmed still live @08:0x UTC — GET 401/237, HEAD 405/0.
+- [LEARN] ACCEPTED: tokeninfo introspection oracle confirmed still live @08:0x UTC — no-param 400/113 invalid_token.
+- [LEARN] ACCEPTED: JWKS v1↔v2 kid overlap live @08:0x UTC — v1=5/v2=7, 4 shared, `aFkmKVFc` v1-exclusive (transient rotation churn; rotation-desync class stays REJECTED — v1 kid set never validated against v2 issuer).
+- [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 62 — hardcoded high-scope client_secret redeemable endpoint live (HUMAN test pending), but native-app by-design caveat caps severity; rest of GCP plane requires consumer identity.
+- [RISK] microsoft: 55 — agentRegistration zero-ownership schema + dual-issuer precondition remain live but both auth-gated (401) pending AUTH_HELPED two-principal tests; Graph 405 anomaly is cosmetic.

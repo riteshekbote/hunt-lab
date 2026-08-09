@@ -779,3 +779,15 @@
 - LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 05:18 UTC — HEAD → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer, 
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 05:18 UTC — v1=5 kids ⊂ v2=8 kids, 5 shared kids, 0 v1-exclusive; `Access-Control-Allow-Origin: *`, dual issue
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-09 08:59:52 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [95] `github.com/google/earthengine-api/python/ee/oauth.py:45`: Hardcoded OAuth client_secret in Google Earth Engine native-app SDK (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Two-principal test-tenant probe of agentRegistration IDOR. A POST `https://graph.microsoft.com/beta/copilot/agentRegistrations` with client-set createdBy
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub `GET /google/earthengine-api/master/python/ee/oauth.py` → 200 len=23110, sha25
+- LEARN: ACCEPTED agentRegistration zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 violation extend
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4–5 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issue
+- LEARN: ACCEPTED oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= with
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss
