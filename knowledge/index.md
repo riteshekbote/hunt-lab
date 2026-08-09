@@ -343,3 +343,5 @@
 - 2026-08-09 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, RFC 6749 §3 violation) per KB.
 - 2026-08-09 ACCEPTED: Graph API 405 anomaly confirmed live @ 18:30 UTC — HEAD /v1.0 → 405/0 (no WWW-Authenticate Bearer), extends to /beta/copilot/agentRegistrations.
 - 2026-08-09 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 18:30 UTC).
+- 2026-08-09 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1=4⊂v2=8/7 steady-state subset holds with 0 persistent v1-exclusive (aFkmKVFc churn is transient, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface).
+- 2026-08-09 ACCEPTED tokeninfo oracle HEAD→404 gap @ oauth2.googleapis.com/tokeninfo: minor method-handling inconsistency, no new exploit surface beyond already-accepted no-Authorization-header query-param introspection (no-reward per Google VRP program rules).

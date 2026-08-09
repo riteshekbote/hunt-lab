@@ -2180,3 +2180,28 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: oauth2.googleapis.com/token GET→404 confirmed (POST-only) — scope strings (`cloud-platform` auth URL) are not HTTP endpoints; no new surface from the 17:48 scope probe.
 [RISK] google: 45 — one confirmed hardcoded OAuth client_secret (sha `3f3f8d6f…d271`; native-app by-design caveat pending VRP determination) + tokeninfo introspection oracle; otherwise hardened root. Unchanged.
 [RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.
+## 2026-08-09 19:07:27 UTC [google] (model bigpickle)
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: this probe — GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), OPTIONS→200 (CORS *, full mutation allowlist); $metadata 873-char block, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}}→201; B) B GET collection→200 incl. A vs 403; C) B PATCH {A-id}→200/204 vs 403; D) persistence; E) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel.
+testability: AUTH_HELPED
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: this probe — raw GitHub 200, whole-file sha `f4f93c76…` unchanged, client_id at :43, secret at :45 (+:99 fallback), secret-value sha `3f3f8d6f…d271` verbatim; token endpoint GET→404 confirms POST-only.
+evidence_needed: POST /token → 200 access_token with cloud-platform scope vs 400 invalid_client / 401 unauthorized_client.
+verify_steps: HUMAN_ONLY: authorized POST `https://oauth2.googleapis.com/token` grant_type=client_credentials, client_id `517222506229-vsmmajv…` + secret (sha `3f3f8d6f…d271`); log status + scope only, no sandbox redemption.
+impact: cloud-platform token minting / GCP impersonation; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: this probe — v1=4 kids ALL identical to v2=4 kids (subset invariant holds, 0 v1-exclusive); dual issuer namespaces + v1.0-only response_type=token/hybrid verified; v1 kid set never validated against v2 issuer — replay precondition intact (rotation-desync class stays REJECTED; issuer-confusion sub-claim distinct).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
