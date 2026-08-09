@@ -685,3 +685,21 @@
 - LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, extends Graph 405
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids)⊂v2(8 kids), 0 v1-exclusive, `Access-Control-Allow-Origin: *`; issuer-confusion precondition valid pe
 - LEARN: ACCEPTED v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_toke
+
+## RANKED HYPOTHESES 2026-08-09 02:54:06 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in Google native-app SDK source (from reports/hypotheses-laguna.txt)
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite secret sha256 `3f3f8d6f29db1b06cbfc212a718c1817
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlie
+- LEARN: ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), eart
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 00:37 UTC — `RUP0RZ6e0pPd1` sha256 matches KB `3f3f8d6f…d271`; line :45 + :99 fallback + 
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, extends Graph 405
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids)⊂v2(8 kids), 0 v1-exclusive, `Access-Control-Allow-Origin: *`; issuer-confusion precondition valid pe
+- LEARN: ACCEPTED v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_toke
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 02:50 UTC — plaintext `RUP0RZ6e0pPd1` readable from raw GitHub (200 len=23110), sha256 `3
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live @ 02:50 UTC — GET /beta/copilot/agentRegistrations → HTTP 401 (auth-gated), HEA
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 02:50 UTC — v1=5 kids, v2=7 kids, 4 shared kids (`AahUf1bC`, `fEtqrhKT`, `jvm_-Ttaq`, `6hXLaIYN`), 1 v1-exclusi
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed live @ 02:50 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23835-byte body) instea
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 02:50 UTC — GET /tokeninfo no-param → HTTP 400 (113 bytes invalid_token JSON), accepts ?access_t
