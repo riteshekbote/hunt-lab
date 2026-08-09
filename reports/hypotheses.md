@@ -893,3 +893,20 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issuer
 - LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= wit
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive was transient rotation churn; v1(4)⊂v2(7) steady-state subset holds, v
+
+## RANKED HYPOTHESES 2026-08-09 14:48:07 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in earthengine-api native-app SDK (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs htt
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 14:03 UTC).
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET → 200 len=23110, sha256 `3f3f8d6f…d271` verbatim at line :45 + :99 fallba
+- LEARN: ACCEPTED: agentRegistration zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 violation exten
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issuer
+- LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= wit
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive was transient rotation churn; v1(4)⊂v2(7) steady-state subset holds, v
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 14:45 UTC — raw GitHub GET → 200 len=23110, sha256(secret) `3f3f8d6f…d271` verbatim, whol
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live @ 14:45 UTC — HEAD→405 (Content-Length: 0, no WWW-Authenticate Bearer), extends
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 14:45 UTC — v1(4 kids)⊂v2(8 kids), 0 v1-exclusive (strict subset invariant holds, rotation churn resolved); dua
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 14:45 UTC — GET→400/113 invalid_token, HEAD→404 method-handling gap; accepts ?access_token=/ ?id
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed live @ 14:45 UTC — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (41309-byte body) instea
+- LEARN: ACCEPTED Graph API 405 anomaly confirmed live @ 14:45 UTC — HEAD /v1.0 + /beta/copilot/agentRegistrations → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bea

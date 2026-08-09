@@ -1977,3 +1977,31 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 ## 2026-08-09 13:59:44 UTC [google] (model bigpickle)
+## 2026-08-09 14:45:39 UTC [google] (model bigpickle)
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: fresh probe — HEAD→405/0, GET/PATCH/POST→401/237, preflight OPTIONS→200 (`*`, DELETE/GET/OPTIONS/POST/PUT/PATCH); $metadata 873-char block, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions; 5 sibling EntityTypes share pattern.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}}→201; B) B GET collection→200 incl. A vs 403; C) B PATCH {A-id}→200/204 vs 403; D) persistence; E) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: whole-file sha `f4f93c76…` unchanged this cycle; secret verbatim at :45 (bare sha `3f3f8d6f…d271`), :99 fallback, TOKEN_URI at :53; GET→404 confirms POST-only live endpoint; client_id `517222506229-vsmmajv…` at :43.
+evidence_needed: POST token → 200 access_token with cloud-platform scope vs 400 invalid_client/401 unauthorized_client.
+verify_steps: HUMAN_ONLY: POST `https://oauth2.googleapis.com/token` grant_type=client_credentials, client_id `517222506229-vsmmajv…`, secret sha `3f3f8d6f…d271`; log status+scope only, no sandbox redemption; 200 → Google VRP with liveness sha+scope.
+impact: cloud-platform token minting / GCP impersonation; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion token replay via shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: this cycle v1=5/v2=7 with 4 shared kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN), aFkmKVFc v1-exclusive (transient rotation churn, rotation-desync class stays REJECTED); dual issuer namespaces + v1.0-only response_type=token/hybrid verified; v1 kid set never validated against v2 issuer — replay precondition intact.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
