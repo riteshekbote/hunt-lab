@@ -1,112 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw/google/* reposcan-raw/microsoft/* 2>/dev/null | tail -1
-0 total
-[0m
-[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/
-total 1472
-drwxr-xr-x 12 runner runner   4096 Aug  9 18:28 .
-drwxr-xr-x  3 runner runner   4096 Aug  9 18:27 ..
-drwxr-xr-x  7 runner runner   4096 Aug  9 18:28 .git
-drwxr-xr-x  3 runner runner   4096 Aug  9 18:27 .github
--rw-r--r--  1 runner runner   1022 Aug  9 18:27 README.md
--rw-r--r--  1 runner runner    795 Aug  9 18:27 cands-google.txt
--rw-r--r--  1 runner runner    926 Aug  9 18:27 cands-microsoft.txt
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 inventory
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 knowledge
-drwxr-xr-x  2 runner runner  12288 Aug  9 18:27 leads
--rw-r--r--  1 runner runner   6858 Aug  9 18:27 probe-results.md
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 reports
--rw-r--r--  1 runner runner 631336 Aug  9 18:27 repos-google.json
--rw-r--r--  1 runner runner 660162 Aug  9 18:27 repos-microsoft.json
-drwxr-xr-x  4 runner runner   4096 Aug  9 18:27 reposcan-raw
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 research
--rw-r--r--  1 runner runner 103122 Aug  9 18:28 scan-prompt.txt
--rw-r--r--  1 runner runner   1650 Aug  9 18:27 scope.yml
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 scripts
--rw-r--r--  1 runner runner     44 Aug  9 18:27 state_bigpickle.json
--rw-r--r--  1 runner runner     44 Aug  9 18:27 state_laguna.json
--rw-r--r--  1 runner runner     41 Aug  9 18:27 state_ling3.json
--rw-r--r--  1 runner runner     41 Aug  9 18:27 state_longcat.json
--rw-r--r--  1 runner runner     41 Aug  9 18:27 state_nemotron3.json
-drwxr-xr-x  2 runner runner   4096 Aug  9 18:27 triage
-[0m
-[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/
-total 156
-drwxr-xr-x   4 runner runner  4096 Aug  9 18:27 .
-drwxr-xr-x  12 runner runner  4096 Aug  9 18:28 ..
--rw-r--r--   1 runner runner  1767 Aug  9 18:29 analysis.txt
-drwxr-xr-x 186 runner runner  4096 Aug  9 18:27 google
--rw-r--r--   1 runner runner    40 Aug  9 18:28 grep-delta.txt
--rw-r--r--   1 runner runner 11446 Aug  9 18:27 grep-hits.prev.txt
--rw-r--r--   1 runner runner 11446 Aug  9 18:28 grep-hits.txt
-drwxr-xr-x 397 runner runner 20480 Aug  9 18:27 microsoft
--rw-r--r--   1 runner runner 90662 Aug  9 18:28 rag.txt
-[0m
-[0m→ [0mRead reposcan-raw/analysis.txt
-[0m→ [0mRead reposcan-raw/grep-hits.txt
-Now I have the full scan data. Let me classify all 61 hits:
+Let me analyze the scan results and classify each hit according to the categories specified. I need to be careful not to print full secret values, only file, line, and sha256 of the secret material.
 
-### REAL_SECRET
-| File | Line | Classification | SHA256 (secret material) | Verdict |
-|------|------|----------------|---------------------------|---------|
-| *none found in this scan* | | | | |
+Let me go through each hit:
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
-| google/agents-cli/.../staging.yaml | 168 | GitHub Actions workflow template variable `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/.../staging.yaml | 192 | GitHub Actions workflow template variable `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/adk-python/.../cli_create.py | 123 | CLI tool writing config with variable `GOOGLE_API_KEY={google_api_key}` |
-| google/adk-python/.../cli/browser/chunk-*.js | 12-30 | Minified JS build artifacts (parser error messages) |
-| google/adk-python/.../auth_credential.py | 126 | Test placeholder `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| google/adk-python/.../auth_credential.py | 238 | Test credentials `username="user", password="password"` |
-| google/adk-python/.../auth_credential.py | 247 | Test token placeholder `token="eyAkaknabna...."` |
-| google/adk-python/.../auth_schemes.py | 68 | Constant placeholder `PASSWORD = "password"` |
-| google/adk-python/.../auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/.../sandbox_computer.py | 47 | State key constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| google/tunix/.../base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` |
-| google/tunix/.../base_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` |
-| google/flatbuffers/.../label.yml | 24 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| microsoft/agent-governance-toolkit/.../labeler.yml | 20 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| microsoft/agent-governance-toolkit/.../auto-merge-dependabot.yml | 41 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| microsoft/agent-governance-toolkit/.../pr-size.yml | 20 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| microsoft/agent-governance-typescript/.../extension.ts | 399 | Placeholder `api_key = "sk-REPLACE-WITH-YOUR-KEY"` |
+**Google hits:**
 
-### ENDPOINT_LEAK
-| File | Line | Leaked Endpoint |
-|------|------|-----------------|
-| google/libultrahdr/.../image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/third_party/libexif/` (internal code search) |
-| google/uncertainty-baselines/.../train_tf_lib.py | 706 | `https://b.corp.google.com/issues/124099628` (internal bug tracker) |
-| microsoft/agent-governance-toolkit/.../esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal timestamp server) |
+1. `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:43: GEMINI_API_KEY = "gemini_api_key"` - This looks like a placeholder/test value "gemini_api_key", not a real key. TEST_OR_EXAMPLE
 
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/.../gke_code_executor.py | 103,104,115 | GKE kubeconfig path/context parameters (cloud config surface) |
-| google/adk-python/.../container_code_executor.py | 114,154 | References to cloud metadata endpoint `169.254.169.254` |
-| google/tunix/.../base_rl_pipeline.py | 862 | KUBECONFIG env var set from config `~/.kube/config` |
-| google/tunix/.../chat_template_parser/parser.py | 193-195 | Chat template token constants (`eot_token`, `system_token`, `user_token`) |
-| microsoft/agent-governance-dotnet/.../OpaPolicyBackend.cs | 563,566,568 | Cloud metadata endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` |
-| microsoft/agent-governance-golang/.../policy_backends.go | 183-184 | Cloud metadata endpoints: `169.254.169.254`, `metadata.google.internal` |
-| microsoft/agent-governance-typescript/.../opa.ts | 13-14 | Cloud metadata endpoints: `169.254.169.254`, `metadata.google.internal` |
-| microsoft/agent-governance-typescript/.../cedar.ts | 8,11,13 | Cloud metadata endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` |
-| microsoft/agent-governance-toolkit/.../acs-policy-configmap.yaml | 2 | K8s ConfigMap (policy config surface) |
-| microsoft/agent-governance-python/.../configmap.yaml | 2 | K8s ConfigMap (policy config surface) |
+2. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168: export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"` - This is a GitHub Actions template variable, not a secret. TEST_OR_EXAMPLE
 
----
+3. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192: export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"` - Same, GitHub Actions template. TEST_OR_EXAMPLE
 
-### SHORT VERDICT LIST
+4. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103: kubeconfig_path: str | None = None` - Parameter definition, not a secret. TEST_OR_EXAMPLE
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *(no REAL_SECRET hits this scan)* | — | **no** |
-| Internal Google URLs (cs.corp, b.corp) | ENDPOINT_LEAK | no (info only, no auth bypass) |
-| Internal Microsoft timestamp server (rfc3161.gtm.corp) | ENDPOINT_LEAK | no (internal infra, no direct exploit) |
-| Cloud metadata endpoint references (169.254.169.254, etc.) | INTERESTING | no (documented public endpoints, not secrets) |
-| K8s ConfigMap / kubeconfig references | INTERESTING | no (config surface, no creds) |
-| Chat template token constants | INTERESTING | no (not secrets) |
+5. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104: kubeconfig_context: str | None = None` - Parameter definition. TEST_OR_EXAMPLE
 
-**Summary**: 0 REAL_SECRET candidates in this delta scan. The previously ACCEPTED `earthengine-api` hardcoded OAuth client_secret (sha256 `3f3f8d6f...d271`) remains live per knowledge base but was not in this scan's new hits (NO_DELTA). All 490 hits are TEST_OR_EXAMPLE (31), ENDPOINT_LEAK (3), or INTERESTING (27) — none are reportable secrets.
+6. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115: kubeconfig_path: str | None = None,` - Parameter definition. TEST_OR_EXAMPLE
+
+7. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114: cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For` - Comment about metadata endpoint. INTERESTING (cloud metadata endpoint reference)
+
+8. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154: network -- in particular the cloud metadata endpoint at 169.254.169.254` - Same, comment. INTERESTING
+
+9. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:123: lines.append(f"GOOGLE_API_KEY={google_api_key}")` - This is writing a variable to a file, could be a real secret being written. Need to check context. This looks like it's generating a config file with an API key. Could be REAL_SECRET if google_api_key is a real value.
+
+10. `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js:3` - These are minified JS parser error messages, not secrets. TEST_OR_EXAMPLE
+
+11. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:126: private_key="-----BEGIN PRIVATE KEY-----...",` - This looks like a placeholder private key in test/example code. TEST_OR_EXAMPLE
+
+12. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:238: credentials=HttpCredentials(username="user", password="password"),` - Placeholder credentials. TEST_OR_EXAMPLE
+
+13. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:247: credentials=HttpCredentials(token="eyAkaknabna...."),` - Placeholder JWT token. TEST_OR_EXAMPLE
+
+14. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"` - Placeholder constant. TEST_OR_EXAMPLE
+
+15. `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",` - Placeholder. TEST_OR_EXAMPLE
+
+16. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` - Constant key name, not a secret value. TEST_OR_EXAMPLE
+
+17. `reposcan-raw/google/uncertainty-baselines/experimental/shoshin/train_tf_lib.py:706: # Optimizer will not be loaded (https://b.corp.google.com/issues/124099628),` - Internal issue link. INTERESTING (internal Google issue tracker)
+
+18. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder. TEST_OR_EXAMPLE
+
+19. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path, not a secret. TEST_OR_EXAMPLE
+
+20. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder. TEST_OR_EXAMPLE
+
+21. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195: eot_token="
