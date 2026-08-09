@@ -80,3 +80,4 @@ testability: PASSIVE
 [PARKED] Hardcoded OAuth client_secret at earthengine-api oauth.py:45: confidence is 90 but this is already a confirmed LIVE finding in the knowledge base — no new verification needed, it's already proven.
 [PARKED] Graph API 405 anomaly at graph.microsoft.com/v1.0: confidence is 80 but this is already an ACCEPTED finding in the knowledge base — no new verification needed, it's already proven live.
 [NEXT] AUTH_HELPED: POST https://graph.microsoft.com/beta/copilot/agentRegistrations with a cross-principal createdBy (two different UUIDs) to test whether the IDOR boundary is bypassed.
+## 2026-08-09 06:04:07 UTC [google] (model ling3)
