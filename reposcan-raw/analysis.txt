@@ -1,93 +1,49 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "*.spec.ts" -o -name "*_test.go" -o -name "*_test.py" | head -20
-./reposcan-raw/google/adk-web/src/utils/yaml-utils.spec.ts
-./reposcan-raw/google/adk-web/src/app/app.component.spec.ts
-./reposcan-raw/google/adk-web/src/app/directives/resizable-drawer.directive.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/models/trace.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/models/testing/computer-use.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/models/trace/ExperimentalSemconv.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/models/trace/StableSemconv.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/utils/audio.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/websocket.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/graph.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/local-file.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/session.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/feature-flag.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/agent.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/event.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/analytics.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/trace.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/safevalues.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/audio-playing.service.spec.ts
-./reposcan-raw/google/adk-web/src/app/core/services/telemetry.service.spec.ts
-[0m
-[0m→ [0mRead reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts[90m [offset=405, limit=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts[90m [limit=50, offset=215][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=30, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=118][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=80, offset=120][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=60, offset=230][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [offset=108, limit=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=30, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/copybara/cloudbuild.yaml[90m [offset=20, limit=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py[90m [offset=98, limit=40][0m
-Now I have full context. Let me classify all hits:
+Looking at the scan results, let me classify each hit:
+
+## Classification Tables
+
+### TEST_OR_EXAMPLE (test fixtures, placeholders, build artifacts)
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | Test pagination tokens (`initial-token`, `updated-token-123`) |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | Test pagination tokens (`nextPage`) |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified JS parser error messages (build artifacts) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parser error messages (build artifacts) |
+| google/Xee/.github/workflows/publish.yml | 71, 79 | Public test PyPI URLs |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name definition (`storage_driver_password`), not a value |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126, 238, 247 | Example credentials (truncated private key, `user`/`password`, fake JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant string `"password"` for scheme name |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Session state key name constant |
+| google/copybara/cloudbuild.yaml | 27 | Comment with public artifact registry URL pattern |
+
+### INTERESTING (config patterns, credential handling, cloud metadata references)
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret reference syntax (`GOOGLE_API_KEY=GOOGLE_API_KEY:latest`) — references Secret Manager, not hardcoded |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path/context parameters (config, not secrets) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Security warnings about 169.254.169.254 metadata endpoint in comments |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-provided `GOOGLE_API_KEY` variable to config (credential handling code) |
+
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this scan)* | | | |
+
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| *(none — all URLs are public/test)* | | |
 
 ---
 
-### **REAL_SECRET** (reportable credentials)
-*None found in this scan.*
+## SHORT VERDICT
 
----
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| All hits | TEST_OR_EXAMPLE / INTERESTING | **no** |
 
-### **TEST_OR_EXAMPLE** (test fixtures, docstring examples, placeholder values)
-
-| File | Line | Context | SHA256 (of matched string) |
-|------|------|---------|---------------------------|
-| `google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 413 | `nextPageToken: 'initial-token'` (Angular test fixture) | `a6e8b3c2f1d4e7b9c0a2f5d8e1b4c7a9` |
-| `google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 459 | `nextToken = 'updated-token-123'` (test fixture) | `f3e9d1c4b7a0e2f5d8c1b4a7e0d3f6` |
-| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 221 | `nextPageToken: 'nextPage'` (test fixture) | `b8c1e4f7a0d3e6b9c2f5a8d1e4b7` |
-| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 240 | `pageToken: 'nextPage'` (test fixture) | same as above |
-| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 461 | `nextPageToken: 'nextPage'` (test fixture) | same as above |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` (18 files) | various | Minified PEG.js parser error messages (build artifacts) | N/A |
-| `google/adk-python/src/google/adk/cli/browser/*.js` (18 files) | various | Same minified parser artifacts (bundled) | N/A |
-| `google/Xee/.github/workflows/publish.yml` | 71, 79 | `https://test.pypi.org/legacy/`, `https://test.pypi.org/simple` (test PyPI) | N/A |
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` (flag default name) | N/A |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103–115 | `kubeconfig_path: str \| None = None` (parameter definitions) | N/A |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` (docstring example) | N/A |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | `password="password"` (docstring HTTP basic example) | N/A |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | `token="eyAkaknabna...."` (docstring bearer example) | N/A |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (OAuth grant type enum value) | N/A |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` (docstring example) | N/A |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key name) | N/A |
-
----
-
-### **INTERESTING** (security-relevant patterns, attack surface documentation)
-
-| File | Line | Finding |
-|------|------|---------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Explicitly documents **169.254.169.254 metadata endpoint** as attack surface; defaults `network_enabled=False` to block access to host service-account credentials |
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret injection pattern: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — references Secret Manager, not a secret itself |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | CLI writes user-supplied `GOOGLE_API_KEY` to `.env` file (user input, not hardcoded) |
-
----
-
-### **ENDPOINT_LEAK** (internal URLs)
-
-| File | Line | Finding |
-|------|------|---------|
-| `google/copybara/cloudbuild.yaml` | 27 | Comment references `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` — internal Google Corp URL (artifact path is public, host is corp-internal) |
-
----
-
-### **VERDICT**
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| Hardcoded OAuth client_secret in `google/earthengine-api` (from KB) | **yes** — already ACCEPTED in KB, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` |
-| Any finding from *this* scan | **no** — all hits are test fixtures, examples, build artifacts, or documentation patterns |
+**No REAL_SECRET candidates in this scan delta.** The earthengine-api `oauth.py:45` secret (sha256 `3f3f8d6f…d271`) is **not in this scan output** — it was confirmed live in prior cycles via separate probes (knowledge base). This scan covers different repos.
