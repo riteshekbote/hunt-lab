@@ -1,68 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "testpassword" | sha256sum | cut -d' ' -f1
-9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05
-[0m
-[0m$ [0mecho -n "gemini_api_key" | sha256sum | cut -d' ' -f1
-d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e
-[0m
-[0m$ [0mecho -n "40150cc2c638b09de8ebbfefd50b80a4" | sha256sum | cut -d' ' -f1
-b6905a8d45f30542bc9b068a8b9081a048778e98fb439242389242a42f6c4895
-[0m
-### Classification Tables
+Looking at the scan results, all new delta hits are in test files with obvious test values. Let me classify everything:
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* | | | |
+## Classification Tables
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context | SHA256 |
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Content | Reason |
 |------|------|---------|--------|
-| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `String password = "testpassword";` | `9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05` |
-| reposcan-raw/google/xrblocks/src/ai/AI.ts | 304 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}` | placeholder |
-| reposcan-raw/google/xrblocks/src/ai/AI.ts | 305 | `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` | placeholder |
-| reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413,459 | `'initial-token'`, `'updated-token-123'` | test fixtures |
-| reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221,240,461 | `'nextPage'` | test fixtures |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | `d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e` |
-| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | GH Actions secret refs |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | placeholder |
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123";` | Test fixture in `javatests/` |
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | `String password = "testpassword";` | Test fixture |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | `String password = "testpassword";` | Test fixture |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | `String password = "testpassword";` | Test fixture |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | `String password = "testpassword";` | Test fixture |
+| google/xrblocks/src/ai/AI.ts | 304-305 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | Placeholder template |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | Test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Test token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant name, not secret |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| reposcan-raw/google/osv.dev/deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml | 16 | `https://test.osv.dev` |
-| reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `pantheon.corp.google.com/auth/clients` (internal console) |
-| reposcan-raw/google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` |
-| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/v1experimental/...`, `https://api.test.osv.dev/v1/vulns/...` |
-| reposcan-raw/google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` |
-| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` |
-| reposcan-raw/google/yggdrasil-decision-forests/.../export_docker.py | 68 | `pantheon.corp.google.com/run` (internal console) |
+### ENDPOINT_LEAK (internal/staging URLs)
+| File | Line | Content |
+|------|------|---------|
+| google/yggdrasil-decision-forests/.../export_docker.py | 68 | `https://pantheon.corp.google.com/run` |
+| google/osv.dev/.../run-staging.yaml | 23 | `pantheon.corp.google.com/auth/clients` |
+| google/osv.dev/.../*.yaml | multiple | `test.osv.dev` staging endpoints |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/docker/...` |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| reposcan-raw/google/osv.dev/external/pypi/pypi.go | 80 | Insecure HTTP allowlist: `"http://dev.mysql.com": true` |
-| reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | Same insecure HTTP allowlist |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig params, cloud metadata endpoint `169.254.169.254` mentioned |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint privilege escalation warning |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` written to file (user key persistence) |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (token storage key) |
-| reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia apiKey `40150cc2c638b09de8ebbfefd50b80a4` (sha256 `b6905a8d...`) — **REJECTED per KB: search-only key, public by design** |
+### INTERESTING (debug/cloud metadata references)
+| File | Line | Content |
+|------|------|---------|
+| google/adk-python/.../container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` privilege escalation notes |
+| google/adk-python/.../gke_code_executor.py | 103-115 | kubeconfig path/context params |
+| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+
+### ALREADY KNOWN (from KB)
+- **REJECTED**: `google/xrblocks/docs/docusaurus.config.ts:175` — Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` (search-only, public by design)
+- **ACCEPTED (prior scan)**: `google/earthengine-api/python/ee/oauth.py:45` — Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — **NOT in this scan's hits** (different repo)
 
 ---
 
-### Verdict List
+## Verdict List
 
 | Candidate | Category | REPORT_CANDIDATE |
 |-----------|----------|------------------|
-| earthengine-api oauth.py:45 (from KB) | REAL_SECRET (pre-existing) | yes (already tracked) |
-| All delta hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** |
-| xrblocks Algolia key | INTERESTING (but REJECTED in KB) | **no** |
+| copybara javatests (5 hits) | TEST_OR_EXAMPLE | **no** |
+| xrblocks AI.ts placeholders | TEST_OR_EXAMPLE | **no** |
+| xrblocks Algolia apiKey | REJECTED (known) | **no** |
+| agents-cli auth.py placeholder | TEST_OR_EXAMPLE | **no** |
+| adk-python auth_credential.py test fixtures | TEST_OR_EXAMPLE | **no** |
+| adk-python auth_schemes.py constant | TEST_OR_EXAMPLE | **no** |
+| adk-python openapi_tool placeholder | TEST_OR_EXAMPLE | **no** |
+| osv.dev staging URLs | ENDPOINT_LEAK | **no** |
+| copybara cloudbuild internal URL | ENDPOINT_LEAK | **no** |
+| yggdrasil pantheon.corp URL | ENDPOINT_LEAK | **no** |
+| container_code_executor metadata refs | INTERESTING | **no** (defensive code comment) |
+| earthengine-api oauth.py secret | REAL_SECRET (prior) | **yes** (already tracked) |
 
-**Summary**: No new reportable secrets in this delta. The only live REAL_SECRET remains the pre-existing `earthengine-api` hardcoded OAuth client_secret (tracked in KB as ACCEPTED). All new hits are test fixtures, staging endpoints, or placeholders.
+**No NEW real secrets in this delta.** The only reportable secret remains the earthengine-api OAuth client_secret from prior scans (already in KB as ACCEPTED).
