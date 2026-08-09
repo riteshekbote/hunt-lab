@@ -1,49 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan results, let me classify each hit:
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=115][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=48, limit=20][0m
+### Classification Tables
 
-## Classification Tables
-
-### TEST_OR_EXAMPLE (test fixtures, placeholders, build artifacts)
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | Test pagination tokens (`initial-token`, `updated-token-123`) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | Test pagination tokens (`nextPage`) |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified JS parser error messages (build artifacts) |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parser error messages (build artifacts) |
-| google/Xee/.github/workflows/publish.yml | 71, 79 | Public test PyPI URLs |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name definition (`storage_driver_password`), not a value |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126, 238, 247 | Example credentials (truncated private key, `user`/`password`, fake JWT) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant string `"password"` for scheme name |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `"your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Session state key name constant |
-| google/copybara/cloudbuild.yaml | 27 | Comment with public artifact registry URL pattern |
-
-### INTERESTING (config patterns, credential handling, cloud metadata references)
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret reference syntax (`GOOGLE_API_KEY=GOOGLE_API_KEY:latest`) — references Secret Manager, not hardcoded |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path/context parameters (config, not secrets) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Security warnings about 169.254.169.254 metadata endpoint in comments |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-provided `GOOGLE_API_KEY` variable to config (credential handling code) |
-
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
+#### REAL_SECRET
+| File | Line | SHA256 (truncated) | Verdict |
+|------|------|-------------------|---------|
 | *(none found in this scan)* | | | |
 
-### ENDPOINT_LEAK
-| File | Line | Reason |
-|------|------|--------|
-| *(none — all URLs are public/test)* | | |
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| `reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 413, 459 | Test fixtures: `'initial-token'`, `'updated-token-123'` |
+| `reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 221, 240, 461 | Test fixtures: `'nextPage'` |
+| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified parser error messages (not secrets) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified parser error messages (not secrets) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | Doc example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | Doc example: `username="user", password="password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | Doc example: `token="eyAkaknabna...."` |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value: `PASSWORD = "password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Doc example: `client_secret="your_client_secret"` |
+| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions template placeholders: `${{ steps.fetch-token.outputs._id_token }}` |
+
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| *(none found in this scan)* | | |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret ref pattern: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (config pattern, not a secret) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Writes user-supplied `google_api_key` to `.env` file (runtime value, not hardcoded) |
+| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag constant name: `StorageDriverPassword = "storage_driver_password"` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value: `GEMINI_API_KEY = "gemini_api_key"` (auth type identifier) |
 
 ---
 
-## SHORT VERDICT
+### SHORT VERDICT LIST
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| All hits | TEST_OR_EXAMPLE / INTERESTING | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|-----------------|--------|
+| `agents-cli/auth.py:43` GEMINI_API_KEY enum | **no** | Enum constant, not a secret |
+| `agents-cli/staging.yaml:168` `_ID_TOKEN` template | **no** | GitHub Actions `${{ }}` placeholder |
+| `agents-cli/staging.yaml:192` `_AUTH_TOKEN` template | **no** | GitHub Actions `${{ }}` placeholder |
+| `adk-python/cli_create.py:123` GOOGLE_API_KEY write | **no** | Writes user input at runtime, not hardcoded |
+| `adk-go/cloudrun.go:246` secret ref pattern | **no** | Cloud Run secret reference syntax |
+| `cadvisor/flags.go:54` StorageDriverPassword | **no** | CLI flag constant name |
+| All auth_credential.py examples | **no** | Documentation placeholders |
+| All browser JS chunks | **no** | Minified parser error strings |
+| All test spec.ts fixtures | **no** | Test data |
 
-**No REAL_SECRET candidates in this scan delta.** The earthengine-api `oauth.py:45` secret (sha256 `3f3f8d6f…d271`) is **not in this scan output** — it was confirmed live in prior cycles via separate probes (knowledge base). This scan covers different repos.
+**No reportable secrets found in this delta.** All hits are test fixtures, documentation examples, template placeholders, or config patterns.
