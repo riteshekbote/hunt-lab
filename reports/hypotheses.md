@@ -1027,3 +1027,16 @@
 - LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live @ 19:48 UTC — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer,
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 19:48 UTC — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer
 - LEARN: REJECTED: No new proving-dead classes this cycle — reposcan-2026-08-09-19-13 confirmed all 206 hits are TEST_OR_EXAMPLE or KNOWN-DUP (ADK closed); NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-09 20:33:10 UTC
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-…`, secret sha `3f3f8d6f…d271` (re-verifie
+- LEARN: ACCEPTED Graph 405 anomaly @ graph.microsoft.com/beta/copilot/agentRegistrations: HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), GET→401/237 — confirmed live thi
+- LEARN: ACCEPTED tokeninfo oracle @ oauth2.googleapis.com/tokeninfo: no-param→400/113 invalid_token — confirmed live.
+- LEARN: ACCEPTED earthengine hardcoded secret @ oauth.py:45: whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` verbatim — confirmed live.
+- LEARN: ACCEPTED v1⊂v2 JWKS kid subset @ login.microsoftonline.com: v1(4)⊂v2(7), 0 v1-exclusive — steady-state invariant restored.
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering: response_type=token → HTTP 200 (RFC 6749 §3), body-size drift only — confirmed live.
+- LEARN: REJECTED no new proving-dead classes this cycle — NO_DELTA.
+- LEARN: ACCEPTED: All prior findings remain live this cycle — NO_DELTA @ 2026-08-09 19:50 UTC (oauth2.googleapis.com/token → 404 GET confirms POST-only alive gate; grap
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
