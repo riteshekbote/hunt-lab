@@ -841,3 +841,24 @@
 - LEARN: ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed live — raw GitHub GET → 200 len=23110, sha256(secret) `3f3f8d6f…d271` verbatim m
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1=4 kids all ⊂ v2=7 kids (strict subset, 0 v1-exclusive), `Access-Control-Allow-Origin: *`, dual issuer names
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorizat
+
+## RANKED HYPOTHESES 2026-08-09 11:38:39 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [95] `github.com/google/earthengine-api/python/ee/oauth.py:45`: Hardcoded OAuth client_secret in Google Earth Engine native-app SDK (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…` (:43), sec
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub `GET /google/earthengine-api/master/python/ee/oauth.py` → 200 len=23110, sha2
+- LEARN: ACCEPTED: agentRegistration zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 violation exten
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4–5 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issu
+- LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= wit
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED earthengine oauth.py:45 secret — value-level sha `3f3f8d6f…d271` confirmed verbatim this cycle; `91c14e76…` entry was a line-level hash artifact, resol
+- LEARN: ACCEPTED tokeninfo oracle + agentRegs HEAD→405 confirmed live this cycle — 400/113 and 405/0 respectively.
+- LEARN: REJECTED no new proving-dead classes this cycle — NO_DELTA on all ACCEPTED findings.
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET → 200 len=23110, sha256(secret) `3f3f8d6f…d271` matches KB, line :45 + :9
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 viol
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=7 kids (0 v1-exclusive), `Access-Control-Allow-Or
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorizat
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
