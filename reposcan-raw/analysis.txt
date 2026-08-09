@@ -1,39 +1,16 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m← [0mWrite triage_results.md
+Wrote file successfully.
+[0m
+Done. Wrote full triage to `triage_results.md`.
 
-| Category | Files (line) | Classification | Notes |
-|----------|--------------|----------------|-------|
-| **REAL_SECRET** | — | *none* | No hardcoded credentials with signs of life in this delta |
-| **TEST_OR_EXAMPLE** | `magika/tests_data/basic/javascript/code.js:31` | Minified JS test fixture | Test data file |
-| | `agent-framework/dotnet/.../TestSettings.cs:41` | Constant = env var name | `"OPENAI_API_KEY"` is the env var name, not a key |
-| | `oss-fuzz/projects/flask/fuzz_json.py:27` | `secret_key = "fuzz test key"` | Explicit test fixture |
-| | `oss-fuzz/projects/h2database/TestServer.java:13,55` | Test passwords | `ServerShutdownPassword` / test DB |
-| | `agent-framework/python/.../anthropic/_chat_client.py:298,304,315` | `"your_anthropic_api_key"` | Placeholder |
-| | `agent-framework/python/.../mistral/...py:361,894` | `"your-api-key"` | Placeholder |
-| | `agent-framework/python/.../core/...py:225,467` | `"secret-key"`, `"your-api-key"` | Placeholders |
-| | `agent-governance-toolkit/.../extension.ts:399` | `"sk-REPLACE-WITH-YOUR-KEY"` | Placeholder |
-| | `agent-governance-toolkit/.../adapter.py:17` | `"your-key"` | Placeholder |
-| | `TestSettings.cs:12,37` | `"ANTHROPIC_API_KEY"`, `"MEM0_API_KEY"` | Env var name constants |
-| **ENDPOINT_LEAK** | `magika/.github/.../python-build-and-release-package.yml:407,437` | `test.pypi.org` | Public test PyPI — not sensitive |
-| | `agent-framework/python/pyproject.toml:459,460` | `test.pypi.org` | Public test PyPI |
-| | `agent-governance-toolkit/.../build_and_publish.sh:105` | `test.pypi.org` | Public test PyPI |
-| | *Multiple files* | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known IMDS endpoints — public knowledge |
-| **INTERESTING** | `magika/.github/.../github-issue-labeler.yml:20` | `${{secrets.GITHUB_TOKEN}}` | Standard GH Actions secret ref (not hardcoded) |
-| | `flatbuffers/.github/.../label.yml:24` | `${{ secrets.GITHUB_TOKEN }}` | Same |
-| | `agent-governance-toolkit/.github/.../labeler.yml:20` | `${{ secrets.GITHUB_TOKEN }}` | Same |
-| | `agent-governance-toolkit/.github/.../auto-merge-dependabot.yml:41` | `${{ secrets.GITHUB_TOKEN }}` | Same |
-| | `agent-governance-toolkit/.github/.../pr-size.yml:20` | `${{ secrets.GITHUB_TOKEN }}` | Same |
-| | `agent-framework/.github/.../github-app-token/action.yml:94,98,102` | `$APP_TOKEN`, `$FALLBACK_TOKEN` | Shell vars from GH Actions secrets |
-| | `ax/manifests/install-ax.sh:239,241,286` | `pg_password` from env/generated | Runtime-generated, not hardcoded |
+**Bottom line: 0 reportable secrets in this delta.**
 
----
+- **REAL_SECRET**: 0
+- **TEST_OR_EXAMPLE**: 47 (all placeholders/fixtures like `YOUR_API_KEY_HERE`, `ghp_XXXX...`, `sk-1234`, `${{secrets.*}}`)
+- **ENDPOINT_LEAK**: 6 (internal `pkgs.dev.azure.com` feed URLs + `rfc3161.gtm.corp.microsoft.com` timestamp server — info leak only, no auth material)
+- **INTERESTING**: 1 (Algolia DocSearch key in `google/xrblocks` — already REJECTED in KB as public-by-design)
 
-### SHORT VERDICT
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| (none — no REAL_SECRET in this delta) | **no** |
-
-**Summary:** This delta contains only CI secret references (`${{secrets.GITHUB_TOKEN}}`), public test endpoints (`test.pypi.org`), well-known IMDS metadata URLs, and explicit placeholder/test values. No reportable hardcoded secrets. The previously confirmed `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`) remains live per KB but was not re-detected in *this* reposcan pass (27,432 files, 0 REAL_SECRET).
+The Algolia key (`40150cc2c638b09de8ebbfefd50b80a4`) matches the REJECTED entry: "Algolia DocSearch apiKey in docusaurus config (google/xrblocks): search-only key, public by design."
