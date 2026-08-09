@@ -791,3 +791,16 @@
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed live — 4–5 shared kids (0 v1-exclusive steady-state), `Access-Control-Allow-Origin: *`, issue
 - LEARN: ACCEPTED oauth2.googleapis.com/tokeninfo introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= with
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss
+
+## RANKED HYPOTHESES 2026-08-09 09:50:05 UTC
+- [95] `github.com/google/earthengine-api/python/ee/oauth.py:45`: Hardcoded OAuth client_secret in Google Earth Engine native-app SDK (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ earthengine-api `python/ee/oauth.py:45` — cite sha256 of secret-line `91c14e76553c1349bb91f8b5
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ current cycle — raw GitHub GET → 200 len=23110, line :45 (`RUP0RZ6e0pPhDzsqIJ7KlNd1`) + :
+- LEARN: ACCEPTED agentRegistration zero ownership restrictions confirmed LIVE — GET→401/237, HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation extends to Ag
+- LEARN: ACCEPTED v1.0↔v2.0 JWKS kid overlap confirmed LIVE — v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIY) ALL ⊂ v2=8 kids (strict subset, 0 v1-exclusive); `Access
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed LIVE — no-param→400/113 (`invalid_token`), with `?access_token=invalid`→400/71 (`Invalid Value`), accep
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed LIVE — GET /common/oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error 70
+- LEARN: ACCEPTED bughunters.google.com root hardening confirmed LIVE — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options:

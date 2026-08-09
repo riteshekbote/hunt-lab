@@ -8774,3 +8774,164 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 62 — hardcoded high-scope client_secret redeemable endpoint live (HUMAN test pending), but native-app by-design caveat caps severity; rest of GCP plane requires consumer identity.
 - [RISK] microsoft: 55 — agentRegistration zero-ownership schema + dual-issuer precondition remain live but both auth-gated (401) pending AUTH_HELPED two-principal tests; Graph 405 anomaly is cosmetic.
+===== ANALYST bigpickle 2026-08-09 09:50:05 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "agentRegistrations GET: %{http_code}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -s -o /dev/null -w "agentRegistrations HEAD: %{http_code}\n" -I https://graph.microsoft.com/beta/copilot/agentRegistrations
+agentRegistrations GET: 401
+agentRegistrations HEAD: 405
+[0m
+[0m$ [0mcurl -s -w "\ntoken GET: %{http_code}\n" https://oauth2.googleapis.com/token -o /dev/null; curl -s -w "\ntokeninfo no-param: %{http_code} %{size_download}\n" https://oauth2.googleapis.com/tokeninfo -o /dev/null
+token GET: 404
+
+tokeninfo no-param: 400 113
+[0m
+[0m$ [0mcurl -s -w "\noauth.py: %{http_code} len=%{size_download}\n" -o /tmp/opencode/oauth.py https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py && sha256sum /tmp/opencode/oauth.py
+oauth.py: 200 len=23110
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/opencode/oauth.py
+[0m
+[0m$ [0mgrep -n "517222506229\|RUP0" /tmp/opencode/oauth.py | head; grep -n "OOB\|oob\|urn:ietf" /tmp/opencode/oauth.py | head -3
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+52:REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+[0m
+[0m$ [0mcurl -s -o /tmp/opencode/v1.json -w "v1 keys: %{http_code}\n" https://login.microsoftonline.com/common/discovery/keys; curl -s -o /tmp/opencode/v2.json -w "v2 keys: %{http_code}\n" https://login.microsoftonline.com/common/discovery/v2.0/keys; python3 -c "
+import json
+v1=json.load(open('/tmp/opencode/v1.json'))['keys']
+v2=json.load(open('/tmp/opencode/v2.json'))['keys']
+k1={k['kid'] for k in v1}; k2={k['kid'] for k in v2}
+print('v1 kids:',len(k1),'v2 kids:',len(k2))
+print('shared:',len(k1&k2),'v1-exclusive:',sorted(k1-k2),'v2-exclusive:',len(k2-k1))
+"
+v1 keys: 200
+v2 keys: 200
+v1 kids: 5 v2 kids: 8
+shared: 5 v1-exclusive: [] v2-exclusive: 3
+[0m
+[0m$ [0msed -n '45p' /tmp/opencode/oauth.py | sha256sum; sed -n '99p' /tmp/opencode/oauth.py | sha256sum
+d454b6f41fcba125b3e313e1f84cccfb0d8adba9b360d658e8ca01c36c6ba356  -
+eeacae2ec5cae426116343139f441a65b0e6f941c0b8555b52545c070d433ab3  -
+[0m
+[0m$ [0mpython3 -c "
+import re
+src=open('/tmp/opencode/oauth.py').read()
+m=re.findall(r\"CLIENT_SECRET\s*=\s*'([^']+)'\",src)
+import hashlib
+print('occurrences:',len(m))
+for v in m:
+    print(hashlib.sha256(v.encode()).hexdigest())
+"
+occurrences: 1
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271
+[0m
+[0m$ [0mgrep -n "https://" /tmp/opencode/oauth.py | grep -v "googleapis.com/auth\|#\|gstatic\|oob" | head -10; grep -n "scope\|SCOPES" /tmp/opencode/oauth.py | head -8
+53:TOKEN_URI = 'https://oauth2.googleapis.com/token'
+54:AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+56:AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+171:  return 'https://accounts.google.com/o/oauth2/auth?' + urllib.parse.urlencode({
+426:      'https://developers.google.com/earth-engine/guides/auth\n')
+46:SCOPES = [
+59:AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+100:    args['scopes'] = stored.get('scopes', SCOPES)
+130:def _has_scopes(
+131:    creds: credentials_lib.Credentials, scopes: Sequence[str]
+133:  """Checks if credentials satisfy the requested scopes."""
+134:  if hasattr(creds, 'has_scopes'):
+135:    return creds.has_scopes(scopes)
+[0m
+[0m$ [0msed -n '40,60p' /tmp/opencode/oauth.py
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+[0m
+New surface found in the SDK — `code.earthengine.google.com/client-auth` endpoints not previously probed. Probing read-only:
+[0m$ [0mfor p in "client-auth" "client-auth/mode" "client-auth/fetch"; do curl -s -o /dev/null -w "$p: %{http_code} len=%{size_download}\n" "https://code.earthengine.google.com/$p"; done
+client-auth: 302 len=0
+client-auth/mode: 200 len=7
+client-auth/fetch: 405 len=187
+[0m
+[0m$ [0mcurl -s -D - "https://code.earthengine.google.com/client-auth" -o /dev/null | head -8; echo ---; curl -s "https://code.earthengine.google.com/client-auth/mode"; echo; echo ---; curl -s -X POST "https://code.earthengine.google.com/client-auth/fetch"; echo; echo ---; curl -s -D - "https://code.earthengine.google.com/client-auth/fetch" -o /dev/null | head -6
+HTTP/2 302 
+location: https://code.earthengine.google.com/_ah/conflogin?continue=https://code.earthengine.google.com/client-auth
+x-cloud-trace-context: f844468c1d74813c5c4607266fe9fd49
+date: Sun, 09 Aug 2026 09:48:23 GMT
+content-type: text/html
+server: Google Frontend
+content-length: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+---
+private
+---
+<html>
+ <head>
+  <title>500 Internal Server Error</title>
+ </head>
+ <body>
+  <h1>500 Internal Server Error</h1>
+  The server has either erred or is incapable of performing the requested operation.<br /><br />
+
+
+
+ </body>
+</html>
+---
+HTTP/2 405 
+allow: POST
+content-type: text/html; charset=UTF-8
+content-security-policy: base-uri 'self'; object-src 'none'; script-src 'strict-dynamic' 'unsafe-inline' 'unsafe-eval' https: http:; report-uri https://csp.withgoogle.com/csp/playground/2
+content-security-policy-report-only: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/playground/2
+x-cloud-trace-context: 3ab2bbcd26736500765eaf7cf9b19d5e
+[0m
+[0m$ [0mcurl -s -w "\nmode POST: %{http_code}\n" -X POST -d "mode=public" "https://code.earthengine.google.com/client-auth/mode"; curl -s -w "\nfetch empty POST: %{http_code} len=%{size_download}\n" -X POST "https://code.earthengine.google.com/client-auth/fetch" -o /dev/null; curl -s -w "\nfetch reqid GET: %{http_code}\n" "https://code.earthengine.google.com/client-auth/fetch?request_id=deadbeef" -o /dev/null
+<html>
+ <head>
+  <title>405 Method Not Allowed</title>
+ </head>
+ <body>
+  <h1>405 Method Not Allowed</h1>
+  The method POST is not allowed for this resource. <br /><br />
+
+ </body>
+</html>
+mode POST: 405
+
+fetch empty POST: 500 len=228
+
+fetch reqid GET: 405
+[0m
+[0m$ [0mcurl -s -w "\nfetch json: %{http_code}\n" -X POST -H "Content-Type: application/json" -d '{"request_id":"deadbeef"}' "https://code.earthengine.google.com/client-auth/fetch"; curl -s -w "\nfetch form: %{http_code}\n" -X POST -d "request_id=deadbeef" "https://code.earthengine.google.com/client-auth/fetch"
+{"error": "Invalid request."}
+fetch json: 200
+<html>
+ <head>
+  <title>500 Internal Server Error</title>
+ </head>
+ <body>
+  <h1>500 Internal Server Error</h1>
+  The server has either erred or is incapable of performing the requested operation.<br /><br />
+
+
+
+ </body>
+</html>
+fetch form: 500
+[0m

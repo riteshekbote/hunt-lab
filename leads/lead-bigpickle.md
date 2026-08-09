@@ -1850,3 +1850,4 @@ evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-onl
 verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + rejection body.
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
+## 2026-08-09 09:48:47 UTC [google] (model bigpickle)
