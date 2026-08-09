@@ -229,6 +229,12 @@
 - 2026-08-08 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 23:3x UTC — GET→401, HEAD→405, OPTIONS→200 (CORS `Access-Control-Allow-Origin`, full mutation-method allowlist); no OperationRestrictions; createdBy/ownerIds Nullable=false.
 - 2026-08-08 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.full_control, whole-file sha `f4f93c76…` unchanged.
 - 2026-08-08 ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 23:3x UTC — 4 shared kids (0 v1-only), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact, v1.0-only response_type=token excluded from v2.0.
+- 2026-08-09 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: UPDATE — aFkmKVFc persists v1-exclusive across probes (v1=5, v2=7, 4-kid overlap stable); earlier "transient self-corrects to strict v1⊂v2 subset" narrative falsified. Class stays dead: v1 kid set is never validated against v2 issuer, so v1-exclusive kids create no cross-endpoint confusion surface.
+- 2026-08-09 ACCEPTED: All prior ACCEPTED findings remain live — agentRegistration zero ownership restrictions (5 EntityTypes, 873-char block, 0 OperationRestrictions), earthengine secret (sha `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…`), v1↔v2 kid overlap (4/4 shared, 0 v1-only), Graph 405 anomaly (HEAD → 405, no WWW-Authenticate), tokeninfo oracle, v2.0 authorize HTTP 200 error rendering. NO_DELTA.
+- 2026-08-09 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 00:37 UTC — `RUP0RZ6e0pPd1` sha256 matches KB `3f3f8d6f…d271`; line :45 + :99 fallback + scopes intact.
+- 2026-08-09 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, extends Graph 405 anomaly to Agent Registration endpoint).
+- 2026-08-09 ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids)⊂v2(8 kids), 0 v1-exclusive, `Access-Control-Allow-Origin: *`; issuer-confusion precondition valid pending AUTH_HELPED.
+- 2026-08-09 ACCEPTED v1.0-only response_types confirmed live — v1.0 `['code','id_token','code id_token','token id_token','token']` vs v2.0 `['code','id_token','code id_token','id_token token']`; pure `token` implicit excluded from v2.0, no rotation-churn desync surface.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 

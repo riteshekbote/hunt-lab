@@ -1,29 +1,39 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification of New Delta Hits (14 lines)
+### Classification Table
 
-| File | Line | Pattern | Classification | Reason |
-|------|------|---------|----------------|--------|
-| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94 | `token="$APP_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference, not a secret |
-| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 98 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference |
-| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 102 | `token="$FALLBACK_TOKEN"` | TEST_OR_EXAMPLE | GitHub Actions env var reference |
-| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 12 | `AnthropicApiKey = "ANTHROPIC_API_KEY"` | TEST_OR_EXAMPLE | Placeholder constant name, not a key |
-| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs | 37 | `Mem0ApiKey = "MEM0_API_KEY"` | TEST_OR_EXAMPLE | Placeholder constant name |
-| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 298 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 304 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py | 315 | `api_key="your_anthropic_api_key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py | 225 | `api_key="secret-key"` | TEST_OR_EXAMPLE | Example/fixture value |
-| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py | 467 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_chat_client.py | 894 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_embedding_client.py | 361 | `api_key="your-api-key"` | TEST_OR_EXAMPLE | Explicit placeholder value |
-| microsoft/agent-framework/python/pyproject.toml | 459 | `url = "https://test.pypi.org/simple/"` | ENDPOINT_LEAK | Public test PyPI endpoint |
-| microsoft/agent-framework/python/pyproject.toml | 460 | `publish-url = "https://test.pypi.org/legacy/"` | ENDPOINT_LEAK | Public test PyPI endpoint |
+| Category | Files (line) | Classification | Notes |
+|----------|--------------|----------------|-------|
+| **REAL_SECRET** | — | *none* | No hardcoded credentials with signs of life in this delta |
+| **TEST_OR_EXAMPLE** | `magika/tests_data/basic/javascript/code.js:31` | Minified JS test fixture | Test data file |
+| | `agent-framework/dotnet/.../TestSettings.cs:41` | Constant = env var name | `"OPENAI_API_KEY"` is the env var name, not a key |
+| | `oss-fuzz/projects/flask/fuzz_json.py:27` | `secret_key = "fuzz test key"` | Explicit test fixture |
+| | `oss-fuzz/projects/h2database/TestServer.java:13,55` | Test passwords | `ServerShutdownPassword` / test DB |
+| | `agent-framework/python/.../anthropic/_chat_client.py:298,304,315` | `"your_anthropic_api_key"` | Placeholder |
+| | `agent-framework/python/.../mistral/...py:361,894` | `"your-api-key"` | Placeholder |
+| | `agent-framework/python/.../core/...py:225,467` | `"secret-key"`, `"your-api-key"` | Placeholders |
+| | `agent-governance-toolkit/.../extension.ts:399` | `"sk-REPLACE-WITH-YOUR-KEY"` | Placeholder |
+| | `agent-governance-toolkit/.../adapter.py:17` | `"your-key"` | Placeholder |
+| | `TestSettings.cs:12,37` | `"ANTHROPIC_API_KEY"`, `"MEM0_API_KEY"` | Env var name constants |
+| **ENDPOINT_LEAK** | `magika/.github/.../python-build-and-release-package.yml:407,437` | `test.pypi.org` | Public test PyPI — not sensitive |
+| | `agent-framework/python/pyproject.toml:459,460` | `test.pypi.org` | Public test PyPI |
+| | `agent-governance-toolkit/.../build_and_publish.sh:105` | `test.pypi.org` | Public test PyPI |
+| | *Multiple files* | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known IMDS endpoints — public knowledge |
+| **INTERESTING** | `magika/.github/.../github-issue-labeler.yml:20` | `${{secrets.GITHUB_TOKEN}}` | Standard GH Actions secret ref (not hardcoded) |
+| | `flatbuffers/.github/.../label.yml:24` | `${{ secrets.GITHUB_TOKEN }}` | Same |
+| | `agent-governance-toolkit/.github/.../labeler.yml:20` | `${{ secrets.GITHUB_TOKEN }}` | Same |
+| | `agent-governance-toolkit/.github/.../auto-merge-dependabot.yml:41` | `${{ secrets.GITHUB_TOKEN }}` | Same |
+| | `agent-governance-toolkit/.github/.../pr-size.yml:20` | `${{ secrets.GITHUB_TOKEN }}` | Same |
+| | `agent-framework/.github/.../github-app-token/action.yml:94,98,102` | `$APP_TOKEN`, `$FALLBACK_TOKEN` | Shell vars from GH Actions secrets |
+| | `ax/manifests/install-ax.sh:239,241,286` | `pg_password` from env/generated | Runtime-generated, not hardcoded |
 
-### Verdict
+---
+
+### SHORT VERDICT
 
 | Candidate | REPORT_CANDIDATE |
 |-----------|------------------|
-| All 14 new delta hits | **no** — all are test fixtures, placeholder literals, env-var references, or public endpoints |
+| (none — no REAL_SECRET in this delta) | **no** |
 
-**Summary**: Zero `REAL_SECRET` findings in this delta. The hashed materials (two unique SHA256s) correspond to the repeated `"your_anthropic_api_key"` and `"your-api-key"` placeholder strings. The earthengine-api hardcoded secret (`oauth.py:45`) remains in the **KNOWN DUPLICATES / ACCEPTED** list from prior cycles — no new reportable secrets this scan.
+**Summary:** This delta contains only CI secret references (`${{secrets.GITHUB_TOKEN}}`), public test endpoints (`test.pypi.org`), well-known IMDS metadata URLs, and explicit placeholder/test values. No reportable hardcoded secrets. The previously confirmed `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`) remains live per KB but was not re-detected in *this* reposcan pass (27,432 files, 0 REAL_SECRET).
