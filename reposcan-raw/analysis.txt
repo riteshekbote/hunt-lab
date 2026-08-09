@@ -1,17 +1,258 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "GOOGLE_API_KEY" reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-61:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
-71:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
-123:      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-[0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=110, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=1, limit=50][0m
-[0m✱ [0mGrep "def.*create.*google_api_key"[90m in reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py · 0 matches[0m
-[0m✗ [0mGrep "def.*create" failed[90m in reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[0m
-[91m[1mError: [0mRipgrep JSON record exceeded 65536 bytes
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=60, offset=50][0m
-Now I have a clear picture. Let me classify all hits:
+[0m$ [0mcat reposcan-raw/google/qwix/.github/workflows/cla.yml | head -30
+name: 'PR Contributor Agreement'
 
-## ...
+on:
+  pull_request:
+    types:
+      - 'opened'
+      - 'edited'
+      - 'reopened'
+      - 'synchronize'
+
+permissions:
+  contents: 'read'
+  pull-requests: 'read'
+
+jobs:
+  verify:
+    if: github.repository == 'google/qwix' && github.event.pull_request.user.login != 'copybara-service[bot]'
+    runs-on: 'ubuntu-latest'
+    steps:
+      - name: 'Verify contributor agreement'
+        uses: 'actions/github-script@v9'
+        with:
+          github-token: '${{ secrets.GITHUB_TOKEN }}'
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | head -50
+# Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+#
+# Enables GitHub's auto-merge for Dependabot patch/minor updates.
+#
+# This workflow does NOT auto-approve. `gh pr merge --auto` only flips
+# the PR into "merge when all required checks pass and required
+# approvals are met" state — branch protection still gates the actual
+# merge on:
+#   * all required status checks passing
+#   * the required number of maintainer approvals
+#
+# A maintainer (or CODEOWNER) must explicitly approve the PR before
+# GitHub will complete the auto-merge. This matches REVIEW.md's
+# guidance: do not auto-approve without a CI-passed precondition;
+# require code-owner reviews via branch protection.
+#
+# Previously this workflow ran `gh pr review --approve` unconditionally
+# on PR open, which satisfied the approval requirement before CI had
+# a chance to run. With branch protection that required approvals but
+# not status checks (a misconfiguration that is easy to overlook),
+# the combination of auto-approve + auto-merge would race past CI.
+name: Auto-merge Dependabot PRs
+on: pull_request
+permissions:
+  contents: read
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    if: github.actor == 'dependabot[bot]'
+    steps:
+      - uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+        id: metadata
+      - name: Enable auto-merge for patch and minor
+        if: steps.metadata.outputs.update-type != 'version-update:semver-major'
+        run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: "${{ github.event.pull_request.html_url }}"
+          GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | head -30
+# Copyright (c) Microsoft Corporation. Licensed under the MIT License.
+name: PR Size Label
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+# SECURITY: pull_request_target runs in BASE context. Never checkout PR head ref.
+jobs:
+  size-label:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write   # codelytv/pr-size-labeler applies size/* labels to the PR
+    # SECURITY: pull_request_target — uses pr-size-labeler which only reads PR
+    # metadata via API. No checkout of PR head code. Permissions minimal.
+    steps:
+      - uses: codelytv/pr-size-labeler@095a41fca88b8764fd9e008ad269bcdb82bb38b9 # v1.10.4
+        with:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          xs_label: "size/XS"
+          xs_max_size: 10
+          s_label: "size/S"
+          s_max_size: 50
+          m_label: "size/M"
+          m_max_size: 200
+          l_label: "size/L"
+          l_max_size: 500
+          xl_label: "size/XL"
+          fail_if_xl: false
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | sed -n '555,570p'
+return !string.IsNullOrWhiteSpace(_regoPath) && File.Exists(_regoPath)
+            ? File.ReadAllText(_regoPath, Encoding.UTF8)
+            : null;
+    }
+
+    private static readonly HashSet<string> BlockedHosts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "169.254.169.254",        // AWS/Azure IMDS
+        "169.254.170.2",          // ECS task metadata
+        "168.63.129.16",          // Azure Wire Server
+        "metadata.google.internal",
+        "metadata.google",
+        "100.100.100.200",        // Alibaba Cloud IMDS
+    };
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | sed -n '115,130p'
+with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | sed -n '110,160p'
+Security note: this executor runs model-generated code, which may be
+  influenced by untrusted input (e.g. via prompt injection). By default the
+  container is started with networking disabled and all Linux capabilities
+  dropped so that the executed code cannot reach the network (including the
+  cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
+  stronger, kernel-level isolation of untrusted code prefer
+  ``GkeCodeExecutor`` (gVisor) or a managed executor
+  (``VertexAiCodeExecutor`` / ``AgentEngineSandboxCodeExecutor``).
+
+  Attributes:
+    base_url: Optional. The base url of the user hosted Docker client.
+    image: The tag of the predefined image or custom image to run on the
+      container. Either docker_path or image must be set.
+    docker_path: The path to the directory containing the Dockerfile. If set,
+      build the image from the dockerfile path instead of using the predefined
+      image. Either docker_path or image must be set.
+    network_enabled: Whether to start the container with networking enabled.
+      Defaults to False. Set to True only if the executed code must make network
+      requests and you trust it.
+  """
+
+  base_url: str | None = None
+  """
+  Optional. The base url of the user hosted Docker client.
+  """
+
+  image: str = DEFAULT_IMAGE_TAG
+  """
+  The tag of the predefined image or custom image to run on the container.
+  Either docker_path or image must be set.
+  """
+
+  docker_path: str | None = None
+  """
+  The path to the directory containing the Dockerfile.
+  If set, build the image from the dockerfile path instead of using the
+  predefined image. Either docker_path or image must be set.
+  """
+
+  network_enabled: bool = False
+  """
+  Whether to start the code execution container with networking enabled.
+
+  Defaults to False so that untrusted, model-generated code cannot reach the
+  network -- in particular the cloud metadata endpoint at 169.254.169.254
+  (which can yield the host's service-account credentials), internal services,
+  or arbitrary exfiltration destinations. Set to True only if the executed
+  code must make network requests and you trust it.
+  """
+
+  # Overrides the BaseCodeExecutor attribute: unlike the base default of None,
+[0m
+Now I have enough context. Let me classify all hits.
+
+---
+
+## Classification Tables
+
+### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none found in this delta)* | | | |
+
+### TEST_OR_EXAMPLE (sample/test/fixture/placeholder data)
+| File | Line | Reason |
+|------|------|--------|
+| google/qwix/.github/workflows/cla.yml | 23 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Standard `${{ steps.fetch-token.outputs... }}` references |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Placeholder private key (truncated `...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Placeholder `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Placeholder JWT `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Placeholder constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant name `_STATE_KEY_ACCESS_TOKEN` |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified/bundled JS parser error messages |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified/bundled JS parser error messages |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp network) |
+
+### INTERESTING (debug flags, keys, cloud configs, security controls)
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret injection pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path` / `kubeconfig_context` parameters — K8s config injection surface |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documents IMDS `169.254.169.254` blocking — security control docs |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-supplied `GOOGLE_API_KEY` to `.env` file — credential persistence pattern |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | BlockedHosts includes `169.254.169.254` (AWS/Azure IMDS), `169.254.170.2` (ECS), `168.63.129.16` (Azure Wire Server), `metadata.google.internal`, `100.100.100.200` (Alibaba) — **security control: IMDS/metadata endpoint blocking** |
+
+---
+
+## SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/qwix/.github/workflows/cla.yml:23 | **no** | Standard GitHub Actions secret reference (`${{ secrets.GITHUB_TOKEN }}`), not a hardcoded secret |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml:41 | **no** | Standard GitHub Actions secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml:20 | **no** | Standard GitHub Actions secret reference |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/.../OpaPolicyBackend.cs:563 | **no** | Security control (blocklist for cloud metadata endpoints), not a leak |
+| google/adk-go/.../cloudrun.go:246 | **no** | Deployment-time secret reference pattern, no secret material in repo |
+| google/adk-python/.../gke_code_executor.py | **no** | Config parameters for kubeconfig, no credentials |
+| google/adk-python/.../container_code_executor.py | **no** | Security documentation of IMDS blocking |
+| google/adk-python/.../cli_create.py:123 | **no** | Writes user-provided key at runtime; no hardcoded secret in source |
+| microsoft/agent-governance-toolkit/.../esrp-publish.yml:1180 | **no** | Internal corp timestamp server URL — not a credential, low severity |
+| All adk-python/auth_credential.py, auth_schemes.py, auth_helpers.py hits | **no** | Explicit placeholders (`"password"`, `"your_client_secret"`, truncated keys) |
+| All JS chunk hits (adk-go, adk-python) | **no** | Minified parser error messages, not secrets |
+
+---
+
+**Summary:** No `REPORT_CANDIDATE: yes` findings in this delta. All 4 new hits are either standard GitHub Actions secret references (proper pattern) or a security control blocklist. The full grep hits are all placeholders, test fixtures, minified code, or documentation of security controls.
