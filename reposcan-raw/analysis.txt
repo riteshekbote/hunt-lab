@@ -1,63 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "Not in current scan"
-Not in current scan
-[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=115][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts[90m [limit=20, offset=405][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this scan)* | | | The earthengine-api secret (sha256 `3f3f8d6f...`) is from KB, not this scan |
+#### REAL_SECRET (reportable)
+| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
+|------|------|---------------|---------|------------------|
+| *(none new in delta — earthengine-api oauth.py:45 already ACCEPTED in KB)* | | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | `'initial-token'`, `'updated-token-123'` (test fixtures) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | `'nextPage'` (pagination test tokens) |
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `"testpassword"`, `"test-token-123"` (unit test credentials) |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `"testpassword"` (unit test credentials) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `"fuzz test key"` (fuzzing fixture) |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `"ServerShutdownPassword"` (test constant) |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` (commented placeholder) |
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder `...`) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Docstring example: `username="user", password="password"` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Docstring example: `token="eyAkaknabna...."` (placeholder `....`) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 256 | Docstring example: `client_secret="secret"` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Enum constant: `PASSWORD = "password"` (literal name) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Docstring example: `client_secret="your_client_secret"` |
+| reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | Test fixtures: `'initial-token'`, `'updated-token-123'` |
+| reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | Test fixtures: `'nextPage'` pagination tokens |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum constant: `GEMINI_API_KEY = "gemini_api_key"` (literal name) |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | (20+ files) | Minified JS parse-error message templates (build artifacts) |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal Artifact Registry) |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `rfc3161.gtm.corp.microsoft.com` (internal timestamp server) |
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Test/staging API |
 
 #### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret ref pattern, not a secret) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name + placeholder value) |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `.secret_key = <var>` (compiler codegen, not hardcoded secret) |
-| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563 | `"169.254.169.254"` (AWS/Azure IMDS metadata IP — public, documented) |
-
-#### NOT_SECRETS (CI secret refs / build artifacts / public config)
-| Pattern | Files | Reason |
-|---------|-------|--------|
-| `${{ secrets.GITHUB_TOKEN }}` | 3 workflow files | GitHub Actions injected token, not hardcoded |
-| `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | langextract ci.yaml | GitHub Actions secret references |
-| `${{ steps.fetch-token.outputs... }}` | agents-cli staging.yaml | Templated pipeline variables |
-| Minified `.js` chunks | adk-go/webui/distr/* | Build artifacts (parse error messages) |
-| `test.pypi.org` | dotprompt workflows | Public test PyPI index |
-| Handlebars/monaco tokens | dotprompt/packages/monaco/* | Language server config |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes `GOOGLE_API_KEY=<var>` to `.env` at runtime (not hardcoded) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References GCP/AWS metadata endpoint `169.254.169.254` (SSRF surface if user-controlled) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Accepts `kubeconfig_path` / `kubeconfig_context` params (kubeconfig injection risk) |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key `_vmaas_access_token` for token storage |
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GH Actions: `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` |
 
 ---
 
-### SHORT VERDICT LIST
+### SHORT VERDICT
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| earthengine-api oauth.py:45 (KB) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...`), scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect — **live per KB**, pending VRP determination on native-app by-design status |
-| google/copybara/cloudbuild.yaml:27 | no | Internal URL leak only (pantheon.corp.google.com), no credential |
-| microsoft/agent-governance-toolkit/esrp-publish.yml:1180 | no | Internal timestamp server URL, no credential |
-| OpaPolicyBackend.cs IMDS IP | no | Public documented endpoint (169.254.169.254) |
-| All test/fixture tokens | no | Explicitly test data |
-| All `${{ secrets.* }}` refs | no | CI-injected, not hardcoded |
-| Minified JS build artifacts | no | Not source secrets |
+| earthengine-api oauth.py:45 (pre-existing) | **yes** | Already ACCEPTED in KB — hardcoded OAuth client_secret `sha256:3f3f8d6f…d271`, scopes `cloud-platform+drive+devstorage.full_control`, OOB redirect |
+| adk-python auth_credential.py examples | no | All in docstrings with obvious placeholders (`...`, `....`, `"secret"`, `"user"/"password"`) |
+| adk-python auth_schemes.py:68 | no | Enum literal `"password"` — not a credential |
+| adk-web test fixtures | no | Spec files with pagination/test tokens (`initial-token`, `nextPage`) |
+| agents-cli auth.py:43 | no | Enum literal `"gemini_api_key"` — not a credential |
+| cli/browser chunk-*.js | no | Minified build artifacts (parse error templates) |
+| osv.dev triage.js:94 | no | Test environment endpoint (`api.test.osv.dev`) |
+| cli_create.py:123 | no | Writes user-supplied var to `.env` at runtime |
+| container_code_executor.py metadata refs | no | Documents SSRF risk, doesn't expose creds |
+| gke_code_executor.py kubeconfig params | no | Config params, not secrets |
+| vmaas sandbox_computer.py:47 | no | State key name only |
+| adk-go cloudrun.go:246 | no | Secret Manager reference pattern (correct usage) |
+| agents-cli staging.yaml GH Actions | no | References step outputs (ephemeral CI tokens) |
 
-**Only the earthengine-api hardcoded client_secret (already in KB, confirmed live) is a reportable candidate from the combined scan+KB view.**
+**No new REAL_SECRET findings in this delta.** The only reportable secret remains the pre-existing earthengine-api OAuth client_secret (already tracked in KB as ACCEPTED).
