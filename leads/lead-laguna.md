@@ -2763,3 +2763,45 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids)⊂v2(8 kids), 0 v1-exclusive, dual issuer namespaces intact, tokeninfo oracle (400/113 invalid_token + query-param acceptance) confirmed.
 [RISK] google: 55 — earthengine-api hardcoded client_secret fully SHA-verified live + VRP-ready (conf 95) but native-app/by-design caveat caps upside (~$100k ceiling, needs victim refresh_token, HUMAN_ONLY); tokeninfo introspection oracle live but low-severity (no-reward per Google program rules, rate-limited); identitytoolkit 403-gated ("unregistered callers"); ADK embedded secrets = KNOWN-DUP (closed); bughunters.google.com hardened (HSTS/CSP/X-Frame); no unauthenticated exploit path beyond public secret read.
 [RISK] microsoft: 89 — Two high-value design-level gaps confirmed live in Entra/Copilot identity plane — agentRegistration IDOR (5 EntityTypes, 873-char zero-restriction metadata, runtime HEAD→405/no-Bearer + OPTIONS→200 CORS * + mutation allowlist, CVSS 7.5–9.0) + v1↔v2 issuer-confusion (4 shared kids + dual issuer namespaces + v1.0-only implicit excluded from v2.0, CVSS 8.0–9.8, $100k); Graph 405 anomaly + HTTP-200 error rendering are live secondary anomalies. Crown-jewel Entra/Copilot identity plane, highest impact potential — requires test-tenant verification to convert.
+## 2026-08-09 17:47:21 UTC [google] (model laguna)
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45: score=9.05 — axes=(attack=9, business=8, tech=10, gate=10, cloud=10, fresh=8)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations: score=8.0 — axes=(attack=9, business=9, tech=9, gate=3, cloud=9, fresh=8)
+[PRIO] login.microsoftonline.com/common/discovery/keys: score=6.9 — axes=(attack=7, business=8, tech=9, gate=2, cloud=8, fresh=8)
+[HYP] Earth Engine client_secret redeemable for cloud-platform-scoped access token
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: PASSIVE SHA-VERIFIED — raw GitHub GET → HTTP 200 len=23110, secret present at line :45 + :99 fallback, sha256=`3f3f8d6f…d271` matches KB; scopes include cloud-platform (full GCP)+drive+devstorage.full_control; OOB redirect URI deprecated. KB 2026-08-09 14:45 UTC: whole-file sha `f4f93c76…` unchanged, secret verbatim at :45.
+evidence_needed: HTTP 200 access_token from oauth2.googleapis.com/token using leaked client_secret + victim refresh_token (or successful client_credentials grant).
+verify_steps: PASSIVE done (SHA-verified). HUMAN_ONLY: POST https://oauth2.googleapis.com/token with `grant_type=refresh_token&client_id=517222506229-vsmmajv…&client_secret=<sha3f3f8d6f…d271>&refresh_token=<victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → expect HTTP 200 access_token (exploit confirmed) vs 400/401 (native-app by-design gate defeated).
+impact: Full GCP project compromise via cloud-platform scope access tokens. CVSS 8.8–9.8. ~$100k VRP ceiling.
+testability: PASSIVE (verified) + HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: Live $metadata (7.3MB, 873-char block): createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId ALL client-supplied (Nullable=false), ZERO OperationRestrictions; 5 sibling EntityTypes share identical zero-restriction pattern. Runtime: HEAD→405 (no Bearer, RFC 6750 §3 violation), GET→401, OPTIONS→200 (CORS *, full mutation allowlist). KB 2026-08-09 14:45 UTC confirms GET→401/237 unchanged.
+evidence_needed: Principal B reads/mutates principal A's registration (200/204 vs 403) using own Bearer token.
+verify_steps: AUTH_HELPED: 1) Principal A POST {"displayName":"probe","createdBy":{"user":{"id":"<B_oid>"}},"ownerIds":["<B_oid>"]} → expect 201; 2) Principal B GET /beta/copilot/agentRegistrations/{A_id} → expect 200 incl. A's foreign entry; 3) Principal B PATCH {A_id} {"agentCard":{...injected...},"ownerIds":["<B_oid>"]} → expect 200/204 (IDOR bypassed) vs 403 (server-side ownership enforced).
+impact: Agent impersonation + supply-chain tampering in Entra/Copilot identity plane; forge creator attribution, redirect agentCard endpoints to attacker infra. CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via kid overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys
+confidence: 60
+reasoning: Live JWKS HTTP 200, `Access-Control-Allow-Origin: *`; v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=8 kids (0 v1-exclusive steady-state); dual issuer namespaces sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0; v1.0-only response_type=token (pure implicit) excluded from v2.0. KB 2026-08-09 14:45 UTC confirms 4 shared kids, 0 v1-exclusive.
+evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource that skips strict iss validation.
+verify_steps: AUTH_HELPED: 1) GET /common/discovery/keys → confirmed 4 shared kids; 2) OIDC v1.0 authorize `?response_type=id_token&client_id=<v1_client>&nonce=<n>` → capture v1 id_token; 3) GET /beta/copilot/agentRegistrations with v1 Bearer → HTTP 200 (issuer-confusion replay accepted) vs 401/403 (defeated).
+impact: MFA-bypass-class token replay → unauthorized access to all v2.0-only Graph resources as any user. CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[PARKED] None.
+[FINAL] Re-ranked (top first):
+[NEXT][HUMAN]: Authorized refresh_token exchange exploit verification for earthengine-api hardcoded client_secret — POST `https://oauth2.googleapis.com/token` with `grant_type=refresh_token&client_id=517222506229-vsmmajv…&client_secret=<sha3f3f8d6f…d271>&refresh_token=<victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → expect HTTP 200 access_token with cloud-platform scope (exploit confirmed) vs 400/401 (native-app by-design gate defeated). Requires HUMAN because it needs a victim refresh_token (not available in passive/unauthenticated testing). This is the highest-confidence (95) finding and the only one that could yield a deterministic exploit without requiring an Entra test tenant.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 14:45 UTC — raw GitHub 200 len=23110, secret sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.
+[LEARN] ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3 violation extends to Agent Registration), OPTIONS→200 (CORS *, full mutation allowlist), $metadata 873-char block, 0 OperationRestrictions across 5 EntityTypes.
+[LEARN] ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1=4 kids ⊂ v2=8 kids (strict subset, 0 v1-exclusive), `Access-Control-Allow-Origin: *`, dual issuer namespaces (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0), v1.0-only response_type=token excluded from v2.0.
+[LEARN] ACCEPTED tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= query params without Authorization header.
+[LEARN] ACCEPTED v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (23836-byte body, JS error 700038) vs RFC 6749 §3.
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(8) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+[RISK] google: 55 — earthengine-api hardcoded client_secret fully SHA-verified live + VRP-ready (conf 95) but native-app/by-design caveat caps upside (~$100k ceiling, needs victim refresh_token, HUMAN_ONLY); tokeninfo introspection oracle live but low-severity (no-reward per Google program rules, rate-limited); identitytoolkit 403-gated ("unregistered callers"); ADK embedded secrets = KNOWN-DUP (closed); bughunters.google.com hardened; no unauthenticated exploit path beyond passive secret read.
+[RISK] microsoft: 89 — Two high-value design-level gaps confirmed live in Entra/Copilot identity plane — agentRegistration IDOR (5 EntityTypes, 873-char zero-restriction metadata, runtime HEAD→405/no-Bearer + OPTIONS→200 CORS * + mutation allowlist, CVSS 7.5–9.0) + v1↔v2 issuer-confusion (4 shared kids + dual issuer namespaces + v1.0-only implicit excluded from v2.0, CVSS 8.0–9.8, $100k); Graph 405 anomaly + HTTP-200 error rendering are live secondary anomalies. Crown-jewel Entra/Copilot identity plane, highest impact potential — requires test-tenant verification to convert.

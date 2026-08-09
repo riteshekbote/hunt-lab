@@ -2106,3 +2106,39 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 16:27 UTC).
 [RISK] google: 45 — one confirmed hardcoded OAuth client_secret (native-app by-design caveat pending VRP determination) + tokeninfo introspection oracle; otherwise hardened root. Unchanged.
 [RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.
+## 2026-08-09 17:44:54 UTC [google] (model bigpickle)
+[HYP] Earth Engine client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 → oauth2.googleapis.com/token
+confidence: 95
+reasoning: this probe — raw GitHub 200 len=23110, whole-file sha `f4f93c76…` unchanged, CLIENT_ID `517222506229-vsmmajv…` :43, secret verbatim at :45 (+:99 fallback), secret-value sha `3f3f8d6f…d271` re-verified this cycle; endpoint GET→404 (POST-only).
+evidence_needed: POST token → 200 access_token with cloud-platform scope vs 400 invalid_client / 401 unauthorized_client.
+verify_steps: HUMAN_ONLY: authorized POST `https://oauth2.googleapis.com/token` grant_type=client_credentials, client_id `517222506229-vsmmajv…` + secret (sha `3f3f8d6f…d271`); log status + scope only, no sandbox redemption.
+impact: cloud-platform token minting / GCP impersonation; native-app by-design caveat caps VRP; CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: this probe — HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), GET→401/237; $metadata 873-char block, createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId client-supplied Nullable=false, ZERO Operation/ReadRestrictions; 5 sibling EntityTypes share pattern.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED (two-principal test-tenant): A) A POST {"displayName":"t","createdBy":"<B>","ownerIds":["<B>"],"agentCard":{}}→201; B) B GET collection→200 incl. A vs 403; C) B PATCH {A-id}→200/204 vs 403; D) persistence; E) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0; MSRC crown-jewel.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay via shared signing keys + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: this probe — v1=4 kids ALL ⊂ v2=7 (0 v1-only, subset invariant holds); dual issuer namespaces + v1.0-only response_type=token/hybrid verified; v1 kid set never validated against v2 issuer — replay precondition intact (rotation-desync class stays REJECTED, issuer-confusion sub-claim distinct).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by a v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[NEXT] HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…`, secret value sha `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` (re-verified verbatim this cycle, whole-file sha `f4f93c76…`); log status + scope only, no sandbox redemption; 200 → Google VRP with liveness sha + scope; 400/401 → promote agentRegistrations two-principal IDOR probe to top.
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — raw GitHub 200 len=23110, whole-file sha `f4f93c76…` unchanged, secret-value sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback, scopes cloud-platform+drive+devstorage.
+[LEARN] ACCEPTED: agentRegistration zero ownership restrictions confirmed live — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), GET→401/237 auth-gated, $metadata 873-char block 0 OperationRestrictions.
+[LEARN] ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param→400/113 invalid_token, ?access_token=invalid→400/71 Invalid Value, query-param acceptance without Authorization header intact.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1=4 kids ⊂ v2=7 kids (strict subset, 0 v1-exclusive), `Access-Control-Allow-Origin: *`; v2.0 authorize response_type=token → HTTP 200/39107 (RFC 6749 §3 violation) live.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 17:45 UTC).
+[RISK] google: 45 — one confirmed hardcoded OAuth client_secret (native-app by-design caveat pending VRP) + tokeninfo introspection oracle; otherwise hardened root. Unchanged.
+[RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.
