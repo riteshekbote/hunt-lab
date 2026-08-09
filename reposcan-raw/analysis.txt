@@ -1,51 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [limit=20, offset=550][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=15, offset=240][0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "Not in current scan"
+Not in current scan
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
 | File | Line | SHA256 | Verdict |
 |------|------|--------|---------|
-| *none in delta* | — | — | No new hardcoded credentials found |
+| *(none in this scan)* | | | The earthengine-api secret (sha256 `3f3f8d6f...`) is from KB, not this scan |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Context |
 |------|------|---------|
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413 | `nextPageToken: 'initial-token'` (Angular test fixture) |
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 459 | `const nextToken = 'updated-token-123'` (test data) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221 | `nextPageToken: 'nextPage'` (test fixture) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 240 | `pageToken: 'nextPage'` (test fixture) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 461 | `nextPageToken: 'nextPage'` (test fixture) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `String password = "testpassword"` (unit test) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123"` (unit test) |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | `String password = "testpassword"` (unit test) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | `String password = "testpassword"` (unit test) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | `String password = "testpassword"` (unit test) |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | `String password = "testpassword"` (unit test) |
+| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | `'initial-token'`, `'updated-token-123'` (test fixtures) |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | `'nextPage'` (pagination test tokens) |
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `"testpassword"`, `"test-token-123"` (unit test credentials) |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `"testpassword"` (unit test credentials) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `"fuzz test key"` (fuzzing fixture) |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `"ServerShutdownPassword"` (test constant) |
 | google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` (commented placeholder) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` (fuzz harness) |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` (test server) |
 
 #### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/copybara/cloudbuild.yaml | 27 | `# https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` (internal console URL) |
-| google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml | 33-34 | `https://test.pypi.org/legacy/` (staging PyPI) |
-| google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml | 33-34 | `https://test.pypi.org/legacy/` (staging PyPI) |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/compute/images...` (internal console URL) |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 108-109 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` (staging endpoints) |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `http://metadata.google.internal/computeMetadata/...` (GCE metadata endpoint) |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal timestamp server) |
+| File | Line | Endpoint |
+|------|------|----------|
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal Artifact Registry) |
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `rfc3161.gtm.corp.microsoft.com` (internal timestamp server) |
 
 #### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` — MLIR codegen emitting FHE secret key assignment (compiler serialization logic, not a hardcoded secret) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret reference pattern (shows Secret Manager integration) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — constant *name* (not a value), used as env var key |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — proper GitHub Actions secret references |
+| File | Line | Note |
+|------|------|------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret ref pattern, not a secret) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name + placeholder value) |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `.secret_key = <var>` (compiler codegen, not hardcoded secret) |
+| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563 | `"169.254.169.254"` (AWS/Azure IMDS metadata IP — public, documented) |
+
+#### NOT_SECRETS (CI secret refs / build artifacts / public config)
+| Pattern | Files | Reason |
+|---------|-------|--------|
+| `${{ secrets.GITHUB_TOKEN }}` | 3 workflow files | GitHub Actions injected token, not hardcoded |
+| `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | langextract ci.yaml | GitHub Actions secret references |
+| `${{ steps.fetch-token.outputs... }}` | agents-cli staging.yaml | Templated pipeline variables |
+| Minified `.js` chunks | adk-go/webui/distr/* | Build artifacts (parse error messages) |
+| `test.pypi.org` | dotprompt workflows | Public test PyPI index |
+| Handlebars/monaco tokens | dotprompt/packages/monaco/* | Language server config |
 
 ---
 
@@ -53,13 +52,12 @@
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| earthengine-api `python/ee/oauth.py:45` (pre-existing) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), live on master, scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect — confirmed REAL_SECRET per prior cycles |
-| adk-web test tokens (5 hits) | no | Test fixtures in `.spec.ts` files |
-| copybara test passwords/tokens (7 hits) | no | Unit test data in `javatests/` |
-| heir `JaxiteWordEmitter.cpp:558` | no | Compiler codegen for FHE secret key serialization — not a hardcoded secret |
-| adk-go CloudRun secret ref | no | Secret Manager reference pattern, not a secret value |
-| All ENDPOINT_LEAK hits | no | Internal/staging URLs, no credentials |
-| agents-cli `GEMINI_API_KEY` constant | no | Env var name, not a value |
-| langextract GitHub secrets refs | no | Proper secret injection pattern |
+| earthengine-api oauth.py:45 (KB) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...`), scopes `cloud-platform`+`drive`+`devstorage.full_control`, OOB redirect — **live per KB**, pending VRP determination on native-app by-design status |
+| google/copybara/cloudbuild.yaml:27 | no | Internal URL leak only (pantheon.corp.google.com), no credential |
+| microsoft/agent-governance-toolkit/esrp-publish.yml:1180 | no | Internal timestamp server URL, no credential |
+| OpaPolicyBackend.cs IMDS IP | no | Public documented endpoint (169.254.169.254) |
+| All test/fixture tokens | no | Explicitly test data |
+| All `${{ secrets.* }}` refs | no | CI-injected, not hardcoded |
+| Minified JS build artifacts | no | Not source secrets |
 
-**Bottom line:** No *new* REAL_SECRET in this delta. The only reportable candidate remains the pre-existing **earthengine-api OAuth client_secret** (already tracked in KB as ACCEPTED, pending VRP determination on native-app by-design status).
+**Only the earthengine-api hardcoded client_secret (already in KB, confirmed live) is a reportable candidate from the combined scan+KB view.**
