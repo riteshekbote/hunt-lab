@@ -1092,3 +1092,15 @@
 - LEARN: ACCEPTED agentRegistration IDOR class confirmed live @ 22:44 UTC — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation), GET→401/237 Bearer challenge,
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 22:44 UTC — v1=5 kids ⊂ v2=8 kids (4 shared, aFkmKVFc v1-exclusive is transient rotation churn per KB: v1 kid s
 - LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 22:44 UTC — no-param→400/113 invalid_token, `?id_token=fake`→400/71 Invalid Value, accepts query
+
+## RANKED HYPOTHESES 2026-08-09 23:15:38 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-…`, client_secret from oauth.py:45 (sha `3
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); not a new surface, validates e
+- LEARN: ACCEPTED: agentRegistration IDOR class: $metadata 873-char block + HEAD→405/no-Bearer + OPTIONS→200/CORS * mutation allowlist remain live; 5 EntityTypes share z
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap: v1(4)⊂v2(7), 0 v1-exclusive steady-state; dual issuer namespaces intact; rotation-desync class stays REJECTED (v1 kid set neve
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes (token→404 GET, agentRegs→401, scope strings 200/len=14) confirmed prior ACCEPTED fin
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant token endpoint, no GET support); validates existing earthengine secret
