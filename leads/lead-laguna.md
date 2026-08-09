@@ -2718,3 +2718,4 @@ reasoning: Live JWKS HTTP 200, `Access-Control-Allow-Origin: *`; v1=4 kids (AahU
 evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource that skips strict iss validation.
 verify_steps: AUTH_HELPED: 1) GET /common/discovery/keys → confirmed 4 shared kids; 2) OIDC v1.0 authorize `?response_type=id_token` → capture v1 id_token; 3) GET /beta/copilot/agentRegistrations with v1 Bearer → 200 (issuer-confusion replay) vs 401/403 (defeated).
 impact: MFA-bypass-class token replay
+## 2026-08-09 15:55:50 UTC [google] (model laguna)
