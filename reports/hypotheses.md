@@ -770,3 +770,12 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/tokeninfo public introspection oracle confirmed live — no-param → 400 `invalid_token` (113 bytes, `X-Content-Type-Options: nosnif
 - LEARN: ACCEPTED dual-JWKS rotation desync remains REJECTED — v1=5 kids ⊃ 4 shared with v2=7 kids; `aFkmKVFc` is v1-exclusive (transient rotation churn from earlier cyc
 - LEARN: ACCEPTED agentRegistration metadata zero-ownership restrictions confirmed live — GET→401, HEAD→405 (no WWW-Authenticate Bearer), OPTIONS→200 (CORS *, full mutat
+
+## RANKED HYPOTHESES 2026-08-09 08:06:14 UTC
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. A POST https://graph.microsoft.com/beta/copilot/agentRegistrations with 
+- LEARN: ACCEPTED: login.microsoftonline.com/common/discovery/keys — v1.0 key set now shows 5 kids (v1) ⊂ 8 kids (v2), 0 v1-exclusive (steady-state subset invariant hold
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 05:18 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub (200 len=23110
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 05:18 UTC — HEAD → HTTP 405 (Content-Length: 0, no WWW-Authenticate Bearer, 
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 05:18 UTC — v1=5 kids ⊂ v2=8 kids, 5 shared kids, 0 v1-exclusive; `Access-Control-Allow-Origin: *`, dual issue
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.

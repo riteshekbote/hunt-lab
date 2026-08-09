@@ -1821,3 +1821,4 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token in test tenant (response_type=toke
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [NEXT] HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…` (verbatim :43), secret sha `3f3f8d6f…d271` (whole-file sha `f4f93c76…` unchanged @07:12); POST only, log HTTP status + returned scope, no sandbox redemption; 200 → file Google VRP with liveness sha + scope; 400 invalid_client/401 unauthorized_client → promote two-principal agentRegistration IDOR probe to top and downgrade this to informational.
+## 2026-08-09 08:03:42 UTC [google] (model bigpickle)

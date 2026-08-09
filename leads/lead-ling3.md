@@ -82,3 +82,4 @@ testability: PASSIVE
 [NEXT] AUTH_HELPED: POST https://graph.microsoft.com/beta/copilot/agentRegistrations with a cross-principal createdBy (two different UUIDs) to test whether the IDOR boundary is bypassed.
 ## 2026-08-09 06:04:07 UTC [google] (model ling3)
 ## 2026-08-09 07:11:54 UTC [google] (model ling3)
+## 2026-08-09 08:03:13 UTC [google] (model ling3)

@@ -8626,3 +8626,38 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 45 — passive surface fully exhausted; earthengine secret (conf 95) live + sha-verified but redemption HUMAN_ONLY and native-app by-design caps VRP; tokeninfo oracle no-reward; GCP control-planes auth-gated.
 - [RISK] microsoft: 86 — Agent Registry IDOR precondition (5 EntityTypes zero restrictions) + shared-key issuer-confusion precondition re-confirmed; RFC-6750 405 anomaly now covers agentRegistrations + agentSignInSessions family; both high-value proofs still blocked on authorized two-principal test-tenant testing.
+===== ANALYST bigpickle 2026-08-09 08:06:14 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "tokeninfo GET: %{http_code} %{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -sI -o /dev/null -w "graph HEAD: %{http_code} %{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "graph GET: %{http_code}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum
+tokeninfo GET: 400 113
+graph HEAD: 405 0
+graph GET: 401
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); v1=[k['kid'] for k in d['keys']]; print('v1 n=',len(v1)); print('kids:',v1)"; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); v2=[k['kid'] for k in d['keys']]; print('v2 n=',len(v2)); print('kids:',v2)"
+v1 n= 5
+kids: ['AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug']
+v2 n= 7
+kids: ['AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'NqEBZVuOpstZ__5iZuWH3HPswcI', '1Nv3JExJrKNx1l7adICQ7Y_Atps']
+[0m
+[0m$ [0mcurl -s "https://pypi.org/pypi/earthengine-api/json" -o /tmp/ee_pypi.json; python3 -c "
+import json
+d=json.load(open('/tmp/ee_pypi.json'))
+print('latest version:', d['info']['version'])
+files=d['urls']
+for f in files:
+    print(f['filename'], f['size'], f['url'][:80])
+"
+latest version: 1.7.38
+earthengine_api-1.7.38-py3-none-any.whl 480682 https://files.pythonhosted.org/packages/db/e7/1d00b1b78edeee980a0cff832ad8e09764
+earthengine_api-1.7.38.tar.gz 433298 https://files.pythonhosted.org/packages/a1/ee/ca4a222fe45fe727de1b6a1382c1e26fc4
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcd /tmp && curl -sL "https://pypi.org/pypi/earthengine-api/json" -o /dev/null; curl -sL "https://files.pythonhosted.org/packages/db/e7/1d00b1b78edeee980a0cff832ad8e09764" -o /dev/null; python3 -c "
+import json
+d=json.load(open('/tmp/ee_pypi.json'))
+print(d['urls'][0]['url'])
+" failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
