@@ -1,75 +1,17 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
-
-REAL_SECRET (hardcoded credential with signs of life):
-[none in delta]
-
-TEST_OR_EXAMPLE (sample/test/fixture data):
-| File | Line | Material | Classification |
-|------|------|----------|----------------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | "fuzz test key" | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | "ServerShutdownPassword" | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getDatabasePassword() call | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com doc URL (comment) | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | dev.mysql.com homepage URL | TEST_OR_EXAMPLE |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | "${{ secrets.GITHUB_TOKEN }}" | TEST_OR_EXAMPLE |
-
-ENDPOINT_LEAK (internal/dev/staging URLs):
-| File | Line | Material | Classification |
-|------|------|----------|----------------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer | ENDPOINT_LEAK |
-
-INTERESTING (unusual configs/debug):
-[none in delta beyond above]
-
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (flask/fuzz_json.py:27 - test fixture "fuzz test key")
-REPORT_CANDIDATE: no  (h2database/TestServer.java:13 - test password "ServerShutdownPassword")
-REPORT_CANDIDATE: no  (h2database/TestServer.java:55 - test DB password accessor)
-REPORT_CANDIDATE: no  (mysql-connector-j/TestServer.java:33 - doc comment URL)
-REPORT_CANDIDATE: no  (mysql-connector-j/project.yaml:1 - project homepage URL)
-REPORT_CANDIDATE: no  (agent-governance-toolkit/labeler.yml:20 - standard GH Actions secret ref)
-REPORT_CANDIDATE: no  (agent-governance-toolkit/esrp-publish.yml:1180 - internal TSS endpoint, not a secret)
-
-NOTE: The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) remains the ONLY live REAL_SECRET from prior scans — tracked separately per KB.
-EOF
-=== CLASSIFICATION TABLES ===
-
-REAL_SECRET (hardcoded credential with signs of life):
-[none in delta]
-
-TEST_OR_EXAMPLE (sample/test/fixture data):
-| File | Line | Material | Classification |
-|------|------|----------|----------------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | "fuzz test key" | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | "ServerShutdownPassword" | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getDatabasePassword() call | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com doc URL (comment) | TEST_OR_EXAMPLE |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | dev.mysql.com homepage URL | TEST_OR_EXAMPLE |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | "${{ secrets.GITHUB_TOKEN }}" | TEST_OR_EXAMPLE |
-
-ENDPOINT_LEAK (internal/dev/staging URLs):
-| File | Line | Material | Classification |
-|------|------|----------|----------------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer | ENDPOINT_LEAK |
-
-INTERESTING (unusual configs/debug):
-[none in delta beyond above]
-
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (flask/fuzz_json.py:27 - test fixture "fuzz test key")
-REPORT_CANDIDATE: no  (h2database/TestServer.java:13 - test password "ServerShutdownPassword")
-REPORT_CANDIDATE: no  (h2database/TestServer.java:55 - test DB password accessor)
-REPORT_CANDIDATE: no  (mysql-connector-j/TestServer.java:33 - doc comment URL)
-REPORT_CANDIDATE: no  (mysql-connector-j/project.yaml:1 - project homepage URL)
-REPORT_CANDIDATE: no  (agent-governance-toolkit/labeler.yml:20 - standard GH Actions secret ref)
-REPORT_CANDIDATE: no  (agent-governance-toolkit/esrp-publish.yml:1180 - internal TSS endpoint, not a secret)
-
-NOTE: The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) remains the ONLY live REAL_SECRET from prior scans — tracked separately per KB.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "GOOGLE_API_KEY" reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+61:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
+71:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
+123:      lines.append(f"GOOGLE_API_KEY={google_api_key}")
 [0m
-**Summary**: No new `REAL_SECRET` candidates in this delta. All 7 new hits are `TEST_OR_EXAMPLE` (test fixtures, placeholders, doc URLs, standard GH Actions `${{ secrets.* }}` ref) or `ENDPOINT_LEAK` (internal Microsoft TSS timestamp server URL). 
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=110, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=1, limit=50][0m
+[0m✱ [0mGrep "def.*create.*google_api_key"[90m in reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py · 0 matches[0m
+[0m✗ [0mGrep "def.*create" failed[90m in reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[0m
+[91m[1mError: [0mRipgrep JSON record exceeded 65536 bytes
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=60, offset=50][0m
+Now I have a clear picture. Let me classify all hits:
 
-The sole live `REAL_SECRET` remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) — already tracked in KB and confirmed live across multiple probes.
+## ...
