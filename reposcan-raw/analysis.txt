@@ -1,62 +1,75 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan results, all new delta hits are in test files with obvious test values. Let me classify everything:
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-## Classification Tables
+REAL_SECRET (hardcoded credential with signs of life):
+[none in delta]
 
-### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123";` | Test fixture in `javatests/` |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | `String password = "testpassword";` | Test fixture |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | `String password = "testpassword";` | Test fixture |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | `String password = "testpassword";` | Test fixture |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | `String password = "testpassword";` | Test fixture |
-| google/xrblocks/src/ai/AI.ts | 304-305 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | Placeholder template |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant name, not secret |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+TEST_OR_EXAMPLE (sample/test/fixture data):
+| File | Line | Material | Classification |
+|------|------|----------|----------------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | "fuzz test key" | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | "ServerShutdownPassword" | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getDatabasePassword() call | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com doc URL (comment) | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | dev.mysql.com homepage URL | TEST_OR_EXAMPLE |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | "${{ secrets.GITHUB_TOKEN }}" | TEST_OR_EXAMPLE |
 
-### ENDPOINT_LEAK (internal/staging URLs)
-| File | Line | Content |
-|------|------|---------|
-| google/yggdrasil-decision-forests/.../export_docker.py | 68 | `https://pantheon.corp.google.com/run` |
-| google/osv.dev/.../run-staging.yaml | 23 | `pantheon.corp.google.com/auth/clients` |
-| google/osv.dev/.../*.yaml | multiple | `test.osv.dev` staging endpoints |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/docker/...` |
+ENDPOINT_LEAK (internal/dev/staging URLs):
+| File | Line | Material | Classification |
+|------|------|----------|----------------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer | ENDPOINT_LEAK |
 
-### INTERESTING (debug/cloud metadata references)
-| File | Line | Content |
-|------|------|---------|
-| google/adk-python/.../container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` privilege escalation notes |
-| google/adk-python/.../gke_code_executor.py | 103-115 | kubeconfig path/context params |
-| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+INTERESTING (unusual configs/debug):
+[none in delta beyond above]
 
-### ALREADY KNOWN (from KB)
-- **REJECTED**: `google/xrblocks/docs/docusaurus.config.ts:175` — Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` (search-only, public by design)
-- **ACCEPTED (prior scan)**: `google/earthengine-api/python/ee/oauth.py:45` — Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — **NOT in this scan's hits** (different repo)
+=== VERDICT LIST ===
+REPORT_CANDIDATE: no  (flask/fuzz_json.py:27 - test fixture "fuzz test key")
+REPORT_CANDIDATE: no  (h2database/TestServer.java:13 - test password "ServerShutdownPassword")
+REPORT_CANDIDATE: no  (h2database/TestServer.java:55 - test DB password accessor)
+REPORT_CANDIDATE: no  (mysql-connector-j/TestServer.java:33 - doc comment URL)
+REPORT_CANDIDATE: no  (mysql-connector-j/project.yaml:1 - project homepage URL)
+REPORT_CANDIDATE: no  (agent-governance-toolkit/labeler.yml:20 - standard GH Actions secret ref)
+REPORT_CANDIDATE: no  (agent-governance-toolkit/esrp-publish.yml:1180 - internal TSS endpoint, not a secret)
 
----
+NOTE: The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) remains the ONLY live REAL_SECRET from prior scans — tracked separately per KB.
+EOF
+=== CLASSIFICATION TABLES ===
 
-## Verdict List
+REAL_SECRET (hardcoded credential with signs of life):
+[none in delta]
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| copybara javatests (5 hits) | TEST_OR_EXAMPLE | **no** |
-| xrblocks AI.ts placeholders | TEST_OR_EXAMPLE | **no** |
-| xrblocks Algolia apiKey | REJECTED (known) | **no** |
-| agents-cli auth.py placeholder | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_credential.py test fixtures | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_schemes.py constant | TEST_OR_EXAMPLE | **no** |
-| adk-python openapi_tool placeholder | TEST_OR_EXAMPLE | **no** |
-| osv.dev staging URLs | ENDPOINT_LEAK | **no** |
-| copybara cloudbuild internal URL | ENDPOINT_LEAK | **no** |
-| yggdrasil pantheon.corp URL | ENDPOINT_LEAK | **no** |
-| container_code_executor metadata refs | INTERESTING | **no** (defensive code comment) |
-| earthengine-api oauth.py secret | REAL_SECRET (prior) | **yes** (already tracked) |
+TEST_OR_EXAMPLE (sample/test/fixture data):
+| File | Line | Material | Classification |
+|------|------|----------|----------------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | "fuzz test key" | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | "ServerShutdownPassword" | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getDatabasePassword() call | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | dev.mysql.com doc URL (comment) | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | dev.mysql.com homepage URL | TEST_OR_EXAMPLE |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | "${{ secrets.GITHUB_TOKEN }}" | TEST_OR_EXAMPLE |
 
-**No NEW real secrets in this delta.** The only reportable secret remains the earthengine-api OAuth client_secret from prior scans (already in KB as ACCEPTED).
+ENDPOINT_LEAK (internal/dev/staging URLs):
+| File | Line | Material | Classification |
+|------|------|----------|----------------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer | ENDPOINT_LEAK |
+
+INTERESTING (unusual configs/debug):
+[none in delta beyond above]
+
+=== VERDICT LIST ===
+REPORT_CANDIDATE: no  (flask/fuzz_json.py:27 - test fixture "fuzz test key")
+REPORT_CANDIDATE: no  (h2database/TestServer.java:13 - test password "ServerShutdownPassword")
+REPORT_CANDIDATE: no  (h2database/TestServer.java:55 - test DB password accessor)
+REPORT_CANDIDATE: no  (mysql-connector-j/TestServer.java:33 - doc comment URL)
+REPORT_CANDIDATE: no  (mysql-connector-j/project.yaml:1 - project homepage URL)
+REPORT_CANDIDATE: no  (agent-governance-toolkit/labeler.yml:20 - standard GH Actions secret ref)
+REPORT_CANDIDATE: no  (agent-governance-toolkit/esrp-publish.yml:1180 - internal TSS endpoint, not a secret)
+
+NOTE: The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) remains the ONLY live REAL_SECRET from prior scans — tracked separately per KB.
+[0m
+**Summary**: No new `REAL_SECRET` candidates in this delta. All 7 new hits are `TEST_OR_EXAMPLE` (test fixtures, placeholders, doc URLs, standard GH Actions `${{ secrets.* }}` ref) or `ENDPOINT_LEAK` (internal Microsoft TSS timestamp server URL). 
+
+The sole live `REAL_SECRET` remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) — already tracked in KB and confirmed live across multiple probes.
