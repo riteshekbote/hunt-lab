@@ -10542,3 +10542,143 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 - [RISK] google: 45 — one hardcoded OAuth client_secret (sha `3f3f8d6f…d271`; native-app by-design caveat pending VRP determination) + tokeninfo introspection oracle + unclassified new 200 at scope-string path (likely catch-all); otherwise hardened root. Unchanged.
 - [RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.
+===== ANALYST bigpickle 2026-08-09 22:47:27 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sSL https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py -o /tmp/opencode/oauth.py && wc -c /tmp/opencode/oauth.py && sha256sum /tmp/opencode/oauth.py
+23110 /tmp/opencode/oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/opencode/oauth.py
+[0m
+[0m$ [0mfor u in https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/not-a-real-scope https://www.googleapis.com/auth/calendar; do echo "=== $u ==="; curl -sS -D - -o /tmp/opencode/bp_body -w "code=%{http_code} type=%{content_type} size=%{size_download} redirect=%{redirect_url}\n" "$u"; done; echo "--- last body ---"; cat /tmp/opencode/bp_body; echo
+=== https://www.googleapis.com/auth/cloud-platform ===
+HTTP/2 200 
+content-type: text/html
+content-security-policy: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apiserving
+cross-origin-opener-policy-report-only: same-origin; report-to="apiserving"
+report-to: {"group":"apiserving","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/apiserving"}]}
+content-length: 14
+date: Sun, 09 Aug 2026 22:44:26 GMT
+pragma: no-cache
+expires: Fri, 01 Jan 1990 00:00:00 GMT
+cache-control: no-cache, must-revalidate
+last-modified: Mon, 22 Feb 2021 19:12:25 GMT
+x-content-type-options: nosniff
+server: sffe
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+code=200 type=text/html size=14 redirect=
+=== https://www.googleapis.com/auth/drive ===
+HTTP/2 200 
+content-type: text/html
+content-security-policy: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apiserving
+cross-origin-opener-policy-report-only: same-origin; report-to="apiserving"
+report-to: {"group":"apiserving","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/apiserving"}]}
+content-length: 5
+date: Sun, 09 Aug 2026 22:44:26 GMT
+pragma: no-cache
+expires: Fri, 01 Jan 1990 00:00:00 GMT
+cache-control: no-cache, must-revalidate
+last-modified: Mon, 22 Feb 2021 19:12:25 GMT
+x-content-type-options: nosniff
+server: sffe
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+code=200 type=text/html size=5 redirect=
+=== https://www.googleapis.com/auth/not-a-real-scope ===
+HTTP/2 404 
+content-type: text/plain
+x-content-type-options: nosniff
+date: Sun, 09 Aug 2026 22:44:27 GMT
+server: sffe
+content-length: 539
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+code=404 type=text/plain size=539 redirect=
+=== https://www.googleapis.com/auth/calendar ===
+HTTP/2 200 
+content-type: text/html
+content-security-policy: require-trusted-types-for 'script'; report-uri https://csp.withgoogle.com/csp/apiserving
+cross-origin-opener-policy-report-only: same-origin; report-to="apiserving"
+report-to: {"group":"apiserving","max_age":2592000,"endpoints":[{"url":"https://csp.withgoogle.com/csp/report-to/apiserving"}]}
+content-length: 8
+date: Sun, 09 Aug 2026 22:44:27 GMT
+pragma: no-cache
+expires: Fri, 01 Jan 1990 00:00:00 GMT
+cache-control: no-cache, must-revalidate
+last-modified: Mon, 22 Feb 2021 19:12:25 GMT
+x-content-type-options: nosniff
+server: sffe
+x-xss-protection: 0
+alt-svc: h3=":443"; ma=2592000,h3-29=":443"; ma=2592000
+
+code=200 type=text/html size=8 redirect=
+--- last body ---
+calendar
+[0m
+[0m$ [0mcurl -sS -o /dev/null -w "GET agentRegistrations: %{http_code} size=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -sS -I -o /dev/null -w "HEAD agentRegistrations: %{http_code} size=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -sS -o /dev/null -w "tokeninfo: %{http_code} size=%{size_download} type=%{content_type}\n" "https://oauth2.googleapis.com/tokeninfo"
+GET agentRegistrations: 401 size=237
+HEAD agentRegistrations: 405 size=0
+tokeninfo: 400 size=113 type=application/json; charset=UTF-8
+[0m
+Probes classified the 21:37 "flip" — sibling-path diff resolves H4. Full analysis below.
+
+## STEP 1 — DELTA
+- [CHANGED] `https://www.googleapis.com/auth/<scope>` — clean-URL classification complete: known scopes return HTTP 200 `text/html` echoing the scope name (cloud-platform→200/14 "cloud-platform", drive→200/5 "drive", calendar→200/8 "calendar"; `server: sffe`, `last-modified: 2021-02-22`, no-cache, CSP `require-trusted-types-for 'script'`); unknown `/auth/not-a-real-scope` → HTTP 404/539. The earlier 404s were backtick-artifact URLs, not a routing change.
+- [CHANGED] H4 (scope-string handler) resolved → dead class: by-design scope-identifier echo host, no sensitive content.
+- NO_DELTA elsewhere — re-verified: earthengine oauth.py whole-file sha `f4f93c76…` (len=23110) unchanged; agentRegistrations GET→401/237, HEAD→405/0; tokeninfo→400/113.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — 7.2 (attack 8, business 8, tech 7, gate 3, cloud 9, fresh 8)
+- [PRIO] oauth2.googleapis.com/token (earthengine client `517222506229-…`) — 7.05 (attack 3, business 10, tech 8, gate 6, cloud 10, fresh 7)
+- [PRIO] login.microsoftonline.com v1↔v2 issuer planes — 6.3 (attack 5, business 9, tech 8, gate 2, cloud 7, fresh 6)
+
+## STEP 3 — HYPOTHESES
+[HYP] Earth Engine client_secret redemption for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 95
+reasoning: whole-file sha `f4f93c76…` unchanged len=23110 this cycle; secret verbatim at :45 + :99 fallback; scopes cloud-platform+drive+devstorage; token endpoint alive POST-only.
+evidence_needed: POST /token → 200 access_token w/ cloud-platform vs 400 invalid_client / 401 unauthorized_client.
+verify_steps: HUMAN_ONLY: authorized `POST https://oauth2.googleapis.com/token` grant_type=client_credentials, client_id `517222506229-…` + secret (sha `3f3f8d6f…d271`); log status+scope only, no redemption.
+impact: cloud-platform token minting / GCP impersonation (native-app by-design caveat caps VRP); CVSS 8.0–9.8.
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: re-verified GET→401/237 auth-gated, HEAD→405/0 (RFC 6750 §3), OPTIONS→200 CORS* mutation allowlist; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: A) A POST {"displayName","createdBy":"<B>","ownerIds":["<B>"]}→201; B) B GET collection→200 incl. A vs 403; C) B PATCH {A-id}→200/204 vs 403; D) persistence; E) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1=4 kids ALL ⊂ v2=8 (0 v1-exclusive steady-state), dual issuer namespaces + v1.0-only response_type=token/hybrid verified; v1 kid set never validated against v2 issuer — replay precondition intact (distinct from REJECTED rotation-desync class).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- [PARKED] scope-string path serves unauthenticated handler (H4, conf 40): sibling-diff classified it — known scopes echo 200/<scope-name>, unknown→404; by-design sffe scope-identifier host, no data, no handler beyond name echo → dead class.
+- [FINAL] 1) earthengine secret redemption [95]; 2) agentRegistration IDOR [85]; 3) v1↔v2 issuer-confusion [65].
+
+## STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, secret (sha `3f3f8d6f…d271`, re-verified verbatim this cycle; whole-file sha `f4f93c76…` unchanged). Log status + returned scope only, no redemption. 200+cloud-platform → VRP with liveness sha + scope; 400/401 → promote agentRegistrations two-principal IDOR probe to top.
+
+## STEP 6 — LEARNING
+- [LEARN] REJECTED scope-echo as vuln class @ www.googleapis.com/auth/*: known OAuth scope identifiers returned HTTP 200 text/html body=<scope-name> (sffe, last-modified 2021-02-22), unknown→404/539; by-design static scope-identifier host, weak fingerprint only — H4 dead.
+- [LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret live — raw GitHub 200 len=23110, whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback, scopes cloud-platform+drive+devstorage.
+- [LEARN] ACCEPTED agentRegistration auth-gate live — GET→401/237, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), schema zero-OperationRestrictions precondition unchanged.
+- [LEARN] ACCEPTED tokeninfo introspection oracle live — no-param→400/113, ?access_token=→400/71.
+- [LEARN] REJECTED no other new proving-dead classes this cycle — NO_DELTA beyond H4 kill.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 42 — scope-echo class now provably benign (removes the only new-surface candidate); remaining live surface = earthengine client_secret (sha `3f3f8d6f…d271`, native-app caveat pending VRP) + tokeninfo introspection oracle; root otherwise hardened. Down 3 from 45.
+- [RISK] microsoft: 55 — agentRegistration zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.

@@ -1,4 +1,4 @@
-## 2026-08-09 22:03:18 UTC [google] (model nemotron3)
+## 2026-08-09 22:45:47 UTC [google] (model nemotron3)
 [PRIO] oauth2.googleapis.com/token (Earth Engine client_secret redemption), 8.25, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
 [PRIO] login.microsoftonline.com/common/discovery/keys (v1.0↔v2.0 issuer-confusion), 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
@@ -30,6 +30,6 @@ verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token via v1.0 author
 impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100k ceiling)
 testability: AUTH_HELPED
 [FINAL]
-[NEXT]
-[LEARN]
-[RISK]
+[NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com` (from oauth.py:43), client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` (re-verified live) — observe 200/400 to confirm native-app refresh_token gate.
+[RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
+[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.

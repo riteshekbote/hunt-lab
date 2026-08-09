@@ -189,3 +189,7 @@ https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
 https://www.googleapis.com/auth/cloud-platform -> 200 len=14 type=text/html
 https://www.googleapis.com/auth/drive` -> HTTP 404
 https://www.googleapis.com/auth/not-a-real-scope` -> HTTP 404
+
+## 2026-08-09 22:47:27 UTC
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404

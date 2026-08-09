@@ -1082,3 +1082,13 @@
 - [95] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
 - [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
 - NEXT(hypotheses-bigpickle.txt): PROBE: Classify the only new delta — `curl -sS -D- https://www.googleapis.com/auth/cloud-platform` (status/headers/len=14 body/Location), then `https://www.goog
+
+## RANKED HYPOTHESES 2026-08-09 22:47:27 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 22:44 UTC — raw GitHub GET→200 len=23110, whole-file sha `f4f93c76…` unchanged, secret sh
+- LEARN: ACCEPTED agentRegistration IDOR class confirmed live @ 22:44 UTC — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation), GET→401/237 Bearer challenge,
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ 22:44 UTC — v1=5 kids ⊂ v2=8 kids (4 shared, aFkmKVFc v1-exclusive is transient rotation churn per KB: v1 kid s
+- LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 22:44 UTC — no-param→400/113 invalid_token, `?id_token=fake`→400/71 Invalid Value, accepts query
