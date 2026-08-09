@@ -359,3 +359,10 @@
 - 2026-08-09 REJECTED no new proving-dead classes this cycle — NO_DELTA.
 - 2026-08-09 ACCEPTED: All prior findings remain live this cycle — NO_DELTA @ 2026-08-09 19:50 UTC (oauth2.googleapis.com/token → 404 GET confirms POST-only alive gate; graph.microsoft.com/beta/copilot/agentRegistrations → 401 confirms auth-gated; tokeninfo 400/113 + v2.0 authorize 200/23836 + v1⊂v2 kid overlap + earthengine secret sha `3f3f8d6f…d271` verbatim).
 - 2026-08-09 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+- 2026-08-09 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — raw GitHub 200 len=23110, whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback, client_id `517222506229-…` at :43, scopes cloud-platform+drive+devstorage.
+- 2026-08-09 ACCEPTED agentRegistration auth-gate confirmed live — HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), GET→401/237; schema zero-OperationRestrictions precondition unchanged.
+- 2026-08-09 ACCEPTED v1⊂v2 JWKS kid subset confirmed live — v1(4)⊂v2(8), 0 v1-exclusive; dual issuer namespaces intact.
+- 2026-08-09 ACCEPTED tokeninfo introspection oracle confirmed live — no-param→400/113, ?access_token=→400/71.
+- 2026-08-09 ACCEPTED oauth2.googleapis.com/token: GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); not a new surface, validates existing hypothesis.
+- 2026-08-09 ACCEPTED agentRegistration IDOR class: $metadata 873-char block + HEAD→405/no-Bearer + OPTIONS→200/CORS * mutation allowlist remain live; 5 EntityTypes share zero-restriction pattern; pending AUTH_HELPED two-principal test.
+- 2026-08-09 ACCEPTED v1↔v2 JWKS kid overlap: v1(4)⊂v2(7), 0 v1-exclusive steady-state; dual issuer namespaces intact; rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer).

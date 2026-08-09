@@ -1040,3 +1040,27 @@
 - LEARN: REJECTED no new proving-dead classes this cycle — NO_DELTA.
 - LEARN: ACCEPTED: All prior findings remain live this cycle — NO_DELTA @ 2026-08-09 19:50 UTC (oauth2.googleapis.com/token → 404 GET confirms POST-only alive gate; grap
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+
+## RANKED HYPOTHESES 2026-08-09 20:59:06 UTC
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs htt
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.goog
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 18:30 UTC — GET→401/237, HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 18:30 UTC — raw GitHub GET → 200 len=23110, whole-file sha `f4f93c76…` unchanged, secret
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid overlap confirmed live @ 18:30 UTC — v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=7 kids (strict subset, 0 v1-exclu
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live @ 18:30 UTC — no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= without Author
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET /oauth2/v2.0/authorize?response_type=token → HTTP 200 (JS error 700038, RFC 6749 §3 viola
+- LEARN: ACCEPTED: Graph API 405 anomaly confirmed live @ 18:30 UTC — HEAD /v1.0 → 405/0 (no WWW-Authenticate Bearer), extends to /beta/copilot/agentRegistrations.
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 18:30 UTC).
+- LEARN: REJECTED: dual-JWKS rotation desync @ login.microsoftonline.com — v1=4⊂v2=8/7 steady-state subset holds with 0 persistent v1-exclusive (aFkmKVFc churn is transi
+- LEARN: ACCEPTED: tokeninfo oracle HEAD→404 gap @ oauth2.googleapis.com/tokeninfo: minor method-handling inconsistency, no new exploit surface beyond already-accepted n
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — raw GitHub 200 len=23110, whole-file sha `f4f93c76…` unchanged, secret sha `3f
+- LEARN: ACCEPTED agentRegistration auth-gate confirmed live — HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), GET→401/237; schema zero-OperationRestrictions precondition
+- LEARN: ACCEPTED v1⊂v2 JWKS kid subset confirmed live — v1(4)⊂v2(8), 0 v1-exclusive; dual issuer namespaces intact.
+- LEARN: ACCEPTED tokeninfo introspection oracle confirmed live — no-param→400/113, ?access_token=→400/71.
+- LEARN: REJECTED no new proving-dead classes this cycle — NO_DELTA.
+- LEARN: ACCEPTED oauth2.googleapis.com/token: GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); not a new surface, validates e
+- LEARN: ACCEPTED agentRegistration IDOR class: $metadata 873-char block + HEAD→405/no-Bearer + OPTIONS→200/CORS * mutation allowlist remain live; 5 EntityTypes share ze
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap: v1(4)⊂v2(7), 0 v1-exclusive steady-state; dual issuer namespaces intact; rotation-desync class stays REJECTED (v1 kid set never
