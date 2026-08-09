@@ -1,47 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=120][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=20, offset=230][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=58, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=118, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=30, offset=160][0m
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [limit=20, offset=160][0m
 ### Classification Tables
 
 #### REAL_SECRET
-*None found in this delta.*
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in delta)* | — | — | No new hardcoded secrets with signs of life |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Content Hash (sha256) | Reason |
-|------|------|----------------------|--------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `b635ce16065ab9f4` | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/agents-cli/.../staging.yaml` | 168 | `c17000a4bb00e42b` | GitHub Actions template `${{ steps.fetch-token.outputs._id_token }}` |
-| `google/agents-cli/.../staging.yaml` | 192 | `c17000a4bb00e42b` | GitHub Actions template `${{ steps.fetch-token.outputs._auth_token }}` |
-| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 59 | `3647a9c9e9c9c243` | Env var name constant `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` |
-| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 61 | `3647a9c9e9c9c243` | Env var name constant `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"` |
-| `microsoft/mcp-gateway/.../cloud-deployment-template.yml` | 13 | `63f8dc909c044674` | K8s template ref `${GATEWAY_SECRET}` |
-| `microsoft/mcp-gateway/.../ForwardedIdentityHeaders.cs` | 14 | `aef95ad68e97833c` | Header name constant `GatewaySecret = "X-Gateway-Secret"` |
-| `microsoft/vcpkg/.../register-guest.sh` | 17 | `5af63f457e928b4c` | Runtime params `$SSH_COOKIE`, `$1` (PAT token) |
-| `microsoft/vcpkg/.../setup-box.sh` | 13 | `d9d9165b25afbb69` | Public Azure agent download URL |
-| `microsoft/winget-cli/.../TestIndex.cs` | 143,150,157 | `704dee9afe7c3b09` | Test placeholders `<EXEHASH>`, `<MSIHASH>`, `<MSIHASHV2>` |
-| `microsoft/winget-cli/.../RestInterface_1_7.cpp` | 451 | `ce4fb2d6b28079b4` | Test constant `expectedToken = "TestToken"` |
-| `microsoft/winget-cli/.../CommonRestConstants.h` | 22 | `393a9eeaed0af12e` | Constant key name `ContinuationToken = "ContinuationToken"` |
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | Docstring example: `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | Docstring example: `token="eyAkaknabna...."` (truncated JWT) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Example placeholder: `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant: `PASSWORD = "password"` (auth scheme type name) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum value: `GEMINI_API_KEY = "gemini_api_key"` (constant name) |
 
 #### ENDPOINT_LEAK
-| File | Line | Note |
-|------|------|------|
-| `microsoft/vcpkg/.../setup-box.sh` | 13 | Public Azure agent download URL (no secret) |
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documented GCP metadata endpoint `169.254.169.254` (public knowledge) |
 
 #### INTERESTING
-*None in this delta.*
+| File | Line | Context |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — proper Secret Manager reference pattern |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js (19 files) | various | Minified PEG.js parser bundles — parse error message templates, not secrets |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Runtime `.env` generation: `GOOGLE_API_KEY={google_api_key}` (variable, not hardcoded) |
+| google/agents-cli + langextract + magika workflows | various | GitHub Actions `${{ secrets.* }}` references — correct CI/CD pattern |
 
 ---
 
-### Verdict List
+### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `google/agents-cli` GEMINI_API_KEY placeholder | **no** |
-| `google/agents-cli` GH Actions token templates | **no** |
-| `google/oss-fuzz-gen` env var name constants | **no** |
-| `microsoft/mcp-gateway` K8s template secret ref | **no** |
-| `microsoft/mcp-gateway` header name constant | **no** |
-| `microsoft/vcpkg` runtime PAT/SSH params | **no** |
-| `microsoft/winget-cli` test hash/token placeholders | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-go Cloud Run secret ref | **no** | References Secret Manager, no secret material in repo |
+| JS parser bundle "errors" | **no** | Minified parser generator output (PEG.js), error templates only |
+| adk-python auth_credential examples | **no** | Docstring fixtures (`password`, truncated keys, `your_client_secret`) |
+| agents-cli GEMINI_API_KEY enum | **no** | Constant name `"gemini_api_key"`, not a key value |
+| CI/CD `${{ secrets.* }}` refs | **no** | Proper GitHub Actions secret injection pattern |
+| container_code_executor 169.254.169.254 | **no** | Public GCP metadata endpoint, documented in code comments |
+| cli_create.py runtime .env write | **no** | Writes user-supplied variable at runtime, not hardcoded |
 
-**Summary**: 15 delta hits, **0 REAL_SECRET**. All are test constants, template placeholders, or runtime parameter references. No actionable findings this cycle.
+**NO DELTAS** — All 20 new hit lines are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (public metadata IP), or **INTERESTING** (proper secret management patterns). No **REAL_SECRET** candidates in this scan cycle.
+
+> Note: The `earthengine-api` hardcoded OAuth client_secret (`oauth.py:45`, sha256 `3f3f8d6f…d271`) remains **ACCEPTED** per knowledge base but is **not in this delta** — it was already confirmed live in prior cycles.
