@@ -1,3 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/google/Xee/.github/workflows/publish.yml[90m [offset=65, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml[90m [offset=1175, limit=15][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs[90m [offset=555, limit=25][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go[90m [limit=20, offset=175][0m
+[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml[90m [offset=35, limit=15][0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this delta)* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/Xee/.github/workflows/publish.yml | 71 | TestPyPI public repository URL |
+| google/Xee/.github/workflows/publish.yml | 79 | pip install from TestPyPI (public) |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — proper secret ref |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=` ref syntax |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | GitHub Actions secret outputs |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — default const |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — explicit test value |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test passwords |
+| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test mock metadata setup |
+
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | Internal Microsoft timestamp server: `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` |
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124-131 | Internal Google source URLs: `cs.corp.google.com`, `source.corp.google.com` |
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | Internal Google source URLs |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | `169.254.169.254` (AWS/Azure IMDS) in SSRF blocklist |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | `metadata.google.internal` in SSRF blocklist |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 568 | `100.100.100.200` (Alibaba Cloud IMDS) in SSRF blocklist |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183 | `169.254.169.254` in SSRF blocklist map |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 564-565 | Additional blocklist entries: `169.254.170.2` (ECS), `168.63.129.16` (Azure Wire Server) |
+
+---
+
+### SHORT Verdict List
+
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Internal Microsoft timestamp server URL | microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 | **no** — internal infra endpoint, not a secret; ESRP publishing pipeline reference |
+| Google clusterfuzz internal source URLs | google/clusterfuzz/...source_mapper.py, data_handler.py | **no** — internal Google corp domains (cs.corp.google.com, source.corp.google.com), not actionable externally |
+| SSRF blocklist metadata IPs | microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs, policy_backends.go | **no** — defensive blocklist of well-known cloud metadata endpoints (IMDS), not a vulnerability |
+| TestPyPI / GitHub Actions secret refs / placeholder constants | All TEST_OR_EXAMPLE entries | **no** — proper secret handling or test fixtures |
+
+**No REAL_SECRET candidates in this delta.** The previously tracked earthengine-api client_secret (KB: `3f3f8d6f…d271`) persists but was not in *this* scan's new hits.
