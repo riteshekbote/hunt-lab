@@ -1,96 +1,84 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "PRIVATE KEY" --include="*.py" 2>/dev/null | head -5
-reposcan-raw/google/adk-python/tests/unittests/auth/test_credential_manager.py:                  "-----BEGIN PRIVATE KEY-----\ntest_key\n-----END PRIVATE"
-reposcan-raw/google/adk-python/tests/unittests/tools/openapi_tool/auth/credential_exchangers/test_service_account_exchanger.py:      private_key="-----BEGIN PRIVATE KEY-----...",
-reposcan-raw/google/adk-python/tests/unittests/tools/google_api_tool/test_google_api_toolset.py:                "-----BEGIN PRIVATE KEY-----\nprivate_key\n-----END PRIVATE"
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:          private_key="-----BEGIN PRIVATE KEY-----...",
-reposcan-raw/microsoft/SkillOpt/tests/test_sleep_evidence.py:            "-----BEGIN PRIVATE KEY-----\n"
-[0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=120][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=230, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=30, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=20, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [offset=145, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=115][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=30, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=30, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py[90m [limit=30, offset=95][0m
-[0m→ [0mRead reposcan-raw/google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h[90m [limit=20, offset=5][0m
-[0m→ [0mRead reposcan-raw/google/copybara/cloudbuild.yaml[90m [offset=20, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java[90m [limit=50, offset=70][0m
-[0m→ [0mRead reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java[90m [limit=30, offset=130][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=30][0m
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ | head -30
-Accessibility-Test-Framework-for-Android
-EarlGrey
-GoogleSignIn-iOS
-OpenSK
-XNNPACK
-Xee
-adk-docs
-adk-go
-adk-java
-adk-js
-adk-kotlin
-adk-python
-adk-python-community
-adk-web
-agents-cli
-android-cuttlefish
-android-emulator-container-scripts
-anonymous-tokens
-arb-editor
-arolla
-auto
-ax
-benchmark
-brax
-breakpad
-brotli
-budoux
-built_value.dart
-bumble
-bundletool
-[0m
-All hits analyzed. Here's the classification:
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-### Classification Table
+## REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| (none found in delta) | | | |
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **TEST_OR_EXAMPLE** | | |
-| | `adk-python/src/google/adk/auth/auth_credential.py:126,238,247` | Example code with placeholders (`...`, `"user"/"password"`, `"eyAkaknabna...."`) |
-| | `adk-python/src/google/adk/auth/auth_schemes.py:68` | Enum constant `PASSWORD = "password"` (OAuth grant type) |
-| | `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | Example `client_secret="your_client_secret"` |
-| | `copybara/javatests/.../AuthTest.java:75,102,129` | Test fixtures: `"testpassword"`, `"test-token-123"` |
-| | `copybara/javatests/.../HttpEndpointTest.java:136` | Test fixture: `"testpassword"` |
-| | `adk-python/tests/unittests/...` (multiple) | Test fixtures with placeholder keys |
-| **ENDPOINT_LEAK** (internal URLs only) | | |
-| | `libultrahdr/.../image_metadata.h:11` | `cs.corp.google.com` internal source link in comment |
-| | `copybara/cloudbuild.yaml:27` | `pantheon.corp.google.com` internal artifact URL in comment |
-| **INTERESTING** (config/patterns, not secrets) | | |
-| | `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` | Documents cloud metadata endpoint (169.254.169.254) as threat — defensive coding |
-| | `adk-python/src/google/adk/cli/cli_create.py:123` | Writes user-supplied `google_api_key` to local `.env` — expected scaffolding behavior |
-| | `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | Session state key name `_STATE_KEY_ACCESS_TOKEN` — not a token |
-| | `agents-cli/src/google/agents/cli/auth.py:43` | Enum value `GEMINI_API_KEY = "gemini_api_key"` — auth type name |
-| | `agents-cli/.../staging.yaml:168,192` | GitHub Actions `${{ steps.fetch-token.outputs... }}` — runtime secret refs |
-| | `adk-go/.../cloudrun.go:246` | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret injection pattern |
-| | `adk-python/src/google/adk/code_executors/gke_code_executor.py:103` | `kubeconfig_path` config param — not a secret |
-| **NOISE** (minified JS parser errors) | | |
-| | `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` (19 files) | PEG.js parser error strings — "Expecting..., got..." / "Parse error on line..." |
-| | `adk-python/src/google/adk/cli/browser/chunk-*.js` (19 files) | Same — minified parser error messages |
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 168 | `${{ secrets.GEMINI_API_KEY }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 169 | `${{ secrets.GEMINI_API_KEY }}` secret reference |
+| google/langextract/.github/workflows/ci.yaml | 170 | `${{ secrets.OPENAI_API_KEY }}` secret reference |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` secret reference |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test JS fixture |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` secret ref |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml | 2 | K8s ConfigMap template |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml | 2 | K8s ConfigMap template |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | Fake SQL in red-team benchmark |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented `# smtp_auth_password: 'password'` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-sre/charts/agent-sre/templates/configmap.yaml | 2 | K8s ConfigMap template |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` placeholder |
+| microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml | 2 | K8s ConfigMap template |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Risk |
+|------|------|----------|------|
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | `https://test.pypi.org/p/magika` | Public test PyPI (low) |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | `https://test.pypi.org/legacy/` | Public test PyPI (low) |
+| google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal Google source browser |
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal MS timestamp server |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS (well-known) |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27 | `http://169.254.169.254/metadata/identity/oauth2/token` | Azure IMDS token endpoint |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 29 | `http://169.254.169.254/latest/meta-data/iam` | AWS metadata endpoint |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 30 | `http://169.254.169.254/latest/api/token` | AWS token endpoint |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | `https://test.pypi.org/simple/` | Public test PyPI (low) |
+
+## INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | `"169.254.169.254"` AWS/Azure IMDS IP |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | `"metadata.google.internal"` GCP metadata |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 568 | `"100.100.100.200"` Alibaba Cloud IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183 | `"169.254.169.254": true` IMDS allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 184 | `"metadata.google.internal": true` GCP metadata allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39 | `"169.254.169.254"` cloud metadata comment |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 40 | `"metadata.google.internal"` GCP metadata comment |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102 | `"169.254.169.254"` AWS metadata comment |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 103 | `"metadata.google.internal"` GCP metadata comment |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | `'169.254.169.254'` AWS/Azure IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 11 | `'metadata.google.internal'` GCP metadata |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 13 | `'100.100.100.200'` Alibaba Cloud IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13 | `'169.254.169.254'` IMDS |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 14 | `'metadata.google.internal'` GCP metadata |
 
 ---
 
-### SHORT VERDICT LIST
+# VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| All findings above | **no** | Zero `REAL_SECRET` hits in this scan. All are test fixtures, documentation placeholders, internal URLs in comments, config parameter names, CI/CD runtime secret references, or minified JS parser error strings. |
-| `earthengine-api` oauth.py:45 | **N/A** | Not in this scan's repo set (previously confirmed live, tracked separately). |
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| Internal Google source browser URL | google/libultrahdr/.../image_metadata.h | 11 | ENDPOINT_LEAK | **no** (internal reference, not credential) |
+| Internal MS timestamp server | microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | ENDPOINT_LEAK | **no** (internal infra URL, no secret) |
+| Azure IMDS token endpoint | microsoft/agent-governance-toolkit/.../managed_identity.py | 27 | ENDPOINT_LEAK | **no** (well-known public endpoint) |
+| AWS metadata endpoints | microsoft/agent-governance-toolkit/.../managed_identity.py | 29-30 | ENDPOINT_LEAK | **no** (well-known public endpoints) |
+| Test PyPI URLs | google/magika/.../python-build-and-release-package.yml | 407,437 | ENDPOINT_LEAK | **no** (public test infrastructure) |
+| Cloud metadata IPs in policy code | (multiple files) | various | INTERESTING | **no** (documentation of well-known endpoints) |
 
-**Summary**: This scan produced **no new reportable secrets**. The only live hardcoded secret previously confirmed (`google/earthengine-api/python/ee/oauth.py:45`) is outside the current scan's repository coverage.
+**SUMMARY: No REPORT_CANDIDATE=yes findings in this delta.**
+All hits are either secret references (`${{ secrets.* }}`), placeholders (`your-key`, `REPLACE-WITH-YOUR-KEY`), test fixtures, well-known cloud metadata endpoints, or public test infrastructure URLs.
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
