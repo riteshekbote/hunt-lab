@@ -1076,3 +1076,9 @@
 - LEARN: ACCEPTED agentRegistration IDOR class — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), GET→401/237 Bearer challenge; $metadata 873-char block, 0 Operatio
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap — v1(4)⊂v2(7), 0 v1-exclusive, `Access-Control-Allow-Origin: *`, dual issuer namespaces intact — confirmed LIVE, issuer-confusio
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-09 22:05:43 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redemption for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): PROBE: Classify the only new delta — `curl -sS -D- https://www.googleapis.com/auth/cloud-platform` (status/headers/len=14 body/Location), then `https://www.goog
