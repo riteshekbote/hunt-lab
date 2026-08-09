@@ -2309,3 +2309,4 @@ testability: AUTH_HELPED
 [LEARN] REJECTED no new proving-dead classes this cycle — NO_DELTA.
 [RISK] google: 45 — one confirmed hardcoded OAuth client_secret (sha `3f3f8d6f…d271`; native-app by-design caveat pending VRP determination) + tokeninfo introspection oracle; otherwise hardened root. Unchanged.
 [RISK] microsoft: 55 — agentRegistration schema zero-ownership preconditions + Graph 405 anomaly + HTTP-200 error rendering all live, but every access path auth-gated (401/237) pending AUTH_HELPED; identity-plane confusion preconditions intact. Unchanged.
+## 2026-08-09 21:34:40 UTC [google] (model bigpickle)

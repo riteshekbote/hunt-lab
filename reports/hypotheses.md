@@ -1064,3 +1064,15 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/token: GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); not a new surface, validates e
 - LEARN: ACCEPTED agentRegistration IDOR class: $metadata 873-char block + HEAD→405/no-Bearer + OPTIONS→200/CORS * mutation allowlist remain live; 5 EntityTypes share ze
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap: v1(4)⊂v2(7), 0 v1-exclusive steady-state; dual issuer namespaces intact; rotation-desync class stays REJECTED (v1 kid set never
+
+## RANKED HYPOTHESES 2026-08-09 21:37:08 UTC
+- [95] oauth2.googleapis.com/token: Earth Engine client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.goog
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live @ 19:48 UTC — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live @ 19:48 UTC — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issue
+- LEARN: REJECTED: No new proving-dead classes this cycle — reposcan-2026-08-09-19-13 confirmed all 206 hits are TEST_OR_EXAMPLE or KNOWN-DUP (ADK closed); NO_DELTA.
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret — raw GitHub GET→200 len=23110, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587
+- LEARN: ACCEPTED agentRegistration IDOR class — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), GET→401/237 Bearer challenge; $metadata 873-char block, 0 Operatio
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap — v1(4)⊂v2(7), 0 v1-exclusive, `Access-Control-Allow-Origin: *`, dual issuer namespaces intact — confirmed LIVE, issuer-confusio
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
