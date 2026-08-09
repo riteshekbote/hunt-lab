@@ -2493,3 +2493,4 @@ asset: graph.microsoft.com/beta/copilot/agentRegistrations
 confidence: 85
 reasoning: PASSIVE-VERIFIED live $metadata (7.3MB): agentRegistration EntityType declares createdBy (Nullable=false), ownerIds (Nullable=false), agentCard (graph.Json), managedByAppId, agentIdentityId — all client-supplied with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions/InsertRestrictions/DeleteRestrictions. HEAD→405 (no WWW-Authenticate) confirms metadata-level auth-challenge anomaly. 5 sibling EntityTypes share identical zero-restriction pattern.
 evidence_needed: User2 (non-owner) GETs /beta/copilot/
+## 2026-08-09 13:11:20 UTC [google] (model nemotron3)

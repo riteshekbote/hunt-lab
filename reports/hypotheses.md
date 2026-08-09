@@ -867,3 +867,19 @@
 - [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
 - [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH (from reports/hypotheses-nemotron3.txt)
 - NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized client_credentials POST to `https://oauth2.googleapis.com/token` — grant_type=client_credentials, client_id `517222506229-vsmmajv…` (:43), sec
+
+## RANKED HYPOTHESES 2026-08-09 13:13:08 UTC
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Hardcoded OAuth client_secret in earthengine-api native-app SDK (from reports/hypotheses-laguna.txt)
+- [95] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access (from reports/hypotheses-bigpickle.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-longcat.txt): **HUMAN**: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 12:03 UTC).
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret still live — raw GitHub GET → 200 len=23110, sha256(secret) `3f3f8d6f…d271` verbatim match, whole-file sh
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions still live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 violatio
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap still live — v1=4 kids ⊂ v2=7 kids (strict subset, 0 v1-exclusive), `Access-Control-Allow-Origin: *`, dual issuer namespaces in
+- LEARN: ACCEPTED: tokeninfo public introspection oracle still live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorization 
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401, HEAD→405, OPTIONS→200 (CORS *, full mutation allowlist), 873-char m
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4)⊂v2(7), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss

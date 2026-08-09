@@ -293,3 +293,11 @@
 - 2026-08-09 ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1=4 kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2=7 kids (0 v1-exclusive), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0).
 - 2026-08-09 ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorization header, HEAD→404 method-handling quirk.
 - 2026-08-09 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-09 ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 12:03 UTC).
+- 2026-08-09 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret still live — raw GitHub GET → 200 len=23110, sha256(secret) `3f3f8d6f…d271` verbatim match, whole-file sha `f4f93c76…` unchanged, line :45 + :99 fallback.
+- 2026-08-09 ACCEPTED: agentRegistration EntityType zero ownership restrictions still live — GET→401 (auth-gated), HEAD→405 (no WWW-Authenticate Bearer, RFC 6750 §3 violation extends to Agent Registration), $metadata 873-char block, 0 OperationRestrictions.
+- 2026-08-09 ACCEPTED: v1↔v2 JWKS kid overlap still live — v1=4 kids ⊂ v2=7 kids (strict subset, 0 v1-exclusive), `Access-Control-Allow-Origin: *`, dual issuer namespaces intact.
+- 2026-08-09 ACCEPTED: tokeninfo public introspection oracle still live — no-param → 400 invalid_token (113 bytes), accepts ?access_token=/ ?id_token= without Authorization header.
+- 2026-08-09 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401, HEAD→405, OPTIONS→200 (CORS *, full mutation allowlist), 873-char metadata block, 0 OperationRestrictions.
+- 2026-08-09 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- 2026-08-09 ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4)⊂v2(7), 0 v1-exclusive steady-state, dual issuer namespaces intact.

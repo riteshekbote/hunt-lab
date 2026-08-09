@@ -116,3 +116,8 @@ https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401
 ## 2026-08-09 12:03:16 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
 https://oauth2.googleapis.com/token` -> HTTP 404
+
+## 2026-08-09 13:13:08 UTC
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401
