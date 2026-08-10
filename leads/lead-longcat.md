@@ -335,3 +335,44 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 [RISK] google: 45 — earthengine secret is real but native-app by-design question limits exploitable impact; GCP control-plane APIs all require consumer identity (no anon reads); bughunters hardened. Residual risk from OAuth client_secret redemption in the wild. | microsoft: 63 — agentRegistration IDOR surface (5 EntityTypes, zero ownership restrictions) remains but OPTIONS→405 closes CORS mutation vector; Graph 405 anomaly masking IDOR enumeration + v1↔v2 dual-issuer trust boundary + RFC 6749 §3 error-rendering violations represent meaningful, multi-vector exposure across Entra ID + M365 Copilot.
 ## 2026-08-10 11:39:19 UTC [google] (model longcat)
+## 2026-08-10 12:32:52 UTC [google] (model longcat)
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist) — closes CORS cross-origin mutation vector (first observed 2026-08-10 09:52 UTC, sustained through 11:40 UTC)
+[CHANGED] oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential accepted by token server
+[CHANGED] www.googleapis.com/auth/cloud-platform: flips 200 (len=14) ↔ 404 across cycles — scope strings not stable HTTP endpoints
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — **7.30** (attack:8, business:9, tech:6, gate:6, cloud:9, fresh:6)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — **7.20** (attack:9, business:9, tech:7, gate:4, cloud:8, fresh:6) — gate score ↓1 due to OPTIONS→405 closing CORS vector
+[PRIO] login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys — **6.80** (attack:6, business:9, tech:8, gate:3, cloud:7, fresh:5)
+[HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped tokens
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: client_secret (sha256 3f3f8d6f…d271) at line :45 + :99 fallback accepted by oauth2.googleapis.com/token (POST → 400 invalid_grant, not invalid_client — proving valid credential with bad RT). Scopes: cloud-platform+drive+devstorage.full_control. OOB redirect deprecated.
+evidence_needed: Token redemption via grant_type=authorization_code or refresh_token using client_id 517222506229-… + secret
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256 of secret value; include POST PoC showing 400 invalid_grant vs invalid_client distinction. VRP determination needed on native-app by-design status.
+impact: Attacker redeems secret for cloud-platform-scoped access to any GCP project where Earth Engine API is enabled. Severity hinges on VRP policy for native-app hardcoded secrets.
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: $metadata 873-char agentRegistration EntityType with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. GET→401 (auth-gated), HEAD→405 (RFC 6750 §3). 5 sibling EntityTypes share pattern. OPTIONS→405 closes CORS vector but server-side PATCH IDOR remains.
+evidence_needed: Two-principal test — Principal A creates agentRegistration, Principal B attempts PATCH with createdBy=A's id
+verify_steps: AUTH_HELPED: Provision two Entra test-tenant principals (A, B). A POSTs agentRegistrations. B attempts PATCH /beta/copilot/agentRegistrations/{A's-id} with createdBy=A's objectId + agentCard payload. Check 403/404 vs 200/204.
+impact: Cross-tenant agent registration takeover — attacker modifies another org's Copilot agent config, potentially redirecting agentCard endpoints. High severity in M365 Copilot ecosystem.
+testability: AUTH_HELPED
+[HYP] v1↔v2 issuer-confusion via shared JWKS kid set + dual issuer namespaces
+class: OATH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: v1 issuer=sts.windows.net/{tid}/, v2 issuer=login.microsoftonline.com/{tid}/v2.0 (dual namespaces). 4 v1 kids ⊂ 7 v2 kids (0 v1-exclusive steady-state). A validator checking only kid+sig but not iss could accept v1-signed token at v2-only endpoint.
+evidence_needed: Generate v1-token (iss=sts.windows.net/{tid}/) signed with shared kid, submit to v2-only resource endpoint; observe if iss-check enforced.
+verify_steps: AUTH_HELPED: Obtain v1.0 access token (resource=https://graph.microsoft.com) for test tenant. Decode header, confirm kid is shared. Swap iss to v2.0 while keeping v1 signature — check if validator catches iss mismatch.
+impact: Token from v1 legacy trust domain accepted at v2-only endpoints, bypassing v2.0 conditional access policies. Broad Entra ID trust-boundary impact.
+testability: AUTH_HELPED
+[PARKED] v1↔v2 issuer-confusion @ login.microsoftonline.com: Confidence 60 is above 40 threshold, but verify_steps require generating a v1-signed token and swapping iss — this is theoretically testable AUTH_HELPED but in practice requires a real Entra test tenant with both v1.0 and v2.0 token issuance. The KB shows this has been tracked for multiple cycles without AUTH_HELPED completion. **Parked pending AUTH_HELPED resources.**
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for earthengine-api oauth.py:45 hardcoded client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271). Include evidence: raw GitHub 200 len=23110, whole-file sha f4f93c76… unchanged, POST to oauth2.googleapis.com/token returning 400 invalid_grant (not invalid_client) proving valid credential. Request VRP determination on native-app by-design status per OAuth 2.1 client-secret deprecation for public clients.
+[LEARN] ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oauth.py:45 is valid Google OAuth credential accepted by server (RFC 6749 §5.2 error-code distinction: invalid_client=bad secret, invalid_grant=good secret+bad RT)
+[LEARN] CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist) — closes CORS cross-origin mutation vector; core IDOR surface (metadata zero-restrictions, 5 EntityTypes, client-supplied createdBy/ownerIds) unchanged
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+[RISK] google: **46** — earthengine secret is a confirmed valid OAuth credential (invalid_grant proof) with cloud-platform scope; native-app by-design question limits exploitable impact but VRP report warranted; GCP control-plane APIs all require consumer identity (no anon reads); bughunters hardened; no new high-severity surfaces discovered this cycle | microsoft: **62** (↓1) — agentRegistration IDOR surface (5 EntityTypes, zero ownership restrictions) remains but OPTIONS→405 closes CORS mutation vector reducing attack feasibility; Graph 405 anomaly masking IDOR enumeration + v1↔v2 dual-issuer trust boundary + RFC 6749 §3 error-rendering violations represent meaningful multi-vector exposure across Entra ID + M365 Copilot, but all are parked/AUTH_HELPED-gated
