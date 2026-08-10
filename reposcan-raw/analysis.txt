@@ -1,153 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in delta) | | | | |
-
-## TEST_OR_EXAMPLE (sample/test/fixture/placeholder)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | TEST_OR_EXAMPLE | Secret Manager reference at runtime, not hardcoded |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | TEST_OR_EXAMPLE | Secret Manager reference at runtime |
-| google/dagger/util/latest-dagger-version.sh | 9 | TEST_OR_EXAMPLE | Env var reference `${GH_TOKEN:-}` |
-| google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secrets references |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
-| google/tunix/tunix/cli/base_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | TEST_OR_EXAMPLE | Tokenizer special tokens (eot/system/user), not secrets |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE | Constant `PASSWORD = 'password'` (default/placeholder) |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | TEST_OR_EXAMPLE | Example `password: "password"` in JSDoc |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | TEST_OR_EXAMPLE | Example `token: "your_access_token"` in JSDoc |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | TEST_OR_EXAMPLE | IP range `169.254.0.0/16` for metadata server |
-| google/xrblocks/src/ai/AI.ts | 303-304 | TEST_OR_EXAMPLE | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | TEST_OR_EXAMPLE | **KNOWN REJECTED** — Algolia DocSearch public search-only key |
-| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | TEST_OR_EXAMPLE | Internal Google cs.corp link reference |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Constant `GEMINI_API_KEY = "gemini_api_key"` (name placeholder) |
-| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions token references |
-| microsoft/vscode-gradle/.azure-pipelines/npm-cfs.yml | 58 | TEST_OR_EXAMPLE | npm registry URL construction |
-| microsoft/vscode-gradle/.azure-pipelines/cfs-variables.yml | 29 | TEST_OR_EXAMPLE | Maven registry URL |
-| microsoft/vscode-gradle/.azure-pipelines/npm-cfs-variables.yml | 26 | TEST_OR_EXAMPLE | npm registry URL |
-| microsoft/tui-test/install/install.sh | 41 | TEST_OR_EXAMPLE | Env var reference `${GITHUB_TOKEN:-${GH_TOKEN:-}}` |
-| microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | TEST_OR_EXAMPLE | Commented example `// client_secret: "abc123..."` |
-| microsoft/power-platform-skills/evals/power-pages/test-site/evals.json | 88,92 | TEST_OR_EXAMPLE | Test site URL for eval |
-| microsoft/qlib/.github/workflows/release.yml | 63,107 | TEST_OR_EXAMPLE | Standard CI twine upload to test.pypi.org |
-| microsoft/AntiSSRF/** (multiple files) | various | TEST_OR_EXAMPLE | IMDS IP `169.254.169.254/32` + Azure KV test URLs — defensive config |
-| microsoft/vcpkg-tool/** (multiple files) | various | TEST_OR_EXAMPLE | Azure DevOps public package feed URLs |
-| microsoft/vcpkg-tool/include/vcpkg/base/contractual-constants.h | 522 | TEST_OR_EXAMPLE | Constant for env var name `GITHUB_TOKEN` |
-| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | TEST_OR_EXAMPLE | Devcontainer default `SA_PASSWORD` fallback (dev-only) |
-| microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | TEST_OR_EXAMPLE | Env var reference `SQLCMD_PASSWORD="${SQLPASSWORD}"` |
-| microsoft/go-mssqldb/azuread/configuration.go | 26,34 | TEST_OR_EXAMPLE | Auth type string constants |
-| microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | TEST_OR_EXAMPLE | Connection string param names |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| microsoft/vcpkg-tool/azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
-| microsoft/vscode-gradle/.azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
-| microsoft/AntiSSRF/.../InAzureKeyVaultDomainTests.cs | 59,66 | ENDPOINT_LEAK | Test URLs `corp.vault.azuree.net`, `corp.managedhsm.azure.cnn` (typo `.cnn`) |
-
-## INTERESTING (unusual configs, debug flags, cloud configs)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | INTERESTING | KUBECONFIG assignment from config — runtime k8s config |
-| microsoft/AntiSSRF/config/IPAddressRanges.json | 161,436 | INTERESTING | IMDS CIDR `169.254.169.254/32` explicitly denied — SSRF defense |
-| microsoft/AntiSSRF/dotnet/src/IPAddressRanges.cs | 23 | INTERESTING | IMDS CIDR in C# source — SSRF defense |
-| microsoft/AntiSSRF/nodejs/src/IPAddressRanges.ts | 20 | INTERESTING | IMDS CIDR in TS source — SSRF defense |
-| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | INTERESTING | Hardcoded dev DB password `MssqlDriver@2025!` — devcontainer only |
-
----
-
-# VERDICT LIST
-
-**REPORT_CANDIDATE: no** — No hardcoded live secrets found in this delta. All hits are:
-- Secret references (GitHub Actions `${{ secrets.X }}`, gcloud Secret Manager)
-- Environment variable fallbacks
-- Placeholders (`YOUR_XXX_KEY_HERE`, `"password"`, `"your_token"`)
-- Test/fixture data
-- Public package feed URLs
-- Defensive SSRF configurations (IMDS CIDR deny-lists)
-- Devcontainer-only defaults
-- Previously rejected Algolia DocSearch key (public by design)
-
-**Action**: No VRP submissions from this scan delta. Continue monitoring.
-EOF
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in delta) | | | | |
-
-## TEST_OR_EXAMPLE (sample/test/fixture/placeholder)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | TEST_OR_EXAMPLE | Secret Manager reference at runtime, not hardcoded |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | TEST_OR_EXAMPLE | Secret Manager reference at runtime |
-| google/dagger/util/latest-dagger-version.sh | 9 | TEST_OR_EXAMPLE | Env var reference `${GH_TOKEN:-}` |
-| google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secrets references |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
-| google/tunix/tunix/cli/base_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | TEST_OR_EXAMPLE | Tokenizer special tokens (eot/system/user), not secrets |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE | Constant `PASSWORD = 'password'` (default/placeholder) |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | TEST_OR_EXAMPLE | Example `password: "password"` in JSDoc |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | TEST_OR_EXAMPLE | Example `token: "your_access_token"` in JSDoc |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | TEST_OR_EXAMPLE | IP range `169.254.0.0/16` for metadata server |
-| google/xrblocks/src/ai/AI.ts | 303-304 | TEST_OR_EXAMPLE | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | TEST_OR_EXAMPLE | **KNOWN REJECTED** — Algolia DocSearch public search-only key |
-| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | TEST_OR_EXAMPLE | Internal Google cs.corp link reference |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Constant `GEMINI_API_KEY = "gemini_api_key"` (name placeholder) |
-| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions token references |
-| microsoft/vscode-gradle/.azure-pipelines/npm-cfs.yml | 58 | TEST_OR_EXAMPLE | npm registry URL construction |
-| microsoft/vscode-gradle/.azure-pipelines/cfs-variables.yml | 29 | TEST_OR_EXAMPLE | Maven registry URL |
-| microsoft/vscode-gradle/.azure-pipelines/npm-cfs-variables.yml | 26 | TEST_OR_EXAMPLE | npm registry URL |
-| microsoft/tui-test/install/install.sh | 41 | TEST_OR_EXAMPLE | Env var reference `${GITHUB_TOKEN:-${GH_TOKEN:-}}` |
-| microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | TEST_OR_EXAMPLE | Commented example `// client_secret: "abc123..."` |
-| microsoft/power-platform-skills/evals/power-pages/test-site/evals.json | 88,92 | TEST_OR_EXAMPLE | Test site URL for eval |
-| microsoft/qlib/.github/workflows/release.yml | 63,107 | TEST_OR_EXAMPLE | Standard CI twine upload to test.pypi.org |
-| microsoft/AntiSSRF/** (multiple files) | various | TEST_OR_EXAMPLE | IMDS IP `169.254.169.254/32` + Azure KV test URLs — defensive config |
-| microsoft/vcpkg-tool/** (multiple files) | various | TEST_OR_EXAMPLE | Azure DevOps public package feed URLs |
-| microsoft/vcpkg-tool/include/vcpkg/base/contractual-constants.h | 522 | TEST_OR_EXAMPLE | Constant for env var name `GITHUB_TOKEN` |
-| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | TEST_OR_EXAMPLE | Devcontainer default `SA_PASSWORD` fallback (dev-only) |
-| microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | TEST_OR_EXAMPLE | Env var reference `SQLCMD_PASSWORD="${SQLPASSWORD}"` |
-| microsoft/go-mssqldb/azuread/configuration.go | 26,34 | TEST_OR_EXAMPLE | Auth type string constants |
-| microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | TEST_OR_EXAMPLE | Connection string param names |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| microsoft/vcpkg-tool/azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
-| microsoft/vscode-gradle/.azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
-| microsoft/AntiSSRF/.../InAzureKeyVaultDomainTests.cs | 59,66 | ENDPOINT_LEAK | Test URLs `corp.vault.azuree.net`, `corp.managedhsm.azure.cnn` (typo `.cnn`) |
-
-## INTERESTING (unusual configs, debug flags, cloud configs)
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | INTERESTING | KUBECONFIG assignment from config — runtime k8s config |
-| microsoft/AntiSSRF/config/IPAddressRanges.json | 161,436 | INTERESTING | IMDS CIDR `169.254.169.254/32` explicitly denied — SSRF defense |
-| microsoft/AntiSSRF/dotnet/src/IPAddressRanges.cs | 23 | INTERESTING | IMDS CIDR in C# source — SSRF defense |
-| microsoft/AntiSSRF/nodejs/src/IPAddressRanges.ts | 20 | INTERESTING | IMDS CIDR in TS source — SSRF defense |
-| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | INTERESTING | Hardcoded dev DB password `MssqlDriver@2025!` — devcontainer only |
-
----
-
-# VERDICT LIST
-
-**REPORT_CANDIDATE: no** — No hardcoded live secrets found in this delta. All hits are:
-- Secret references (GitHub Actions `${{ secrets.X }}`, gcloud Secret Manager)
-- Environment variable fallbacks
-- Placeholders (`YOUR_XXX_KEY_HERE`, `"password"`, `"your_token"`)
-- Test/fixture data
-- Public package feed URLs
-- Defensive SSRF configurations (IMDS CIDR deny-lists)
-- Devcontainer-only defaults
-- Previously rejected Algolia DocSearch key (public by design)
-
-**Action**: No VRP submissions from this scan delta. Continue monitoring.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "SA_PASSWORD" reposcan-raw/microsoft/go-mssqldb/.devcontainer/docker-compose.yml
+23:      SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"
+24:      MSSQL_SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"
+29:      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1"]
 [0m
-**Classification complete.** No `REAL_SECRET` candidates in this delta — all 46 new hits are secret references, placeholders, test fixtures, public endpoints, or defensive configs. The Algolia key at `google/xrblocks/docs/docusaurus.config.ts:175` is already in the REJECTED list (public search-only key by design).
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "MssqlDriver@2025!"
+5086d58abaeeae6168b927c3b2f792bbfae8511a3dc9196f31532bdf86958175  -
+[0m
+| Category | File | Line | Evidence | Classification |
+|----------|------|------|----------|----------------|
+| **TEST_OR_EXAMPLE** | google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant placeholder |
+| | google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example in JSDoc |
+| | google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder in example |
+| | google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` | Explicit placeholder |
+| | google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` | Explicit placeholder |
+| | google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **KNOWN DUP** — Algolia DocSearch key (REJECTED 2026-08-07) |
+| | google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder string |
+| | google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| | google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| | microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | `// client_secret: "abc123..."` | Commented example |
+| | microsoft/agent-lightning/contrib/recipes/webshop/aml/jobs/webshop-qwen.yml | 7-8 | `# --set environment_variables.HF_TOKEN="$HF_TOKEN"` | Commented template |
+| | microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | `Password = "password"`, `ChangePassword = "change password"` | Constant names, not values |
+| **ENDPOINT_LEAK** | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets access codecov-google-crosvm` | Secret Manager ref (not value) |
+| | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets access github-crosvm-bot` | Secret Manager ref (not value) |
+| | google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression |
+| | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref |
+| | google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
+| | google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference |
+| | microsoft/vscode-gradle/.../npm-cfs.yml | 58 | `npm config get registry` | Registry discovery |
+| | microsoft/vscode-gradle/.../cfs-variables.yml | 29 | `pkgs.dev.azure.com/mseng/...` | Azure Artifacts feed |
+| | microsoft/vscode-gradle/.../npm-cfs-variables.yml | 26 | `pkgs.dev.azure.com/mseng/.../npm/registry/` | npm registry URL |
+| | microsoft/power-platform-skills/.../evals.json | 88-92 | `intranet.powerappsportals.com` | Test site URL |
+| | microsoft/agent-lightning/.github/workflows/pypi-nightly.yml | 59 | `test.pypi.org/legacy/` | Test PyPI endpoint (Δ) |
+| | microsoft/qlib/.github/workflows/release.yml | 63,107 | `test.pypi.org/legacy/` | Test PyPI endpoint |
+| | microsoft/vcpkg-tool/.../package-lock.json | 42,55,62 | `pkgs.dev.azure.com/vcpkg/...` | Package registry URLs |
+| | microsoft/vcpkg-tool/.../localization.yml | 49 | `pkgs.dev.azure.com/devdiv/...` | NuGet feed URL |
+| | microsoft/vcpkg-tool/.../signing.yml | 59,335,429 | `pkgs.dev.azure.com/devdiv/...` | NuGet feed URLs |
+| | microsoft/vcpkg-tool/.../contractual-constants.h | 522 | `EnvironmentVariableGitHubToken = "GITHUB_TOKEN"` | Constant name only |
+| | microsoft/go-mssqldb/azuread/configuration.go | 26,34 | Auth type constants | Enum values |
+| **INTERESTING** | google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` | GCP metadata IP block (doc) |
+| | google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | `eot_token`, `system_token`, `user_token` | Tokenizer special tokens |
+| | microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | `SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"` | Devcontainer default (sha256: `5086d58a...`) |
+| | microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | `SQLCMD_PASSWORD="${SQLPASSWORD}"` | Env var usage |
+
+**Verdict**
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `microsoft/go-mssqldb/.devcontainer/docker-compose.yml:23` SA_PASSWORD default | **no** | Devcontainer-only fallback (`MssqlDriver@2025!`), gated by `SQLPASSWORD` env var; not a production credential; development environment default pattern |
+| All other hits | **no** | Placeholders, examples, secret references (not values), test endpoints, or known-duplicate (Algolia key) |
+
+**Summary**: 0 reportable secrets this cycle. The only non-placeholder value (`MssqlDriver@2025!`) is a devcontainer development default with env-var override — not a production credential.

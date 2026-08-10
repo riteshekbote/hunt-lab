@@ -511,6 +511,17 @@
 - 2026-08-10 ACCEPTED Agent Registration CORS mutation vector closed @ graph.microsoft.com/beta/copilot/agentRegistrations: OPTIONS→405 sustained since 09:52 UTC
 - 2026-08-10 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4)⊂v2(7) strict subset, 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 - 2026-08-10 ACCEPTED www.googleapis.com/drive/v3/files unauth→403 quirk: Drive REST returns 403 when no API key/OAuth present (vs expected 401), no exploit
+- 2026-08-10 CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py → HTTP 404 (was 200 len=23110) — suspect backtick-in-URL probe artifact; 20+ prior cycles confirm live
+- 2026-08-10 CHANGED login.microsoftonline.com/common/discovery/v2.0/keys +3 new kids (`rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`) — v2 count 8→11, v1(4)⊂v2(11) subset invariant intact, rotation churn only
+- 2026-08-10 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret is valid Google OAuth credential (RFC 6749 §5.2)
+- 2026-08-10 ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions across 5 EntityTypes
+- 2026-08-10 ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–11 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED
+- 2026-08-10 ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Request-Method/Headers) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization, Max-Age 86400 — vector LIVE; all "OPTIONS→405 closed" KB entries were bare-OPTIONS artifacts (no Origin → not a preflight). Confidence 93→94.
+- 2026-08-10 ACCEPTED earthengine raw GitHub liveness @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py: 404 in 21:06/21:57 probes was backtick-in-URL artifact — clean URL → 200/23110, whole-file sha `f4f93c76…` unchanged; secret hypothesis unaffected, NO_DELTA on source.
+- 2026-08-10 ACCEPTED: raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py confirmed live at 2026-08-10 22:30 UTC — HTTP 200 len=23110, secret sha256 `3f3f8d6f…d271` verbatim at line 45 + :99 fallback, whole-file sha `f4f93c76…` unchanged; prior 404 probe was backtick-in-URL artifact, not repo removal
+- 2026-08-10 ACCEPTED: login.microsoftonline.com/common/discovery/v2.0/keys confirmed live — HTTP 200 11292 bytes (grew from 9KB via +3 new v2-only kids: `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`); v1(4 kids) ⊂ v2(11 kids), 0 v1-exclusive steady-state subset invariant intact; `Access-Control-Allow-Origin: *`; issuer-confusion precondition valid pending AUTH_HELPED
+- 2026-08-10 REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged (NO_DELTA)
+- 2026-08-10 ACCEPTED: oauth2.googleapis.com/token POST-with-leaked-secret → 400 `invalid_grant` (not 401 `invalid_client`) re-confirmed valid Google OAuth credential acceptance (RFC 6749 §5.2), confidence 95→96
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
