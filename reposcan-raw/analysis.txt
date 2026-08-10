@@ -1,55 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "SA_PASSWORD" reposcan-raw/microsoft/go-mssqldb/.devcontainer/docker-compose.yml
-23:      SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"
-24:      MSSQL_SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"
-29:      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || exit 1"]
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "MssqlDriver@2025!"
-5086d58abaeeae6168b927c3b2f792bbfae8511a3dc9196f31532bdf86958175  -
-[0m
-| Category | File | Line | Evidence | Classification |
-|----------|------|------|----------|----------------|
-| **TEST_OR_EXAMPLE** | google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant placeholder |
-| | google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example in JSDoc |
-| | google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder in example |
-| | google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` | Explicit placeholder |
-| | google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` | Explicit placeholder |
-| | google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **KNOWN DUP** — Algolia DocSearch key (REJECTED 2026-08-07) |
-| | google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder string |
-| | google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| | google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| | microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | `// client_secret: "abc123..."` | Commented example |
-| | microsoft/agent-lightning/contrib/recipes/webshop/aml/jobs/webshop-qwen.yml | 7-8 | `# --set environment_variables.HF_TOKEN="$HF_TOKEN"` | Commented template |
-| | microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | `Password = "password"`, `ChangePassword = "change password"` | Constant names, not values |
-| **ENDPOINT_LEAK** | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets access codecov-google-crosvm` | Secret Manager ref (not value) |
-| | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets access github-crosvm-bot` | Secret Manager ref (not value) |
-| | google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression |
-| | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref |
-| | google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
-| | google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference |
-| | microsoft/vscode-gradle/.../npm-cfs.yml | 58 | `npm config get registry` | Registry discovery |
-| | microsoft/vscode-gradle/.../cfs-variables.yml | 29 | `pkgs.dev.azure.com/mseng/...` | Azure Artifacts feed |
-| | microsoft/vscode-gradle/.../npm-cfs-variables.yml | 26 | `pkgs.dev.azure.com/mseng/.../npm/registry/` | npm registry URL |
-| | microsoft/power-platform-skills/.../evals.json | 88-92 | `intranet.powerappsportals.com` | Test site URL |
-| | microsoft/agent-lightning/.github/workflows/pypi-nightly.yml | 59 | `test.pypi.org/legacy/` | Test PyPI endpoint (Δ) |
-| | microsoft/qlib/.github/workflows/release.yml | 63,107 | `test.pypi.org/legacy/` | Test PyPI endpoint |
-| | microsoft/vcpkg-tool/.../package-lock.json | 42,55,62 | `pkgs.dev.azure.com/vcpkg/...` | Package registry URLs |
-| | microsoft/vcpkg-tool/.../localization.yml | 49 | `pkgs.dev.azure.com/devdiv/...` | NuGet feed URL |
-| | microsoft/vcpkg-tool/.../signing.yml | 59,335,429 | `pkgs.dev.azure.com/devdiv/...` | NuGet feed URLs |
-| | microsoft/vcpkg-tool/.../contractual-constants.h | 522 | `EnvironmentVariableGitHubToken = "GITHUB_TOKEN"` | Constant name only |
-| | microsoft/go-mssqldb/azuread/configuration.go | 26,34 | Auth type constants | Enum values |
-| **INTERESTING** | google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` | GCP metadata IP block (doc) |
-| | google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | `eot_token`, `system_token`, `user_token` | Tokenizer special tokens |
-| | microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | `SA_PASSWORD: "${SQLPASSWORD:-MssqlDriver@2025!}"` | Devcontainer default (sha256: `5086d58a...`) |
-| | microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | `SQLCMD_PASSWORD="${SQLPASSWORD}"` | Env var usage |
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-**Verdict**
+## REAL_SECRET
+| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
+|------|------|----------------|------|------------------|
+| *none found* | - | - | - | - |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `microsoft/go-mssqldb/.devcontainer/docker-compose.yml:23` SA_PASSWORD default | **no** | Devcontainer-only fallback (`MssqlDriver@2025!`), gated by `SQLPASSWORD` env var; not a production credential; development environment default pattern |
-| All other hits | **no** | Placeholders, examples, secret references (not values), test endpoints, or known-duplicate (Algolia key) |
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key placeholder (`...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `user`/`password` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | JWT placeholder `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant `_vmaas_access_token` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` |
+| google/digitalbuildings/tools/abel/model/constants.py | 106 | Constant `ACCESS_TOKEN = 'accessToken'` |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | Test DB password `password` (nonprod) |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | Test DB password `domain-registry` (nonprod) |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | Test DB password `domain-registry` (nonprod) |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | Constant name `X_CSRF_TOKEN` |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | Constant name `P_CSRF_TOKEN` |
+| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | Constant name `ID_TOKEN` |
+| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | Load-test password `abcde12345` |
+| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key (public by design, REJECTED per KB) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions `${{ secrets.* }}` references |
+| google/qwix/.github/workflows/cla.yml | 23 | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `your_token` |
+| google/tunix/tunix/cli/base_config.yaml | 63 | Commented placeholder `your_token` |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified source map parse errors (not secrets) |
 
-**Summary**: 0 reportable secrets this cycle. The only non-placeholder value (`MssqlDriver@2025!`) is a devcontainer development default with env-var override — not a production credential.
+## ENDPOINT_LEAK
+| File | Line | Endpoint / Reference |
+|------|------|---------------------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | GCP metadata endpoint `169.254.169.254` (documented) |
+| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | Internal yaqs.corp.google.com link |
+| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | Staging URL `staging-www.sandbox.googleapis.com` |
+| google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | GCE metadata URL `http://metadata.google.internal/` |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | KUBECONFIG path reference `~/.kube/config` |
+
+## INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes `GOOGLE_API_KEY=` to config from variable (not hardcoded) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context params (config, not secret) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches Codecov token from Secret Manager via `gcloud` |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches GitHub token from Secret Manager via `gcloud` |
+| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | 5 | Large minified bundle (source map available) |
+
+## VERDICT
+- **REPORT_CANDIDATE: no** — No live hardcoded secrets found in this delta. All hits are test fixtures, placeholders, constants, or documented internal endpoints. The previously known earthengine-api OAuth client_secret (sha256 `3f3f8d6f...d271`) was NOT in this scan delta (already tracked in KB as ACCEPTED).
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
