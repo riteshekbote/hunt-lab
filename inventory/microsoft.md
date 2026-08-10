@@ -334,3 +334,6 @@
 
 ## 2026-08-10 00:48:37 UTC
 - CHANGED https://www.googleapis.com/auth/cloud-platform → HTTP 200 (len=14, type=text/html) at 2026-08-09 21:37:08 UTC → HTTP 404 at 2026-08-09 22:05:45 UTC
+
+## 2026-08-10 03:02:43 UTC
+- CHANGED https://www.googleapis.com/auth/cloud-platform — scope string probe flipped HTTP 200 (len=14, text/html) at 2026-08-09 21:37 → HTTP 404 at 2026-08-09 22:05; confirms scope strings are not HTTP endpoin

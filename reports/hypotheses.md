@@ -1136,3 +1136,12 @@
 - LEARN: ACCEPTED Hardcoded OAuth client_secret @ `earthengine-api/python/ee/oauth.py:45`: confirmed LIVE this cycle — raw GitHub GET→200/len=23110, secret-value sha `3f
 - LEARN: ACCEPTED tokeninfo public introspection oracle @ `oauth2.googleapis.com/tokeninfo`: confirmed LIVE — GET no-param→400/113 invalid_token, HEAD→404 (method-handli
 - LEARN: ACCEPTED agentRegistration IDOR class @ `graph.microsoft.com/beta/copilot/agentRegistrations`: confirmed LIVE — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Aut
+
+## RANKED HYPOTHESES 2026-08-10 03:02:43 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token via POST-only token endpoint (from reports/hypotheses-bigpickle.txt)
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404: confirms POST-only alive gate (RFC-compliant token endpoint, no GET); validates existing earthengine secret hypoth
+- LEARN: ACCEPTED agentRegistration IDOR class @ graph.microsoft.com/beta/copilot/agentRegistrations: GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, R
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: v1(5 kids)⊂v2(8 kids), 0 v1-exclusive, Access-Control-Allow-Origin: *; dual i
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live — no-param→400/113 invalid_token, accepts ?access_token=/ ?id_t

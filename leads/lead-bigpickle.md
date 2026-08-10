@@ -2529,3 +2529,31 @@ evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-onl
 verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present to v2.0 Graph resource, record 200 vs 401/403 + body.
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
+## 2026-08-10 03:02:05 UTC [google] (model bigpickle)
+[HYP] Hardcoded Earth Engine client_secret redeemable for cloud-platform token via POST-only token endpoint
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha256 `3f3f8d6f…d271`)
+confidence: 95
+reasoning: raw GitHub GET→200/len=23110, whole-file sha `f4f93c76…` unchanged, secret verbatim at :45 + :99 fallback; scopes cloud-platform+drive+devstorage; GET→404 confirms POST-only alive gate.
+evidence_needed: `POST /token` grant_type=refresh_token with leaked secret + valid RT → 200 access_token cloud-platform scoped (vs 400/401 native-app gate).
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (application/x-www-form-urlencoded): `grant_type=refresh_token&client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=<sha3f3f8d6f…>&refresh_token=<victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status+scopes only.
+impact: cloud-platform access-token minting / GCP impersonation; CVSS 8.0–9.8 (native-app by-design caveat caps VRP).
+testability: HUMAN_ONLY
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), OPTIONS→200 CORS `*` + full mutation allowlist; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl A's vs 403; 3) B PATCH {A_id} {"agentCard":{…}}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1=4 kids ALL ⊂ v2=8 kids (0 v1-exclusive, verified live), dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — replay precondition intact (distinct from REJECTED rotation-desync class).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED

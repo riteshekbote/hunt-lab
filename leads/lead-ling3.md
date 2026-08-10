@@ -139,3 +139,4 @@ evidence_needed: Passive GET https://www.googleapis.com/auth/cloud-platform; ver
 verify_steps: PASSIVE: GET https://www.googleapis.com/auth/cloud-platform; confirm HTTP 200, 14 bytes, type text/html
 impact: Potential cloud-platform scope token issuance
 testability: PASSIVE
+## 2026-08-10 03:01:20 UTC [google] (model ling3)
