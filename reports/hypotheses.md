@@ -1215,3 +1215,27 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — GET→400/113 invalid_token, HEAD→404 method-handling gap.
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+
+## RANKED HYPOTHESES 2026-08-10 10:55:25 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret is a valid credential redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- [80] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-nemotron3.txt)
+- [65] login.microsoftonline.com: v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-longcat.txt): PROBE: curl -s -D - -X OPTIONS https://graph.microsoft.com/beta/copilot/agentRegistrations — confirm OPTIONS→405 is consistent across retries and check if Acces
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer namespaces
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, scopes cloud-platfo
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: CHANGED: `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist). Closes the CORS cross-origi
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant "Bad Request"` (not 401 `invalid_client`) — proves `CLIENT_SECRET` @ oa
+- LEARN: ACCEPTED agentRegistration IDOR precondition still live @ 10:53 UTC — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation); 
+- LEARN: ACCEPTED v1↔v2 JWKS kid subset confirmed live @ 10:53 UTC — v1(4 kids: `6hXLaIYN…`, `AahUf1bC…`, `fEtqrhKT…`, `jvm_-Ttaq…`) ⊂ v2(8 kids), 0 v1-exclusive; `Acces
+- LEARN: ACCEPTED tokeninfo introspection oracle confirmed live — GET no-param → 400/113 invalid_token, `?access_token=fake` → 400/71 "Invalid Value" (accepts query-para
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist). Closes the CORS cross-origin mu
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), 873-char metadata block,
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged, len=23110.
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — GET→400/113 invalid_token, HEAD→404 method-handling gap.
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 

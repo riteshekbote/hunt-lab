@@ -12022,3 +12022,101 @@ testability: HUMAN_ONLY
 [HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
 class: AUTH
 asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v
+===== ANALYST bigpickle 2026-08-10 10:55:25 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HEAD agentRegistrations: %{http_code} size=%{size_download}\n" -X HEAD https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -s -o /dev/null -w "GET agentRegistrations: %{http_code} size=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -s -o /dev/null -w "OPTIONS agentRegistrations: %{http_code} size=%{size_download}\n" -X OPTIONS https://graph.microsoft.com/beta/copilot/agentRegistrations
+HEAD agentRegistrations: 405 size=0
+GET agentRegistrations: 401 size=237
+OPTIONS agentRegistrations: 405 size=0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "token GET: %{http_code}\n" https://oauth2.googleapis.com/token; curl -s -o /dev/null -w "tokeninfo no-param: %{http_code} size=%{size_download}\n" https://oauth2.googleapis.com/tokeninfo
+token GET: 404
+tokeninfo no-param: 400 size=113
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/keys -o /tmp/opencode/jwks.json -w "jwks: %{http_code}\n"; python3 -c "
+import json
+d=json.load(open('/tmp/opencode/jwks.json'))
+kids=[k['kid'] for k in d['keys']]
+print('v2 kids:', len(kids))
+import urllib.request
+r=urllib.request.urlopen('https://login.microsoftonline.com/common/discovery/keys?appid=1b730954-1685-4b74-9bfd-dac224a7b894')
+d1=json.load(r)
+k1=[k['kid'] for k in d1['keys']]
+print('v1 kids:', len(k1))
+print('v1-exclusive:', [x for x in k1 if x not in kids])
+print('shared:', [x for x in k1 if x in kids])
+"
+jwks: 200
+v2 kids: 5
+v1 kids: 4
+v1-exclusive: []
+shared: ['AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', '6hXLaIYNSJ0o7zu09dMyI0ji3ug']
+[0m
+[0m$ [0mfor m in POST PATCH PUT DELETE; do echo -n "$m: "; curl -s -o /dev/null -w "%{http_code} size=%{size_download}\n" -X $m -H "Content-Type: application/json" -d '{}' https://graph.microsoft.com/beta/copilot/agentRegistrations; done
+POST: 401 size=237
+PATCH: 401 size=237
+PUT: 401 size=237
+DELETE: 401 size=237
+[0m
+[0m$ [0mecho -n "HEAD /v1.0: "; curl -s -o /dev/null -w "%{http_code} size=%{size_download}\n" -X HEAD https://graph.microsoft.com/v1.0; echo -n "authorize v2 resp_type=token: "; curl -s -o /dev/null -w "%{http_code} size=%{size_download}\n" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=1950a258-227b-4e31-a9cf-717495945fc2&redirect_uri=https://www.google.com"
+HEAD /v1.0: 405 size=0
+authorize v2 resp_type=token: 200 size=23836
+[0m
+## STEP 1 — DELTA
+- NO_DELTA — fresh probes (10:1x UTC) confirm all prior ACCEPTED states unchanged: GET/POST/PATCH/PUT/DELETE agentRegistrations → 401/237, HEAD → 405/0, OPTIONS → 405/0 (stable 3×); token GET → 404 (POST-only), tokeninfo → 400/113; HEAD /v1.0 → 405/0; v2 authorize response_type=token → 200/23836; JWKS v1(4) ⊂ v2(5), 0 v1-exclusive.
+- [CONFIRMED] All mutation methods (POST/PATCH/PUT/DELETE) on `agentRegistrations` return 401/237 unauth — auth resolves before method dispatch, no unauth method-level bypass (new fact, consistent with existing auth-gate).
+
+## STEP 2 — PRIORITIZE
+- [PRIO] login.microsoftonline.com (v1↔v2 authorize/discovery) — score 6.35 (attack 7, business 9, tech 8, gate 3, cloud 4, fresh 3)
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 6.25 (attack 6, business 8, tech 7, gate 4, cloud 6, fresh 5)
+- [PRIO] oauth2.googleapis.com/token (+ earthengine secret) — score 5.80 (attack 4, business 9, tech 7, gate 2, cloud 8, fresh 4)
+
+## STEP 3 — HYPOTHESES
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe v1=4 kids ALL ⊂ v2=5 (0 v1-exclusive, subset invariant holds); dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (which is about key-set divergence, not validation of v1 tokens against v2 resources).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 80
+reasoning: GET→401/237 auth-gated with Bearer challenge, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), OPTIONS→405 (CORS vector closed 09:52); $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes; auth resolves before method dispatch (all mutations 401/237 unauth).
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Hardcoded Earth Engine client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client 517222506229-…, secret sha256 3f3f8d6f…d271)
+confidence: 95
+reasoning: whole-file sha f4f93c76… unchanged (len=23110), secret verbatim at :45 + :99 fallback; token GET→404 POST-only alive gate; tokeninfo oracle live; EE API surface anonymous→404 so redemption is the sole vector.
+evidence_needed: `POST /token` grant_type=refresh_token + leaked secret + valid RT → 200 cloud-platform access_token vs 400/401 invalid_client/unauthorized_client (native-app by-design gate).
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (form): `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + scopes only.
+impact: cloud-platform access-token minting / GCP impersonation; CVSS 8.0–9.8 (native-app by-design caps VRP).
+testability: HUMAN_ONLY
+
+## STEP 4 — SELF-CRITIQUE
+- Issuer-confusion (65): kept — above 40 threshold, class distinct from REJECTED rotation-desync (validation gap, not key-set divergence), concrete AUTH_HELPED verify steps. Re-ranked lowest.
+- AgentReg IDOR (80): kept — CORS vector closed but core zero-OperationRestrictions surface unchanged; confidence 85→80 per 09:52 CHANGED.
+- Earthengine secret (95): kept — strongest evidence-to-value ratio, sole vector confirmed POST-only; HUMAN_ONLY.
+- [FINAL] 1) earthengine secret redemption (95), 2) agentRegistrations cross-principal IDOR (80), 3) v1↔v2 issuer-confusion replay (65).
+
+## STEP 5 — NEXT ACTION
+[NEXT][HUMAN]: Execute authorized `POST https://oauth2.googleapis.com/token` (application/x-www-form-urlencoded) with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + granted scopes only. If 200+cloud-platform → report Google VRP (conf 95+); if 400/401 invalid_client/unauthorized_client → native-app by-design gate confirmed → proceed to AUTH_HELPED two-principal Entra test for agentRegistrations IDOR.
+
+## STEP 6 — LEARNING
+- LEARN: ACCEPTED agentRegistrations mutation-method auth consistency @ graph.microsoft.com/beta/copilot/agentRegistrations — POST/PATCH/PUT/DELETE unauth → 401/237 (Bearer challenge), auth resolves before method dispatch; OPTIONS → 405/0 stable 3× (CORS vector remains closed); no unauth method-level bypass. Core zero-OperationRestrictions IDOR precondition unchanged.
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/discovery/keys — v1=4 kids ALL ⊂ v2=5 kids (0 v1-exclusive), subset invariant holds despite v2 count churn (8→7→5); issuer-confusion precondition valid pending AUTH_HELPED; rotation-desync class stays REJECTED.
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 + tokeninfo 400/113 @ current cycle — POST-only alive gate and introspection oracle unchanged; validates earthengine secret redemption as sole vector.
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 55 — live but capped surfaces: earthengine hardcoded secret (95 conf, HUMAN test pending, likely native-app by-design caps VRP), tokeninfo introspection oracle (no-reward), token POST-only gate; no anonymous read paths on GCP control-plane.
+- [RISK] microsoft: 62 — agentRegistrations IDOR precondition (zero OperationRestrictions, 5 EntityTypes) live but AUTH_HELPED pending; Graph 405 anomaly (RFC 6750 §3) and v2 authorize HTTP-200 error rendering (RFC 6749 §3) confirmed; OPTIONS CORS vector closed (reduces one escalation path); issuer-confusion precondition intact.
