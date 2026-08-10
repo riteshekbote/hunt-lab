@@ -1,166 +1,44 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (hardcoded credential with signs of life)
-# NONE FOUND - all candidates are placeholders, test data, or secret references
-
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder constant name |
-| google/agents-cli/.../staging.yaml | 168 | ${{ steps.fetch-token.outputs._id_token }} | GitHub Actions template var |
-| google/agents-cli/.../staging.yaml | 192 | ${{ steps.fetch-token.outputs._auth_token }} | GitHub Actions template var |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | StorageDriverPassword = "storage_driver_password" | Default flag placeholder |
-| google/sandboxed-api/.../generator-tool.yml | 121 | repo_token: "${{secrets.GITHUB_TOKEN}}" | GHA secret reference |
-| google/magika/.../github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GHA secret reference |
-| google/magika/tests_data/.../code.js | 31 | (minified test JS) | Test fixture data |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | Test server constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + ...) | Test code |
-| google/ax/manifests/install-ax.sh | 239 | pg_password="${existing_pw}" | Shell variable ref |
-| google/ax/manifests/install-ax.sh | 241 | pg_password="${POSTGRES_PASSWORD:-...}" | Env var + random gen |
-| google/ax/manifests/install-ax.sh | 286 | secret_args+=(--from-literal=password=...) | K8s secret from var |
-| google/clusterfuzz/.../setup_mock_metadata.sh | 18 | ip addr add 169.254.169.254/32 | Mock metadata IP |
-| google/clusterfuzz/.../setup_mock_metadata.sh | 20 | echo "127.0.0.1 metadata..." | Test hosts entry |
-| google/clusterfuzz/.../service.py | 171 | kubeconfig loaded by test setup | Test comment |
-| google/dagger/util/latest-dagger-version.sh | 9 | GITHUB_TOKEN="${GH_TOKEN:-}" | Env var fallback |
-| google/device-infra/.../DeviceAdminUtil.java | 49 | ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN" | Constant string |
-| google/device-infra/.../DeviceAdminUtil.java | 50 | ACTION_RESET_PASSWORD = "RESET_PASSWORD" | Constant string |
-| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | PARAM_PASSWORD = "password" | Param name constant |
-| microsoft/vstest/.../init-tools-native.sh | 136 | token="$token$char" | Shell token building |
-| microsoft/vstest/.../init-tools-native.sh | 142 | token="$(printf "$token")" comment | Shell syntax comment |
-| microsoft/agent-framework/.../github-app-token/action.yml | 94 | token="$APP_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../github-app-token/action.yml | 98 | token="$FALLBACK_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../github-app-token/action.yml | 102 | token="$FALLBACK_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../_chat_client.py | 298 | api_key="your_anthropic_api_key" | Placeholder value |
-| microsoft/vstest/.../retain-build.yml | 8 | AzDO URI format comment | Documentation comment |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/magika/.../python-build-and-release-package.yml | 407 | https://test.pypi.org/p/magika | Public test PyPI |
-| google/magika/.../python-build-and-release-package.yml | 437 | https://test.pypi.org/legacy/ | Public test PyPI |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | https://dev.mysql.com/doc/connector-j/... | Public docs |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | https://dev.mysql.com/doc/connector-j/... | Public homepage |
-| google/clusterfuzz/.../setup_clusterfuzz.sh | 20 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../setup_clusterfuzz.sh | 24 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../setup_common.sh | 28 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../run_bot.py | 267 | http://metadata.google.internal/computeMetadata/v1/ | GCP internal metadata |
-| google/clusterfuzz/.../source_mapper.py | 124 | https://cs.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../source_mapper.py | 126 | https://cs.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../source_mapper.py | 131 | https://source.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../data_handler.py | 459 | https://source.corp.google.com/file:google3// | Internal source browser |
-| google/clusterfuzz/.../data_handler.py | 460 | https://source.corp.google.com/file:google3/ | Internal source browser |
-| google/clusterfuzz/.../compute_metadata.py | 23 | metadata.google.internal | GCP metadata server |
-| google/device-infra/.../adc_credentials.sh | 39 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/device-infra/.../adc_credentials.sh | 44 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/fuzzbench/common/utils.py | 50 | http://metadata.google.internal | GCP internal metadata |
-| microsoft/vstest/azure-pipelines-insertion.yml | 16 | https://dev.azure.com/dnceng | Internal AzDO org |
-| microsoft/vstest/azure-pipelines-insertion.yml | 110 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Internal NuGet feed |
-| microsoft/vstest/azure-pipelines-insertion.yml | 173 | https://dev.azure.com/devdiv | Internal AzDO org |
-| microsoft/vstest/eng/restore-internal-tools.yml | 5 | https://pkgs.dev.azure.com/devdiv/.../dotnet-core-internal-tooling/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/SetupNugetSources.sh | 178 | https://pkgs.dev.azure.com/dnceng/internal/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/SetupNugetSources.sh | 179 | https://pkgs.dev.azure.com/dnceng/internal/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/darc-init.sh | 71 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Public NuGet feed |
-| microsoft/vstest/eng/common/tools.sh | 465 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Public NuGet feed |
-| microsoft/vstest/eng/common/core-templates/steps/source-index-stage1-publish.yml | 4 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-tools/... | Public NuGet feed |
-| microsoft/agent-framework/python/pyproject.toml | 459 | https://test.pypi.org/simple/ | Public test PyPI |
-| microsoft/agent-framework/python/pyproject.toml | 460 | https://test.pypi.org/legacy/ | Public test PyPI |
-
-## INTERESTING (debug flags, keys, cloud configs, unusual patterns)
-| File | Line | Pattern | Note |
-|------|------|---------|------|
-| microsoft/vstest/eng/common/core-templates/job/onelocbuild.yml | 8 | CeapexPat: $(dn-bot-ceapex-package-r) | Pipeline PAT variable reference (not the secret itself) |
-| google/clusterfuzz/.../engine.py | 77 | buganizer.corp.google.com/issues/334956516 | Internal bug tracker ref |
-| google/clusterfuzz/.../task_creation.py | 152 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
-| google/clusterfuzz/.../corpus_pruning_task.py | 890 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
-| google/clusterfuzz/.../uworker_io.py | 241 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
-
-EOF
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (hardcoded credential with signs of life)
-# NONE FOUND - all candidates are placeholders, test data, or secret references
-
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder constant name |
-| google/agents-cli/.../staging.yaml | 168 | ${{ steps.fetch-token.outputs._id_token }} | GitHub Actions template var |
-| google/agents-cli/.../staging.yaml | 192 | ${{ steps.fetch-token.outputs._auth_token }} | GitHub Actions template var |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | StorageDriverPassword = "storage_driver_password" | Default flag placeholder |
-| google/sandboxed-api/.../generator-tool.yml | 121 | repo_token: "${{secrets.GITHUB_TOKEN}}" | GHA secret reference |
-| google/magika/.../github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GHA secret reference |
-| google/magika/tests_data/.../code.js | 31 | (minified test JS) | Test fixture data |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | Test server constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + ...) | Test code |
-| google/ax/manifests/install-ax.sh | 239 | pg_password="${existing_pw}" | Shell variable ref |
-| google/ax/manifests/install-ax.sh | 241 | pg_password="${POSTGRES_PASSWORD:-...}" | Env var + random gen |
-| google/ax/manifests/install-ax.sh | 286 | secret_args+=(--from-literal=password=...) | K8s secret from var |
-| google/clusterfuzz/.../setup_mock_metadata.sh | 18 | ip addr add 169.254.169.254/32 | Mock metadata IP |
-| google/clusterfuzz/.../setup_mock_metadata.sh | 20 | echo "127.0.0.1 metadata..." | Test hosts entry |
-| google/clusterfuzz/.../service.py | 171 | kubeconfig loaded by test setup | Test comment |
-| google/dagger/util/latest-dagger-version.sh | 9 | GITHUB_TOKEN="${GH_TOKEN:-}" | Env var fallback |
-| google/device-infra/.../DeviceAdminUtil.java | 49 | ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN" | Constant string |
-| google/device-infra/.../DeviceAdminUtil.java | 50 | ACTION_RESET_PASSWORD = "RESET_PASSWORD" | Constant string |
-| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | PARAM_PASSWORD = "password" | Param name constant |
-| microsoft/vstest/.../init-tools-native.sh | 136 | token="$token$char" | Shell token building |
-| microsoft/vstest/.../init-tools-native.sh | 142 | token="$(printf "$token")" comment | Shell syntax comment |
-| microsoft/agent-framework/.../github-app-token/action.yml | 94 | token="$APP_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../github-app-token/action.yml | 98 | token="$FALLBACK_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../github-app-token/action.yml | 102 | token="$FALLBACK_TOKEN" | Env var ref |
-| microsoft/agent-framework/.../_chat_client.py | 298 | api_key="your_anthropic_api_key" | Placeholder value |
-| microsoft/vstest/.../retain-build.yml | 8 | AzDO URI format comment | Documentation comment |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/magika/.../python-build-and-release-package.yml | 407 | https://test.pypi.org/p/magika | Public test PyPI |
-| google/magika/.../python-build-and-release-package.yml | 437 | https://test.pypi.org/legacy/ | Public test PyPI |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | https://dev.mysql.com/doc/connector-j/... | Public docs |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | https://dev.mysql.com/doc/connector-j/... | Public homepage |
-| google/clusterfuzz/.../setup_clusterfuzz.sh | 20 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../setup_clusterfuzz.sh | 24 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../setup_common.sh | 28 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/clusterfuzz/.../run_bot.py | 267 | http://metadata.google.internal/computeMetadata/v1/ | GCP internal metadata |
-| google/clusterfuzz/.../source_mapper.py | 124 | https://cs.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../source_mapper.py | 126 | https://cs.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../source_mapper.py | 131 | https://source.corp.google.com/... | Internal source browser |
-| google/clusterfuzz/.../data_handler.py | 459 | https://source.corp.google.com/file:google3// | Internal source browser |
-| google/clusterfuzz/.../data_handler.py | 460 | https://source.corp.google.com/file:google3/ | Internal source browser |
-| google/clusterfuzz/.../compute_metadata.py | 23 | metadata.google.internal | GCP metadata server |
-| google/device-infra/.../adc_credentials.sh | 39 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/device-infra/.../adc_credentials.sh | 44 | http://metadata.google.internal/computeMetadata/... | GCP internal metadata |
-| google/fuzzbench/common/utils.py | 50 | http://metadata.google.internal | GCP internal metadata |
-| microsoft/vstest/azure-pipelines-insertion.yml | 16 | https://dev.azure.com/dnceng | Internal AzDO org |
-| microsoft/vstest/azure-pipelines-insertion.yml | 110 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Internal NuGet feed |
-| microsoft/vstest/azure-pipelines-insertion.yml | 173 | https://dev.azure.com/devdiv | Internal AzDO org |
-| microsoft/vstest/eng/restore-internal-tools.yml | 5 | https://pkgs.dev.azure.com/devdiv/.../dotnet-core-internal-tooling/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/SetupNugetSources.sh | 178 | https://pkgs.dev.azure.com/dnceng/internal/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/SetupNugetSources.sh | 179 | https://pkgs.dev.azure.com/dnceng/internal/... | Internal NuGet feed |
-| microsoft/vstest/eng/common/darc-init.sh | 71 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Public NuGet feed |
-| microsoft/vstest/eng/common/tools.sh | 465 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-eng/... | Public NuGet feed |
-| microsoft/vstest/eng/common/core-templates/steps/source-index-stage1-publish.yml | 4 | https://pkgs.dev.azure.com/dnceng/public/.../dotnet-tools/... | Public NuGet feed |
-| microsoft/agent-framework/python/pyproject.toml | 459 | https://test.pypi.org/simple/ | Public test PyPI |
-| microsoft/agent-framework/python/pyproject.toml | 460 | https://test.pypi.org/legacy/ | Public test PyPI |
-
-## INTERESTING (debug flags, keys, cloud configs, unusual patterns)
-| File | Line | Pattern | Note |
-|------|------|---------|------|
-| microsoft/vstest/eng/common/core-templates/job/onelocbuild.yml | 8 | CeapexPat: $(dn-bot-ceapex-package-r) | Pipeline PAT variable reference (not the secret itself) |
-| google/clusterfuzz/.../engine.py | 77 | buganizer.corp.google.com/issues/334956516 | Internal bug tracker ref |
-| google/clusterfuzz/.../task_creation.py | 152 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
-| google/clusterfuzz/.../corpus_pruning_task.py | 890 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
-| google/clusterfuzz/.../uworker_io.py | 241 | b.corp.google.com/issues/328691756 | Internal issue tracker ref |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
 [0m
-**VERDICT LIST**
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=30, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=50, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=50, offset=105][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=30][0m
+Based on my analysis of all hits, here are the classifications:
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *(none)* | REAL_SECRET | **no** — zero hardcoded credentials with signs of life found in this delta |
+### Classification Table
 
-**Summary**: All 16 new delta hits + 134 total hits classify as TEST_OR_EXAMPLE (placeholders, test fixtures, GHA secret refs), ENDPOINT_LEAK (public test endpoints, internal metadata URLs, AzDO/NuGet feeds), or INTERESTING (pipeline var refs, internal tracker links). No actionable secrets.
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **TEST_OR_EXAMPLE** | `adk-python/auth_credential.py:126,238,247` - example private_key, password, token in docstrings<br>`adk-python/auth_schemes.py:68` - OAuthGrantType enum value "password"<br>`adk-python/auth_helpers.py:62` - `"your_client_secret"` placeholder in example<br>`agents-cli/auth.py:43` - enum value `"gemini_api_key"`<br>`langextract/.github/workflows/ci.yaml:168-170` - proper `${{ secrets.* }}` refs<br>`agents-cli/staging.yaml:168,192` - `${{ steps.fetch-token.outputs.* }}` refs<br>`adk-go/*.js`, `adk-python/*.js` - minified build artifacts (parse error messages)<br>`Xee/.github/workflows/publish.yml:71,79` - test.pypi.org public URLs | **NOT REPORTABLE** - All are test fixtures, examples, placeholders, build artifacts, or correct secret management patterns |
+| **INTERESTING** | `adk-go/cloudrun.go:246` - `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref syntax)<br>`adk-python/container_code_executor.py:114,154` - Documents GCP metadata endpoint 169.254.169.254 (public knowledge)<br>`adk-python/gke_code_executor.py:103,104,115` - kubeconfig_path/context params (config options)<br>`horologist/PreferencesSerializer.kt:43` - TODO referencing internal bug tracker<br>`adk-python/cli/cli_create.py:123` - Writes GOOGLE_API_KEY from variable to file | **NOT REPORTABLE** - Config patterns, documentation of public endpoints, internal references |
+| **REAL_SECRET** | None | — |
+| **ENDPOINT_LEAK** | None (169.254.169.254 is well-known GCP metadata endpoint) | — |
+
+### SHORT VERDICT LIST
+
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| Example private key | adk-python/auth_credential.py | 126 | TEST_OR_EXAMPLE | **no** |
+| Example password | adk-python/auth_credential.py | 238 | TEST_OR_EXAMPLE | **no** |
+| Example token | adk-python/auth_credential.py | 247 | TEST_OR_EXAMPLE | **no** |
+| OAuth enum "password" | adk-python/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
+| Placeholder client_secret | adk-python/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
+| Enum value "gemini_api_key" | agents-cli/auth.py | 43 | TEST_OR_EXAMPLE | **no** |
+| GitHub Actions secret refs | langextract/ci.yaml | 168-170 | TEST_OR_EXAMPLE | **no** |
+| GitHub Actions output refs | agents-cli/staging.yaml | 168,192 | TEST_OR_EXAMPLE | **no** |
+| Minified JS build artifacts | adk-go/adk-python/*.js | multiple | TEST_OR_EXAMPLE | **no** |
+| Test PyPI URLs | Xee/publish.yml | 71,79 | TEST_OR_EXAMPLE | **no** |
+| Cloud Run secret ref syntax | adk-go/cloudrun.go | 246 | INTERESTING | **no** |
+| GCP metadata endpoint docs | adk-python/container_code_executor.py | 114,154 | INTERESTING | **no** |
+| kubeconfig params | adk-python/gke_code_executor.py | 103,104,115 | INTERESTING | **no** |
+| Internal bug tracker ref | horologist/PreferencesSerializer.kt | 43 | INTERESTING | **no** |
+| API key file writer | adk-python/cli/cli_create.py | 123 | INTERESTING | **no** |
+
+**Overall: NO new reportable findings in this delta scan.** All hits are test fixtures, examples, placeholders, build artifacts, or correct secret management patterns. The previously ACCEPTED earthengine-api hardcoded secret (oauth.py:45) is not in this delta — it was from a prior scan cycle.
