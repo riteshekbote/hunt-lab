@@ -1572,3 +1572,22 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class s
 - LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-10 22:26:30 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, cross-origin mutation vector LIVE (from reports/hypotheses-bigpickle.txt)
+- [50] raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py: Earth Engine OAuth client_secret validity in question due to 404 probe anomaly (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: `curl -s -o /dev/null -w '%{http_code} %{size_download}' https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` — fresh GET 
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201),
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for hardcoded OAuth client_secret @ `github.com/google/earthengine-api/python/ee/oauth.py:45` (fresh confirmed 200, len=23110). Pa
+- LEARN: CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py → HTTP 404 (was 200 len=23110) — suspect backtick-in-URL probe artifact; 20+ 
+- LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys +3 new kids (`rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`) — v2 count 8→11, v1(4)⊂v2(11) subset invaria
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret is vali
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRe
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–11 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class s
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Req
+- LEARN: ACCEPTED earthengine raw GitHub liveness @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py: 404 in 21:06/21:57 probes was backtick-in
+- LEARN: ACCEPTED: raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py confirmed live at 2026-08-10 22:30 UTC — HTTP 200 len=23110, secret sha256 
+- LEARN: ACCEPTED: login.microsoftonline.com/common/discovery/v2.0/keys confirmed live — HTTP 200 11292 bytes (grew from 9KB via +3 new v2-only kids: `rRk1d-57B…`, `NqEB
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged (NO_DELTA)
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-with-leaked-secret → 400 `invalid_grant` (not 401 `invalid_client`) re-confirmed valid Google OAuth credential accept

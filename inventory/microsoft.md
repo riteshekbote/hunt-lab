@@ -492,3 +492,13 @@
 ## 2026-08-10 21:57:30 UTC
 - CHANGED `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` → HTTP 404 in latest probe (21:06:53 UTC) — contradicts 20+ prior cycles showing 200 len=23110. Suspect backtick-in-URL pro
 - CHANGED `login.microsoftonline.com/common/discovery/v2.0/keys` +3 new kids (`rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`) — v2 key count increased from 8 to 11, but v1(4)⊂v2(11) subset invariant still intact.
+
+## 2026-08-10 22:26:30 UTC
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py → HTTP 404 (was 200 len=23110 for 20+ cycles) — suspect backtick-in-URL probe artifact or repo change
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys +3 new kids (`rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`) — v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
+- CHANGED `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` 404 (21:06/21:57 robot probes) → PROBE ARTIFACT confirmed: clean URL → **200/23110**; trailing-backtick URL → 404. File liv
+- CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations/{id}` OPTIONS→405 KB entries → **bare-OPTIONS artifact**. True preflight (Origin + `Access-Control-Request-Method: PATCH` + `Access-Control-Request
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py: HTTP 404 probe (21:06 UTC) was a backtick-in-URL artifact — fresh clean GET → **200 23110**, secret still live, whole-file s
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys: body grew 9KB → 11292 bytes (from +3 new v2-only kids: `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`), v1(4)⊂v2(11) subset invariant intact, 0 v1-exclu
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → HTTP 400 `invalid_grant` (not 401 `invalid_client`) — validates credential validity (RFC 6749 §5.2), fresh confirmation of existing ACCEPTE
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → 405 sustained (CORS vector closed since 09:52 UTC), GET → 401/237 (auth-gated), HEAD → 405/0 (RFC 6750 §3 violation) — all unchanged

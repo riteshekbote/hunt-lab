@@ -719,3 +719,4 @@ testability: HUMAN_ONLY
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
 [RISK] google: **47** — earthengine secret is confirmed valid OAuth credential with cloud-platform scope; native-app by-design limits but VRP report warranted; no new high-severity surfaces this cycle; GCP control-plane APIs uniformly gated
 [RISK] microsoft: **61** — agentRegistration IDOR surface intact (5 EntityTypes, zero restrictions) but OPTIONS→405 closes CORS; D2E S2S conversation-ID gap (private preview) adds freshness; Graph 405 anomaly + v1↔v2 dual-issuer trust boundary remain AUTH_HELPED-gated; RFC 6749 §3 + RFC 6750 §3 violations confirmed live
+## 2026-08-10 22:25:43 UTC [google] (model longcat)
