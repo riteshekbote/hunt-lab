@@ -774,3 +774,53 @@ testability: AUTH_HELPED
 [LEARN] CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed
 [RISK] google: 47 — Earth Engine hardcoded OAuth secret remains highest-confidence finding (valid cloud-platform credential, invalid_grant proof); native-app by-design caps severity; VRP report pending. No new Google surfaces this cycle. GCP control-plane APIs uniformly gated.
 [RISK] microsoft: 68 — Multiple new high-value surfaces: consent grant forge (production Graph v1.0), conversation-ID validation gap (Copilot Studio D2E), Orchestrated API tool injection, off-metadata /me/agentSignInSessions endpoint. agentRegistration IDOR surface intact but CORS closed. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated.
+## 2026-08-10 23:49:54 UTC [google] (model longcat)
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. All prior "OPTIONS→405 closed" entries were bare-OPTIONS artifacts (no Origin header = not a preflight). CORS cross-origin mutation vector is LIVE.
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→11 across cycles; latest shows v1(5)⊂v2(7) with 2 v2-only kids; subset invariant intact.
+[NEW] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — Copilot Studio D2E S2S conversation-ID NOT validated server-side (private preview).
+[NEW] graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…) on production v1.0 endpoint.
+[NEW] powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs.
+[NEW] graph.microsoft.com/v1.0/me/agentSignInSessions — fully off-metadata (0 refs in $metadata), endpoint alive (401).
+[NEW] graph.microsoft.com/beta/agentRegistry — deprecated May-2026 but alive; agentInstances/agentCardManifests/agentCollections.
+[NEW] Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files).
+[NEW] accounts.accesscontrol.windows.net JWKS — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim.
+[NEW] github.com/google/earthengine-api/python/ee/oauth.py — confirmed scopes: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope was missing from prior KB entries).
+[PRIO] graph.microsoft.com/beta/copilotstudio/.../conversations — 7.55 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:10)
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 7.40 (attack:8, business:9, tech:7, gate:4, cloud:8, fresh:10)
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.40 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:6)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — 7.30 (attack:8, business:8, tech:7, gate:3, cloud:7, fresh:8) — CORS vector reopened via true-preflight correction
+[PRIO] powervirtualagents.microsoft.com/orchestrated/.../InvokeTool — 7.10 (attack:7, business:8, tech:7, gate:4, cloud:7, fresh:10)
+[PRIO] mysignins.microsoft.com + api.myaccount.microsoft.com source maps — 6.60 (attack:5, business:7, tech:6, gate:8, cloud:6, fresh:9)
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 65
+reasoning: Inventory confirms conversation-ID not validated server-side. S2S auth binds to app identity via client_credentials, not conversation owner. Private preview surface = lower maturity controls.
+evidence_needed: Two-app test — App A creates conversation, App B with valid S2S token accesses/modifies same conversationId.
+verify_steps: AUTH_HELPED: Provision two Dataverse-backed Copilot Studio apps. App A POST /conversations → 201 with conversationId. App B with separate S2S token GET/PATCH/DELETE /conversations/{A's conversationId}. 200 = IDOR confirmed.
+impact: Read/modify/delete arbitrary Copilot Studio conversations across tenants. Data exfiltration, prompt injection, conversation state tampering in enterprise Copilot deployments.
+testability: AUTH_HELPED
+class: OATH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 60
+reasoning: Caller can specify resourceId (Graph OR Azure Storage user_impersonation e406a681…) in consent grant creation. Application.Read.All NOT in agent blocked-permissions. App with delegated permissions could forge consent grants for resources it doesn't own.
+evidence_needed: App A creates oauth2PermissionGrant pointing resourceId to App B's resource, granting App A delegated perms.
+verify_steps: AUTH_HELPED: Two App Regs (A, B). App A with valid token POST /v1.0/oauth2PermissionGrants {clientId:A's appId, consentType:"Principal", resourceId:B's resourceId, scope:"user_impersonation"}. 201 = forge confirmed.
+impact: Privilege escalation — attacker app gains delegated permissions against victim's Azure Storage/Graph resources without user consent. Persistent backdoor via consent grant.
+testability: AUTH_HELPED
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 75
+reasoning: True CORS preflight (Origin + Access-Control-Request-Method:PATCH) → 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400. Combined with 873-char $metadata block showing 0 OperationRestrictions, createdBy/ownerIds Nullable=false, client-supplied. Cross-origin authenticated PATCH can rewrite ownership.
+evidence_needed: Cross-origin browser context with valid token PATCHes another principal's agentRegistration with caller's own createdBy/ownerIds.
+verify_steps: PASSIVE: Confirm CORS preflight returns ACAO:* for Origin: https://attacker.com + Access-Control-Request-Method: PATCH. AUTH_HELPED: Two-principal test — App A creates registration, App B cross-origin PATCH rewrites ownerIds to B's oid. 200 + GET reflects new owner = IDOR.
+impact: Take ownership of enterprise agent registrations across tenants. Repudiation of agent audit trail, privilege escalation via managedByAppId reassignment, agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths) — extract undocumented endpoints, API routes, and auth flow logic. grep for "/api/", "graph.microsoft.com", "login.microsoftonline.com", "redirect_uri", "client_secret", "consent" patterns. This is the highest-information-gate action (gate_ease=8, unauthenticated) and may reveal additional off-metadata endpoints or hardcoded credentials.
+[LEARN] ACCEPTED agentRegistrations CORS cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-Request-Headers:authorization) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400. Prior "OPTIONS→405 closed" KB entries were bare-OPTIONS artifacts (no Origin header = not a preflight). Confidence 80→94.
+[LEARN] ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID NOT validated server-side.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory.
+[LEARN] CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe confirmed backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged). Scopes confirmed as cloud-platform + earthengine + drive + devstorage.full_control.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+[RISK] google: 47 — Earth Engine hardcoded OAuth secret (sha256 3f3f8d6f…d271) remains highest-confidence finding: valid cloud-platform+ credential proven via invalid_grant RFC 6749 §5.2 distinction; native-app by-design caps severity. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules.
+[RISK] microsoft: 72 — Elevated from 61 due to CORS vector reopening on agentRegistrations (true-preflight bypasses prior bare-OPTIONS artifact conclusion), plus 7 new surfaces: consent grant forge (production v1.0), conversation-ID gap (Copilot Studio D2E), off-metadata /me/agentSignInSessions, deprecated Agent Registry API, unauthenticated source maps (42MB combined), ACS JWKS self-signed keys. agentRegistration IDOR + Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Multiple AUTH_HELPED-blocked high-confidence surfaces indicate program is under-tested by passive-only methodology.

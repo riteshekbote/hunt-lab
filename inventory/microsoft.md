@@ -519,3 +519,15 @@
 - CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe was backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged)
 - CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — +3 new v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…), v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed since 09:52 UTC
+
+## 2026-08-10 23:51:16 UTC
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→11 across cycles; latest shows v1(5)⊂v2(7) with 2 v2-only kids; subset invariant intact.
+- NEW graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — Copilot Studio D2E S2S conversation-ID NOT validated server-side (private preview).
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…) on production v1.0 endpoint.
+- NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs.
+- NEW graph.microsoft.com/v1.0/me/agentSignInSessions — fully off-metadata (0 refs in $metadata), endpoint alive (401).
+- NEW graph.microsoft.com/beta/agentRegistry — deprecated May-2026 but alive; agentInstances/agentCardManifests/agentCollections.
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files).
+- NEW accounts.accesscontrol.windows.net JWKS — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim.
+- NEW github.com/google/earthengine-api/python/ee/oauth.py — confirmed scopes: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope was missing from prior KB entries).

@@ -1609,3 +1609,20 @@
 - LEARN: CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe confirmed backtick-in-URL artifact; clean GET → 200/23110, secret
 - LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 key count 8→11 via +3 v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…); v1(4)⊂v2(11) subset i
 - LEARN: CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed
+
+## RANKED HYPOTHESES 2026-08-10 23:51:16 UTC
+- [96] `oauth2.googleapis.com/token`: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201),
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c1
+- NEXT(hypotheses-longcat.txt): SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths) — extract undocumented endpoints, API routes, and aut
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Req
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: fresh probe — v1=4 kids ALL ⊂ v2=7 kids, 0 v1-exclusive; subset invariant int
+- LEARN: ACCEPTED earthengine oauth.py:45 secret @ raw.githubusercontent.com: clean GET → 200/23110, whole-file sha `f4f93c76…` unchanged, secret at :45 + :99 fallback, 
+- LEARN: ACCEPTED tokeninfo oracle @ oauth2.googleapis.com/tokeninfo: no-param → 400/113 invalid_token confirmed live.
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED agentRegistrations CORS cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-C
+- LEARN: ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory.
+- LEARN: CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe confirmed backtick-in-URL artifact; clean GET → 200/23110, secret
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
