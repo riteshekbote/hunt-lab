@@ -467,3 +467,11 @@
 - 2026-08-10 REJECTED no new proving-dead classes this cycle — all fresh probes (18:04 UTC) confirmed prior ACCEPTED findings unchanged; v2 JWKS +3 kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr) added but subset invariant intact; agentRegistrations OPTIONS→405 sustained (CORS vector closed); cloud-platform scope echo 404-flaky confirmed non-surface
 - 2026-08-10 ACCEPTED graph.microsoft.com root → HTTP 200 text/html (signin page) — confirms root-level reachability but no auth-bypass surface; consistent across all cycles
 - 2026-08-10 ACCEPTED www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk: Drive REST API returns 403 when neither API key nor OAuth token present; no new surface, not exploitable
+- 2026-08-10 ACCEPTED: Source maps live on both identity SPAs @ `mysignins.microsoft.com` + `api.myaccount.microsoft.com` — 7MB/35MB .map files with 4359/4922 source paths, full client-side logic recoverable.
+- 2026-08-10 ACCEPTED: Verified ID minting endpoint @ `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`, gate `GuestIsNotAllowed` only.
+- 2026-08-10 ACCEPTED: `/me/agentSignInSessions` off-metadata @ `graph.microsoft.com/v1.0` + `/beta` — 0 refs in `$metadata`, endpoint alive (401).
+- 2026-08-10 ACCEPTED: Agent Registry API (beta, deprecated) @ `graph.microsoft.com/beta/agentRegistry` — agentInstances/agentCardManifests/agentCollections, agentInstance binds agentIdentityId+agentUserId+agentIdentityBlob.
+- 2026-08-10 ACCEPTED: Copilot agent admin (beta) @ `graph.microsoft.com/beta/copilot/agents` + `/beta/copilot/admin/catalog/packages` — block/unblock/reassign, scope `CopilotPackages.Read.All`.
+- 2026-08-10 ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard.
+- 2026-08-10 ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
+- 2026-08-10 ACCEPTED: Copilot Studio D2E S2S API @ `/`

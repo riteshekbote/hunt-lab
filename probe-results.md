@@ -290,3 +290,7 @@ https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
 https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401
 https://oauth2.googleapis.com/token` -> HTTP 404
 https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
+
+## 2026-08-10 19:18:05 UTC
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404

@@ -540,3 +540,52 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
 [RISK] google: **47** — earthengine secret is confirmed valid OAuth credential with cloud-platform scope; native-app by-design limits but VRP report warranted; no new high-severity surfaces this cycle; GCP control-plane APIs uniformly gated
 [RISK] microsoft: **61** — agentRegistration IDOR surface intact (5 EntityTypes, zero restrictions) but OPTIONS→405 closes CORS; Graph 405 anomaly + v1↔v2 dual-issuer trust boundary remain AUTH_HELPED-gated; RFC 6749 §3 + RFC 6750 §3 violations confirmed live but require AUTH_HELPED for full validation
+## 2026-08-10 19:13:14 UTC [google] (model longcat)
+[NEW] Source maps live on both identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files)
+[NEW] Verified ID minting endpoint: `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, gates only on `GuestIsN…` claim
+[NEW] `/me/agentSignInSessions` off-metadata — 0 refs in both $metadata docs but endpoint alive (401)
+[NEW] Agent Registration API (GA replacement) `/beta/copilot/agentRegistrations` — client-supplied `createdBy`, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`
+[NEW] Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings
+[NEW] D2E S2S API (private preview): conversation-ID NOT validated server-side
+[NEW] Orchestrated API: `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+[NEW] Three-hop Agent User `user_fic` flow with `user_id={oid}` OR-gate
+[NEW] Consent primitive: caller-chosen `resourceId` in `POST /v1.0/oauth2PermissionGrants`
+[NEW] ACS JWKS rotation: 5 self-signed keys with `allowedAudi…`
+[NEW] v2.0 JWKS +3 kids: `rRk1d-57B`, `NqEBZVuOp`, `1Nv3JExJr`
+[NEW] `/oauth2/v2.0/authorize?response_type=token` body-size drift: 23940 → 41309 bytes
+[CHANGED] `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 (was 200 CORS `*` + full mutation allowlist) — CORS vector closed
+[CHANGED] `www.googleapis.com/auth/cloud-platform` flips 200↔404 — scope strings not stable endpoints
+[CHANGED] `login.live.com/oauth20_desktop.srf` REMOVED (stub `?removed=true`)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — **6.85** (attack:9, business:9, tech:7, gate:4, cloud:8, fresh:5) — IDOR surface intact; CORS closed reduces cross-origin feasibility
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — **7.35** (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:6) — valid cloud-platform credential (invalid_grant proof); native-app by-design caps severity
+[PRIO] login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys — **6.60** (attack:6, business:9, tech:8, gate:3, cloud:7, fresh:4) — AUTH_HELPED-gated; rotation noise obscures steady-state subset invariant
+[PRIO] mysignins.microsoft.com + api.myaccount.microsoft.com source maps — **5.80** (attack:5, business:7, tech:6, gate:8, cloud:6, fresh:9) — 42MB combined, both identity SPAs, accessible if unauth
+[PRIO] Copilot Studio D2E S2S API conversation-ID validation — **5.45** (attack:7, business:8, tech:7, gate:3, cloud:7, fresh:9) — private preview, server-side validation gap claimed
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: $metadata 873-char agentRegistration EntityType with ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. 5 sibling EntityTypes share pattern. GET→401, HEAD→405 (RFC 6750 §3), OPTIONS→405 (CORS closed).
+evidence_needed: Two-principal test — Principal B patches Principal A's agentRegistration with createdBy=A
+verify_steps: AUTH_HELPED: Provision two Entra test-tenant principals (A, B). A POSTs agentRegistrations. B attempts PATCH /beta/copilot/agentRegistrations/{A's-id} with createdBy=A's objectId. Check 403/404 vs 200/204.
+impact: Cross-tenant agent registration takeover — attacker modifies another org's Copilot agent config, redirecting agentCard endpoints. High severity in M365 Copilot ecosystem.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped tokens
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: client_secret sha256 `3f3f8d6f…d271` at line :45 + :99 fallback accepted by oauth2.googleapis.com/token (POST → 400 `invalid_grant`, NOT 401 `invalid_client` — RFC 6749 §5.2 proves valid credential). Scopes: cloud-platform+drive+devstorage.full_control+earthengine. Client type `installed` with OOB redirect.
+evidence_needed: Token redemption via grant_type=refresh_token
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256 of secret value; include POST PoC showing 400 invalid_grant vs invalid_client distinction. VRP determination needed on native-app hardcoded secret policy.
+impact: Attacker redeems secret for cloud-platform+devstorage access to any GCP project with Earth Engine API enabled. Severity hinges on VRP policy for native-app hardcoded secrets.
+testability: HUMAN_ONLY
+[HYP] v1↔v2 issuer-confusion via shared JWKS kid set + dual issuer namespaces
+class: OATH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: v1 issuer=sts.windows.net/{tid}/, v2 issuer=login.microsoftonline.com/{tid}/v2.0 (dual namespaces). 4–5 v1 kids ⊂ 7–8 v2 kids (0 v1-exclusive steady-state). `Access-Control-Allow-Origin: *` on JWKS. A validator checking only kid+sig but not iss could accept v1-signed token at v2 endpoint.
+evidence_needed: Generate v1-token (iss=sts.windows.net/{tid}/) signed with shared kid, submit to v2-only endpoint
+verify_steps: AUTH_HELPED: Obtain v1.0 access token for test tenant. Decode header, confirm shared kid. Swap iss to v2.0 while keeping v1 signature — check validator catches iss mismatch.
+impact: Token from v1 legacy trust domain accepted at v2-only endpoints, bypassing v2.0 conditional access. Broad Entra ID trust-boundary impact.
+testability: AUTH_HELPED
+[PARKED] v1↔v2 issuer-confusion via shared JWKS kid set + dual issuer namespaces: Confidence 60 is above 40, but verify_steps require generating a v1-signed token and swapping iss — requires real Entra test tenant with both v1.0 and v2.0 token issuance. Tracked for 3+ cycles without AUTH
