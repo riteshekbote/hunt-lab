@@ -1,3 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw.txt 2>/dev/null || echo "file not found"
+file not found
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la *.txt 2>/dev/null || ls -la
+-rw-r--r-- 1 runner runner    802 Aug 10 05:03 cands-google.txt
+-rw-r--r-- 1 runner runner    892 Aug 10 05:03 cands-microsoft.txt
+-rw-r--r-- 1 runner runner 120421 Aug 10 05:04 scan-prompt.txt
+[0m
+[0m→ [0mRead cands-google.txt
+[0m→ [0mRead cands-microsoft.txt
+Based on the scan hits provided, here's the classification:
+
+---
+
+### **REAL_SECRET** — *Hardcoded credentials with signs of life*
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none)* | — | — | **No live secrets found** |
+
+---
+
+### **TEST_OR_EXAMPLE** — *Samples, fixtures, placeholders, build artifacts*
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS source maps / parser error messages (build artifacts) |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
+| google/skia-buildbot/go/metadata/metadata.go | 23, 27, 30 | Constant *names* for secrets (`CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET`) |
+| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` — filename constant |
+| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | `headerToken = "x-buildbucket-token"` — header name constant |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Templated placeholders `{{ default .Env.POSTGRES_PWD "" }}` |
+| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` — comment: "Not a credential, it is a secret name" |
+
+---
+
+### **ENDPOINT_LEAK** — *Internal / corp / staging URLs & identities*
+| File | Line | Endpoint / Identity |
+|------|------|---------------------|
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com` (internal logging) |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (service account) |
+| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `metadata.google.internal` (GCE metadata server — known public pattern) |
+| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `pantheon.corp.google.com/apis/credentials/key/...` (internal console) |
+| google/skia-buildbot/kube/corp-config.sh
