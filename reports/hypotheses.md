@@ -1286,3 +1286,26 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed stable @ 13:05 UTC — v1(4 kids) ⊂ v2(8 kids), 0 v1-exclusive steady-state, Access-Control-Al
 - LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo no-param → 400/113 invalid_token confirmed live — public introspection oracle intact (no-Authorization-header query-pa
 - LEARN: ACCEPTED: www.googleapis.com/auth/cloud-platform → 200/14 (scope-name echo from API gateway, non-endpoint) confirmed live — no new surface.
+
+## RANKED HYPOTHESES 2026-08-10 15:14:26 UTC
+- [96] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped tokens (from reports/hypotheses-longcat.txt)
+- [80] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` = B's oid (expect 201), 
+- NEXT(hypotheses-longcat.txt): PROBE: `curl -s -D - -X OPTIONS https://graph.microsoft.com/beta/copilot/agentRegistrations` — confirm OPTIONS→405 is consistent across retries and check if `Ac
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAu
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mut
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class sta
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`,
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oaut
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist) — closes CORS cross-origin mutat
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), 873-char metadata block,
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class sta
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 

@@ -455,3 +455,5 @@
 - 2026-08-10 ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed stable @ 13:05 UTC — v1(4 kids) ⊂ v2(8 kids), 0 v1-exclusive steady-state, Access-Control-Allow-Origin:*; rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer).
 - 2026-08-10 ACCEPTED: oauth2.googleapis.com/tokeninfo no-param → 400/113 invalid_token confirmed live — public introspection oracle intact (no-Authorization-header query-param acceptance); no-reward per Google VRP rules.
 - 2026-08-10 ACCEPTED: www.googleapis.com/auth/cloud-platform → 200/14 (scope-name echo from API gateway, non-endpoint) confirmed live — no new surface.
+- 2026-08-10 ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`, line 420 `dict(installed=…)`) — hardcoded secret is a public-client by-design pattern; per ADK #2128 precedent (closed by-design) VRP-worthiness capped despite invalid_grant validity proof.
+- 2026-08-10 REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.

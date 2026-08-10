@@ -13960,3 +13960,109 @@ testability: AUTH_HELPED
 
 ## STEP 6 — LEARNING
 - REJECTED Earth Engine client_secret @ oauth2.googleapis.com/token as
+===== ANALYST bigpickle 2026-08-10 15:14:26 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | sha256sum; curl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | wc -c
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+23110
+[0m
+[0m$ [0mcurl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py | grep -n -iE "Flow|InstalledApp|OOB|redirect|client_id|CLIENT_ID|CLIENT_SECRET|console|app_type|run_local_server|auth_uri" | head -40
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+52:REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+54:AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+67:PASTE_CODA = ('The authorization workflow will generate a code, which you'
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+112:  client_id = credentials and getattr(credentials, 'client_id', None)
+113:  return _project_number_from_client_id(client_id)
+167:    redirect_uri: str | None = None,
+172:      'client_id': CLIENT_ID,
+174:      'redirect_uri': redirect_uri or REDIRECT_URI,
+184:    client_id: str | None = None,
+185:    client_secret: str | None = None,
+186:    redirect_uri: str | None = None,
+192:      'client_id': client_id or CLIENT_ID,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+194:      'redirect_uri': redirect_uri or REDIRECT_URI,
+254:def _project_number_from_client_id(client_id: str | None) -> str | None:
+258:  substrings = (client_id or '').split('-')
+266:    redirect_uri: str | None = None,
+274:  if redirect_uri:
+275:    client_info['redirect_uri'] = redirect_uri
+290:    client_info = {k: fetched_info[k] for k in ['client_id', 'client_secret']}
+295:  project = _project_number_from_client_id(client_info.get('client_id'))
+406:  """Initializes credentials by running gcloud flows."""
+407:  client_id_file = None
+413:    client_id_json = dict(
+414:        client_id=CLIENT_ID,
+415:        client_secret=CLIENT_SECRET,
+416:        redirect_uri=REDIRECT_URI,
+417:        auth_uri=AUTH_URI,
+419:    client_id_file = get_credentials_path() + '-client-id.json'
+420:    write_private_json(client_id_file, dict(installed=client_id_json))
+421:    command += ['--client-id-file=%s' % client_id_file]
+434:           ' If you loaded a page with a "redirect_uri_mismatch" error,'
+440:    if client_id_file:
+441:      os.remove(client_id_file)
+445:    adc = {k: adc[k] for k in ['client_id', 'client_secret', 'refresh_token']}
+509:        "colab" - use the Colab authentication flow.
+[0m
+Source fetch confirms client type: line 420 `dict(installed=client_id_json)` → **installed-app (native public client)** with OOB redirect `urn:ietf:wg:oauth:2.0:oob`; whole-file sha `f4f93c76…` unchanged, secret verbatim at :45. This directly sizes the top hypothesis.
+
+---
+
+STEP 1 — DELTA
+- NO_DELTA — robot probes @14:04:46 (token→404, cloud-platform→200/14) match prior; source fetch confirms earthengine whole-file sha `f4f93c76…` unchanged, secret at :45.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} — score 5.5 (attack 6, business 7, tech 6, gate 1, cloud 7, fresh 5) — zero-OperationRestrictions schema precondition live; only auth gate stands
+- [PRIO] oauth2.googleapis.com/token — score 5.25 (attack 5, business 7, tech 5, gate 2, cloud 8, fresh 4) — live valid credential proven (invalid_grant), redemption needs authorized RT
+- [PRIO] login.microsoftonline.com (v1.0↔v2.0) — score 4.9 (attack 4, business 8, tech 7, gate 1, cloud 4, fresh 3) — dual-issuer + shared-kid precondition intact
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 80
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes; OPTIONS→405 closes only CORS; {id} → 401 byte-identical (auth precedes ID lookup).
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret is a live valid OAuth credential (native-app public client)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 70
+reasoning: POST secret + dummy RT → 400 `invalid_grant` (not 401 `invalid_client`) proves client auth passes; source confirms `installed` client (native public client, OOB redirect) — per ADK #2128 precedent this class is by-design WONTFIX, capping VRP-worthiness.
+evidence_needed: `POST /token` with authorized RT → 200 cloud-platform (vs 400) to prove redeemability; VRP outcome test.
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (form): grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw but native-app by-design caps (ADK #2128 precedent).
+testability: HUMAN_ONLY
+
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- All three kept (conf ≥ 40, none on REJECTED list, concrete verify_steps). No parks. [FINAL] 1) IDOR agentRegistrations (80) 2) earthengine secret (70) 3) issuer-confusion (65). Note: earthengine demoted on VRP-worthiness — installed-app public-client secret is by-design per ADK #2128.
+
+STEP 5 — NEXT ACTION
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A's entry vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 80). (Earthengine path parked as HUMAN: authorized `POST /token` — blocked on authorized RT + native-app by-design caps VRP.)
+
+STEP 6 — LEARNING
+[LEARN] ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`, line 420 `dict(installed=…)`) — hardcoded secret is a public-client by-design pattern; per ADK #2128 precedent (closed by-design) VRP-worthiness capped despite invalid_grant validity proof.
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.
+
+STEP 7 — RISK SCORE
+[RISK] google: 55 — live valid native-app client_secret (invalid_grant) + public introspection oracle, but by-design public-client model and no-reward rules cap practical impact.
+[RISK] microsoft: 45 — zero-OperationRestrictions IDOR precondition live across 5 Agent Registry EntityTypes, but auth-gated, CORS mutation vector closed (OPTIONS→405), issuer-confusion pending AUTH_HELPED.

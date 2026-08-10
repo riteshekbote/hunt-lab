@@ -370,3 +370,9 @@
 
 ## 2026-08-10 14:04:45 UTC
 - NEW oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential
+
+## 2026-08-10 15:14:26 UTC
+- NEW graph.microsoft.com root → HTTP 200 (text/html signin page) — confirms root-level reachability, no auth-bypass surface
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector (sustained since 09:52 UTC)
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret is valid Google OAuth credential (RFC 6749 §5.2)
+- CHANGED www.googleapis.com/auth/cloud-platform flips 200 (len=14) ↔ 404 — scope strings not stable HTTP endpoints

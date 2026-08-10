@@ -1,20 +1,33 @@
-## 2026-08-10 14:03:20 UTC [google] (model bigpickle)
+## 2026-08-10 15:13:05 UTC [google] (model bigpickle)
 [HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
 confidence: 80
-reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes; OPTIONS→405 closes only CORS vector; {id} path-shape → 401/237 byte-identical (auth precedes ID lookup).
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes; OPTIONS→405 closes only CORS; {id} → 401 byte-identical (auth precedes ID lookup).
 evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
-verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
 impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
 testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret is a live valid OAuth credential (native-app public client)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 70
+reasoning: POST secret + dummy RT → 400 `invalid_grant` (not 401 `invalid_client`) proves client auth passes; source confirms `installed` client (native public client, OOB redirect) — per ADK #2128 precedent this class is by-design WONTFIX, capping VRP-worthiness.
+evidence_needed: `POST /token` with authorized RT → 200 cloud-platform (vs 400) to prove redeemability; VRP outcome test.
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (form): grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw but native-app by-design caps (ADK #2128 precedent).
+testability: HUMAN_ONLY
 [HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
 class: AUTH
 asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
 confidence: 65
-reasoning: v1(4-5 kids) ⊂ v2(7-8 kids), 0 persistent v1-exclusive; `Access-Control-Allow-Origin: *`; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+reasoning: v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
 evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
 verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
-[NEXT] AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — principal A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` set to principal B's oid (expect 201), then principal B `GET /beta/copilot/agentRegistrations` (expect 200 containing A's entry vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status codes + bodies only. 200-from-B on A's object → report MSRC (conf 80).
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A's entry vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 80). (Earthengine path parked as HUMAN: authorized `POST /token` — blocked on authorized RT + native-app by-design caps VRP.)
+[LEARN] ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`, line 420 `dict(installed=…)`) — hardcoded secret is a public-client by-design pattern; per ADK #2128 precedent (closed by-design) VRP-worthiness capped despite invalid_grant validity proof.
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.
+[RISK] google: 55 — live valid native-app client_secret (invalid_grant) + public introspection oracle, but by-design public-client model and no-reward rules cap practical impact.
+[RISK] microsoft: 45 — zero-OperationRestrictions IDOR precondition live across 5 Agent Registry EntityTypes, but auth-gated, CORS mutation vector closed (OPTIONS→405), issuer-confusion pending AUTH_HELPED.
