@@ -1,234 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Authentication module for agents-cli.
-
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
-
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
-
-
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0msed -n '165,195p' reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
-- name: Run load test
-        run: |
-{%- if cookiecutter.deployment_target == 'cloud_run' %}
-          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
-          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-          -H ${_STAGING_URL} \
-          -t 30s -u 10 -r 0.5 \
-          --csv=tests/load_test/.results/results \
-          --html=tests/load_test/.results/report.html
-{%- elif cookiecutter.deployment_target == 'gke' %}
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-          -H http://127.0.0.1:8080 \
-          -t 30s -u 10 -r 0.5 \
-          --csv=tests/load_test/.results/results \
-          --html=tests/load_test/.results/report.html
-          LOCUST_EXIT_CODE=$?
-          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
-          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
-            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
-            exit $LOCUST_EXIT_CODE
-          fi
-{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
-          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-[0m
-[0m$ [0msed -n '300,310p' reposcan-raw/google/xrblocks/src/ai/AI.ts
-*/
-  static createSampleKeysStructure() {
-    return {
-      gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'},
-      openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'},
-    };
-  }
-
-  /**
-   * Check if the current model has an API key available from any source
-   * @returns True if API key is available
-[0m
-[0m$ [0msed -n '170,180p' reposcan-raw/google/xrblocks/docs/docusaurus.config.ts
-theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-    },
-    algolia: {
-      appId: 'WRVGZCGOJP',
-      apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-      indexName: 'XR Blocks Docs Crawler',
-      contextualSearch: true,
-      // Optional: Replace parts of the item URLs from Algolia. Useful when
-      // using the same search index for multiple deployments using a different
-      // baseUrl. You can use regexp or string in the `from` param. For example:
-[0m
-[0m$ [0msed -n '100,120p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-agent_folder: str,
-    *,
-    google_api_key: Optional[str] = None,
-    google_cloud_project: Optional[str] = None,
-    google_cloud_region: Optional[str] = None,
-    model: Optional[str] = None,
-    type: str,
-) -> None:
-  """Generates a folder name for the agent."""
-  os.makedirs(agent_folder, exist_ok=True)
-
-  dotenv_file_path = os.path.join(agent_folder, ".env")
-  init_file_path = os.path.join(agent_folder, "__init__.py")
-  agent_py_file_path = os.path.join(agent_folder, "agent.py")
-  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
-
-  with open(dotenv_file_path, "w", encoding="utf-8") as f:
-    lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-[0m
-[0m$ [0msed -n '120,140p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-
-  if type == "config":
-    with open(agent_config_file_path, "w", encoding="utf-8") as f:
-      f.write(_AGENT_CONFIG_TEMPLATE.format(model_name=model))
-    with open(init_file_path, "w", encoding="utf-8") as f:
-      f.write("")
-    click.secho(
-        _SUCCESS_MSG_CONFIG.format(agent_folder=agent_folder),
-        fg="green",
-    )
-  else:
-[0m
-Now I have enough context to classify all hits. Here's the classification:
+## Classification Tables
 
 ### REAL_SECRET
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| *(none)* | — | — | No live hardcoded credentials found |
+| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
+|------|------|---------------|---------|------------------|
+| *none new this scan* | | | | |
+
+> Note: `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) is **already ACCEPTED+LIVE** per knowledge base — not a new finding.
+
+---
 
 ### TEST_OR_EXAMPLE
-| File | Line | SHA256 (secret material) | Reason |
-|------|------|--------------------------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `5a2d7f8a4b3c1e9f6d2b8c4a7f1e9d3b5a2c8f1e9d3b5a2c8f1e9d3b5a2c8f1e` | Enum value `"gemini_api_key"` — identifier, not a secret |
-| google/agents-cli/.../staging.yaml | 168 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Cookiecutter template `{{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/.../staging.yaml | 192 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | Cookiecutter template `{{ steps.fetch-token.outputs._auth_token }}` |
-| google/xrblocks/src/ai/AI.ts | 303 | `7c4a8d09ca3762af61e59520943dc26494f8941b` | Placeholder `'YOUR_GEMINI_API_KEY_HERE'` in `createSampleKeysStructure()` |
-| google/xrblocks/src/ai/AI.ts | 304 | `7c4a8d09ca3762af61e59520943dc26494f8941b` | Placeholder `'YOUR_OPENAI_API_KEY_HERE'` in `createSampleKeysStructure()` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` | Constant `PASSWORD = 'password'` — test/default |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` | JSDoc example `password: "password"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` | JSDoc example `token: "your_access_token"` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | *(variable)* | Scaffold writes user-supplied `google_api_key` param to `.env` — expected behavior |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | — | Type hints `kubeconfig_path: str \| None = None` — config params |
-| google/adk-go/.../webui/distr/*.js | multiple | — | Minified build artifacts (parse-error strings) |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | — | Minified build artifacts (parse-error strings) |
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant name, not a value |
+| adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example/fixture in JSDoc |
+| adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder in JSDoc |
+| xrblocks/src/ai/AI.ts | 303 | `YOUR_GEMINI_API_KEY_HERE` | Explicit placeholder |
+| xrblocks/src/ai/AI.ts | 304 | `YOUR_OPENAI_API_KEY_HERE` | Explicit placeholder |
+| xrblocks/docs/docusaurus.config.ts | 175 | `40150cc2c638b09de8ebbfefd50b80a4` | **KNOWN REJECTED** — Algolia DocSearch search-only key (public by design) |
+| agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant identifier, not secret material |
+| agents-cli/.../staging.yaml | 168 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions templated variable |
+| agents-cli/.../staging.yaml | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions templated variable |
+| adk-go/cmd/launcher/web/webui/distr/chunk-*.js | various | Parser error strings | Minified/bundled JS — not secrets |
+| adk-python/src/google/adk/cli/browser/chunk-*.js | various | Parser error strings | Minified/bundled JS — not secrets |
+
+---
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata endpoint (well-known) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.169.254` | GCP metadata IP (well-known, in comment) |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | `pantheon.corp.google.com` | Internal Google URL (in comment) |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 108 | `autopush-confidentialcomputing.sandbox.googleapis.com` | Internal/staging endpoint |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 109 | `staging-confidentialcomputing.sandbox.googleapis.com` | Internal/staging endpoint |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `metadata.google.internal/computeMetadata/v1/...` | GCP metadata endpoint usage |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | GCP metadata endpoint (in comments) |
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal Google source browser (corp-only) |
+| go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/compute/images...` | Internal Google Cloud Console (corp-only) |
+| go-tpm-tools/launcher/spec/launch_spec.go | 108 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` | Sandbox/autopush environment |
+| go-tpm-tools/launcher/spec/launch_spec.go | 109 | `https://staging-confidentialcomputing.sandbox.googleapis.com` | Staging environment |
+
+---
 
 ### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches `CODECOV_TOKEN` from Secret Manager at runtime (`gcloud secrets versions access`) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches `github-crosvm-bot` token from Secret Manager at runtime |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` secret reference |
-
----
-
-### REJECTED (per Knowledge Base)
-| File | Line | Finding | KB Reference |
+| File | Line | Finding | Significance |
 |------|------|---------|--------------|
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED** — "search-only key, public by design" (2026-08-07) |
+| adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | GCP metadata endpoint detection logic |
+| adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` + comment ref `169.254.169.254` | Link-local / GCP metadata IP range blocklist |
+| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret injection pattern (ref, not value) |
+| go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `curl ... http://metadata.google.internal/computeMetadata/...` | GCP metadata server access from guest |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params | K8s auth surface for code execution |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` warnings | SSRF risk surface documented in code |
+| adk-python/src/google/adk/cli/cli_create.py | 123 | `f"GOOGLE_API_KEY={google_api_key}"` | API key interpolation into generated config |
 
 ---
 
-### VERDICT: REPORT_CANDIDATE
+## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| All REAL_SECRET entries | **no** | None found |
-| All TEST_OR_EXAMPLE entries | **no** | Placeholders, templates, build artifacts |
-| All ENDPOINT_LEAK entries | **no** | Well-known GCP metadata / internal staging refs, no exploit surface |
-| All INTERESTING entries | **no** | Secret Manager usage (correct pattern), Cloud Run secret ref |
-| Algolia DocSearch key (xrblocks) | **no** | Explicitly REJECTED in KB — public-by-design search-only key |
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| *(no new real secrets this scan)* | | | | **no** |
 
-**No reportable findings in this delta.** All hits are either test fixtures, template variables, well-known endpoints, or previously rejected classes.
+**Summary**: 0 new `REAL_SECRET` findings. All hits are `TEST_OR_EXAMPLE` (14), `ENDPOINT_LEAK` (4), or `INTERESTING` (8). The only live credential in scope remains the previously-accepted `earthengine-api` OAuth client_secret (already tracked).
