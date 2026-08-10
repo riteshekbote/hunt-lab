@@ -3262,3 +3262,42 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
 [RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
 [RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (5/5 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+## 2026-08-10 06:06:30 UTC [google] (model nemotron3)
+[PRIO] oauth2.googleapis.com/token, 8.25, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/keys, 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[HYP] Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token
+confidence: 95
+reasoning: PASSIVE-VERIFIED live @ 2026-08-10 03:02 UTC: raw GitHub GET oauth.py:45 → 200 len=23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com` at :43, scopes cloud-platform+drive+devstorage+earthengine. GET→404 confirms POST-only token endpoint.
+evidence_needed: POST with grant_type=refresh_token + valid refresh_token → 200 with access_token containing cloud-platform scope.
+verify_steps: HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400.
+impact: Full GCP access (cloud-platform scope) for any user with valid refresh_token; secret public in repo master; CVSS 9.0–9.8
+testability: AUTH_HELPED
+[HYP] Agent Registration ownership boundary bypass via client-supplied createdBy + cross-principal PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: PASSIVE-VERIFIED live @ 2026-08-10 03:02 UTC: $metadata 873-char agentRegistration block, 13 client-supplied properties (createdBy Nullable=false, ownerIds Nullable=false, agentCard graph.Json, managedByAppId, agentIdentityId), ZERO OperationRestrictions across 5 sibling EntityTypes. HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), GET→401/237 Bearer, OPTIONS→200 CORS * mutation allowlist.
+evidence_needed: Principal B GETs collection → enumerates Principal A's registrations; Principal B PATCHes /{A-id} with attacker-controlled agentCard/ownerIds/createdBy → 200/204 and mutation persists.
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {displayName:"test", createdBy:"user2", ownerIds:["user2"], agentCard:{}}; 2) B GET /beta/copilot/agentRegistrations → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {agentCard:{"injected":true}} → 200/204 vs 403; 4) B GET /{A-id} confirm mutation.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ + 4-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 7-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED live @ 2026-08-10 03:02 UTC: v1.0 /discovery/keys = 4 RSA kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2.0's 7 kids (strict subset, 0 v1-exclusive); dual issuer namespaces serve same tenant; v1.0 supports response_type=token (pure implicit) + token id_token (hybrid) — excluded from v2.0. If any v2.0-only resource validates sig+kid but not strict iss claim, v1.0-issued token replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only Graph resource/endpoint that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token via v1.0 authorize endpoint (response_type=token id_token); send to v2.0-only Graph endpoint (e.g., /beta/copilot/agentRegistrations) with Bearer; observe 200 vs 401/403. PASSIVE: kid overlap (4/4) + strict subset verified; v1.0-only response_types verified.
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100k ceiling)
+testability: AUTH_HELPED
+[FINAL] 1) oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token (confidence 95) 2) graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration ownership boundary bypass (confidence 85) 3) login.microsoftonline.com/common/discovery/keys: v1.0↔v2.0 issuer-confusion token replay (confidence 60)
+[NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400 to confirm native-app refresh_token gate.
+[LEARN] ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine secret hypothesis.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation extends to Agent Registration), $metadata 873-char block, 0 OperationRestrictions across 5 EntityTypes.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer namespaces intact; rotation-desync class stays REJECTED.
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+[RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
+[RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (4/4 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.

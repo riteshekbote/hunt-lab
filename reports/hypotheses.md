@@ -1166,3 +1166,24 @@
 - LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss
+
+## RANKED HYPOTHESES 2026-08-10 06:06:47 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refres
+- NEXT(hypotheses-longcat.txt): **PROBE**: `curl -s -o /dev/null -w "%{http_code}" -X HEAD https://graph.microsoft.com/beta/copilot/agentRegistrations` — re-verify HEAD→405 anomaly still live 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer namespaces
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- LEARN: ACCEPTED graph.microsoft.com root → HTTP 200 (text/html) at 2026-08-10 04:50:17 UTC — API gateway returns HTML signin/error page for unauth root, no new auth-by
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirmed live @ current cycle — POST-only alive gate (RFC-compliant token endpoint), validates earthengine secret 
+- LEARN: ACCEPTED agentRegistration IDOR class @ graph.microsoft.com/beta/copilot/agentRegistrations — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, 
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (graph root 200, token GET 404, cloud-platform scope 404) confirmed prior ACCEPTED f
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — reposcan 05:06 UTC produced zero REAL_SECRET, all TEST_OR_EXAMPLE; robot probes confirmed prior
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), 873-char metadata block,
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint con

@@ -412,3 +412,10 @@
 - 2026-08-10 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
 - 2026-08-10 ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
 - 2026-08-10 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-10 ACCEPTED graph.microsoft.com root → HTTP 200 (text/html) at 2026-08-10 04:50:17 UTC — API gateway returns HTML signin/error page for unauth root, no new auth-bypass surface; confirms root-level reachability.
+- 2026-08-10 ACCEPTED oauth2.googleapis.com/token GET→404 confirmed live @ current cycle — POST-only alive gate (RFC-compliant token endpoint), validates earthengine secret hypothesis (only grant_type=refresh_token is the redemption path).
+- 2026-08-10 ACCEPTED agentRegistration IDOR class @ graph.microsoft.com/beta/copilot/agentRegistrations — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation), OPTIONS→200 CORS * + full mutation allowlist; $metadata 873-char block, 0 OperationRestrictions across 5 EntityTypes; no new proving-dead or newly-live classes this cycle. NO_DELTA.
+- 2026-08-10 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (graph root 200, token GET 404, cloud-platform scope 404) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-10 ACCEPTED: No new proving-dead or newly-live classes this cycle — reposcan 05:06 UTC produced zero REAL_SECRET, all TEST_OR_EXAMPLE; robot probes confirmed prior ACCEPTED findings unchanged. NO_DELTA.
+- 2026-08-10 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions.
+- 2026-08-10 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
