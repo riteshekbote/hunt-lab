@@ -1239,3 +1239,20 @@
 - LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — GET→400/113 invalid_token, HEAD→404 method-handling gap.
 - LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+
+## RANKED HYPOTHESES 2026-08-10 11:40:26 UTC
+- [96] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret is a live valid OAuth credential redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret is a valid credential redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Execute authorized `POST https://oauth2.googleapis.com/token` (application/x-www-form-urlencoded) with `grant_type=refresh_token&client_id=517222506229-…
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAu
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mut
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class sta
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not `invalid_client`) — conclusively proves `CLIENT_SECRET` @ oauth.
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS→405 confirms CORS mutation vector closed (2026-08-10 09:52 UTC CHANGE sustained); schema-l
+- LEARN: ACCEPTED: No new proving-dead classes — all fresh probes confirmed prior ACCEPTED findings unchanged. NO_DELTA.
+- LEARN: REJECTED: oauth2.googleapis.com/token GET→404 — confirmed POST-only alive gate, not a new surface but validates existing earthengine hypothesis.

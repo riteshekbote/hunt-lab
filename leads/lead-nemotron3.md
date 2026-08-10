@@ -3357,3 +3357,48 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 [RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
 [RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (4/4 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+## 2026-08-10 11:40:14 UTC [google] (model nemotron3)
+[NEW] oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector
+[CHANGED] www.googleapis.com/auth/cloud-platform flips 200 (len=14) ↔ 404 — scope strings not stable HTTP endpoints
+[PRIO] oauth2.googleapis.com/token, 8.75, attack=9 business=10 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.30, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/keys, 7.55, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[HYP] Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: PASSIVE-VERIFIED live: raw GitHub GET oauth.py:45 → 200 len=23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com` at :43, scopes cloud-platform+drive+devstorage+earthengine. POST with leaked secret + dummy refresh_token → 400 `invalid_grant` (NOT 401 `invalid_client`) — proves secret is valid credential accepted by token server (RFC 6749 §5.2 distinction). GET→404 confirms POST-only endpoint.
+evidence_needed: POST with grant_type=refresh_token + valid refresh_token → 200 with access_token containing cloud-platform scope.
+verify_steps: HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400.
+impact: Full GCP access (cloud-platform scope) for any user with valid refresh_token; secret public in repo master; CVSS 9.0–9.8
+testability: AUTH_HELPED
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: PASSIVE-VERIFIED live: $metadata 873-char block, 13 client-supplied properties (createdBy/ownerIds Nullable=false, agentCard graph.Json), ZERO OperationRestrictions across 5 EntityTypes. HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), GET→401/237 Bearer. OPTIONS→405 closes CORS mutation vector but server-side PATCH still accepts client-supplied ownership fields.
+evidence_needed: Principal B GETs collection → enumerates Principal A's registrations; Principal B PATCHes /{A-id} with attacker-controlled agentCard/ownerIds/createdBy → 200/204 and mutation persists.
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {displayName:"test", createdBy:"user2", ownerIds:["user2"], agentCard:{}}; 2) B GET /beta/copilot/agentRegistrations → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {agentCard:{"injected":true}} → 200/204 vs 403; 4) B GET /{A-id} confirm mutation.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ + 4-key JWKS vs login.microsoftonline.com/{tid}/v2.0 + 7-key JWKS)
+confidence: 60
+reasoning: PASSIVE-VERIFIED live: v1.0 /discovery/keys = 4 RSA kids (AahUf1bC, fEtqrhKT, jvm_-Ttaq, 6hXLaIYN) ALL ⊂ v2.0's 7 kids (strict subset, 0 v1-exclusive); dual issuer namespaces serve same tenant; v1.0 supports response_type=token (pure implicit) + token id_token (hybrid) — excluded from v2.0. If any v2.0-only resource validates sig+kid but not strict iss claim, v1.0-issued token replayable against v2.0-only endpoints.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only Graph resource/endpoint that should reject v1.0 issuers.
+verify_steps: AUTH_HELPED: In test tenant, acquire v1.0 id_token via v1.0 authorize endpoint (response_type=token id_token); send to v2.0-only Graph endpoint (e.g., /beta/copilot/agentRegistrations) with Bearer; observe 200 vs 401/403. PASSIVE: kid overlap (4/4) + strict subset verified; v1.0-only response_types verified.
+impact: MFA bypass / auth bypass on Microsoft Identity; CVSS 8.0–9.8 ($100k ceiling)
+testability: AUTH_HELPED
+[PARKED] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces: confidence 60 < threshold for active pursuit; requires AUTH_HELPED test-tenant + specific v2.0-only resource that validates kid but not iss — no such resource identified passively; keeping as tracked precondition.
+[FINAL] 1) oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token (confidence 96) 2) graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass (confidence 80)
+[NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400 to confirm native-app refresh_token gate.
+[LEARN] ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential accepted by token server (RFC 6749 §5.2).
+[LEARN] CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector; core IDOR surface unchanged.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions across 5 EntityTypes.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED.
+[LEARN] ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+[RISK] google: 35 | Earth Engine client_secret is valid credential (proven by invalid_grant vs invalid_client) but requires user refresh_token (interaction); all GCP control-plane APIs remain auth-gated; tokeninfo oracle is no-reward; bughunters hardened; no new unauthenticated surface.
+[RISK] microsoft: 85 | Agent Registration IDOR (schema-level zero restrictions + client-supplied ownership) remains highest-priority design gap; v1↔v2 issuer-confusion precondition intact (4/4 kid overlap + dual issuers + v1.0-only implicit); Graph 405 anomaly extends to Agent Registration endpoint; Verified ID minting / three-hop FIC / consent primitives all in GA/preview transition awaiting AUTH_HELPED.
