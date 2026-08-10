@@ -299,3 +299,11 @@ https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
 https://oauth2.googleapis.com/token` -> HTTP 404
 https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
 https://oauth2.googleapis.com/token`: -> HTTP 404
+
+## 2026-08-10 21:06:53 UTC
+https://oauth2.googleapis.com/token`: -> HTTP 404
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
+https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` -> HTTP 404
+https://www.googleapis.com/auth/devstorage.full_control` -> HTTP 404
+https://www.googleapis.com/auth/drive` -> HTTP 404

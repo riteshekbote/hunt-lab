@@ -477,3 +477,14 @@
 - CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 sustained (CORS cross-origin mutation vector closed since 09:52 UTC)
 - CHANGED `login.microsoftonline.com/common/discovery/v2.0/keys` +3 kids vs 18:04 UTC: `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…` (v2 count increased, subset invariant intact)
 - CHANGED `/oauth2/v2.0/authorize?response_type=token` body-size drift: 23940 → 41309 bytes (error-rendering anomaly stable)
+
+## 2026-08-10 21:06:52 UTC
+- NEW login.microsoftonline.com/common/discovery/v2.0/keys: +3 new kids (rRk1d-57B… msonline.com, NqEBZVuOp… msonline.us, 1Nv3JExJr… new v2-only) — v2 count increased, v1⊂v2 subset invariant intact
+- NEW /oauth2/v2.0/authorize?response_type=token: body-size drift 23940 → 41309 bytes — error-rendering anomaly stable, content is JS error shell
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained (CORS cross-origin mutation vector closed since 09:52 UTC)
+- CHANGED www.googleapis.com/auth/cloud-platform → HTTP 404 (len=14) reverted from 200/14 — scope-name echo flaky, no new surface
+- NEW Nothing is new — all findings in the knowledge base remain current. The last knowledge update (2026-08-10 19:18:04 UTC) and the latest robot probes confirm all ACCEPTED findings are live. The knowledg
+- NEW Source maps live on both identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files)
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl

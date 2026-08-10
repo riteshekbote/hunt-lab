@@ -2974,3 +2974,32 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 90). CORS cross-origin mutation precondition now confirmed on ALL 8 paths incl. {id} + legacy (preflight 200 ACAO:* full allowlist), so a victim-token browser mutation is an independent high-impact vector.
+## 2026-08-10 20:58:00 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, with live CORS cross-origin mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + legacy agentRegistry + policySettings/{id}
+confidence: 92
+reasoning: browser-style preflight → 200 ACAO:* + full mutation allowlist on all paths incl. {id} (this probe; KB "OPTIONS→405 closed" was bare-OPTIONS artifact). $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes. GET→401 Bearer gate.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer; or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED two-principal: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes + policySettings/{id}.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Copilot Policy Settings CORS-assisted admin mutation
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/admin/policySettings/{id} (5 microsoft.copilot.* settings)
+confidence: 50
+reasoning: preflight 200 ACAO:* full allowlist on {id} (this probe); schema restrictions unverified — only CORS precondition established.
+evidence_needed: authenticated non-admin reads/mutates {id} → 200 vs 403; schema OperationRestrictions in $metadata.
+verify_steps: AUTH_HELPED: GET {id} with user token vs admin token; compare $metadata policySettings block for OperationRestrictions.
+impact: tenant-wide Copilot policy tamper (search/web/image toggles); CVSS 6.0–8.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1(4)⊂v2(7-8), 0 v1-exclusive steady-state, dual issuer namespaces verified; v1 kid set never validated against v2 issuer; distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 92). CORS precondition now confirmed live on all 8 paths (preflight 200 ACAO:*), so a victim-context browser mutation is an independent high-impact vector.
