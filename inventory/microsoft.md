@@ -370,3 +370,6 @@
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist) — closes CORS cross-origin mutation vector (first observed 2026-08-10 09:52 UTC, 
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential accepted by token server
 - CHANGED www.googleapis.com/auth/cloud-platform: flips 200 (len=14) ↔ 404 across cycles — scope strings not stable HTTP endpoints
+
+## 2026-08-10 14:04:45 UTC
+- NEW oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential

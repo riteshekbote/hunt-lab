@@ -3447,3 +3447,5 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine hypothesis.
 [RISK] google: 35 | Earth Engine client_secret is valid credential (proven by invalid_grant vs invalid_client) but requires user refresh_token (interaction); all GCP control-plane APIs remain auth-gated; tokeninfo oracle is no-reward; bughunters hardened; no new unauthenticated surface.
 [RISK] microsoft: 85 | Agent Registration IDOR (schema-level zero restrictions + client-supplied ownership) remains highest-priority design gap; v1↔v2 issuer-confusion precondition intact (4/4 kid overlap + dual issuers + v1.0-only implicit); Graph 405 anomaly extends to Agent Registration endpoint; Verified ID minting / three-hop FIC / consent primitives all in GA/preview transition awaiting AUTH_HELPED.
+## 2026-08-10 14:04:14 UTC [google] (model nemotron3)
+[NEW] oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential

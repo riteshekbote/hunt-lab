@@ -1276,3 +1276,13 @@
 - LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oaut
 - LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS * + full mutation allowlist) — closes CORS cross-origin mutat
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-10 14:04:45 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret is a valid OAuth credential redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- [80] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — principal A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` set to princip
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves `CLIENT_SECRET` @ oa
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS→405 sustained @ 13:05 UTC — CORS cross-origin mutation vector confirmed CLOSED (was 200 wi
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap + dual issuer namespaces confirmed stable @ 13:05 UTC — v1(4 kids) ⊂ v2(8 kids), 0 v1-exclusive steady-state, Access-Control-Al
+- LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo no-param → 400/113 invalid_token confirmed live — public introspection oracle intact (no-Authorization-header query-pa
+- LEARN: ACCEPTED: www.googleapis.com/auth/cloud-platform → 200/14 (scope-name echo from API gateway, non-endpoint) confirmed live — no new surface.

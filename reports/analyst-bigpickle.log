@@ -13903,3 +13903,60 @@ reposcan-raw/google/agents-cli:
 200 23836
 [0m
 [0m◈ [0mExa Web Search "graph.microsoft.com copilot agentRegistrations permission AgentRegistration.ReadWrite.All ownership createdBy ownerIds managedBy"
+===== ANALYST bigpickle 2026-08-10 14:04:45 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m% [0mWebFetch https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py
+[0m◈ [0mExa Web Search "earthengine-api python oauth.py CLIENT_ID InstalledAppFlow OOB client_secret native app flow type"
+[0m
+[0m$ [0mfor u in "https://code.earthengine.google.com/client-auth/mode" "https://code.earthengine.google.com/client-auth/fetch"; do echo "== $u"; curl -s -o /dev/null -w "HTTP %{http_code} len=%{size_download} type=%{content_type}\n" --max-time 20 "$u"; done
+== https://code.earthengine.google.com/client-auth/mode
+HTTP 200 len=7 type=text/plain; charset=utf-8
+== https://code.earthengine.google.com/client-auth/fetch
+HTTP 405 len=187 type=text/html; charset=UTF-8
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HTTP %{http_code} len=%{size_download}\n" --max-time 20 "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000"; curl -s -o /dev/null -w "HTTP %{http_code} len=%{size_download}\n" --max-time 20 "https://login.microsoftonline.com/common/.well-known/openid-configuration"
+HTTP 401 len=237
+HTTP 200 len=1564
+[0m
+## STEP 1 — DELTA
+- [NEW] `code.earthengine.google.com/client-auth/mode` → HTTP 200 (7 bytes text/plain); `/client-auth/fetch` → HTTP 405 (POST-only). Endpoints referenced by oauth.py `_obtain_and_write_token` for dynamic client_id/client_secret issuance — confirms server-issued per-request creds, hardcoded value is a fallback.
+- [NEW] RAG determination (oauth.py full-source + Google installed-app docs): client `517222506229-…` is an **InstalledAppFlow / native desktop client** — `REDIRECT_URI=urn:ietf:wg:oauth:2.0:oob`, `dict(installed=...)` in gcloud-legacy, PKCE S256, copy-paste code entry. Google docs: "client secret ... is obviously not treated as a secret" for installed apps.
+- Else NO_DELTA: `oauth2.googleapis.com/token`→404 (POST-only), cloud-platform scope→200/14 flaky, graph root→200 html, `agentRegistrations` GET→401/237, HEAD→405/0, OPTIONS→405.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 7.30 | attack 8, business 8, tech 7 (OData agent-registry, client-supplied ownership), gate 5, cloud 8, fresh 7
+- [PRIO] oauth2.googleapis.com/token (EE client) — score 7.00 | attack 7, business 9, tech 8, gate 2, cloud 10, fresh 5 — VRP-worthiness now nullified by by-design status
+- [PRIO] login.microsoftonline.com v1↔v2 issuer-confusion — score 6.75 | attack 6, business 9, tech 8, gate 4, cloud 5, fresh 7
+
+## STEP 3 — HYPOTHESES
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 80
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes; OPTIONS→405 closes only CORS vector; {id} path-shape → 401/237 byte-identical (auth precedes ID lookup).
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1(4-5 kids) ⊂ v2(7-8 kids), 0 persistent v1-exclusive; `Access-Control-Allow-Origin: *`; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+- [PARKED] Earth Engine hardcoded client_secret redeemable for cloud-platform token: RAG now proves native installed-app client type — `urn:ietf:wg:oauth:2.0:oob` redirect, `dict(installed=...)`, PKCE S256, per-request creds issued server-side via /client-auth/fetch; Google documents installed-app secrets as non-secret → WONTFIX per ADK #2128 precedent. Factually valid but not VRP-worthy.
+- [FINAL] 1) Agent Registration IDOR (conf 80) 2) v1↔v2 issuer-confusion (conf 65)
+
+## STEP 5 — NEXT ACTION
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — principal A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` set to principal B's oid (expect 201), then principal B `GET /beta/copilot/agentRegistrations` (expect 200 containing A's entry vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status codes + bodies only. 200-from-B on A's object → report MSRC (conf 80).
+
+## STEP 6 — LEARNING
+- REJECTED Earth Engine client_secret @ oauth2.googleapis.com/token as

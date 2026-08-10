@@ -2802,3 +2802,23 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [NEXT] HUMAN: Execute authorized `POST https://oauth2.googleapis.com/token` (application/x-www-form-urlencoded) with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + granted scopes only. 200+cloud-platform → report Google VRP (conf 96). Concurrent RAG: confirm client type (InstalledAppFlow/native vs confidential web) from earthengine-api source/docs to size VRP-worthiness before filing.
+## 2026-08-10 14:03:20 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 80
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes; OPTIONS→405 closes only CORS vector; {id} path-shape → 401/237 byte-identical (auth precedes ID lookup).
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: v1(4-5 kids) ⊂ v2(7-8 kids), 0 persistent v1-exclusive; `Access-Control-Allow-Origin: *`; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on graph.microsoft.com — principal A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` set to principal B's oid (expect 201), then principal B `GET /beta/copilot/agentRegistrations` (expect 200 containing A's entry vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status codes + bodies only. 200-from-B on A's object → report MSRC (conf 80).
