@@ -1145,3 +1145,24 @@
 - LEARN: ACCEPTED agentRegistration IDOR class @ graph.microsoft.com/beta/copilot/agentRegistrations: GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, R
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: v1(5 kids)⊂v2(8 kids), 0 v1-exclusive, Access-Control-Allow-Origin: *; dual i
 - LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live — no-param→400/113 invalid_token, accepts ?access_token=/ ?id_t
+
+## RANKED HYPOTHESES 2026-08-10 04:50:16 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [95] `oauth2.googleapis.com/token`: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-longcat.txt): **HUMAN**: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`, dual issuer namespaces
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404: confirms POST-only alive gate (RFC-compliant token endpoint, no GET support); validates existing earthengine secre
+- LEARN: ACCEPTED agentRegistration IDOR @ graph.microsoft.com/beta/copilot/agentRegistrations: confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticat
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: v1(5 kids)⊂v2(8 kids), 0 v1-exclusive steady-state, Access-Control-Allow-Orig
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live — no-param→400/113 invalid_token, accepts ?access_token=/ ?id_t
+- LEARN: ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), OPTIONS→200 (CORS *, ful
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 iss

@@ -129,3 +129,42 @@ testability: HUMAN_ONLY
 ## 2026-08-09 23:50:13 UTC [google] (model longcat)
 ## 2026-08-10 00:44:24 UTC [google] (model longcat)
 ## 2026-08-10 03:01:25 UTC [google] (model longcat)
+## 2026-08-10 04:49:44 UTC [google] (model longcat)
+[PRIO] `graph.microsoft.com/beta/copilot/agentRegistrations` — **7.25** (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:7)
+[PRIO] `login.microsoftonline.com` v1↔v2 dual-issuer JWKS — **7.10** (attack:7, business:9, tech:8, gate:4, cloud:8, fresh:5)
+[PRIO] `github.com/google/earthengine-api/python/ee/oauth.py:45` — **6.80** (attack:6, business:8, tech:5, gate:9, cloud:9, fresh:3)
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: $metadata confirms 873-char agentRegistration EntityType with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false. GET→401 (auth-gated), HEAD→405 (RFC 6750 §3), OPTIONS→200 (CORS *, full mutation allowlist incl. PATCH). 5 sibling EntityTypes share zero-restriction pattern.
+evidence_needed: Two-principal test — Principal A creates agentRegistration, Principal B attempts PATCH with createdBy=PrincipalA's id.
+verify_steps: AUTH_HELPED: Provision two Entra test-tenant principals (A, B). A POSTs agentRegistrations with createdBy=A's objectId. B attempts PATCH /beta/copilot/agentRegistrations/{A's-id} with createdBy=A's objectId + agentCard payload. Check 403/404 (gate) vs 200/204 (IDOR).
+impact: Cross-tenant agent registration takeover — attacker modifies another org's Copilot agent config, potentially redirecting agentCard endpoints. High severity in M365 Copilot ecosystem.
+testability: AUTH_HELPED
+[HYP] v1↔v2 issuer-confusion via shared JWKS kid set + dual issuer namespaces
+class: OATH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: v1 issuer=`sts.windows.net/{tid}/`, v2 issuer=`login.microsoftonline.com/{tid}/v2.0` (dual namespaces). 4–5 v1 kids ⊂ 7–8 v2 kids (0 v1-exclusive steady-state). A validator checking only kid+sig but not iss could accept v1-signed token at v2-only endpoint.
+evidence_needed: Generate v1-token (iss=sts.windows.net/{tid}/) signed with shared kid, submit to v2-only resource endpoint; observe if iss-check enforced.
+verify_steps: AUTH_HELPED: Obtain v1.0 access token (resource=https://graph.microsoft.com) for test tenant. Decode header, confirm kid is shared. Swap iss to v2.0 while keeping v1 signature — check if validator catches iss mismatch.
+impact: Token from v1 legacy trust domain accepted at v2-only endpoints, bypassing v2.0 conditional access policies. Broad Entra ID trust-boundary impact.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped tokens
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 95
+reasoning: Hardcoded client_secret (sha256 `3f3f8d6f…d271`) at line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.full_control, OOB redirect. Confirmed live via raw GitHub (200 len=23110, whole-file sha `f4f93c76…` unchanged). Reposcan classified REAL_SECRET.
+evidence_needed: OAuth token redemption test — authorization_code flow using hardcoded client_id `517222506229-…` (:43) + secret against oauth2.googleapis.com/token.
+verify_steps: HUMAN: File Google VRP report citing sha256 of secret value. VRP determination needed on native-app by-design status (OAuth 2.1 deprecates client secrets for public/native clients; Python SDK is native app). If VRP accepts, provide PoC token request.
+impact: Attacker redeems secret for cloud-platform-scoped access to any GCP project where Earth Engine API is enabled. Severity hinges on whether Google treats native-app hardcoded secret as vulnerability vs by-design.
+testability: HUMAN_ONLY
+[FINAL]
+[NEXT] **HUMAN**: Two-principal test-tenant probe of top-ranked agentRegistration IDOR hypothesis. Provision Principal A + Principal B in an Entra test tenant. A POSTs `https://graph.microsoft.com/beta/copilot/agentRegistrations` with `createdBy=A's-objectId`, `agentCard={...}`. B attempts `PATCH /beta/copilot/agentRegistrations/{A's-id}` with `createdBy=A's-objectId`. Observe 403/404 (proper gate) vs 200/204 (IDOR confirmed). This is the highest-priority actionable item — metadata zero-restriction precondition is confirmed, only runtime ownership check is untested.
+[LEARN] ACCEPTED: No new proving-dead or newly-live classes this cycle — all fresh passive probes confirmed prior findings unchanged (NO_DELTA).
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), OPTIONS→200 (CORS *, full mutation allowlist), 873-char metadata block, 0 OperationRestrictions.
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — `aFkmKVFc` v1-exclusive is transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+[RISK] google: **45** — earthengine secret is real but native-app by-design question limits exploitable impact; GCP control-plane APIs all require consumer identity (no anon reads); bughunters hardened. Residual risk from OAuth client_secret redemption in the wild. | microsoft: **65** — agentRegistration IDOR surface (5 EntityTypes, zero ownership restrictions, full mutation CORS) + Graph 405 anomaly masking IDOR enumeration + v1↔v2 dual-issuer trust boundary + RFC 6749 §3 error-rendering violations represent meaningful, multi-vector exposure across Entra ID + M365 Copilot.
