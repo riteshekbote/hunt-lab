@@ -1,11 +1,49 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
-Wrote file successfully.
-[0m
-Done. Delta scan (20 new hits) yields **0 new REAL_SECRET candidates** — all are GitHub Actions secret references (`${{ secrets.* }}`), public test endpoints, well-known internal URLs, or test fixtures.
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-The only reportable candidate remains the **previously accepted** earthengine-api hardcoded OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), confirmed live and valid per token endpoint test (`invalid_grant` not `invalid_client`), but it's a native `installed` client with OOB redirect — VRP-worthiness capped per ADK #2128 precedent.
+## REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none confirmed this scan) | | | |
 
-Full report written to `triage_report.md`.
+## TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified parser error messages | Build artifacts / source maps |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified parser error messages | Build artifacts / source maps |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified source map | Build artifact |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `const val INJECTED_TOKEN = "injected-token-probe"` | Test fixture name |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch key (public by design, REJECTED class) |
+| google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` | Placeholder |
+| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` | Placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` | Test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` | Truncated test token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+
+## ENDPOINT_LEAK
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/orbax/checkpoint/.../environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` | Well-known GCP metadata endpoint (not a leak) |
+
+## INTERESTING
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern (correct usage) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Config generation - verify if writes actual key or template |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Proper GitHub Actions secret references |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name (not a secret) |
+
+## SHORT VERDICT
+- **REPORT_CANDIDATE: no** for all hits this scan
+- No new REAL_SECRET findings
+- Algolia DocSearch key in xrblocks is a known REJECTED class (public by design)
+- All other hits are test fixtures, placeholders, build artifacts, or correct secret-handling patterns
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
