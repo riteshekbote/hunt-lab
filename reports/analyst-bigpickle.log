@@ -14066,3 +14066,346 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 [RISK] google: 55 — live valid native-app client_secret (invalid_grant) + public introspection oracle, but by-design public-client model and no-reward rules cap practical impact.
 [RISK] microsoft: 45 — zero-OperationRestrictions IDOR precondition live across 5 Agent Registry EntityTypes, but auth-gated, CORS mutation vector closed (OPTIONS→405), issuer-confusion pending AUTH_HELPED.
+===== ANALYST bigpickle 2026-08-10 16:19:15 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mfor ep in agentRegistrations agentCollections agentInstances agentCardManifest copilotPackages "agentRegistrations/00000000-0000-0000-0000-000000000000"; do
+  code=$(curl -s -m 15 -o /tmp/opencode/opt_body -D /tmp/opencode/opt_hdr -X OPTIONS "https://graph.microsoft.com/beta/copilot/$ep" -w "%{http_code}")
+  sz=$(stat -c%s /tmp/opencode/opt_body 2>/dev/null || echo 0)
+  allow=$(grep -i '^allow:' /tmp/opencode/opt_hdr 2>/dev/null | tr -d '\r')
+  acm=$(grep -i 'access-control-allow-methods' /tmp/opencode/opt_hdr 2>/dev/null | tr -d '\r')
+  aco=$(grep -i 'access-control-allow-origin' /tmp/opencode/opt_hdr 2>/dev/null | tr -d '\r')
+  echo "OPTIONS $ep -> $code size=$sz | ${aco:-no-ACO} | ${allow:-}${acm:-}"
+done
+OPTIONS agentRegistrations -> 405 size=0 | no-ACO | 
+OPTIONS agentCollections -> 405 size=0 | no-ACO | 
+OPTIONS agentInstances -> 405 size=0 | no-ACO | 
+OPTIONS agentCardManifest -> 405 size=0 | no-ACO | 
+OPTIONS copilotPackages -> 405 size=0 | no-ACO | 
+OPTIONS agentRegistrations/00000000-0000-0000-0000-000000000000 -> 405 size=0 | no-ACO |
+[0m
+[0m$ [0mfor ep in agentCollections agentInstances agentCardManifest copilotPackages; do
+  code=$(curl -s -m 15 -o /tmp/opencode/get_body -D /tmp/opencode/get_hdr "https://graph.microsoft.com/beta/copilot/$ep" -w "%{http_code}")
+  sz=$(stat -c%s /tmp/opencode/get_body 2>/dev/null || echo 0)
+  www=$(grep -i 'www-authenticate' /tmp/opencode/get_hdr 2>/dev/null | tr -d '\r' | cut -c1-80)
+  echo "GET $ep -> $code size=$sz | ${www:-no-WWW}"
+done
+GET agentCollections -> 401 size=237 | WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonl
+GET agentInstances -> 401 size=237 | WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonl
+GET agentCardManifest -> 401 size=237 | WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonl
+GET copilotPackages -> 401 size=237 | WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonl
+[0m
+[0m$ [0mcurl -s -m 90 "https://graph.microsoft.com/beta/\$metadata" -o /tmp/opencode/metadata.xml 2>/dev/null; echo "bytes=$(stat -c%s /tmp/opencode/metadata.xml)"; grep -o 'EntityType Name="[^"]*"' /tmp/opencode/metadata.xml | sort -u | grep -iE 'agent|copilot' | head -40
+bytes=7298965
+EntityType Name="agent"
+EntityType Name="agentCardManifest"
+EntityType Name="agentCollection"
+EntityType Name="agentIdentity"
+EntityType Name="agentIdentityBlueprint"
+EntityType Name="agentIdentityBlueprintPrincipal"
+EntityType Name="agentInstance"
+EntityType Name="agentRegistration"
+EntityType Name="agentRegistry"
+EntityType Name="agentRiskDetection"
+EntityType Name="agentUser"
+EntityType Name="cloudPcAgentPool"
+EntityType Name="cloudPcAgentPoolUserAssignment"
+EntityType Name="cloudPcBulkReinstallAgent"
+EntityType Name="copilotAdmin"
+EntityType Name="copilotAdminCatalog"
+EntityType Name="copilotAdminLimitedMode"
+EntityType Name="copilotAdminSetting"
+EntityType Name="copilotCommunicationsRoot"
+EntityType Name="copilotConversation"
+EntityType Name="copilotConversationMessage"
+EntityType Name="copilotConversationRequestMessage"
+EntityType Name="copilotConversationResponseMessage"
+EntityType Name="copilotPackage"
+EntityType Name="copilotPackageDetail"
+EntityType Name="copilotPeopleAdminSetting"
+EntityType Name="copilotPolicySetting"
+EntityType Name="copilotReportRoot"
+EntityType Name="copilotRoot"
+EntityType Name="copilotSetting"
+EntityType Name="copilotTool"
+EntityType Name="exactMatchUploadAgent"
+EntityType Name="onPremisesAgent"
+EntityType Name="onPremisesAgentGroup"
+EntityType Name="riskyAgent"
+EntityType Name="riskyAgentIdentity"
+EntityType Name="riskyAgentIdentityBlueprintPrincipal"
+EntityType Name="riskyAgentUser"
+EntityType Name="securityCopilot"
+[0m
+[0m$ [0mcd /tmp/opencode && for t in agentRegistration agentInstance agentCollection agentCardManifest copilotPackage copilotAdminCatalog; do
+  python3 -c "
+import re
+s=open('metadata.xml',encoding='utf-8',errors='ignore').read()
+m=re.search(r'<EntityType Name=\"$t\"([^>]*)>(.*?)</EntityType>', s, re.S)
+if m:
+    attrs=m.group(1)
+    body=m.group(2)
+    ops=re.findall(r'<(Operation|Read|Update|Insert|Delete)Restrictions', body)
+    props=re.findall(r'<Property Name=\"([^\"]+)\"', body)
+    print(f'$t: attrs={attrs.strip()!r} ops={len(ops)} props={len(props)}')
+else:
+    print(f'$t: NOT FOUND')
+"
+done
+agentRegistration: attrs='BaseType="graph.entity"' ops=0 props=13
+agentInstance: attrs='BaseType="graph.entity"' ops=0 props=15
+agentCollection: attrs='BaseType="graph.entity"' ops=0 props=8
+agentCardManifest: attrs='BaseType="graph.entity"' ops=0 props=20
+copilotPackage: attrs='BaseType="graph.entity"' ops=0 props=19
+copilotAdminCatalog: attrs='BaseType="graph.entity"' ops=0 props=0
+[0m
+[0m$ [0mcd /tmp/opencode && for t in agentRegistry agentIdentity agentIdentityBlueprint agentIdentityBlueprintPrincipal agentUser agentRiskDetection riskyAgent riskyAgentIdentity riskyAgentIdentityBlueprintPrincipal riskyAgentUser; do
+  python3 -c "
+import re
+s=open('metadata.xml',encoding='utf-8',errors='ignore').read()
+m=re.search(r'<EntityType Name=\"$t\"([^>]*)>(.*?)</EntityType>', s, re.S)
+if m:
+    attrs=m.group(1)
+    body=m.group(2)
+    ops=re.findall(r'<(Operation|Read|Update|Insert|Delete)Restrictions', body)
+    props=re.findall(r'<Property Name=\"([^\"]+)\"', body)
+    print(f'$t: attrs={attrs.strip()!r} ops={len(ops)} props={props[:22]}')
+else:
+    print(f'$t: NOT FOUND')
+"
+done
+agentRegistry: attrs='' ops=0 props=[]
+agentIdentity: attrs='BaseType="graph.servicePrincipal" OpenType="true"' ops=0 props=['agentIdentityBlueprintId', 'createdDateTime']
+agentIdentityBlueprint: attrs='BaseType="graph.application" OpenType="true"' ops=0 props=[]
+agentIdentityBlueprintPrincipal: attrs='BaseType="graph.servicePrincipal" OpenType="true"' ops=0 props=[]
+agentUser: attrs='BaseType="graph.user" OpenType="true" /' ops=0 props=['appId', 'domain', 'isDefault', 'location']
+agentRiskDetection: attrs='BaseType="graph.entity"' ops=0 props=['activityDateTime', 'additionalInfo', 'agentDisplayName', 'agentId', 'blueprintId', 'clientSessionId', 'detectedDateTime', 'detectionTimingType', 'displayName', 'identityId', 'identityType', 'lastModifiedDateTime', 'riskDetail', 'riskEventType', 'riskEvidence', 'riskLevel', 'riskState', 'signInClientDisplayName', 'signInCorrelationId', 'signInRequestId', 'source']
+riskyAgent: attrs='BaseType="graph.entity"' ops=0 props=['agentDisplayName', 'blueprintId', 'identityType', 'isDeleted', 'isEnabled', 'isProcessing', 'riskDetail', 'riskLastModifiedDateTime', 'riskLevel', 'riskState']
+riskyAgentIdentity: attrs='BaseType="graph.riskyAgent"' ops=0 props=[]
+riskyAgentIdentityBlueprintPrincipal: attrs='BaseType="graph.riskyAgent"' ops=0 props=[]
+riskyAgentUser: attrs='BaseType="graph.riskyAgent"' ops=0 props=[]
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import re
+s=open('metadata.xml',encoding='utf-8',errors='ignore').read()
+for t in ['agentRiskDetection','agentIdentity','agentUser','riskyAgent','agentRegistry','agentIdentityBlueprint']:
+    hits=set()
+    for m in re.finditer(r'NavigationProperty Name=\"([^\"]+)\" Type=\"graph.([^\"]+)\"[^>]*', s):
+        if m.group(2)==t: hits.add(f'{m.group(1)}->{m.group(2)}')
+    print(f'--- nav props to {t}:')
+    for h in sorted(hits): print('   ',h)
+    # EntitySet defs
+    es=re.findall(r'<EntitySet Name=\"([^\"]*)\" EntityType=\"graph.'+t+r'\"', s)
+    print('    EntitySets:', es)
+"
+--- nav props to agentRiskDetection:
+    EntitySets: []
+--- nav props to agentIdentity:
+    agentIdentity->agentIdentity
+    EntitySets: []
+--- nav props to agentUser:
+    agentUser->agentUser
+    EntitySets: []
+--- nav props to riskyAgent:
+    EntitySets: []
+--- nav props to agentRegistry:
+    EntitySets: []
+--- nav props to agentIdentityBlueprint:
+    EntitySets: []
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import re
+s=open('metadata.xml',encoding='utf-8',errors='ignore').read()
+# find the agentRegistry EntityType block and its navigation props
+m=re.search(r'<EntityType Name=\"agentRegistry\"[^>]*>(.*?)</EntityType>', s, re.S)
+if m:
+    body=m.group(1)
+    navs=re.findall(r'<NavigationProperty Name=\"([^\"]+)\" Type=\"[^\"]+\"', body)
+    ops=re.findall(r'<(Operation|Read|Update|Insert|Delete)Restrictions', body)
+    print('agentRegistry navs:', navs)
+    print('agentRegistry ops:', len(ops))
+# find what container references agentRegistry (copilotRoot etc.)
+for m in re.finditer(r'<NavigationProperty Name=\"([^\"]+)\" Type=\"graph.agentRegistry[^\"]*\"', s):
+    # print surrounding EntityType
+    pass
+print('--- occurrences of agentRegistry type in nav/entityset:', len(re.findall(r'graph.agentRegistry', s)))
+"
+agentRegistry navs: ['agentCardManifests', 'agentCollections', 'agentInstances']
+agentRegistry ops: 0
+--- occurrences of agentRegistry type in nav/entityset: 4
+[0m
+New entity types found in beta metadata (not in prior inventory). Let me locate their navigation properties / endpoints.
+[0m$ [0mfor ep in agentIdentities agentIdentityBlueprints agentUsers agentRiskDetections riskyAgents riskyAgentUsers agentRegistry; do
+  code=$(curl -s -m 15 -o /tmp/opencode/gb -D /tmp/opencode/gh "https://graph.microsoft.com/beta/copilot/$ep" -w "%{http_code}")
+  sz=$(stat -c%s /tmp/opencode/gb 2>/dev/null || echo 0)
+  echo "GET /beta/copilot/$ep -> $code size=$sz"
+done
+GET /beta/copilot/agentIdentities -> 401 size=237
+GET /beta/copilot/agentIdentityBlueprints -> 401 size=237
+GET /beta/copilot/agentUsers -> 401 size=237
+GET /beta/copilot/agentRiskDetections -> 401 size=237
+GET /beta/copilot/riskyAgents -> 401 size=237
+GET /beta/copilot/riskyAgentUsers -> 401 size=237
+GET /beta/copilot/agentRegistry -> 401 size=237
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import re
+s=open('metadata.xml',encoding='utf-8',errors='ignore').read()
+for t in ['agentRiskDetection','riskyAgent','riskyAgentUser','riskyAgentIdentity','agentIdentity','agentUser']:
+    fn=re.findall(r'<Function[^>]*>\s*<Parameter Name=\"([^\"]+)\"[^>]*Type=\"graph.'+t+r'\"', s)
+    fi=re.findall(r'<FunctionImport Name=\"([^\"]+)\"[^>]*', s)
+    # find EntityType containing nav to these
+    owners=set()
+    for m in re.finditer(r'<EntityType Name=\"([^\"]+)\"[^>]*>(.*?)</EntityType>', s, re.S):
+        for n in re.finditer(r'<NavigationProperty Name=\"([^\"]+)\" Type=\"graph\.'+t+r'\"', m.group(2)):
+            owners.add(f'{m.group(1)}.{n.group(1)}')
+    print(f'{t}: owners={sorted(owners)}')
+"
+agentRiskDetection: owners=[]
+riskyAgent: owners=[]
+riskyAgentUser: owners=[]
+riskyAgentIdentity: owners=[]
+agentIdentity: owners=['riskyAgentIdentity.agentIdentity']
+agentUser: owners=['riskyAgentUser.agentUser']
+[0m
+[0m$ [0mfor ep in agentIdentities agentRiskDetections riskyAgents; do
+  code=$(curl -s -m 15 -o /tmp/opencode/ob -D /tmp/opencode/oh -X OPTIONS "https://graph.microsoft.com/beta/copilot/$ep" -w "%{http_code}")
+  sz=$(stat -c%s /tmp/opencode/ob 2>/dev/null || echo 0)
+  aco=$(grep -i 'access-control-allow-origin' /tmp/opencode/oh 2>/dev/null | tr -d '\r')
+  echo "OPTIONS $ep -> $code size=$sz | ${aco:-no-ACO}"
+done
+for ep in agentIdentities agentRiskDetections riskyAgents; do
+  code=$(curl -s -m 15 -o /tmp/opencode/hb -D /tmp/opencode/hh -I "https://graph.microsoft.com/beta/copilot/$ep" -w "%{http_code}")
+  echo "HEAD $ep -> $code size=$(stat -c%s /tmp/opencode/hb 2>/dev/null || echo 0)"
+done
+OPTIONS agentIdentities -> 405 size=0 | no-ACO
+OPTIONS agentRiskDetections -> 405 size=0 | no-ACO
+OPTIONS riskyAgents -> 405 size=0 | no-ACO
+HEAD agentIdentities -> 405 size=379
+HEAD agentRiskDetections -> 405 size=379
+HEAD riskyAgents -> 405 size=379
+[0m
+HEAD differs on new endpoints (405 size=379 vs known 405/0). Let me compare headers precisely.
+[0m$ [0mfor ep in agentRegistrations agentRiskDetections riskyAgents agentIdentities; do
+  echo "=== HEAD /beta/copilot/$ep ==="
+  curl -s -m 15 -I "https://graph.microsoft.com/beta/copilot/$ep" | tr -d '\r' | grep -iE 'HTTP/|content-length|allow|www-authenticate'
+  echo "=== GET /beta/copilot/$ep (first 300 chars of body) ==="
+  curl -s -m 15 "https://graph.microsoft.com/beta/copilot/$ep" | head -c 300; echo
+done
+=== HEAD /beta/copilot/agentRegistrations ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== GET /beta/copilot/agentRegistrations (first 300 chars of body) ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-10T16:12:44","request-id":"0ebc4856-6bf4-44c9-a53c-a891413847ad","client-request-id":"0ebc4856-6bf4-44c9-a53c-a891413847ad"}}}
+=== HEAD /beta/copilot/agentRiskDetections ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== GET /beta/copilot/agentRiskDetections (first 300 chars of body) ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-10T16:12:44","request-id":"1e60edca-8651-4b68-843a-e7907b51d990","client-request-id":"1e60edca-8651-4b68-843a-e7907b51d990"}}}
+=== HEAD /beta/copilot/riskyAgents ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== GET /beta/copilot/riskyAgents (first 300 chars of body) ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-10T16:12:44","request-id":"48310b97-8353-48fe-a8c5-818a5b031a97","client-request-id":"48310b97-8353-48fe-a8c5-818a5b031a97"}}}
+=== HEAD /beta/copilot/agentIdentities ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== GET /beta/copilot/agentIdentities (first 300 chars of body) ===
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-10T16:12:45","request-id":"8b135c77-8b5e-42d8-b404-fece6aaf12ea","client-request-id":"8b135c77-8b5e-42d8-b404-fece6aaf12ea"}}}
+[0m
+All new endpoints: GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3 consistent), OPTIONS→405 (CORS closed globally). Let me RAG-check whether the new risk/identity entity types are documented/publicly-known.
+[0m◈ [0mParallel Web Search "Microsoft Graph "agentRiskDetection" OR "riskyAgent" OR "agentIdentityBlueprint" beta copilot"
+[0m
+[0m$ [0mfor p in "/beta/identityProtection/agentRiskDetections" "/beta/identityProtection/riskyAgents" "/beta/identityProtection/riskyAgentUsers" "/beta/identityProtection/riskyServicePrincipals" "/v1.0/identityProtection/agentRiskDetections"; do
+  code=$(curl -s -m 15 -o /tmp/opencode/gb -D /tmp/opencode/gh "https://graph.microsoft.com$p" -w "%{http_code}")
+  sz=$(stat -c%s /tmp/opencode/gb 2>/dev/null || echo 0)
+  ct=$(grep -i 'content-type' /tmp/opencode/gh 2>/dev/null | tr -d '\r' | cut -c1-60)
+  echo "GET $p -> $code size=$sz | $ct"
+done
+GET /beta/identityProtection/agentRiskDetections -> 401 size=237 | Content-Type: application/json
+GET /beta/identityProtection/riskyAgents -> 401 size=237 | Content-Type: application/json
+GET /beta/identityProtection/riskyAgentUsers -> 401 size=237 | Content-Type: application/json
+GET /beta/identityProtection/riskyServicePrincipals -> 401 size=237 | Content-Type: application/json
+GET /v1.0/identityProtection/agentRiskDetections -> 401 size=237 | Content-Type: application/json
+[0m
+Key RAG finding: the new entity types are documented + GA'd (May 2026), but the canonical paths differ — risk resources live under `/beta/identityProtection/`, and Agent Registry is retired. Let me probe the documented paths.
+[0m$ [0mfor p in "/beta/identityProtection/agentRiskDetections" "/beta/identityProtection/riskyAgents" "/v1.0/applications/microsoft.graph.agentIdentityBlueprint"; do
+  echo "=== HEAD $p ==="
+  curl -s -m 15 -I "https://graph.microsoft.com$p" | tr -d '\r' | grep -iE 'HTTP/|content-length|www-authenticate'
+done
+=== HEAD /beta/identityProtection/agentRiskDetections ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== HEAD /beta/identityProtection/riskyAgents ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+=== HEAD /v1.0/applications/microsoft.graph.agentIdentityBlueprint ===
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+[0m
+All documented paths confirmed live. I now have a complete picture. Final analysis:
+
+---
+
+**STEP 1 — DELTA**
+- [NEW] Agent Identity/Risk ecosystem (GA 2026-05-01) in beta metadata: `agentIdentity` (BaseType servicePrincipal, OpenType), `agentIdentityBlueprint` (BaseType application), `agentIdentityBlueprintPrincipal`, `agentUser` (BaseType user, OpenType), `agentRiskDetection` (21 props incl. `signInRequestId`, `signInCorrelationId`, `clientSessionId`, `signInClientDisplayName`, `riskEvidence`), `riskyAgent`/`riskyAgentIdentity`/`riskyAgentUser`/`riskyAgentIdentityBlueprintPrincipal` — ALL EntityTypes with ZERO OperationRestrictions (~16 types now vs 6 inventoried).
+- [NEW] Live + auth-gated (GET→401/237, HEAD→405/0, OPTIONS→405) at documented paths `/beta/identityProtection/{agentRiskDetections,riskyAgents,riskyAgentUsers,riskyServicePrincipals}` AND GA create paths `POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint`, `/v1.0/servicePrincipals/microsoft.graph.agentIdentity{,.agentIdentityBlueprintPrincipal}`.
+- [CHANGED] Graph API 405 anomaly (RFC 6750 §3) extends to `/beta/identityProtection/*` + v1.0 application-subtype paths — same HEAD→405/0, no WWW-Authenticate, GET→401.
+- [CHANGED] OPTIONS→405 confirmed GLOBAL across whole Agent Registry ecosystem (all 6 known + {id} path-shape + new `/beta/copilot/agentIdentities`, `agentRiskDetections`, `riskyAgents`) — CORS vector fully closed, not endpoint-specific.
+- [CONTEXT] Agent Registry is legacy: Entra "Agent Registry"/"Agent Collections" blades retired 2026-05-01, superseded by Agent Identity model; `/beta/copilot/agentRegistrations` API still live.
+
+**STEP 2 — PRIORITIZE**
+- [PRIO] `/beta/identityProtection/{agentRiskDetections,riskyAgents,...}` — score 6.55 | attack 6, business 8, tech 7, gate 2, cloud 8, fresh 9
+- [PRIO] GA `POST /v1.0/{applications|servicePrincipals}/microsoft.graph.agentIdentityBlueprint*` — score 6.20 | attack 5, business 8, tech 7, gate 2, cloud 8, fresh 8
+- [PRIO] `/beta/copilot/agentRegistrations{,/{id}}` (legacy registry) — score 5.20 | attack 6, business 6, tech 6, gate 2, cloud 7, fresh 3
+
+**STEP 3 — HYPOTHESES**
+- [HYP] Cross-principal read of agent sign-in/risk telemetry via identityProtection collections
+  class: IDOR
+  asset: graph.microsoft.com/beta/identityProtection/{agentRiskDetections,riskyAgents,riskyAgentUsers,riskyServicePrincipals}
+  confidence: 50
+  reasoning: entity types have zero OperationRestrictions; fields include signInRequestId/signInCorrelationId/riskEvidence; docs list delegated perms (AgentIdentity.*, IdentityRiskEvent) as the only enforcement layer; GET→401/237 auth-gated.
+  evidence_needed: unprivileged-but-authenticated principal reads another principal's agentRiskDetection record (200 vs 403).
+  verify_steps: AUTH_HELPED: principal B (no admin role, valid Bearer) `GET /beta/identityProtection/agentRiskDetections`, `GET .../riskyAgents` → record 200 (telemetry leak) vs 403; then targeted `GET {id}` for A's known record.
+  impact: cross-tenant/principal exposure of agent sign-in telemetry + risk posture; CVSS 5.5–7.5.
+  testability: AUTH_HELPED
+- [HYP] Unverified owners/sponsors binding on agentIdentityBlueprint/agentIdentity create → ownership-hijack
+  class: BUSLOGIC
+  asset: POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint (+ servicePrincipals subtypes)
+  confidence: 55
+  reasoning: docs show create body with client-supplied `owners@odata.bind`/`sponsors@odata.bind` to arbitrary `/users/{id}`; holders of AgentIdentity.Create/Blueprint.Create can bind any principal as owner/sponsor without their consent; metadata zero restrictions.
+  evidence_needed: B (holding create perm) binds A's user object as owner/sponsor; verify B/derived agent later holds owner-level rights over A's identity without A's action.
+  verify_steps: AUTH_HELPED: POST blueprint with `"owners@odata.bind":["/v1.0/users/<A>"]` → 201; then A's session shows ownership of B's blueprint (or B can modify A's managed object) → confirm no consent/verification hook.
+  impact: agent identity ownership/sponsorship takeover → credential delegation, supply-chain; CVSS 6.5–8.0.
+  testability: AUTH_HELPED
+- [HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (legacy registry)
+  class: IDOR
+  asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+  confidence: 80
+  reasoning: 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions; {id} path-shape 401/237 byte-identical (auth precedes ID lookup); CORS vector closed (OPTIONS→405 global) but API still live post-retirement.
+  evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+  verify_steps: AUTH_HELPED two-principal: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"]}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) persist check.
+  impact: cross-app agent tamper → impersonation/instruction-injection; CVSS 7.5–9.0.
+  testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+- [PARKED] (none dropped — all ≥40, no REJECTED-list classes, concrete verify steps; risk-telemetry hypothesis at 50 kept but downgraded because docs show explicit privileged-permission gate for those endpoints)
+- [FINAL]
+  1. [80] agentRegistrations cross-principal IDOR (legacy registry; CORS closed but schema zero-restrictions + auth-precedes-ID unchanged)
+  2. [65] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces (AUTH_HELPED, distinct from REJECTED rotation-desync)
+  3. [55] agentIdentityBlueprint owners/sponsors binding without consent (BUSLOGIC, AUTH_HELPED)
+  4. [50] identityProtection risk/sign-in telemetry cross-principal read (IDOR, AUTH_HELPED, weaker prior due to documented privileged-perm gate)
+
+**STEP 5 — NEXT ACTION**
+- [NEXT] AUTH_HELPED: Two-principal test in a test tenant. (1) Legacy registry: A `POST /beta/copilot/agentRegistrations` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection + `PATCH {A_id}` → 200 vs 403. (2) GA path: B `POST /v1.0/applications/microsoft.graph.agentIdentityBlueprint` with `owners@odata.bind`/`sponsors@odata.bind` = A's user id → 201, then verify A gains owner/sponsor relationship without consent. Log status codes + bodies only; B-200 on A's object → report MSRC.
+
+**STEP 6 — LEARNING**
+- [LEARN] ACCEPTED Agent Identity/Risk ecosystem documented + GA @ graph.microsoft.com: agentIdentityBlueprint GA'd v1.0 2026-05-01; agentRiskDetection doc 2026-07-23; all identityProtection + application-subtype paths live, auth-gated 401/237, HEAD→405/0 — Graph 405 RFC 6750 §3 anomaly now spans /v1.0, /beta/copilot/*, and /beta/identityProtection/*.
+- [LEARN] ACCEPTED Agent Registry is legacy @ graph.microsoft.com/beta/copilot/agentRegistrations: Entra Agent Registry/Collections blades retired 2026-05-01, superseded by Agent Identity model; API still live (401) — reframes existing IDOR hypothesis as legacy-surface.
+- [LEARN] ACCEPTED OPTIONS→405 CORS closure is ecosystem-global @ graph.microsoft.com/beta/copilot/*: all 6 known + {id} + new endpoints (agentIdentities, agentRiskDetections, riskyAgents) → 405/0, no Access-Control-Allow-Origin; mutation vector fully closed.
+- [LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged; new surface is additive, no prior class invalidated. NO_DELTA on established facts.
+
+**STEP 7 — RISK SCORE**
+- [RISK] google: 55 — earthengine valid native-app public client_secret (by-design per ADK #2128, VRP-worthiness capped) + tokeninfo oracle (no-reward); no new GCP surface this cycle.
+- [RISK] microsoft: 47 (was 45) — IDOR precondition breadth grew to ~16 zero-restriction EntityTypes across 3 sub-ecosystems (Registry/Identity/Risk) incl. sign-in telemetry, but offset by documented privileged-permission layer on GA paths, global CORS closure, and legacy deprecation of agentRegistrations.

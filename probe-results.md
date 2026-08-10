@@ -271,3 +271,11 @@ https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
 https://oauth2.googleapis.com/token` -> HTTP 404
 https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
 https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401
+
+## 2026-08-10 16:19:16 UTC
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://www.googleapis.com/auth/cloud-platform -> 200 len=14 type=text/html
+https://www.googleapis.com/drive/v3/files?fields=files(id,name -> HTTP 403
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401

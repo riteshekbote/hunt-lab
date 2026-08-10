@@ -2855,3 +2855,4 @@ testability: AUTH_HELPED
 [LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.
 [RISK] google: 55 — live valid native-app client_secret (invalid_grant) + public introspection oracle, but by-design public-client model and no-reward rules cap practical impact.
 [RISK] microsoft: 45 — zero-OperationRestrictions IDOR precondition live across 5 Agent Registry EntityTypes, but auth-gated, CORS mutation vector closed (OPTIONS→405), issuer-confusion pending AUTH_HELPED.
+## 2026-08-10 16:14:33 UTC [google] (model bigpickle)
