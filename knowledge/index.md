@@ -458,3 +458,8 @@
 - 2026-08-10 ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`, line 420 `dict(installed=…)`) — hardcoded secret is a public-client by-design pattern; per ADK #2128 precedent (closed by-design) VRP-worthiness capped despite invalid_grant validity proof.
 - 2026-08-10 REJECTED no new proving-dead classes this cycle — all fresh probes (14:04:46) + source sha unchanged, NO_DELTA.
 - 2026-08-10 CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector; core IDOR surface (metadata zero-restrictions, 5 EntityTypes, client-supplied createdBy/ownerIds) unchanged
+- 2026-08-10 ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oauth.py:45 is valid Google OAuth credential accepted by server (RFC 6749 §5.2 error-code distinction)
+- 2026-08-10 ACCEPTED: native-app client-type confirmed @ earthengine-api oauth.py — `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`) — hardcoded secret matches public-client by-design pattern; VRP-worthiness capped
+- 2026-08-10 CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchanged
+- 2026-08-10 ACCEPTED: www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk, no new surface
+- 2026-08-10 REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
