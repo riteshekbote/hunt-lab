@@ -1,100 +1,10 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
-# Triage Results - 2026-08-10 Scan Delta
+The user wants me to triage a static scan of public repos from google/ and microsoft/ GitHub orgs. I need to classify each hit from the scan results into categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-## REAL_SECRET Candidates
+Let me analyze the scan results:
 
-| File | Line | SHA256(secret) | Classification | REPORT_CANDIDATE |
-|------|------|----------------|----------------|------------------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | a1b2c3d4... (placeholder key) | TEST_OR_EXAMPLE | no |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | 5e884898... (password) | TEST_OR_EXAMPLE | no |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | f7a9b2c1... (fake JWT) | TEST_OR_EXAMPLE | no |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 5e884898... (password) | TEST_OR_EXAMPLE | no |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | placeholder | TEST_OR_EXAMPLE | no |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | 5e884898... (password) | TEST_OR_EXAMPLE | no |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | domain-registry | TEST_OR_EXAMPLE | no |
-| google/nomulus/core/src/main/java/google/registry/tools/PostgresqlCommand.java | 28 | domain-registry | TEST_OR_EXAMPLE | no |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | 40150cc2c638b09de8ebbfefd50b80a4 | REJECTED (Algolia search-only, public by design) | no |
+1. `reposcan-raw/google/go-github/github/github.go:1990: ClientSecret: "your app's client secret",` - This looks like a placeholder/example value "your app's client secret" - TEST_OR_EXAMPLE
 
-**VERDICT: No new REAL_SECRET findings this cycle.** The earthengine-api oauth.py:45 secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) was already ACCEPTED in prior cycles and remains live per KB. All other hits are test fixtures, placeholders, or proper secret references (`${{ secrets.* }}`).
-
----
-
-## ENDPOINT_LEAK Candidates
-
-| File | Line | Endpoint | Classification | Notes |
-|------|------|----------|----------------|-------|
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${i}/mtu | ENDPOINT_LEAK | Standard GCE metadata endpoint (public doc) |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | https://autopush-confidentialcomputing.sandbox.googleapis.com | ENDPOINT_LEAK | Sandbox autopush endpoint (confidential computing) |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | https://staging-confidentialcomputing.sandbox.googleapis.com | ENDPOINT_LEAK | Sandbox staging endpoint (confidential computing) |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | https://pantheon.corp.google.com/compute/images... | ENDPOINT_LEAK | Internal Google corp URL in comment |
-| google/nomulus/core/src/main/java/google/registry/util/MetricParameters.java | 61 | http://metadata.google.internal/ | ENDPOINT_LEAK | Standard GCE metadata endpoint |
-| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | https://staging-www.sandbox.googleapis.com | ENDPOINT_LEAK | Staging environment URL |
-| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | https://yaqs.corp.google.com/eng/q/4487223501186400256 | ENDPOINT_LEAK | Internal QA system URL in comment |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | ENDPOINT_LEAK | Cloud metadata IP (standard, documented) |
-
-**VERDICT: All endpoint leaks are known public/documented endpoints (GCE metadata, sandbox environments) or internal URLs in comments. No exploitable surface.**
-
----
-
-## INTERESTING Candidates
-
-| File | Line | Finding | Classification | Notes |
-|------|------|---------|----------------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | CODECOV_TOKEN from gcloud secrets | INTERESTING | Proper secret management pattern (runtime fetch) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | GitHub bot token from gcloud secrets | INTERESTING | Proper secret management pattern |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | GOOGLE_API_KEY interpolation | INTERESTING | Variable interpolation, likely user-supplied |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context params | INTERESTING | Config parameters, not secrets |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key placeholder | TEST_OR_EXAMPLE | Test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269,278 | Test HTTP credentials | TEST_OR_EXAMPLE | Test fixtures |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD constant | TEST_OR_EXAMPLE | Scheme constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret placeholder | TEST_OR_EXAMPLE | Example code |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN constant | INTERESTING | Internal state key name |
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37,40 | CSRF token header names | INTERESTING | Security constants |
-| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | ID_TOKEN constant | INTERESTING | Constant string |
-| google/digitalbuildings/tools/abel/model/constants.py | 106 | ACCESS_TOKEN constant | INTERESTING | Constant key name |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | KUBECONFIG env manipulation | INTERESTING | Config pattern |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs | TEST_OR_EXAMPLE | Proper secret usage |
-
-**VERDICT: No security findings. All are test fixtures, proper secret management patterns, or configuration constants.**
-
----
-
-## TEST_OR_EXAMPLE (Non-reportable)
-
-All remaining hits fall into this category:
-- Placeholder API keys (`YOUR_GEMINI_API_KEY_HERE`, `your_client_secret`)
-- Test passwords (`password`, `abcde12345`, `domain-registry`)
-- Fake JWT tokens (`eyAkaknabna....`)
-- GitHub Actions secret references (`${{ secrets.* }}`)
-- Commented-out placeholders (`# hf_access_token: "your_token"`)
-- Minified JS parse error chunks (browser build artifacts)
-
----
-
-## SUMMARY VERDICT
-
-| Category | Count | Reportable |
-|----------|-------|------------|
-| REAL_SECRET | 0 | **NO** |
-| ENDPOINT_LEAK | 8 | NO (all documented/public) |
-| INTERESTING | 14 | NO (config/constants/patterns) |
-| TEST_OR_EXAMPLE | 30+ | NO |
-
-**NO NEW REPORTABLE FINDINGS THIS CYCLE.**
-
-Previously ACCEPTED findings remain live per KB:
-- earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f...d271`) — valid credential per POST→invalid_grant proof
-- agentRegistration EntityType zero ownership restrictions (Graph API)
-- v1↔v2 JWKS kid overlap (login.microsoftonline.com)
-- tokeninfo public introspection oracle (oauth2.googleapis.com)
-- Graph API 405 anomaly (HEAD→405 no WWW-Authenticate)
-- v2.0 authorize HTTP 200 error rendering
-
-All REJECTED classes stay rejected. No new proving-dead classes.
-EOF
-cat /tmp/triage_results.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+2. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
