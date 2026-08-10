@@ -1,61 +1,153 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+[0m$ [0mcat << 'EOF'
+# CLASSIFICATION TABLES
 
-### REAL_SECRET
-| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
-|------|------|---------------|---------|------------------|
-| *none new this scan* | | | | |
+## REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| (none found in delta) | | | | |
 
-> Note: `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) is **already ACCEPTED+LIVE** per knowledge base — not a new finding.
+## TEST_OR_EXAMPLE (sample/test/fixture/placeholder)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | TEST_OR_EXAMPLE | Secret Manager reference at runtime, not hardcoded |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | TEST_OR_EXAMPLE | Secret Manager reference at runtime |
+| google/dagger/util/latest-dagger-version.sh | 9 | TEST_OR_EXAMPLE | Env var reference `${GH_TOKEN:-}` |
+| google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secrets references |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
+| google/tunix/tunix/cli/base_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
+| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | TEST_OR_EXAMPLE | Tokenizer special tokens (eot/system/user), not secrets |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE | Constant `PASSWORD = 'password'` (default/placeholder) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | TEST_OR_EXAMPLE | Example `password: "password"` in JSDoc |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | TEST_OR_EXAMPLE | Example `token: "your_access_token"` in JSDoc |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | TEST_OR_EXAMPLE | IP range `169.254.0.0/16` for metadata server |
+| google/xrblocks/src/ai/AI.ts | 303-304 | TEST_OR_EXAMPLE | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | TEST_OR_EXAMPLE | **KNOWN REJECTED** — Algolia DocSearch public search-only key |
+| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | TEST_OR_EXAMPLE | Internal Google cs.corp link reference |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Constant `GEMINI_API_KEY = "gemini_api_key"` (name placeholder) |
+| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions token references |
+| microsoft/vscode-gradle/.azure-pipelines/npm-cfs.yml | 58 | TEST_OR_EXAMPLE | npm registry URL construction |
+| microsoft/vscode-gradle/.azure-pipelines/cfs-variables.yml | 29 | TEST_OR_EXAMPLE | Maven registry URL |
+| microsoft/vscode-gradle/.azure-pipelines/npm-cfs-variables.yml | 26 | TEST_OR_EXAMPLE | npm registry URL |
+| microsoft/tui-test/install/install.sh | 41 | TEST_OR_EXAMPLE | Env var reference `${GITHUB_TOKEN:-${GH_TOKEN:-}}` |
+| microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | TEST_OR_EXAMPLE | Commented example `// client_secret: "abc123..."` |
+| microsoft/power-platform-skills/evals/power-pages/test-site/evals.json | 88,92 | TEST_OR_EXAMPLE | Test site URL for eval |
+| microsoft/qlib/.github/workflows/release.yml | 63,107 | TEST_OR_EXAMPLE | Standard CI twine upload to test.pypi.org |
+| microsoft/AntiSSRF/** (multiple files) | various | TEST_OR_EXAMPLE | IMDS IP `169.254.169.254/32` + Azure KV test URLs — defensive config |
+| microsoft/vcpkg-tool/** (multiple files) | various | TEST_OR_EXAMPLE | Azure DevOps public package feed URLs |
+| microsoft/vcpkg-tool/include/vcpkg/base/contractual-constants.h | 522 | TEST_OR_EXAMPLE | Constant for env var name `GITHUB_TOKEN` |
+| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | TEST_OR_EXAMPLE | Devcontainer default `SA_PASSWORD` fallback (dev-only) |
+| microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | TEST_OR_EXAMPLE | Env var reference `SQLCMD_PASSWORD="${SQLPASSWORD}"` |
+| microsoft/go-mssqldb/azuread/configuration.go | 26,34 | TEST_OR_EXAMPLE | Auth type string constants |
+| microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | TEST_OR_EXAMPLE | Connection string param names |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| microsoft/vcpkg-tool/azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
+| microsoft/vscode-gradle/.azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
+| microsoft/AntiSSRF/.../InAzureKeyVaultDomainTests.cs | 59,66 | ENDPOINT_LEAK | Test URLs `corp.vault.azuree.net`, `corp.managedhsm.azure.cnn` (typo `.cnn`) |
+
+## INTERESTING (unusual configs, debug flags, cloud configs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | INTERESTING | KUBECONFIG assignment from config — runtime k8s config |
+| microsoft/AntiSSRF/config/IPAddressRanges.json | 161,436 | INTERESTING | IMDS CIDR `169.254.169.254/32` explicitly denied — SSRF defense |
+| microsoft/AntiSSRF/dotnet/src/IPAddressRanges.cs | 23 | INTERESTING | IMDS CIDR in C# source — SSRF defense |
+| microsoft/AntiSSRF/nodejs/src/IPAddressRanges.ts | 20 | INTERESTING | IMDS CIDR in TS source — SSRF defense |
+| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | INTERESTING | Hardcoded dev DB password `MssqlDriver@2025!` — devcontainer only |
 
 ---
 
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant name, not a value |
-| adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example/fixture in JSDoc |
-| adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder in JSDoc |
-| xrblocks/src/ai/AI.ts | 303 | `YOUR_GEMINI_API_KEY_HERE` | Explicit placeholder |
-| xrblocks/src/ai/AI.ts | 304 | `YOUR_OPENAI_API_KEY_HERE` | Explicit placeholder |
-| xrblocks/docs/docusaurus.config.ts | 175 | `40150cc2c638b09de8ebbfefd50b80a4` | **KNOWN REJECTED** — Algolia DocSearch search-only key (public by design) |
-| agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant identifier, not secret material |
-| agents-cli/.../staging.yaml | 168 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions templated variable |
-| agents-cli/.../staging.yaml | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions templated variable |
-| adk-go/cmd/launcher/web/webui/distr/chunk-*.js | various | Parser error strings | Minified/bundled JS — not secrets |
-| adk-python/src/google/adk/cli/browser/chunk-*.js | various | Parser error strings | Minified/bundled JS — not secrets |
+# VERDICT LIST
+
+**REPORT_CANDIDATE: no** — No hardcoded live secrets found in this delta. All hits are:
+- Secret references (GitHub Actions `${{ secrets.X }}`, gcloud Secret Manager)
+- Environment variable fallbacks
+- Placeholders (`YOUR_XXX_KEY_HERE`, `"password"`, `"your_token"`)
+- Test/fixture data
+- Public package feed URLs
+- Defensive SSRF configurations (IMDS CIDR deny-lists)
+- Devcontainer-only defaults
+- Previously rejected Algolia DocSearch key (public by design)
+
+**Action**: No VRP submissions from this scan delta. Continue monitoring.
+EOF
+# CLASSIFICATION TABLES
+
+## REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| (none found in delta) | | | | |
+
+## TEST_OR_EXAMPLE (sample/test/fixture/placeholder)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | TEST_OR_EXAMPLE | Secret Manager reference at runtime, not hardcoded |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | TEST_OR_EXAMPLE | Secret Manager reference at runtime |
+| google/dagger/util/latest-dagger-version.sh | 9 | TEST_OR_EXAMPLE | Env var reference `${GH_TOKEN:-}` |
+| google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secrets references |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
+| google/tunix/tunix/cli/base_config.yaml | 63 | TEST_OR_EXAMPLE | Commented placeholder `# hf_access_token: "your_token"` |
+| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | TEST_OR_EXAMPLE | Tokenizer special tokens (eot/system/user), not secrets |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE | Constant `PASSWORD = 'password'` (default/placeholder) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | TEST_OR_EXAMPLE | Example `password: "password"` in JSDoc |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | TEST_OR_EXAMPLE | Example `token: "your_access_token"` in JSDoc |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | TEST_OR_EXAMPLE | IP range `169.254.0.0/16` for metadata server |
+| google/xrblocks/src/ai/AI.ts | 303-304 | TEST_OR_EXAMPLE | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | TEST_OR_EXAMPLE | **KNOWN REJECTED** — Algolia DocSearch public search-only key |
+| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | TEST_OR_EXAMPLE | Internal Google cs.corp link reference |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Constant `GEMINI_API_KEY = "gemini_api_key"` (name placeholder) |
+| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions token references |
+| microsoft/vscode-gradle/.azure-pipelines/npm-cfs.yml | 58 | TEST_OR_EXAMPLE | npm registry URL construction |
+| microsoft/vscode-gradle/.azure-pipelines/cfs-variables.yml | 29 | TEST_OR_EXAMPLE | Maven registry URL |
+| microsoft/vscode-gradle/.azure-pipelines/npm-cfs-variables.yml | 26 | TEST_OR_EXAMPLE | npm registry URL |
+| microsoft/tui-test/install/install.sh | 41 | TEST_OR_EXAMPLE | Env var reference `${GITHUB_TOKEN:-${GH_TOKEN:-}}` |
+| microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | TEST_OR_EXAMPLE | Commented example `// client_secret: "abc123..."` |
+| microsoft/power-platform-skills/evals/power-pages/test-site/evals.json | 88,92 | TEST_OR_EXAMPLE | Test site URL for eval |
+| microsoft/qlib/.github/workflows/release.yml | 63,107 | TEST_OR_EXAMPLE | Standard CI twine upload to test.pypi.org |
+| microsoft/AntiSSRF/** (multiple files) | various | TEST_OR_EXAMPLE | IMDS IP `169.254.169.254/32` + Azure KV test URLs — defensive config |
+| microsoft/vcpkg-tool/** (multiple files) | various | TEST_OR_EXAMPLE | Azure DevOps public package feed URLs |
+| microsoft/vcpkg-tool/include/vcpkg/base/contractual-constants.h | 522 | TEST_OR_EXAMPLE | Constant for env var name `GITHUB_TOKEN` |
+| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | TEST_OR_EXAMPLE | Devcontainer default `SA_PASSWORD` fallback (dev-only) |
+| microsoft/go-mssqldb/.devcontainer/post-create.sh | 55 | TEST_OR_EXAMPLE | Env var reference `SQLCMD_PASSWORD="${SQLPASSWORD}"` |
+| microsoft/go-mssqldb/azuread/configuration.go | 26,34 | TEST_OR_EXAMPLE | Auth type string constants |
+| microsoft/go-mssqldb/msdsn/conn_str.go | 63-64 | TEST_OR_EXAMPLE | Connection string param names |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| microsoft/vcpkg-tool/azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
+| microsoft/vscode-gradle/.azure-pipelines/*.yml | various | ENDPOINT_LEAK | Azure DevOps package feeds (public endpoints) |
+| microsoft/AntiSSRF/.../InAzureKeyVaultDomainTests.cs | 59,66 | ENDPOINT_LEAK | Test URLs `corp.vault.azuree.net`, `corp.managedhsm.azure.cnn` (typo `.cnn`) |
+
+## INTERESTING (unusual configs, debug flags, cloud configs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | INTERESTING | KUBECONFIG assignment from config — runtime k8s config |
+| microsoft/AntiSSRF/config/IPAddressRanges.json | 161,436 | INTERESTING | IMDS CIDR `169.254.169.254/32` explicitly denied — SSRF defense |
+| microsoft/AntiSSRF/dotnet/src/IPAddressRanges.cs | 23 | INTERESTING | IMDS CIDR in C# source — SSRF defense |
+| microsoft/AntiSSRF/nodejs/src/IPAddressRanges.ts | 20 | INTERESTING | IMDS CIDR in TS source — SSRF defense |
+| microsoft/go-mssqldb/.devcontainer/docker-compose.yml | 23-24 | INTERESTING | Hardcoded dev DB password `MssqlDriver@2025!` — devcontainer only |
 
 ---
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal Google source browser (corp-only) |
-| go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/compute/images...` | Internal Google Cloud Console (corp-only) |
-| go-tpm-tools/launcher/spec/launch_spec.go | 108 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` | Sandbox/autopush environment |
-| go-tpm-tools/launcher/spec/launch_spec.go | 109 | `https://staging-confidentialcomputing.sandbox.googleapis.com` | Staging environment |
+# VERDICT LIST
 
----
+**REPORT_CANDIDATE: no** — No hardcoded live secrets found in this delta. All hits are:
+- Secret references (GitHub Actions `${{ secrets.X }}`, gcloud Secret Manager)
+- Environment variable fallbacks
+- Placeholders (`YOUR_XXX_KEY_HERE`, `"password"`, `"your_token"`)
+- Test/fixture data
+- Public package feed URLs
+- Defensive SSRF configurations (IMDS CIDR deny-lists)
+- Devcontainer-only defaults
+- Previously rejected Algolia DocSearch key (public by design)
 
-### INTERESTING
-| File | Line | Finding | Significance |
-|------|------|---------|--------------|
-| adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | GCP metadata endpoint detection logic |
-| adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` + comment ref `169.254.169.254` | Link-local / GCP metadata IP range blocklist |
-| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret injection pattern (ref, not value) |
-| go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `curl ... http://metadata.google.internal/computeMetadata/...` | GCP metadata server access from guest |
-| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params | K8s auth surface for code execution |
-| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` warnings | SSRF risk surface documented in code |
-| adk-python/src/google/adk/cli/cli_create.py | 123 | `f"GOOGLE_API_KEY={google_api_key}"` | API key interpolation into generated config |
-
----
-
-## Verdict List
-
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| *(no new real secrets this scan)* | | | | **no** |
-
-**Summary**: 0 new `REAL_SECRET` findings. All hits are `TEST_OR_EXAMPLE` (14), `ENDPOINT_LEAK` (4), or `INTERESTING` (8). The only live credential in scope remains the previously-accepted `earthengine-api` OAuth client_secret (already tracked).
+**Action**: No VRP submissions from this scan delta. Continue monitoring.
+[0m
+**Classification complete.** No `REAL_SECRET` candidates in this delta — all 46 new hits are secret references, placeholders, test fixtures, public endpoints, or defensive configs. The Algolia key at `google/xrblocks/docs/docusaurus.config.ts:175` is already in the REJECTED list (public search-only key by design).
