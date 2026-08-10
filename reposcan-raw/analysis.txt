@@ -1,3 +1,188 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -140 | tail -30
+dotenv_file_path = os.path.join(agent_folder, ".env")
+  init_file_path = os.path.join(agent_folder, "__init__.py")
+  agent_py_file_path = os.path.join(agent_folder, "agent.py")
+  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+
+  with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+      f.write(_AGENT_CONFIG_TEMPLATE.format(model_name=model))
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write("")
+    click.secho(
+        _SUCCESS_MSG_CONFIG.format(agent_folder=agent_folder),
+        fg="green",
+    )
+  else:
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | sed -n '240,255p'
+func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
+	return util.LogStartStop("Deploying to Cloud Run",
+		func(p util.Printer) error {
+			params := []string{
+				"run", "deploy", f.cloudRun.serviceName,
+				"--source", ".",
+				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+				"--region", f.gcloud.region,
+				"--project", f.gcloud.projectName,
+				"--ingress", "all",
+				"--no-allow-unauthenticated",
+			}
+
+			cmd := exec.Command("gcloud", params...)
+
+			cmd.Dir = f.build.tempDir
+[0m
+[0m$ [0mcat reposcan-raw/google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | sed -n '65,75p'
+local network_mtu
+          # Only query the GCE metadata server for the MTU if it's a debug image,
+          # otherwise hard code to 8896.
+          if grep -q "confidential-space.hardened=false" /proc/cmdline; then
+            echo "Querying GCE metadata for MTU of NIC ${interface_name} (index ${i})..." > /dev/console
+            network_mtu=$(curl -s -f -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${i}/mtu" || echo "")
+          else
+            network_mtu="8896"
+          fi
+
+          if [[ -n "${network_mtu}" ]]; then
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | sed -n '210,220p'
+const host = normaliseHostname(url.hostname.toLowerCase());
+
+    // Block localhost, cloud metadata, and common private IP ranges
+    if (
+      host === 'localhost' ||
+      host === 'metadata.google.internal' ||
+      host === 'metadata.goog' ||
+      host.startsWith('127.') ||
+      host === '[::1]' ||
+      host === '[::]' ||
+      host === '0.0.0.0' ||
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts | sed -n '30,45p'
+*/
+const BLOCKED_IPV4_CIDRS = [
+  '0.0.0.0/8', // "this host on this network"
+  '10.0.0.0/8', // private
+  '100.64.0.0/10', // shared address space / CGNAT
+  '127.0.0.0/8', // loopback
+  '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)
+  '172.16.0.0/12', // private
+  '192.0.0.0/24', // IETF protocol assignments
+  '192.0.2.0/24', // TEST-NET-1 (documentation)
+  '192.88.99.0/24', // 6to4 relay anycast (deprecated)
+  '192.168.0.0/16', // private
+  '198.18.0.0/15', // benchmarking
+  '198.51.100.0/24', // TEST-NET-2 (documentation)
+  '203.0.113.0/24', // TEST-NET-3 (documentation)
+  '224.0.0.0/4', // multicast
+[0m
+Now I have enough context to classify all hits. Let me create the classification tables.
+
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| *(none found in this delta)* | | | | |
+
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Literal `'password'` constant |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | Example in JSDoc: `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | Example in JSDoc: `token: "your_access_token"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example: `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example: `token="eyAkaknabna...."` (placeholder JWT) |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | all | Minified build artifacts (parse error messages) |
+| google/adk-python/src/google/adk/cli/browser/*.js | all | Minified build artifacts (parse error messages) |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 108 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` | Internal/staging API |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 109 | `https://staging-confidentialcomputing.sandbox.googleapis.com` | Internal/staging API |
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/...` | Internal console URL (comment) |
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `http://metadata.google.internal/computeMetadata/v1/...` | GCE metadata endpoint |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal`, `metadata.goog` | Metadata hostnames (blocklist) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (includes `169.254.169.254`) | Metadata CIDR (blocklist) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Metadata endpoint (comments) |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret mount pattern (references Secret Manager, not hardcoded) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` — Secret Manager access pattern |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` — Secret Manager access pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params — GKE auth configuration surface |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` written to `.env` — CLI writes user-supplied key to dotenv (not hardcoded) |
+
+---
+
+## SHORT VERDICT
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api `oauth.py:45` (pre-existing) | **yes** | Already in KB as ACCEPTED: hardcoded `client_secret` sha256 `3f3f8d6f…d271`, valid credential (POST→`invalid_grant`), native-app `installed` type with OOB redirect — VRP-worthiness capped per ADK #2128 precedent |
+| All new delta hits | **no** | No REAL_SECRET found; all hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal/staging URLs, metadata refs), or INTERESTING (config patterns, secret-manager access patterns) |
+
+**NO_DELTA** on reportable secrets this scan cycle.
