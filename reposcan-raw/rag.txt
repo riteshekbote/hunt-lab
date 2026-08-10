@@ -476,6 +476,18 @@
 - 2026-08-10 ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard.
 - 2026-08-10 ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
 - 2026-08-10 ACCEPTED: Copilot Studio D2E S2S API @ `/`
+- 2026-08-10 ACCEPTED: Copilot Studio D2E S2S API @ `/` conversation-ID NOT validated server-side.
+- 2026-08-10 ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential (RFC 6749 §5.2).
+- 2026-08-10 CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector.
+- 2026-08-10 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions.
+- 2026-08-10 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4) ⊂ v2(8), strict subset with 0 v1-exclusive confirmed @ 18:04 UTC (kids re-verified: `6hXLaIYNSJ0o…`, `AahUf1bC…`, `fEtqrhKT…`, `jvm_-Ttaq…` all in v2 set) — rotation churn (aFkmKVFc v1-exclusive transient since 2026-08-07) resolved; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; class stays dead.
+- 2026-08-10 REJECTED no new proving-dead classes this cycle — all fresh probes (18:04 UTC) confirmed prior ACCEPTED findings unchanged; v2 JWKS +3 kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr) added but subset invariant intact; agentRegistrations OPTIONS→405 sustained (CORS vector closed); cloud-platform scope echo 404-flaky confirmed non-surface.
+- 2026-08-10 ACCEPTED graph.microsoft.com root → HTTP 200 text/html (signin page) — confirms root-level reachability but no auth-bypass surface; consistent across all cycles.
+- 2026-08-10 ACCEPTED www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk: Drive REST API returns 403 when neither API key nor OAuth token present; no new surface, not exploitable.
+- 2026-08-10 ACCEPTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- 2026-08-10 ACCEPTED: Hardcoded Earth Engine OAuth client_secret @ oauth.py:45 confirmed live — secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant (not invalid_client) proves credential validity
+- 2026-08-10 ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions across 5 EntityTypes
+- 2026-08-10 ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 

@@ -1,61 +1,74 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* | | | |
+## REAL_SECRET
+| File | Line | SHA256(secret) | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| (none) | - | - | - |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Note |
-|------|------|------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default flag value `"storage_driver_password"` |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` ref |
-| google/osdfir-infrastructure/.github/workflows/release.yml | 38 | `${{secrets.GITHUB_TOKEN}}` ref |
-| google/osdfir-infrastructure/charts/.../grr-client/config/grr.yaml | 1 | Placeholder `"EXE_SIGN_PRIVATE_KEY"` |
-| google/osdfir-infrastructure/charts/.../grr/values.yaml | 90,143 | Default passwords `"fleetspeak-password"`, `"grr-password"` |
-| google/osdfir-infrastructure/charts/.../*.yaml | various | `kind: ConfigMap` (boilerplate) |
-| google/osdfir-infrastructure/extras/gcp/tf/main.tf | 447,454 | Terraform default passwords |
-| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `${{secrets.GITHUB_TOKEN}}` ref |
-| google/xrblocks/src/ai/AI.ts | 303,304 | Placeholder `'YOUR_*_API_KEY_HERE'` |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key (public by design, REJECTED in KB) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 126,238,247 | Example private_key, HttpCredentials placeholders |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant name `_STATE_KEY_ACCESS_TOKEN` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{secrets.*}}` refs |
+## TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/xrblocks/src/ai/AI.ts | 303 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}` — placeholder |
+| reposcan-raw/google/xrblocks/src/ai/AI.ts | 304 | `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` — placeholder |
+| reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — Algolia DocSearch key, **REJECTED per KB** (search-only, public by design) |
+| reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` — Terraform variable reference, not hardcoded |
+| reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — default constant name, not a secret |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 126 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder/fixture in test code |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 238 | `credentials=HttpCredentials(username="user", password="password")` — fixture |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 247 | `credentials=HttpCredentials(token="eyAkaknabna....")` — truncated fixture token |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — constant name |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key constant |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — GitHub Actions secret reference (correct pattern) |
+| reposcan-raw/google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` — commented placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 123 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes user-provided key, not hardcoded |
 
-#### ENDPOINT_LEAK
+## ENDPOINT_LEAK (Internal/Dev URLs)
 | File | Line | Endpoint |
 |------|------|----------|
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `metadata.google.internal/computeMetadata/v1/...` |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 108-109 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | `pantheon.corp.google.com` (comment) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (cloud metadata) |
+| reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20 | `http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket` — GCP metadata service (standard) |
+| reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 24 | `http://metadata.google.internal/computeMetadata/v1/instance/attributes/host-job-selection` — GCP metadata service |
+| reposcan-raw/google/clusterfuzz/docker/base/setup_common.sh | 28 | `http://metadata.google.internal/computeMetadata/v1/instance/hostname` — GCP metadata service |
+| reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18 | `ip addr add 169.254.169.254/32 dev lo` — mock metadata IP (test infra) |
+| reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh | 20 | `echo "127.0.0.1 metadata metadata.google.internal" >> /etc/hosts` — test mock |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `https://cs.corp.google.com/` — internal source browsing (known) |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 126 | `https://cs.corp.google.com/` — internal source browsing |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 131 | `https://source.corp.google.com/h/googleplex-android/` — internal source |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `https://source.corp.google.com/file:google3/` — internal source URL rewrite |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | `https://buganizer.corp.google.com/issues/334956516` — internal bug tracker |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | `https://b.corp.google.com/issues/328691756` — internal bug tracker |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | `https://b.corp.google.com/issues/328691756` — internal bug tracker |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | `https://b.corp.google.com/issues/328691756` — internal bug tracker |
+| reposcan-raw/google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `http://metadata.google.internal/computeMetadata/v1/` — GCP metadata service |
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | `https://firebase.corp.google.com/project/$project_id/database/firestore/indexes` — internal Firebase console |
+| reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh | 55 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` — GCP metadata token endpoint |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments referencing `169.254.169.254` — cloud metadata endpoint (standard) |
 
-#### INTERESTING
+## INTERESTING
 | File | Line | Note |
 |------|------|------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Config flag for storage driver password (runtime-supplied) |
-| google/osdfir-infrastructure/charts/.../server-local-secret.yaml | 51 | File-reference pattern `%(/path|file)` for private key |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Dynamic `GOOGLE_API_KEY=` injection from variable |
+| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | Comment: "In e2e tests, the kubeconfig is already loaded by the test setup" — test infra detail |
+| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` — code emitter outputting secret key assignment (compiler/codegen, not a stored secret) |
 
 ---
 
-### SHORT VERDICT LIST
+## VERDICT
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (from KB) | **yes** | Confirmed live hardcoded OAuth client_secret (sha256 `3f3f8d6f…d271`), valid credential per token endpoint test (invalid_grant not invalid_client), but native-app public-client pattern caps VRP worthiness |
-| agentRegistration IDOR (Graph beta) | **yes** | Schema-level zero OperationRestrictions across 5 EntityTypes, client-supplied createdBy/ownerIds, auth-gated but HEAD→405 no WWW-Authenticate (RFC 6750 §3) |
-| v1↔v2 JWKS kid overlap (AAD) | **conditional** | Steady-state subset intact (v1⊂v2), dual issuers live; issuer-confusion precondition valid but needs AUTH_HELPED two-principal test |
-| Graph API 405 anomaly | **no** | RFC 6750 §3 violation confirmed (HEAD→405 no Bearer), but no direct exploit path without IDOR |
-| tokeninfo public introspection oracle | **no** | Confirmed live but Google VRP lists as no-reward |
-| v2.0 authorize HTTP 200 error rendering | **no** | RFC 6749 §3 violation confirmed, no token leak path |
-| All delta hits above | **no** | All TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — no live credentials |
+**REPORT_CANDIDATE: NO** for all findings.
 
-**Priority for AUTH_HELPED testing:**
-1. agentRegistration IDOR (two-principal test-tenant PATCH/GET on `/beta/copilot/agentRegistrations/{id}`)
-2. v1↔v2 issuer-confusion (cross-validate v1-signed token against v2 JWKS)
+**Summary:**
+- **0 REAL_SECRET** findings — no live hardcoded credentials detected
+- Algolia DocSearch key in xrblocks explicitly **REJECTED** per KB (public by design)
+- All auth_credential.py entries are test fixtures/placeholders
+- All internal URLs (metadata.google.internal, cs.corp.google.com, source.corp.google.com, firebase.corp.google.com, buganizer.corp.google.com) are well-known Google internal infrastructure — not sensitive leaks
+- GitHub Actions workflows correctly use `${{ secrets.* }}` references
+- Terraform variable reference for DB password is proper IaC pattern
+- Mock metadata setup in clusterfuzz is test infrastructure code
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
