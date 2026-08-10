@@ -1,8 +1,271 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze these scan results carefully. I need to classify each hit and identify real secrets vs test/example data.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ | head -30
+Accessibility-Test-Framework-for-Android
+EarlGrey
+GoogleSignIn-iOS
+OpenSK
+XNNPACK
+Xee
+acai
+accompanist
+adk-docs
+adk-go
+adk-java
+adk-js
+adk-kotlin
+adk-python
+adk-python-community
+adk-web
+agents-cli
+android-cuttlefish
+android-emulator-container-scripts
+anonymous-tokens
+arb-editor
+arolla
+atheris
+aukera
+auto
+ax
+badwolf
+benchmark
+bloaty
+brax
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ | grep -i earth
+earthengine-api
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/earthengine-api/python/ee/oauth.py | head -110
+"""Earth Engine OAuth2 helper functions for generating client tokens.
 
-First, let me look at the hits:
+Typical use-case consists of:
+1. Calling 'get_authorization_url'
+2. Using a browser to access the output URL and copy the generated OAuth2 code
+3. Calling 'request_token' to request a token using that code and the OAuth API
+4. Calling 'write_private_json' to save the token at the path given by
+   'get_credentials_path'
+"""
 
-1. `google/adk-go/cmd/adkgo/internal/deploy
+import base64
+from collections.abc import Sequence
+import errno
+import hashlib
+import http.server
+import json
+import os
+import shutil
+import subprocess
+import sys
+from typing import Any
+import urllib.error
+import urllib.parse
+import urllib.request
+import webbrowser
+
+import google.auth
+from google.auth import _cloud_sdk
+import google.auth.transport.requests
+from google.oauth2 import credentials as credentials_lib
+
+from ee import data as ee_data
+from ee import ee_exception
+
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+
+# Command to execute in gcloud mode
+GCLOUD_COMMAND = 'gcloud auth application-default login'
+
+DEFAULT_LOCAL_PORT = 8085
+WAITING_CODA = 'Waiting for successful authorization from web browser ...'
+PASTE_CODA = ('The authorization workflow will generate a code, which you'
+              ' should paste in the box below.')
+
+# Command-line browsers cannot handle the auth pages.
+TEXT_BROWSERS = ['elinks', 'links', 'lynx', 'w3m', 'www-browser']
+# Environment variables indicating valid compositors on Linux.
+DISPLAY_VARIABLES = ['DISPLAY', 'WAYLAND_DISPLAY', 'MIR_SOCKET']
+# Projects owned by Google SDKs, which do not have the EE API enabled.
+SDK_PROJECTS = [
+    '764086051850',
+    '618104708054',
+    '32555940559',
+    '522309567947',
+    '1014160490159',
+    '1057398310658',
+]
+
+
+def get_credentials_path() -> str:
+  cred_path = os.path.expanduser(
+      '~/.config/earthengine/credentials',
+  )
+  return cred_path
+
+
+def get_credentials_arguments() -> dict[str, Any]:
+  with open(get_credentials_path()) as creds:
+    stored = json.load(creds)
+    args = {}
+    args['token_uri'] = TOKEN_URI  # Not overridable in file
+    args['refresh_token'] = stored.get('refresh_token')
+    args['client_id'] = stored.get('client_id', CLIENT_ID)
+    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+    args['scopes'] = stored.get('scopes', SCOPES)
+    args['quota_project_id'] = stored.get('project')
+    return args
+
+
+def is_sdk_credentials(credentials: Any | None) -> bool:
+  return is_sdk_project(project_number_from_credentials(credentials))  # pyrefly: ignore[bad-argument-type]
+
+
+def project_number_from_credentials(
+    credentials: Any | None,
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json
+{
+  "project_info": {
+    "project_number": "334087903719",
+    "project_id": "local",
+    "storage_bucket": "local.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
+        "android_client_info": {
+          "package_name": "org.groundplatform.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "local.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "private_key\|CLIENT_SECRET\|password\|token" reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -20
+40:  """Represents the secret token value for HTTP authentication, like user name, password, oauth token, etc."""
+43:  password: str | None = None
+44:  token: str | None = None
+50:        password=data.get("password"),
+51:        token=data.get("token"),
+84:  access_token: str | None = None
+85:  refresh_token: str | None = None
+86:  id_token: str | None = None
+93:  token_endpoint_auth_method: (
+98:          "private_key_jwt",
+110:    private_key_id: The ID of the private key.
+111:    private_key: The private key.
+115:    token_uri: The token URI.
+125:          private_key_id="your_private_key_id",
+126:          private_key="-----BEGIN PRIVATE KEY-----...",
+130:          token_uri="https://oauth2.googleapis.com/token",
+144:  private_key_id: str
+145:  private_key: str
+149:  token_uri: str
+163:    use_id_token: Whether to exchange for an ID token instead of an access
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "set-secrets" reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+246:				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "RUP0RZ6e0pPhDzsqIJ7KlNd1"
+036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && printf "RUP0RZ6e0pPhDzsqIJ7KlNd1" | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && printf "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | sha256sum
+4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
+[0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth `CLIENT_SECRET`, used as fallback at line 99, scopes: `cloud-platform` `drive` `devstorage.full_control`, OOB redirect. **Confirmed live in KB.** |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 126 | Placeholder `-----BEGIN PRIVATE KEY-----...` in example |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 238 | Test fixture `username="user", password="password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 247 | Placeholder token `eyAkaknabna....` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant `_STATE_KEY_ACCESS_TOKEN` |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Parameter defaults `kubeconfig_path: str \| None = None` |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Constant name `GEMINI_API_KEY = "gemini_api_key"` (placeholder value) |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168,192 | GitHub Actions `${{ secrets.* }}` references |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions `${{ secrets.* }}` references |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | (many) | Minified build artifacts (parse error messages) |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | (many) | Minified build artifacts (parse error messages) |
+
+#### ENDPOINT_LEAK
+| File | Line | Leak |
+|------|------|------|
+| `google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py` | 22 | Internal metadata URL `http://metadata.google.internal/computeMetadata/v1` |
+| `google/horologist/datalayer/core/src/main/java/com/google/android/horologist/data/store/prefs/PreferencesSerializer.kt` | 43 | Internal issue tracker `https://b.corp.google.com/issues/241749603` |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| `google/ground-android/app/src/debug/local/google-services.json` | 23 | Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` (sha256 `4f813105...`) — debug/local config, **Firebase keys are public by design** per KB |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` secret reference pattern (not a hardcoded secret) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | References to cloud metadata endpoint `169.254.169.254` in comments/docs |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Code pattern writing `GOOGLE_API_KEY={google_api_key}` to file (variable, not hardcoded) |
+
+---
+
+### SHORT VERDICT
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `earthengine-api/python/ee/oauth.py:45` | **yes** | Live hardcoded OAuth client_secret with cloud-platform scope; confirmed in KB as ACCEPTED; token endpoint returns `invalid_grant` (not `invalid_client`) proving valid credential |
+| `ground-android/.../google-services.json:23` | no | Firebase API key in debug config; public by design per KB |
+| `adk-go/.../cloudrun.go:246` | no | Secret Manager reference pattern, not a secret |
+| All TEST_OR_EXAMPLE | no | Fixtures, placeholders, build artifacts |
+| All ENDPOINT_LEAK | no | Internal URLs, no credential material |
+| All other INTERESTING | no | Config patterns, documentation references |
+
+**Only the Earth Engine OAuth client_secret is a reportable finding** — already tracked in KB as ACCEPTED (2026-08-07 through 2026-08-10). No new REAL_SECRET candidates in this delta.
