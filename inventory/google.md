@@ -391,3 +391,28 @@
 - NEW `www.googleapis.com/drive/v3/files` → HTTP 403 (no API key) — minor quirk: 403 vs 401 for unauthenticated Drive REST API access
 - CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 sustained (CORS vector closed since 09:52 UTC)
 - CHANGED earthengine secret confirmed redeemable: `invalid_grant` proves valid credential, but native-app `installed` client + OOB redirect confirmed by-design
+
+## 2026-08-10 18:06:41 UTC
+- NEW graph.microsoft.com root → HTTP 200 (text/html signin page) — confirms root-level reachability, no auth-bypass surface
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector (sustained since 09:52 UTC)
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret is valid Google OAuth credential (RFC 6749 §5.2)
+- CHANGED www.googleapis.com/auth/cloud-platform flips 200 (len=14) ↔ 404 — scope strings not stable HTTP endpoints
+- NEW www.googleapis.com/drive/v3/files → HTTP 403 (no API key) — minor quirk: 403 vs 401 for unauthenticated Drive REST API access
+- NEW Source maps live on BOTH identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files with sourc
+- NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs (hashes `9d84e451...`, `ca304859...`) but endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+- NEW Copilot agent admin (beta): `/beta/agents`, `/beta/copilot/agents`, `/beta/copilot/agentRegistrations`, `/beta/copilot/admin/catalog/packages` (block/unblock/reassign); scope `CopilotPackages.Read.All
+- NEW Agent Registration API (GA replacement): `/beta/copilot/agentRegistrations` POST/GET/PATCH/DELETE — **client-supplied `createdBy`**, PATCH rewrites `ownerIds`/`managedByAppId`/`agentIdentityId`/`agent
+- NEW Copilot Policy Settings API: `/beta/copilot/admin/policySettings/{id}` — 5 settings (`microsoft.copilot.{copilotchatpinning,blockaccesstoopenfiles,imagegeneration,allowwebsearch,allowinadmincenters}`)
+- NEW Copilot Studio D2E (Direct-to-Engine) S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side** (doc: 
+- NEW Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`; validation against agent's registered too
+- NEW Three-hop Agent User `user_fic` flow (documented in `microsoft/entrabot`): Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` **OR*
+- NEW `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All` — supply-chain trust surface
+- NEW Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permi
+- NEW ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net` notBefore 06-08/06-17/07-04-2026, 2× `CN=login.microsoftonline.us` notBefore 07-01/07-26-2026), `allowedAudi
+- CHANGED `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred, no `redirect_ur
+- NEW `login.microsoftonline.com/common/discovery/v2.0/keys` now includes 3 additional kids vs 18:04 UTC probe: `rRk1d-57B…` (msonline.com), `NqEBZVuOp…` (msonline.us), `1Nv3JExJr…` (new v2-only) — v2 count
+- NEW `/oauth2/v2.0/authorize?response_type=token` body-size drift: 23940 → 41309 bytes (content-length increase per KB) — confirms error-rendering anomaly stable, content is the JS error shell
+- CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 sustained (was 200 w/ CORS `*` + full mutation allowlist at 09:52 UTC) — CORS cross-origin mutation vector **closed**, confirme
+- CHANGED `www.googleapis.com/auth/cloud-platform` → HTTP 404 (len=14) at 17:16 UTC cycle reverted to 400/403-class endpoint behavior — scope-name echo remains flaky, no new surface

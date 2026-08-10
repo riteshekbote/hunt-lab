@@ -14537,3 +14537,178 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 55 — valid native-app client_secret now proven via invalid_client/invalid_grant negative-control differential, plus public tokeninfo introspection oracle; but by-design public-client model (installed/OOB) and Google no-reward rules cap practical VRP impact.
 - [RISK] microsoft: 55 — CORS cross-origin mutation vector REOPENED (preflight 200 ACAO:* + full mutation allowlist) restores the full IDOR precondition stack across 5 Agent Registry EntityTypes (zero OperationRestrictions, client-supplied createdBy/ownerIds); mutations still Bearer-gated (401), issuer-confusion precondition live pending AUTH_HELPED.
+===== ANALYST bigpickle 2026-08-10 18:06:41 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | head -20
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: e3d05af0-35b6-4e30-8f98-e98fe57721d9
+client-request-id: e3d05af0-35b6-4e30-8f98-e98fe57721d9
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"010","RoleInstance":"MN1PEPF00077089"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Mon, 10 Aug 2026 18:03:38 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | head -12
+HTTP/1.1 405 Method Not Allowed
+Strict-Transport-Security: max-age=31536000
+request-id: 7619498d-4446-468c-8057-369da29cf33a
+client-request-id: 7619498d-4446-468c-8057-369da29cf33a
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"003","RoleInstance":"BL6PEPF00069FCF"}}
+Date: Mon, 10 Aug 2026 18:03:38 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -o /dev/null -D - "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | head -12; echo "---HEAD---"; curl -s -o /dev/null -D - -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | head -8
+HTTP/1.1 401 Unauthorized
+Transfer-Encoding: chunked
+Content-Type: application/json
+Strict-Transport-Security: max-age=31536000
+request-id: 0ee7bdd3-ac82-49dc-b0b9-d28e0affd558
+client-request-id: 0ee7bdd3-ac82-49dc-b0b9-d28e0affd558
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"003","RoleInstance":"BL6PEPF00069F22"}}
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+Date: Mon, 10 Aug 2026 18:03:38 GMT
+
+---HEAD---
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: cfbc35ea-e81a-436f-9de8-f88aaa0146cb
+client-request-id: cfbc35ea-e81a-436f-9de8-f88aaa0146cb
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"002","RoleInstance":"BL02EPF0009041E"}}
+Date: Mon, 10 Aug 2026 18:03:39 GMT
+[0m
+[0m$ [0mcurl -s "https://oauth2.googleapis.com/tokeninfo" -o /dev/null -w "tokeninfo no-param: %{http_code} %{size_download}\n"; curl -s "https://oauth2.googleapis.com/tokeninfo?access_token=invalid" -o /dev/null -w "tokeninfo bad-token: %{http_code} %{size_download}\n"; curl -s -o /dev/null -w "token GET: %{http_code}\n" "https://oauth2.googleapis.com/token"
+tokeninfo no-param: 400 113
+tokeninfo bad-token: 400 71
+token GET: 404
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum; curl -s -o /dev/null -w "graph root: %{http_code}\n" "https://graph.microsoft.com"
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+graph root: 301
+[0m
+[0m$ [0mV1=$(curl -s "https://login.microsoftonline.com/common/discovery/keys"); V2=$(curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys"); echo "v1 kids:"; echo "$V1" | python3 -c "import json,sys; print(sorted(k['kid'] for k in json.load(sys.stdin)['keys']))"; echo "v2 kids:"; echo "$V2" | python3 -c "import json,sys; print(sorted(k['kid'] for k in json.load(sys.stdin)['keys']))"
+v1 kids:
+['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+v2 kids:
+['1Nv3JExJrKNx1l7adICQ7Y_Atps', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', 'rRk1d-57BGZfsM4BUHrkx8cQbic']
+[0m
+[0m$ [0mfor M in GET POST PUT PATCH DELETE; do echo "== preflight $M collection =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: $M" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | rg -i "HTTP/|access-control-allow-(origin|methods|headers)" ; done
+== preflight GET collection ==
+/bin/bash: line 1: rg: command not found
+== preflight POST collection ==
+/bin/bash: line 1: rg: command not found
+== preflight PUT collection ==
+/bin/bash: line 1: rg: command not found
+== preflight PATCH collection ==
+/bin/bash: line 1: rg: command not found
+== preflight DELETE collection ==
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mecho "== preflight {id} PATCH =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" 2>&1 | rg -i "HTTP/|access-control-allow-(origin|methods|headers)|content-length"; echo "== specific-origin echo test =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://attacker.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | rg -i "HTTP/|access-control-allow-origin|vary"
+== preflight {id} PATCH ==
+/bin/bash: line 1: rg: command not found
+== specific-origin echo test ==
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mfor M in GET POST PUT PATCH DELETE; do echo "== preflight $M =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: $M" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | grep -iE "HTTP/|access-control-allow-(origin|methods|headers)"; done
+== preflight GET ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+== preflight POST ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+== preflight PUT ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+== preflight PATCH ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+== preflight DELETE ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+[0m
+[0m$ [0mecho "== preflight {id} PATCH =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" 2>&1 | grep -iE "HTTP/|access-control-allow-(origin|methods|headers)|content-length"; echo "== specific-origin echo =="; curl -s -o /dev/null -D - -X OPTIONS -H "Origin: https://attacker.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1 | grep -iE "HTTP/|access-control-allow-origin|vary"
+== preflight {id} PATCH ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Content-Length: 0
+== specific-origin echo ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+[0m
+**STEP 1 — DELTA**
+- [CHANGED] `graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}`: bare `OPTIONS` → 405, BUT preflighted `OPTIONS` (Origin + `Access-Control-Request-Method` + `Access-Control-Request-Headers: authorization`) → **200 `Access-Control-Allow-Origin: *`**, full allowlist `DELETE,GET,OPTIONS,POST,PUT,PATCH`, `Allow-Headers: authorization`, Max-Age 86400 — verified across all 5 methods AND on `{id}` path. The 17:16 inventory line "CORS vector closed (OPTIONS→405)" is **mislabelled**: 405 is method-handling, the cross-origin mutation vector is REOPENED/never-closed (restores 17:10 lead).
+- [CHANGED] v1-exclusive JWKS kid rotated: `aFkmKVFc…` gone, new v1-only `sa3RgZQ_nZNVheAo` — v1(5)⊂v2(7), 4 shared (`6hXLaIYN…`,`AahUf1bC…`,`fEtqrhKT…`,`jvm_-Ttaq…`); same transient churn pattern, no new surface.
+- [CHANGED] graph.microsoft.com root: 301 redirect this cycle (was 200 text/html at 16:19 UTC) — minor drift, no auth surface.
+- NO_DELTA: earthengine oauth.py whole-file sha `f4f93c76…`; tokeninfo 400/113 + 400/71; `oauth2.googleapis.com/token` GET→404; agentRegs GET→401(Bearer)/HEAD→405/0.
+
+**STEP 2 — PRIORITIZE**
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} | score 7.25 | attack_surface 8, business_value 8, tech_exposure 8 (Graph agent registry, client-supplied ownership, CORS-open mutation), gate_ease 3 (401-gated but preflight open), cloud_surface 8, freshness 8
+- [PRIO] oauth2.googleapis.com/token (client `517222506229-…`) | score 7.15 | 6,7,7,9 (secret already held),9,6
+- [PRIO] login.microsoftonline.com v1↔v2 dual-issuer | score 6.90 | 7,9,8,2,7,7
+
+**STEP 3 — HYPOTHESES**
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3); $metadata 873-char block with createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes; preflighted OPTIONS→200 ACAO:* + full mutation allowlist on collection AND {id} (18:03 UTC probe) — CORS cross-origin vector live, not just 405 method-handling.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: live probe 18:03 UTC: v1=5 kids ⊂ v2=7 kids, 4 shared (0 v2-exclusive divergence that matters); dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation). New v1-exclusive `sa3RgZQ_nZNVheAo` is transient churn.
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret is a live valid OAuth credential (native-app public client)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 70
+reasoning: whole-file sha `f4f93c76…` unchanged this cycle; POST secret+dummy RT → 400 `invalid_grant` (not 401 `invalid_client`) proves client auth passes; source confirms `installed` public client with OOB redirect — per ADK #2128 precedent by-design WONTFIX caps VRP-worthiness.
+evidence_needed: `POST /token` with authorized RT → 200 cloud-platform (vs 400) to prove redeemability; VRP outcome test.
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (form): grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw, native-app by-design caps.
+testability: HUMAN_ONLY
+
+**STEP 4 — SELF-CRITIQUE**
+- [PARKED] none — all 3 hypotheses ≥65, none on REJECTED list, all have concrete verify_steps.
+- [FINAL] 1) IDOR agentRegistrations (85) 2) earthengine secret (70) 3) v1↔v2 issuer-confusion (65).
+
+**STEP 5 — NEXT ACTION**
+[NEXT] PROBE: Document CORS/ownership precondition fully while AUTH_HELPED is pending — run the same preflight matrix against sibling Agent Registry paths to scope the mutation surface: `OPTIONS` with Origin+`Access-Control-Request-Method: POST` to `/beta/copilot/agentInstances`, `/beta/copilot/agentCollections`, `/beta/copilot/agentCardManifests`, `/beta/copilot/copilotPackages` (expect 200 ACAO:* if the allowlist is shared vs 405 if collection-specific), then re-run GET/HEAD per path for the 401/405 auth-gate signature. Record status + CORS headers only.
+
+**STEP 6 — LEARNING**
+- [LEARN] ACCEPTED preflighted-OPTIONS CORS vector @ graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: bare OPTIONS→405 is method-handling, NOT a CORS control — preflight (Origin+ACRM:POST/PUT/PATCH/DELETE+ACRH:authorization) → 200 ACAO:`*`, `Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH`, `Allow-Headers: authorization`, Max-Age 86400, verified 18:03 UTC on collection + `{id}`. Corrects the 17:16 "CORS vector closed" inventory label; IDOR precondition restored to 85-level.
+- [LEARN] ACCEPTED v1-exclusive kid rotation @ login.microsoftonline.com/discovery/keys: `aFkmKVFc…`→`sa3RgZQ_nZNVheAo` as sole v1-exclusive (v1=5, v2=7, 4 shared) — same transient churn, rotation-desync class stays REJECTED.
+- [LEARN] REJECTED no new proving-dead classes this cycle — fresh probes (18:03 UTC) confirmed all prior ACCEPTED findings unchanged (NO_DELTA).
+
+**STEP 7 — RISK SCORE**
+- [RISK] google: 55 — live valid native-app client_secret (invalid_grant proof) + public introspection oracle, but public-client by-design + no-reward rules cap practical impact.
+- [RISK] microsoft: 50 — zero-OperationRestrictions IDOR precondition live across 5 Agent Registry EntityTypes AND cross-origin mutation vector re-confirmed (preflight 200 ACAO:* full allowlist), but auth-gated (GET 401) pending AUTH_HELPED two-principal test.

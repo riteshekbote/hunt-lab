@@ -1,8 +1,5 @@
-## 2026-08-10 17:10:27 UTC [google] (model longcat)
-[NEW] `www.googleapis.com/drive/v3/files` → HTTP 403 (no API key) — minor quirk: 403 vs 401 for unauthenticated Drive REST API access
-[CHANGED] `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 sustained (CORS vector closed since 09:52 UTC)
-[CHANGED] earthengine secret confirmed redeemable: `invalid_grant` proves valid credential, but native-app `installed` client + OOB redirect confirmed by-design
-[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — **7.35** (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:6) — valid cloud-platform credential confirmed; native-app by-design caps severity
+## 2026-08-10 18:04:08 UTC [google] (model longcat)
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — **7.35** (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:6) — valid cloud-platform credential (invalid_grant proof); native-app by-design caps severity
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — **6.85** (attack:9, business:9, tech:7, gate:4, cloud:8, fresh:5) — IDOR surface intact; CORS closed reduces cross-origin feasibility
 [PRIO] login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys — **6.60** (attack:6, business:9, tech:8, gate:3, cloud:7, fresh:4) — AUTH_HELPED-gated; rotation noise obscures steady-state subset invariant
 [HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped tokens
@@ -36,9 +33,7 @@ testability: AUTH_HELPED
 [FINAL]
 [NEXT] HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, (b) raw GitHub URL `google/earthengine-api/master/python/ee/oauth.py:45`, (c) POST PoC to `oauth2.googleapis.com/token` showing 400 `invalid_grant` vs 401 `invalid_client` distinction proving valid credential, (d) note native-app `installed` client type per line 420 `dict(installed=...)` with OOB redirect — ask VRP team to confirm/deny bounty eligibility per OAuth 2.1 public-client secret deprecation policy.
 [LEARN] ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oauth.py:45 is valid Google OAuth credential accepted by server (RFC 6749 §5.2 error-code distinction)
-[LEARN] ACCEPTED: native-app client-type confirmed @ earthengine-api oauth.py — `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`) — hardcoded secret matches public-client by-design pattern; VRP-worthiness capped
 [LEARN] CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchanged
-[LEARN] ACCEPTED: www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk, no new surface
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
 [RISK] google: **47** — earthengine secret is confirmed valid OAuth credential with cloud-platform scope; native-app by-design limits but VRP report warranted; no new high-severity surfaces this cycle; GCP control-plane APIs uniformly gated
-[RISK] microsoft: **61** (stable) — agentRegistration IDOR surface intact (5 EntityTypes, zero restrictions) but OPTIONS→405 closes CORS; Graph 405 anomaly + v1↔v2 dual-issuer trust boundary remain AUTH_HELPED-gated; RFC 6749 §3 + RFC 6750 §3 violations confirmed live but require AUTH_HELPED for full validation
+[RISK] microsoft: **61** — agentRegistration IDOR surface intact (5 EntityTypes, zero restrictions) but OPTIONS→405 closes CORS; Graph 405 anomaly + v1↔v2 dual-issuer trust boundary remain AUTH_HELPED-gated; RFC 6749 §3 + RFC 6750 §3 violations confirmed live but require AUTH_HELPED for full validation

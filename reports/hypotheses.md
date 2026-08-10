@@ -1351,3 +1351,28 @@
 - LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchange
 - LEARN: ACCEPTED: www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk, no new surface
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-10 18:06:41 UTC
+- [96] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped tokens (from reports/hypotheses-longcat.txt)
+- [85] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-bigpickle.txt)
+- [75] `graph.microsoft.com/beta/copilot/agentRegistrations`: Agent Registration ownership boundary bypass via client-controlled `createdBy` + PATCH rewrite (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): PROBE: Document CORS/ownership precondition fully while AUTH_HELPED is pending — run the same preflight matrix against sibling Agent Registry paths to scope the
+- NEXT(hypotheses-laguna.txt): PROBE: GET `https://graph.microsoft.com/beta/copilot/agentRegistrations` (with valid test-tenant Bearer token) — tests enumeration of registrations (doc says no
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAu
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mut
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class sta
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`,
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4) ⊂ v2(8), strict subset with 0 v1-exclusive confirmed @ 18:04 UTC (kids re-verified: `6hXLa
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes (18:04 UTC) confirmed prior ACCEPTED findings unchanged; v2 JWKS +3 kids (rRk1d-57B, NqEBZVuO
+- LEARN: ACCEPTED graph.microsoft.com root → HTTP 200 text/html (signin page) — confirms root-level reachability but no auth-bypass surface; consistent across all cycles
+- LEARN: ACCEPTED www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk: Drive REST API returns 403 when neither API key nor OAu
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret @ oaut
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchange
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
