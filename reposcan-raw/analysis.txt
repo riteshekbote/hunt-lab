@@ -1,137 +1,74 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat > /dev/null << 'EOF'
-Let me analyze each hit systematically.
-EOF
-(no output)
-[0m
-[0m$ [0mcat << 'HITS'
-=== NEW HITS (delta) ===
-1. reposcan-raw/google/xrblocks/docs/docusaurus.config.ts:175: apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-2. reposcan-raw/google/xrblocks/src/ai/AI.ts:304: gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'},
-3. reposcan-raw/google/xrblocks/src/ai/AI.ts:305: openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'},
-
-=== FULL HITS CLASSIFICATION ===
-HITS
-=== NEW HITS (delta) ===
-1. reposcan-raw/google/xrblocks/docs/docusaurus.config.ts:175: apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-2. reposcan-raw/google/xrblocks/src/ai/AI.ts:304: gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'},
-3. reposcan-raw/google/xrblocks/src/ai/AI.ts:305: openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'},
-
-=== FULL HITS CLASSIFICATION ===
-[0m
-[0m$ [0mcat << 'CLASSIFICATION'
-=== REAL_SECRET ===
-(none in this scan - earthengine-api secret from prior cycles not in these 33k files)
-
-=== TEST_OR_EXAMPLE ===
-reposcan-raw/google/xrblocks/src/ai/AI.ts:304  gemini apiKey: 'YOUR_GEMINI_API_KEY_HERE'        [placeholder]
-reposcan-raw/google/xrblocks/src/ai/AI.ts:305  openai apiKey: 'YOUR_OPENAI_API_KEY_HERE'        [placeholder]
-reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js:33  apiKey: '{{ site.algolia_api_key }}'    [template var]
-reposcan-raw/google/pebble/devsite/source/assets/js/404.js:24        apiKey: '{{ site.algolia_api_key }}'    [template var]
-reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf:48  master_password = "${var.db_password}"  [tf var]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:126  private_key="-----BEGIN PRIVATE KEY-----..."  [truncated placeholder]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:238  HttpCredentials(username="user", password="password")  [test creds]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:247  HttpCredentials(token="eyAkaknabna....")  [placeholder JWT]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68  PASSWORD = "password"  [scheme const]
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62  client_secret="your_client_secret"  [placeholder]
-reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"  [state key name]
-reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js  [minified build artifacts, parse error strings]
-
-=== ENDPOINT_LEAK ===
-reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154  cloud metadata endpoint 169.254.169.254  [SSRF surface doc]
-reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246  --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest  [secret ref pattern]
-
-=== INTERESTING ===
-reposcan-raw/google/xrblocks/docs/docusaurus.config.ts:175  apiKey: '40150cc2c638b09de8ebbfefd50b80a4'  [Algolia DocSearch key - REJECTED per KB: search-only, public by design]
-reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:123  lines.append(f"GOOGLE_API_KEY={google_api_key}")  [writes key to config - var-based, not hardcoded]
-reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115  kubeconfig_path/context params  [GKE integration surface]
-
-=== REJECTED (per KB) ===
-- Algolia DocSearch apiKey in xrblocks docusaurus.config.ts: search-only key, public by design (2026-08-07 REJECTED)
-- ADK /run_sse client_secret (google/adk-python issue #2128, closed 2025-07-23) - KNOWN DUP
-- ADK hardcoded ya29 token in git history (issue #5520, closed 2026-04-28) - KNOWN DUP
-
-=== VERDICT ===
-REPORT_CANDIDATE: no  (no new REAL_SECRET findings in this delta; all hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING, or previously REJECTED/KNOWN-DUP)
-CLASSIFICATION
-=== REAL_SECRET ===
-(none in this scan - earthengine-api secret from prior cycles not in these 33k files)
-
-=== TEST_OR_EXAMPLE ===
-reposcan-raw/google/xrblocks/src/ai/AI.ts:304  gemini apiKey: 'YOUR_GEMINI_API_KEY_HERE'        [placeholder]
-reposcan-raw/google/xrblocks/src/ai/AI.ts:305  openai apiKey: 'YOUR_OPENAI_API_KEY_HERE'        [placeholder]
-reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js:33  apiKey: '{{ site.algolia_api_key }}'    [template var]
-reposcan-raw/google/pebble/devsite/source/assets/js/404.js:24        apiKey: '{{ site.algolia_api_key }}'    [template var]
-reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf:48  master_password = "${var.db_password}"  [tf var]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:126  private_key="-----BEGIN PRIVATE KEY-----..."  [truncated placeholder]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:238  HttpCredentials(username="user", password="password")  [test creds]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:247  HttpCredentials(token="eyAkaknabna....")  [placeholder JWT]
-reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68  PASSWORD = "password"  [scheme const]
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62  client_secret="your_client_secret"  [placeholder]
-reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"  [state key name]
-reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js  [minified build artifacts, parse error strings]
-
-=== ENDPOINT_LEAK ===
-reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154  cloud metadata endpoint 169.254.169.254  [SSRF surface doc]
-reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246  --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest  [secret ref pattern]
-
-=== INTERESTING ===
-reposcan-raw/google/xrblocks/docs/docusaurus.config.ts:175  apiKey: '40150cc2c638b09de8ebbfefd50b80a4'  [Algolia DocSearch key - REJECTED per KB: search-only, public by design]
-reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:123  lines.append(f"GOOGLE_API_KEY={google_api_key}")  [writes key to config - var-based, not hardcoded]
-reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115  kubeconfig_path/context params  [GKE integration surface]
-
-=== REJECTED (per KB) ===
-- Algolia DocSearch apiKey in xrblocks docusaurus.config.ts: search-only key, public by design (2026-08-07 REJECTED)
-- ADK /run_sse client_secret (google/adk-python issue #2128, closed 2025-07-23) - KNOWN DUP
-- ADK hardcoded ya29 token in git history (issue #5520, closed 2026-04-28) - KNOWN DUP
-
-=== VERDICT ===
-REPORT_CANDIDATE: no  (no new REAL_SECRET findings in this delta; all hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING, or previously REJECTED/KNOWN-DUP)
-[0m
-### Classification Tables
-
-| Category | File:Line | Pattern | Notes |
-|----------|-----------|---------|-------|
-| **REAL_SECRET** | *(none in this scan)* | | earthengine-api secret (sha `3f3f8d6f…d271`) from prior cycles not in these 33k files |
-
-| Category | File:Line | Pattern | Notes |
-|----------|-----------|---------|-------|
-| **TEST_OR_EXAMPLE** | xrblocks/src/ai/AI.ts:304 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}` | placeholder |
-| | xrblocks/src/ai/AI.ts:305 | `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` | placeholder |
-| | pebble/devsite/.../quicksearch.js:33 | `apiKey: '{{ site.algolia_api_key }}'` | template var |
-| | pebble/devsite/.../404.js:24 | `apiKey: '{{ site.algolia_api_key }}'` | template var |
-| | go-cloud/.../main.tf:48 | `master_password = "${var.db_password}"` | terraform var |
-| | adk-python/.../auth_credential.py:126 | `private_key="-----BEGIN PRIVATE KEY-----..."` | truncated placeholder |
-| | adk-python/.../auth_credential.py:238 | `HttpCredentials(username="user", password="password")` | test creds |
-| | adk-python/.../auth_credential.py:247 | `HttpCredentials(token="eyAkaknabna....")` | placeholder JWT |
-| | adk-python/.../auth_schemes.py:68 | `PASSWORD = "password"` | scheme const |
-| | adk-python/.../auth_helpers.py:62 | `client_secret="your_client_secret"` | placeholder |
-| | adk-python/.../sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | state key name |
-| | adk-go/.../webui/distr/*.js | minified chunks | build artifacts |
-
-| Category | File:Line | Pattern | Notes |
-|----------|-----------|---------|-------|
-| **ENDPOINT_LEAK** | adk-python/.../container_code_executor.py:114,154 | `169.254.169.254` | GCP metadata endpoint (SSRF surface doc) |
-| | adk-go/.../cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref pattern |
-
-| Category | File:Line | Pattern | Notes |
-|----------|-----------|---------|-------|
-| **INTERESTING** | xrblocks/docs/docusaurus.config.ts:175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch — **REJECTED per KB** (search-only, public by design) |
-| | adk-python/.../cli_create.py:123 | `f"GOOGLE_API_KEY={google_api_key}"` | writes key to config (var-based, not hardcoded) |
-| | adk-python/.../gke_code_executor.py:103-115 | `kubeconfig_path/context` | GKE integration surface |
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=230][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [offset=170, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js[90m [limit=40, offset=25][0m
+[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/404.js[90m [limit=30, offset=18][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/src/ai/AI.ts[90m [offset=298, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=20, offset=110][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=10, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py[90m [offset=95, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf[90m [limit=20, offset=40][0m
+[0m→ [0mRead reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh[90m [offset=15, limit=40][0m
+Based on my analysis of all 211 hits across the scanned repositories, here are the classifications:
 
 ---
 
-### Verdict
+### Classification Tables
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Algolia DocSearch key (xrblocks) | **no** — REJECTED 2026-08-07 (search-only, public by design) |
-| ADK `/run_sse` client_secret | **no** — KNOWN DUP (#2128, closed 2025-07-23) |
-| ADK hardcoded `ya29` token | **no** — KNOWN DUP (#5520, closed 2026-04-28) |
-| Earth Engine OAuth client_secret | **no** — not in this scan's 33k files (confirmed live in prior cycles, separate repo) |
-| All other hits | **no** — TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING only |
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this scan delta)* | | | |
 
-**Summary**: No new `REAL_SECRET` findings in this delta. All 3 new hits are placeholders or previously rejected. The only live credential (Earth Engine `oauth.py:45`, sha `3f3f8d6f…d271`) persists in a repo not covered by this scan batch.
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| pebble/devsite/source/assets/js/quicksearch.js | 33 | `{{ site.algolia_api_key }}` | Template placeholder |
+| pebble/devsite/source/assets/js/404.js | 24 | `{{ site.algolia_api_key }}` | Template placeholder |
+| xrblocks/src/ai/AI.ts | 304-305 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | Sample keys structure |
+| xrblocks/docs/docusaurus.config.ts | 175 | `40150cc2c638b09de8ebbfefd50b80a4` | **REJECTED per KB**: Algolia DocSearch search-only key, public by design |
+| adk-python/src/google/adk/auth/auth_credential.py | 126 | `-----BEGIN PRIVATE KEY-----...` | Example placeholder in docstring |
+| adk-python/src/google/adk/auth/auth_credential.py | 238 | `username="user", password="password"` | Test credentials in example |
+| adk-python/src/google/adk/auth/auth_credential.py | 247 | `token="eyAkaknabna...."` | Placeholder JWT in example |
+| adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value for OAuth2 password grant type |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+
+#### ENDPOINT_LEAK
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| go-cloud/docstore/gcpfirestore/create_indexes.sh | 20, 33 | `firebase.corp.google.com/project/$project_id/...` | Firebase console URLs (internal corp domain) |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Well-known cloud metadata IP (documented security feature) |
+
+#### INTERESTING
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `${var.db_password}` | Terraform variable reference (not hardcoded) |
+| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run Secret Manager reference |
+| adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Writes user-provided variable to .env |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115, 116 | `kubeconfig_path`, `kubeconfig_context` | Config parameters (not secrets) |
+
+#### NOT_SECRETS (Build Artifacts)
+| File Pattern | Notes |
+|--------------|-------|
+| adk-go/cmd/launcher/web/webui/distr/chunk-*.js | Minified JS bundles (parser generator error messages) |
+| adk-python/src/google/adk/cli/browser/chunk-*.js | Minified JS bundles (parser generator error messages) |
+| adk-python/src/google/adk/cli/browser/main-*.js | Minified JS bundles |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api oauth.py:45 (pre-existing KB finding) | REAL_SECRET (known) | **yes** — already ACCEPTED in KB, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, live on master |
+| xrblocks Algolia apiKey | TEST_OR_EXAMPLE | **no** — REJECTED per KB (search-only, public by design) |
+| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** — placeholders, template vars, config refs, or documented metadata IPs |
+
+**No NEW real secrets found in this scan delta.** The only reportable secret is the pre-existing earthengine-api hardcoded OAuth client_secret (already tracked in KB as ACCEPTED, pending VRP determination on native-app by-design status).
