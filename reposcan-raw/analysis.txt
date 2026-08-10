@@ -1,45 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg'
-44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
-[0m
-### Classification Table
+Looking at the delta hits, I'll classify each:
 
-| Category | File | Line | Evidence | SHA256 (secret material) |
-|----------|------|------|----------|--------------------------|
-| **REAL_SECRET** | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | Hardcoded Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (split across concat), comment claims domain-locked to skottie.skia.org | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `ClientSecret: "not-a-valid-client-secret"` | N/A |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference `secretGithubToken = "bugs-central-github-token"` | N/A |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant names `CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET` (no values) | N/A |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/**/*.yml` | multiple | Ansible template refs `{{ secrets.skolo_password }}` (no material) | N/A |
-| **TEST_OR_EXAMPLE** | `google/private-compute-services/**/RenderToken*.kt` | 41,43 | Constant key names `KEY_RENDER_TOKEN = "render_token"` | N/A |
-| **TEST_OR_EXAMPLE** | `google/private-compute-services/**/PrivateInferenceClientTimerNames.kt` | 82,88,91 | Timer name constants `IPP_CREATE_TERMINAL_TOKEN` etc. | N/A |
-| **TEST_OR_EXAMPLE** | `google/adk-python/**/gke_code_executor.py` | 103,104,115 | Kubeconfig path params (config, not secrets) | N/A |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | Internal metadata URL `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` | N/A |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | Same internal metadata endpoint | N/A |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | Corp console URL `pantheon.corp.google.com/apis/credentials/key/...` | N/A |
-| **ENDPOINT_LEAK** | `google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h` | 11 | Internal Piper reference `cs.corp.google.com/piper///depot/google3/...` | N/A |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | Internal Android build URL `android-build.corp.google.com` | N/A |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/kube/corp-config.sh` | 9 | Corp domain `skia-corp.google.com` | N/A |
-| **INTERESTING** | `google/adk-python/**/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` referenced in comments (docs) | N/A |
-| **INTERESTING** | `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | Runtime secret fetch `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | N/A |
-| **INTERESTING** | `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | Runtime secret fetch `gcloud secrets versions access latest --secret="github-crosvm-bot"` | N/A |
-| **INTERESTING** | `google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Docker password from SA JSON file `cat ${SA_NAME}.json` | N/A |
-| **INTERESTING** | `google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | Writes JWT service account to `service-account.json` | N/A |
+## Classification Tables
 
----
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none in delta)* |  |  | The earthengine-api oauth.py:45 secret (sha256 `3f3f8d6f...`) is in KNOWN-DUP/ACCEPTED list, not new |
 
-### Verdict List
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | CLI writes user-supplied `google_api_key` var to config — placeholder pattern |
+| google/kf/pkg/kf/commands/stubs/auth.go | 53 | `service-account.json` placeholder in help text |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | all | Minified source maps / parser error strings — build artifacts |
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Source map / parser error strings — build artifact |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | all | Source maps / parser error strings — build artifacts |
 
-| Candidate | File | REPORT_CANDIDATE | Rationale |
-|-----------|------|------------------|-----------|
-| Hardcoded Google API key (AIzaSyD...) | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | **yes** | Live API key in source, domain-restriction claim unverified; not in REJECTED/KNOWN-DUP lists |
-| ADK `/run_sse` client_secret | `google/adk-python` | **no** | KNOWN-DUP #2128 (closed 2025-07-23) |
-| ADK hardcoded ya29 token | `google/adk-python` git history | **no** | KNOWN-DUP #5520 (closed 2026-04-28) |
-| All `{{ secrets.skolo_password }}` refs | `google/skia-buildbot/skolo/ansible/...` | **no** | Template placeholders, no material |
-| All internal metadata/corp URLs | Multiple | **no** | Endpoint leaks only, no auth bypass |
-| Cloud metadata endpoint refs (169.254.169.254) | `google/adk-python/...` | **no** | Documentation/comments only |
-| gcloud secret manager access patterns | `google/crosvm/...` | **no** | Correct secret-management pattern (runtime fetch) |
+### ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| google/kf/operator/pkg/release/release.go | 65 | `https://source.corp.google.com/...` — internal corporate source URL |
 
-**Only one reportable candidate:** the hardcoded Google API key in `skottie-drive-sk.ts:158`.
+### INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY
