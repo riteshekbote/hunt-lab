@@ -1,45 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw.txt 2>/dev/null || echo "file not found"
-file not found
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg'
+44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la *.txt 2>/dev/null || ls -la
--rw-r--r-- 1 runner runner    802 Aug 10 05:03 cands-google.txt
--rw-r--r-- 1 runner runner    892 Aug 10 05:03 cands-microsoft.txt
--rw-r--r-- 1 runner runner 120421 Aug 10 05:04 scan-prompt.txt
-[0m
-[0m→ [0mRead cands-google.txt
-[0m→ [0mRead cands-microsoft.txt
-Based on the scan hits provided, here's the classification:
+### Classification Table
+
+| Category | File | Line | Evidence | SHA256 (secret material) |
+|----------|------|------|----------|--------------------------|
+| **REAL_SECRET** | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | Hardcoded Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (split across concat), comment claims domain-locked to skottie.skia.org | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` |
+| **TEST_OR_EXAMPLE** | `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `ClientSecret: "not-a-valid-client-secret"` | N/A |
+| **TEST_OR_EXAMPLE** | `google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference `secretGithubToken = "bugs-central-github-token"` | N/A |
+| **TEST_OR_EXAMPLE** | `google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant names `CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET` (no values) | N/A |
+| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/**/*.yml` | multiple | Ansible template refs `{{ secrets.skolo_password }}` (no material) | N/A |
+| **TEST_OR_EXAMPLE** | `google/private-compute-services/**/RenderToken*.kt` | 41,43 | Constant key names `KEY_RENDER_TOKEN = "render_token"` | N/A |
+| **TEST_OR_EXAMPLE** | `google/private-compute-services/**/PrivateInferenceClientTimerNames.kt` | 82,88,91 | Timer name constants `IPP_CREATE_TERMINAL_TOKEN` etc. | N/A |
+| **TEST_OR_EXAMPLE** | `google/adk-python/**/gke_code_executor.py` | 103,104,115 | Kubeconfig path params (config, not secrets) | N/A |
+| **ENDPOINT_LEAK** | `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | Internal metadata URL `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` | N/A |
+| **ENDPOINT_LEAK** | `google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | Same internal metadata endpoint | N/A |
+| **ENDPOINT_LEAK** | `google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | Corp console URL `pantheon.corp.google.com/apis/credentials/key/...` | N/A |
+| **ENDPOINT_LEAK** | `google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h` | 11 | Internal Piper reference `cs.corp.google.com/piper///depot/google3/...` | N/A |
+| **ENDPOINT_LEAK** | `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | Internal Android build URL `android-build.corp.google.com` | N/A |
+| **ENDPOINT_LEAK** | `google/skia-buildbot/kube/corp-config.sh` | 9 | Corp domain `skia-corp.google.com` | N/A |
+| **INTERESTING** | `google/adk-python/**/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` referenced in comments (docs) | N/A |
+| **INTERESTING** | `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | Runtime secret fetch `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | N/A |
+| **INTERESTING** | `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | Runtime secret fetch `gcloud secrets versions access latest --secret="github-crosvm-bot"` | N/A |
+| **INTERESTING** | `google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Docker password from SA JSON file `cat ${SA_NAME}.json` | N/A |
+| **INTERESTING** | `google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | Writes JWT service account to `service-account.json` | N/A |
 
 ---
 
-### **REAL_SECRET** — *Hardcoded credentials with signs of life*
-| File | Line | Secret SHA256 | Verdict |
-|------|------|---------------|---------|
-| *(none)* | — | — | **No live secrets found** |
+### Verdict List
 
----
+| Candidate | File | REPORT_CANDIDATE | Rationale |
+|-----------|------|------------------|-----------|
+| Hardcoded Google API key (AIzaSyD...) | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | **yes** | Live API key in source, domain-restriction claim unverified; not in REJECTED/KNOWN-DUP lists |
+| ADK `/run_sse` client_secret | `google/adk-python` | **no** | KNOWN-DUP #2128 (closed 2025-07-23) |
+| ADK hardcoded ya29 token | `google/adk-python` git history | **no** | KNOWN-DUP #5520 (closed 2026-04-28) |
+| All `{{ secrets.skolo_password }}` refs | `google/skia-buildbot/skolo/ansible/...` | **no** | Template placeholders, no material |
+| All internal metadata/corp URLs | Multiple | **no** | Endpoint leaks only, no auth bypass |
+| Cloud metadata endpoint refs (169.254.169.254) | `google/adk-python/...` | **no** | Documentation/comments only |
+| gcloud secret manager access patterns | `google/crosvm/...` | **no** | Correct secret-management pattern (runtime fetch) |
 
-### **TEST_OR_EXAMPLE** — *Samples, fixtures, placeholders, build artifacts*
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS source maps / parser error messages (build artifacts) |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
-| google/skia-buildbot/go/metadata/metadata.go | 23, 27, 30 | Constant *names* for secrets (`CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET`) |
-| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` — filename constant |
-| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | `headerToken = "x-buildbucket-token"` — header name constant |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Templated placeholders `{{ default .Env.POSTGRES_PWD "" }}` |
-| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` — comment: "Not a credential, it is a secret name" |
-
----
-
-### **ENDPOINT_LEAK** — *Internal / corp / staging URLs & identities*
-| File | Line | Endpoint / Identity |
-|------|------|---------------------|
-| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com` (internal logging) |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (service account) |
-| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `metadata.google.internal` (GCE metadata server — known public pattern) |
-| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `pantheon.corp.google.com/apis/credentials/key/...` (internal console) |
-| google/skia-buildbot/kube/corp-config.sh
+**Only one reportable candidate:** the hardcoded Google API key in `skottie-drive-sk.ts:158`.
