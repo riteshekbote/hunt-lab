@@ -3003,3 +3003,35 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 92). CORS precondition now confirmed live on all 8 paths (preflight 200 ACAO:*), so a victim-context browser mutation is an independent high-impact vector.
+## 2026-08-10 21:51:17 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, cross-origin mutation vector re-confirmed LIVE
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + 5 sibling collections
+confidence: 93
+reasoning: this probe — preflight on {id} → 200 `ACAO:*` + `Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH` + allow-headers authorization (falsifies KB "closed" entries, which were bare-OPTIONS artifacts). GET→401/518 Bearer gate, HEAD→405/0; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer; or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 66
+reasoning: this probe — v1(5 kids) ⊂ v2(7 kids), 0 v1-exclusive, `ACAO:*`; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer (distinct from REJECTED rotation-desync: key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform tokens (native-app public client)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 70
+reasoning: whole-file sha `f4f93c76…` unchanged this probe (200/23110, secret verbatim :45); real secret+dummy RT → 400 `invalid_grant` vs bogus secret → 401 `invalid_client` (RFC 6749 §5.2) proves client-auth passes; source confirms `installed` public client + OOB redirect → by-design WONTFIX per ADK #2128 caps VRP-worthiness.
+evidence_needed: POST /token with authorized RT → 200 cloud-platform; VRP outcome test.
+verify_steps: HUMAN_ONLY authorized `POST https://oauth2.googleapis.com/token`: grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw, native-app by-design caps.
+testability: HUMAN_ONLY
+[FINAL] 1) agentRegistrations IDOR (93), 2) v1↔v2 issuer-confusion (66), 3) earthengine secret (70, HUMAN-gated, VRP-capped)
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 93). Cross-origin vector now re-confirmed live (preflight 200 `ACAO:*` full mutation allowlist on {id}) so a victim-context browser mutation is an independent high-impact vector.
+[RISK] google: 45 — earthengine secret live-valid (invalid_grant) but native-app by-design caps VRP; tokeninfo oracle no-reward; only high-value path needs HUMAN authorized RT.
+[RISK] microsoft: 63 — agentRegistrations IDOR precondition now doubly live (zero ownership restrictions + re-verified `ACAO:*` cross-origin mutation on {id}); exploitability gated on AUTH_HELPED two-principal test + issuer-confusion sub-precondition intact (conf 93/66).

@@ -485,3 +485,7 @@
 - NEW Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsN
 - NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs but endpoint alive (401)
 - NEW Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBl
+
+## 2026-08-10 21:57:30 UTC
+- CHANGED `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` → HTTP 404 in latest probe (21:06:53 UTC) — contradicts 20+ prior cycles showing 200 len=23110. Suspect backtick-in-URL pro
+- CHANGED `login.microsoftonline.com/common/discovery/v2.0/keys` +3 new kids (`rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`) — v2 key count increased from 8 to 11, but v1(4)⊂v2(11) subset invariant still intact.

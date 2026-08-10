@@ -1553,3 +1553,22 @@
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class s
 - LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-10 21:57:30 UTC
+- [95] oauth2.googleapis.com/token: Earth Engine OAuth client_secret enables token minting with stolen refresh_token (from reports/hypotheses-nemotron3.txt)
+- [93] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, cross-origin mutation vector re-confirmed LIVE (from reports/hypotheses-bigpickle.txt)
+- [50] raw.githubusercontent.com/google/earthengine-api/python/ee/oauth.py: earthengine-api oauth.py:45 client_secret liveness under question (404 probe anomaly) (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): AUTH_HELPED: Test Earth Engine token minting — POST https://oauth2.googleapis.com/token with client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.google
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201),
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -o /dev/null -w '%{http_code} %{size_download}' https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` — fresh GET 
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c
+- LEARN: ACCEPTED v2.0 JWKS rotation +3 kids @ login.microsoftonline.com/common/discovery/v2.0/keys: v2=7 kids, v1=4 ⊂ v2, subset invariant holds, 0 v1-exclusive steady-
+- LEARN: ACCEPTED tokeninfo method-handling gap @ oauth2.googleapis.com/tokeninfo: HEAD→404, GET→400/113 invalid_token — minor quirk, no new surface beyond query-param o
+- LEARN: ACCEPTED Agent Registration CORS mutation vector closed @ graph.microsoft.com/beta/copilot/agentRegistrations: OPTIONS→405 sustained since 09:52 UTC
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4)⊂v2(7) strict subset, 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cro
+- LEARN: ACCEPTED www.googleapis.com/drive/v3/files unauth→403 quirk: Drive REST returns 403 when no API key/OAuth present (vs expected 401), no exploit
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchange
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class s
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged

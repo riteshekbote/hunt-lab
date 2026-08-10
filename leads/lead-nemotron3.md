@@ -3877,3 +3877,50 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED
 [RISK] google: 85 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC violation), POST-only token endpoint validated.
 [RISK] microsoft: 82 reason: Agent Registration zero-ownership-restrictions IDOR surface across 5 EntityTypes (confidence 80), Verified ID minting cross-tenant issuance risk (confidence 65), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, Copilot Studio D2E conversation-ID not validated, v1↔v2 JWKS kid overlap with dual issuer namespaces intact.
+## 2026-08-10 21:57:18 UTC [google] (model nemotron3)
+[PRIO] oauth2.googleapis.com/token (POST), score=8.8, attack=9, business=9, tech=8, gate=8, cloud=9, fresh=9
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, score=8.3, attack=9, business=8, tech=9, gate=6, cloud=8, fresh=8
+[PRIO] login.microsoftonline.com/common/discovery/v2.0/keys, score=7.1, attack=7, business=6, tech=8, gate=10, cloud=7, fresh=8
+[PRIO] oauth2.googleapis.com/tokeninfo, score=6.8, attack=6, business=5, tech=7, gate=10, cloud=6, fresh=7
+[PRIO] login.microsoftonline.com/common/oauth2/v2.0/authorize, score=6.5, attack=6, business=5, tech=7, gate=10, cloud=5, fresh=7
+[HYP] Earth Engine OAuth client_secret enables token minting with stolen refresh_token
+class: AUTH
+asset: oauth2.googleapis.com/token
+confidence: 95
+reasoning: POST with leaked client_secret (sha256 3f3f8d6f…) returns 400 invalid_grant (not 401 invalid_client) — proves secret is valid Google OAuth credential (RFC 6749 §5.2). Client is `installed` type with OOB redirect; only redemption path is grant_type=refresh_token. Attacker with victim's refresh_token + this secret can mint access_tokens with cloud-platform+drive+devstorage scopes.
+evidence_needed: Valid refresh_token from victim + leaked client_secret → successful token response with access_token
+verify_steps: AUTH_HELPED: POST https://oauth2.googleapis.com/token with client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com, client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1, grant_type=refresh_token, refresh_token=<victim_rt>
+impact: Full GCP/Drive/Cloud Storage access as victim (cloud-platform scope) — CRITICAL
+testability: AUTH_HELPED
+[HYP] Agent Registration IDOR via client-supplied ownership fields (createdBy/ownerIds/agentCard)
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: $metadata shows 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. HEAD→405 (no WWW-Authenticate, RFC 6750 §3 violation), GET→401 auth-gated, OPTIONS→405 (CORS mutation vector closed). Schema-level IDOR precondition intact pending two-principal test.
+evidence_needed: Two test principals in same tenant — principal A creates registration, principal B PATCHes/GETs by ID with own token
+verify_steps: AUTH_HELPED: Principal A POST /beta/copilot/agentRegistrations with createdBy=A; Principal B GET /beta/copilot/agentRegistrations/{id} and PATCH ownerIds=[B] with B's token
+impact: Cross-principal agent registration takeover / Verified ID minting abuse — HIGH
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces enables issuer confusion
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/v2.0/keys
+confidence: 65
+reasoning: v1.0 keys (4 kids) strict subset of v2.0 (7 kids), 0 v1-exclusive steady-state. Dual issuers: `sts.windows.net/{tid}/` (v1) vs `login.microsoftonline.com/{tid}/v2.0` (v2). Shared RSA keys mean token signed for v1 issuer validates under v2 issuer if kid overlaps. No cross-endpoint validation of v1 kid set against v2 issuer. Requires AUTH_HELPED to test token acceptance across issuer boundary.
+evidence_needed: v1-issued token (kid from shared set) accepted by v2-issuer-validating resource
+verify_steps: AUTH_HELPED: Obtain v1 token (response_type=token via v1 endpoint) with shared kid; present to v2-validating API; check acceptance
+impact: Cross-issuer token replay / privilege escalation if v1 tokens accepted where v2 expected — MEDIUM-HIGH
+testability: AUTH_HELPED
+[PARKED] tokeninfo public introspection oracle: confidence 60 but class on Google no-reward list per KB; no new exploit surface beyond query-param acceptance already documented
+[PARKED] v2.0 authorize HTTP 200 error rendering: RFC 6749 §3 violation confirmed but no code-to-attacker path; status-checking client misparse only — no verify_steps to exploit
+[PARKED] Graph API 405 anomaly (HEAD→405 no WWW-Authenticate): RFC 6750 §3 violation extends to agentRegistrations but masks IDOR enumeration only; no standalone exploit without IDOR hypothesis
+[FINAL] 1) Earth Engine OAuth client_secret enables token minting with stolen refresh_token (AUTH, 95, AUTH_HELPED)
+[FINAL] 2) Agent Registration IDOR via client-supplied ownership fields (IDOR, 80, AUTH_HELPED)
+[FINAL] 3) v1.0↔v2.0 JWKS kid overlap + dual issuer namespaces enables issuer confusion (AUTH, 65, AUTH_HELPED)
+[NEXT] AUTH_HELPED: Test Earth Engine token minting — POST https://oauth2.googleapis.com/token with client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com, client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1, grant_type=refresh_token, refresh_token=<valid_victim_rt> (requires authorized test principal with refresh_token)
+[LEARN] ACCEPTED v2.0 JWKS rotation +3 kids @ login.microsoftonline.com/common/discovery/v2.0/keys: v2=7 kids, v1=4 ⊂ v2, subset invariant holds, 0 v1-exclusive steady-state
+[LEARN] ACCEPTED tokeninfo method-handling gap @ oauth2.googleapis.com/tokeninfo: HEAD→404, GET→400/113 invalid_token — minor quirk, no new surface beyond query-param oracle
+[LEARN] ACCEPTED Agent Registration CORS mutation vector closed @ graph.microsoft.com/beta/copilot/agentRegistrations: OPTIONS→405 sustained since 09:52 UTC
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4)⊂v2(7) strict subset, 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] ACCEPTED www.googleapis.com/drive/v3/files unauth→403 quirk: Drive REST returns 403 when no API key/OAuth present (vs expected 401), no exploit
+[RISK] google: 85 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC violation), POST-only token endpoint validated.
+[RISK] microsoft: 82 reason: Agent Registration zero-ownership-restrictions IDOR surface across 5 EntityTypes (confidence 80), Verified ID minting cross-tenant issuance risk (confidence 65), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, Copilot Studio D2E conversation-ID not validated, v1↔v2 JWKS kid overlap with dual issuer namespaces intact.
