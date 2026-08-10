@@ -1,82 +1,8 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/fabric-cli/src/fabric_cli/core/fab_constant.py
-[0m→ [0mRead reposcan-raw/google/go-github/github/github.go[90m [offset=1980, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/horologist/datalayer/core/src/main/java/com/google/android/horologist/data/store/prefs/PreferencesSerializer.kt[90m [limit=20, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js[90m [limit=20, offset=1][0m
-[0m→ [0mRead reposcan-raw/google/fleetbench/.github/workflows/update.yml[90m [limit=40, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/sandboxed-api/.github/workflows/generator-tool.yml[90m [limit=30, offset=115][0m
-[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [offset=230, limit=60][0m
-[0m→ [0mRead reposcan-raw/google/flatbuffers/.github/workflows/label.yml[90m [limit=30, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=135][0m
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [limit=20, offset=30][0m
-[0m→ [0mRead reposcan-raw/google/sam/cmd/sam-console/public/app.js[90m [limit=20, offset=465][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml[90m [limit=20, offset=1175][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts[90m [limit=20, offset=395][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py[90m [offset=20, limit=40][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py[90m [limit=30, offset=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py[90m [limit=30, offset=35][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py[90m [offset=98, limit=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py[90m [offset=12, limit=25][0m
-[0m✗ [0m failed
-[91m[1mError: [0mThe bash tool was called with invalid arguments: SchemaError(Missing key
-  at ["command"]).
-Please rewrite the input so it satisfies the expected schema.
-Based on my analysis of all hits, here's the classification:
+Let me analyze these scan results carefully. I need to classify each hit and identify real secrets vs test/example data.
 
-## Classification Tables
+First, let me look at the hits:
 
-### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Reason |
-|------|------|--------|
-| `microsoft/fabric-cli/src/fabric_cli/core/fab_constant.py` | 48, 52, 54 | **Environment variable NAME constants** (`FAB_TOKEN`, `FAB_SPN_CLIENT_SECRET`, `FAB_SPN_CERT_PASSWORD`) — these are config key names users set, not secret values |
-| `google/go-github/github/github.go` | 1990 | Doc comment example: `"your app's client secret"` |
-| `google/horologist/.../PreferencesSerializer.kt` | 43 | TODO comment with internal issue tracker link |
-| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 1-20 | Minified/bundled JS build artifact |
-| `microsoft/agent-governance-toolkit/.../extension.ts` | 399 | Test placeholder: `"sk-REPLACE-WITH-YOUR-KEY"` |
-| `microsoft/agent-governance-toolkit/.../adapter.py` | 17 | Docstring example: `api_key="your-key"` |
-| `microsoft/agent-governance-toolkit/.../red_team_dataset.py` | 306 | Test SQL injection payload |
-| `google/sam/development/kind/run.sh` | 139 | Dev default: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty) |
-| `google/sam/internal/node/store.go` | 35 | BoltDB key name constant: `keyRefreshToken = "refresh_token"` |
-| `google/sam/cmd/sam-console/public/app.js` | 471 | Frontend displaying API-returned token (normal app behavior) |
-| `microsoft/agent-governance-toolkit/.../alertmanager.yml` | 15 | Commented placeholder: `# smtp_auth_password: 'password'` |
-| `microsoft/agent-governance-toolkit/.../build_and_publish.sh` | 105 | Test PyPI URL reference |
-
-### ENDPOINT_LEAK (internal URLs, not secrets)
-| File | Line | Reason |
-|------|------|--------|
-| `microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml` | 1180 | Internal timestamp server: `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
-| Multiple files | Various | Cloud metadata endpoints (IMDS): `169.254.169.254`, `metadata.google.internal` — **well-known public endpoints**, not secrets |
-
-### PROPER SECRET MANAGEMENT (not findings)
-| File | Pattern | Reason |
-|------|---------|--------|
-| `google/fleetbench/.github/workflows/update.yml` | `${{ secrets.FLEETBENCH_PAT }}` | GitHub Actions secret reference |
-| `google/sandboxed-api/.github/workflows/generator-tool.yml` | `${{secrets.GITHUB_TOKEN}}` | Built-in GITHUB_TOKEN |
-| `google/flatbuffers/.github/workflows/label.yml` | `${{ secrets.GITHUB_TOKEN }}` | Built-in GITHUB_TOKEN |
-| `google/sam/.github/workflows/deploy.yaml` | `${{ secrets.GHUB_CLIENT_SECRET }}`, `${{ secrets.CLI_OAUTH_SECRET }}` | GitHub Actions secret references |
-| `microsoft/agent-governance-toolkit/.github/workflows/*.yml` | `${{ secrets.GITHUB_TOKEN }}` | Built-in GITHUB_TOKEN |
-| `google/ax/manifests/install-ax.sh` | Reads from K8s secret / generates via `openssl rand` | Proper secret handling |
-
-### INTERESTING (security features)
-| File | Line | Reason |
-|------|------|--------|
-| `microsoft/agent-governance-toolkit/.../advisory.py` | 38-42 | **SSRF protection** — explicitly blocks cloud metadata endpoints |
-| `microsoft/agent-governance-toolkit/.../http_client.py` | 98-104 | **SSRF protection** — blocks localhost/metadata endpoints |
-
----
-
-## SHORT VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `fabric-cli` FAB_* constants | **NO** | Config key names, not secret values |
-| All GitHub Actions `${{ secrets.* }}` | **NO** | Proper secret references |
-| Cloud metadata IPs/hostnames | **NO** | Well-known public endpoints |
-| Internal corp timestamp URL | **NO** | Internal endpoint leak only, no credential |
-| Test/examples/placeholders | **NO** | Not production secrets |
-| SSRF blocklists | **NO** | Security feature, not leak |
-
-**NO REAL_SECRET findings in this scan cycle.** The 3 new delta hits are environment variable name constants (config keys for user-supplied values), not hardcoded credentials.
+1. `google/adk-go/cmd/adkgo/internal/deploy
