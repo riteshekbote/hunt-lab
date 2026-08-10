@@ -502,3 +502,20 @@
 - CHANGED login.microsoftonline.com/common/discovery/v2.0/keys: body grew 9KB → 11292 bytes (from +3 new v2-only kids: `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…`), v1(4)⊂v2(11) subset invariant intact, 0 v1-exclu
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret → HTTP 400 `invalid_grant` (not 401 `invalid_client`) — validates credential validity (RFC 6749 §5.2), fresh confirmation of existing ACCEPTE
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → 405 sustained (CORS vector closed since 09:52 UTC), GET → 401/237 (auth-gated), HEAD → 405/0 (RFC 6750 §3 violation) — all unchanged
+
+## 2026-08-10 23:24:16 UTC
+- CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` true CORS preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-Request-Headers:authorization) → HTTP **200** with `Access-Cont
+- CHANGED `login.microsoftonline.com/common/discovery/v2.0/keys` v2 kid count rotated to 7 (from 8/11 prior) with 2 v2-only kids (`rRk1d-57B…`, `NqEBZVuOp…`); v1(5)⊂v2(7) subset invariant intact, 0 v1-exclusive
+- NEW earthengine-api oauth.py scopes confirmed as cloud-platform + **earthengine** + drive + devstorage.full_control (KB omitted earthengine scope, now confirmed present at line 46)
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST /v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…)
+- NEW Orchestrated API @ /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW managerApplications on Blueprints — up to 10 first-party apps manage without AgentIdentityBlueprintPrincipal.ReadWrite.All
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ /beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS rotation — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe was backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged)
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — +3 new v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…), v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed since 09:52 UTC

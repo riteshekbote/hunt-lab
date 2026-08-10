@@ -1,1 +1,54 @@
-## 2026-08-10 22:25:43 UTC [google] (model longcat)
+## 2026-08-10 23:09:08 UTC [google] (model longcat)
+[NEW] Copilot Studio D2E S2S API @ graph.microsoft.com — conversation-ID NOT validated server-side (private preview)
+[NEW] Consent primitive POST /v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…)
+[NEW] Orchestrated API @ /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs
+[NEW] Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+[NEW] managerApplications on Blueprints — up to 10 first-party apps manage without AgentIdentityBlueprintPrincipal.ReadWrite.All
+[NEW] /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+[NEW] Agent Registry API (beta, deprecated May-2026) @ /beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+[NEW] Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+[NEW] ACS JWKS rotation — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+[CHANGED] raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe was backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged)
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys — +3 new v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…), v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed since 09:52 UTC
+[PRIO] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — 7.55 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:10) — conversation-ID not validated server-side; S2S private preview
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 7.40 (attack:8, business:9, tech:7, gate:4, cloud:8, fresh:10) — caller-chosen resourceId enables consent grant forgery on production v1.0 endpoint
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.40 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:6) — valid cloud-platform credential (invalid_grant proof); VRP report pending
+[PRIO] powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — 7.10 (attack:7, business:8, tech:7, gate:4, cloud:7, fresh:10) — client-supplied toolSchemaName+inputs in InvokeTool
+[PRIO] mysignins.microsoft.com + api.myaccount.microsoft.com source maps — 6.60 (attack:5, business:7, tech:6, gate:8, cloud:6, fresh:9) — 42MB combined, unauthenticated, full client logic recoverable
+[HYP] Copilot Studio D2E S2S conversation hijack via unvalidated conversation-ID
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 65
+reasoning: Conversation-ID not validated server-side per inventory. S2S auth binds to app identity, not conversation owner. Attacker with valid S2S token could enumerate/tamper with other bots' conversations.
+evidence_needed: Two-app test — App A creates conversation, App B with valid S2S token accesses/modifies same conversationId
+verify_steps: AUTH_HELPED: Provision two Dataverse-backed Copilot Studio apps. App A POST /conversations → 201 with conversationId. App B with separate S2S token GET/PATCH/DELETE /conversations/{A's conversationId}. 200 = IDOR confirmed.
+impact: Read/modify/delete arbitrary Copilot Studio conversations across tenants. Data exfiltration, prompt injection, conversation state tampering in enterprise Copilot deployments.
+testability: AUTH_HELPED
+[HYP] OAuth2 permission grant forgery via caller-chosen resourceId on /v1.0/oauth2PermissionGrants
+class: OATH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 60
+reasoning: Caller can specify resourceId (Graph OR Azure Storage user_impersonation e406a681…) in consent grant creation. Application.Read.All NOT in agent blocked-permissions. App with delegated permissions could forge consent grants for resources it doesn't own.
+evidence_needed: App A creates oauth2PermissionGrant pointing resourceId to App B's resource, granting App A delegated perms
+verify_steps: AUTH_HELPED: Two App Regs (A, B). App A with valid token POST /v1.0/oauth2PermissionGrants {clientId:A's appId, consentType:"Principal", resourceId:B's resourceId, scope:"user_impersonation"}. 201 = forge confirmed.
+impact: Privilege escalation — attacker app gains delegated permissions against victim's Azure Storage/Graph resources without user consent. Persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[HYP] Orchestrated API arbitrary tool execution via client-supplied toolSchemaName
+class: BUSLOGIC
+asset: powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId}
+confidence: 55
+reasoning: InvokeTool accepts client-supplied toolSchemaName+inputs without server-side schema validation per inventory. Attacker could invoke undocumented/internal tools or inject malicious inputs to downstream tools.
+evidence_needed: Valid conversation + InvokeTool call with toolSchemaName not in bot's published schema returns 200
+verify_steps: AUTH_HELPED: Create Power Virtual Agents bot with known tool schema. Invoke tool with toolSchemaName="internal/undocumentedTool" or path-traversal variant. 200+valid response = schema bypass.
+impact: Execute arbitrary backend tools, pivot to internal APIs, SSRF via tool inputs. Compromises PVA bot isolation boundary.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths) — extract undocumented endpoints, API routes, and auth flow logic. grep for "/api/", "graph.microsoft.com", "login.microsoftonline.com", "redirect_uri", "client_secret", "consent" patterns.
+[LEARN] ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID NOT validated server-side
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory
+[LEARN] CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe confirmed backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76…)
+[LEARN] CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 key count 8→11 via +3 v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…); v1(4)⊂v2(11) subset invariant intact
+[LEARN] CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed
+[RISK] google: 47 — Earth Engine hardcoded OAuth secret remains highest-confidence finding (valid cloud-platform credential, invalid_grant proof); native-app by-design caps severity; VRP report pending. No new Google surfaces this cycle. GCP control-plane APIs uniformly gated.
+[RISK] microsoft: 68 — Multiple new high-value surfaces: consent grant forge (production Graph v1.0), conversation-ID validation gap (Copilot Studio D2E), Orchestrated API tool injection, off-metadata /me/agentSignInSessions endpoint. agentRegistration IDOR surface intact but CORS closed. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated.

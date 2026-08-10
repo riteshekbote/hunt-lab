@@ -7255,3 +7255,77 @@ testability: AUTH_HELPED
 
 [RISK] google: 85 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC violation), POST-only token endpoint validated. Earth Engine file 404 probe anomaly likely artifact.
 [RISK] microsoft: 82 reason: Agent Registration zero-ownership-restrictions IDOR surface across 5 EntityTypes (confidence 80), Verified ID minting cross-tenant issuance risk (confidence 65), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, Copilot Studio D2E conversation-ID not validated, v1↔v2 JWKS kid overlap with dual issuer namespaces intact.
+===== ANALYST nemotron3 2026-08-10 23:24:16 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -s -o /dev/null -w '%{http_code} %{size_download}' https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py
+200 23110
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/keys | jq '.keys[].kid' | sort
+"6hXLaIYNSJ0o7zu09dMyI0ji3ug"
+"AahUf1bCXvx0JTRcXLrr0U4SluY"
+"fEtqrhKT1bXAGafSdQoN1vXTRpI"
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/v2.0/keys | jq '.keys[].kid' | sort
+"1Nv3JExJrKNx1l7adICQ7Y_Atps"
+"6hXLaIYNSJ0o7zu09dMyI0ji3ug"
+"AahUf1bCXvx0JTRcXLrr0U4SluY"
+"NqEBZVuOpstZ__5iZuWH3HPswcI"
+"fEtqrhKT1bXAGafSdQoN1vXTRpI"
+"rRk1d-57BGZfsM4BUHrkx8cQbic"
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/keys | jq '.keys | length'
+4
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/v2.0/keys | jq '.keys | length'
+6
+[0m
+[0m$ [0mcurl -s https://login.microsoftonline.com/common/discovery/keys | jq '.keys[].kid'
+"AahUf1bCXvx0JTRcXLrr0U4SluY"
+"fEtqrhKT1bXAGafSdQoN1vXTRpI"
+"jvm_-TtaqTCRrkpnmePvwb75nWE"
+"6hXLaIYNSJ0o7zu09dMyI0ji3ug"
+[0m
+[0m$ [0mcurl -s -X OPTIONS -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -i https://graph.microsoft.com/beta/copilot/agentRegistrations
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 943bb216-ec53-4f85-87a0-489b2a2562a1
+client-request-id: 943bb216-ec53-4f85-87a0-489b2a2562a1
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"010","RoleInstance":"MN1PEPF000278CB"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Mon, 10 Aug 2026 23:09:03 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -X GET -i https://graph.microsoft.com/beta/copilot/agentRegistrations
+HTTP/1.1 401 Unauthorized
+Transfer-Encoding: chunked
+Content-Type: application/json
+Strict-Transport-Security: max-age=31536000
+request-id: 116b427f-a049-46d6-a360-663a579d4565
+client-request-id: 116b427f-a049-46d6-a360-663a579d4565
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"006","RoleInstance":"BL6PEPF0001B9A6"}}
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+Date: Mon, 10 Aug 2026 23:09:50 GMT
+
+{"error":{"code":"InvalidAuthenticationToken","message":"Access token is empty.","innerError":{"date":"2026-08-10T23:09:50","request-id":"116b427f-a049-46d6-a360-663a579d4565","client-request-id":"116b427f-a049-46d6-a360-663a579d4565"}}}
+[0m
+[0m$ [0mcurl -s -X HEAD -i https://graph.microsoft.com/beta/copilot/agentRegistrations
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 7bea61a5-eeb6-4b8c-8c6f-b998ab26ff80
+client-request-id: 7bea61a5-eeb6-4b8c-8c6f-b998ab26ff80
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"010","RoleInstance":"MN1PEPF0007706D"}}
+Date: Mon, 10 Aug 2026 23:09:51 GMT
+[0m
+[0m$ [0mcurl -s -X POST -d "client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1&grant_type=refresh_token&refresh_token=invalid" https://oauth2.googleapis.com/token
+{
+  "error": "invalid_grant",
+  "error_description": "Bad Request"
+}
+[0m

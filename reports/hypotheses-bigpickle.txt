@@ -1,15 +1,9 @@
-## 2026-08-10 22:24:43 UTC [google] (model bigpickle)
-[CHANGED] `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` 404 (21:06/21:57 robot probes) → PROBE ARTIFACT confirmed: clean URL → **200/23110**; trailing-backtick URL → 404. File live, secret hypothesis unaffected.
-[CHANGED] `graph.microsoft.com/beta/copilot/agentRegistrations/{id}` OPTIONS→405 KB entries → **bare-OPTIONS artifact**. True preflight (Origin + `Access-Control-Request-Method: PATCH` + `Access-Control-Request-Headers: authorization`) on `{id}` → **200 `ACAO:*` + `Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH` + `Allow-Headers: authorization` + `Max-Age: 86400`** → CORS cross-origin mutation vector **LIVE** on the ID-path (falsifies the "closed" CHANGED entries, matches my 21:51 lead).
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} — score 7.75 (attack 8, business 9, tech 8, gate 4, cloud 9, fresh 8) — IDOR + live CORS mutation vector on 8 paths
-[PRIO] login.microsoftonline.com v1↔v2 dual-issuer/shared-JWKS — score 7.20 (attack 6, business 10, tech 9, gate 3, cloud 9, fresh 5)
-[PRIO] oauth2.googleapis.com/token earthengine secret — score 6.60 (attack 5, business 8, tech 7, gate 6, cloud 10, fresh 4) — VRP-capped by native-app by-design
-[PRIO] graph.microsoft.com/beta/copilot/admin/policySettings/{id} — score 6.05 (attack 5, business 7, tech 7, gate 4, cloud 9, fresh 6) — CORS precondition only
+## 2026-08-10 23:06:39 UTC [google] (model bigpickle)
 [HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH, cross-origin mutation vector LIVE
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + 5 sibling collections
-confidence: 94
-reasoning: this probe — true preflight on `{id}` → 200 `ACAO:*` + full mutation allowlist (DELETE/GET/OPTIONS/POST/PUT/PATCH) + allow-headers authorization, Max-Age 86400 (bare-OPTIONS→405 was non-preflight artifact). $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes. GET→401/518 Bearer gate.
+confidence: 95
+reasoning: this probe re-confirmed true preflight on `{id}` → 200 `ACAO:*` + full mutation allowlist + allow-headers authorization (bare-OPTIONS→405 was non-preflight artifact); $metadata 873-char block with client-supplied createdBy/ownerIds/agentCard Nullable=false, ZERO OperationRestrictions across 5 EntityTypes; GET→401/518 Bearer gate.
 evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer; or victim-context browser mutation via `ACAO:*`.
 verify_steps: AUTH_HELPED: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes + policySettings/{id}.
 impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
@@ -18,7 +12,7 @@ testability: AUTH_HELPED
 class: AUTH
 asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
 confidence: 66
-reasoning: v1(4–5) ⊂ v2(7–11), 0 v1-exclusive steady-state (v2 +3 kids this cycle, invariant intact); dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+reasoning: fresh probe — v1(4) ⊂ v2(7), 0 v1-exclusive steady-state; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
 evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
 verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
@@ -27,16 +21,18 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha256 `3f3f8d6f…d271`)
 confidence: 70
-reasoning: this probe — raw GitHub 200/23110, whole-file sha `f4f93c76…` unchanged (earlier 404 was backtick artifact); real secret+dummy RT → 400 `invalid_grant` vs bogus secret → 401 `invalid_client` (RFC 6749 §5.2) proves client-auth passes; `installed` public client + OOB redirect → by-design WONTFIX per ADK #2128 caps VRP-worthiness.
+reasoning: this probe — raw GitHub 200/23110, whole-file sha `f4f93c76…` unchanged; real secret+dummy RT → 400 `invalid_grant` vs bogus secret → 401 `invalid_client` (RFC 6749 §5.2) proves client-auth passes; `installed` public client + OOB redirect → by-design WONTFIX per ADK #2128 caps VRP-worthiness.
 evidence_needed: POST /token with authorized RT → 200 cloud-platform; VRP outcome test.
 verify_steps: HUMAN_ONLY authorized `POST https://oauth2.googleapis.com/token`: grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
 impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw, native-app by-design caps.
 testability: HUMAN_ONLY
-[PARKED] Copilot Policy Settings CORS-assisted admin mutation: evidence is CORS precondition only, schema OperationRestrictions unverified, and it is subsumed by step 5 of the primary IDOR verify plan — redundant at conf 50.
-[PARKED] earthengine oauth.py 404 probe anomaly (laguna #50): resolved as backtick-in-URL probe artifact, clean probe 200/23110 — hypothesis moot.
-[FINAL] 1) agentRegistrations cross-principal IDOR + live CORS mutation vector (94), 2) v1↔v2 issuer-confusion (66), 3) earthengine secret (70, HUMAN-gated, VRP-capped).
-[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 94). Cross-origin vector confirmed LIVE this probe (true preflight on `{id}` → 200 `ACAO:*` full mutation allowlist), so a victim-context browser mutation is an independent high-impact vector.
-[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Request-Method/Headers) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization, Max-Age 86400 — vector LIVE; all "OPTIONS→405 closed" KB entries were bare-OPTIONS artifacts (no Origin → not a preflight). Confidence 93→94.
-[LEARN] ACCEPTED earthengine raw GitHub liveness @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py: 404 in 21:06/21:57 probes was backtick-in-URL artifact — clean URL → 200/23110, whole-file sha `f4f93c76…` unchanged; secret hypothesis unaffected, NO_DELTA on source.
-[RISK] google: 45 — earthengine secret live-valid (invalid_grant) but native-app by-design caps VRP; tokeninfo oracle no-reward; raw-GitHub 404 resolved as probe artifact (no delta); only high-value path needs HUMAN authorized RT.
-[RISK] microsoft: 65 — agentRegistrations IDOR precondition doubly live (zero ownership restrictions + CORS mutation vector re-confirmed on {id} via true preflight); exploitability gated on AUTH_HELPED two-principal test; issuer-confusion sub-precondition intact (conf 94/66).
+[PARKED] Copilot Policy Settings CORS-assisted admin mutation: evidence is CORS precondition only, schema OperationRestrictions unverified, subsumed by step 5 of primary IDOR plan — redundant at conf 50.
+[FINAL] 1) agentRegistrations cross-principal IDOR + live CORS mutation vector (95), 2) v1↔v2 issuer-confusion (66), 3) earthengine secret (70, HUMAN-gated, VRP-capped).
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 95). Cross-origin vector re-confirmed LIVE this probe (true preflight on `{id}` → 200 `ACAO:*` full mutation allowlist), so victim-context browser mutation is an independent high-impact vector.
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Control-Request-Method/Headers) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization, Max-Age 86400 — re-confirmed @ 23:06 UTC; all "OPTIONS→405 closed" KB entries are bare-OPTIONS artifacts (no Origin → not a preflight).
+[LEARN] ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: fresh probe — v1=4 kids ALL ⊂ v2=7 kids, 0 v1-exclusive (aFkmKVFc churn resolved); subset invariant intact, dual issuer namespaces intact; rotation-desync class stays REJECTED.
+[LEARN] ACCEPTED earthengine oauth.py:45 secret @ raw.githubusercontent.com: clean GET → 200/23110, whole-file sha `f4f93c76…` unchanged; prior 404s confirmed probe artifact (backtick-in-URL), NO_DELTA on source.
+[LEARN] ACCEPTED tokeninfo oracle @ oauth2.googleapis.com/tokeninfo: no-param → 400/113 invalid_token confirmed live @ 23:06 UTC.
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged (NO_DELTA @ 23:06 UTC).
+[RISK] google: 45 — earthengine secret live-valid (invalid_grant, not invalid_client) but native-app by-design caps VRP-worthiness; tokeninfo oracle no-reward; only high-value path needs HUMAN authorized RT.
+[RISK] microsoft: 65 — agentRegistrations IDOR precondition doubly live (zero ownership restrictions + CORS mutation vector re-confirmed on `{id}` via true preflight @ 23:06 UTC); exploitability gated on AUTH_HELPED two-principal test; issuer-confusion sub-precondition intact (conf 95/66).

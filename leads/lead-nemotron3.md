@@ -3971,3 +3971,4 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–11 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED
 [RISK] google: 85 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC violation), POST-only token endpoint validated. Earth Engine file 404 probe anomaly likely artifact.
 [RISK] microsoft: 82 reason: Agent Registration zero-ownership-restrictions IDOR surface across 5 EntityTypes (confidence 80), Verified ID minting cross-tenant issuance risk (confidence 65), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, Copilot Studio D2E conversation-ID not validated, v1↔v2 JWKS kid overlap with dual issuer namespaces intact.
+## 2026-08-10 23:24:08 UTC [google] (model nemotron3)
