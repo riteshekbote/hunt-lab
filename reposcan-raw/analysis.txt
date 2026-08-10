@@ -1,30 +1,71 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the delta hits, I'll classify each:
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=45][0m
+[0m→ [0mRead reposcan-raw/google/kf/operator/pkg/release/release.go[90m [offset=60, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=15, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=115][0m
+Now I have enough context. Let me classify all the hits:
 
-## Classification Tables
+---
 
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none in delta)* |  |  | The earthengine-api oauth.py:45 secret (sha256 `3f3f8d6f...`) is in KNOWN-DUP/ACCEPTED list, not new |
+### Classification Tables
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | CLI writes user-supplied `google_api_key` var to config — placeholder pattern |
-| google/kf/pkg/kf/commands/stubs/auth.go | 53 | `service-account.json` placeholder in help text |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | all | Minified source maps / parser error strings — build artifacts |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Source map / parser error strings — build artifact |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | all | Source maps / parser error strings — build artifacts |
+#### REAL_SECRET (hardcoded credentials with signs of life)
+*None found in this scan.*
 
-### ENDPOINT_LEAK
-| File | Line | Detail |
-|------|------|--------|
-| google/kf/operator/pkg/release/release.go | 65 | `https://source.corp.google.com/...` — internal corporate source URL |
+---
 
-### INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY
+#### TEST_OR_EXAMPLE (sample/test/fixture data, config templates, build artifacts)
+
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag *name* constant, not a secret value |
+| `google/kf/operator/config/*.yaml` | 16 | `kind: ConfigMap` | K8s ConfigMap definitions (not Secret kind) |
+| `google/kf/hack/*.sh` | 37,41 | `kind: ConfigMap` | Install script ConfigMap refs |
+| `google/kf/cmd/generate-release/cloudbuild.yaml` | 229 | `kind: ConfigMap` | Build config ConfigMap |
+| `google/kf/pkg/kf/commands/config/config.go` | 65,91 | `KubeCfgFile`, `ConfigFlags` | Kubeconfig *path* flag definitions |
+| `google/kf/pkg/kf/commands/stubs/*.go` | various | kubeconfig help text | CLI help/examples for kubeconfig usage |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | various | Parse error messages | Minified JS build artifacts (source maps) |
+| `google/adk-java/dev/browser/main-*.js` | 5 | Parse error messages | Minified JS build artifacts |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | various | Parse error messages | Minified JS build artifacts |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` | Config parameter definitions (Optional[str]) |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | `GOOGLE_API_KEY={google_api_key}` | Template writing *user-provided* key to .env |
+
+---
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs, internal APIs)
+
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/kf/operator/pkg/release/release.go` | 65 | `source.corp.google.com/...` | Internal Google source URL (corp-only) |
+
+---
+
+#### INTERESTING (debug flags, cloud configs, unusual patterns)
+
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/kf/operator/pkg/operand/transformations/deployment_transform.go` | 51 | `169.254.169.254/computeMetadata/.../token` | GCP metadata token fetch in container startup (standard but noteworthy) |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern (secret *name*, not value) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` metadata endpoint | GCP metadata access documented in code comments (privilege escalation warning) |
+| `google/kf/operator/cmd/manager/main.go` | 34-36 | `master-url`, `kubeconfig-url` flags | Controller manager kubeconfig flags (out-of-cluster config) |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| cadvisor StorageDriverPassword | `cadvisor/lib/cadvisorflags/flags.go` | 54 | TEST_OR_EXAMPLE (flag name const) | **no** |
+| kf internal source URL | `kf/operator/pkg/release/release.go` | 65 | ENDPOINT_LEAK (corp.google.com) | **no** (internal URL, no creds) |
+| kf metadata token fetch | `kf/operator/pkg/operand/transformations/deployment_transform.go` | 51 | INTERESTING (standard GCP pattern) | **no** |
+| adk-go Cloud Run secret ref | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | INTERESTING (deployment pattern) | **no** |
+| adk-python metadata endpoint | `adk-python/.../container_code_executor.py` | 114,154 | INTERESTING (documented warning) | **no** |
+| adk-python CLI .env template | `adk-python/.../cli_create.py` | 123 | TEST_OR_EXAMPLE (user-input template) | **no** |
+| Minified JS chunks (adk-go/adk-java/adk-python) | various | various | TEST_OR_EXAMPLE (build artifacts) | **no** |
+| Kubeconfig flag defs (kf, adk-python) | various | various | TEST_OR_EXAMPLE (config flags) | **no** |
+
+---
+
+**Summary**: No `REAL_SECRET` findings in this delta. The single new hit (`cadvisorflags/flags.go:54`) is a flag *name* constant, not a secret value. The internal `source.corp.google.com` URL is an endpoint leak but contains no credentials. All other hits are test/config/examples or documented cloud patterns.
