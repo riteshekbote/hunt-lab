@@ -18159,3 +18159,64 @@ testability: AUTH_HELPED
 
 [RISK] google: 40 | Single hardcoded OAuth client_secret (conf 95, SHA-verified live at oauth.py:45/:99, scopes cloud-platform+drive+devstorage, whole-file sha f4f93c76… unchanged) but gated behind HUMAN_ONLY (requires victim refresh_token for redemption test); tokeninfo oracle = no-reward per Google VRP rules (400/113 introspection, no-Authorization-header query-param); identitytoolkit 403-gated (unregistered callers); ADK secrets KNOWN-DUP (closed #5520/#2128); bughunters.google.com hardened (HSTS+nosniff+DENY); all GCP control-plane discovery APIs require consumer identity (no anonymous reads); passive phase fully exhausted.
 [RISK] microsoft: 91 | Crown-jewel Entra/Copilot identity plane with 3 live design-level gaps: (1) agentRegistration IDOR — 5 EntityTypes, zero OperationRestrictions, createdBy/ownerIds/agentCard client-supplied Nullable=false, OPTIONS→200 CORS `*` + full mutation allowlist (CVSS 7.5–9.0); (2) v1↔v2 issuer-confusion — v1(4–5)⊂v2(7–8) kids shared, 0 v1-exclusive, dual issuer namespaces, v1.0-only response_type=token excluded from v2.0 (CVSS 8.0–9.8); (3) Graph/endpoint 405 anomaly — HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 violation) extends to /v1.0, /me, /users, /beta/copilot/agentRegistrations; highest impact potential, requires AUTH_HELPED two-principal Entra test-tenant to convert preconditions into reportable exploits.
+===== ANALYST laguna 2026-08-10 09:52:22 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+## STEP 1 — DELTA
+NO_DELTA. All passive probes (reposcan 2026-08-10 05:06 UTC → zero REAL_SECRET; robot probes → stable) confirm prior ACCEPTED findings unchanged.
+
+## STEP 2 — PRIORITIZE
+[PRIO] oauth2.googleapis.com/token — 9.4 | a10 b10 t9 g8 f10 c8
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — 8.8 | a9 b10 t9 g7 f8 c7
+[PRIO] login.microsoftonline.com/common/discovery/keys — 8.3 | a8 b10 t9 g6 f7 c7
+[PRIO] oauth2.googleapis.com/tokeninfo — 6.1 | a7 b5 t7 g5 f6 c7 (no-reward per Google VRP)
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token
+confidence: 95
+reasoning: oauth.py:45 + :99 fallback contain hardcoded secret (sha256 `3f3f8d6f…d271`), live on master (raw GitHub GET→200 len=23110, whole-file sha `f4f93c76…`). Token endpoint GET→404 confirms POST-only alive gate; only grant_type=refresh_token redemption path. client_id `517222506229-…`, scopes include cloud-platform (full GCP).
+evidence_needed: POST /token with leaked secret + victim refresh_token → HTTP 200 access_token with cloud-platform scope.
+verify_steps: HUMAN_ONLY — `POST https://oauth2.googleapis.com/token` (Content-Type: application/x-www-form-urlencoded) body `grant_type=refresh_token&client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=<REDACTED>&refresh_token=<victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + response scopes only (no sandbox redemption). 200 + cloud-platform = confirmed Google VRP; 400/401 = native-app by-design gate.
+impact: Full GCP project compromise via cloud-platform scope (Compute Engine, Cloud Storage, IAM); CVSS 8.8–9.8; ~$100k Google VRP ceiling.
+testability: HUMAN_ONLY
+
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: $metadata 873-char block, 0 OperationRestrictions across 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage); createdBy/ownerIds/agentCard all client-supplied Nullable=false. Runtime: GET→401/237, HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), OPTIONS→200 CORS `*` + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH).
+evidence_needed: Non-owner principal reads/mutates another principal's registration → 200/204 vs 403.
+verify_steps: AUTH_HELPED two-principal Entra test tenant: (1) A POST {displayName, createdBy=<B_oid>, ownerIds:[<B_oid>]} → 201; (2) B GET collection w/ own Bearer → 200 incl A's entry vs 403; (3) B PATCH {A_id} {agentCard.injected=attacker} → 200/204 vs 403; (4) B GET {A_id} confirm persistence.
+impact: Cross-app agent impersonation + supply-chain tampering of Copilot/Entra agent ecosystem; CVSS 7.5–9.0; MSRC crown-jewel.
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys
+confidence: 60
+reasoning: v1(4–5 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, `Access-Control-Allow-Origin: *`; dual issuer namespaces (`sts.windows.net/{tid}/` vs `login.microsoftonline.com/{tid}/v2.0`) via OIDC discovery; v1.0-only response_type=token (pure implicit) excluded from v2.0; v1 kid set never validated against v2 issuer.
+evidence_needed: v1.0 id_token (iss=`sts.windows.net/{tid}/`) accepted by v2.0-only Graph resource → 200 vs 401/403.
+verify_steps: AUTH_HELPED: (1) GET /common/discovery/keys → confirm v1⊂v2 subset (done); (2) OIDC v1.0 authorize ?response_type=id_token against v1.0-only app → capture v1.0 id_token; (3) GET /beta/copilot/agentRegistrations with v1.0 Bearer → HTTP 200 (accepted, confusion) vs 401/403 (defeated).
+impact: MFA/auth bypass on Microsoft Entra identity plane; CVSS 8.0–9.8; ~$100k MSRC ceiling.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+[PARKED] none — all 3 hypotheses have confidence ≥ 60, none on REJECTED list, all have concrete verify_steps.
+
+[FINAL] oauth2.googleapis.com/token — MISCONFIG, conf 95 (HUMAN_ONLY, highest confidence + widest impact)
+[FINAL] graph.microsoft.com/beta/copilot/agentRegistrations — IDOR, conf 85 (AUTH_HELPED, crown-jewel MSRC surface)
+[FINAL] login.microsoftonline.com/common/discovery/keys — AUTH, conf 60 (AUTH_HELPED, issuer-confusion)
+
+## STEP 5 — NEXT ACTION
+[NEXT][HUMAN]: Execute authorized `POST https://oauth2.googleapis.com/token` — `grant_type=refresh_token&client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=<REDACTED>&refresh_token=<victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log HTTP status + response scopes only (no sandbox redemption). HTTP 200 + cloud-platform = confirm Google VRP (conf 95 → reportable). HTTP 400/401 = native-app by-design gate confirmed → promote agentRegistration IDOR [85] to top and initiate AUTH_HELPED two-principal Entra test.
+
+## STEP 6 — LEARNING
+[LEARN] ACCEPTED: No new proving-dead classes this cycle — all fresh probes confirm prior ACCEPTED findings unchanged (NO_DELTA). oauth2.googleapis.com/token GET→404 confirms POST-only alive gate; agentRegistrations GET→401/HEAD→405/OKTOPUS→200 CORS * + full mutation allowlist; v1⊂v2 kid overlap steady-state; tokeninfo 400/113 introspection oracle (no-reward per Google VRP).
+
+## STEP 7 — RISK SCORE
+[RISK] google: 40 | Single hardcoded OAuth client_secret (conf 95, SHA-verified live at oauth.py:45/:99, scopes cloud-platform+drive+devstorage, whole-file sha `f4f93c76…` unchanged) but gated behind HUMAN_ONLY (requires victim refresh_token for redemption test); tokeninfo oracle = no-reward per Google VRP rules (400/113 introspection, no-Authorization-header query-param); identitytoolkit 403-gated (unregistered callers); ADK secrets KNOWN-DUP (closed #5520/#2128); bughunters.google.com hardened (HSTS+nosniff+DENY); all GCP control-plane discovery APIs require consumer identity (no anonymous reads); passive phase exhausted.
+[RISK] microsoft: 91 | Crown-jewel Entra/Copilot identity plane with 3 live design-level gaps: (1) agentRegistration IDOR — 5 EntityTypes, zero OperationRestrictions, createdBy/ownerIds/agentCard client-supplied Nullable=false, OPTIONS→200 CORS `*` + full mutation allowlist (CVSS 7.5–9.0); (2) v1↔v2 issuer-confusion — v1(4–5)⊂v2(7–8) kids shared, 0 v1-exclusive, dual issuer namespaces, v1.0-only response_type=token excluded from v2.0 (CVSS 8.0–9.8); (3) Graph/endpoint 405 anomaly — HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 violation) extends to /v1.0, /me, /users, /beta/copilot/agentRegistrations; highest impact potential, requires AUTH_HELPED two-principal Entra test-tenant to convert preconditions into reportable exploits.

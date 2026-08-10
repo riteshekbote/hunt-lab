@@ -1,4 +1,4 @@
-## 2026-08-10 08:01:59 UTC [google] (model bigpickle)
+## 2026-08-10 09:46:14 UTC [google] (model bigpickle)
 [HYP] Hardcoded Earth Engine client_secret redeemable for cloud-platform token
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`)
@@ -27,3 +27,15 @@ verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tena
 impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
 testability: AUTH_HELPED
 [NEXT][HUMAN]: Execute authorized `POST https://oauth2.googleapis.com/token` with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + granted scopes only. If 200+cloud-platform → report Google VRP (conf 95+); if 400/401 invalid_client/unauthorized_client → native-app by-design gate confirmed → proceed to AUTH_HELPED two-principal Entra test for agentRegistrations IDOR.
+[HYP] Hardcoded Earth Engine client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client 517222506229-…, secret sha256 `3f3f8d6f…d271`)
+confidence: 95
+reasoning: whole-file sha `f4f93c76…` unchanged (len=23110), secret verbatim at :45 + :99 fallback; token GET→404 POST-only; fresh probe confirms EE API surface anonymous→404 so redemption is the sole vector.
+evidence_needed: `POST /token` grant_type=refresh_token + leaked secret + valid RT → 200 cloud-platform access_token vs 400/401 invalid_client/unauthorized_client.
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (form): `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + scopes only.
+impact: cloud-platform access-token minting / GCP impersonation; CVSS 8.0–9.8 (native-app by-design caps VRP).
+testability: HUMAN_ONLY
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v

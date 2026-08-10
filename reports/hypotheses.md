@@ -1202,3 +1202,16 @@
 - LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
 - LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4–5 kids)⊂v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — transient rotation churn, v1 kid set never validated against v2 issuer → no cross-endpoint con
+
+## RANKED HYPOTHESES 2026-08-10 09:52:22 UTC
+- [95] oauth2.googleapis.com/token: Hardcoded Earth Engine client_secret redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [95] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- [80] graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-longcat.txt): **PROBE**: `curl -s -D - -X OPTIONS https://graph.microsoft.com/beta/copilot/agentRegistrations` — confirm OPTIONS→405 is consistent across retries and check if
+- LEARN: ACCEPTED: No new proving-dead classes this cycle — all fresh probes confirm prior ACCEPTED findings unchanged (NO_DELTA). oauth2.googleapis.com/token GET→404 co
+- LEARN: CHANGED: `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist). Closes the CORS cross-origi
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (RFC 6750 §3), 873-char metadata block,
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, len=23110.
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact.
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — GET→400/113 invalid_token, HEAD→404 method-handling gap.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 

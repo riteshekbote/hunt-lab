@@ -3315,3 +3315,4 @@ verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.
 impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
 testability: AUTH_HELPED
 [HYP] Hardcoded Earth Engine
+## 2026-08-10 09:52:12 UTC [google] (model nemotron3)

@@ -342,3 +342,6 @@
 - CHANGED None — robot probes at 04:50 UTC confirm all ACCEPTED findings stable: `graph.microsoft.com/beta/copilot/agentRegistrations` → 401, `oauth2.googleapis.com/token` → 404 (POST-only), `graph.microsoft.co
 
 ## 2026-08-10 08:03:22 UTC
+
+## 2026-08-10 09:52:22 UTC
+- CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS: was HTTP 200 (CORS `*`, full mutation allowlist `DELETE,GET,OPTIONS,POST,PUT,PATCH`) → now HTTP 405 (3× consistent). Closes the CORS cros

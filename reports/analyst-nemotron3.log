@@ -6089,3 +6089,204 @@ impact: Full agent impersonation — rewrite agentCard instructions/endpoints, f
 testability: AUTH_HELPED
 
 [HYP] Hardcoded Earth Engine
+===== ANALYST nemotron3 2026-08-10 09:52:22 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X HEAD https://graph.microsoft.com/beta/copilot/agentRegistrations
+405
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET https://graph.microsoft.com/beta/copilot/agentRegistrations
+401
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X OPTIONS OPTIONS
+000
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X OPTIONS https://graph.microsoft.com/beta/copilot/agentRegistrations
+405
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET https://oauth2.googleapis.com/token
+404
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET https://graph.microsoft.com/
+301
+[0m
+[0m$ [0mcurl -s -I https://graph.microsoft.com/ | head -10
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 25296d5a-b0e6-4f3b-b844-2718da9bd35c
+client-request-id: 25296d5a-b0e6-4f3b-b844-2718da9bd35c
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 3","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"PH2PEPF00002EF1"}}
+Date: Mon, 10 Aug 2026 09:47:18 GMT
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET https://graph.microsoft.com/
+301
+[0m
+[0m$ [0mcurl -s -I -L https://graph.microsoft.com/ | grep -E "(HTTP|Location)" | head -10
+HTTP/1.1 405 Method Not Allowed
+[0m
+[0m$ [0mcurl -s -v https://graph.microsoft.com/ 2>&1 | head -20
+* Host graph.microsoft.com:443 was resolved.
+* IPv6: 2603:1036:3000:f0::80, 2603:1036:3000:e8::80, 2603:1036:3000:f8::80
+* IPv4: 40.126.62.160, 20.190.190.161, 20.190.190.224
+*   Trying 40.126.62.160:443...
+* Connected to graph.microsoft.com (40.126.62.160) port 443
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+*  CAfile: /etc/ssl/certs/ca-certificates.crt
+*  CApath: /etc/ssl/certs
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [88 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [187 bytes data]
+[0m
+[0m$ [0mcurl -s -v https://graph.microsoft.com/ 2>&1 | tail -30
+*  subject: C=US; ST=WA; L=Redmond; O=Microsoft Corporation; CN=graph.microsoft.com
+*  start date: Jun 10 10:02:49 2026 GMT
+*  expire date: Dec  7 10:02:49 2026 GMT
+*  subjectAltName: host "graph.microsoft.com" matched cert's "graph.microsoft.com"
+*  issuer: C=US; O=Microsoft Corporation; CN=Microsoft TLS G2 RSA CA OCSP 04
+*  SSL certificate verify ok.
+*   Certificate level 0: Public key type RSA (2048/112 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 1: Public key type RSA (4096/152 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 2: Public key type RSA (4096/152 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 3: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
+* using HTTP/1.x
+} [5 bytes data]
+> GET / HTTP/1.1
+> Host: graph.microsoft.com
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [81 bytes data]
+< HTTP/1.1 301 Moved Permanently
+< Location: https://developer.microsoft.com/graph
+< Strict-Transport-Security: max-age=31536000
+< request-id: b63b1fba-9db9-45bb-a7f6-493f80ba154a
+< client-request-id: b63b1fba-9db9-45bb-a7f6-493f80ba154a
+< x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 3","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"PH2PEPF00002F78"}}
+< Date: Mon, 10 Aug 2026 09:48:11 GMT
+< Content-Length: 0
+< 
+* Connection #0 to host graph.microsoft.com left intact
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET "https://oauth2.googleapis.com/tokeninfo"
+400
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X GET "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token"
+200
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | jq '.keys | length'
+4
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" | jq '.keys | length'
+7
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | jq -r '.keys[].kid' && echo "---" && curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" | jq -r '.keys[].kid'
+AahUf1bCXvx0JTRcXLrr0U4SluY
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+---
+AahUf1bCXvx0JTRcXLrr0U4SluY
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+rRk1d-57BGZfsM4BUHrkx8cQbic
+NqEBZVuOpstZ__5iZuWH3HPswcI
+1Nv3JExJrKNx1l7adICQ7Y_Atps
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | head -50
+"""Earth Engine OAuth2 helper functions for generating client tokens.
+
+Typical use-case consists of:
+1. Calling 'get_authorization_url'
+2. Using a browser to access the output URL and copy the generated OAuth2 code
+3. Calling 'request_token' to request a token using that code and the OAuth API
+4. Calling 'write_private_json' to save the token at the path given by
+   'get_credentials_path'
+"""
+
+import base64
+from collections.abc import Sequence
+import errno
+import hashlib
+import http.server
+import json
+import os
+import shutil
+import subprocess
+import sys
+from typing import Any
+import urllib.error
+import urllib.parse
+import urllib.request
+import webbrowser
+
+import google.auth
+from google.auth import _cloud_sdk
+import google.auth.transport.requests
+from google.oauth2 import credentials as credentials_lib
+
+from ee import data as ee_data
+from ee import ee_exception
+
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sed -n '95,105p'
+args = {}
+    args['token_uri'] = TOKEN_URI  # Not overridable in file
+    args['refresh_token'] = stored.get('refresh_token')
+    args['client_id'] = stored.get('client_id', CLIENT_ID)
+    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+    args['scopes'] = stored.get('scopes', SCOPES)
+    args['quota_project_id'] = stored.get('project')
+    return args
+
+
+def is_sdk_credentials(credentials: Any | None) -> bool:
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>/dev/null | grep -A 30 'EntityType Name="agentRegistration"' | head -40
+...output truncated...
+
+Full output saved to: /home/runner/.local/share/opencode/tool-output/tool_feb1522cc00111c1gwILeTNe6H
+
+(no output)
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>/dev/null | grep -c 'OperationRestrictions'
+0
+[0m
+[0m$ [0mcurl -s "https://graph.microsoft.com/beta/\$metadata" 2>/dev/null | grep -o 'agentRegistration' | wc -l
+19
+[0m
