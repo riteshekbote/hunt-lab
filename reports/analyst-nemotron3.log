@@ -6070,3 +6070,22 @@ All three hypotheses have confidence ≥ 40, classes not on REJECTED list, concr
 **STEP 7 — RISK SCORE**
 [RISK] google: 30 | All GCP control-plane discovery APIs remain auth-gated (API key/OAuth); identitytoolkit 403-gated for unregistered callers; tokeninfo oracle is rate-limited public introspection (no-reward); bughunters.google.com hardened with HSTS+XFO+nosniff; ADK issues are KNOWN-DUP SDK-level GitHub PRs; Earth Engine client_secret is live but requires valid refresh_token (user interaction); no new unauthenticated surface. Passive phase exhausted.
 [RISK] microsoft: 85 | Multiple high-value design-level gaps confirmed live in Entra/Copilot identity plane, all awaiting AUTH_HELPED test-tenant verification: Agent Registration IDOR (client-supplied ownership with zero metadata restrictions, priority 8.55); v1.0↔v2.0 issuer-confusion (4/4 kid overlap + dual issuer namespaces + v1.0-only implicit flow, $100k ceiling); Verified ID minting without admin role (DID-signed VC with arbitrary caller claims); Three-hop user_fic Hop3 user_id impersonation knob; Consent primitive caller-chosen resourceId. All in active GA/preview transition; test-tenant required; crown-jewel scope — impact potential remains highest.
+===== ANALYST nemotron3 2026-08-10 08:03:22 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] oauth2.googleapis.com/token, 8.25, attack=8 business=9 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/keys, 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 85
+reasoning: PASSIVE-VERIFIED live: $metadata 873-char block, 13 client-supplied properties (createdBy/ownerIds Nullable=false, agentCard graph.Json), ZERO OperationRestrictions across 5 EntityTypes. HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), GET→401/237 Bearer, OPTIONS→200 CORS * mutation allowlist.
+evidence_needed: Principal B GETs collection → enumerates Principal A's registrations; Principal B PATCHes /{A-id} with attacker-controlled agentCard/ownerIds/createdBy → 200/204 and mutation persists.
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {displayName:"test", createdBy:"user2", ownerIds:["user2"], agentCard:{}}; 2) B GET /beta/copilot/agentRegistrations → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {agentCard:{"injected":true}} → 200/204 vs 403; 4) B GET /{A-id} confirm mutation.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+
+[HYP] Hardcoded Earth Engine

@@ -2617,3 +2617,32 @@ verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (
 impact: cloud-platform access-token minting / GCP impersonation; CVSS 8.0–9.8 (native-app by-design caps VRP).
 testability: HUMAN_ONLY
 [NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + granted scopes only. If 200+cloud-platform → report Google VRP (conf 95+); if 400/401 invalid_client/unauthorized_client → native-app by-design gate confirmed → escalate the AUTH_HELPED two-principal Entra test for agentRegistrations IDOR (top priority asset, 6.95).
+## 2026-08-10 08:01:59 UTC [google] (model bigpickle)
+[HYP] Hardcoded Earth Engine client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`)
+confidence: 95
+reasoning: oauth.py whole-file sha `f4f93c76…` unchanged len=23110; secret verbatim at :45 + :99 fallback; GET→404 confirms POST-only gate; tokeninfo oracle live.
+evidence_needed: `POST /token` grant_type=refresh_token + leaked secret + valid RT → 200 cloud-platform access_token vs 400/401 invalid_client/unauthorized_client (native-app gate).
+verify_steps: HUMAN_ONLY authorized POST `https://oauth2.googleapis.com/token` (application/x-www-form-urlencoded): `grant_type=refresh_token&client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=<sha3f3f8d6f…>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + scopes only.
+impact: cloud-platform access-token minting / GCP impersonation; CVSS 8.0–9.8 (native-app by-design caps VRP).
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 85
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3), OPTIONS→200 CORS `*` + full mutation allowlist; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer.
+verify_steps: AUTH_HELPED two-principal test-tenant: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: fresh probe v1=4 kids ALL ⊂ v2=6 (0 v1-exclusive, subset invariant holds); dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — replay precondition intact (distinct from REJECTED rotation-desync class).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[NEXT][HUMAN]: Execute authorized `POST https://oauth2.googleapis.com/token` with `grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha256 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log status + granted scopes only. If 200+cloud-platform → report Google VRP (conf 95+); if 400/401 invalid_client/unauthorized_client → native-app by-design gate confirmed → proceed to AUTH_HELPED two-principal Entra test for agentRegistrations IDOR.
