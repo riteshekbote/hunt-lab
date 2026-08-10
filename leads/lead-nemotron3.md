@@ -3657,3 +3657,77 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard.
 [LEARN] ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
 [LEARN] ACCEPTED: Copilot Studio D2E S2S API @ `/`
+## 2026-08-10 20:06:28 UTC [google] (model nemotron3)
+[NEW] Source maps live on both identity SPAs: `mysignins.microsoft.com/bundle/main.caa6a456.js.map` (7MB, 4359 paths) + `api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map` (35MB, 4922 files)
+[NEW] Verified ID minting endpoint `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, Bearer scope=SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`; backend gates ONLY on `GuestIsNotAllowed`
+[NEW] `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in both `$metadata` docs but endpoint alive (401)
+[NEW] Agent Registry API (beta, deprecated May-2026): `/beta/agentRegistry` → `agentInstances`/`agentCardManifests`/`agentCollections`; `agentInstance` binds `agentIdentityId`+`agentUserId`+`agentIdentityBlob`
+[NEW] Copilot Studio D2E S2S API (private preview): `POST /copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations` — **conversation-ID NOT validated server-side**
+[NEW] Orchestrated API: `/powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId}` — `InvokeTool` takes client-supplied `toolSchemaName`+`inputs`
+[NEW] Three-hop Agent User `user_fic` flow: Hop1 `client_credentials`+cert+`fmi_path` → T1; Hop2 FIC exchange → T2; Hop3 `grant_type=user_fic` with `user_id={oid}` OR `upn`
+[NEW] `managerApplications` on Blueprints: up to 10 first-party Microsoft apps manage Blueprints without `AgentIdentityBlueprintPrincipal.ReadWrite.All`
+[NEW] Consent primitive `POST /v1.0/oauth2PermissionGrants` with **caller-chosen `resourceId`** (Graph OR Azure Storage `user_impersonation` `e406a681...`); `Application.Read.All` NOT in agent blocked-permissions
+[NEW] ACS JWKS rotation confirmed: 5 self-signed keys (3× `CN=accounts.accesscontrol.windows.net`, 2× `CN=login.microsoftonline.us`), `allowedAudiences` claim present
+[NEW] `login.live.com` redirect matrix EXHAUSTED: `/oauth20_desktop.srf` REMOVED (stub `?removed=true`); `/oauth20_authorize.srf` returns generic 200 for all 8 variants, validation deferred
+[NEW] `login.microsoftonline.com/common/discovery/v2.0/keys` now includes 3 additional kids vs prior probe: `rRk1d-57B…` (msonline.com), `NqEBZVuOp…` (msonline.us), `1Nv3JExJr…` (new v2-only) — v2 count increased
+[NEW] `/oauth2/v2.0/authorize?response_type=token` body-size drift: 23940 → 41309 bytes — confirms error-rendering anomaly stable, content is JS error shell
+[CHANGED] `graph.microsoft.com/beta/copilot/agentRegistrations` OPTIONS → HTTP 405 sustained (was 200 w/ CORS `*` + full mutation allowlist at 09:52 UTC) — CORS cross-origin mutation vector **closed**, confirmed
+[CHANGED] `www.googleapis.com/auth/cloud-platform` → HTTP 404 (len=14) at 17:16 UTC cycle reverted to 400/403-class endpoint behavior — scope-name echo remains flaky, no new surface
+[CHANGED] `oauth2.googleapis.com/token` POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves client_secret is valid Google OAuth credential (RFC 6749 §5.2)
+[PRIO] oauth2.googleapis.com/token, 8.75, attack=9 business=10 tech=8 gate=10 cloud=3 fresh=10
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations, 8.55, attack=9 business=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential, 7.60, attack=8 business=9 tech=8 gate=5 cloud=8 fresh=10
+[PRIO] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations, 7.45, attack=8 business=9 tech=8 gate=4 cloud=8 fresh=10
+[PRIO] login.microsoftonline.com/common/discovery/v2.0/keys, 7.75, attack=8 business=9 tech=9 gate=3 cloud=7 fresh=10
+[HYP] Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: PASSIVE-VERIFIED live: raw GitHub GET oauth.py:45 → 200 len=23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com` at :43, scopes cloud-platform+drive+devstorage+earthengine. POST with leaked secret + dummy refresh_token → 400 `invalid_grant` (NOT 401 `invalid_client`) — proves secret is valid credential accepted by token server (RFC 6749 §5.2 distinction). GET→404 confirms POST-only endpoint.
+evidence_needed: POST with grant_type=refresh_token + valid refresh_token → 200 with access_token containing cloud-platform scope.
+verify_steps: HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400.
+impact: Full GCP access (cloud-platform scope) for any user with valid refresh_token; secret public in repo master; CVSS 9.0–9.8
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: PASSIVE-VERIFIED live: $metadata 873-char block, 13 client-supplied properties (createdBy/ownerIds Nullable=false, agentCard graph.Json), ZERO OperationRestrictions across 5 EntityTypes. HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), GET→401/237 Bearer. OPTIONS→405 closes CORS mutation vector but server-side PATCH still accepts client-supplied ownership fields.
+evidence_needed: Principal B GETs collection → enumerates Principal A's registrations; Principal B PATCHes /{A-id} with attacker-controlled agentCard/ownerIds/createdBy → 200/204 and mutation persists.
+verify_steps: AUTH_HELPED (test-tenant, two principals, scope AgentRegistration.ReadWrite.All): 1) A POST /beta/copilot/agentRegistrations {displayName:"test", createdBy:"user2", ownerIds:["user2"], agentCard:{}}; 2) B GET /beta/copilot/agentRegistrations → enumerate foreign registrations; 3) B PATCH /beta/copilot/agentRegistrations/{A-id} {agentCard:{"injected":true}} → 200/204 vs 403; 4) B GET /{A-id} confirm mutation.
+impact: Full agent impersonation — rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage isBlocked/deployedTo for supply-chain compromise; CVSS 7.5–9.0
+testability: AUTH_HELPED
+[HYP] Verified ID minting endpoint lacks tenant-scoped authorization — cross-tenant credential issuance
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 65
+reasoning: NEW surface: POST endpoint alive, Bearer scope tied to SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2` (consumer tenant `9188040d-6c67-4c5b-b112-36a304b66dad`), backend gate ONLY on `GuestIsNotAllowed` — no tenant-bound scope check visible passively. If issuer validation missing, cross-tenant Verified ID minting possible.
+evidence_needed: Principal from tenant B calls endpoint with valid Bearer from tenant A's SPA session → 200 with Verified ID vs 403.
+verify_steps: AUTH_HELPED (two tenants, Entra Verified ID enabled): Acquire SPA Bearer token for clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2` in tenant A; POST /api/issueVerifiedEmployeeCredential from tenant B principal context; observe 200/403.
+impact: Cross-tenant Verified Employee Credential issuance — identity spoofing in relying parties trusting Microsoft Verified ID; CVSS 8.0–9.0
+testability: AUTH_HELPED
+[PARKED] v1.0↔v2.0 issuer-confusion token replay with kid-overlap + dual issuer namespaces: confidence 60 < threshold for active pursuit; requires AUTH_HELPED test-tenant + specific v2.0-only resource that validates kid but not iss — no such resource identified passively; keeping as tracked precondition.
+[FINAL] 1) oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (confidence 96) 2) graph.microsoft.com/beta/copilot/agentRegistrations: Agent Registration cross-principal ownership bypass (confidence 80) 3) api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential: Verified ID minting endpoint lacks tenant-scoped authorization (confidence 65)
+[NEXT] HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com`, client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` — observe 200/400 to confirm native-app refresh_token gate.
+[LEARN] ACCEPTED: Source maps live on both identity SPAs @ `mysignins.microsoft.com` + `api.myaccount.microsoft.com` — 7MB/35MB .map files with 4359/4922 source paths, full client-side logic recoverable.
+[LEARN] ACCEPTED: Verified ID minting endpoint @ `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, SPA clientId `8c59ead7-d703-4a27-9e55-c96a0054c8d2`, gate `GuestIsNotAllowed` only.
+[LEARN] ACCEPTED: `/me/agentSignInSessions` off-metadata @ `graph.microsoft.com/v1.0` + `/beta` — 0 refs in `$metadata`, endpoint alive (401).
+[LEARN] ACCEPTED: Agent Registry API (beta, deprecated) @ `graph.microsoft.com/beta/agentRegistry` — agentInstances/agentCardManifests/agentCollections, agentInstance binds agentIdentityId+agentUserId+agentIdentityBlob.
+[LEARN] ACCEPTED: Copilot agent admin (beta) @ `graph.microsoft.com/beta/copilot/agents` + `/beta/copilot/admin/catalog/packages` — block/unblock/reassign, scope `CopilotPackages.Read.All`.
+[LEARN] ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/managedByAppId/agentIdentityId/agentCard.
+[LEARN] ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
+[LEARN] ACCEPTED: Copilot Studio D2E S2S API @ `/` conversation-ID NOT validated server-side.
+[LEARN] ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAuth credential (RFC 6749 §5.2).
+[LEARN] CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mutation vector.
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions.
+[LEARN] ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class stays REJECTED.
+[LEARN] ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+[LEARN] ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine hypothesis.
+[LEARN] ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`, line 420 `dict(installed=…)`) — hardcoded secret is a public-client by-design pattern; per ADK #2128 precedent (closed by-design) VRP-worthiness capped despite invalid_grant validity proof.
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4) ⊂ v2(8), strict subset with 0 v1-exclusive confirmed @ 18:04 UTC (kids re-verified: `6hXLaIYNSJ0o…`, `AahUf1bC…`, `fEtqrhKT…`, `jvm_-Ttaq…` all in v2 set) — rotation churn (aFkmKVFc v1-exclusive transient since 2026-08-07) resolved; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; class stays dead.
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes (18:04 UTC) confirmed prior ACCEPTED findings unchanged; v2 JWKS +3 kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr) added but subset invariant intact; agentRegistrations OPTIONS→405 sustained (CORS vector closed); cloud-platform scope echo 404-flaky confirmed non-surface.
+[LEARN] ACCEPTED graph.microsoft.com root → HTTP 200 text/html (signin page) — confirms root-level reachability but no auth-bypass surface; consistent across all cycles.
+[LEARN] ACCEPTED www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk: Drive REST API returns 403 when neither API key nor OAuth token present; no new surface, not exploitable.
+[RISK] google: 85 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC violation), POST-only token endpoint validated.
+[RISK] microsoft: 82 reason: Agent Registration zero-ownership-restrictions IDOR surface across 5 EntityTypes (confidence 80), Verified ID minting cross-tenant issuance risk (confidence 65), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, Copilot Studio D2E conversation-ID not validated, v1↔v2 JWKS kid overlap with dual issuer namespaces intact.

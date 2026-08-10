@@ -14830,3 +14830,397 @@ testability: HUMAN_ONLY
 ## STEP 7 — RISK SCORE
 [RISK] google: 45 — earthengine secret proven live-valid (invalid_grant) but native-app by-design caps VRP; tokeninfo oracle no-reward; only high-value unproven path needs HUMAN authorized RT.
 [RISK] microsoft: 62 — IDOR precondition (zero ownership restrictions + client-supplied createdBy) and CORS cross-origin mutation vector both live across 5 Agent Registry collections; exploitability gated on AUTH_HELPED two-principal test + issuer-confusion sub-precondition intact.
+===== ANALYST bigpickle 2026-08-10 20:06:39 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" -H "Origin: https://example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization,content-type" --max-time 30 2>&1 | rg -i "HTTP/|access-control|allow|www-authenticate|content-length"
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | rg -i "HTTP/|access-control|allow|www-authenticate|content-length"
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | rg -i "HTTP/|access-control|www-authenticate|content-length"
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | rg -i "HTTP/|access-control|www-authenticate|content-length"
+/bin/bash: line 1: rg: command not found
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" -H "Origin: https://example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization,content-type" --max-time 30 2>&1 | grep -iE "HTTP/|access-control|www-authenticate|content-length"
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization,content-type
+Access-Control-Max-Age: 86400
+Content-Length: 0
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | grep -iE "HTTP/|access-control|www-authenticate|content-length"
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | grep -iE "HTTP/|access-control|www-authenticate|content-length"
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - "https://graph.microsoft.com/beta/copilot/agentRegistrations" --max-time 30 2>&1 | grep -iE "HTTP/|access-control|www-authenticate|content-length"
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+[0m
+[0m$ [0mfor p in agentInstances agentCollections agentCardManifests copilotPackages copilotAdminCatalog; do echo "== $p =="; curl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/$p" -H "Origin: https://example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization,content-type" --max-time 30 2>&1 | grep -iE "HTTP/|access-control-allow-(origin|methods)"; done
+== agentInstances ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+== agentCollections ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+== agentCardManifests ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+== copilotPackages ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+== copilotAdminCatalog ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+[0m
+[0m$ [0mecho "== {id} =="; curl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" -H "Origin: https://example.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization,content-type" --max-time 30 2>&1 | grep -iE "HTTP/|access-control-allow-(origin|methods)"; echo "== legacy /beta/agentRegistry =="; curl -sS -o /dev/null -D - -X OPTIONS "https://graph.microsoft.com/beta/agentRegistry/agentInstances" -H "Origin: https://example.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization,content-type" --max-time 30 2>&1 | grep -iE "HTTP/|access-control-allow-(origin|methods)"
+== {id} ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+== legacy /beta/agentRegistry ==
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+[0m
+[0m$ [0mfor p in agentInstances agentCollections agentCardManifests copilotPackages; do echo "== GET $p =="; curl -sS -o /dev/null -D - "https://graph.microsoft.com/beta/copilot/$p" --max-time 30 2>&1 | grep -iE "HTTP/|www-authenticate" | head -2; echo "== HEAD $p =="; curl -sS -o /dev/null -D - -X HEAD "https://graph.microsoft.com/beta/copilot/$p" --max-time 30 2>&1 | grep -iE "HTTP/" | head -1; done
+== GET agentInstances ==
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+== HEAD agentInstances ==
+HTTP/1.1 405 Method Not Allowed
+== GET agentCollections ==
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+== HEAD agentCollections ==
+HTTP/1.1 405 Method Not Allowed
+== GET agentCardManifests ==
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+== HEAD agentCardManifests ==
+HTTP/1.1 405 Method Not Allowed
+== GET copilotPackages ==
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+== HEAD copilotPackages ==
+HTTP/1.1 405 Method Not Allowed
+[0m
+[0m$ [0mv1=$(curl -sS "https://login.microsoftonline.com/common/discovery/keys" --max-time 30); v2=$(curl -sS "https://login.microsoftonline.com/common/discovery/v2.0/keys" --max-time 30); echo "v1 kids: $(echo "$v1" | grep -o '"kid":"[^"]*"' | sort -u | wc -l)"; echo "v2 kids: $(echo "$v2" | grep -o '"kid":"[^"]*"' | sort -u | wc -l)"; echo "v1 kids:"; echo "$v1" | grep -o '"kid":"[^"]*"' | sort -u | sed 's/"kid"://'; echo "v2 kids:"; echo "$v2" | grep -o '"kid":"[^"]*"' | sort -u | sed 's/"kid"://'
+v1 kids: 3
+v2 kids: 6
+v1 kids:
+"6hXLaIYNSJ0o7zu09dMyI0ji3ug"
+"AahUf1bCXvx0JTRcXLrr0U4SluY"
+"fEtqrhKT1bXAGafSdQoN1vXTRpI"
+v2 kids:
+"1Nv3JExJrKNx1l7adICQ7Y_Atps"
+"6hXLaIYNSJ0o7zu09dMyI0ji3ug"
+"AahUf1bCXvx0JTRcXLrr0U4SluY"
+"NqEBZVuOpstZ__5iZuWH3HPswcI"
+"fEtqrhKT1bXAGafSdQoN1vXTRpI"
+"rRk1d-57BGZfsM4BUHrkx8cQbic"
+[0m
+[0m$ [0mcurl -sS -o /dev/null -D - "https://oauth2.googleapis.com/tokeninfo" --max-time 30 2>&1 | grep -iE "HTTP/|content-length|x-content-type"
+HTTP/2 400 
+x-content-type-options: nosniff
+[0m
+[0m$ [0mcd /tmp/opencode && curl -sS "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" --max-time 90 -o myaccount.map 2>&1; ls -la myaccount.map; python3 -c "
+import json
+try:
+    d=json.load(open('myaccount.map'))
+    print('sources:', len(d.get('sources',[])))
+except Exception as e:
+    print('parse err', e)
+"
+-rw-r--r-- 1 runner runner 35340363 Aug 10 20:04 myaccount.map
+sources: 5015
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json,re
+d=json.load(open('myaccount.map'))
+srcs=d.get('sources',[])
+print('=== /api/ endpoints referenced ===')
+pat=re.compile(r'/api/[A-Za-z0-9_\-\/\.]+')
+seen=set()
+for s in srcs:
+    for m in pat.findall(s):
+        seen.add(m)
+for x in sorted(seen): print(x)
+"
+=== /api/ endpoints referenced ===
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json,re
+d=json.load(open('myaccount.map'))
+srcs=d.get('sources',[])
+print('=== sources containing issueVerified / Verified / attestation / GuestIsNotAllowed ===')
+for s in srcs:
+    if re.search(r'issueVerified|Verified|attestation|GuestIsNotAllowed|issuance', s, re.I):
+        print(s)
+"
+=== sources containing issueVerified / Verified / attestation / GuestIsNotAllowed ===
+[0m
+[0m$ [0mcd /tmp/opencode && grep -aoE "\"/api/[A-Za-z0-9_\-\/\.]+\"" myaccount.map | sort -u | head -60
+"/api/instrument/logclient\"
+"/api/me/image\"
+"/api/me\"
+"/api/organization\"
+"/api/shell/getshellinfo\"
+"/api/users/getImages\"
+[0m
+[0m$ [0mcd /tmp/opencode && grep -aoE "issueVerifiedEmployeeCredential|canVerifiedIdBeIssued|GuestIsNotAllowed|issueVerified|VerifiedEmployee|VerifiableCredential" myaccount.map | sort | uniq -c
+2 GuestIsNotAllowed
+      2 VerifiedEmployee
+      1 canVerifiedIdBeIssued
+      1 issueVerifiedEmployeeCredential
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('myaccount.map'))
+for i,c in enumerate(d.get('sourcesContent',[]) or []):
+    if c and 'issueVerifiedEmployeeCredential' in c:
+        idx=c.find('issueVerifiedEmployeeCredential')
+        print('--- source', d['sources'][i], '---')
+        print(c[max(0,idx-1500):idx+800])
+"
+--- source webpack://@iamexperiences/my-account-ux/./src/Account/Credential/useRetrievingCredential.ts ---
+import { useAuth } from '@iamexperiences/feature-auth';
+import { useMutation, useQuery } from 'react-query';
+import { settingsManager } from '../../shared/settings';
+import { IVerifiedCredential } from './Credential.type';
+
+export const useRetrievingCredential = () => {
+  const { auth } = useAuth();
+  const url = `${settingsManager.get('myAccountBackendUrl')}/api/issueVerifiedEmployeeCredential`;
+  const clientId = settingsManager.getRequired('clientId');
+
+  return useMutation(async (): Promise<IVerifiedCredential> => {
+    const token = await auth.acquireToken({ scopes: [clientId] });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw error;
+    }
+
+    const json = await response.json();
+    return json as IVerifiedCredential;
+  });
+};
+
+export const useEnableVerifyId = () => {
+  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;
+  const clientId = settingsManager.getRequired('clientId');
+  const { auth }
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('myaccount.map'))
+for i,c in enumerate(d.get('sourcesContent',[]) or []):
+    if c and 'GuestIsNotAllowed' in c:
+        idx=c.find('GuestIsNotAllowed')
+        print('--- source', d['sources'][i], '---')
+        print(c[max(0,idx-1200):idx+400])
+        break
+"
+--- source webpack://@iamexperiences/my-account-ux/./src/shared/getErrorString.ts ---
+import i18next from 'i18next';
+
+export const getVerifyIdErrorString = (
+  t: i18next.TranslationFunction<unknown, object, string>,
+  type: string,
+  tenantId?: string,
+) => {
+  switch (type) {
+    case 'FeatureIsDisabled':
+      return t('verifyIdFeatureIsDisabled');
+    case 'ErrorGettingVerifiedId':
+      return t('verifyIdErrorGettingVerifiedId');
+    case 'GuestIsNotAllowedToIssueVerifiedId':
+      return t('verifyIdGuestIsNotAllowedToIssueVerifiedId', { tenantId });
+    case 'TenantNotOnboardedToVerifiedId':
+      return t('verifyIdTenantNotOnBoardedToVerifiedId', { tenantId });
+    case 'TenantDoesNotHaveVerifiedEmployeeContract':
+      return t('verifyIdTenantDoesNotHaveVerifiedEmployeeContract', { tenantId });
+    case 'TenantIsNotInAllowe
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('myaccount.map'))
+for i,c in enumerate(d.get('sourcesContent',[]) or []):
+    if c and 'canVerifiedIdBeIssued' in c and 'issueVerified' not in c:
+        idx=c.find('canVerifiedIdBeIssued')
+        print('--- source', d['sources'][i], '---')
+        print(c[max(0,idx-1000):idx+600])
+"
+(no output)
+[0m
+[0m$ [0mcd /tmp/opencode && python3 -c "
+import json
+d=json.load(open('myaccount.map'))
+for i,c in enumerate(d.get('sourcesContent',[]) or []):
+    if c and 'canVerifiedIdBeIssued' in c:
+        idx=c.find('canVerifiedIdBeIssued')
+        print('--- source', d['sources'][i], '---')
+        print(c[max(0,idx-700):idx+1500])
+        break
+"
+--- source webpack://@iamexperiences/my-account-ux/./src/Account/Credential/useRetrievingCredential.ts ---
+issueVerifiedEmployeeCredential`;
+  const clientId = settingsManager.getRequired('clientId');
+
+  return useMutation(async (): Promise<IVerifiedCredential> => {
+    const token = await auth.acquireToken({ scopes: [clientId] });
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw error;
+    }
+
+    const json = await response.json();
+    return json as IVerifiedCredential;
+  });
+};
+
+export const useEnableVerifyId = () => {
+  const url = `${settingsManager.get('myAccountBackendUrl')}/api/canVerifiedIdBeIssued`;
+  const clientId = settingsManager.getRequired('clientId');
+  const { auth } = useAuth();
+  return useQuery({
+    queryKey: ['enableVerifyId'],
+    queryFn: async () => {
+      const token = await auth.acquireToken({ scopes: [clientId] });
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        // for below expected errors, backend will return 200 with detail reason inside for debugging if need. otherwise, 204 is return
+        // 1. guest user, 2.feature's turn off on backend, 3. tenant is not onboard to verifyID
+        if (response.status === 204) return true;
+
+        return await response.json();
+      }
+
+      const error = await response.text();
+      throw new Error(error);
+    },
+  });
+};
+[0m
+[0m$ [0mfor u in "https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential" "https://api.myaccount.microsoft.com/api/canVerifiedIdBeIssued"; do echo "== $u =="; curl -sS -o /dev/null -D - -X POST "$u" --max-time 30 2>&1 | grep -iE "HTTP/|content-length" | head -3; curl -sS -o /dev/null -D - "$u" --max-time 30 2>&1 | grep -iE "HTTP/|content-length" | head -3; done
+== https://api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential ==
+HTTP/1.1 411 Length Required
+Content-Length: 344
+HTTP/1.1 401 Unauthorized
+Content-Length: 0
+== https://api.myaccount.microsoft.com/api/canVerifiedIdBeIssued ==
+HTTP/1.1 411 Length Required
+Content-Length: 344
+HTTP/1.1 401 Unauthorized
+Content-Length: 0
+[0m
+All probes complete. Here is the structured analysis.
+
+---
+
+## STEP 1 — DELTA
+
+- [CHANGED] `graph.microsoft.com/beta/copilot/*` preflighted `OPTIONS` (Origin + `Access-Control-Request-Method/Headers`) → **HTTP 200 ACAO:* + `Access-Control-Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH`** on ALL 8 paths (agentRegistrations collection, agentRegistrations/{id}, agentInstances, agentCollections, agentCardManifests, copilotPackages, copilotAdminCatalog, legacy `/beta/agentRegistry/agentInstances`). Bare `OPTIONS`→405 and `HEAD`→405 are method-handling artifacts (GET→401 Bearer challenge on all siblings) — this **resolves the KB 09:52 "OPTIONS→405 closes CORS vector"** entry: that was a bare-OPTIONS probe. CORS cross-origin mutation vector is **LIVE**, not closed. Confidence premise for IDOR raised.
+- [CHANGED] Verified ID minting gate set @ `api.myaccount.microsoft.com` (from 35MB SPA source map `useRetrievingCredential.ts` + `getErrorString.ts`): `POST /api/issueVerifiedEmployeeCredential` is **body-less** (claims fully server-derived from Bearer); gates include `GuestIsNotAllowed` **AND** `FeatureIsDisabled`/`TenantNotOnboardedToVerifiedId`/`TenantDoesNotHaveVerifiedEmployeeContract`/`TenantIsNotInAllowedList` — KB "gates ONLY on GuestIsNotAllowed" refined (tenant-level gates also present).
+- [NEW] Source map enumeration: exactly 6 `/api/*` routes in `my-account-ux` bundle (`me`, `me/image`, `organization`, `shell/getshellinfo`, `users/getImages`, `instrument/logclient`) + 2 Verified-ID routes — no new off-metadata surface; both Verified-ID endpoints unauth → 401/411.
+- v1↔v2 JWKS: rotation churn continues (v1=3 kids, v2=6) but subset invariant holds — all 3 v1 kids (`6hXLaIY…`,`AahUf1bC…`,`fEtqrhKT…`) ⊂ v2, 0 v1-exclusive.
+
+## STEP 2 — PRIORITIZE
+
+- [PRIO] `graph.microsoft.com/beta/copilot/*` (8 paths): attack 8 / biz 9 / tech 8 / gate 6 / cloud 8 / fresh 9 → **priority 8.05**
+- [PRIO] `api.myaccount.microsoft.com` SPA backend (Verified-ID + source maps): attack 6 / biz 7 / tech 7 / gate 4 / cloud 6 / fresh 8 → **priority 6.30**
+- [PRIO] `login.microsoftonline.com` dual-issuer / shared-JWKS: attack 4 / biz 8 / tech 7 / gate 5 / cloud 6 / fresh 3 → **priority 5.70**
+- [PRIO] `oauth2.googleapis.com/token` (earthengine secret): attack 5 / biz 8 / tech 6 / gate 3 / cloud 8 / fresh 3 → **priority 5.70**
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (CORS precondition now exhaustively live)
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + 5 sibling collections + legacy agentRegistry
+confidence: 90
+reasoning: preflighted OPTIONS→200 ACAO:* + full mutation allowlist (DELETE,GET,POST,PUT,PATCH) on ALL 8 paths this cycle (bare-OPTIONS 405 was the KB "closed" artifact); GET→401 Bearer, HEAD→405; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer; or browser-origin mutation if victim-identity token reachable.
+verify_steps: AUTH_HELPED: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform tokens (native-app public client)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (client `517222506229-…`, secret sha `3f3f8d6f…d271`)
+confidence: 70
+reasoning: real secret+dummy RT → 400 `invalid_grant` vs bogus secret → 401 `invalid_client` (RFC 6749 §5.2) proves client-auth passes; source confirms `installed` public client + OOB redirect → by-design WONTFIX per ADK #2128 precedent caps VRP-worthiness.
+evidence_needed: POST /token with authorized RT → 200 cloud-platform; VRP outcome test.
+verify_steps: HUMAN_ONLY authorized `POST https://oauth2.googleapis.com/token`: grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status + scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw, native-app by-design caps.
+testability: HUMAN_ONLY
+
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs {tid}/v2.0)
+confidence: 65
+reasoning: this probe v1(3 kids) ⊂ v2(6 kids), 0 v1-exclusive; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer — distinct from REJECTED rotation-desync (key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+
+- PARKED Verified ID minting (conf 45): endpoint is body-less — claims fully server-derived, no client-controlled attribute vector; the four additional tenant-level gates (FeatureIsDisabled/NotOnboarded/NoContract/NotInAllowedList) make "gates only on GuestIsNotAllowed" a mischaracterization; no passive differentiation path, needs member Bearer for a gate matrix that is likely by-design self-issuance. Parked in favor of higher-confidence AUTH_HELPED queue.
+- IDOR (90), earthengine (70), issuer-confusion (65) all survive: conf ≥ 40, no REJECTED class, concrete verify steps present.
+- [FINAL] 1) IDOR agentRegistrations 90 (CORS 8-path live + zero-restriction schema; AUTH_HELPED-gated) — 2) earthengine token 70 (proven live-valid, HUMAN_ONLY RT test, VRP-worthiness capped) — 3) issuer-confusion 65 (subset invariant re-held 3/3 this probe; AUTH_HELPED).
+
+## STEP 5 — NEXT ACTION
+
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and `PATCH {A_id}` (200/204 vs 403). Log status + bodies only; B-200 on A's object → report MSRC (conf 90). CORS cross-origin mutation precondition now confirmed on ALL 8 paths incl. {id} + legacy (preflight 200 ACAO:* full allowlist), so a victim-token browser mutation is an independent high-impact vector.
+
+## STEP 6 — LEARNING
+
+- [LEARN] ACCEPTED: preflighted CORS vector @ `graph.microsoft.com/beta/copilot/*` — preflight OPTIONS (Origin+ACRM+ACRH) → 200 ACAO:* full mutation allowlist on all 8 paths (collection, {id}, 5 siblings, admin catalog, legacy agentRegistry); bare OPTIONS→405 and HEAD→405 are method-handling artifacts; GET→401 Bearer. KB 09:52 "CORS vector closed" was a bare-OPTIONS artifact — vector LIVE, IDOR hypothesis confidence 88→90.
+- [LEARN] ACCEPTED: v1↔v2 JWKS kid subset invariant re-held @ `login.microsoftonline.com/discovery/keys` — v1(3) ⊂ v2(6), 0 v1-exclusive despite continued rotation churn; issuer-confusion precondition intact.
+- [LEARN] ACCEPTED: Verified ID minting gate set refined @ `api.myaccount.microsoft.com` — `POST /api/issueVerifiedEmployeeCredential` body-less, gates = GuestIsNotAllowed + 4 tenant-level conditions (FeatureIsDisabled/NotOnboarded/NoContract/NotInAllowedList) per SPA source map; endpoints unauth → 401/411. No new attack surface; by-design self-issuance.
+- [LEARN] REJECTED: No new proving-dead classes this cycle — robot probes (token→404, cloud-platform→404) + tokeninfo oracle (400/113) + graph auth-gates (401/405) confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+
+## STEP 7 — RISK SCORE
+
+- [RISK] google: 42 — earthengine secret proven live-valid (invalid_grant) but native-app by-design caps VRP-worthiness; tokeninfo oracle no-reward; only high-value path (authorized RT) is HUMAN_ONLY; source-map review of myaccount produced no new exploitable surface.
+- [RISK] microsoft: 66 — Agent Registry IDOR precondition (zero ownership restrictions, client-supplied createdBy, 8-path CORS ACAO:* mutation allowlist) exhaustively live; exploitability gated on AUTH_HELPED two-principal test; issuer-confusion sub-precondition (v1⊂v2 subset) intact.

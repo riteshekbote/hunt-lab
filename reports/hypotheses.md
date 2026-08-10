@@ -1390,3 +1390,40 @@
 - LEARN: ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/m
 - LEARN: ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
 - LEARN: ACCEPTED: Copilot Studio D2E S2S API @ `/`
+
+## RANKED HYPOTHESES 2026-08-10 20:06:39 UTC
+- [96] oauth2.googleapis.com/token: Hardcoded Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-nemotron3.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- [90] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH (CORS precondition now exhaustively live) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Authorized `POST https://oauth2.googleapis.com/token` — grant_type=refresh_token, client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleuse
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201),
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c
+- LEARN: ACCEPTED: Source maps live on both identity SPAs @ `mysignins.microsoft.com` + `api.myaccount.microsoft.com` — 7MB/35MB .map files with 4359/4922 source paths, 
+- LEARN: ACCEPTED: Verified ID minting endpoint @ `api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential` — POST, SPA clientId `8c59ead7-d703-4a27-9e55-c96a005
+- LEARN: ACCEPTED: `/me/agentSignInSessions` off-metadata @ `graph.microsoft.com/v1.0` + `/beta` — 0 refs in `$metadata`, endpoint alive (401).
+- LEARN: ACCEPTED: Agent Registry API (beta, deprecated) @ `graph.microsoft.com/beta/agentRegistry` — agentInstances/agentCardManifests/agentCollections, agentInstance b
+- LEARN: ACCEPTED: Copilot agent admin (beta) @ `graph.microsoft.com/beta/copilot/agents` + `/beta/copilot/admin/catalog/packages` — block/unblock/reassign, scope `Copil
+- LEARN: ACCEPTED: Agent Registration API (GA replacement) @ `graph.microsoft.com/beta/copilot/agentRegistrations` — client-supplied createdBy, PATCH rewrites ownerIds/m
+- LEARN: ACCEPTED: Copilot Policy Settings API @ `graph.microsoft.com/beta/copilot/admin/policySettings/{id}` — 5 microsoft.copilot.* settings.
+- LEARN: ACCEPTED: Copilot Studio D2E S2S API @ `/` conversation-ID NOT validated server-side.
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — proves client_secret is valid Google OAu
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 (was 200 with CORS `*` + full mutation allowlist) — closes CORS cross-origin mut
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class sta
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4)⊂v2(7) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET support); validates existing earthengine
+- LEARN: ACCEPTED native-app client-type determination @ earthengine-api oauth.py: raw GitHub confirms `installed` client with OOB redirect (`urn:ietf:wg:oauth:2.0:oob`,
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4) ⊂ v2(8), strict subset with 0 v1-exclusive confirmed @ 18:04 UTC (kids re-verified: `6hXLa
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes (18:04 UTC) confirmed prior ACCEPTED findings unchanged; v2 JWKS +3 kids (rRk1d-57B, NqEBZVuO
+- LEARN: ACCEPTED graph.microsoft.com root → HTTP 200 text/html (signin page) — confirms root-level reachability but no auth-bypass surface; consistent across all cycles
+- LEARN: ACCEPTED www.googleapis.com/drive/v3/files unauth → HTTP 403 (vs expected 401) — minor Google API quirk: Drive REST API returns 403 when neither API key nor OAu
+- LEARN: ACCEPTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret @ oauth.py:45 confirmed live — secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §
+- LEARN: ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237, HEAD→405/0 (RFC 6750 §3), 873-char metadata block, 0 OperationR
+- LEARN: CHANGED: graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed; core IDOR surface unchange
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4 kids) ⊂ v2(7–8 kids), 0 v1-exclusive steady-state, dual issuer namespaces intact; rotation-desync class s
+- LEARN: ACCEPTED: Hardcoded Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged

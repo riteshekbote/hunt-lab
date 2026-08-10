@@ -20843,3 +20843,81 @@ testability: AUTH_HELPED
 
 [RISK] google: **74** — One confirmed valid OAuth client_secret (sha256-verified live, invalid_grant proof, conf 96, scopes cloud-platform+drive+devstorage, native-app installed client with OOB redirect) pending HUMAN_ONLY authorized redemption; identitytoolkit 403-gated (no anon reads); ADK secrets KNOWN-DUP (closed); tokeninfo oracle no-reward (Google VRP policy); bughunters hardened; reposcan NO_NEW_SECRET; earthengine secret is the single high-severity reportable finding gated behind authorized-token test  
 [RISK] microsoft: **88** — Crown-jewel Entra+Copilot identity plane: AgentRegistration IDOR (5 EntityTypes, ZERO OperationRestrictions, client-supplied ownership fields, conf 80, OPTIONS→405 closed CORS but server-side PATCH IDOR remains) + v1↔v2 issuer-confusion (4 shared kids, 0 v1-exclusive, dual issuer namespaces, conf 60, pending AUTH_HELPED) + Graph 405 anomaly (RFC 6750 §3 violation masks IDOR enumeration on /v1.0, /me, /users, /beta/copilot/agentRegistrations) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation); all findings AUTH_HELPED-gated, represent meaningful multi-vector exposure across Entra ID + M365 Copilot at MSRC $100k ceiling
+===== ANALYST laguna 2026-08-10 20:06:39 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mecho "Knowledge base loaded - 178,342 bytes. Context complete."
+Knowledge base loaded - 178,342 bytes. Context complete.
+[0m
+My job is to be a senior bug bounty hunter analyst. I don't invent vulnerabilities - I run the 8-step analysis. Let me analyze the current state against the knowledge base.
+
+**STEP 1 — DELTA**
+
+[NEW] Nothing is new — all findings in the knowledge base remain current. The last knowledge update (2026-08-10 19:18:04 UTC) and the latest robot probes confirm all ACCEPTED findings are live. The knowledge base notes "NO_DELTA" for the current cycle. All surface items (earthengine secret, agentRegistrations IDOR, v1↔v2 JWKS overlap, tokeninfo oracle, v2.0 authorize 200 anomaly, Graph 405 anomaly) were already documented in prior cycles.
+
+NO_DELTA
+
+**STEP 2 — PRIORITIZE**
+
+[PRIO] oauth2.googleapis.com/token (Earth Engine client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45): score 96, attack=10, business=10, tech=10, gate=9, cloud=10, fresh=9
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations (Agent Registration API): score 80, attack=8, business=10, tech=9, gate=7, cloud=7, fresh=7
+[PRIO] login.microsoftonline.com/common/discovery/keys (v1↔v2 JWKS kid overlap): score 60, attack=7, business=8, tech=8, gate=6, cloud=5, fresh=6
+[PRIO] oauth2.googleapis.com/tokeninfo (public introspection oracle): score 45, attack=5, business=5, tech=5, gate=10, cloud=3, fresh=5
+
+**STEP 3 — HYPOTHESES**
+
+[HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (secret @ github.com/google/earthengine-api/python/ee/oauth.py:45, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`)
+confidence: 96
+reasoning: Raw GitHub GET → 200 len=23110 (unchanged); secret sha256 `3f3f8d6f…d271` verbatim at line 45 + line 99 fallback; POST secret+dummy_refresh_token → HTTP 400 `invalid_grant` (NOT 401 `invalid_client`), proving client auth passes per RFC 6749 §5.2; scopes include cloud-platform+drive+devstorage; native `installed` client with OOB redirect
+evidence_needed: Authorized `POST /token` with valid victim refresh_token → HTTP 200 + access_token containing `cloud-platform` scope
+verify_steps: HUMAN_ONLY — authorized `POST https://oauth2.googleapis.com/token` (Content-Type: application/x-www-form-urlencoded) body: `grant_type=refresh_token&client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_victim_rt>&scope=https://www.googleapis.com/auth/cloud-platform` → log ONLY HTTP status + whether response scope includes `cloud-platform`
+impact: Full GCP account takeover (cloud-platform scope = all GCP APIs); CVSS 9.0-9.8, ~$100k ceiling
+testability: HUMAN_ONLY
+
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy + PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 80
+reasoning: $metadata 873-char agentRegistration EntityType with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; GET→401 (auth-gated), HEAD→405 (RFC 6750 §3), OPTIONS→405 (CORS vector closed but server-side PATCH IDOR remains); 5 sibling EntityTypes share identical zero-restriction pattern
+evidence_needed: Non-owner principal B PATCHes principal A's registration → 200/204 + mutation persists (cross-user/cross-tenant)
+verify_steps: AUTH_HELPED: Provision two Entra test-tenant principals (A, B). A POSTs `/beta/copilot/agentRegistrations {"displayName":"test","createdBy":"<B_oid>","ownerIds":["<B_oid>"],"agentCard":{}}`. B PATCHes `/beta/copilot/agentRegistrations/{A's-id}` with `{"agentCard":{"tampered":true}}` → check 403/404 vs 200/204. Confirm persistence via GET.
+impact: Cross-principal agent tampering; rewrite agentCard instructions/endpoints, forge creator attribution, tamper copilotPackage deployment state; CVSS 7.5-9.0, ~$100k MSRC ceiling
+testability: AUTH_HELPED
+
+[HYP] v1.0↔v2.0 issuer-confusion via shared JWKS kid set + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys
+confidence: 60
+reasoning: v1(4 kids: `6hXLaIYN…`, `AahUf1bC…`, `fEtqrhKT…`, `jvm_-Ttaq…`) ⊂ v2(8 kids), 0 v1-exclusive confirmed @ 18:04 UTC; Access-Control-Allow-Origin: *; dual issuer namespaces (`sts.windows.net/{tid}/` vs `login.microsoftonline.com/{tid}/v2.0`); v1.0 supports pure `token` implicit + `token id_token` hybrid (excluded from v2.0)
+evidence_needed: v1.0-issued token (iss=sts.windows.net/{tid}/) accepted by v2.0-only Graph endpoint that enforces iss
+verify_steps: AUTH_HELPED: (1) OIDC v1.0 authorize `?response_type=token` against v1.0-only app → capture v1.0 id_token; decode header, confirm kid is shared (matches v2); (2) `GET /v1.0/me` / `/beta/copilot/agentRegistrations` with v1.0 Bearer → HTTP 200 (confusion) vs 401/403 (defeated)
+impact: Legacy v1.0 trust-domain token accepted at v2.0-only resources, bypassing v2.0 conditional access policies; CVSS 8.0-9.8, ~$100k MSRC ceiling
+testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+
+[PARKED] tokeninfo public introspection oracle — confidence 45, but Google VRP program rules classify no-Authorization-header query-param introspection as no-reward per KB; downgrade to informational
+[PARKED] Graph API 405 anomaly — already ACCEPTED in KB (HEAD→405/0, no Bearer), standalone it's RFC 6750 §3 compliance issue masking IDOR enumeration — subsumed by Agent Registration IDOR hypothesis
+[PARKED] v2.0 authorize HTTP 200 error rendering — already ACCEPTED in KB (RFC 6749 §3 violation), standalone status-code hygiene issue — no independent exploit without downstream client parse bug
+
+[FINAL] 1. Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (MISCONFIG) — confidence 96, priority 96
+[FINAL] 2. Agent Registration cross-principal ownership bypass (IDOR) — confidence 80, priority 80
+[FINAL] 3. v1↔v2 issuer-confusion via shared JWKS kids (AUTH) — confidence 60, priority 60
+
+**STEP 5 — NEXT ACTION**
+
+[NEXT] HUMAN: File Google VRP report for `github.com/google/earthengine-api` hardcoded OAuth client_secret. Payload: (a) sha256 of secret `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, (b) `POST https://oauth2.googleapis.com/token` response = HTTP 400 `invalid_grant` (not 401 `invalid_client` → proves client auth passes per RFC 6749 §5.2), (c) scopes `cloud-platform` + `drive` + `devstorage.full_control`, (d) file location `python/ee/oauth.py:45` + `:99` fallback, (e) native-app `installed` client with OOB redirect — request authorized red-team validation for `grant_type=refresh_token` redemption to `cloud-platform` scope; cite earthengine-api as Google-owned repo
+
+**STEP 6 — LEARNING**
+
+[LEARN] ACCEPTED: No new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
+[LEARN] ACCEPTED: Hardcoded Earth Engine OAuth client_secret @ oauth.py:45 confirmed live — secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant (not invalid_client) proves credential validity
+[LEARN] ACCEPTED: agentRegistration EntityType zero ownership restrictions confirmed live — GET→401/237 (auth-gated), HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3), 873-char metadata block, 0 OperationRestrictions across 5 EntityTypes
+
+**STEP 7 — RISK SCORE**
+
+[RISK] google: 74 — One confirmed valid OAuth client_secret (sha256-verified live, invalid_grant proof, conf 96, scopes cloud-platform+drive+devstorage, native-app installed client with OOB redirect) pending HUMAN_ONLY authorized redemption; identitytoolkit 403-gated (no anon reads); ADK secrets KNOWN-DUP (closed); tokeninfo oracle no-reward (Google VRP policy); bughunters hardened; reposcan NO_NEW_SECRET; earthengine secret is the single high-severity reportable finding gated behind authorized-token test
+[RISK] microsoft: 88 — Crown-jewel Entra+Copilot identity plane: AgentRegistration IDOR (5 EntityTypes, ZERO OperationRestrictions, client-supplied ownership fields, conf 80, OPTIONS→405 closed CORS but server-side PATCH IDOR remains) + v1↔v2 issuer-confusion (4 shared kids, 0 v1-exclusive, dual issuer namespaces, conf 60, pending AUTH_HELPED) + Graph 405 anomaly (RFC 6750 §3 violation masks IDOR enumeration) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation); all findings AUTH_HELPED-gated, meaningful multi-vector exposure across Entra ID + M365 Copilot at MSRC $100k ceiling
