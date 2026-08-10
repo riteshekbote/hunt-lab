@@ -1,43 +1,11 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
-
-| Category | Count | Files/Lines |
-|----------|-------|-------------|
-| REAL_SECRET | 0 | (none in this delta) |
-| TEST_OR_EXAMPLE | 39 | adk-python/auth_credential.py:126,238,247; auth_schemes.py:68; cli/browser/*.js (19 files); cli_create.py:123; code_executors/container_code_executor.py:114,154; code_executors/gke_code_executor.py:103,104,115; integrations/vmaas/sandbox_computer.py:47; tools/openapi_tool/auth/auth_helpers.py:62; agents-cli/auth.py:43; agents-cli/scaffold/.../staging.yaml:168,192; langextract/.github/workflows/ci.yaml:168,169; osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32 |
-| ENDPOINT_LEAK | 0 | (cloud metadata endpoint 169.254.169.254 is well-known IMDS, not a leak) |
-| INTERESTING | 0 | (no unusual debug flags, keys, or cloud configs beyond test fixtures) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Reason: All 39 hits in this delta are TEST_OR_EXAMPLE — placeholder private keys, hardcoded "password"/"user" test credentials, fake JWT tokens ("eyAkaknabna...."), minified JS source-map parse-error strings, variable references (GOOGLE_API_KEY=${google_api_key}), well-known IMDS endpoint references, config parameter names (kubeconfig_path), state-key constants (_STATE_KEY_ACCESS_TOKEN), placeholder client_secrets ("your_client_secret"), placeholder API key names ("gemini_api_key"), proper GitHub Actions secret references (${{ secrets.GEMINI_API_KEY }}), and detector/extractor code for weak credentials (osv-scalibr). No live credentials, API keys, or tokens detected. The previously confirmed earthengine-api OAuth client_secret (sha256 3f3f8d6f...) is NOT in this delta — it was validated in prior cycles and remains live per KB.
-EOF
-=== CLASSIFICATION TABLE ===
-
-| Category | Count | Files/Lines |
-|----------|-------|-------------|
-| REAL_SECRET | 0 | (none in this delta) |
-| TEST_OR_EXAMPLE | 39 | adk-python/auth_credential.py:126,238,247; auth_schemes.py:68; cli/browser/*.js (19 files); cli_create.py:123; code_executors/container_code_executor.py:114,154; code_executors/gke_code_executor.py:103,104,115; integrations/vmaas/sandbox_computer.py:47; tools/openapi_tool/auth/auth_helpers.py:62; agents-cli/auth.py:43; agents-cli/scaffold/.../staging.yaml:168,192; langextract/.github/workflows/ci.yaml:168,169; osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32 |
-| ENDPOINT_LEAK | 0 | (cloud metadata endpoint 169.254.169.254 is well-known IMDS, not a leak) |
-| INTERESTING | 0 | (no unusual debug flags, keys, or cloud configs beyond test fixtures) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Reason: All 39 hits in this delta are TEST_OR_EXAMPLE — placeholder private keys, hardcoded "password"/"user" test credentials, fake JWT tokens ("eyAkaknabna...."), minified JS source-map parse-error strings, variable references (GOOGLE_API_KEY=${google_api_key}), well-known IMDS endpoint references, config parameter names (kubeconfig_path), state-key constants (_STATE_KEY_ACCESS_TOKEN), placeholder client_secrets ("your_client_secret"), placeholder API key names ("gemini_api_key"), proper GitHub Actions secret references (${{ secrets.GEMINI_API_KEY }}), and detector/extractor code for weak credentials (osv-scalibr). No live credentials, API keys, or tokens detected. The previously confirmed earthengine-api OAuth client_secret (sha256 3f3f8d6f...) is NOT in this delta — it was validated in prior cycles and remains live per KB.
+[0m← [0mWrite triage_report.md
+Wrote file successfully.
 [0m
-**Classification Complete**
+Done. Delta scan (20 new hits) yields **0 new REAL_SECRET candidates** — all are GitHub Actions secret references (`${{ secrets.* }}`), public test endpoints, well-known internal URLs, or test fixtures.
 
-| Category | Count | Details |
-|----------|-------|---------|
-| REAL_SECRET | 0 | None in this delta |
-| TEST_OR_EXAMPLE | 39 | All hits: placeholder keys, test creds (`password`/`user`), fake JWTs, minified JS parse errors, variable refs, IMDS endpoint (well-known), config params, placeholder secrets, proper `${{secrets.*}}` refs, detector code |
-| ENDPOINT_LEAK | 0 | 169.254.169.254 is standard IMDS |
-| INTERESTING | 0 | No unusual configs/flags |
+The only reportable candidate remains the **previously accepted** earthengine-api hardcoded OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), confirmed live and valid per token endpoint test (`invalid_grant` not `invalid_client`), but it's a native `installed` client with OOB redirect — VRP-worthiness capped per ADK #2128 precedent.
 
-**Verdict**
-- **REPORT_CANDIDATE: no** — Zero live secrets in this delta. The earthengine-api OAuth client_secret (sha256 `3f3f8d6f...`) was confirmed in prior cycles (KB) but does not appear in this scan's new hits.
+Full report written to `triage_report.md`.
