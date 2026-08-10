@@ -1,71 +1,82 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=45][0m
-[0m→ [0mRead reposcan-raw/google/kf/operator/pkg/release/release.go[90m [offset=60, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=15, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=115][0m
-Now I have enough context. Let me classify all the hits:
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
+
+## REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *none in this delta* | | | |
+
+## TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` |
+| google/fleetbench/.github/workflows/update.yml | 29 | `${{ secrets.FLEETBENCH_PAT }}` |
+| google/go-github/github/github.go | 1990 | `"your app's client secret"` |
+| google/sam/.github/workflows/deploy.yaml | 247 | `${GOOGLE_CLIENT_SECRET}` |
+| google/sam/.github/workflows/deploy.yaml | 249 | `${GITHUB_CLIENT_SECRET}` |
+| google/sam/.github/workflows/deploy.yaml | 250 | `${CLI_OAUTH_SECRET}` |
+| google/sam/development/kind/run.sh | 139 | `${OIDC_CLIENT_SECRET:-}` |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` (doc) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` (doc) |
+| google/sam/internal/node/store.go | 35 | `"refresh_token"` (OAuth grant type const) |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `${{secrets.GITHUB_TOKEN}}` |
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `"sk-REPLACE-WITH-YOUR-KEY"` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented) |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | `test.pypi.org` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `"your-key"` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | Fake SQL password in test data |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js | 76 | `'const password = "secret123";'` (test) |
+| microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py | 54 | `"[REDACTED]"` (constant) |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal timestamp server) |
+
+## INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| google/horologist/datalayer/.../PreferencesSerializer.kt | 43 | Internal issue link `b.corp.google.com/issues/241749603` |
+| google/sam/cmd/sam-console/public/app.js | 471 | Bootstrap token UI display logic |
+| google/ax/manifests/install-ax.sh | 239,241,286 | PG password generation logic (runtime, not hardcoded) |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563,566,568 | Cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) |
+| microsoft/agent-governance-toolkit/agent-governance-golang/packages/agentmesh/policy_backends.go | 183,184 | Same cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39,40 | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` (Azure IMDS) |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27,29,30 | Azure IMDS + AWS metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13,14 | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11,13 | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102,103 | Cloud metadata endpoints |
+| microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py | 42 | `169.254.169.254` IP check |
+
+## ConfigMap Kind Declarations (Noise)
+Multiple `kind: ConfigMap` lines in k8s YAML templates — not secrets, just resource type declarations.
 
 ---
 
-### Classification Tables
+# Verdict: REPORT_CANDIDATE
 
-#### REAL_SECRET (hardcoded credentials with signs of life)
-*None found in this scan.*
+| Candidate | Verdict | Reason |
+|-----------|---------|--------|
+| google/ax/manifests/install-ax.sh PG password | **NO** | Runtime-generated via `openssl rand`, not hardcoded |
+| google/sam workflow secret refs | **NO** | Proper `${{ secrets.* }}` / env var references |
+| google/go-github client secret | **NO** | Placeholder text `"your app's client secret"` |
+| google/sam bootstrap token UI | **NO** | Displays server-issued token, not hardcoded |
+| microsoft/esrp-publish internal timestamp URL | **NO** | Internal corp endpoint, not a credential |
+| Cloud metadata endpoint constants (169.254.169.254, etc.) | **NO** | Well-known public cloud metadata service IPs |
+| All placeholder/test/fixture values | **NO** | Explicitly test/example patterns |
 
----
+**SUMMARY: 0 REPORT_CANDIDATE=yes in this delta.**
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data, config templates, build artifacts)
-
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag *name* constant, not a secret value |
-| `google/kf/operator/config/*.yaml` | 16 | `kind: ConfigMap` | K8s ConfigMap definitions (not Secret kind) |
-| `google/kf/hack/*.sh` | 37,41 | `kind: ConfigMap` | Install script ConfigMap refs |
-| `google/kf/cmd/generate-release/cloudbuild.yaml` | 229 | `kind: ConfigMap` | Build config ConfigMap |
-| `google/kf/pkg/kf/commands/config/config.go` | 65,91 | `KubeCfgFile`, `ConfigFlags` | Kubeconfig *path* flag definitions |
-| `google/kf/pkg/kf/commands/stubs/*.go` | various | kubeconfig help text | CLI help/examples for kubeconfig usage |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | various | Parse error messages | Minified JS build artifacts (source maps) |
-| `google/adk-java/dev/browser/main-*.js` | 5 | Parse error messages | Minified JS build artifacts |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | various | Parse error messages | Minified JS build artifacts |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` | Config parameter definitions (Optional[str]) |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | `GOOGLE_API_KEY={google_api_key}` | Template writing *user-provided* key to .env |
-
----
-
-#### ENDPOINT_LEAK (internal/dev/staging URLs, internal APIs)
-
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/kf/operator/pkg/release/release.go` | 65 | `source.corp.google.com/...` | Internal Google source URL (corp-only) |
-
----
-
-#### INTERESTING (debug flags, cloud configs, unusual patterns)
-
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/kf/operator/pkg/operand/transformations/deployment_transform.go` | 51 | `169.254.169.254/computeMetadata/.../token` | GCP metadata token fetch in container startup (standard but noteworthy) |
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern (secret *name*, not value) |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` metadata endpoint | GCP metadata access documented in code comments (privilege escalation warning) |
-| `google/kf/operator/cmd/manager/main.go` | 34-36 | `master-url`, `kubeconfig-url` flags | Controller manager kubeconfig flags (out-of-cluster config) |
-
----
-
-### SHORT VERDICT LIST
-
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| cadvisor StorageDriverPassword | `cadvisor/lib/cadvisorflags/flags.go` | 54 | TEST_OR_EXAMPLE (flag name const) | **no** |
-| kf internal source URL | `kf/operator/pkg/release/release.go` | 65 | ENDPOINT_LEAK (corp.google.com) | **no** (internal URL, no creds) |
-| kf metadata token fetch | `kf/operator/pkg/operand/transformations/deployment_transform.go` | 51 | INTERESTING (standard GCP pattern) | **no** |
-| adk-go Cloud Run secret ref | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | INTERESTING (deployment pattern) | **no** |
-| adk-python metadata endpoint | `adk-python/.../container_code_executor.py` | 114,154 | INTERESTING (documented warning) | **no** |
-| adk-python CLI .env template | `adk-python/.../cli_create.py` | 123 | TEST_OR_EXAMPLE (user-input template) | **no** |
-| Minified JS chunks (adk-go/adk-java/adk-python) | various | various | TEST_OR_EXAMPLE (build artifacts) | **no** |
-| Kubeconfig flag defs (kf, adk-python) | various | various | TEST_OR_EXAMPLE (config flags) | **no** |
-
----
-
-**Summary**: No `REAL_SECRET` findings in this delta. The single new hit (`cadvisorflags/flags.go:54`) is a flag *name* constant, not a secret value. The internal `source.corp.google.com` URL is an endpoint leak but contains no credentials. All other hits are test/config/examples or documented cloud patterns.
+The previously confirmed LIVE finding (earthengine-api `oauth.py:45` hardcoded client_secret, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the only actionable secret from prior scans — NOT in this delta.
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
