@@ -1,55 +1,43 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "d74adcc4-7f3f-4c6f-a406-8e7ea69daed3" | sha256sum
-f14a39e36127d7d1b2f8962812e96f36a0f13fcbbe8f7120b84431846ee6cb01  -
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
+
+| Category | Count | Files/Lines |
+|----------|-------|-------------|
+| REAL_SECRET | 0 | (none in this delta) |
+| TEST_OR_EXAMPLE | 39 | adk-python/auth_credential.py:126,238,247; auth_schemes.py:68; cli/browser/*.js (19 files); cli_create.py:123; code_executors/container_code_executor.py:114,154; code_executors/gke_code_executor.py:103,104,115; integrations/vmaas/sandbox_computer.py:47; tools/openapi_tool/auth/auth_helpers.py:62; agents-cli/auth.py:43; agents-cli/scaffold/.../staging.yaml:168,192; langextract/.github/workflows/ci.yaml:168,169; osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32 |
+| ENDPOINT_LEAK | 0 | (cloud metadata endpoint 169.254.169.254 is well-known IMDS, not a leak) |
+| INTERESTING | 0 | (no unusual debug flags, keys, or cloud configs beyond test fixtures) |
+
+=== VERDICT ===
+REPORT_CANDIDATE: no
+
+Reason: All 39 hits in this delta are TEST_OR_EXAMPLE — placeholder private keys, hardcoded "password"/"user" test credentials, fake JWT tokens ("eyAkaknabna...."), minified JS source-map parse-error strings, variable references (GOOGLE_API_KEY=${google_api_key}), well-known IMDS endpoint references, config parameter names (kubeconfig_path), state-key constants (_STATE_KEY_ACCESS_TOKEN), placeholder client_secrets ("your_client_secret"), placeholder API key names ("gemini_api_key"), proper GitHub Actions secret references (${{ secrets.GEMINI_API_KEY }}), and detector/extractor code for weak credentials (osv-scalibr). No live credentials, API keys, or tokens detected. The previously confirmed earthengine-api OAuth client_secret (sha256 3f3f8d6f...) is NOT in this delta — it was validated in prior cycles and remains live per KB.
+EOF
+=== CLASSIFICATION TABLE ===
+
+| Category | Count | Files/Lines |
+|----------|-------|-------------|
+| REAL_SECRET | 0 | (none in this delta) |
+| TEST_OR_EXAMPLE | 39 | adk-python/auth_credential.py:126,238,247; auth_schemes.py:68; cli/browser/*.js (19 files); cli_create.py:123; code_executors/container_code_executor.py:114,154; code_executors/gke_code_executor.py:103,104,115; integrations/vmaas/sandbox_computer.py:47; tools/openapi_tool/auth/auth_helpers.py:62; agents-cli/auth.py:43; agents-cli/scaffold/.../staging.yaml:168,192; langextract/.github/workflows/ci.yaml:168,169; osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40; osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32 |
+| ENDPOINT_LEAK | 0 | (cloud metadata endpoint 169.254.169.254 is well-known IMDS, not a leak) |
+| INTERESTING | 0 | (no unusual debug flags, keys, or cloud configs beyond test fixtures) |
+
+=== VERDICT ===
+REPORT_CANDIDATE: no
+
+Reason: All 39 hits in this delta are TEST_OR_EXAMPLE — placeholder private keys, hardcoded "password"/"user" test credentials, fake JWT tokens ("eyAkaknabna...."), minified JS source-map parse-error strings, variable references (GOOGLE_API_KEY=${google_api_key}), well-known IMDS endpoint references, config parameter names (kubeconfig_path), state-key constants (_STATE_KEY_ACCESS_TOKEN), placeholder client_secrets ("your_client_secret"), placeholder API key names ("gemini_api_key"), proper GitHub Actions secret references (${{ secrets.GEMINI_API_KEY }}), and detector/extractor code for weak credentials (osv-scalibr). No live credentials, API keys, or tokens detected. The previously confirmed earthengine-api OAuth client_secret (sha256 3f3f8d6f...) is NOT in this delta — it was validated in prior cycles and remains live per KB.
 [0m
-### REAL_SECRET
+**Classification Complete**
 
-| File | Line | Type | SHA256 (secret) |
-|------|------|------|-----------------|
-| `reposcan-raw/google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | Google Cloud API key (in help text) | `f14a39e36127d7d1b2f8962812e96f36a0f13fcbbe8f7120b84431846ee6cb01` |
+| Category | Count | Details |
+|----------|-------|---------|
+| REAL_SECRET | 0 | None in this delta |
+| TEST_OR_EXAMPLE | 39 | All hits: placeholder keys, test creds (`password`/`user`), fake JWTs, minified JS parse errors, variable refs, IMDS endpoint (well-known), config params, placeholder secrets, proper `${{secrets.*}}` refs, detector code |
+| ENDPOINT_LEAK | 0 | 169.254.169.254 is standard IMDS |
+| INTERESTING | 0 | No unusual configs/flags |
 
-### TEST_OR_EXAMPLE
-
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `"not-a-valid-client-secret"` |
-| `reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Placeholder `"bugs-central-github-token"` |
-| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant names (`CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET`) |
-| `reposcan-raw/google/skia-buildbot/go/auth/auth.go` | 30 | Filename constant `"service-account.json"` |
-| `reposcan-raw/google/skia-buildbot/go/buildbucket/buildbucket.go` | 24 | Header name constant `"x-buildbucket-token"` |
-| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | Secret ref via `gcloud secrets` (runtime fetch) |
-| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | Secret ref via `gcloud secrets` (runtime fetch) |
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets` reference (not a secret) |
-| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` | — | Minified JS parse-error strings (source maps) |
-
-### ENDPOINT_LEAK
-
-| File | Line | Endpoint / Info |
-|------|------|-----------------|
-| `reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | 4638+ | `developers.devsite.corp.google.com` (internal Google docs) |
-| `reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `source.corp.google.com` (internal source link) |
-| `reposcan-raw/google/horologist/datalayer/core/src/main/java/.../PreferencesSerializer.kt` | 43 | `b.corp.google.com` (issue tracker) |
-| `reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `pantheon.corp.google.com` (logs query) |
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Service account email `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
-| `reposcan-raw/google/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| `reposcan-raw/google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | GCE metadata server `metadata.google.internal` (documented) |
-
-### INTERESTING
-
-| File | Line | Note |
-|------|------|------|
-| `reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Docker password sourced from `${SA_NAME}.json` (file-backed, not hardcoded) |
-| `reposcan-raw/google/closure-compiler/externs/*.js` | — | W3C spec references (`dev.w3.org`) — normal externs |
-
----
-
-### VERDICT LIST
-
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| Google Cloud API key `d74adcc4-7f3f-4c6f-a406-8e7ea69daed3` | `reposcan-raw/google/skia-buildbot/go/issuetracker/getdiscovery.go:15` | **yes** — hardcoded in help text, appears live (project `skia-public`) |
-| All other hits | — | **no** — placeholders, secret references, internal doc links, or test fixtures |
-
-**Summary:** 1 reportable candidate (the API key in `getdiscovery.go`). The rest are test fixtures, secret-manager references, or internal documentation links with no credential material.
+**Verdict**
+- **REPORT_CANDIDATE: no** — Zero live secrets in this delta. The earthengine-api OAuth client_secret (sha256 `3f3f8d6f...`) was confirmed in prior cycles (KB) but does not appear in this scan's new hits.
