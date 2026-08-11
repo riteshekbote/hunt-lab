@@ -1,56 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-#### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none new this delta)* | — | — | The only live hardcoded secret remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), already ACCEPTED in KB |
+## REAL_SECRET
+| File | Line | SHA256 | Context | REPORT_CANDIDATE |
+|------|------|--------|---------|------------------|
+| (none found in this scan) | | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` secret reference |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented `# smtp_auth_password: 'password'` |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | Placeholder `sk-REPLACE-WITH-YOUR-KEY` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name `GEMINI_API_KEY = "gemini_api_key"` (not a key) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag default `StorageDriverPassword = "storage_driver_password"` |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented `# hf_access_token: "your_token"` |
-| google/tunix/tunix/cli/base_config.yaml | 63 | Commented `# hf_access_token: "your_token"` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` secret references |
-| google/ax/manifests/install-ax.sh | 241, 286 | Runtime `openssl rand -hex 16` generation, not hardcoded |
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant placeholder, not a real credential |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example in comment block |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc example in comment block |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template writing user-supplied variable, not hardcoded |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant key name for config lookup, not actual key |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Parser error messages | Minified build artifacts (PEG.js parser tables) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Parser error messages | Minified build artifacts (duplicated from adk-go) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal MS timestamp server) |
-| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | `https://api.test.osv.dev/v1experimental/...`, `https://api.test.osv.dev/v1/vulns/...` |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` (internal Google) |
-| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` |
-| google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` |
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Risk |
+|------|------|----------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check (defensive coding) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local CIDR block comment (includes metadata IP) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | GCP metadata endpoint reference in comments/docs |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | kubeconfig_path/context | Kubeconfig parameter definitions (standard) |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference (Secret Manager, not leak) |
+| google/filonov/libs/media_tagging_cloud/setup.sh | 120 | `GEMINI_API_KEY=gemini-api-key:latest` | Cloud Run secret reference (Secret Manager, not leak) |
+| google/closure-compiler/externs/*.js | multiple | devsite.corp.google.com, dev.office.com, dev.w3.org | External documentation URLs in externs (public refs) |
+| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | source.corp.google.com | Internal source link (not accessible externally) |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions runtime expressions (not hardcoded) |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| microsoft/agent-governance-toolkit/** (multiple) | various | Cloud metadata endpoints (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`) — well-known IMDS addresses, not secrets |
-| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `http://dev.mysql.com` — public dev endpoint |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | Token string literals (`<|endoftext|>`, `<|system|>`, `<|user|>`) — tokenizer constants |
+## INTERESTING
+| File | Line | Observation |
+|------|------|-------------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Explicit warnings about metadata endpoint access/escalation in comments |
+| google/agents-cli scaffolding | workflows | ID token / auth token handling in CI templates (standard OIDC pattern) |
 
 ---
 
-### SHORT VERDICT LIST
+# VERDICT SUMMARY
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| google/earthengine-api/python/ee/oauth.py:45 (pre-existing, sha256 `3f3f8d6f…d271`) | **yes** — already ACCEPTED in KB, valid Google OAuth credential (POST→`invalid_grant` not `invalid_client`) |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 (internal timestamp server) | **no** — internal endpoint leak, low severity, no credential |
-| google/osv.dev `test.osv.dev` / `pantheon.corp.google.com` endpoints | **no** — staging/test environment URLs, no auth bypass |
-| All IMDS/metadata endpoint constants | **no** — well-known public addresses (AWS/Azure/GCP/Alibaba) |
-| All `${{ secrets.* }}` / placeholder / commented examples | **no** — not hardcoded secrets |
+**REPORT_CANDIDATE: NO** for all findings in this scan.
 
-**No NEW reportable secrets in this delta.** The only live credential remains the previously-accepted earthengine-api OAuth client_secret.
+**Reasoning:**
+1. **No live credentials found** — All "secret-like" strings are placeholders (`password`, `your_access_token`, `gemini_api_key`), secret-manager references (`GOOGLE_API_KEY:latest`), or CI runtime expressions (`${{ steps... }}`).
+2. **Earth Engine OAuth client_secret (KB: sha256 `3f3f8d6f...`)** — Known ACCEPTED finding but **NOT in this scan's delta** (different repo: `google/earthengine-api` vs scanned `google/adk-*`, `google/agents-cli`, `google/closure-compiler`, `google/filonov`).
+3. **ADK /run_sse client_secret & ya29 token** — Listed as KNOWN DUPLICATES (issues #2128, #5520) in KB, not in current hits.
+4. **Endpoint references** — All are defensive coding (metadata IP blocking), documentation URLs, or standard Cloud Run secret references.
+5. **Build artifacts** — Minified JS parser tables account for ~200+ "hits" but are generated code.
+
+**Action:** No new reportable findings from this scan delta. Continue monitoring `google/earthengine-api` for the known hardcoded secret (tracked separately in KB).
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
