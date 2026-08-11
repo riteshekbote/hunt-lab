@@ -13,3 +13,6 @@
 
 - 1 lead(s) marked VALID at 2026-08-11 03:00:37 UTC
   - | **VALID** | 0 | — |
+
+- 1 lead(s) marked VALID at 2026-08-11 04:47:51 UTC
+  - **Verdict: HOLD** — Novelty is nil (public issue #5520); validity hinges on whether token is still live. Revoke-check required; if live, demote to VALID via Google VRP.
