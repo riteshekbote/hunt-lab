@@ -1,59 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
+d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
+[0m
+### Classification Tables
 
-## REAL_SECRET
-| File | Line | SHA256 | Context | REPORT_CANDIDATE |
-|------|------|--------|---------|------------------|
-| (none found in this scan) | | | | |
+#### REAL_SECRET
+| File | Line | Secret Type | SHA256 (secret) | Notes |
+|------|------|-------------|-----------------|-------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | Google API Key (domain-restricted to skottie.skia.org) | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` | Split string concatenation: `'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg'`; comment claims "safe to hardcode" |
 
-## TEST_OR_EXAMPLE
+#### TEST_OR_EXAMPLE
 | File | Line | Pattern | Reason |
 |------|------|---------|--------|
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant placeholder, not a real credential |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example in comment block |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc example in comment block |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template writing user-supplied variable, not hardcoded |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant key name for config lookup, not actual key |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Parser error messages | Minified build artifacts (PEG.js parser tables) |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Parser error messages | Minified build artifacts (duplicated from adk-go) |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | `ClientSecret: "not-a-valid-client-secret"` | Explicit placeholder |
+| `google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | `CLIENT_SECRET = "client_secret"`, `GMAIL_CACHED_TOKEN = "gmail_cached_token"`, `GMAIL_CLIENT_SECRET = "gmail_clientsecret"` | Constant key names, not values |
+| `google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` | Comment: "Not a credential, it is a secret name" |
+| `google/skia-buildbot/skolo/ansible/switchboard/**` | 30,7,4,110,12 | `{{ secrets.skolo_password \| password_hash('sha256') }}` | Ansible vault references |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Env var name constant |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` | Scheme identifier literal |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214,226 | Example `password: "password"`, `token: "your_access_token"` | JSDoc examples |
+| `google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | `{{ default .Env.POSTGRES_PWD "" }}` | Docker compose template vars |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Risk |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
 |------|------|----------|------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check (defensive coding) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local CIDR block comment (includes metadata IP) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | GCP metadata endpoint reference in comments/docs |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | kubeconfig_path/context | Kubeconfig parameter definitions (standard) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference (Secret Manager, not leak) |
-| google/filonov/libs/media_tagging_cloud/setup.sh | 120 | `GEMINI_API_KEY=gemini-api-key:latest` | Cloud Run secret reference (Secret Manager, not leak) |
-| google/closure-compiler/externs/*.js | multiple | devsite.corp.google.com, dev.office.com, dev.w3.org | External documentation URLs in externs (public refs) |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | source.corp.google.com | Internal source link (not accessible externally) |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions runtime expressions (not hardcoded) |
+| `google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `pantheon.corp.google.com/logs/query...` | Internal logging UI |
+| `google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` | GCP metadata server (well-known) |
+| `google/skia-buildbot/kube/corp-config.sh` | 9 | `skia-corp.google.com` | Internal corp domain |
+| `google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `source.corp.google.com/h/chrome-internal/` | Internal source browser |
+| `google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `b.corp.google.com/issues/new...` | Internal issue tracker |
+| `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | `metadata.google.internal/...` | GCP metadata server |
+| `google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | `pantheon.corp.google.com/storage/browser/...` | Internal storage browser |
+| `google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts` | 68,75,82 | `rotations.corp.google.com/rotation/...` | Internal rotation tracker |
 
-## INTERESTING
-| File | Line | Observation |
-|------|------|-------------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Explicit warnings about metadata endpoint access/escalation in comments |
-| google/agents-cli scaffolding | workflows | ID token / auth token handling in CI templates (standard OIDC pattern) |
+#### INTERESTING
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| `google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | `secretGithubToken = "bugs-central-github-token"` | Secret Manager secret name reference |
+| `google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | API key resource ref `d74adcc4-7f3f-4c6f-a406-8e7ea69daed3` | Specific key in skia-public project |
+| `google/skia-buildbot/golden/create-gold-corp-sa.sh` | 60 | `kubectl create secret generic --from-file=service-account.json` | Service account → k8s secret pattern |
+| `google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | `--docker-password="\`cat ${SA_NAME}.json\`"` | Service account JSON used as docker auth |
+| `google/skia-buildbot/perf/go/*/schema/schema.go` | multiple | Internal issue links `b.corp.google.com/issues/492077374` | Schema migration tracking |
+| `google/filonov/libs/media_tagging_cloud/setup.sh` | 120 | `--set-secrets GEMINI_API_KEY=gemini-api-key:latest` | Cloud Run secret injection pattern |
 
 ---
 
-# VERDICT SUMMARY
+### Verdict List
 
-**REPORT_CANDIDATE: NO** for all findings in this scan.
+| Candidate | File | Line | Category | REPORT_CANDIDATE |
+|-----------|------|------|----------|------------------|
+| Google API Key (skottie) | `skottie-drive-sk.ts` | 158 | REAL_SECRET | **yes** — valid API key, domain-restricted but extractable; reportable via Google VRP |
+| Service account email | `autoroll-fe/main.go` | 76 | ENDPOINT_LEAK | no — identifier only, not a credential |
+| GitHub token secret ref | `bugs-central/main.go` | 61 | INTERESTING | no — secret name only, value in Secret Manager |
+| API key resource ref | `getdiscovery.go` | 15 | INTERESTING | no — resource reference, not the key material |
+| GCP metadata URL | multiple | — | ENDPOINT_LEAK | no — well-known public endpoint |
+| Corp internal URLs | multiple | — | ENDPOINT_LEAK | no — internal tooling, no auth bypass |
+| Ansible vault refs | multiple | — | TEST_OR_EXAMPLE | no — secret references, not values |
+| Docker/Cloud Run secret patterns | multiple | — | INTERESTING | no — deployment patterns, no live secrets |
 
-**Reasoning:**
-1. **No live credentials found** — All "secret-like" strings are placeholders (`password`, `your_access_token`, `gemini_api_key`), secret-manager references (`GOOGLE_API_KEY:latest`), or CI runtime expressions (`${{ steps... }}`).
-2. **Earth Engine OAuth client_secret (KB: sha256 `3f3f8d6f...`)** — Known ACCEPTED finding but **NOT in this scan's delta** (different repo: `google/earthengine-api` vs scanned `google/adk-*`, `google/agents-cli`, `google/closure-compiler`, `google/filonov`).
-3. **ADK /run_sse client_secret & ya29 token** — Listed as KNOWN DUPLICATES (issues #2128, #5520) in KB, not in current hits.
-4. **Endpoint references** — All are defensive coding (metadata IP blocking), documentation URLs, or standard Cloud Run secret references.
-5. **Build artifacts** — Minified JS parser tables account for ~200+ "hits" but are generated code.
+---
 
-**Action:** No new reportable findings from this scan delta. Continue monitoring `google/earthengine-api` for the known hardcoded secret (tracked separately in KB).
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Summary**: Only **1 reportable candidate** — the Google API key in `skottie-drive-sk.ts:158` (SHA256 `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484`). Despite the domain restriction claim, hardcoded API keys in public repos are reportable per Google VRP. All other hits are placeholders, secret references, internal endpoints, or deployment patterns.
