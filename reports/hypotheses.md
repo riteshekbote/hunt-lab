@@ -1850,3 +1850,23 @@
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
 - LEARN: ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic wit
 - LEARN: CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface
+
+## RANKED HYPOTHESES 2026-08-11 15:00:17 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH + CORS (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://gr
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://g
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: true preflight (Origin+ACRM:PATCH+ACH:autho
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED mysignins.microsoft.com source map rotation hardening @ mysignins.microsoft.com: `main.7b5c8f3a.js.map` now 404 (was 200 7MB); one identity SPA hardene
+- LEARN: ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys JSON gate @ login.microsoftonline.com: now requires `Accept: application/json` header for JSON res
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic wit
+- LEARN: CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: private-preview scope + confidence 55 leaves no concrete cross-ten
+- LEARN: NO_DELTA — all fresh passive probes (13:59:24 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIVE, earth

@@ -1,15 +1,13 @@
-## 2026-08-11 13:59:07 UTC [google] (model nemotron3)
+## 2026-08-11 15:00:05 UTC [google] (model nemotron3)
 [NEW] NO_DELTA — all inventory items already reflected in knowledge base (2026-08-11 12:32 UTC probes) and last leads
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}, score=9.35, attack=10, business=10, tech=9, gate=9, cloud=8, fresh=10
-[PRIO] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations, score=8.35, attack=9, business=8, tech=8, gate=8, cloud=8, fresh=9
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, score=7.95, attack=8, business=8, tech=7, gate=8, cloud=8, fresh=9
 [PRIO] oauth2.googleapis.com/token, score=8.60, attack=9, business=9, tech=8, gate=8, cloud=9, fresh=8
-[PRIO] powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId}, score=7.20, attack=7, business=7, tech=8, gate=7, cloud=7, fresh=9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, score=7.95, attack=8, business=8, tech=7, gate=8, cloud=8, fresh=9
 [HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
 confidence: 94
-reasoning: $metadata shows 0 OperationRestrictions on agentRegistration + 4 sibling EntityTypes; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; true CORS preflight on collection returns ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400; HEAD→405/no WWW-Authenticate (RFC 6750 §3 violation) masks unauth enumeration; GET→401 auth-gated but schema permits cross-principal write
+reasoning: $metadata shows 0 OperationRestrictions on agentRegistration + 4 sibling EntityTypes; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; true CORS preflight returns ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400; HEAD→405/no WWW-Authenticate (RFC 6750 §3 violation) masks unauth enumeration; GET→401 auth-gated but schema permits cross-principal write
 evidence_needed: Two-principal test — Principal A POSTs agentRegistration with createdBy/ownerIds = Principal B's oid (expect 201); Principal A PATCHes B's registration id to rewrite ownerIds
 verify_steps: AUTH_HELPED: POST /beta/copilot/agentRegistrations with Bearer token A, body {displayName:"test",createdBy:"B_oid",ownerIds:["B_oid"],agentCard:{},managedByAppId:"...",agentIdentityId:"..."} → expect 201; PATCH /beta/copilot/agentRegistrations/{B_id} with same token → expect 200
 impact: Full takeover of victim's agent registration — rewrite ownership, inject malicious agentCard, pivot to Copilot Studio / Verified ID minting; cross-origin exploitable via CORS
@@ -46,5 +44,6 @@ testability: AUTH_HELPED
 [LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 [LEARN] ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn; infrastructure-dependent, not directly testable
 [LEARN] CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface reduced
+[LEARN] REJECTED Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: private-preview scope + confidence 55 leaves no concrete cross-tenant verify_steps; not actionable without AUTH_HELPED tenant enrollment
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), Copilot Studio D2E conversation-ID unvalidated (confidence 75), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk

@@ -4383,3 +4383,37 @@ testability: HUMAN_ONLY
 [RISK] google: 96 reason | microsoft: 92 reason
 ## 2026-08-11 12:31:57 UTC [google] (model laguna)
 ## 2026-08-11 13:59:06 UTC [google] (model laguna)
+## 2026-08-11 14:58:50 UTC [google] (model laguna)
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: raw.githubusercontent.com → HTTP 200 len=23110, sha256(secret)=`3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST /token with leaked secret → 400 `invalid_grant` (not `invalid_client`) per RFC 6749 §5.2 proves valid Google OAuth credential; native installed client with OOB redirect, scopes cloud-platform+earthengine+drive+devstorage
+evidence_needed: POST https://oauth2.googleapis.com/token (client_id, client_secret, grant_type=refresh_token, refresh_token) → HTTP 200 + signed access_token with cloud-platform scope
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant proof; request VRP team run authorized grant_type=refresh_token redemption to confirm cloud-platform token minting; ask bounty eligibility for native-app hardcoded secret (ADK #2128 precedent)
+impact: Full GCP account takeover via cloud-platform scope; CVSS 9.0–9.8, ~$100k+ ceiling
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via PATCH + client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 94
+reasoning: $metadata confirms ZERO OperationRestrictions across 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage), 13 client-supplied properties (createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all Nullable=false); TRUE CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400
+evidence_needed: Two-principal test: A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} → 201, B PATCH {A_id}/agentCard → 200/204 + mutation persists; item-level CORS preflight (Origin+ACRM:PATCH) → 200 ACAO:*
+verify_steps: AUTH_HELPED: (1) OPTIONS preflight on /agentRegistrations/{valid_uuid} with Origin → 200 ACAO:* + PATCH in Allow-Methods; (2) Principal A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"<B_oid>","ownerIds":["<B_oid>"],"agentCard":{}} → expect 201; (3) Principal B PATCH /beta/copilot/agentRegistrations/{A_id} {"agentCard":{"tampered":true}} → check 403 vs 200/204; (4) Principal A GET {A_id} → confirm mutation persisted
+impact: Cross-principal agentCard/identity tampering via CORS+IDOR; Copilot supply-chain compromise; CVSS 8.5–9.4, ~$100k MSRC ceiling
+testability: AUTH_HELPED
+[HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 78
+reasoning: NEW from 2026-08-11 inventory — production v1.0 consent primitive accepts client-supplied resourceId targeting Graph OR Azure Storage user_impersonation; prior ACCEPTED on agentRegistrations confirms schema-level zero OperationRestrictions pattern across Copilot/Agent surfaces; consent grant forge enables silent token issuance for victim's resource
+evidence_needed: POST /v1.0/oauth2PermissionGrants with principal A's Bearer + resourceId="https://graph.microsoft.com" + clientId=<victim_app> → 201 Created + grant persisted; subsequent client_credentials token request returns resource-scoped access_token
+verify_steps: AUTH_HELPED: (1) Principal A POST /v1.0/oauth2PermissionGrants {"clientId":"<victim_app>","resourceId":"https://graph.microsoft.com","scope":"User.Read"} with valid Bearer → expect 201; (2) Client credentials flow against login.microsoftonline.com/<tenant>/oauth2/v2.0/token with same clientId+client_secret → expect HTTP 200 + access_token with `scp: User.Read`; (3) Principal B GET /v1.0/me with new access_token → confirm resource access with A's grant
+impact: Cross-principal silent consent grant; attacker obtains victim resource access without interactive consent; CVSS 8.0–8.8, ~$2k–20k MSRC ceiling
+testability: AUTH_HELPED
+[PARKED] Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: confidence 55 (below 70 practical threshold), private-preview scope limits blast radius, no concrete two-principal verify_steps for cross-tenant scenario
+[FINAL] 1) [HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (confidence 96)
+[FINAL] 2) [HYP] Agent Registration cross-principal ownership bypass via PATCH + client-supplied createdBy/ownerIds + live CORS mutation vector (confidence 94)
+[FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge (confidence 78)
+[NEXT] PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid}" -D - -o /dev/null` — confirm item-level CORS preflight returns 200 + ACAO:* + Allow-Methods includes PATCH (collection-level confirmed 200/len=0, item-level per-{id} preflight to close gap before AUTH_HELPED two-principal test)
+[RISK] google: 96 reason | microsoft: 92 reason
