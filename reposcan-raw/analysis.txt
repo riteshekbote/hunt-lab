@@ -1,62 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results. I need to classify each hit into one of the categories:
-- REAL_SECRET: hardcoded credential/API key/token with signs of life
-- TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
-- ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
-- INTERESTING: anything unusual (debug flags, keys, cloud configs)
+### Classification Tables
 
-Let me go through the hits systematically.
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this delta)* |  |  |  |
 
-First, the "NEW HITS SINCE LAST SCAN (delta - focus here first):" section:
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
+| google/skia-buildbot/get_service_account/go/get_service_account/main.go | 2, 16 | Comment + `OUTPUT_FILENAME = "service-account.json"` |
+| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` |
+| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | `headerToken = "x-buildbucket-token"` — header name constant |
+| google/skia-buildbot/go/metadata/metadata.go | 23, 27, 30 | Key-name constants (`CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET`) |
+| google/skia-buildbot/go/revportforward/revportforward.go | 50, 51, 56 | Comments + function signature |
+| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | Comment |
+| google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go | 96 | Error message referencing kubeconfig flag |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Template placeholders (`{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`, `{{ .Env.ES_PWD }}`) |
+| google/xrblocks/src/ai/AI.ts | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` — explicit placeholders |
 
-1. `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:43: GEMINI_API_KEY = "gemini_api_key"` - This looks like a placeholder/test value "gemini_api_key" not a real key. The value is literally "gemini_api_key" which is clearly a placeholder.
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `https://pantheon.corp.google.com/logs/query...` — internal logging UI |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` — service account email |
+| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` — GCE metadata endpoint (well-known) |
+| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `https://pantheon.corp.google.com/apis/credentials/key/...` — internal API key console |
+| google/skia-buildbot/kube/corp-config.sh | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` — internal build API |
+| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68, 75, 82 | `https://rotations.corp.google.com/rotation/...` — internal rotation tracker |
+| google/skia-buildbot/perf/go/*/schema/schema.go | multiple | `https://b.corp.google.com/issues/492077374` — internal issue tracker (repeated) |
 
-2. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168` and `:192` - These are GitHub Actions workflow templates with `${{ steps.fetch-token.outputs._id_token }}` and `${{ steps.fetch-token.outputs._auth_token }}` - these are GitHub Actions expressions referencing step outputs, not hardcoded secrets.
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/skia-buildbot/bugs-central/go/bugs-central/main.go | 61 | `secretGithubToken = "bugs-central-github-token"` — **secret reference/name**, not a token value (GitHub tokens are `ghp_*` or 40-char hex); likely a Secret Manager key name |
+| google/skia-buildbot/golden/create-gold-corp-sa.sh | 60 | `kubectl create secret generic --from-file=service-account.json` — secret provisioning pattern |
+| google/skia-buildbot/kube/create-cluster-corp.sh | 82 | `--docker-password="$(cat ${SA_NAME}.json)"` — service account JSON used as docker auth |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **Algolia DocSearch key** (search-only, public by design) — **REJECTED per KB** |
 
-3. `reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-dispatch.yml:100` and `:175` - `GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'` - This is a GitHub Actions workflow using secrets and step outputs, not a hardcoded secret.
+---
 
-4. `reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml:48` - Same pattern, GitHub Actions expressions.
+### Verdict List
 
-5. `reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml:58` - `gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'` - References a secret, not hardcoded.
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Algolia DocSearch key | google/xrblocks/docs/docusaurus.config.ts:175 | **no** | REJECTED class (KB: search-only key, public by design) |
+| `secretGithubToken` value | google/skia-buildbot/bugs-central/go/bugs-central/main.go:61 | **no** | Secret reference name (`bugs-central-github-token`), not a live token; no `ghp_`/`github_pat_` prefix |
+| Service account email | google/skia-buildbot/autoroll/go/autoroll-fe/main.go:76 | **no** | Identity, not a credential |
+| Internal corp URLs | multiple | **no** | ENDPOINT_LEAK only — internal tooling, no auth bypass |
+| Template/env placeholders | multiple | **no** | TEST_OR_EXAMPLE — no secret material |
+| Earth Engine OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **already ACCEPTED** | Confirmed live in KB (sha256 `3f3f8d6f…d271`), POST→`invalid_grant` proves valid credential; native-app OOB by-design per ADK #2128 precedent |
 
-6. `reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml:62` - `google_api_key: '${{ secrets.GOOGLE_API_KEY }}'` - References a secret.
-
-7. Similar patterns in gemini-plan-execute.yml, gemini-review.yml - all referencing secrets.
-
-8. `reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml:195,222,245` - `password: '${{ secrets.artifact-registry-uploader-json-creds }}'` - References a secret.
-
-9. `reposcan-raw/google/closure-compiler/externs/browser/html5.js:1703,1764` - `@see http://dev.w3.org/html5/workers/` - Documentation URLs, not secrets.
-
-10. `reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go:206` - Comment about cloud metadata endpoints at 169.254.169.254 - This is an ENDPOINT_LEAK (internal metadata endpoint reference)
-
-11. `reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go:85` - Comment about 302 to cloud instance metadata service (169.254.169.254) - ENDPOINT_LEAK
-
-12. `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go:151` - Comment about 169.254.169.254 / fd00:ec2::254 - ENDPOINT_LEAK
-
-13. `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go:91` - Comment about metadata endpoint causing SSRF - ENDPOINT_LEAK (SSRF reference)
-
-14. `reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml:20` - `repo-token: "${{secrets.GITHUB_TOKEN}}"` - References secret
-
-15. `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml:407` - `url: https://test.pypi.org/p/magika` - Public URL
-
-16. `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml:437` - `repository-url: https://test.pypi.org/legacy/` - Public URL
-
-17. `reposcan-raw/google/magika/tests_data/basic/javascript/code.js:31` - Minified JS test data - TEST_OR_EXAMPLE
-
-18. `reposcan-raw/google/nearby/sharing/nearby_sharing_service.h:71` - Internal source.corp.google.com URL - ENDPOINT_LEAK (internal URL)
-
-19. `reposcan-raw/google/private-compute-services/.../RenderTokenHint.kt:41` - `private const val KEY_RENDER_TOKEN = "render_token"` - Constant name, not a secret value
-
-20. `reposcan-raw/google/private-compute-services/.../RenderTokenInsight.kt:43` - Same, constant name
-
-21. `reposcan-raw/google/private-compute-services/.../PrivateInferenceClientTimerNames.kt:82,88,91` - Timer name constants like "IPP_CREATE_TERMINAL_TOKEN" - Not secrets
-
-22. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63` - `#   hf_access_token: "your_token"` - Commented placeholder
-
-23. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63` - Same commented placeholder
-
-24. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862` - `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path, not secret
-
-25. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195` - Token strings like "
+**No new REPORT_CANDIDATE findings in this delta.** All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING (non-exploitable), or already-tracked ACCEPTED findings.
