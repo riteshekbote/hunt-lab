@@ -1,30 +1,3 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js[90m [offset=28, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=20][0m
-### Classification Table
-
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | *(none)* | — |
-| **TEST_OR_EXAMPLE** | `agents-cli/auth.py:43` (enum value `GEMINI_API_KEY = "gemini_api_key"`), `agents-cli/staging.yaml:168,192` (cookiecutter template vars `{{ steps.fetch-token.outputs... }}`), `adk-python/auth_credential.py:157,269,278` (docstring placeholders: `"-----BEGIN PRIVATE KEY-----..."`, `user/password`, `eyAkaknabna....`), `adk-python/auth_schemes.py:68` (`PASSWORD = "password"`), `adk-python/auth_helpers.py:62` (`"your_client_secret"`), `adk-python/sandbox_computer.py:47` (const `_STATE_KEY_ACCESS_TOKEN`), `adk-python/cli_create.py:123` (var interpolation), `pebble/quicksearch.js:33` & `404.js:24` (Jekyll `{{ site.algolia_api_key }}`), `oss-fuzz/flask/fuzz_json.py:27` (`"fuzz test key"`), `oss-fuzz/h2database/TestServer.java:13` (`"ServerShutdownPassword"`), `sam/deploy.yaml:247-250` (GH Actions `${{ secrets.* }}` refs), `langextract/ci.yaml:168-170` (GH Actions `${{ secrets.* }}` refs) | All benign — placeholders, templates, test fixtures, secret refs |
-| **ENDPOINT_LEAK** | `quiche/spdy_protocol.h:7` (comment: `http://dev.chromium.org/spdy/...`) | Benign — doc URL in comment |
-| **INTERESTING** | `quiche/certificate_view.h:126` (comment: legacy OpenSSL RSA key format support) | Benign — descriptive comment |
-
----
-
-### SHORT VERDICT
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| *(no new REAL_SECRET hits in this delta)* | **no** |
-
-**Notes:**
-- The previously confirmed hardcoded Earth Engine OAuth client_secret (`earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not in this scan's new delta** — it remains in ACCEPTED/KNOWN-DUP per KB.
-- All 5 new delta lines + 113 context hits are templates, placeholders, test fixtures, or comments.
-- No actionable secrets, endpoint leaks, or novel attack surface in this scan.
