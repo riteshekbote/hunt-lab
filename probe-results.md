@@ -368,3 +368,8 @@ https://login.microsoftonline.com/<tenant>/oauth2/v2.0/token` -> HTTP 400
 https://oauth2.googleapis.com/token -> HTTP 404
 https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid -> HTTP 401
 https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401
+
+## 2026-08-11 12:32:07 UTC
+https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401
+https://oauth2.googleapis.com/token -> HTTP 404
+https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid -> HTTP 401

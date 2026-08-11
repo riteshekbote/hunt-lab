@@ -4381,3 +4381,4 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant (not invalid_client) proves RFC 6749 §5.2 credential validity; native-app OOB by-design pattern per ADK #2128 precedent
 [LEARN] ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400
 [RISK] google: 96 reason | microsoft: 92 reason
+## 2026-08-11 12:31:57 UTC [google] (model laguna)
