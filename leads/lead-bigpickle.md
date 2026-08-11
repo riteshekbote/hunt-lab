@@ -3561,3 +3561,32 @@ testability: HUMAN_ONLY
 [NEXT] HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Item-level preflight re-confirmed 200 `ACAO:*` + full mutation allowlist this probe, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. Parallel: file the Google VRP report for the earthengine credential (sha256 `3f3f8d6f…d271`) — evidence complete, no new token needed.
 [RISK] google: 85 — earthengine client_secret proven a live valid OAuth credential (sha `3f3f8d6f…d271`, invalid_grant distinction) with cloud-platform scopes, but native-app OOB by-design precedent (ADK #2128) caps VRP; tokeninfo oracle no-reward; residual moderate.
 [RISK] microsoft: 88 — agentRegistrations live CORS mutation allowlist at collection+item with zero ownership-restriction schema across 5 EntityTypes (95) plus oauth2PermissionGrants zero-restriction consent-forge precondition metadata-confirmed (70); both blocked on the authorized two-principal test (AUTH_HELPED) — the current bottleneck.
+## 2026-08-11 13:54:50 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist re-verified 13:54 UTC at collection AND item; GET→401/237 auth-gated; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence. Log status+bodies only.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: production v1.0 metadata — oAuth2PermissionGrant EntityType 347 chars, ZERO restriction tags, client-supplied clientId/consentType/principalId/resourceId/scope; GET→401/237 auth-gated; no documented server-side cross-check of requester vs grant target.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation → 201; B GET /me/oauth2PermissionGrants → forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → forged grant present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Deprecated Agent Registry agentInstance cross-principal takeover
+class: IDOR
+asset: graph.microsoft.com/beta/agentRegistry/agentInstances{,/{id}}
+confidence: 55
+reasoning: accepted schema-level zero OperationRestrictions across agentInstance/agentCollection/agentCardManifest/copilotPackage; agentInstance exposes client-supplied agentIdentityId+agentUserId+agentIdentityBlob; endpoint deprecated May-2026 but still served, GET auth-gated (401).
+evidence_needed: with valid Bearer, B reads/mutates A's agentInstance (200 vs 403) despite no ownership cross-check.
+verify_steps: AUTH_HELPED (same session as H1): 1) A POST /beta/agentRegistry/agentInstances {agentUserId:B-upn,...}→201; 2) B GET /beta/agentRegistry/agentInstances→200 incl A vs 403; 3) B PATCH {A_id}→200 vs 403. Log status+bodies.
+impact: cross-principal agent-instance tamper on a deprecated-but-live surface (long-tail supply-chain); CVSS 6.0–8.0.
+testability: AUTH_HELPED
+[NEXT] HUMAN: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Item+collection preflight re-confirmed 200 `ACAO:*` + full mutation allowlist this probe (13:54 UTC), so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. In the same token session run the H2 consent-forge POST and H3 agentRegistry tests.

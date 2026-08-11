@@ -4382,3 +4382,4 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400
 [RISK] google: 96 reason | microsoft: 92 reason
 ## 2026-08-11 12:31:57 UTC [google] (model laguna)
+## 2026-08-11 13:59:06 UTC [google] (model laguna)
