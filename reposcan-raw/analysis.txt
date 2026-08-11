@@ -1,81 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+## Classification Tables
 
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none) | - | - | No hardcoded live credentials found in delta |
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Context |
+|------|------|-----------------|---------|
+| *(none found in this delta)* | | | |
 
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` | Truncated placeholder (`...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake JWT placeholder |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Literal test constant |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation, not hardcoded |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not a token |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | GitHub Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | Test registry URLs |
-| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94,98,102 | `token="$APP_TOKEN"` / `$FALLBACK_TOKEN` | Shell variable refs |
-| microsoft/agent-framework/python/packages/anthropic/.../_chat_client.py | 298,304,315 | `api_key="your_anthropic_api_key"` | Explicit placeholder |
-| microsoft/agent-framework/python/packages/mistral/.../_chat_client.py | 894 | `api_key="your-api-key"` | Explicit placeholder |
-| microsoft/agent-framework/python/packages/mistral/.../_embedding_client.py | 361 | `api_key="your-api-key"` | Explicit placeholder |
-| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `password = "testpassword"`, `token = "test-token-123"` | Test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `password = "testpassword"` | Test fixtures |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc | GitHub Actions secret refs |
-| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Shell variable with fallback |
-| microsoft/agent-framework/python/pyproject.toml | 459-460 | test.pypi.org URLs | Test registry URLs |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parse errors | Build artifacts |
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | Constant `ID_TOKEN = "id_token"` |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37,40 | CSRF token header constants |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | Nonprod test password `"password"` |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | Nonprod test password `"domain-registry"` |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | Nonprod test password `"domain-registry"` |
+| google/nomulus/docs/console-endpoints/swagger-ui*.js | 1-2 | Minified library code |
+| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | Load-test weak password `"abcde12345"` |
+| google/nomulus/release/clouddeploy/skaffold.yaml | 3 | Config kind declaration |
+| google/stellar-engine/blueprints/fedramp-high/secret-manager/add_secret_versions.sh | 114,131 | Script template echoes |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions `${{ secrets.* }}` refs (not hardcoded) |
+| google/magika/.github/workflows/*.yml | 20,407,437 | Secrets refs + test.pypi.org URLs |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Placeholder private_key, test creds, placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Template `GOOGLE_API_KEY=` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified browser bundles |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Risk |
-|------|------|----------|------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (cloud metadata) | Known public IP, documented in code comments |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal) | Internal domain in comment only |
+### ENDPOINT_LEAK
+| File | Line | Endpoint / Pattern |
+|------|------|-------------------|
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `test.pypi.org` (staging PyPI) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | `test.pypi.org` (staging PyPI) |
+| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | `staging-www.sandbox.googleapis.com` |
+| google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | `http://metadata.google.internal/` (GCE metadata) |
+| google/stellar-engine/modules/cloud-config-container/simple-nva/cloud-config.yaml | 55,58 | `metadata.google.internal` (GCE metadata) |
+| google/stellar-engine/modules/cloud-config-container/simple-nva/files/policy_based_routing.sh | 19-21 | `metadata.google.internal` (GCE metadata) |
+| google/stellar-engine/modules/project/service-agents.yaml | 221 | Service account pattern `service-${project_number}@gae-api-prod.google.com.${universe_domain}iam.gserviceaccount.com` |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` (staging PyPI) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig path/config patterns |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (cloud metadata IP) |
 
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access --secret="codecov-google-crosvm"` | Secret Manager runtime fetch pattern |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access --secret="github-crosvm-bot"` | Secret Manager runtime fetch pattern |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params | GKE executor config surface |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key for token storage (constant name only) |
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| *(none in this delta — all above categorized)* | | |
 
 ---
 
-# SHORT VERDICT LIST
+## Verdict List
 
 | Candidate | Category | REPORT_CANDIDATE |
 |-----------|----------|------------------|
-| earthengine-api oauth.py:45 (from prior KB) | REAL_SECRET (known) | yes (already tracked) |
-| adk-python auth_credential.py private_key | TEST_OR_EXAMPLE | no |
-| adk-python auth_credential.py HttpCredentials | TEST_OR_EXAMPLE | no |
-| adk-python auth_schemes.py PASSWORD | TEST_OR_EXAMPLE | no |
-| adk-python cli_create.py GOOGLE_API_KEY | TEST_OR_EXAMPLE | no |
-| adk-python auth_helpers.py client_secret | TEST_OR_EXAMPLE | no |
-| adk-python sandbox_computer.py STATE_KEY | TEST_OR_EXAMPLE | no |
-| magika workflows GITHUB_TOKEN ref | TEST_OR_EXAMPLE | no |
-| magika workflows test.pypi.org | TEST_OR_EXAMPLE | no |
-| agent-framework github-app-token action | TEST_OR_EXAMPLE | no |
-| agent-framework anthropic/mistral api_key placeholders | TEST_OR_EXAMPLE | no |
-| crosvm Secret Manager fetch patterns | INTERESTING | no (defensive pattern) |
-| container_code_executor 169.254.169.254 | ENDPOINT_LEAK | no (public metadata IP) |
-| copybara pantheon.corp.google.com | ENDPOINT_LEAK | no (comment only, internal) |
-| gke_code_executor kubeconfig params | INTERESTING | no (config surface) |
-| vmaas STATE_KEY_ACCESS_TOKEN | INTERESTING | no (constant name only) |
-| All JS browser chunks | TEST_OR_EXAMPLE | no (build artifacts) |
-| copybara test fixtures | TEST_OR_EXAMPLE | no |
-| langextract CI secret refs | TEST_OR_EXAMPLE | no |
-| dagger GH_TOKEN fallback | TEST_OR_EXAMPLE | no |
-| agent-framework pyproject.toml test.pypi | TEST_OR_EXAMPLE | no |
+| google/meridian workflows → test.pypi.org | ENDPOINT_LEAK | **no** (staging endpoint, public by design) |
+| google/nomulus default-config.yaml → staging-www.sandbox.googleapis.com | ENDPOINT_LEAK | **no** (staging sandbox endpoint) |
+| google/nomulus MetricParameters.java → metadata.google.internal | ENDPOINT_LEAK | **no** (well-known GCE metadata endpoint, not secret) |
+| google/stellar-engine cloud-config/routing → metadata.google.internal | ENDPOINT_LEAK | **no** (well-known GCE metadata endpoint) |
+| google/stellar-engine service-agents.yaml → service account pattern | ENDPOINT_LEAK | **no** (IAM pattern, not a credential) |
+| google/magika workflows → test.pypi.org | ENDPOINT_LEAK | **no** (staging endpoint) |
+| google/adk-python → 169.254.169.254 metadata IP | ENDPOINT_LEAK | **no** (well-known cloud metadata endpoint) |
+| google/adk-python → kubeconfig patterns | ENDPOINT_LEAK | **no** (config patterns, not secrets) |
+| All TEST_OR_EXAMPLE entries | TEST_OR_EXAMPLE | **no** (fixtures, placeholders, constants, nonprod) |
 
-**SUMMARY:** No NEW real secrets in this delta. The only live credential remains the previously-accepted `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) which is a valid Google OAuth client_secret for an installed/native app (OOB redirect) — VRP determination pending on by-design status per ADK #2128 precedent.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Summary: 0 REPORT_CANDIDATE=yes in this delta.** All hits are either staging endpoints, well-known metadata URLs, test fixtures, or placeholder constants. No live credentials or actionable secrets detected.
