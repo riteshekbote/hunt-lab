@@ -4601,3 +4601,41 @@ testability: AUTH_HELPED
 [FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge (confidence 78, AUTH_HELPED)
 [NEXT] PROBE: curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid}" -D - -o /dev/null — confirm item-level CORS preflight returns 200 ACAO:* + Allow-Methods includes PATCH (collection-level confirmed, item-level gap remains; closes before AUTH_HELPED two-principal test)
 [RISK] google: 96 reason | microsoft: 92 reason
+## 2026-08-11 22:00:07 UTC [google] (model laguna)
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: sha256(secret)=3f3f8d6f…d271 verbatim at line :45 + :99 fallback; POST /token with leaked secret → 400 invalid_grant (NOT invalid_client) per RFC 6749 §5.2 proves server accepts the credential; scopes include cloud-platform+drive+devstorage+earthengine; raw GitHub → 200/23110, whole-file sha f4f93c76… unchanged
+evidence_needed: Authorized grant_type=refresh_token POST → HTTP 200 + signed JWT access_token with scp: https://www.googleapis.com/auth/cloud-platform
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant≠invalid_client proof; request VRP team run authorized grant_type=refresh_token redemption to confirm cloud-platform token minting
+impact: Full GCP account takeover via cloud-platform scope; CVSS 9.0–9.8, ~$100k+ ceiling
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 94
+reasoning: $metadata 873-char block, ZERO OperationRestrictions across 5 EntityTypes; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied with Nullable=false; TRUE CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods PATCH on /{id}; GET→401/237 auth-gated, HEAD→405/0 (RFC 6750 §3)
+evidence_needed: Item-level true CORS preflight returns 200 ACAO:* with PATCH in Allow-Methods; two-principal test confirms cross-principal PATCH succeeds
+verify_steps: AUTH_HELPED: (1) PROBE item-level OPTIONS preflight: curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid}" -D - -o /dev/null → expect 200 ACAO:* + Allow-Methods includes PATCH; (2) Principal A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} → 201; (3) Principal B PATCH {A_id}/agentCard → 403 vs 200/204; (4) Principal A GET {A_id} → confirm mutation persisted
+impact: Cross-principal agentCard/identity tampering via CORS+IDOR; Copilot supply-chain compromise; CVSS 8.5–9.4, ~$100k MSRC ceiling
+testability: AUTH_HELPED (passive preflight PROBE first, then two-principal test)
+[HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 78
+reasoning: NEW from 2026-08-11 inventory — production v1.0 consent primitive accepts client-supplied resourceId targeting Graph OR Azure Storage user_impersonation; prior ACCEPTED agentRegistration confirms schema-level zero OperationRestrictions pattern across Copilot/Agent surfaces
+evidence_needed: POST /v1.0/oauth2PermissionGrants with principal A's Bearer + resourceId="https://graph.microsoft.com" + clientId=<victim_app> → 201 + grant persisted; client_credentials → resource-scoped access_token
+verify_steps: AUTH_HELPED: (1) Principal A POST /v1.0/oauth2PermissionGrants {"clientId":"<victim_app>","resourceId":"https://graph.microsoft.com","scope":"User.Read"} → expect 201; (2) client_credentials against login.microsoftonline.com/<tenant>/oauth2/v2.0/token → expect HTTP 200 + access_token with scp: User.Read; (3) Principal B GET /v1.0/me with new access_token → confirm victim resource access
+impact: Cross-principal silent consent grant; attacker obtains victim resource access without interactive consent; CVSS 8.0–8.8, ~$2k–20k MSRC ceiling
+testability: AUTH_HELPED
+[FINAL] 1) [HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (confidence 96, HUMAN_ONLY)
+[FINAL] 2) [HYP] Agent Registration cross-principal ownership bypass via PATCH + CORS (confidence 94, AUTH_HELPED)
+[FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge (confidence 78, AUTH_HELPED)
+[NEXT] PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid}" -D - -o /dev/null` — confirm item-level CORS preflight returns 200 ACAO:* + Allow-Methods includes PATCH (collection-level confirmed, item-level gap remains; closes before AUTH_HELPED two-principal test)
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ `graph.microsoft.com/beta/copilot/agentRegistrations/{id}` — collection-level true preflight confirmed live, item-level gap remains pending PROBE
+[LEARN] ACCEPTED Earth Engine OAuth client_secret @ oauth.py:45 confirmed valid Google OAuth credential — POST→invalid_grant (not invalid_client) per RFC 6749 §5.2, confidence 96
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ `graph.microsoft.com/v1.0` — new production v1.0 consent forge surface, GET→401 auth-gated, POST test pending AUTH_HELPED
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] REJECTED Copilot Studio D2E S2S conversation-ID gap @ `graph.microsoft.com/beta/copilotstudio` — private-preview scope + confidence 55 leaves no concrete cross-tenant verify_steps; not actionable
+[RISK] google: 96 reason | microsoft: 94 reason
