@@ -1,58 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
+d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* |  |  |  |
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` | Google API key (AIzaSy...), split in source; **comment states locked to `https://skottie.skia.org`** — intentionally public, domain-restricted (cf. REJECTED Algolia key in xrblocks) |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
-| google/skia-buildbot/get_service_account/go/get_service_account/main.go | 2, 16 | Comment + `OUTPUT_FILENAME = "service-account.json"` |
-| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` |
-| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | `headerToken = "x-buildbucket-token"` — header name constant |
-| google/skia-buildbot/go/metadata/metadata.go | 23, 27, 30 | Key-name constants (`CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET`) |
-| google/skia-buildbot/go/revportforward/revportforward.go | 50, 51, 56 | Comments + function signature |
-| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | Comment |
-| google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go | 96 | Error message referencing kubeconfig flag |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Template placeholders (`{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`, `{{ .Env.ES_PWD }}`) |
-| google/xrblocks/src/ai/AI.ts | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` — explicit placeholders |
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `gemini_api_key` |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GH Actions template placeholders `${{ steps.fetch-token.outputs.* }}` |
+| `google/copybara/javatests/.../AuthTest.java` | 75, 102, 129 | Test fixtures: `testpassword`, `test-token-123` |
+| `google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | Test fixture: `testpassword` |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | GH Actions `${{ secrets.GITHUB_TOKEN }}` ref |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GH Actions `${{ secrets.* }}` refs |
+| `google/oracle-toolkit/group_vars/all.yml` | 37, 176 | Ansible templates with `default('')` |
+| `google/oracle-toolkit/roles/.../rhel-config-tasks.yml` | 51 | Ansible var `{{ rhel_password.user_input }}` |
+| `google/oracle-toolkit/roles/.../validate_passwords.yml` | 107 | `gcloud secrets versions access` — secret fetch, not hardcoded |
+| `google/oracle-toolkit/roles/.../tls-setup/tasks/main.yml` | 35 | Same — secret fetch command |
+| `google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| `google/xrblocks/docs/docusaurus.config.ts` | 175 | **REJECTED** — Algolia DocSearch key, public by design (KB) |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `not-a-valid-client-secret` |
+| `google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Secret **name** `perf-issue-tracker-apikey` (comment: "Not a credential") |
+| `google/skia-buildbot/temporal/docker/config_template.yaml` | 25, 51, 70 | Template vars with `default .Env.*` |
+| `google/skia-buildbot/skolo/ansible/.../*.yml` | 7, 30, 110, 12 | Ansible `{{ secrets.skolo_password }}` refs |
 
 #### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `https://pantheon.corp.google.com/logs/query...` — internal logging UI |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` — service account email |
-| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` — GCE metadata endpoint (well-known) |
-| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `https://pantheon.corp.google.com/apis/credentials/key/...` — internal API key console |
-| google/skia-buildbot/kube/corp-config.sh | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` — internal build API |
-| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68, 75, 82 | `https://rotations.corp.google.com/rotation/...` — internal rotation tracker |
-| google/skia-buildbot/perf/go/*/schema/schema.go | multiple | `https://b.corp.google.com/issues/492077374` — internal issue tracker (repeated) |
+| File | Line | Detail |
+|------|------|--------|
+| `google/copybara/cloudbuild.yaml` | 27 | Internal `pantheon.corp.google.com` artifact URL (comment) |
+| `google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | Internal `b.corp.google.com` issue tracker URL |
+| `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | GCP metadata URL `metadata.google.internal/.../token` |
+| `google/skia-buildbot/perf/modules/subscription-table-sk/...` | 207 | Internal `source.corp.google.com` |
+| `google/skia-buildbot/autoroll/modules/arb-status-sk/...` | 75 | Internal `pantheon.corp.google.com` logs URL |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Service account email `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
+| `google/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
+| `google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Shell cmd reading SA JSON from file |
+| `google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh` | 21 | Internal domain comment |
+| `google/oracle-toolkit/terraform/variables.tf` | 58-62 | GCP metadata IP `169.254.169.254` (well-known, not secret) |
 
 #### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/skia-buildbot/bugs-central/go/bugs-central/main.go | 61 | `secretGithubToken = "bugs-central-github-token"` — **secret reference/name**, not a token value (GitHub tokens are `ghp_*` or 40-char hex); likely a Secret Manager key name |
-| google/skia-buildbot/golden/create-gold-corp-sa.sh | 60 | `kubectl create secret generic --from-file=service-account.json` — secret provisioning pattern |
-| google/skia-buildbot/kube/create-cluster-corp.sh | 82 | `--docker-password="$(cat ${SA_NAME}.json)"` — service account JSON used as docker auth |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **Algolia DocSearch key** (search-only, public by design) — **REJECTED per KB** |
+| File | Line | Detail |
+|------|------|--------|
+| `google/quiche/quiche/http2/core/spdy_protocol.h` | 7 | Historical SPDY spec URL |
+| `google/quiche/quiche/quic/core/crypto/certificate_view.h` | 126 | Legacy OpenSSL RSA key format comment |
+| `google/skia-buildbot/perf/go/*/schema/schema.go` | multiple | Internal issue refs `b.corp.google.com/issues/492077374` (UUID→Text migration) |
+| `google/skia-buildbot/status/modules/tree-status-sk/...` | 68, 75, 82 | Internal rotation URLs `rotations.corp.google.com` |
 
 ---
 
 ### Verdict List
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Algolia DocSearch key | google/xrblocks/docs/docusaurus.config.ts:175 | **no** | REJECTED class (KB: search-only key, public by design) |
-| `secretGithubToken` value | google/skia-buildbot/bugs-central/go/bugs-central/main.go:61 | **no** | Secret reference name (`bugs-central-github-token`), not a live token; no `ghp_`/`github_pat_` prefix |
-| Service account email | google/skia-buildbot/autoroll/go/autoroll-fe/main.go:76 | **no** | Identity, not a credential |
-| Internal corp URLs | multiple | **no** | ENDPOINT_LEAK only — internal tooling, no auth bypass |
-| Template/env placeholders | multiple | **no** | TEST_OR_EXAMPLE — no secret material |
-| Earth Engine OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **already ACCEPTED** | Confirmed live in KB (sha256 `3f3f8d6f…d271`), POST→`invalid_grant` proves valid credential; native-app OOB by-design per ADK #2128 precedent |
+| Candidate | File | Line | REPORT_CANDIDATE | Reason |
+|-----------|------|------|------------------|--------|
+| Skottie Google API key | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | **no** | Domain-restricted to `skottie.skia.org`; intentionally hardcoded per comment; same class as REJECTED Algolia key (public-by-design) |
+| All other hits | — | — | **no** | Test fixtures, template placeholders, secret refs, internal URLs, or comments — no live credentials |
 
-**No new REPORT_CANDIDATE findings in this delta.** All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING (non-exploitable), or already-tracked ACCEPTED findings.
+**Summary**: No reportable secrets in this delta. The only hardcoded API key (Skottie) is explicitly domain-locked and documented as safe to hardcode, matching the previously REJECTED Algolia DocSearch key pattern. All other hits are test data, CI secret references, or internal endpoint references.
