@@ -1,22 +1,81 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "*.py" -path "*/agents-cli/*" | head -5
-./reposcan-raw/google/agents-cli/src/google/agents/cli/_click.py
-./reposcan-raw/google/agents-cli/src/google/agents/cli/dev/cmd_lint.py
-./reposcan-raw/google/agents-cli/src/google/agents/cli/dev/__init__.py
-./reposcan-raw/google/agents-cli/src/google/agents/cli/dev/cmd_install.py
-./reposcan-raw/google/agents-cli/src/google/agents/cli/dev/cmd_playground.py
-[0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=50, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-[0m→ [0mRead reposcan-raw/google/dagger/util/latest-dagger-version.sh
-[0m→ [0mRead reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [limit=20, offset=160][0m
-[0m→ [0mRead reposcan-raw/microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml[90m [limit=50, offset=25][0m
-[0m→ [0mRead reposcan-raw/microsoft/qdk/.ado/publish.yml[90m [limit=50, offset=25][0m
-[0m→ [0mRead reposcan-raw/microsoft/semantic-kernel/python/semantic_kernel/connectors/memory_stores/azure_cognitive_search/utils.py[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py[90m [offset=95, limit=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/semantic-kernel/dotnet/src/Functions/Functions.OpenApi/ServerUrlValidator.cs[90m [limit=20, offset=245][0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
+
+## REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none) | - | - | No hardcoded live credentials found in delta |
+
+## TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` | Truncated placeholder (`...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake JWT placeholder |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Literal test constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation, not hardcoded |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not a token |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | GitHub Actions secret ref |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | Test registry URLs |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml | 94,98,102 | `token="$APP_TOKEN"` / `$FALLBACK_TOKEN` | Shell variable refs |
+| microsoft/agent-framework/python/packages/anthropic/.../_chat_client.py | 298,304,315 | `api_key="your_anthropic_api_key"` | Explicit placeholder |
+| microsoft/agent-framework/python/packages/mistral/.../_chat_client.py | 894 | `api_key="your-api-key"` | Explicit placeholder |
+| microsoft/agent-framework/python/packages/mistral/.../_embedding_client.py | 361 | `api_key="your-api-key"` | Explicit placeholder |
+| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `password = "testpassword"`, `token = "test-token-123"` | Test fixtures |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `password = "testpassword"` | Test fixtures |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc | GitHub Actions secret refs |
+| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Shell variable with fallback |
+| microsoft/agent-framework/python/pyproject.toml | 459-460 | test.pypi.org URLs | Test registry URLs |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parse errors | Build artifacts |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Risk |
+|------|------|----------|------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (cloud metadata) | Known public IP, documented in code comments |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal) | Internal domain in comment only |
+
+## INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access --secret="codecov-google-crosvm"` | Secret Manager runtime fetch pattern |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access --secret="github-crosvm-bot"` | Secret Manager runtime fetch pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params | GKE executor config surface |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key for token storage (constant name only) |
+
+---
+
+# SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api oauth.py:45 (from prior KB) | REAL_SECRET (known) | yes (already tracked) |
+| adk-python auth_credential.py private_key | TEST_OR_EXAMPLE | no |
+| adk-python auth_credential.py HttpCredentials | TEST_OR_EXAMPLE | no |
+| adk-python auth_schemes.py PASSWORD | TEST_OR_EXAMPLE | no |
+| adk-python cli_create.py GOOGLE_API_KEY | TEST_OR_EXAMPLE | no |
+| adk-python auth_helpers.py client_secret | TEST_OR_EXAMPLE | no |
+| adk-python sandbox_computer.py STATE_KEY | TEST_OR_EXAMPLE | no |
+| magika workflows GITHUB_TOKEN ref | TEST_OR_EXAMPLE | no |
+| magika workflows test.pypi.org | TEST_OR_EXAMPLE | no |
+| agent-framework github-app-token action | TEST_OR_EXAMPLE | no |
+| agent-framework anthropic/mistral api_key placeholders | TEST_OR_EXAMPLE | no |
+| crosvm Secret Manager fetch patterns | INTERESTING | no (defensive pattern) |
+| container_code_executor 169.254.169.254 | ENDPOINT_LEAK | no (public metadata IP) |
+| copybara pantheon.corp.google.com | ENDPOINT_LEAK | no (comment only, internal) |
+| gke_code_executor kubeconfig params | INTERESTING | no (config surface) |
+| vmaas STATE_KEY_ACCESS_TOKEN | INTERESTING | no (constant name only) |
+| All JS browser chunks | TEST_OR_EXAMPLE | no (build artifacts) |
+| copybara test fixtures | TEST_OR_EXAMPLE | no |
+| langextract CI secret refs | TEST_OR_EXAMPLE | no |
+| dagger GH_TOKEN fallback | TEST_OR_EXAMPLE | no |
+| agent-framework pyproject.toml test.pypi | TEST_OR_EXAMPLE | no |
+
+**SUMMARY:** No NEW real secrets in this delta. The only live credential remains the previously-accepted `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) which is a valid Google OAuth client_secret for an installed/native app (OOB redirect) — VRP determination pending on by-design status per ADK #2128 precedent.
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
