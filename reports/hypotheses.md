@@ -2014,3 +2014,23 @@
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
 - LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ `graph.microsoft.com/beta/copilotstudio` — private-preview scope + confidence 55 leaves no concrete cross-
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-11 21:04:47 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: earthengine secret (sha `3f3f8d6f…d271`, who
+
+## RANKED HYPOTHESES 2026-08-11 22:56:47 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-nemotron3.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- NEXT(hypotheses-bigpickle.txt): HUMAN: File the Google VRP report for `earthengine-api/python/ee/oauth.py:45` — evidence bundle complete and final: sha256(secret)=`3f3f8d6f…d271`, whole-file s
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://g
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 22:01 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes thi
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: true preflight (Origin+ACRM:PATCH+ACH:autho
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: collection-level true preflight confirmed l
+- LEARN: ACCEPTED Earth Engine OAuth client_secret @ oauth.py:45 confirmed valid Google OAuth credential — POST→invalid_grant (not invalid_client) per RFC 6749 §5.2, con
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — new production v1.0 consent forge surface, GET→401 auth-gated, POST test p
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 22:01:06 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector 
+- LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
