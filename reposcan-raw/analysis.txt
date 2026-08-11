@@ -1,30 +1,18 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'beeblebrox'
-d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651  -
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -A 20 "BEGIN EC PRIVATE KEY" reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go 2>/dev/null | head -30
------BEGIN EC PRIVATE KEY-----
-Proc-Type: 4,ENCRYPTED
-DEK-Info: DES-CBC,CD876BDE00043553
+The user wants me to triage the static scan results from google/ and microsoft/ GitHub orgs. They've provided a knowledge base of previously verified findings (REJECTED, KNOWN DUPLICATES, ALIVE SURFACE FACTS) and new scan hits.
 
-mvY+JQH/K5NeNba10dtLyvkmVrH+hS9kPkKSk/exHPezCyHF8FytpOMC5sKDj5S4
-180O3hcZytZMh3b7lvyimxZ5HmfTm+ZBxAEZCigmb+pBxSzTX7+MK7bew2XZeQdl
-p4G1u2PHCzVeyPnRd2XLQ0SBo0T7pKsGVLgae4N45UA=
------END EC PRIVATE KEY-----
-`
+I need to classify each hit as:
+- REAL_SECRET: hardcoded credential/API key/token with signs of life
+- TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
+- ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
+- INTERESTING: anything unusual (debug flags, keys, cloud configs)
 
-// CTLogPublicKeyPEM is the corresponding public key
-const CTLogPublicKeyPEM string = `
------BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQczNovWyMB74+fAgPAiX60k0M4cO
-QYn3hIzwSTVAcrKhHDyT85t4BoXdgl6XzMAVHmF7b6GyKoyyya1hSW4lLg==
------END PUBLIC KEY-----`
+I should output a table per category, then a SHORT verdict list with "REPORT_CANDIDATE: yes/no" per real candidate.
 
-// CTLogIDBase64 is the log ID that corresponds to the test keys
-const CTLogIDBase64 string = "fMW69rPsQG6J9V1zJeIvei6q+GGYrNxe84y5e0/KaEw="
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -A 20 "BEGIN EC PRIVATE KEY" reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | sha256sum
-dcdda4a40e5329c1b234a2e8c04687f695749009dd838f4ea8e6a593ec529f8f  -
-[0m
+Let me analyze the new hits:
+
+**NEW HITS SINCE LAST SCAN (delta - 6 new hit lines):**
+1. `reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js:5` - minified JS source map content
+2. `reposcan-raw/google/adk-kotlin/webserver/browser
