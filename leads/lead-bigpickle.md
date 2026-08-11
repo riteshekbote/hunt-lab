@@ -3222,3 +3222,40 @@ testability: AUTH_HELPED
 [NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and B `PATCH {A_id}` (200/204 vs 403). Log status+bodies only; B-200/204 on A's object → report MSRC (conf 95). Cross-origin preflight re-confirmed 200 `ACAO:*` full mutation allowlist this cycle, so victim-context browser mutation is an independent vector.
 [RISK] google: 42 — earthengine hardcoded secret (valid cloud-platform credential proven via invalid_grant) remains top Google finding but native-app by-design caps VRP-worthiness (ADK #2128 precedent); tokeninfo oracle no-reward; no new Google surfaces; source sha `f4f93c76…` unchanged.
 [RISK] microsoft: 70 — agentRegistrations IDOR (95) with zero-restriction metadata + live CORS mutation vector; issuer-confusion (66); Copilot Studio D2E conversation-ID gap (55) all AUTH_HELPED-gated; Verified ID claim-injection now dead but minting primitive still requires two-principal test. 5+ hypotheses blocked on AUTH_HELPED indicate substantial untested exposure.
+## 2026-08-11 06:31:48 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + 5 sibling EntityTypes
+confidence: 95
+reasoning: true preflight re-confirmed 200 ACAO:* + full mutation allowlist + Max-Age 86400; GET→401/237; $metadata 873-char block with createdBy/ownerIds Nullable=false and ZERO OperationRestrictions; 5 sibling collections share pattern.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403); or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B oid,ownerIds:[B oid],agentCard:{}}→201; 2) B GET collection → 200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes + policySettings/{id}.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (valid credential)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: raw GitHub 200/23110, whole-file sha `f4f93c76…b73040` verbatim, secret at :45 + :99 fallback; real secret+dummy RT → 400 invalid_grant vs bogus → 401 invalid_client (RFC 6749 §5.2) proves client-auth passes; `installed`+OOB = by-design per ADK #2128 precedent caps VRP-worthiness.
+evidence_needed: POST /token with authorized RT → 200 cloud-platform access token; VRP outcome test.
+verify_steps: HUMAN_ONLY: grant_type=refresh_token&client_id=517222506229-…&client_secret=<sha 3f3f8d6f…d271>&refresh_token=<authorized_rt>&scope=cloud-platform → log status+scopes only.
+impact: cloud-platform access-token minting; CVSS 8.0–9.8 raw, by-design caps.
+testability: HUMAN_ONLY
+[HYP] Copilot Studio D2E S2S conversation-ID takeover — unvalidated conversationId across bot schemas
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: 2026-08-10 inventory — conversation-ID NOT validated server-side (private preview); sibling powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} accepts client-supplied toolSchemaName+inputs; schemas enumerable via source maps.
+evidence_needed: with valid Bearer, replay a victim's {schema}/conversations/{id} → read/inject tool invocation 200 vs 403.
+verify_steps: AUTH_HELPED: obtain own conversationId, then with second principal's Bearer GET/POST same id; record 200 (foreign read/write) vs 403.
+impact: cross-tenant conversation hijack → prompt/tool-injection in Copilot Studio sessions; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+[FINAL] 1) agentRegistrations IDOR (95); 2) earthengine secret redemption (96, HUMAN_ONLY); 3) Copilot Studio conversation-ID (55).
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds`=B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and B `PATCH {A_id}` (200/204 vs 403). Log status+bodies only; B-200/204 on A's object → report MSRC (conf 95). Preflight 200 `ACAO:*` full mutation allowlist re-confirmed this probe, so victim-context browser PATCH is an independent vector if direct cross-principal fails.
+[LEARN] ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400, re-confirmed; bare-OPTIONS 405 remains artifact (no Origin header).
+[LEARN] ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com — v1(4)⊂v2(7), 0 v1-exclusive this probe; rotation churn only (v2 8→11→7 across cycles), no cross-endpoint confusion surface (dual-JWKS desync stays REJECTED).
+[LEARN] ACCEPTED earthengine-api oauth.py:45 secret live — raw 200/23110, whole-file sha `f4f93c76…b73040` verbatim, secret at :45.
+[LEARN] ACCEPTED tokeninfo oracle live — no-param → 400/113 invalid_token; HEAD→404 method gap.
+[LEARN] NO_DELTA this cycle — all probes confirm prior ACCEPTED/REJECTED findings unchanged.
+[RISK] google: 42 — earthengine hardcoded secret remains the strongest Google finding (valid cloud-platform credential proven via invalid_grant) but native-app by-design caps VRP-worthiness (ADK #2128 precedent); tokeninfo oracle no-reward per VRP rules; GCP control-plane APIs uniformly consumer-identity-gated; no new Google surfaces.
+[RISK] microsoft: 71 — 5+ AUTH_HELPED-gated hypotheses (agentRegistrations IDOR 95 with live CORS mutation vector, issuer-confusion 66, Copilot Studio conversation-ID 55, oauth2PermissionGrants 62, Verified-ID minting) indicate substantial untested exposure; Graph 405 anomaly + off-metadata agentSignInSessions widen the attack surface; passive-only methodology under-tests this program.

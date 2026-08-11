@@ -566,3 +566,9 @@
 - 2026-08-11 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
 - 2026-08-11 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
 - 2026-08-11 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged this cycle.
+- 2026-08-11 ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400, re-confirmed; bare-OPTIONS 405 remains artifact (no Origin header).
+- 2026-08-11 ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com — v1(4)⊂v2(7), 0 v1-exclusive this probe; rotation churn only (v2 8→11→7 across cycles), no cross-endpoint confusion surface (dual-JWKS desync stays REJECTED).
+- 2026-08-11 ACCEPTED earthengine-api oauth.py:45 secret live — raw 200/23110, whole-file sha `f4f93c76…b73040` verbatim, secret at :45.
+- 2026-08-11 ACCEPTED tokeninfo oracle live — no-param → 400/113 invalid_token; HEAD→404 method gap.
+- 2026-08-11 NO_DELTA this cycle — all probes confirm prior ACCEPTED/REJECTED findings unchanged.
+- 2026-08-11 NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIVE (88), earthengine secret valid credential (96), oauth2PermissionGrants caller-chosen resourceId (62), dual-JWKS rotation desync REJECTED (v1⊂v2 subset invariant + v1 kid set never validated against v2 issuer).

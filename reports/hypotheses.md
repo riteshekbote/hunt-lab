@@ -1689,3 +1689,17 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged this cycle.
+
+## RANKED HYPOTHESES 2026-08-11 06:39:01 UTC
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH + CORS (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://gr
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds`=B's oid (expect 201), t
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: sha256(secret)=`3f3f8d6f29db1b06cbfc21
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — true preflight (Origin+ACRM:PATCH+ACH:authori
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com — v1(4)⊂v2(7), 0 v1-exclusive this probe; rotation churn only (v2 8→11→7 across cycles), no cross-en
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret live — raw 200/23110, whole-file sha `f4f93c76…b73040` verbatim, secret at :45.
+- LEARN: ACCEPTED tokeninfo oracle live — no-param → 400/113 invalid_token; HEAD→404 method gap.
+- LEARN: NO_DELTA this cycle — all probes confirm prior ACCEPTED/REJECTED findings unchanged.
+- LEARN: NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIV

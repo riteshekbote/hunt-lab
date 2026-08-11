@@ -345,3 +345,6 @@ https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid -> HTTP 
 
 ## 2026-08-11 05:49:46 UTC
 
+
+## 2026-08-11 06:39:01 UTC
+https://graph.microsoft.com/beta/copilot/agentRegistrations -> HTTP 401

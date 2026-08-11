@@ -567,3 +567,7 @@
 ## 2026-08-11 04:32:52 UTC
 
 ## 2026-08-11 05:49:46 UTC
+
+## 2026-08-11 06:39:01 UTC
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB); api.myaccount.microsoft.com source map stable 200 35MB
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys requires `Accept: application/json` for JSON (was returning HTML without)

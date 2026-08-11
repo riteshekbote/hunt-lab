@@ -22785,3 +22785,57 @@ No hypotheses dropped — all have confidence ≥ 40, no REJECTED classes, all h
 **[RISK] google: 96** reason: Hardcoded OAuth client_secret @ earthengine-api valid (RFC 6749 §5.2 invalid_grant proof), scopes include cloud-platform (full GCP); tokeninfo introspection oracle allows no-auth token decoding (no-reward per VRP rules); v2.0 authorize HTTP 200 error rendering violates RFC 6749 §3.
 
 **[RISK] microsoft: 88** reason: agentRegistrations TRUE CORS preflight → 200 ACAO:* + full mutation allowlist + client-supplied ownership fields (ZERO OperationRestrictions) = live IDOR+CORS vector; Graph API 405/200 anomaly masks unauth enumeration; v1↔v2 dual issuer + kid overlap = issuer-confusion precondition; Copilot Studio conversation-ID + oauth2PermissionGrants caller-chosen resourceId inventory gaps.
+===== ANALYST laguna 2026-08-11 06:39:01 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -s -D - -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" -o /dev/null 2>&1 | head -30
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 152a89ee-7227-49d6-8c0a-402d907a31d5
+client-request-id: 152a89ee-7227-49d6-8c0a-402d907a31d5
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"000","RoleInstance":"CY4PEPF0001326A"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 11 Aug 2026 06:36:31 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HTTP %{http_code}\n" "https://graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/test/conversations" 2>&1
+HTTP 401
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HTTP %{http_code}\n" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" 2>&1
+HTTP 401
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "HTTP %{http_code} size=%{size_download}\n" -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1
+HTTP 405 size=0
+[0m
+[0m$ [0mcurl -s "https://oauth2.googleapis.com/tokeninfo" -o /dev/null -w "HTTP %{http_code} size=%{size_download}\n" 2>&1
+HTTP 400 size=113
+[0m
+I'll run a set of passive probes to check for new surface items and re-confirm key hypotheses before producing the analyst output.
+[0m$ [0mcurl -s -o /dev/null -w "HTTP %{http_code} size=%{size_download}\n" "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" 2>&1
+HTTP 200 size=35340363
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" | grep -oP '"/api/[a-zA-Z0-9/_{}-]+"' | sort -u | head -80
+(no output)
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" | grep -oP '"/beta/[a-zA-Z0-9/_{}-]+"' | sort -u | head -80
+(no output)
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum 2>&1
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+[0m$ [0mcurl -s "https://mysignins.microsoft.com/" | grep -oP 'src="[^"]+\.js"' | head -10 2>&1
+src="/bundle/main.caa6a456.js"
+[0m
+Probes confirm: CORS preflight at item-level returns 200 with `Access-Control-Allow-Origin: *` + full mutation methods. Copilot Studio and oauth2PermissionGrants both return 401 (alive). Source map (35MB) is still valid. Let me scan for undocumented endpoints and re-confirm key assets.
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); print('v1 kids:', len(d['keys'])); print('v1:', [k['kid'][:8] for k in d['keys']])" 2>&1 && echo "---" && curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import sys,json; d=json.load(sys.stdin); print('v2 kids:', len(d['keys'])); print('v2:', [k['kid'][:8] for k in d['keys']])" 2>&1
+v1 kids: 4
+v1: ['AahUf1bC', 'fEtqrhKT', 'sa3RgZQ_', '6hXLaIYN']
+---
+v2 kids: 7
+v2: ['AahUf1bC', 'fEtqrhKT', 'jvm_-Tta', '6hXLaIYN', 'rRk1d-57', 'NqEBZVuO', '1Nv3JExJ']
+[0m
