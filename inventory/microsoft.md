@@ -563,3 +563,5 @@
 - CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
 - CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
+
+## 2026-08-11 04:32:52 UTC

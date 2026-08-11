@@ -1659,3 +1659,18 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth cr
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoi
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED findings unchanged. Key classes remain: agentRegistrations CORS vector LIVE (ACCEPTED), Copilot Stu
+
+## RANKED HYPOTHESES 2026-08-11 04:32:52 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-laguna.txt): PROBE: curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://gr
+- NEXT(hypotheses-longcat.txt): SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths). Extract undocumented endpoints via grep for `/api/`,
+- LEARN: ACCEPTED agentRegistrations true CORS preflight @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — Origin+ACRM:PATCH+ACH:authorization → HTTP 200 + Ac
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations HEAD → HTTP 405 (Content-Length:0, no WWW-Authenticate Bearer) — RFC 6750 §3 violation extends to A
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4 kids: 6hXLaIYN, AahUf1bC, fEtqrhKT, sa3RgZQ_) ⊂ v2(8 kids), 0 v1-exclus
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256(secret)=3f3f8d6f…d271 verbatim, sha256(file)=f4f93c76… unchanged, raw GitHub 200/l
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-param→400/113 invalid_token; HEAD→404 method-handling gap — confirmed live
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + Access-Contro
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — clean GET 200/23110, sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, wh
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (new production-v1
+- LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — robot probes + inventory confirm no new proving-dead or proving-live classes this cycle.

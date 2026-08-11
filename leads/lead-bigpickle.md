@@ -3180,3 +3180,4 @@ verify_steps: AUTH_HELPED: decode main.4e6e3dc6.js.map for canVerifiedIdBeIssued
 impact: forged/mismatched verified-employee identity claims → verifier fraud; CVSS 6.0–8.5.
 testability: AUTH_HELPED
 ## 2026-08-11 02:52:42 UTC [google] (model bigpickle)
+## 2026-08-11 04:15:31 UTC [google] (model bigpickle)
