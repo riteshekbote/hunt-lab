@@ -1,67 +1,118 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "Not in current scan"
-Not in current scan
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
+
+## REAL_SECRET (reportable candidates)
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | REPORT_CANDIDATE: yes (ACCEPTED in KB, live on master, valid credential per token endpoint invalid_grant) |
+
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder value "gemini_api_key" |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions template syntax ${{...}} |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions template syntax ${{...}} |
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | Test file, values "testpassword", "test-token-123" |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | Test file, value "testpassword" |
+| google/xrblocks/src/ai/AI.ts | 303, 304 | Placeholder values "YOUR_GEMINI_API_KEY_HERE", "YOUR_OPENAI_API_KEY_HERE" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures (truncated private_key, "user"/"password", "eyAkaknabna....") |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant PASSWORD = "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder "your_client_secret" |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant name _STATE_KEY_ACCESS_TOKEN, not a secret |
+| google/langextract/.github/workflows/ci.yaml | 168 | Proper GitHub Actions secret reference ${{ secrets.GEMINI_API_KEY }} |
+
+## ENDPOINT_LEAK (internal/dev URLs)
+| File | Line | Details |
+|------|------|---------|
+| google/copybara/cloudbuild.yaml | 27 | Comment referencing pantheon.corp.google.com (internal artifact registry) |
+
+## INTERESTING (unusual patterns)
+| File | Line | Details |
+|------|------|---------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Code pattern: writes GOOGLE_API_KEY from variable (not hardcoded) |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey '40150cc2c638b09de8ebbfefd50b80a4' — REJECTED CLASS per KB (search-only, public by design) |
+
+## KNOWN DUPLICATES (skip)
+- google/adk-python: /run_sse client_secret → DUP #2128 (closed 2025-07-23)
+- google/adk-python: ya29.* token in git history → DUP #5520 (closed 2026-04-28)
+
+## VERDICT SUMMARY
+- REPORT_CANDIDATE: yes — google/earthengine-api/python/ee/oauth.py:45 (hardcoded OAuth client_secret, SHA256 3f3f8d6f..., valid credential per token endpoint test, ACCEPTED in KB)
+- REPORT_CANDIDATE: no — all other hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (comment only), INTERESTING (code patterns), or REJECTED CLASS (Algolia key)
+EOF
+=== CLASSIFICATION TABLES ===
+
+## REAL_SECRET (reportable candidates)
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | REPORT_CANDIDATE: yes (ACCEPTED in KB, live on master, valid credential per token endpoint invalid_grant) |
+
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder value "gemini_api_key" |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions template syntax ${{...}} |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions template syntax ${{...}} |
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | Test file, values "testpassword", "test-token-123" |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | Test file, value "testpassword" |
+| google/xrblocks/src/ai/AI.ts | 303, 304 | Placeholder values "YOUR_GEMINI_API_KEY_HERE", "YOUR_OPENAI_API_KEY_HERE" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures (truncated private_key, "user"/"password", "eyAkaknabna....") |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant PASSWORD = "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder "your_client_secret" |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant name _STATE_KEY_ACCESS_TOKEN, not a secret |
+| google/langextract/.github/workflows/ci.yaml | 168 | Proper GitHub Actions secret reference ${{ secrets.GEMINI_API_KEY }} |
+
+## ENDPOINT_LEAK (internal/dev URLs)
+| File | Line | Details |
+|------|------|---------|
+| google/copybara/cloudbuild.yaml | 27 | Comment referencing pantheon.corp.google.com (internal artifact registry) |
+
+## INTERESTING (unusual patterns)
+| File | Line | Details |
+|------|------|---------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Code pattern: writes GOOGLE_API_KEY from variable (not hardcoded) |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey '40150cc2c638b09de8ebbfefd50b80a4' — REJECTED CLASS per KB (search-only, public by design) |
+
+## KNOWN DUPLICATES (skip)
+- google/adk-python: /run_sse client_secret → DUP #2128 (closed 2025-07-23)
+- google/adk-python: ya29.* token in git history → DUP #5520 (closed 2026-04-28)
+
+## VERDICT SUMMARY
+- REPORT_CANDIDATE: yes — google/earthengine-api/python/ee/oauth.py:45 (hardcoded OAuth client_secret, SHA256 3f3f8d6f..., valid credential per token endpoint test, ACCEPTED in KB)
+- REPORT_CANDIDATE: no — all other hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (comment only), INTERESTING (code patterns), or REJECTED CLASS (Algolia key)
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'password' && sha256sum <<<'your_access_token' && sha256sum <<<'your_client_secret' && sha256sum <<<'eyAkaknabna....' && sha256sum <<<'-----BEGIN PRIVATE KEY-----...'
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
-64f3a6834f37b9e7875fefb2b81950536766133f639a3124127b8c08619b7672  -
-af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
-597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
-87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
-[0m
-### Classification Table
+## Classification Summary
 
-| Category | File | Line | Pattern | SHA256 (secret material) | Verdict |
-|----------|------|------|---------|--------------------------|---------|
-| **TEST_OR_EXAMPLE** | adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Fixture literal |
-| **TEST_OR_EXAMPLE** | adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Example in JSDoc |
-| **TEST_OR_EXAMPLE** | adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | `64f3a6834f37b9e7875fefb2b81950536766133f639a3124127b8c08619b7672` | Placeholder in JSDoc |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` | Truncated fixture |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Test credential |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` | Truncated test JWT |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Fixture constant |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | Placeholder in example |
-| **INTERESTING** | adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` warnings | N/A | Security docs about SSRF risk |
-| **INTERESTING** | adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` template | N/A | User-fill placeholder |
-| **INTERESTING** | adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` link-local blocklist | N/A | SSRF protection config |
-| **ENDPOINT_LEAK** | osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | N/A | Test env endpoint |
-| **ENDPOINT_LEAK** | osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` | N/A | Test env endpoints |
-| **ENDPOINT_LEAK** | osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Pantheon corp Google auth client reference | N/A | Internal doc reference |
-| **ENDPOINT_LEAK** | osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` | N/A | Test env base URL |
-| **ENDPOINT_LEAK** | osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` | N/A | Test env doc URL |
-| **ENDPOINT_LEAK** | meridian/.github/workflows/*.yml | 126,138 | `https://test.pypi.org/...` | N/A | Test PyPI endpoints |
-| **ENDPOINT_LEAK** | langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` references | N/A | GitHub Actions secret refs (proper) |
-| **INTERESTING** | crosvm/infra/recipe_modules/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | N/A | Runtime secret fetch (correct pattern) |
-| **INTERESTING** | crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | N/A | Runtime secret fetch (correct pattern) |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | N/A | State key constant name |
-| **TEST_OR_EXAMPLE** | osv.dev/vulnfeeds/pypi/pypi.go & external/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` | N/A | Test fixture domain allowlist |
-| **BUILD_ARTIFACT** | adk-python/src/google/adk/cli/browser/chunk-*.js | many | Minified JS parser error strings | N/A | Build output, not source |
+### REAL_SECRET (reportable)
+| File | Line | Secret SHA256 | REPORT_CANDIDATE |
+|------|------|---------------|------------------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | **yes** |
 
----
+### TEST_OR_EXAMPLE (not reportable)
+- `google/agents-cli/src/google/agents/cli/auth.py:43` — placeholder `"gemini_api_key"`
+- `google/agents-cli/.../staging.yaml:168,192` — GitHub Actions template `${{...}}`
+- `google/copybara/javatests/.../AuthTest.java:75,102,129` — test values `"testpassword"`, `"test-token-123"`
+- `google/copybara/javatests/.../HttpEndpointTest.java:136,159,189` — test value `"testpassword"`
+- `google/xrblocks/src/ai/AI.ts:303,304` — placeholders `"YOUR_GEMINI_API_KEY_HERE"`, `"YOUR_OPENAI_API_KEY_HERE"`
+- `google/adk-python/.../auth_credential.py:157,269,278` — test fixtures
+- `google/adk-python/.../auth_schemes.py:68` — constant `PASSWORD = "password"`
+- `google/adk-python/.../auth_helpers.py:62` — placeholder `"your_client_secret"`
+- `google/adk-python/.../sandbox_computer.py:47` — constant name, not secret
+- `google/langextract/.github/workflows/ci.yaml:168` — proper `${{ secrets.GEMINI_API_KEY }}`
 
-### SHORT VERDICT LIST
+### ENDPOINT_LEAK
+- `google/copybara/cloudbuild.yaml:27` — comment with `pantheon.corp.google.com` (internal)
 
-| Candidate | File | Line | Type | REPORT_CANDIDATE |
-|-----------|------|------|------|------------------|
-| crosvm codecov secret fetch | codecov_wrapper.sh | 11 | INTERESTING (proper pattern) | **no** |
-| crosvm GitHub bot secret fetch | push_to_github.sh | 10 | INTERESTING (proper pattern) | **no** |
-| ADK-JS password fixture | auth_schemes.ts | 41 | TEST_OR_EXAMPLE | **no** |
-| ADK-JS password example | auth_credential.ts | 214 | TEST_OR_EXAMPLE | **no** |
-| ADK-JS token placeholder | auth_credential.ts | 226 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python private_key fixture | auth_credential.py | 157 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python password test cred | auth_credential.py | 269 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python JWT test token | auth_credential.py | 278 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python PASSWORD constant | auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python client_secret placeholder | auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
-| ADK-Python SSRF warnings | container_code_executor.py | 114,154 | INTERESTING (docs) | **no** |
-| ADK-Python API key template | cli_create.py | 123 | INTERESTING (template) | **no** |
-| ADK-JS SSRF blocklist | load_web_page.ts | 36 | INTERESTING (config) | **no** |
-| OSV test endpoints (7 hits) | triage.js, linter.js, etc. | various | ENDPOINT_LEAK (test env) | **no** |
-| Meridian test PyPI URLs | proto-publish.yml, publish.yml | 126,138 | ENDPOINT_LEAK (test env) | **no** |
-| Langextract GH Actions secret refs | ci.yaml | 168-170 | INTERESTING (proper pattern) | **no** |
-| ADK-Python minified JS chunks | chunk-*.js | many | BUILD_ARTIFACT | **no** |
-| osv.dev dev.mysql.com fixture | pypi.go | 80 | TEST_OR_EXAMPLE | **no** |
+### INTERESTING / REJECTED CLASS
+- `google/xrblocks/docs/docusaurus.config.ts:175` — Algolia DocSearch apiKey → **REJECTED CLASS** per KB (search-only, public by design)
+- `google/adk-python/.../cli_create.py:123` — code pattern writing `GOOGLE_API_KEY` from variable (not hardcoded)
 
-**SUMMARY: 0 REAL_SECRET findings in this scan. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (test/staging), INTERESTING (security docs/proper patterns), or BUILD_ARTIFACT.**
+### KNOWN DUPLICATES (skip)
+- `google/adk-python` `/run_sse` client_secret → DUP #2128 (closed)
+- `google/adk-python` `ya29.*` token in git history → DUP #5520 (closed)
+
+### Verdict
+**Only one reportable candidate:** `google/earthengine-api/python/ee/oauth.py:45` — hardcoded OAuth `client_secret` (SHA256 `3f3f8d6f...`), confirmed live on master,
