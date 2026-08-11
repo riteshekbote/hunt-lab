@@ -3394,3 +3394,32 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED tokeninfo 400/113 oracle live; agentRegs GET 401/237; oauth2PermissionGrants GET 401/237.
 [RISK] google: 70 — earthengine client_secret proven a live valid credential (invalid_grant distinction, RFC 6749 §5.2) with cloud-platform+drive+devstorage scopes, but VRP-worthiness capped by installed-app public-client by-design precedent (ADK #2128); tokeninfo oracle no-reward; residual risk moderate.
 [RISK] microsoft: 78 — agentRegistrations live CORS mutation allowlist + zero ownership-restriction schema across 5 EntityTypes is a credible cross-principal IDOR precondition; oauth2PermissionGrants caller-chosen resourceId on production v1.0 is a second strong primitive; both blocked on the authorized two-principal test (AUTH_HELPED), which is the current bottleneck.
+## 2026-08-11 11:30:00 UTC [google] (model bigpickle)
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: production v1.0 POST accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation) and principalId; GET→401/237 auth-gated this probe; inventory shows no server-side cross-check of requester vs grant target.
+evidence_needed: A creates grant claiming B's principalId + resourceId=<storage appId>, scope user_impersonation → 201; then B GET /v1.0/me/oauth2PermissionGrants → 200 containing forged grant.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<Azure Storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /me/oauth2PermissionGrants → forged grant present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim's Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Agent Registration cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH, re-verified prior cycle; GET→401/237; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Copilot Studio D2E S2S conversation-ID takeover
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: inventory — conversation-ID NOT validated server-side (private preview); sibling orchestrated endpoint accepts client-supplied toolSchemaName+inputs; GET→401/237 confirms auth-gated this probe.
+evidence_needed: with valid Bearer, replay victim's {schema}/conversations/{id} → read/inject tool invocation 200 vs 403.
+verify_steps: AUTH_HELPED: obtain own conversationId, then second principal's Bearer GET/POST same id; record 200 vs 403.
+impact: cross-tenant conversation hijack → prompt/tool-injection in Copilot Studio sessions; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+[NEXT] HUMAN: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist re-verified prior probe, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. This resolves the #1 (95) hypothesis; the two AUTH_HELPED tests can then run in the same token session.

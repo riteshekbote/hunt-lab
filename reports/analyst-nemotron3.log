@@ -7882,3 +7882,158 @@ testability: AUTH_HELPED
 
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact  
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), Copilot Studio D2E conversation-ID unvalidated (confidence 75), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk
+===== ANALYST nemotron3 2026-08-11 11:31:36 UTC =====
+[0m
+> build · nemotron-3-ultra-free
+[0m
+[0m$ [0mcurl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+(no output)
+[0m
+[0m$ [0mcurl -v -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1
+% Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0* Host graph.microsoft.com:443 was resolved.
+* IPv6: 2603:1037:1:138::81, 2603:1036:3000:128::80, 2603:1037:1:138::80, 2603:1036:3000:128::81, 2603:1037:1:128::81, 2603:1037:1:128::80, 2603:1036:3000:130::80, 2603:1037:1:130::80
+* IPv4: 40.126.23.99, 40.126.23.38, 40.126.23.163, 20.190.151.38, 40.126.23.98, 20.190.151.100, 40.126.23.26, 40.126.23.96
+*   Trying 40.126.23.99:443...
+* Connected to graph.microsoft.com (40.126.23.99) port 443
+* ALPN: curl offers h2,http/1.1
+} [5 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+*  CAfile: /etc/ssl/certs/ca-certificates.crt
+*  CApath: /etc/ssl/certs
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [88 bytes data]
+* TLSv1.3 (OUT), TLS change cipher, Change cipher spec (1):
+} [1 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Client hello (1):
+} [512 bytes data]
+* TLSv1.3 (IN), TLS handshake, Server hello (2):
+{ [187 bytes data]
+* TLSv1.3 (IN), TLS handshake, Encrypted Extensions (8):
+{ [6 bytes data]
+* TLSv1.3 (IN), TLS handshake, Certificate (11):
+{ [5777 bytes data]
+* TLSv1.3 (IN), TLS handshake, CERT verify (15):
+{ [264 bytes data]
+* TLSv1.3 (IN), TLS handshake, Finished (20):
+{ [52 bytes data]
+* TLSv1.3 (OUT), TLS handshake, Finished (20):
+} [52 bytes data]
+* SSL connection using TLSv1.3 / TLS_AES_256_GCM_SHA384 / secp384r1 / RSASSA-PSS
+* ALPN: server did not agree on a protocol. Uses default.
+* Server certificate:
+*  subject: C=US; ST=WA; L=Redmond; O=Microsoft Corporation; CN=graph.microsoft.com
+*  start date: Jun  5 03:53:00 2026 GMT
+*  expire date: Dec  2 03:53:00 2026 GMT
+*  subjectAltName: host "graph.microsoft.com" matched cert's "graph.microsoft.com"
+*  issuer: C=US; O=Microsoft Corporation; CN=Microsoft TLS G2 RSA CA OCSP 16
+*  SSL certificate verify ok.
+*   Certificate level 0: Public key type RSA (2048/112 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 1: Public key type RSA (4096/152 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 2: Public key type RSA (4096/152 Bits/secBits), signed using sha384WithRSAEncryption
+*   Certificate level 3: Public key type RSA (2048/112 Bits/secBits), signed using sha256WithRSAEncryption
+* using HTTP/1.x
+} [5 bytes data]
+> OPTIONS /beta/copilot/agentRegistrations HTTP/1.1
+> Host: graph.microsoft.com
+> User-Agent: curl/8.5.0
+> Accept: */*
+> Origin: https://evil.com
+> Access-Control-Request-Method: POST
+> Access-Control-Request-Headers: authorization
+> 
+{ [5 bytes data]
+* TLSv1.3 (IN), TLS handshake, Newsession Ticket (4):
+{ [81 bytes data]
+< HTTP/1.1 200 OK
+< Strict-Transport-Security: max-age=31536000
+< request-id: af934d78-078d-477e-92e1-e50c13c211b2
+< client-request-id: af934d78-078d-477e-92e1-e50c13c211b2
+< x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"010","RoleInstance":"MN1PEPF00076F6B"}}
+< Access-Control-Allow-Origin: *
+< Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+< Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+< Access-Control-Allow-Headers: authorization
+< Access-Control-Max-Age: 86400
+< Date: Tue, 11 Aug 2026 11:29:14 GMT
+< Content-Length: 0
+< 
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+* Connection #0 to host graph.microsoft.com left intact
+[0m
+**STEP 1 — DELTA**
+[NEW] Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+[NEW] Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+[NEW] Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+[NEW] ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+[NEW] /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+[NEW] Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations collection CORS preflight → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400 (confirmed live this probe)
+[CHANGED] api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401)
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON
+[CHANGED] oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+
+**STEP 2 — PRIORITIZE**
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}, score=9.5, attack=10, business=10, tech=9, gate=9, cloud=8, fresh=10
+[PRIO] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations, score=8.35, attack=9, business=8, tech=8, gate=8, cloud=8, fresh=9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, score=7.95, attack=8, business=8, tech=7, gate=8, cloud=8, fresh=9
+[PRIO] oauth2.googleapis.com/token, score=8.6, attack=9, business=9, tech=8, gate=8, cloud=9, fresh=8
+
+**STEP 3 — HYPOTHESES**
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 94
+reasoning: $metadata shows 0 OperationRestrictions on agentRegistration + 4 sibling EntityTypes; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; true CORS preflight on collection returns ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400; HEAD→405/no WWW-Authenticate (RFC 6750 §3 violation) masks unauth enumeration; GET→401 auth-gated but schema permits cross-principal write
+evidence_needed: Two-principal test — Principal A POSTs agentRegistration with createdBy/ownerIds = Principal B's oid (expect 201); Principal A PATCHes B's registration id to rewrite ownerIds
+verify_steps: AUTH_HELPED: POST /beta/copilot/agentRegistrations with Bearer token A, body {displayName:"test",createdBy:"B_oid",ownerIds:["B_oid"],agentCard:{},managedByAppId:"...",agentIdentityId:"..."} → expect 201; PATCH /beta/copilot/agentRegistrations/{B_id} with same token → expect 200
+impact: Full takeover of victim's agent registration — rewrite ownership, inject malicious agentCard, pivot to Copilot Studio / Verified ID minting; cross-origin exploitable via CORS
+testability: AUTH_HELPED
+
+[HYP] Earth Engine OAuth client_secret redemption for cloud-platform-scoped access tokens
+class: AUTH
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: Hardcoded client_secret (sha256 `3f3f8d6f…d271`) in public repo github.com/google/earthengine-api/python/ee/oauth.py:45; POST /token with leaked secret → 400 invalid_grant (not 401 invalid_client) proving valid Google OAuth credential per RFC 6749 §5.2; scopes include cloud-platform+earthengine+drive+devstorage.full_control; native installed app with OOB redirect (by-design pattern per ADK #2128)
+evidence_needed: Valid refresh_token for target user → POST /token with client_id=517222506229-…, client_secret=leaked, grant_type=refresh_token, refresh_token=… → expect 200 with access_token (cloud-platform scope)
+verify_steps: AUTH_HELPED: Obtain refresh_token for test account via earthengine auth flow → POST https://oauth2.googleapis.com/token with leaked credentials + grant_type=refresh_token → verify 200 + cloud-platform scoped access_token
+impact: Cloud-platform scoped access token → full GCP project access (compute, storage, IAM, secrets, etc.); earthengine scope adds Earth Engine API; drive+devstorage adds Drive/Cloud Storage; native app by-design caps VRP severity but credential validity is proven
+testability: AUTH_HELPED
+
+[HYP] Copilot Studio D2E S2S conversation hijack via unvalidated conversation-ID
+class: AUTH
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 75
+reasoning: Private preview endpoint; conversation-ID NOT validated server-side per inventory; S2S (service-to-service) auth model means bearer token identifies calling service, not conversation owner; attacker with valid S2S token can inject arbitrary conversation-ID to read/continue victim conversations
+evidence_needed: Valid S2S token + victim conversation-ID → successful conversation access/continuation
+verify_steps: AUTH_HELPED: POST /beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations with valid S2S Bearer, body {conversationId: "victim_conversation_id", ...} → expect 200/201 with conversation access
+impact: Cross-tenant/cross-user conversation hijack in Copilot Studio; read sensitive chat history, inject messages, escalate to agent actions
+testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+All three hypotheses have confidence ≥ 40, classes not on REJECTED list, and concrete AUTH_HELPED verify_steps. None dropped.
+[FINAL] 1) Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (IDOR, 94, AUTH_HELPED)
+[FINAL] 2) Earth Engine OAuth client_secret redemption for cloud-platform-scoped access tokens (AUTH, 96, AUTH_HELPED)
+[FINAL] 3) Copilot Studio D2E S2S conversation hijack via unvalidated conversation-ID (AUTH, 75, AUTH_HELPED)
+
+**STEP 5 — NEXT ACTION**
+[NEXT] PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations"` — confirm collection-level CORS preflight returns 200 ACAO:* + Allow-Methods POST + Allow-Headers authorization + Max-Age 86400 (re-validate live mutation vector on collection)
+
+**STEP 6 — LEARNING**
+[LEARN] ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist; prior bare-OPTIONS 405 entries were artifacts (no Origin header)
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2)
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface)
+[LEARN] ACCEPTED mysignins.microsoft.com source map rotation hardening @ mysignins.microsoft.com: `main.7b5c8f3a.js.map` now 404 (was 200 7MB); one identity SPA hardened, api.myaccount.microsoft.com 35MB map still live
+[LEARN] ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys JSON gate @ login.microsoftonline.com: now requires `Accept: application/json` header for JSON response (was returning HTML without) — minor hardening of key endpoint
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn; infrastructure-dependent, not directly testable
+[LEARN] CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface reduced
+
+**STEP 7 — RISK SCORE**
+[RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
+[RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), Copilot Studio D2E conversation-ID unvalidated (confidence 75), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk

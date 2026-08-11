@@ -621,3 +621,21 @@
 - CHANGED api.myaccount.microsoft.com/main.4e6e3dc6.js.map → HTTP 401 (was 200/35MB/4922 paths) — both identity SPA source maps now closed (mysignins 404 + myaccount 401)
 - NEW graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — Copilot Studio D2E S2S API, conversation-ID NOT validated server-side (private preview)
 - NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+
+## 2026-08-11 11:31:36 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations collection CORS preflight → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400 (confirmed live this probe
+- CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401)
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- NEW Consent primitive POST `graph.microsoft.com/v1.0/oauth2PermissionGrants` — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Copilot Studio D2E S2S conversation-ID validation gap @ `graph.microsoft.com/beta/copilotstudio` — conversation-ID NOT validated server-side (private preview)
+- NEW Orchestrated API @ `powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId}` — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow documented @ `graph.microsoft.com` — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic
+- NEW `/me/agentSignInSessions` (v1.0 + beta) fully off-metadata — 0 refs in `$metadata`, endpoint alive (401)
+- CHANGED `graph.microsoft.com/beta/copilot/agentRegistrations` — true CORS preflight (Origin+ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist, Max-Age 86400 (re-confirmed)

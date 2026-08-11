@@ -17090,3 +17090,105 @@ testability: AUTH_HELPED
 ## STEP 7 — RISK SCORE
 [RISK] google: 70 — earthengine client_secret proven a live valid credential (invalid_grant distinction, RFC 6749 §5.2) with cloud-platform+drive+devstorage scopes, but VRP-worthiness capped by installed-app public-client by-design precedent (ADK #2128); tokeninfo oracle no-reward; residual risk moderate.
 [RISK] microsoft: 78 — agentRegistrations live CORS mutation allowlist + zero ownership-restriction schema across 5 EntityTypes is a credible cross-principal IDOR precondition; oauth2PermissionGrants caller-chosen resourceId on production v1.0 is a second strong primitive; both blocked on the authorized two-principal test (AUTH_HELPED), which is the current bottleneck.
+===== ANALYST bigpickle 2026-08-11 11:31:36 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "GET agentRegistrations: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://graph.microsoft.com/beta/copilot/agentRegistrations" ; curl -s -o /dev/null -w "GET oauth2PermissionGrants: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" ; curl -s -o /dev/null -w "GET copilotstudio: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots"
+GET agentRegistrations: 401 len=237
+GET oauth2PermissionGrants: 401 len=237
+GET copilotstudio: 401 len=237
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "tokeninfo: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://oauth2.googleapis.com/tokeninfo" ; curl -s -o /dev/null -w "earthengine oauth.py: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"
+tokeninfo: 400 len=113
+earthengine oauth.py: 200 len=23110
+[0m
+[0m$ [0mcurl -s -H "User-Agent: Mozilla/5.0" "https://login.microsoftonline.com/common/discovery/keys" -o /tmp/k1.json -w "v1 keys: %{http_code} len=%{size_download}\n" ; curl -s -H "User-Agent: Mozilla/5.0" "https://login.microsoftonline.com/common/discovery/v2.0/keys" -o /tmp/k2.json -w "v2 keys: %{http_code} len=%{size_download}\n" ; python3 -c "
+import json
+k1=set(k['kid'] for k in json.load(open('/tmp/k1.json'))['keys'])
+k2=set(k['kid'] for k in json.load(open('/tmp/k2.json'))['keys'])
+print('v1-only:', sorted(k1-k2)); print('v2-only:', sorted(k2-k1)); print('shared:', sorted(k1&k2))
+"
+v1 keys: 200 len=7657
+v2 keys: 200 len=9719
+v1-only: ['jvm_-TtaqTCRrkpnmePvwb75nWE', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+v2-only: ['1Nv3JExJrKNx1l7adICQ7Y_Atps', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'rRk1d-57BGZfsM4BUHrkx8cQbic']
+shared: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI']
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/oauth.py && sha256sum /tmp/oauth.py && grep -n "RUP0RZ6" /tmp/oauth.py | sha256sum && grep -c "CLIENT_SECRET" /tmp/oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/oauth.py
+91c14e76553c1349bb91f8b5b2d8f0b929d865548cd9c203361185b60d0a463e  -
+4
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "myaccount map: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://api.myaccount.microsoft.com/main.4e6e3dc6.js.map" ; curl -s -o /dev/null -w "mysignins map: %{http_code} len=%{size_download}\n" -H "User-Agent: Mozilla/5.0" "https://mysignins.microsoft.com/main.7b5c8f3a.js.map"
+myaccount map: 401 len=0
+mysignins map: 404 len=0
+[0m
+## STEP 1 — DELTA
+
+- [CHANGED] `login.microsoftonline.com/common/discovery/keys` — this probe v1=5, v2=6, shared=3, **2 v1-exclusive kids** (`jvm_-TtaqTCRrkpnmePvwb75nWE`, `sa3RgZQ_nZNVheAokCVqxY_8Cr4`), 3 v2-only. The "0 v1-exclusive steady-state subset invariant" is again falsified by live probe (same class of churn as `aFkmKVFc`); class conclusion unchanged.
+- [CHANGED] Confirmed both identity SPA source maps remain closed — `api.myaccount.microsoft.com/main.4e6e3dc6.js.map` → 401/0, `mysignins.microsoft.com/main.7b5c8f3a.js.map` → 404/0 (recon surface eliminated, already logged).
+- All else NO_DELTA — re-verified this probe: `graph.microsoft.com/beta/copilot/agentRegistrations` GET→401/237; `/v1.0/oauth2PermissionGrants` GET→401/237; `/beta/copilotstudio/dataverse-backed/authenticated/bots` GET→401/237; `oauth2.googleapis.com/tokeninfo`→400/113; `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py`→200/len=23110, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged (secret line count=4 intact).
+
+## STEP 2 — PRIORITIZE
+
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | score 7.0 | attack 6, business 9, tech 7 (OAuth consent grants), gate 4 (Bearer-only), cloud 9 (AAD consent plane), fresh 7 (2026-08-10 inventory)
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} | score 6.8 | attack 7, business 8, tech 7 (OData agent schema), gate 4 (Bearer, but live CORS mutation allowlist), cloud 8, fresh 6
+- [PRIO] graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations | score 6.4 | attack 6, business 7, tech 7 (S2S conversation IDs), gate 4, cloud 7, fresh 8 (private preview)
+
+## STEP 3 — HYPOTHESES
+
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: production v1.0 POST accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation) and principalId; GET→401/237 auth-gated this probe; inventory shows no server-side cross-check of requester vs grant target.
+evidence_needed: A creates grant claiming B's principalId + resourceId=<storage appId>, scope user_impersonation → 201; then B GET /v1.0/me/oauth2PermissionGrants → 200 containing forged grant.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<Azure Storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /me/oauth2PermissionGrants → forged grant present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim's Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+
+[HYP] Agent Registration cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH, re-verified prior cycle; GET→401/237; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Copilot Studio D2E S2S conversation-ID takeover
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: inventory — conversation-ID NOT validated server-side (private preview); sibling orchestrated endpoint accepts client-supplied toolSchemaName+inputs; GET→401/237 confirms auth-gated this probe.
+evidence_needed: with valid Bearer, replay victim's {schema}/conversations/{id} → read/inject tool invocation 200 vs 403.
+verify_steps: AUTH_HELPED: obtain own conversationId, then second principal's Bearer GET/POST same id; record 200 vs 403.
+impact: cross-tenant conversation hijack → prompt/tool-injection in Copilot Studio sessions; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+
+## STEP 4 — SELF-CRITIQUE
+
+Dropped: none (all ≥40, none on REJECTED list, all have concrete verify_steps). Note: oauth2PermissionGrants (62) is the weakest — confidence capped by no live 2xx evidence yet; kept for the production-v1.0 breadth of impact.
+
+- [FINAL] 1) agentRegistrations cross-principal ownership bypass (95, AUTH_HELPED) — strongest: live CORS mutation vector + zero-restriction schema, single authorized test resolves.
+- [FINAL] 2) Consent-grant forge via caller-chosen resourceId (62, AUTH_HELPED) — production-v1.0 consent-plane primitive.
+- [FINAL] 3) Copilot Studio conversation-ID takeover (55, AUTH_HELPED) — private preview, lowest certainty.
+
+## STEP 5 — NEXT ACTION
+
+[NEXT] HUMAN: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist re-verified prior probe, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. This resolves the #1 (95) hypothesis; the two AUTH_HELPED tests can then run in the same token session.
+
+## STEP 6 — LEARNING
+
+- [LEARN] ACCEPTED auth-gates live this probe — agentRegistrations GET→401/237, oauth2PermissionGrants GET→401/237, copilotstudio GET→401/237: all three hypothesis assets remain Bearer-gated, no unauth bypass (preconditions intact, still require AUTH_HELPED).
+- [LEARN] ACCEPTED earthengine oauth.py live — whole-file sha `f4f93c76…b73040` unchanged, 200/len=23110, secret present (line-level sha `91c14e76…` is the known line-hash artifact); VRP-worthiness stays capped by installed-app public-client precedent (ADK #2128).
+- [LEARN] ACCEPTED tokeninfo introspection oracle live — no-param→400/113 invalid_token; no-reward per Google VRP rules.
+- [LEARN] ACCEPTED both identity SPA source maps closed — mysignins 404, myaccount 401; recon surface eliminated, extracted endpoints unchanged.
+- [LEARN] CHANGED JWKS churn — v1-exclusive kids (`jvm_-Ttaq…`, `sa3RgZQ…`) present this probe; subset invariant not strict. Class stays REJECTED: v1 kid set is never validated against v2 issuer, so v1-exclusive kids create no cross-endpoint key-confusion surface.
+
+## STEP 7 — RISK SCORE
+
+- [RISK] google: 70 — earthengine client_secret proven a live valid credential (invalid_grant vs invalid_client, RFC 6749 §5.2) with cloud-platform+drive+devstorage scopes but VRP-worthiness capped by installed-app public-client by-design precedent (ADK #2128); tokeninfo oracle no-reward; no new Google surface this cycle.
+- [RISK] microsoft: 78 — three AUTH-gated IDOR/AUTH classes (agentRegistrations 95, oauth2PermissionGrants 62, copilotstudio 55) with live CORS mutation precondition and zero-restriction schemas; all blocked on the authorized two-principal test, which is the current bottleneck; SPA source-map closures reduce recon but not the core precondition.
