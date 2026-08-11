@@ -1,3 +1,52 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+### Classification Tables
+
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `test.pypi.org` (staging PyPI) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | `test.pypi.org` (staging PyPI) |
+| google/osv.dev/deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml | 16 | `test.osv.dev` |
+| google/osv.dev/docs/_config.yml | 78 | `test.osv.dev/linter` |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `api.test.osv.dev` |
+| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `api.test.osv.dev` |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `test.osv.dev` |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `dev.mysql.com` |
+| google/osv.dev/external/pypi/pypi.go | 80 | `dev.mysql.com` |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `pantheon.corp.google.com` (internal) |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | GCP metadata host check (`metadata.google.internal`) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | Link-local CIDR `169.254.0.0/16` (includes GCP metadata 169.254.169.254) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Secret Manager access pattern (`gcloud secrets versions access`) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Secret Manager access pattern (`gcloud secrets versions access`) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | GCP metadata endpoint `169.254.169.254` documented |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Template writes `GOOGLE_API_KEY={google_api_key}` (user-supplied) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key `_vmaas_access_token` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secret refs via `${{ secrets.* }}` |
+
+---
+
+### Verdict List
+
+| Candidate | File | Line | REPORT_CANDIDATE |
+|-----------|------|------|------------------|
+| Hardcoded secret | — | — | **no** (zero REAL_SECRET hits) |
+
+**Summary**: 117 hits scanned. **0 REAL_SECRET** findings. All credentials are test fixtures (`password`, `your_access_token`, `your_client_secret`), placeholder private keys, or proper secret-manager references (`gcloud secrets`, `${{ secrets.* }}`). Staging endpoints (`test.pypi.org`, `test.osv.dev`, `api.test.osv.dev`, `dev.mysql.com`) and internal URL (`pantheon.corp.google.com`) are ENDPOINT_LEAK but not exploitable secrets. GCP metadata endpoint references are INTERESTING defensive surface documentation.
