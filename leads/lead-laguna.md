@@ -4331,3 +4331,4 @@ class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
 confidence: 88
 reasoning: $metadata confirms ZERO OperationRestrictions across 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage), 13 client-supplied properties (createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all Nullable=false); TRUE CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86
+## 2026-08-11 10:42:26 UTC [google] (model laguna)

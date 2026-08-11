@@ -591,3 +591,11 @@
 - 2026-08-11 ACCEPTED v1(4)⊂v2(7) JWKS subset invariant holds this probe — 0 v1-exclusive (8→7 churn only); dual-JWKS rotation desync stays REJECTED (v1 kid set never validated against v2 issuer).
 - 2026-08-11 ACCEPTED earthengine-api oauth.py:45 secret live — bare sha `3f3f8d6f…d271` verbatim at :45 (+ :99 fallback), whole-file sha `f4f93c76…` unchanged, raw 200/23110.
 - 2026-08-11 ACCEPTED tokeninfo 400/113 oracle live; agentRegs GET 401/237; copilot
+- 2026-08-11 ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist; prior bare-OPTIONS 405 entries were artifacts (no Origin header)
+- 2026-08-11 ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400, re-verified this probe.
+- 2026-08-11 ACCEPTED v1(4)⊂v2(7) JWKS subset invariant holds this probe — 0 v1-exclusive (3 v2-only); dual-JWKS rotation desync stays REJECTED (v1 kid set never validated against v2 issuer).
+- 2026-08-11 ACCEPTED earthengine-api oauth.py:45 secret live — whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` verbatim at :45 (+ :99 fallback), raw 200/23110.
+- 2026-08-11 ACCEPTED tokeninfo 400/113 oracle live; agentRegs GET 401/237; oauth2PermissionGrants GET 401/237.
+- 2026-08-11 ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID NOT validated server-side. Confidence 55.
+- 2026-08-11 CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface eliminated.
+- 2026-08-11 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
