@@ -1,3 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts[90m [limit=20, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=115, limit=20][0m
+[0m
+[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
+d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
+[0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` | Hardcoded Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (split-string concat), comment claims "locked to skottie.skia.org" |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js` | 3 | Generated/compiled JS (parser error messages) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js` | 3 | Generated/compiled JS (parser error messages) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Variable interpolation `f"GOOGLE_API_KEY={google_api_key}"` — not hardcoded |
+| `reposcan-raw/google/private-compute-services/.../RenderTokenHint.kt` | 41 | Constant key name `"render_token"` not a secret value |
+| `reposcan-raw/google/private-compute-services/.../RenderTokenInsight.kt` | 43 | Constant key name `"render_token"` not a secret value |
+| `reposcan-raw/google/private-compute-services/.../PrivateInferenceClientTimerNames.kt` | 82,88,91 | Constant timer names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/**/*.yml` | various | Ansible/Jinja2 `{{ secrets.skolo_password }}` — secret references, not values |
+| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Explicit placeholder `"not-a-valid-client-secret"` |
+| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant names for secret keys (`CLIENT_SECRET`, `GMAIL_CLIENT_SECRET`, etc.) |
+| `reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference `"bugs-central-github-token"` |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | GCP metadata server `169.254.169.254` |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
+| `reposcan-raw/google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | Same GCP metadata endpoint |
+| `reposcan-raw/google/skia-buildbot/kube/corp-config.sh` | 9 | `skia-corp.google.com` (internal corp domain) |
+| `reposcan-raw/google/skia-buildbot/**/*.go/ts` | various | `pantheon.corp.google.com`, `b.corp.google.com`, `source.corp.google.com`, `rotations.corp.google.com`, `android-build.corp.google.com` |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path` / `kubeconfig_context` params — GKE cluster access config surface |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents metadata endpoint as privilege escalation path |
+| `reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | `--docker-password="cat ${SA_NAME}.json"` — service account JSON used as docker auth |
+
+---
+
+### Verdict
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` — Hardcoded Google API key (domain-scoped per comment) | **yes** — Real credential in source; domain restriction is a mitigation not a revocation. Per Google VRP, API keys in public source are reportable. |
+| All TEST_OR_EXAMPLE entries | no — Placeholders, templates, generated code, or secret *names* not values |
+| All ENDPOINT_LEAK entries | no — Internal endpoint references, not exploitable secrets |
+| All INTERESTING entries | no — Config surface / documentation of attack paths, not secrets |
