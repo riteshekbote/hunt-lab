@@ -1,168 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js[90m [offset=28, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=20][0m
+### Classification Table
 
-REAL_SECRET (reportable credentials):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ No REAL_SECRET findings in this delta scan.                                        │
-│ (Prior known: earthengine-api oauth.py:45 client_secret sha256=3f3f8d6f… confirmed │
-│  live in KB, but not in THIS scan's 35 new hit lines)                              │
-└────────────────────────────────────────────────────────────────────────────────────┘
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | *(none)* | — |
+| **TEST_OR_EXAMPLE** | `agents-cli/auth.py:43` (enum value `GEMINI_API_KEY = "gemini_api_key"`), `agents-cli/staging.yaml:168,192` (cookiecutter template vars `{{ steps.fetch-token.outputs... }}`), `adk-python/auth_credential.py:157,269,278` (docstring placeholders: `"-----BEGIN PRIVATE KEY-----..."`, `user/password`, `eyAkaknabna....`), `adk-python/auth_schemes.py:68` (`PASSWORD = "password"`), `adk-python/auth_helpers.py:62` (`"your_client_secret"`), `adk-python/sandbox_computer.py:47` (const `_STATE_KEY_ACCESS_TOKEN`), `adk-python/cli_create.py:123` (var interpolation), `pebble/quicksearch.js:33` & `404.js:24` (Jekyll `{{ site.algolia_api_key }}`), `oss-fuzz/flask/fuzz_json.py:27` (`"fuzz test key"`), `oss-fuzz/h2database/TestServer.java:13` (`"ServerShutdownPassword"`), `sam/deploy.yaml:247-250` (GH Actions `${{ secrets.* }}` refs), `langextract/ci.yaml:168-170` (GH Actions `${{ secrets.* }}` refs) | All benign — placeholders, templates, test fixtures, secret refs |
+| **ENDPOINT_LEAK** | `quiche/spdy_protocol.h:7` (comment: `http://dev.chromium.org/spdy/...`) | Benign — doc URL in comment |
+| **INTERESTING** | `quiche/certificate_view.h:126` (comment: legacy OpenSSL RSA key format support) | Benign — descriptive comment |
 
-TEST_OR_EXAMPLE (test fixtures, placeholders, templates, build artifacts):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/auth/auth_credential.py                              157  │  private_key="-----BEGIN PRIVATE KEY-----..." (placeholder)
-│ adk-python/src/google/adk/auth/auth_credential.py                              269  │  username="user", password="password" (obvious test creds)
-│ adk-python/src/google/adk/auth/auth_credential.py                              278  │  token="eyAkaknabna...." (fake JWT placeholder)
-│ adk-python/src/google/adk/auth/auth_schemes.py                                  68  │  PASSWORD = "password" (constant placeholder)
-│ adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py               62  │  client_secret="your_client_secret" (explicit placeholder)
-│ adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py                47  │  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (state key name)
-│ adk-python/src/google/adk/cli/browser/*.js (19 files)                           var  │  Minified JS chunks / source maps (build artifacts)
-│ adk-java/dev/browser/main-TCIQIOZ3.js                                            5   │  Minified JS (build artifact)
-│ pebble/devsite/source/assets/js/404.js                                          24  │  apiKey: '{{ site.algolia_api_key }}' (Jekyll template var)
-│ pebble/devsite/source/assets/js/quicksearch.js                                  33  │  apiKey: '{{ site.algolia_api_key }}' (Jekyll template var)
-│ pebble/third_party/jquery/jquery-1.11.2.js                                    6170  │  Third-party library comment
-│ private-compute-services/.../RenderTokenHint.kt                                 41  │  KEY_RENDER_TOKEN = "render_token" (constant name)
-│ private-compute-services/.../RenderTokenInsight.kt                              43  │  KEY_RENDER_TOKEN = "render_token" (constant name)
-│ langextract/.github/workflows/ci.yaml                                          168  │  ${{ secrets.GEMINI_API_KEY }} (proper secret ref)
-│ langextract/.github/workflows/ci.yaml                                          169  │  ${{ secrets.GEMINI_API_KEY }} (proper secret ref)
-│ langextract/.github/workflows/ci.yaml                                          170  │  ${{ secrets.OPENAI_API_KEY }} (proper secret ref)
-│ oss-fuzz/projects/mysql-connector-j/TestServer.java                             33  │  Documentation URL comment
-│ oss-fuzz/projects/flask/fuzz_json.py                                            27  │  secret_key = "fuzz test key" (explicit test key)
-│ oss-fuzz/projects/h2database/TestServer.java                                    13  │  g_shutdownPassword = "ServerShutdownPassword" (test)
-│ oss-fuzz/projects/h2database/TestServer.java                                    55  │  Test server password usage
-│ sam/.github/workflows/deploy.yaml                                              247  │  ${{ secrets.GOOGLE_CLIENT_SECRET }} (proper secret ref)
-│ sam/.github/workflows/deploy.yaml                                              249  │  ${{ secrets.GITHUB_CLIENT_SECRET }} (proper secret ref)
-│ sam/.github/workflows/deploy.yaml                                              250  │  ${{ secrets.CLI_OAUTH_SECRET }} (proper secret ref)
-│ sam/.github/k8s/*.yaml (7 files)                                                2   │  Kind: ConfigMap (K8s structure)
-└────────────────────────────────────────────────────────────────────────────────────┘
+---
 
-ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/code_executors/container_code_executor.py            114  │  169.254.169.254 (well-known cloud metadata IP, public knowledge)
-│ adk-python/src/google/adk/code_executors/container_code_executor.py            154  │  169.254.169.254 (duplicate reference)
-│ CFU-Playground/.github/workflows/fmax-trials.yml                               10   │  static.dev.sifive.com (public toolchain download URL)
-└────────────────────────────────────────────────────────────────────────────────────┘
+### SHORT VERDICT
 
-INTERESTING (debug flags, config patterns, internal constants):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/cli/cli_create.py                                   123  │  GOOGLE_API_KEY= interpolation pattern (writes key to file)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                103  │  kubeconfig_path param (cluster auth config surface)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                104  │  kubeconfig_context param (cluster auth config surface)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                115  │  kubeconfig_path param (duplicate)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              82  │  IPP_CREATE_TERMINAL_TOKEN (internal metric name)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              88  │  IPP_CREATE_PROXY_TOKEN (internal metric name)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              91  │  IPP_GET_PROXY_TOKEN (internal metric name)
-└────────────────────────────────────────────────────────────────────────────────────┘
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| *(no new REAL_SECRET hits in this delta)* | **no** |
 
-
-=== VERDICT LIST ===
-
-REPORT_CANDIDATE: no (no new REAL_SECRET in this delta)
-
-NOTES:
-- The earthengine-api hardcoded client_secret (oauth.py:45, sha256 3f3f8d6f…) is CONFIRMED LIVE in KB
-  but does NOT appear in this scan's 35 new hit lines — it was found in prior scans.
-- All 35 new hits are TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING — zero reportable secrets.
-- The adk-python auth_credential.py hits are test fixtures (placeholder private key, "user"/"password",
-  fake JWT token "eyAkaknabna....", "your_client_secret").
-- The pebble Algolia apiKey hits are Jekyll template variables {{ site.algolia_api_key }}, not hardcoded.
-- The sam/ and langextract/ workflow hits are proper ${{ secrets.* }} references (correct pattern).
-- Cloud metadata endpoint 169.254.169.254 is public knowledge, not a leak.
-- GKE kubeconfig params are configuration surface, not secrets.
-EOF
-=== CLASSIFICATION TABLES ===
-
-REAL_SECRET (reportable credentials):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ No REAL_SECRET findings in this delta scan.                                        │
-│ (Prior known: earthengine-api oauth.py:45 client_secret sha256=3f3f8d6f… confirmed │
-│  live in KB, but not in THIS scan's 35 new hit lines)                              │
-└────────────────────────────────────────────────────────────────────────────────────┘
-
-TEST_OR_EXAMPLE (test fixtures, placeholders, templates, build artifacts):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/auth/auth_credential.py                              157  │  private_key="-----BEGIN PRIVATE KEY-----..." (placeholder)
-│ adk-python/src/google/adk/auth/auth_credential.py                              269  │  username="user", password="password" (obvious test creds)
-│ adk-python/src/google/adk/auth/auth_credential.py                              278  │  token="eyAkaknabna...." (fake JWT placeholder)
-│ adk-python/src/google/adk/auth/auth_schemes.py                                  68  │  PASSWORD = "password" (constant placeholder)
-│ adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py               62  │  client_secret="your_client_secret" (explicit placeholder)
-│ adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py                47  │  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (state key name)
-│ adk-python/src/google/adk/cli/browser/*.js (19 files)                           var  │  Minified JS chunks / source maps (build artifacts)
-│ adk-java/dev/browser/main-TCIQIOZ3.js                                            5   │  Minified JS (build artifact)
-│ pebble/devsite/source/assets/js/404.js                                          24  │  apiKey: '{{ site.algolia_api_key }}' (Jekyll template var)
-│ pebble/devsite/source/assets/js/quicksearch.js                                  33  │  apiKey: '{{ site.algolia_api_key }}' (Jekyll template var)
-│ pebble/third_party/jquery/jquery-1.11.2.js                                    6170  │  Third-party library comment
-│ private-compute-services/.../RenderTokenHint.kt                                 41  │  KEY_RENDER_TOKEN = "render_token" (constant name)
-│ private-compute-services/.../RenderTokenInsight.kt                              43  │  KEY_RENDER_TOKEN = "render_token" (constant name)
-│ langextract/.github/workflows/ci.yaml                                          168  │  ${{ secrets.GEMINI_API_KEY }} (proper secret ref)
-│ langextract/.github/workflows/ci.yaml                                          169  │  ${{ secrets.GEMINI_API_KEY }} (proper secret ref)
-│ langextract/.github/workflows/ci.yaml                                          170  │  ${{ secrets.OPENAI_API_KEY }} (proper secret ref)
-│ oss-fuzz/projects/mysql-connector-j/TestServer.java                             33  │  Documentation URL comment
-│ oss-fuzz/projects/flask/fuzz_json.py                                            27  │  secret_key = "fuzz test key" (explicit test key)
-│ oss-fuzz/projects/h2database/TestServer.java                                    13  │  g_shutdownPassword = "ServerShutdownPassword" (test)
-│ oss-fuzz/projects/h2database/TestServer.java                                    55  │  Test server password usage
-│ sam/.github/workflows/deploy.yaml                                              247  │  ${{ secrets.GOOGLE_CLIENT_SECRET }} (proper secret ref)
-│ sam/.github/workflows/deploy.yaml                                              249  │  ${{ secrets.GITHUB_CLIENT_SECRET }} (proper secret ref)
-│ sam/.github/workflows/deploy.yaml                                              250  │  ${{ secrets.CLI_OAUTH_SECRET }} (proper secret ref)
-│ sam/.github/k8s/*.yaml (7 files)                                                2   │  Kind: ConfigMap (K8s structure)
-└────────────────────────────────────────────────────────────────────────────────────┘
-
-ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/code_executors/container_code_executor.py            114  │  169.254.169.254 (well-known cloud metadata IP, public knowledge)
-│ adk-python/src/google/adk/code_executors/container_code_executor.py            154  │  169.254.169.254 (duplicate reference)
-│ CFU-Playground/.github/workflows/fmax-trials.yml                               10   │  static.dev.sifive.com (public toolchain download URL)
-└────────────────────────────────────────────────────────────────────────────────────┘
-
-INTERESTING (debug flags, config patterns, internal constants):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         Line  │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ adk-python/src/google/adk/cli/cli_create.py                                   123  │  GOOGLE_API_KEY= interpolation pattern (writes key to file)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                103  │  kubeconfig_path param (cluster auth config surface)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                104  │  kubeconfig_context param (cluster auth config surface)
-│ adk-python/src/google/adk/code_executors/gke_code_executor.py                115  │  kubeconfig_path param (duplicate)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              82  │  IPP_CREATE_TERMINAL_TOKEN (internal metric name)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              88  │  IPP_CREATE_PROXY_TOKEN (internal metric name)
-│ private-compute-services/.../PrivateInferenceClientTimerNames.kt              91  │  IPP_GET_PROXY_TOKEN (internal metric name)
-└────────────────────────────────────────────────────────────────────────────────────┘
-
-
-=== VERDICT LIST ===
-
-REPORT_CANDIDATE: no (no new REAL_SECRET in this delta)
-
-NOTES:
-- The earthengine-api hardcoded client_secret (oauth.py:45, sha256 3f3f8d6f…) is CONFIRMED LIVE in KB
-  but does NOT appear in this scan's 35 new hit lines — it was found in prior scans.
-- All 35 new hits are TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING — zero reportable secrets.
-- The adk-python auth_credential.py hits are test fixtures (placeholder private key, "user"/"password",
-  fake JWT token "eyAkaknabna....", "your_client_secret").
-- The pebble Algolia apiKey hits are Jekyll template variables {{ site.algolia_api_key }}, not hardcoded.
-- The sam/ and langextract/ workflow hits are proper ${{ secrets.* }} references (correct pattern).
-- Cloud metadata endpoint 169.254.169.254 is public knowledge, not a leak.
-- GKE kubeconfig params are configuration surface, not secrets.
-[0m
-**Delta triage complete — no new reportable secrets in this scan's 35 hits.**
-
-| Category | Count | Notes |
-|----------|-------|-------|
-| **REAL_SECRET** | 0 | Prior known `earthengine-api` client_secret (sha256 `3f3f8d6f…`) confirmed live in KB but not in *this* delta |
-| **TEST_OR_EXAMPLE** | 26 | Test fixtures, placeholders (`your_client_secret`, `password`), Jekyll template vars (`{{ site.algolia_api_key }}`), proper `${{ secrets.* }}` refs, build artifacts |
-| **ENDPOINT_LEAK** | 3 | Well-known metadata IP `169.254.169.254` (public), public SiFive toolchain URL |
-| **INTERESTING** | 7 | API key interpolation pattern, GKE kubeconfig params, internal metric names |
-
-**Verdict:** `REPORT_CANDIDATE: no` — all new hits are benign. The only live credential remains the previously-tracked Earth Engine OAuth client secret (native-app/OOB pattern, VRP-worthiness capped per ADK #2128 precedent).
+**Notes:**
+- The previously confirmed hardcoded Earth Engine OAuth client_secret (`earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not in this scan's new delta** — it remains in ACCEPTED/KNOWN-DUP per KB.
+- All 5 new delta lines + 113 context hits are templates, placeholders, test fixtures, or comments.
+- No actionable secrets, endpoint leaks, or novel attack surface in this scan.
