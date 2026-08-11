@@ -1,18 +1,39 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-The user wants me to triage the static scan results from google/ and microsoft/ GitHub orgs. They've provided a knowledge base of previously verified findings (REJECTED, KNOWN DUPLICATES, ALIVE SURFACE FACTS) and new scan hits.
+**Classification Tables**
 
-I need to classify each hit as:
-- REAL_SECRET: hardcoded credential/API key/token with signs of life
-- TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
-- ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
-- INTERESTING: anything unusual (debug flags, keys, cloud configs)
+| Category | File | Line | Match | SHA256 (truncated) | Verdict |
+|----------|------|------|-------|-------------------|---------|
+| TEST_OR_EXAMPLE | google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `const val INJECTED_TOKEN = "injected-token-probe"` | 23415c3e... | TEST_OR_EXAMPLE |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml | 168 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | 30e9f950... | TEST_OR_EXAMPLE |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml | 169 | `LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | 30e9f950... | TEST_OR_EXAMPLE |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml | 170 | `OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"` | ff5e9f8b... | TEST_OR_EXAMPLE |
 
-I should output a table per category, then a SHORT verdict list with "REPORT_CANDIDATE: yes/no" per real candidate.
+| Category | File | Line | Match | Notes |
+|----------|------|------|-------|-------|
+| TEST_OR_EXAMPLE | google/adk-go/.../cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref, not a secret |
+| TEST_OR_EXAMPLE | google/agents-cli/.../auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
+| TEST_OR_EXAMPLE | google/adk-python/.../cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Runtime variable interpolation |
+| TEST_OR_EXAMPLE | google/adk-python/.../auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
+| TEST_OR_EXAMPLE | google/adk-python/.../auth_credential.py | 269 | `username="user", password="password"` | Obvious placeholder |
+| TEST_OR_EXAMPLE | google/adk-python/.../auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake JWT placeholder |
+| TEST_OR_EXAMPLE | google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` | Constant placeholder |
+| TEST_OR_EXAMPLE | google/adk-python/.../auth_helpers.py | 62 | `client_secret="your_client_secret"` | Documentation placeholder |
+| TEST_OR_EXAMPLE | google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not secret |
+| ENDPOINT_LEAK (noise) | google/adk-go/.../chunk-*.js (17 files) | various | Minified JS parse errors | Bundled browser assets |
+| ENDPOINT_LEAK (noise) | google/adk-python/.../chunk-*.js (17 files) | various | Minified JS parse errors | Bundled browser assets |
+| ENDPOINT_LEAK (noise) | google/adk-kotlin/.../main-TCIQIOZ3.js | 5 | Minified JS | Bundled browser asset |
+| ENDPOINT_LEAK (noise) | google/adk-java/.../main-TCIQIOZ3.js | 5 | Minified JS | Bundled browser asset |
 
-Let me analyze the new hits:
+**Short Verdict List**
 
-**NEW HITS SINCE LAST SCAN (delta - 6 new hit lines):**
-1. `reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js:5` - minified JS source map content
-2. `reposcan-raw/google/adk-kotlin/webserver/browser
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| INJECTED_TOKEN probe | adk-kotlin/.../McpIntegrationTestSupport.kt:49 | **no** (test fixture) |
+| GitHub Actions secret refs | langextract/.github/workflows/ci.yaml:168-170 | **no** (CI secret syntax, not hardcoded) |
+| Cloud Run --set-secrets | adk-go/.../cloudrun.go:246 | **no** (deployment config) |
+| Placeholder API keys/credentials | adk-python/.../auth_credential.py, auth_schemes.py, auth_helpers.py | **no** (obvious placeholders) |
+| Minified JS bundles | adk-go/python/kotlin/java/.../*.js | **no** (build artifacts, not source secrets) |
+
+**Summary**: 0 REAL_SECRET candidates in this delta. All 120 hits are TEST_OR_EXAMPLE (placeholders, test fixtures, CI secret references) or ENDPOINT_LEAK noise (minified JS bundles). No reportable findings.
