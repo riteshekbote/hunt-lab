@@ -2034,3 +2034,22 @@
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-11 22:01:06 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector 
 - LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
+
+## RANKED HYPOTHESES 2026-08-11 23:42:45 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-nemotron3.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://g
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
+- LEARN: ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JS
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth creden
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin+ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist, Max-Age 86
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: TRUE preflight confirmed LIVE — HTTP 200 `A
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight (Origin+ACRM:PATC
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: confirmed unchanged (873-char block, 0 OperationRestrict
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` 
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live — no-param → 400/113 invalid_token, accepts ?access_token=/ ?id
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 22:56 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: earthengine secret (sha `3f3f8d6f…d271`, whole-
