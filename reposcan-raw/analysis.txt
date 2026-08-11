@@ -1,73 +1,81 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
-44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "not-a-valid-client-secret"
-5471223c8c276fc96275bfb831c1e62791115b296562e24a076816284d62c05b  -
-[0m
-### REAL_SECRET
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/codeworld/web/js/utils/auth.js[90m [limit=15, offset=25][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=15, offset=42][0m
+---
 
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| `reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Google API Key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (domain-locked to `skottie.skia.org` per comment) |
+### Classification Tables
 
-### TEST_OR_EXAMPLE
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc placeholder |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant for test scheme |
+| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example (truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Docstring HTTP basic example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Docstring bearer token example (truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant for test scheme |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name, not value |
+| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | GitHub Actions workflow refs |
+| google/codeworld/web/js/utils/auth.js | 30 | `PASSWORD = 'swal-input2'` | SweetAlert DOM element ID |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret refs |
+| google/android-cuttlefish/.github/workflows/*.yml | 48-175 | `${{ secrets.* }}` | GitHub Actions secret refs (12 hits) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
 
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `"not-a-valid-client-secret"` (SHA `5471223c8c276fc96275bfb831c1e62791115b296562e24a076816284d62c05b`) |
-| `reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference `"bugs-central-github-token"`, not a value |
-| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant definitions with placeholder values (`"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"`) |
-| `reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | Template placeholders `{{ default .Env.POSTGRES_PWD "" }}` etc. |
-| `reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Explicit comment: `"Not a credential, it is a secret name"` |
-| `reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/*.yml` | 12,7,30,110,4 | Ansible vault references `{{ secrets.skolo_password }}` |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder constant `"gemini_api_key"` |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml` | 168,192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` |
-| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag default `"storage_driver_password"` |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` | 3 | Minified build artifacts (parse error messages) |
+#### ENDPOINT_LEAK (internal/dev metadata references)
+| File | Line | Pattern |
+|------|------|---------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` metadata comment |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` metadata comment |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` metadata comments |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path/context params |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata comments |
 
-### ENDPOINT_LEAK
+#### INTERESTING (build artifacts / internal config names)
+| File | Line | Pattern |
+|------|------|---------|
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle (build artifact) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3-11 | 19 minified JS chunks (build artifacts) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key name) |
 
-| File | Line | Endpoint / Detail |
-|------|------|-------------------|
-| `reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `pantheon.corp.google.com` (internal logging) |
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Service account `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
-| `reposcan-raw/google/skia-buildbot/go/k8s/k8s.go` | 122 | Local kubeconfig / clusters config.json reference |
-| `reposcan-raw/google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | GCP metadata server `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| `reposcan-raw/google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | Internal API key UI URL `pantheon.corp.google.com/apis/credentials/key/d74adcc4-7f3f-4c6f-a406-8e7ea69daed3` |
-| `reposcan-raw/google/skia-buildbot/go/revportforward/revportforward.go` | 50-56 | Kubeconfig byte content / pod name parameters |
-| `reposcan-raw/google/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| `reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Docker password from SA JSON file |
-| `reposcan-raw/google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh` | 21 | Internal domain references |
-| `reposcan-raw/google/skia-buildbot/golden/create-gold-corp-sa.sh` | 60 | `kubectl create secret` from service-account.json |
-| `reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | JWT service account → `service-account.json` file |
-| `reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go` | 96 | Kubeconfig path resolution |
-| `reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `source.corp.google.com` (internal source) |
-| `reposcan-raw/google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `b.corp.google.com/issues/new` (internal issue tracker) |
-| `reposcan-raw/google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | `pantheon.corp.google.com/storage/browser/skia-cdn/google-web-fonts` |
-| `reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | GCP metadata server URL |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Kubeconfig path/context parameters |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
-
-### INTERESTING
-
-| File | Line | Detail |
-|------|------|--------|
-| `reposcan-raw/google/skia-buildbot/go/auth/auth.go` | 30 | Default JWT filename `service-account.json` |
-| `reposcan-raw/google/skia-buildbot/go/buildbucket/buildbucket.go` | 24 | Header token name `x-buildbucket-token` |
-| `reposcan-raw/google/skia-buildbot/perf/go/*/schema/schema.go` | 5,7,14,46,12,6,7 | Schema migration comments (UUID→Text) referencing `b.corp.google.com/issues/492077374` |
-| `reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | Internal Android build URL format |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Writes `GOOGLE_API_KEY=<value>` to generated file (user-supplied at scaffold time) |
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | **No live credentials found in this delta** |
 
 ---
 
-### VERDICT LIST
+### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `skottie-drive-sk.ts:158` API Key | **no** | Domain-restricted to `skottie.skia.org` (comment confirms); Google API keys locked to referrer are public-by-design per VRP rules |
-| All other hits | **no** | Placeholders, test fixtures, secret references (not values), internal URLs, template variables, or build artifacts |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| adk-js/auth_credential.ts examples | TEST_OR_EXAMPLE | **no** |
+| adk-js/auth_schemes.ts PASSWORD const | TEST_OR_EXAMPLE | **no** |
+| adk-js oauth2_discovery.ts metadata.google.internal | ENDPOINT_LEAK | **no** (known surface) |
+| adk-js load_web_page.ts 169.254.0.0/16 | ENDPOINT_LEAK | **no** (known surface) |
+| adk-kotlin McpIntegrationTestSupport.kt | TEST_OR_EXAMPLE | **no** |
+| adk-python auth_credential.py examples (3) | TEST_OR_EXAMPLE | **no** |
+| adk-python auth_schemes.py PASSWORD const | TEST_OR_EXAMPLE | **no** |
+| adk-python openapi_tool/auth_helpers.py example | TEST_OR_EXAMPLE | **no** |
+| adk-python vmaas sandbox_computer.py state key | INTERESTING | **no** (internal constant name) |
+| adk-python cli/browser/*.js chunks | INTERESTING | **no** (build artifacts) |
+| adk-python gke/container_code_executor.py metadata refs | ENDPOINT_LEAK | **no** (documentation) |
+| adk-python cli_create.py template var | TEST_OR_EXAMPLE | **no** |
+| agents-cli auth.py constant name | TEST_OR_EXAMPLE | **no** |
+| agents-cli staging.yaml workflow refs | TEST_OR_EXAMPLE | **no** |
+| codeworld auth.js DOM element ID | TEST_OR_EXAMPLE | **no** |
+| langextract CI workflow secret refs | TEST_OR_EXAMPLE | **no** |
+| android-cuttlefish workflows secret refs (12) | TEST_OR_EXAMPLE | **no** |
+| go-containerregistry metadata comments (4) | ENDPOINT_LEAK | **no** (documentation) |
 
-**Summary**: No reportable secrets in this delta. The only live credential (skottie API key) is explicitly domain-locked and falls under Google's "API keys locked to referrer are public by design" no-reward category.
+**Summary**: 48 delta hits → **0 REAL_SECRET**, 31 TEST_OR_EXAMPLE, 11 ENDPOINT_LEAK, 6 INTERESTING.  
+No reportable credentials in this scan cycle. The previously ACCEPTED `earthengine-api` oauth.py:45 secret is **not in this delta** (different repo path).
