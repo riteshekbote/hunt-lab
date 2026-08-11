@@ -580,3 +580,9 @@
 - 2026-08-11 ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
 - 2026-08-11 CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthenticated. Partial hardening delta.
 - 2026-08-11 NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+- 2026-08-11 ACCEPTED mysignins.microsoft.com source map rotation hardening @ mysignins.microsoft.com: `main.7b5c8f3a.js.map` now 404 (was 200 7MB); one identity SPA hardened, api.myaccount.microsoft.com 35MB map still live
+- 2026-08-11 ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys JSON gate @ login.microsoftonline.com: now requires `Accept: application/json` header for JSON response (was returning HTML without) — minor hardening of key endpoint
+- 2026-08-11 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-11 ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn; infrastructure-dependent, not directly testable
+- 2026-08-11 CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON; subset invariant v1⊂v2 intact.
+- 2026-08-11 NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.

@@ -1719,3 +1719,27 @@
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
 - LEARN: CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthentica
 - LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+
+## RANKED HYPOTHESES 2026-08-11 08:44:47 UTC
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- [62] graph.microsoft.com/v1.0/oauth2PermissionGrants: Consent grant forgery via caller-chosen resourceId on production Graph v1.0 (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://gr
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: sha256(secret)=`3f3f8d6f29db1b06cbfc21
+- LEARN: ACCEPTED mysignins.microsoft.com source map rotation hardening @ mysignins.microsoft.com: `main.7b5c8f3a.js.map` now 404 (was 200 7MB); one identity SPA hardene
+- LEARN: ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys JSON gate @ login.microsoftonline.com: now requires `Accept: application/json` header for JSON res
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: ACCEPTED Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic wit
+- LEARN: NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIV
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthentica
+- LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthentica
+- LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSO
+- LEARN: NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.

@@ -3295,3 +3295,32 @@ testability: AUTH_HELPED
 [LEARN] NO_DELTA on all other ACCEPTED/REJECTED classes this cycle.
 [RISK] google: 42 — earthengine hardcoded secret (96, valid cloud-platform credential proven via invalid_grant) remains strongest but capped by native-app by-design (ADK #2128 precedent); tokeninfo oracle no-reward; no new Google surface; GCP control-plane uniformly consumer-identity-gated.
 [RISK] microsoft: 72 — up 1: source-map rotation proves active SPA development on identity plane + RFC 6750 §3 method-challenge pattern now confirmed systemic across a second identity API (mysignins); agentRegistrations CORS mutation vector live with 5 AUTH_HELPED-gated hypotheses (IDOR 95, issuer-confusion 66, conversation-ID 55, oauth2PermissionGrants 62, Verified-ID minting) indicating substantial untested exposure.
+## 2026-08-11 08:44:36 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 re-confirmed @ 08:41 UTC; GET→401/237; $metadata 873-char block, createdBy/ownerIds Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] oauth2PermissionGrants consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: production-v1.0 POST primitive (inventory 02:55) accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation); GET→401/237 auth-gated; no server-side cross-check of requester vs grant target documented.
+evidence_needed: A creates grant claiming B as principalId/resourceId=Azure Storage → consent granted to B's resource without B's authorization; or self-grant of user_impersonation on arbitrary resource.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B oid,resourceId:<storage appId>,scope:"user_impersonation"}→201; then B GET /v1.0/me/oauth2PermissionGrants→200 incl forged grant; then attempt storage access.
+impact: cross-principal consent forgery → data-plane access to victim's Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Verified Employee Credential minting gate bypass — GuestIsNotAllowed-only check on employee Verified ID issuance
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: inventory 02:55 — POST endpoint, SPA clientId 8c59ead7-…, sole gate `GuestIsNotAllowed`; 35MB unauth source map exposes request shape; all sibling /api/* endpoints 401-auth-gated but gate composition unknown for this POST.
+evidence_needed: non-entitled org user (member, no HR record) mints a Verified Employee credential 200 vs 403; or credential for a user lacking the claimed employee identity.
+verify_steps: AUTH_HELPED: 1) own valid Bearer, POST /api/issueVerifiedEmployeeCredential with org UPN → 200 credential vs 403; 2) cross-user: request credential with victim UPN → 200 (identity spoof) vs 403.
+impact: Verified-ID employee-identity spoofing used by relying parties → impersonation; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Preflight re-confirmed 200 `ACAO:*` + full mutation allowlist @ 08:41 UTC, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on B-200/204.

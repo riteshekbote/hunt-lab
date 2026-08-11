@@ -16627,3 +16627,215 @@ No drops: all 3 ≥ 40 confidence, none on REJECTED list, concrete verify steps.
 ### STEP 7 — RISK SCORE
 [RISK] google: 42 — earthengine hardcoded secret (96, valid cloud-platform credential proven via invalid_grant) remains strongest but capped by native-app by-design (ADK #2128 precedent); tokeninfo oracle no-reward; no new Google surface; GCP control-plane uniformly consumer-identity-gated.
 [RISK] microsoft: 72 — up 1: source-map rotation proves active SPA development on identity plane + RFC 6750 §3 method-challenge pattern now confirmed systemic across a second identity API (mysignins); agentRegistrations CORS mutation vector live with 5 AUTH_HELPED-gated hypotheses (IDOR 95, issuer-confusion 66, conversation-ID 55, oauth2PermissionGrants 62, Verified-ID minting) indicating substantial untested exposure.
+===== ANALYST bigpickle 2026-08-11 08:44:47 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "preflight_patch: %{http_code} size=%{size_download}\n" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id" -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization,content-type"; curl -s -D - -o /dev/null -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id" -H "Origin: https://evil.example" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" 2>&1 | head -20
+preflight_patch: 200 size=0
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 91ca1cdf-b033-4259-b1a3-855219a7cc91
+client-request-id: 91ca1cdf-b033-4259-b1a3-855219a7cc91
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"East US","Slice":"E","Ring":"5","ScaleUnit":"008","RoleInstance":"BL02EPF0001B4CB"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 11 Aug 2026 08:41:17 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import json,sys; d=json.load(sys.stdin); print('v1 kids:', sorted(k['kid'] for k in d['keys']))" ; curl -s -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import json,sys; d=json.load(sys.stdin); print('v2 kids:', sorted(k['kid'] for k in d['keys']))"
+v1 kids: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+v2 kids: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'jvm_-TtaqTCRrkpnmePvwb75nWE', 'rRk1d-57BGZfsM4BUHrkx8cQbic']
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "tokeninfo: %{http_code} size=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -s -o /dev/null -w "oauth.py: %{http_code} size=%{size_download}\n" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"
+tokeninfo: 400 size=113
+oauth.py: 200 size=23110
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "copilotstudio: %{http_code} size=%{size_download}\n" "https://graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots"; curl -s -o /dev/null -w "oauth2PermissionGrants: %{http_code} size=%{size_download}\n" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants"; curl -s -o /dev/null -w "myaccount-map: %{http_code} size=%{size_download}\n" "https://api.myaccount.microsoft.com/main.js.map"
+copilotstudio: 401 size=237
+oauth2PermissionGrants: 401 size=237
+myaccount-map: 401 size=0
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/" | grep -oE 'src="[^"]+\.js[^"]*"' | head -10; echo "---"; curl -s "https://api.myaccount.microsoft.com/" | grep -oE '"[^"]*\.map"' | head -10
+src="/bundle/main.shim.js"
+---
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "orchestrated: %{http_code} size=%{size_download}\n" "https://powervirtualagents.microsoft.com/orchestrated/test-cdsbot/conversations/test-conv"; curl -s -o /dev/null -w "agentRegs GET: %{http_code} size=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "agentSignInSessions: %{http_code} size=%{size_download}\n" "https://graph.microsoft.com/beta/me/agentSignInSessions"
+orchestrated: 301 size=0
+agentRegs GET: 401 size=237
+agentSignInSessions: 401 size=237
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.shim.js" | head -c 2000
+!function(){"use strict";var e=document.createElement("script");e.src="/bundle/main.4e6e3dc6.js",e.type="text/javascript",document.body.appendChild(e)}();
+// SIG // Begin signature block
+// SIG // MIIovQYJKoZIhvcNAQcCoIIorjCCKKoCAQExDzANBglg
+// SIG // hkgBZQMEAgEFADB3BgorBgEEAYI3AgEEoGkwZzAyBgor
+// SIG // BgEEAYI3AgEeMCQCAQEEEBDgyQbOONQRoqMAEEvTUJAC
+// SIG // AQACAQACAQACAQACAQAwMTANBglghkgBZQMEAgEFAAQg
+// SIG // 9IlLu3SKT/dH6Bf07Zz8Xgq3LjR6pLEPmk7ppo+zZmqg
+// SIG // gg3DMIIGrTCCBJWgAwIBAgITMwAAANMCiNhpvd8CCQAA
+// SIG // AAAA0zANBgkqhkiG9w0BAQwFADBiMQswCQYDVQQGEwJV
+// SIG // UzEeMBwGA1UEChMVTWljcm9zb2Z0IENvcnBvcmF0aW9u
+// SIG // MTMwMQYDVQQDEypBenVyZSBSU0EgUHVibGljIFNlcnZp
+// SIG // Y2VzIENvZGUgU2lnbmluZyBQQ0EwHhcNMjYwMzA1MTkw
+// SIG // NjE5WhcNMjcwMzAzMTkwNjE5WjCBgjELMAkGA1UEBhMC
+// SIG // VVMxEzARBgNVBAgTCldhc2hpbmd0b24xEDAOBgNVBAcT
+// SIG // B1JlZG1vbmQxHjAcBgNVBAoTFU1pY3Jvc29mdCBDb3Jw
+// SIG // b3JhdGlvbjEsMCoGA1UEAxMjQXp1cmUgUHVibGljIFNl
+// SIG // cnZpY2VzIFJTQSBDb2RlIFNpZ24wggGiMA0GCSqGSIb3
+// SIG // DQEBAQUAA4IBjwAwggGKAoIBgQDJrDsZxGHNBYj5RPkR
+// SIG // yGEIGZlcCQkqE7SdGa6c2FPAMGu1JLqHur8qNWjR5swe
+// SIG // kMMn0WSz2+QE0c848wHvqVVLpWV+Un3Q01Dnyzjifae4
+// SIG // h+kzhQTUIhX2rKQbGHdqBe7LXyCgkfDrTNLXsI1xAXAw
+// SIG // A42Ar+PpVd1ktqLSsM6pwqrM/FFfEizl9h5gtrEIZODp
+// SIG // +jo9vESxKvHGp/Ifca7e/IluDeJffP4ME/fFtUzUCLH/
+// SIG // IweugiUcsaTmewSny4odYLtmZK/zpBuPjGTLpUnn4HMy
+// SIG // WXLUSOFlgvFrLKCPZxbNxXxBo5EUquzrFbpg9NmQVipJ
+// SIG // QsKDSKNHluTwNicItFpZpiPMc7Y2LG11dNAil3yJEBLF
+// SIG // MQ/5RqQptcWmgSKoG8Tx7x+RCYQj4Sjl2yJt+4OykVn9
+// SIG // /kQ5wo6v6TmIHHZsKdmgIkMCKBuIRcB2FaGwLY+UGMP1
+// SIG // xmiwIaekgjUgVwXX8Kv/2SYI9XXrjyUME4NLj0JTBIO7
+// SIG // YX201gYYOL8CAwEAAaOCAbkwggG1MA4GA1UdDwEB/wQE
+// SIG // AwIHgDAfBgNVHSUEGDAWBggrBgEFBQcDAwYKKwYBBAGC
+// SIG // N1sBATAdBgNVHQ4EFgQU6DIfaqBAAm33/QFJGYifZUeQ
+// SIG // B3AwRQYDVR0RBD4wPKQ6MDgxHjAcBgNVBAsTFU1pY3Jv
+// SIG // c29mdCBDb3Jwb3JhdGlvbjEWMBQGA1UEBRMNNDY5OTgx
+// SIG // KzUwNzE4M
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "map 4e6e3dc6: %{http_code} size=%{size_download}\n" "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map"; curl -s -o /dev/null -w "js 4e6e3dc6: %{http_code} size=%{size_download}\n" "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js"
+map 4e6e3dc6: 200 size=35340363
+js 4e6e3dc6: 200 size=9279288
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null "https://powervirtualagents.microsoft.com/orchestrated/test-cdsbot/conversations/test-conv" | head -12
+HTTP/2 301 
+date: Tue, 11 Aug 2026 08:41:58 GMT
+server: Kestrel
+location: https://www.microsoft.com/en-us/microsoft-copilot/microsoft-copilot-studio/
+content-length: 0
+strict-transport-security: max-age=31536000
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map" | python3 -c "
+import json,sys
+d=json.load(sys.stdin)
+print('sources count:', len(d.get('sources',[])))
+import re
+paths=set()
+for s in d.get('sources',[]):
+    for m in re.findall(r'[a-zA-Z0-9_\-./]+/api/[a-zA-Z0-9_\-/\.{}\$]+', s):
+        paths.add(m)
+for p in sorted(paths)[:60]:
+    print(p)
+"
+sources count: 5015
+[0m
+[0m$ [0mcurl -s "https://api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js" -o /tmp/opencode/myaccount.js && ls -la /tmp/opencode/myaccount.js && grep -oE '"/api/[a-zA-Z0-9_\-/{}\.\$]+' /tmp/opencode/myaccount.js | sort -u | head -80
+-rw-r--r-- 1 runner runner 9279288 Aug 11 08:42 /tmp/opencode/myaccount.js
+grep: Invalid range end
+[0m
+[0m$ [0mgrep -oE '"/api/[^"]+"' /tmp/opencode/myaccount.js | sort -u; echo "---VERIFIED---"; grep -oE 'issueVerifiedEmployeeCredential|canVerifiedIdBeIssued|getshellinfo|instrument/logclient|termsofuse' /tmp/opencode/myaccount.js | sort | uniq -c
+"/api/([/_0-9a-zA-Z]+)"
+"/api/EnduserEmailContacts"
+"/api/TenantEmailSettings"
+"/api/allTimeZones"
+"/api/availableLanguages"
+"/api/availableRegionalFormats"
+"/api/canVerifiedIdBeIssued"
+"/api/dateTimeFormats"
+"/api/devices"
+"/api/devices/"
+"/api/features/getEnabledApps"
+"/api/features/isConvergedUXV2Enabled"
+"/api/features/isSsprConvergenceEnabled"
+"/api/groups/settings"
+"/api/instrument/logclient"
+"/api/issueVerifiedEmployeeCredential"
+"/api/me"
+"/api/me/image"
+"/api/organization"
+"/api/organizations"
+"/api/organizations/"
+"/api/shell/getshellinfo"
+"/api/shell/navbardata?CurrentMainLinkId=AADMyApps&TrackingGuid="
+"/api/signOutEverywhere"
+"/api/termsofuse/agreements/"
+"/api/termsofuse/myacceptances"
+"/api/termsofuse/tenantbannerlogo"
+"/api/termsofuse/tenantdisplayname"
+"/api/users/getImages"
+---VERIFIED---
+      1 canVerifiedIdBeIssued
+      1 getshellinfo
+      5 instrument/logclient
+      1 issueVerifiedEmployeeCredential
+     14 termsofuse
+[0m
+[0m$ [0mfor p in "api/users/getImages" "api/devices" "api/me/image" "api/me" "api/organization" "api/features/getEnabledApps" "api/allTimeZones"; do code=$(curl -s -o /tmp/opencode/r.txt -w "%{http_code} size=%{size_download} ct=%{content_type}" "https://api.myaccount.microsoft.com/$p"); echo "$p -> $code"; done
+api/users/getImages -> 401 size=0 ct=
+api/devices -> 401 size=0 ct=
+api/me/image -> 401 size=0 ct=
+api/me -> 401 size=0 ct=
+api/organization -> 401 size=0 ct=
+api/features/getEnabledApps -> 401 size=0 ct=
+api/allTimeZones -> 401 size=0 ct=
+[0m
+STEP 1 — DELTA
+- [NEW] api.myaccount.microsoft.com bundle rotated to `bundle/main.4e6e3dc6.js.map` — still HTTP 200/35,340,363 bytes unauth; mysignins counterpart stayed 404 (07:53 hardening). Differential: only one identity SPA hardened.
+- [NEW] Recovered ~14 endpoint paths from myaccount bundle incl. `/api/users/getImages`, `/api/devices`, `/api/me/image`, `/api/organizations`, `/api/features/{getEnabledApps,isConvergedUXV2Enabled,isSsprConvergenceEnabled}`, `/api/TenantEmailSettings`, `/api/EnduserEmailContacts`, `/api/allTimeZones`, `/api/availableLanguages`, `/api/availableRegionalFormats`, `/api/dateTimeFormats` — probed, all GET→401 (auth-gated, no unauth bypass).
+- [CHANGED] v2 JWKS shrank 8→6 kids; `sa3RgZQ_` v1-exclusive this probe (overlap=4, v2-exclusive={NqEBZVuOp,rRk1d-57B}) — rotation churn; subset invariant oscillates cycle-to-cycle, class stays REJECTED.
+- [CHANGED] powervirtualagents.microsoft.com/orchestrated/* → HTTP 301 to microsoft.com/copilot-studio (Kestrel) — domain dead, re-validates 2026-08-07 KB REJECTED entry.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: 7.05 | attack 9, business 8, tech 7 (OData+Bearer+CORS), gate 3, cloud 6, fresh 7
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: 6.40 | attack 7, business 8, tech 6 (consent/OAuth), gate 3, cloud 6, fresh 7
+- [PRIO] api.myaccount.microsoft.com (bundle+Verified-ID): 5.95 | attack 7, business 7, tech 7 (MSAL/OAuth, 35MB map), gate 2, cloud 5, fresh 6
+
+STEP 3 — HYPOTHESES
+[HYP] Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 re-confirmed @ 08:41 UTC; GET→401/237; $metadata 873-char block, createdBy/ownerIds Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] oauth2PermissionGrants consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: production-v1.0 POST primitive (inventory 02:55) accepts caller-chosen resourceId (Graph OR Azure Storage user_impersonation); GET→401/237 auth-gated; no server-side cross-check of requester vs grant target documented.
+evidence_needed: A creates grant claiming B as principalId/resourceId=Azure Storage → consent granted to B's resource without B's authorization; or self-grant of user_impersonation on arbitrary resource.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B oid,resourceId:<storage appId>,scope:"user_impersonation"}→201; then B GET /v1.0/me/oauth2PermissionGrants→200 incl forged grant; then attempt storage access.
+impact: cross-principal consent forgery → data-plane access to victim's Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Verified Employee Credential minting gate bypass — GuestIsNotAllowed-only check on employee Verified ID issuance
+class: AUTH
+asset: api.myaccount.microsoft.com/api/issueVerifiedEmployeeCredential
+confidence: 50
+reasoning: inventory 02:55 — POST endpoint, SPA clientId 8c59ead7-…, sole gate `GuestIsNotAllowed`; 35MB unauth source map exposes request shape; all sibling /api/* endpoints 401-auth-gated but gate composition unknown for this POST.
+evidence_needed: non-entitled org user (member, no HR record) mints a Verified Employee credential 200 vs 403; or credential for a user lacking the claimed employee identity.
+verify_steps: AUTH_HELPED: 1) own valid Bearer, POST /api/issueVerifiedEmployeeCredential with org UPN → 200 credential vs 403; 2) cross-user: request credential with victim UPN → 200 (identity spoof) vs 403.
+impact: Verified-ID employee-identity spoofing used by relying parties → impersonation; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [PARKED] none — all 3 survive (confidence ≥40, none on REJECTED list, concrete verify_steps).
+- [FINAL] 1) agentRegistrations IDOR (95); 2) oauth2PermissionGrants consent forge (62); 3) Verified Employee Credential minting gate (50). Issuer-confusion (66) and earthengine redemption (96 HUMAN_ONLY) remain tracked but unchanged this cycle.
+
+STEP 5 — NEXT ACTION
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Preflight re-confirmed 200 `ACAO:*` + full mutation allowlist @ 08:41 UTC, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on B-200/204.
+
+STEP 6 — LEARNING
+- [LEARN] ACCEPTED agentRegistrations CORS preflight vector LIVE re-confirmed @ 08:41 UTC — 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400.
+- [LEARN] ACCEPTED api.myaccount.microsoft.com map still unauth (bundle rotated `main.4e6e3dc6.js.map` 200/35MB) while mysignins counterpart is 404 — differential hardening, one SPA only.
+- [LEARN] ACCEPTED all new myaccount endpoints (users/getImages, devices, me/image, organizations, features/*, allTimeZones, availableLanguages, dateTimeFormats, EnduserEmailContacts, TenantEmailSettings) → 401 auth-gated, no unauth bypass.
+- [LEARN] ACCEPTED v1(5)⊂v2(6) with sa3RgZQ_ v1-exclusive this probe — subset invariant oscillates (8→6, exclusive flips aFkmKVFc↔sa3RgZQ_); rotation churn only, v1 kid set never validated against v2 issuer → dual-JWKS desync class stays REJECTED.
+- [LEARN] REJECTED powervirtualagents.microsoft.com/orchestrated/* confirmed dead @ 08:41 UTC — 301 to microsoft.com/copilot-studio (Kestrel); InvokeTool client-supplied toolSchemaName surface is on a dead domain.
+- [LEARN] ACCEPTED copilotstudio GET→401/237, oauth2PermissionGrants GET→401/237, agentSignInSessions→401/237, agentRegs GET→401/237, tokeninfo→400/113, oauth.py→200/23110 — all prior ACCEPTED findings live, NO_DELTA on other classes.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 42 — earthengine hardcoded secret (96) remains strongest (valid cloud-platform credential proven via invalid_grant) but capped by native-app by-design (ADK #2128 precedent); tokeninfo oracle no-reward; GCP control-plane uniformly consumer-identity-gated; no new Google surface this cycle.
+- [RISK] microsoft: 72 — unchanged: agentRegistrations CORS mutation vector live with 5 AUTH_HELPED-gated hypotheses (IDOR 95, oauth2PermissionGrants 62, Verified-ID minting 50, issuer-confusion 66, Copilot Studio 55) indicating substantial untested exposure; differential SPA hardening (mysignins 404, myaccount still 35MB map) shows active dev churn; every passive probe 401 confirms exposure is gated, so methodology under-tests the program.

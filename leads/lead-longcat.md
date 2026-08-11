@@ -1062,3 +1062,107 @@ testability: AUTH_HELPED
 [LEARN] NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
 [RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
 [RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+## 2026-08-11 08:43:43 UTC [google] (model longcat)
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+[LEARN] NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIVE (88), earthengine secret valid credential (96), oauth2PermissionGrants caller-chosen resourceId (62), dual-JWKS rotation desync REJECTED (v1⊂v2 subset invariant + v1 kid set never validated against v2 issuer).
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 42MB source map pair. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+[CHANGED] mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still exposed)
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 7.35 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:5) — Live CORS preflight + full mutation allowlist, metadata 0 OperationRestrictions, client-supplied createdBy/ownerIds/agentIdentityId; AUTH_HELPED IDOR path
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.10 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:3) — Valid Google OAuth credential (RFC 6749 §5.2 invalid_grant proof), cloud-platform+earthengine+drive+devstorage scopes; HUMAN filing ready
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 6.75 (attack:7, business:8, tech:7, gate:3, cloud:8, fresh:7) — Caller-chosen resourceId on production v1.0; consent grant forge precondition; privileged POST required
+[PRIO] api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map — 6.20 (attack:5, business:8, tech:6, gate:9, cloud:7, fresh:6) — 35MB unauthenticated source map, 4922 source paths, full client-side logic recoverable; mysignins sibling hardened but this one still live
+[HYP] Agent Registration cross-principal ownership hijack via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 88
+reasoning: $metadata 873-char block has 0 OperationRestrictions; createdBy/ownerIds Nullable=false + client-supplied agentIdentityId/managedByAppId/agentCard. True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. Cross-origin authenticated PATCH can rewrite ownership fields.
+evidence_needed: App B cross-origin PATCHes App A's agentRegistration setting ownerIds=[B's oid], managedByAppId=B's appId; GET reflects B's ownership.
+verify_steps: AUTH_HELPED: Two App Regs (A,B). App A creates registration. App B cross-origin PATCH {ownerIds:[B's oid], managedByAppId:B.appId} → 200; GET reflects B owner = IDOR confirmed.
+impact: Take ownership of enterprise agent registrations across tenants; repudiation of agent audit trail; managedByAppId reassignment for privilege escalation; agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proves credential accepted by server. Secret sha256 `3f3f8d6f…d271` confirmed live (whole-file sha `f4f93c76…` unchanged). Native-app installed client with OOB redirect. Scopes cloud-platform+earthengine+drive+devstorage.full_control.
+evidence_needed: Token mint requires refresh_token (grant_type=refresh_token); OOB flow deprecated but credential validity proven. Native-app public-client pattern per ADK #2128 precedent.
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
+[LEARN] CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthenticated. Partial hardening delta.
+[LEARN] NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+[CHANGED] mysignins.microsoft.com source map `main.7b5c8f3a.js.map` → HTTP 404 (was 200/7MB/4359 paths); sibling `api.myaccount.microsoft.com/main.4e6e3dc6.js.map` still 200/35MB/4922 paths — partial hardening, one SPA closed.
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` for JSON (was returning HTML without) — minor key-endpoint hardening.
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys v2 kid count rotated 11→7 (3 v2-only kids `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…` dropped); v1(4-5)⊂v2(7) subset invariant intact, 0 v1-exclusive steady-state.
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 7.35 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:5) — Live CORS preflight + full mutation allowlist, metadata 0 OperationRestrictions, client-supplied createdBy/ownerIds/agentIdentityId; AUTH_HELPED IDOR path
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.10 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:3) — Valid Google OAuth credential (RFC 6749 §5.2 invalid_grant proof), cloud-platform+earthengine+drive+devstorage scopes; HUMAN filing ready
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 6.75 (attack:7, business:8, tech:7, gate:3, cloud:8, fresh:7) — Caller-chosen resourceId on production v1.0; consent grant forge precondition; privileged POST required
+[PRIO] api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map — 6.20 (attack:5, business:8, tech:6, gate:9, cloud:7, fresh:6) — 35MB unauthenticated source map, 4922 source paths, full client-side logic recoverable; mysignins sibling hardened but this one still live
+[HYP] Agent Registration cross-principal ownership hijack via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 88
+reasoning: $metadata 873-char block has 0 OperationRestrictions; createdBy/ownerIds Nullable=false + client-supplied agentIdentityId/managedByAppId/agentCard. True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. Cross-origin authenticated PATCH can rewrite ownership fields.
+evidence_needed: App B cross-origin PATCHes App A's agentRegistration setting ownerIds=[B's oid], managedByAppId=B's appId; GET reflects B's ownership.
+verify_steps: AUTH_HELPED: Two App Regs (A,B). App A creates registration. App B cross-origin PATCH {ownerIds:[B's oid], managedByAppId:B.appId} → 200; GET reflects B owner = IDOR confirmed.
+impact: Take ownership of enterprise agent registrations across tenants; repudiation of agent audit trail; managedByAppId reassignment for privilege escalation; agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proves credential accepted by server. Secret sha256 `3f3f8d6f…d271` confirmed live (whole-file sha `f4f93c76…` unchanged). Native-app installed client with OOB redirect. Scopes cloud-platform+earthengine+drive+devstorage.full_control.
+evidence_needed: Token mint requires refresh_token (grant_type=refresh_token); OOB flow deprecated but credential validity proven. Native-app public-client pattern per ADK #2128 precedent.
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
+[LEARN] CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthenticated. Partial hardening delta.
+[LEARN] CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON; subset invariant v1⊂v2 intact.
+[LEARN] NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening — mysignins sibling closed). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.

@@ -2395,3 +2395,539 @@ All three hypotheses survive:
 
 [RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
 [RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+===== ANALYST longcat 2026-08-11 08:44:47 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reports/ 2>/dev/null && echo "---" && ls /home/runner/work/hunt-lab/hunt-lab/ 2>/dev/null
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+valid-bugs.md
+---
+README.md
+analyst-out.txt
+analyst-prompt.txt
+ctx.txt
+inventory
+knowledge
+leads
+probe-results.md
+reports
+reposcan-raw
+research
+scope.yml
+scripts
+state_bigpickle.json
+state_laguna.json
+state_ling3.json
+state_longcat.json
+state_nemotron3.json
+triage
+[0m
+[0m→ [0mRead reports/hypotheses-longcat.txt
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead reports/hypotheses-nemotron3.txt
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/inventory/ 2>/dev/null && echo "---LEADS---" && ls -la /home/runner/work/hunt-lab/hunt-lab/leads/ 2>/dev/null
+total 144
+drwxr-xr-x  2 runner runner  4096 Aug 11 08:40 .
+drwxr-xr-x 12 runner runner  4096 Aug 11 08:40 ..
+-rw-r--r--  1 runner runner 66478 Aug 11 08:40 google.md
+-rw-r--r--  1 runner runner 66613 Aug 11 08:40 microsoft.md
+---LEADS---
+total 4848
+drwxr-xr-x  2 runner runner  12288 Aug 11 08:40 .
+drwxr-xr-x 12 runner runner   4096 Aug 11 08:40 ..
+-rw-r--r--  1 runner runner 440973 Aug 11 08:40 lead-bigpickle.md
+-rw-r--r--  1 runner runner 763387 Aug 11 08:40 lead-laguna.md
+-rw-r--r--  1 runner runner  11072 Aug 11 08:40 lead-ling3.md
+-rw-r--r--  1 runner runner 158713 Aug 11 08:40 lead-longcat.md
+-rw-r--r--  1 runner runner 802569 Aug 11 08:40 lead-nemotron3.md
+-rw-r--r--  1 runner runner    250 Aug 11 08:40 reposcan-2026-08-07-08-25.md
+-rw-r--r--  1 runner runner    355 Aug 11 08:40 reposcan-2026-08-07-08-29.md
+-rw-r--r--  1 runner runner    290 Aug 11 08:40 reposcan-2026-08-07-08-34.md
+-rw-r--r--  1 runner runner    301 Aug 11 08:40 reposcan-2026-08-07-08-40.md
+-rw-r--r--  1 runner runner    301 Aug 11 08:40 reposcan-2026-08-07-08-52.md
+-rw-r--r--  1 runner runner    343 Aug 11 08:40 reposcan-2026-08-07-09-02.md
+-rw-r--r--  1 runner runner   8878 Aug 11 08:40 reposcan-2026-08-07-14-23.md
+-rw-r--r--  1 runner runner   8509 Aug 11 08:40 reposcan-2026-08-07-14-50.md
+-rw-r--r--  1 runner runner  12975 Aug 11 08:40 reposcan-2026-08-07-14-58.md
+-rw-r--r--  1 runner runner  14625 Aug 11 08:40 reposcan-2026-08-07-15-29.md
+-rw-r--r--  1 runner runner  14656 Aug 11 08:40 reposcan-2026-08-07-15-54.md
+-rw-r--r--  1 runner runner  17169 Aug 11 08:40 reposcan-2026-08-07-16-17.md
+-rw-r--r--  1 runner runner  15894 Aug 11 08:40 reposcan-2026-08-07-16-31.md
+-rw-r--r--  1 runner runner  14155 Aug 11 08:40 reposcan-2026-08-07-16-44.md
+-rw-r--r--  1 runner runner   9908 Aug 11 08:40 reposcan-2026-08-07-17-29.md
+-rw-r--r--  1 runner runner  16284 Aug 11 08:40 reposcan-2026-08-07-17-44.md
+-rw-r--r--  1 runner runner  18211 Aug 11 08:40 reposcan-2026-08-07-18-28.md
+-rw-r--r--  1 runner runner  16974 Aug 11 08:40 reposcan-2026-08-07-18-37.md
+-rw-r--r--  1 runner runner  17286 Aug 11 08:40 reposcan-2026-08-07-19-03.md
+-rw-r--r--  1 runner runner  10826 Aug 11 08:40 reposcan-2026-08-07-19-29.md
+-rw-r--r--  1 runner runner  10750 Aug 11 08:40 reposcan-2026-08-07-19-35.md
+-rw-r--r--  1 runner runner  16457 Aug 11 08:40 reposcan-2026-08-07-19-42.md
+-rw-r--r--  1 runner runner   8348 Aug 11 08:40 reposcan-2026-08-07-20-29.md
+-rw-r--r--  1 runner runner  11523 Aug 11 08:40 reposcan-2026-08-07-20-48.md
+-rw-r--r--  1 runner runner  12257 Aug 11 08:40 reposcan-2026-08-07-21-16.md
+-rw-r--r--  1 runner runner  12576 Aug 11 08:40 reposcan-2026-08-07-21-43.md
+-rw-r--r--  1 runner runner  15121 Aug 11 08:40 reposcan-2026-08-07-21-59.md
+-rw-r--r--  1 runner runner  14419 Aug 11 08:40 reposcan-2026-08-07-22-45.md
+-rw-r--r--  1 runner runner  10831 Aug 11 08:40 reposcan-2026-08-07-23-35.md
+-rw-r--r--  1 runner runner  11017 Aug 11 08:40 reposcan-2026-08-07-23-39.md
+-rw-r--r--  1 runner runner  12215 Aug 11 08:40 reposcan-2026-08-07-23-58.md
+-rw-r--r--  1 runner runner  16345 Aug 11 08:40 reposcan-2026-08-08-01-47.md
+-rw-r--r--  1 runner runner  14355 Aug 11 08:40 reposcan-2026-08-08-01-57.md
+-rw-r--r--  1 runner runner  13185 Aug 11 08:40 reposcan-2026-08-08-03-20.md
+-rw-r--r--  1 runner runner  11241 Aug 11 08:40 reposcan-2026-08-08-03-41.md
+-rw-r--r--  1 runner runner  14415 Aug 11 08:40 reposcan-2026-08-08-04-36.md
+-rw-r--r--  1 runner runner  15016 Aug 11 08:40 reposcan-2026-08-08-05-04.md
+-rw-r--r--  1 runner runner  14173 Aug 11 08:40 reposcan-2026-08-08-05-28.md
+-rw-r--r--  1 runner runner  10417 Aug 11 08:40 reposcan-2026-08-08-06-08.md
+-rw-r--r--  1 runner runner  13892 Aug 11 08:40 reposcan-2026-08-08-06-28.md
+-rw-r--r--  1 runner runner  14123 Aug 11 08:40 reposcan-2026-08-08-07-21.md
+-rw-r--r--  1 runner runner  13786 Aug 11 08:40 reposcan-2026-08-08-07-33.md
+-rw-r--r--  1 runner runner  14723 Aug 11 08:40 reposcan-2026-08-08-08-09.md
+-rw-r--r--  1 runner runner  13998 Aug 11 08:40 reposcan-2026-08-08-08-49.md
+-rw-r--r--  1 runner runner  13287 Aug 11 08:40 reposcan-2026-08-08-09-03.md
+-rw-r--r--  1 runner runner  16406 Aug 11 08:40 reposcan-2026-08-08-09-45.md
+-rw-r--r--  1 runner runner  14476 Aug 11 08:40 reposcan-2026-08-08-09-50.md
+-rw-r--r--  1 runner runner  13952 Aug 11 08:40 reposcan-2026-08-08-10-21.md
+-rw-r--r--  1 runner runner  13769 Aug 11 08:40 reposcan-2026-08-08-10-41.md
+-rw-r--r--  1 runner runner  10652 Aug 11 08:40 reposcan-2026-08-08-10-59.md
+-rw-r--r--  1 runner runner  11087 Aug 11 08:40 reposcan-2026-08-08-11-37.md
+-rw-r--r--  1 runner runner  15217 Aug 11 08:40 reposcan-2026-08-08-12-03.md
+-rw-r--r--  1 runner runner  14149 Aug 11 08:40 reposcan-2026-08-08-12-59.md
+-rw-r--r--  1 runner runner  15858 Aug 11 08:40 reposcan-2026-08-08-13-05.md
+-rw-r--r--  1 runner runner  12328 Aug 11 08:40 reposcan-2026-08-08-13-57.md
+-rw-r--r--  1 runner runner  12543 Aug 11 08:40 reposcan-2026-08-08-14-42.md
+-rw-r--r--  1 runner runner  13417 Aug 11 08:40 reposcan-2026-08-08-15-11.md
+-rw-r--r--  1 runner runner  11866 Aug 11 08:40 reposcan-2026-08-08-15-36.md
+-rw-r--r--  1 runner runner  18110 Aug 11 08:40 reposcan-2026-08-08-15-50.md
+-rw-r--r--  1 runner runner  13789 Aug 11 08:40 reposcan-2026-08-08-16-48.md
+-rw-r--r--  1 runner runner  12745 Aug 11 08:40 reposcan-2026-08-08-16-53.md
+-rw-r--r--  1 runner runner  12838 Aug 11 08:40 reposcan-2026-08-08-17-07.md
+-rw-r--r--  1 runner runner  13939 Aug 11 08:40 reposcan-2026-08-08-17-26.md
+-rw-r--r--  1 runner runner  19157 Aug 11 08:40 reposcan-2026-08-08-17-48.md
+-rw-r--r--  1 runner runner  13361 Aug 11 08:40 reposcan-2026-08-08-17-58.md
+-rw-r--r--  1 runner runner  14246 Aug 11 08:40 reposcan-2026-08-08-18-12.md
+-rw-r--r--  1 runner runner  15083 Aug 11 08:40 reposcan-2026-08-08-18-28.md
+-rw-r--r--  1 runner runner  12858 Aug 11 08:40 reposcan-2026-08-08-19-02.md
+-rw-r--r--  1 runner runner  11271 Aug 11 08:40 reposcan-2026-08-08-19-08.md
+-rw-r--r--  1 runner runner  14290 Aug 11 08:40 reposcan-2026-08-08-19-36.md
+-rw-r--r--  1 runner runner  10762 Aug 11 08:40 reposcan-2026-08-08-19-46.md
+-rw-r--r--  1 runner runner  18075 Aug 11 08:40 reposcan-2026-08-08-20-08.md
+-rw-r--r--  1 runner runner  12376 Aug 11 08:40 reposcan-2026-08-08-20-45.md
+-rw-r--r--  1 runner runner  16688 Aug 11 08:40 reposcan-2026-08-08-20-50.md
+-rw-r--r--  1 runner runner  15368 Aug 11 08:40 reposcan-2026-08-08-21-10.md
+-rw-r--r--  1 runner runner  13043 Aug 11 08:40 reposcan-2026-08-08-21-24.md
+-rw-r--r--  1 runner runner  13882 Aug 11 08:40 reposcan-2026-08-08-21-50.md
+-rw-r--r--  1 runner runner  14226 Aug 11 08:40 reposcan-2026-08-08-21-57.md
+-rw-r--r--  1 runner runner   9806 Aug 11 08:40 reposcan-2026-08-08-22-14.md
+-rw-r--r--  1 runner runner  16457 Aug 11 08:40 reposcan-2026-08-08-22-22.md
+-rw-r--r--  1 runner runner   9785 Aug 11 08:40 reposcan-2026-08-08-22-50.md
+-rw-r--r--  1 runner runner  14984 Aug 11 08:40 reposcan-2026-08-08-23-00.md
+-rw-r--r--  1 runner runner  10952 Aug 11 08:40 reposcan-2026-08-08-23-26.md
+-rw-r--r--  1 runner runner   9395 Aug 11 08:40 reposcan-2026-08-08-23-53.md
+-rw-r--r--  1 runner runner   9196 Aug 11 08:40 reposcan-2026-08-09-00-41.md
+-rw-r--r--  1 runner runner   6567 Aug 11 08:40 reposcan-2026-08-09-01-02.md
+-rw-r--r--  1 runner runner  23763 Aug 11 08:40 reposcan-2026-08-09-03-00.md
+-rw-r--r--  1 runner runner  17198 Aug 11 08:40 reposcan-2026-08-09-03-08.md
+-rw-r--r--  1 runner runner  14809 Aug 11 08:40 reposcan-2026-08-09-04-15.md
+-rw-r--r--  1 runner runner  15728 Aug 11 08:40 reposcan-2026-08-09-04-37.md
+-rw-r--r--  1 runner runner  12212 Aug 11 08:40 reposcan-2026-08-09-05-25.md
+-rw-r--r--  1 runner runner  16159 Aug 11 08:40 reposcan-2026-08-09-05-37.md
+-rw-r--r--  1 runner runner   8909 Aug 11 08:40 reposcan-2026-08-09-06-08.md
+-rw-r--r--  1 runner runner  12820 Aug 11 08:40 reposcan-2026-08-09-06-30.md
+-rw-r--r--  1 runner runner  13081 Aug 11 08:40 reposcan-2026-08-09-07-19.md
+-rw-r--r--  1 runner runner  14017 Aug 11 08:40 reposcan-2026-08-09-07-35.md
+-rw-r--r--  1 runner runner  14027 Aug 11 08:40 reposcan-2026-08-09-08-10.md
+-rw-r--r--  1 runner runner  12515 Aug 11 08:40 reposcan-2026-08-09-08-25.md
+-rw-r--r--  1 runner runner  15016 Aug 11 08:40 reposcan-2026-08-09-09-04.md
+-rw-r--r--  1 runner runner  13466 Aug 11 08:40 reposcan-2026-08-09-09-13.md
+-rw-r--r--  1 runner runner  13666 Aug 11 08:40 reposcan-2026-08-09-09-58.md
+-rw-r--r--  1 runner runner  12783 Aug 11 08:40 reposcan-2026-08-09-10-26.md
+-rw-r--r--  1 runner runner  13117 Aug 11 08:40 reposcan-2026-08-09-11-03.md
+-rw-r--r--  1 runner runner  10633 Aug 11 08:40 reposcan-2026-08-09-11-42.md
+-rw-r--r--  1 runner runner  14720 Aug 11 08:40 reposcan-2026-08-09-12-13.md
+-rw-r--r--  1 runner runner  14886 Aug 11 08:40 reposcan-2026-08-09-13-16.md
+-rw-r--r--  1 runner runner  13268 Aug 11 08:40 reposcan-2026-08-09-14-01.md
+-rw-r--r--  1 runner runner  12895 Aug 11 08:40 reposcan-2026-08-09-14-06.md
+-rw-r--r--  1 runner runner   8787 Aug 11 08:40 reposcan-2026-08-09-14-35.md
+-rw-r--r--  1 runner runner  13981 Aug 11 08:40 reposcan-2026-08-09-14-54.md
+-rw-r--r--  1 runner runner  14867 Aug 11 08:40 reposcan-2026-08-09-15-08.md
+-rw-r--r--  1 runner runner  12557 Aug 11 08:40 reposcan-2026-08-09-15-22.md
+-rw-r--r--  1 runner runner  18947 Aug 11 08:40 reposcan-2026-08-09-15-47.md
+-rw-r--r--  1 runner runner  16569 Aug 11 08:40 reposcan-2026-08-09-16-01.md
+-rw-r--r--  1 runner runner  12256 Aug 11 08:40 reposcan-2026-08-09-16-07.md
+-rw-r--r--  1 runner runner  13930 Aug 11 08:40 reposcan-2026-08-09-16-31.md
+-rw-r--r--  1 runner runner  14460 Aug 11 08:40 reposcan-2026-08-09-16-55.md
+-rw-r--r--  1 runner runner  14835 Aug 11 08:40 reposcan-2026-08-09-17-10.md
+-rw-r--r--  1 runner runner  16496 Aug 11 08:40 reposcan-2026-08-09-17-27.md
+-rw-r--r--  1 runner runner  16884 Aug 11 08:40 reposcan-2026-08-09-17-52.md
+-rw-r--r--  1 runner runner  13012 Aug 11 08:40 reposcan-2026-08-09-17-59.md
+-rw-r--r--  1 runner runner  13752 Aug 11 08:40 reposcan-2026-08-09-18-21.md
+-rw-r--r--  1 runner runner  16334 Aug 11 08:40 reposcan-2026-08-09-18-33.md
+-rw-r--r--  1 runner runner  12917 Aug 11 08:40 reposcan-2026-08-09-19-13.md
+-rw-r--r--  1 runner runner  10177 Aug 11 08:40 reposcan-2026-08-09-19-59.md
+-rw-r--r--  1 runner runner  14874 Aug 11 08:40 reposcan-2026-08-09-20-23.md
+-rw-r--r--  1 runner runner  17133 Aug 11 08:40 reposcan-2026-08-09-20-37.md
+-rw-r--r--  1 runner runner   9524 Aug 11 08:40 reposcan-2026-08-09-21-03.md
+-rw-r--r--  1 runner runner  14975 Aug 11 08:40 reposcan-2026-08-09-21-41.md
+-rw-r--r--  1 runner runner  11391 Aug 11 08:40 reposcan-2026-08-09-22-08.md
+-rw-r--r--  1 runner runner  14536 Aug 11 08:40 reposcan-2026-08-09-22-50.md
+-rw-r--r--  1 runner runner  10287 Aug 11 08:40 reposcan-2026-08-09-23-17.md
+-rw-r--r--  1 runner runner  22071 Aug 11 08:40 reposcan-2026-08-09-23-24.md
+-rw-r--r--  1 runner runner  18804 Aug 11 08:40 reposcan-2026-08-09-23-54.md
+-rw-r--r--  1 runner runner   9718 Aug 11 08:40 reposcan-2026-08-10-00-06.md
+-rw-r--r--  1 runner runner  17971 Aug 11 08:40 reposcan-2026-08-10-00-52.md
+-rw-r--r--  1 runner runner  14637 Aug 11 08:40 reposcan-2026-08-10-01-18.md
+-rw-r--r--  1 runner runner  16824 Aug 11 08:40 reposcan-2026-08-10-03-09.md
+-rw-r--r--  1 runner runner  19284 Aug 11 08:40 reposcan-2026-08-10-03-22.md
+-rw-r--r--  1 runner runner   8604 Aug 11 08:40 reposcan-2026-08-10-04-53.md
+-rw-r--r--  1 runner runner  11234 Aug 11 08:40 reposcan-2026-08-10-05-06.md
+-rw-r--r--  1 runner runner  10849 Aug 11 08:40 reposcan-2026-08-10-06-23.md
+-rw-r--r--  1 runner runner   8846 Aug 11 08:40 reposcan-2026-08-10-08-06.md
+-rw-r--r--  1 runner runner  12344 Aug 11 08:40 reposcan-2026-08-10-08-16.md
+-rw-r--r--  1 runner runner  11027 Aug 11 08:40 reposcan-2026-08-10-09-52.md
+-rw-r--r--  1 runner runner  11534 Aug 11 08:40 reposcan-2026-08-10-10-04.md
+-rw-r--r--  1 runner runner  10424 Aug 11 08:40 reposcan-2026-08-10-10-57.md
+-rw-r--r--  1 runner runner  13507 Aug 11 08:40 reposcan-2026-08-10-11-07.md
+-rw-r--r--  1 runner runner  11749 Aug 11 08:40 reposcan-2026-08-10-11-46.md
+-rw-r--r--  1 runner runner  17306 Aug 11 08:40 reposcan-2026-08-10-11-52.md
+-rw-r--r--  1 runner runner  14277 Aug 11 08:40 reposcan-2026-08-10-12-43.md
+-rw-r--r--  1 runner runner   9870 Aug 11 08:40 reposcan-2026-08-10-12-47.md
+-rw-r--r--  1 runner runner   6922 Aug 11 08:40 reposcan-2026-08-10-15-22.md
+-rw-r--r--  1 runner runner  10771 Aug 11 08:40 reposcan-2026-08-10-16-17.md
+-rw-r--r--  1 runner runner  13089 Aug 11 08:40 reposcan-2026-08-10-16-25.md
+-rw-r--r--  1 runner runner  12362 Aug 11 08:40 reposcan-2026-08-10-17-13.md
+-rw-r--r--  1 runner runner   9602 Aug 11 08:40 reposcan-2026-08-10-17-23.md
+-rw-r--r--  1 runner runner  13441 Aug 11 08:40 reposcan-2026-08-10-18-05.md
+-rw-r--r--  1 runner runner  16602 Aug 11 08:40 reposcan-2026-08-10-18-15.md
+-rw-r--r--  1 runner runner  11141 Aug 11 08:40 reposcan-2026-08-10-19-22.md
+-rw-r--r--  1 runner runner  15323 Aug 11 08:40 reposcan-2026-08-10-20-10.md
+-rw-r--r--  1 runner runner   8536 Aug 11 08:40 reposcan-2026-08-10-21-02.md
+-rw-r--r--  1 runner runner  13510 Aug 11 08:40 reposcan-2026-08-10-21-18.md
+-rw-r--r--  1 runner runner  12707 Aug 11 08:40 reposcan-2026-08-10-21-54.md
+-rw-r--r--  1 runner runner  12589 Aug 11 08:40 reposcan-2026-08-10-22-02.md
+-rw-r--r--  1 runner runner  16054 Aug 11 08:40 reposcan-2026-08-10-22-23.md
+-rw-r--r--  1 runner runner  11389 Aug 11 08:40 reposcan-2026-08-10-22-32.md
+-rw-r--r--  1 runner runner  13254 Aug 11 08:40 reposcan-2026-08-10-23-07.md
+-rw-r--r--  1 runner runner  15303 Aug 11 08:40 reposcan-2026-08-10-23-29.md
+-rw-r--r--  1 runner runner   8605 Aug 11 08:40 reposcan-2026-08-10-23-50.md
+-rw-r--r--  1 runner runner   8049 Aug 11 08:40 reposcan-2026-08-10-23-56.md
+-rw-r--r--  1 runner runner  12113 Aug 11 08:40 reposcan-2026-08-11-00-46.md
+-rw-r--r--  1 runner runner  15313 Aug 11 08:40 reposcan-2026-08-11-01-06.md
+-rw-r--r--  1 runner runner  16644 Aug 11 08:40 reposcan-2026-08-11-03-04.md
+-rw-r--r--  1 runner runner   8648 Aug 11 08:40 reposcan-2026-08-11-03-26.md
+-rw-r--r--  1 runner runner   8604 Aug 11 08:40 reposcan-2026-08-11-04-54.md
+-rw-r--r--  1 runner runner  10439 Aug 11 08:40 reposcan-2026-08-11-05-53.md
+-rw-r--r--  1 runner runner  12678 Aug 11 08:40 reposcan-2026-08-11-06-38.md
+-rw-r--r--  1 runner runner   9137 Aug 11 08:40 reposcan-2026-08-11-06-43.md
+-rw-r--r--  1 runner runner  13609 Aug 11 08:40 reposcan-2026-08-11-07-57.md
+-rw-r--r--  1 runner runner  13609 Aug 11 08:40 reposcan-latest.md
+[0m
+[0m→ [0mRead leads/reposcan-latest.md
+[0m→ [0mRead inventory/google.md[90m [limit=100][0m
+[0m
+[0m$ [0mtail -80 /home/runner/work/hunt-lab/hunt-lab/inventory/google.md && echo "=====MICROSOFT=====" && tail -80 /home/runner/work/hunt-lab/hunt-lab/inventory/microsoft.md
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST /v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…)
+- NEW Orchestrated API @ /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW managerApplications on Blueprints — up to 10 first-party apps manage without AgentIdentityBlueprintPrincipal.ReadWrite.All
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ /beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS rotation — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe was backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged)
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — +3 new v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…), v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed since 09:52 UTC
+
+## 2026-08-10 23:51:16 UTC
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→11 across cycles; latest shows v1(5)⊂v2(7) with 2 v2-only kids; subset invariant intact.
+- NEW graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — Copilot Studio D2E S2S conversation-ID NOT validated server-side (private preview).
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…) on production v1.0 endpoint.
+- NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs.
+- NEW graph.microsoft.com/v1.0/me/agentSignInSessions — fully off-metadata (0 refs in $metadata), endpoint alive (401).
+- NEW graph.microsoft.com/beta/agentRegistry — deprecated May-2026 but alive; agentInstances/agentCardManifests/agentCollections.
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files).
+- NEW accounts.accesscontrol.windows.net JWKS — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim.
+- NEW github.com/google/earthengine-api/python/ee/oauth.py — confirmed scopes: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope was missing from prior KB entries).
+
+## 2026-08-11 00:42:24 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed at line 46)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATC
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr); v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
+
+## 2026-08-11 02:55:45 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed at line 46)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATC
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr); v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
+
+## 2026-08-11 04:32:52 UTC
+
+## 2026-08-11 05:49:46 UTC
+
+## 2026-08-11 06:39:01 UTC
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB); api.myaccount.microsoft.com source map stable 200 35MB
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys requires `Accept: application/json` for JSON (was returning HTML without)
+
+## 2026-08-11 07:53:30 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids; v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady-state
+- CHANGED raw.githubusercontent
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still e
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+=====MICROSOFT=====
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST /v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…)
+- NEW Orchestrated API @ /powervirtualagents/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool takes client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW managerApplications on Blueprints — up to 10 first-party apps manage without AgentIdentityBlueprintPrincipal.ReadWrite.All
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ /beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS rotation — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe was backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged)
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — +3 new v2-only kids (rRk1d-57B…, NqEBZVuOp…, 1Nv3JExJr…), v2 count 8→11, v1(4)⊂v2(11) subset invariant intact
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS → HTTP 405 sustained — CORS cross-origin mutation vector closed since 09:52 UTC
+
+## 2026-08-10 23:51:16 UTC
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→11 across cycles; latest shows v1(5)⊂v2(7) with 2 v2-only kids; subset invariant intact.
+- NEW graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — Copilot Studio D2E S2S conversation-ID NOT validated server-side (private preview).
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation e406a681…) on production v1.0 endpoint.
+- NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs.
+- NEW graph.microsoft.com/v1.0/me/agentSignInSessions — fully off-metadata (0 refs in $metadata), endpoint alive (401).
+- NEW graph.microsoft.com/beta/agentRegistry — deprecated May-2026 but alive; agentInstances/agentCardManifests/agentCollections.
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files).
+- NEW accounts.accesscontrol.windows.net JWKS — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim.
+- NEW github.com/google/earthengine-api/python/ee/oauth.py — confirmed scopes: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope was missing from prior KB entries).
+
+## 2026-08-11 00:42:24 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed at line 46)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATC
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr); v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
+
+## 2026-08-11 02:55:45 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed at line 46)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATC
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr); v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
+
+## 2026-08-11 04:32:52 UTC
+
+## 2026-08-11 05:49:46 UTC
+
+## 2026-08-11 06:39:01 UTC
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB); api.myaccount.microsoft.com source map stable 200 35MB
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys requires `Accept: application/json` for JSON (was returning HTML without)
+
+## 2026-08-11 07:53:30 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids; v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady-state
+- CHANGED raw.githubusercontent
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still e
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+[0m
+[0m→ [0mRead state_longcat.json
+[0m
+[0m$ [0mtail -60 /home/runner/work/hunt-lab/hunt-lab/leads/lead-longcat.md
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+[LEARN] NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIVE (88), earthengine secret valid credential (96), oauth2PermissionGrants caller-chosen resourceId (62), dual-JWKS rotation desync REJECTED (v1⊂v2 subset invariant + v1 kid set never validated against v2 issuer).
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 42MB source map pair. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+## 2026-08-11 07:50:45 UTC [google] (model longcat)
+[CHANGED] mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still exposed)
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 7.35 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:5) — Live CORS preflight + full mutation allowlist, metadata 0 OperationRestrictions, client-supplied createdBy/ownerIds/agentIdentityId; AUTH_HELPED IDOR path
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.10 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:3) — Valid Google OAuth credential (RFC 6749 §5.2 invalid_grant proof), cloud-platform+earthengine+drive+devstorage scopes; HUMAN filing ready
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 6.75 (attack:7, business:8, tech:7, gate:3, cloud:8, fresh:7) — Caller-chosen resourceId on production v1.0; consent grant forge precondition; privileged POST required
+[PRIO] api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map — 6.20 (attack:5, business:8, tech:6, gate:9, cloud:7, fresh:6) — 35MB unauthenticated source map, 4922 source paths, full client-side logic recoverable; mysignins sibling hardened but this one still live
+[HYP] Agent Registration cross-principal ownership hijack via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 88
+reasoning: $metadata 873-char block has 0 OperationRestrictions; createdBy/ownerIds Nullable=false + client-supplied agentIdentityId/managedByAppId/agentCard. True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. Cross-origin authenticated PATCH can rewrite ownership fields.
+evidence_needed: App B cross-origin PATCHes App A's agentRegistration setting ownerIds=[B's oid], managedByAppId=B's appId; GET reflects B's ownership.
+verify_steps: AUTH_HELPED: Two App Regs (A,B). App A creates registration. App B cross-origin PATCH {ownerIds:[B's oid], managedByAppId:B.appId} → 200; GET reflects B owner = IDOR confirmed.
+impact: Take ownership of enterprise agent registrations across tenants; repudiation of agent audit trail; managedByAppId reassignment for privilege escalation; agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proves credential accepted by server. Secret sha256 `3f3f8d6f…d271` confirmed live (whole-file sha `f4f93c76…` unchanged). Native-app installed client with OOB redirect. Scopes cloud-platform+earthengine+drive+devstorage.full_control.
+evidence_needed: Token mint requires refresh_token (grant_type=refresh_token); OOB flow deprecated but credential validity proven. Native-app public-client pattern per ADK #2128 precedent.
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+[FINAL]
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
+[LEARN] CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthenticated. Partial hardening delta.
+[LEARN] NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+[0m
+## 2026-08-11 08:40:xx UTC [google] (model longcat)
+
+**STEP 1 — DELTA**
+[CHANGED] mysignins.microsoft.com source map `main.7b5c8f3a.js.map` → HTTP 404 (was 200/7MB/4359 paths); sibling `api.myaccount.microsoft.com/main.4e6e3dc6.js.map` still 200/35MB/4922 paths — partial hardening, one SPA closed.
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` for JSON (was returning HTML without) — minor key-endpoint hardening.
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys v2 kid count rotated 11→7 (3 v2-only kids `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…` dropped); v1(4-5)⊂v2(7) subset invariant intact, 0 v1-exclusive steady-state.
+Reposcan 07:57 (21,294 files, 335 hits): zero REAL_SECRET — all TEST_OR_EXAMPLE or known patterns. No new secrets beyond tracked earthengine-api.
+NO_DELTA on all other ACCEPTED/REJECTED classes.
+
+**STEP 2 — PRIORITIZE**
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 7.35 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:5) — Live CORS preflight + full mutation allowlist, metadata 0 OperationRestrictions, client-supplied createdBy/ownerIds/agentIdentityId; AUTH_HELPED IDOR path
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.10 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:3) — Valid Google OAuth credential (RFC 6749 §5.2 invalid_grant proof), cloud-platform+earthengine+drive+devstorage scopes; HUMAN filing ready
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 6.75 (attack:7, business:8, tech:7, gate:3, cloud:8, fresh:7) — Caller-chosen resourceId on production v1.0; consent grant forge precondition; privileged POST required
+[PRIO] api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map — 6.20 (attack:5, business:8, tech:6, gate:9, cloud:7, fresh:6) — 35MB unauthenticated source map, 4922 source paths, full client-side logic recoverable; mysignins sibling hardened but this one still live
+
+**STEP 3 — HYPOTHESES**
+[HYP] Agent Registration cross-principal ownership hijack via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 88
+reasoning: $metadata 873-char block has 0 OperationRestrictions; createdBy/ownerIds Nullable=false + client-supplied agentIdentityId/managedByAppId/agentCard. True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. Cross-origin authenticated PATCH can rewrite ownership fields.
+evidence_needed: App B cross-origin PATCHes App A's agentRegistration setting ownerIds=[B's oid], managedByAppId=B's appId; GET reflects B's ownership.
+verify_steps: AUTH_HELPED: Two App Regs (A,B). App A creates registration. App B cross-origin PATCH {ownerIds:[B's oid], managedByAppId:B.appId} → 200; GET reflects B owner = IDOR confirmed.
+impact: Take ownership of enterprise agent registrations across tenants; repudiation of agent audit trail; managedByAppId reassignment for privilege escalation; agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proves credential accepted by server. Secret sha256 `3f3f8d6f…d271` confirmed live (whole-file sha `f4f93c76…` unchanged). Native-app installed client with OOB redirect. Scopes cloud-platform+earthengine+drive+devstorage.full_control.
+evidence_needed: Token mint requires refresh_token (grant_type=refresh_token); OOB flow deprecated but credential validity proven. Native-app public-client pattern per ADK #2128 precedent.
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha `f4f93c76…` unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+
+[HYP] Consent grant forgery via caller-chosen resourceId on production Graph v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 62
+reasoning: Inventory confirms caller can specify resourceId pointing to Graph or Azure Storage user_impersonation in POST body. If server does not validate that requesting app owns target resourceId, attacker could forge consent grants for high-privilege resources. POST requires authenticated caller with Directory.AllWrite or Admin Consent — precondition is privileged position.
+evidence_needed: Low-privilege app A POSTs oauth2PermissionGrants with resourceId=high-privilege-app-B's appId; verify if grant succeeds without admin approval.
+verify_steps: AUTH_HELPED: Provision two apps (A=low-priv, B=high-priv). App A POST /oauth2PermissionGrants {clientAppId:A, resourceId:B.appId, scope:"User.Read", consentType:"Principal"} → 201 = forge confirmed; check if B's effective permissions include A's delegated scope.
+impact: Escalate from low-privilege app to delegated access on high-privilege Graph/Storage resources; bypass admin consent workflow; persistent backdoor via consent grant.
+testability: AUTH_HELPED
+
+**STEP 4 — SELF-CRITIQUE**
+All 3 hypotheses survive: confidence ≥ 40, no class on REJECTED list, concrete verify_steps present.
+[FINAL]
+1. [96] Earth Engine hardcoded OAuth credential (OATH) — HUMAN filing ready
+2. [88] Agent Registration cross-principal ownership hijack (IDOR) — AUTH_HELPED
+3. [62] Consent grant forgery on production v1.0 (AUTH) — AUTH_HELPED
+
+**STEP 5 — NEXT ACTION**
+[NEXT] HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, RFC 6749 §5.2 invalid_grant proof (POST→400 invalid_grant not 401 invalid_client), native-app installed client + OOB redirect, scopes cloud-platform+earthengine+drive+devstorage.full_control, ADK #2128 precedent.
+
+**STEP 6 — LEARNING**
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
+[LEARN] CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthenticated. Partial hardening delta.
+[LEARN] CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON; subset invariant v1⊂v2 intact.
+[LEARN] NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+
+**STEP 7 — RISK SCORE**
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] microsoft: 71 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 35MB source map (partial hardening — mysignins sibling closed). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.

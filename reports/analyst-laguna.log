@@ -22928,3 +22928,86 @@ v2 kids: ['1Nv3JExJrKNx1l7adICQ7Y_Atps', '6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1b
 [0m$ [0mcurl -s -o /dev/null -w "tokeninfo HEAD: %{http_code} len=%{size_download}\n" -I "https://oauth2.googleapis.com/tokeninfo"
 tokeninfo HEAD: 404 len=0
 [0m
+===== ANALYST laguna 2026-08-11 08:44:47 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://oauth2.googleapis.com/token" 2>/dev/null; echo
+404 0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -X POST "https://oauth2.googleapis.com/token" -d "client_id=test&client_secret=test&grant_type=refresh_token&refresh_token=test" 2>/dev/null; echo
+401 89
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download} %{header_json}" "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>/dev/null | head -c 500; echo
+401 237 {"transfer-encoding":["chunked"],
+"content-type":["application/json"],
+"strict-transport-security":["max-age=31536000"],
+"request-id":["c28b94ec-67fb-4cd4-9e6b-58854e5fbddb"],
+"client-request-id":["c28b94ec-67fb-4cd4-9e6b-58854e5fbddb"],
+"x-ms-ags-diagnostic":["{\"ServerInfo\":{\"DataCenter\":\"Central US\",\"Slice\":\"E\",\"Ring\":\"4\",\"ScaleUnit\":\"003\",\"RoleInstance\":\"DS1PEPF000274E6\"}}"],
+"www-authenticate":["Bearer realm=\"\", authorization_uri=\"https://login.microsoftonlin
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>/dev/null; echo
+405 0
+[0m
+[0m$ [0mcurl -s "https://login.microsoftonline.com/common/discovery/keys" -H "Accept: application/json" 2>/dev/null | jq -r '.keys[].kid' 2>/dev/null | sort; echo "---v2---"; curl -s "https://login.microsoftonline.com/common/discovery/v2.0/keys" -H "Accept: application/json" 2>/dev/null | jq -r '.keys[].kid' 2>/dev/null | sort
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+AahUf1bCXvx0JTRcXLrr0U4SluY
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+sa3RgZQ_nZNVheAokCVqxY_8Cr4
+---v2---
+1Nv3JExJrKNx1l7adICQ7Y_Atps
+6hXLaIYNSJ0o7zu09dMyI0ji3ug
+AahUf1bCXvx0JTRcXLrr0U4SluY
+NqEBZVuOpstZ__5iZuWH3HPswcI
+fEtqrhKT1bXAGafSdQoN1vXTRpI
+jvm_-TtaqTCRrkpnmePvwb75nWE
+rRk1d-57BGZfsM4BUHrkx8cQbic
+sa3RgZQ_nZNVheAokCVqxY_8Cr4
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/ee_oauth.py 2>/dev/null; wc -c /tmp/ee_oauth.py; sha256sum /tmp/ee_oauth.py; sed -n '43,46p' /tmp/ee_oauth.py
+23110 /tmp/ee_oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/ee_oauth.py
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+[0m
+I'll run fresh probes to establish current delta, then analyze.
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://oauth2.googleapis.com/tokeninfo" 2>/dev/null; echo
+echo "---tokeninfo no-param body---"
+curl -s "https://oauth2.googleapis.com/tokeninfo" 2>/dev/null
+echo
+echo "---v2 authorize response_type=token---"
+curl -s -o /dev/null -w "%{http_code} %{size_download}" "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=test&redirect_uri=test" 2>/dev/null; echo
+400 113
+---tokeninfo no-param body---
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+---v2 authorize response_type=token---
+200 23821
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -X OPTIONS \
+  -H "Origin: https://evil.com" \
+  -H "Access-Control-Request-Method: PATCH" \
+  -H "Access-Control-Request-Headers: authorization" \
+  "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" 2>/dev/null
+echo
+echo "---CORS preflight headers---"
+curl -s -D - -o /dev/null -X OPTIONS \
+  -H "Origin: https://evil.com" \
+  -H "Access-Control-Request-Method: PATCH" \
+  -H "Access-Control-Request-Headers: authorization" \
+  "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" 2>/dev/null | grep -i "access-control\|allow-methods\|allow-headers\|max-age"
+200 0
+---CORS preflight headers---
+Strict-Transport-Security: max-age=31536000
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+[0m

@@ -584,3 +584,13 @@
 - CHANGED raw.githubusercontent
 - CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still e
 - CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+
+## 2026-08-11 08:44:47 UTC
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB); api.myaccount.microsoft.com source map stable 200 35MB
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys requires `Accept: application/json` for JSON (was returning HTML without)
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still e
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)
+- CHANGED mysignins.microsoft.com source map `main.7b5c8f3a.js.map` → HTTP 404 (was 200/7MB/4359 paths); sibling `api.myaccount.microsoft.com/main.4e6e3dc6.js.map` still 200/35MB/4922 paths — partial hardening,
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` for JSON (was returning HTML without) — minor key-endpoint hardening.
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys v2 kid count rotated 11→7 (3 v2-only kids `rRk1d-57B…`, `NqEBZVuOp…`, `1Nv3JExJr…` dropped); v1(4-5)⊂v2(7) subset invariant intact, 0 v1-exclusive 
