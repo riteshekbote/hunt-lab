@@ -1,70 +1,73 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg'
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
 44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'storage_driver_password'
-398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "not-a-valid-client-secret"
+5471223c8c276fc96275bfb831c1e62791115b296562e24a076816284d62c05b  -
 [0m
 ### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/skia-buildbot/skottie/modules/skottie-drive-sk.ts | 158 | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Google API key (domain-locked to skottie.skia.org per comment) |
+
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Google API Key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (domain-locked to `skottie.skia.org` per comment) |
 
 ### TEST_OR_EXAMPLE
+
 | File | Line | Reason |
 |------|------|--------|
-| google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js | 3 | Minified parser error messages (build artifact) |
-| google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js | 3 | Minified parser error messages (build artifact) |
-| google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js | 3 | Minified parser error messages (build artifact) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Template writing user-supplied `google_api_key` var to config |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag constant name `StorageDriverPassword = "storage_driver_password"` (sha256: `398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287`) |
-| google/skia-buildbot/go/metadata/metadata.go | 23,27,30 | Constant names: `CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET` |
-| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | Header name constant `headerToken = "x-buildbucket-token"` |
-| google/skia-buildbot/go/auth/auth.go | 30 | Filename constant `defaultJwtFilename = "service-account.json"` |
-| google/skia-buildbot/get_service_account/go/get_service_account/main.go | 16 | Filename constant `OUTPUT_FILENAME = "service-account.json"` |
-| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | Secret name reference `secretAPIKey = "perf-issue-tracker-apikey"` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Config key name `GEMINI_API_KEY = "gemini_api_key"` |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions template syntax `${{ steps.fetch-token.outputs... }}` |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Config parameters `kubeconfig_path`, `kubeconfig_context` |
+| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Placeholder `"not-a-valid-client-secret"` (SHA `5471223c8c276fc96275bfb831c1e62791115b296562e24a076816284d62c05b`) |
+| `reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference `"bugs-central-github-token"`, not a value |
+| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant definitions with placeholder values (`"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"`) |
+| `reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | Template placeholders `{{ default .Env.POSTGRES_PWD "" }}` etc. |
+| `reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Explicit comment: `"Not a credential, it is a secret name"` |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/*.yml` | 12,7,30,110,4 | Ansible vault references `{{ secrets.skolo_password }}` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder constant `"gemini_api_key"` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml` | 168,192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` |
+| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag default `"storage_driver_password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` | 3 | Minified build artifacts (parse error messages) |
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | GCP metadata endpoint `169.254.169.254` (commented warning) |
-| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | Same GCE metadata token endpoint |
-| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | Internal corp URL `https://pantheon.corp.google.com/apis/credentials/key/...` |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | Internal service account `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | Internal corp URL `https://android-build.corp.google.com/...` |
-| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68,75,82 | Internal corp URLs `https://rotations.corp.google.com/...` |
-| google/skia-buildbot/perf/go/culprit/sqlculpritstore/schema.schema.go | 7,14,46 | Internal issue tracker refs `https://b.corp.google.com/issues/492077374` |
-| google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | Internal corp URL `https://b.corp.google.com/issues/new...` |
-| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | Internal corp URL `https://pantheon.corp.google.com/storage/browser/...` |
-| google/skia-buildbot/skottie/modules/skottie-drive-sk.ts | 158 | API key comment references `https://skottie.skia.org` |
-| google/skia-buildbot/kube/corp-config.sh | 9 | Internal domain `skia-corp.google.com` |
-| google/skia-buildbot/kube/create-cluster-corp.sh | 82 | Internal docker password from service account JSON |
-| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | Internal domain references |
+
+| File | Line | Endpoint / Detail |
+|------|------|-------------------|
+| `reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `pantheon.corp.google.com` (internal logging) |
+| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Service account `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
+| `reposcan-raw/google/skia-buildbot/go/k8s/k8s.go` | 122 | Local kubeconfig / clusters config.json reference |
+| `reposcan-raw/google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | GCP metadata server `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
+| `reposcan-raw/google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | Internal API key UI URL `pantheon.corp.google.com/apis/credentials/key/d74adcc4-7f3f-4c6f-a406-8e7ea69daed3` |
+| `reposcan-raw/google/skia-buildbot/go/revportforward/revportforward.go` | 50-56 | Kubeconfig byte content / pod name parameters |
+| `reposcan-raw/google/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
+| `reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Docker password from SA JSON file |
+| `reposcan-raw/google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh` | 21 | Internal domain references |
+| `reposcan-raw/google/skia-buildbot/golden/create-gold-corp-sa.sh` | 60 | `kubectl create secret` from service-account.json |
+| `reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | JWT service account → `service-account.json` file |
+| `reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go` | 96 | Kubeconfig path resolution |
+| `reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `source.corp.google.com` (internal source) |
+| `reposcan-raw/google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `b.corp.google.com/issues/new` (internal issue tracker) |
+| `reposcan-raw/google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | `pantheon.corp.google.com/storage/browser/skia-cdn/google-web-fonts` |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | GCP metadata server URL |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Kubeconfig path/context parameters |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
 
 ### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Template passwords `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` |
-| google/skia-buildbot/skolo/ansible/switchboard/win_autologon.yml | 12 | Ansible vault reference `{{ secrets.skolo_password }}` |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/set_root_password/tasks/main.yml | 7 | Ansible vault + hash `{{ secrets.skolo_password \| password_hash('sha256') }}` |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/create_chrome_bot_user/tasks/linux.yml | 30 | Ansible vault + hash |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/skolo.yml | 110 | Ansible vault reference |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/gce.yml | 4 | Ansible vault reference |
-| google/skia-buildbot/go/revportforward/revportforward.go | 50,51,56 | Kubeconfig handling for reverse port forwarding |
-| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | API key flag pointing to internal corp credentials UI |
+
+| File | Line | Detail |
+|------|------|--------|
+| `reposcan-raw/google/skia-buildbot/go/auth/auth.go` | 30 | Default JWT filename `service-account.json` |
+| `reposcan-raw/google/skia-buildbot/go/buildbucket/buildbucket.go` | 24 | Header token name `x-buildbucket-token` |
+| `reposcan-raw/google/skia-buildbot/perf/go/*/schema/schema.go` | 5,7,14,46,12,6,7 | Schema migration comments (UUID→Text) referencing `b.corp.google.com/issues/492077374` |
+| `reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | Internal Android build URL format |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Writes `GOOGLE_API_KEY=<value>` to generated file (user-supplied at scaffold time) |
 
 ---
 
-### VERDICT
+### VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| skottie-drive-sk.ts API key (sha256 `44d8f8...`) | **no** | Domain-locked to `skottie.skia.org` per source comment; analogous to rejected Algolia DocSearch key (public-by-design) |
-| earthengine-api oauth.py:45 client_secret | **yes** | Already ACCEPTED in KB (sha256 `3f3f8d6f...`), live on master, valid credential (POST→`invalid_grant` not `invalid_client`), but native-app public-client by-design (OOB redirect) — VRP determination pending |
-| All other hits | **no** | Test fixtures, constant names, template vars, internal corp URLs (not prod secrets), or build artifacts |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `skottie-drive-sk.ts:158` API Key | **no** | Domain-restricted to `skottie.skia.org` (comment confirms); Google API keys locked to referrer are public-by-design per VRP rules |
+| All other hits | **no** | Placeholders, test fixtures, secret references (not values), internal URLs, template variables, or build artifacts |
+
+**Summary**: No reportable secrets in this delta. The only live credential (skottie API key) is explicitly domain-locked and falls under Google's "API keys locked to referrer are public by design" no-reward category.
