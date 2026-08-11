@@ -1743,3 +1743,13 @@
 - LEARN: CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthentica
 - LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSO
 - LEARN: NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.
+
+## RANKED HYPOTHESES 2026-08-11 09:53:48 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE — true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,P
+- LEARN: CHANGED api.myaccount.microsoft.com source map → HTTP 401 (was 200/35MB) — both identity SPA source maps now closed (mysignins 404/myaccount 401); recon surface
+- LEARN: ACCEPTED v1(4)⊂v2(7) JWKS subset invariant holds this probe — 0 v1-exclusive (8→7 churn only); dual-JWKS rotation desync stays REJECTED (v1 kid set never valida
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret live — bare sha `3f3f8d6f…d271` verbatim at :45 (+ :99 fallback), whole-file sha `f4f93c76…` unchanged, raw 200/2311
+- LEARN: ACCEPTED tokeninfo 400/113 oracle live; agentRegs GET 401/237; copilot
