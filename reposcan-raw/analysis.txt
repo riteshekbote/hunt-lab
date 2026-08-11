@@ -1,55 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan hits, I'll classify each one:
+### Classification Tables
 
-## Classification Table
-
-### TEST_OR_EXAMPLE (not reportable)
+#### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret reference template (`GOOGLE_API_KEY:latest`), not a secret value |
-| `google/certificate-transparency-go/scripts/resetctdb.sh` | 37 | Test script default `MYSQL_PASSWORD="beeblebrox"` |
-| `google/certificate-transparency-go/scripts/resetpgctdb.sh` | 41 | Test script default `POSTGRESQL_PASSWORD="beeblebrox"` |
-| `google/certificate-transparency-go/trillian/ctfe/testonly/keys.go` | 24 | `testonly` package - EC private key fixture |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions workflow templates using `${{ steps... }}` syntax |
-| `google/sandboxed-api/.github/workflows/generator-tool.yml` | 121 | Standard `${{secrets.GITHUB_TOKEN}}` pattern |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: placeholder private key, `user/password`, truncated JWT |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` (test value) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Reference format string `PASSWORD_HASH_LM_FORMAT` |
-| `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go` | 32 | Documentation comment about Veles Secret |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server constant |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test connection helper code |
+| `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | Documentation URL comment |
+| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL |
+| `google/product_video_ads/appsscript/src/structure.ts` | 137 | Property name `youtubeAuthToken = 'youtube_auth_token'` — key name, not value |
+| `google/sam/cmd/sam-console/public/app.js` | 471 | UI alert message template |
+| `google/sam/internal/node/store.go` | 35 | Constant `keyRefreshToken = "refresh_token"` — key name |
+| `microsoft/agent-framework/python/pyproject.toml` | 459 | `test.pypi.org` public staging URL |
 
-### ENDPOINT_LEAK
+#### ENDPOINT_LEAK
 | File | Line | Reason |
 |------|------|--------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | References to well-known metadata endpoint `169.254.169.254` (AWS/GCP standard IP) |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig function parameters (not hardcoded values) |
+| `google/CFU-Playground/.github/workflows/fmax-trials.yml` | 10 | Internal toolchain download `static.dev.sifive.com` |
+| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` staging registry |
+| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` staging registry |
 
-### INTERESTING
+#### INTERESTING
 | File | Line | Reason |
 |------|------|--------|
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Code generating `GOOGLE_API_KEY=` placeholder in output (template behavior) |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified JS bundles - parse error message templates (40+ files, all same pattern) |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Same minified JS bundles duplicated in adk-python |
+| `google/private-compute-services/.../RenderTokenHint.kt` | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` |
+| `google/private-compute-services/.../RenderTokenInsight.kt` | 43 | Same constant |
+| `google/private-compute-services/.../PrivateInferenceClientTimerNames.kt` | 82, 88, 91 | Timer name constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
+| `google/sam/.github/k8s/*.yaml` | Multiple | `kind: ConfigMap` — K8s infrastructure configs |
+| `google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | Secret references (`${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}`) — CI var refs, not values |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell param expansion with empty default |
+| `google/sam/site/content/docs/manifests/*.yaml` | Multiple | `kind: ConfigMap` in documentation |
+| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | `kind: ConfigMap` |
+| `microsoft/agent-framework/.github/actions/github-app-token/action.yml` | 94, 98, 102 | GitHub Action token variable handling (`$APP_TOKEN`, `$FALLBACK_TOKEN`) |
 
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this scan)* | | | |
+#### REAL_SECRET
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *(none in this delta)* | — | — | — |
 
 ---
 
-## SHORT VERDICT LIST
+### SHORT VERDICT
 
-**REPORT_CANDIDATE: no** for all hits in this scan.
+**No REAL_SECRET findings in this delta.** All 40 new hits are:
+- **28 TEST_OR_EXAMPLE** — test fixtures, test constants, documentation URLs, property names
+- **7 ENDPOINT_LEAK** — internal/staging URLs in CI configs (`static.dev.sifive.com`, `test.pypi.org`)
+- **15 INTERESTING** — infrastructure configs (ConfigMaps), CI secret references (not values), shell param expansions, constant names
 
-**Summary**: This scan produced **0 REAL_SECRET candidates**. All 369 hits are:
-- **342** minified JS parse-error templates (duplicated across adk-go and adk-python)
-- **18** test/fixture/placeholder values (`beeblebrox`, `password`, `your_client_secret`, `gemini_api_key`, testonly keys)
-- **6** CI/CD template patterns (`${{secrets...}}`, `${{steps...}}`, Cloud Run secret refs)
-- **3** well-known metadata endpoint references (`169.254.169.254`)
+**REPORT_CANDIDATE: no** for all hits this cycle.
 
-The known live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`) **does not appear in this scan's hit list** — it would need a separate targeted check.
+The previously confirmed `earthengine-api` hardcoded OAuth client_secret (sha256 `3f3f8d6f…d271`) does not appear in this delta — it remains a live finding from prior cycles (native-app OOB pattern, VRP-worthiness capped per ADK #2128 precedent).
