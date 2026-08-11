@@ -1,81 +1,31 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/codeworld/web/js/utils/auth.js[90m [limit=15, offset=25][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=15, offset=42][0m
----
+## Classification of New Delta Hits (6 lines)
 
-### Classification Tables
+| File | Line | Pattern | Classification | Reason |
+|------|------|---------|----------------|--------|
+| `google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml` | 195, 222, 245 | `${{ secrets.artifact-registry-uploader-json-creds }}` | **TEST_OR_EXAMPLE** | Proper GitHub Actions secret reference (not a hardcoded value) |
+| `google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp` | 42 | `http://metadata.google.internal/computeMetadata/v1/%s` | **ENDPOINT_LEAK** | Internal GCP metadata endpoint reference in source |
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | **INTERESTING** | Compiler emitter writing secret_key to output (FHE codegen context) |
+| `google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` | **TEST_OR_EXAMPLE** | Commented placeholder |
 
-#### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc placeholder |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant for test scheme |
-| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example (truncated) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Docstring HTTP basic example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Docstring bearer token example (truncated) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant for test scheme |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name, not value |
-| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | GitHub Actions workflow refs |
-| google/codeworld/web/js/utils/auth.js | 30 | `PASSWORD = 'swal-input2'` | SweetAlert DOM element ID |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret refs |
-| google/android-cuttlefish/.github/workflows/*.yml | 48-175 | `${{ secrets.* }}` | GitHub Actions secret refs (12 hits) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
+## Full Scan Summary (311 hits, 26522 files)
 
-#### ENDPOINT_LEAK (internal/dev metadata references)
-| File | Line | Pattern |
-|------|------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata) |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` metadata comment |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` metadata comment |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` metadata comments |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path/context params |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata comments |
+| Category | Count | Notable |
+|----------|-------|---------|
+| **REAL_SECRET** | 0 | — |
+| **TEST_OR_EXAMPLE** | ~290 | Placeholders (`password`, `your_*`), test fixtures, workflow secret refs |
+| **ENDPOINT_LEAK** | ~12 | `metadata.google.internal`, `169.254.169.254` refs in adk-python, adk-js, cuttlefish |
+| **INTERESTING** | 1 | HEIR JaxiteWordEmitter secret_key emission (compiler codegen) |
 
-#### INTERESTING (build artifacts / internal config names)
-| File | Line | Pattern |
-|------|------|---------|
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle (build artifact) |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3-11 | 19 minified JS chunks (build artifacts) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key name) |
+## Verdict
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | **No live credentials found in this delta** |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| android-cuttlefish workflow secrets refs | **no** (proper `${{secrets.*}}` usage) |
+| android-cuttlefish metadata endpoint | **no** (known public endpoint, not exploitable) |
+| HEIR JaxiteWordEmitter secret_key | **no** (compiler internals, FHE codegen — expected) |
+| HEIR author_stats.py placeholder | **no** (commented example) |
 
----
-
-### SHORT VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| adk-js/auth_credential.ts examples | TEST_OR_EXAMPLE | **no** |
-| adk-js/auth_schemes.ts PASSWORD const | TEST_OR_EXAMPLE | **no** |
-| adk-js oauth2_discovery.ts metadata.google.internal | ENDPOINT_LEAK | **no** (known surface) |
-| adk-js load_web_page.ts 169.254.0.0/16 | ENDPOINT_LEAK | **no** (known surface) |
-| adk-kotlin McpIntegrationTestSupport.kt | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_credential.py examples (3) | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_schemes.py PASSWORD const | TEST_OR_EXAMPLE | **no** |
-| adk-python openapi_tool/auth_helpers.py example | TEST_OR_EXAMPLE | **no** |
-| adk-python vmaas sandbox_computer.py state key | INTERESTING | **no** (internal constant name) |
-| adk-python cli/browser/*.js chunks | INTERESTING | **no** (build artifacts) |
-| adk-python gke/container_code_executor.py metadata refs | ENDPOINT_LEAK | **no** (documentation) |
-| adk-python cli_create.py template var | TEST_OR_EXAMPLE | **no** |
-| agents-cli auth.py constant name | TEST_OR_EXAMPLE | **no** |
-| agents-cli staging.yaml workflow refs | TEST_OR_EXAMPLE | **no** |
-| codeworld auth.js DOM element ID | TEST_OR_EXAMPLE | **no** |
-| langextract CI workflow secret refs | TEST_OR_EXAMPLE | **no** |
-| android-cuttlefish workflows secret refs (12) | TEST_OR_EXAMPLE | **no** |
-| go-containerregistry metadata comments (4) | ENDPOINT_LEAK | **no** (documentation) |
-
-**Summary**: 48 delta hits → **0 REAL_SECRET**, 31 TEST_OR_EXAMPLE, 11 ENDPOINT_LEAK, 6 INTERESTING.  
-No reportable credentials in this scan cycle. The previously ACCEPTED `earthengine-api` oauth.py:45 secret is **not in this delta** (different repo path).
+**No reportable findings in this delta.** All hits are either proper secret references, known metadata endpoints, test fixtures, or compiler internals.
