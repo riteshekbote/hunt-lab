@@ -15787,3 +15787,37 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 45 — earthengine secret live-valid (invalid_grant proves client-auth passes) but native-app by-design caps VRP-worthiness; tokeninfo oracle no-reward; source unchanged (sha `f4f93c76…`); only high-value path needs HUMAN authorized RT.
 - [RISK] microsoft: 65 — agentRegistrations IDOR precondition doubly live (zero ownership restrictions + CORS mutation vector re-confirmed on `{id}` via true preflight this probe); exploitability gated on AUTH_HELPED two-principal test; issuer-confusion sub-precondition intact (conf 95/66).
+===== ANALYST bigpickle 2026-08-11 02:55:45 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /tmp/jwks_v1.json -w "v1 HTTP %{http_code} len=%{size_download}\n" https://login.microsoftonline.com/common/discovery/keys; curl -s -o /tmp/jwks_v2.json -w "v2 HTTP %{http_code} len=%{size_download}\n" https://login.microsoftonline.com/common/discovery/v2.0/keys
+v1 HTTP 200 len=4604
+v2 HTTP 200 len=9677
+[0m
+[0m$ [0mcurl -s -o /tmp/agentregs_get.txt -w "GET HTTP %{http_code} len=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -s -o /dev/null -X HEAD -w "HEAD HTTP %{http_code} len=%{size_download}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations; curl -s -o /dev/null -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -w "PREFLIGHT HTTP %{http_code}\n" -D - https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id
+GET HTTP 401 len=237
+HEAD HTTP 405 len=0
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: c2ac5c2b-28ad-4e5b-b142-d6cdda5f6c44
+client-request-id: c2ac5c2b-28ad-4e5b-b142-d6cdda5f6c44
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"CY4PEPF00013271"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 11 Aug 2026 02:52:41 GMT
+Content-Length: 0
+
+PREFLIGHT HTTP 200
+[0m
+[0m$ [0mcurl -s -o /tmp/oauth.py -w "raw HTTP %{http_code} len=%{size_download}\n" https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py; sha256sum /tmp/oauth.py; grep -n "RUP0RZ" /tmp/oauth.py | head -5
+raw HTTP 200 len=23110
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/oauth.py
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -s -o /tmp/tokeninfo.txt -w "tokeninfo HTTP %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; cat /tmp/tokeninfo.txt; echo; curl -s -o /dev/null -w "token POST HTTP %{http_code}\n" -X POST -d "grant_type=refresh_token&client_id=517222506229-xxxxxxxx&client_secret=bogus&refresh_token=xyz&scope=cloud-platform" https://oauth2.googleapis.com/token failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.

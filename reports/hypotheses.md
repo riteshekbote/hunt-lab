@@ -1643,3 +1643,19 @@
 - LEARN: ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory.
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory.
 - LEARN: NO_DELTA — all fresh passive probes (23:51:16 UTC) confirmed prior ACCEPTED findings unchanged.
+
+## RANKED HYPOTHESES 2026-08-11 02:55:45 UTC
+- [96] `oauth2.googleapis.com/token`: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS https://gr
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c1
+- NEXT(hypotheses-longcat.txt): SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths). Extract undocumented endpoints via grep for `/api/`,
+- LEARN: ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory
+- LEARN: ACCEPTED Agent Registration CORS cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — true preflight (Origin + Access-
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4-5)⊂v2(7-11), 0 v1-exclusive steady-state; rotation churn only, no cross
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — clean GET 200/23110, sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchange
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth cr
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoi
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED findings unchanged. Key classes remain: agentRegistrations CORS vector LIVE (ACCEPTED), Copilot Stu

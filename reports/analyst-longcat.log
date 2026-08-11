@@ -2020,3 +2020,60 @@ All three hypotheses clear confidence ≥ 40. None on REJECTED list. All have co
 [RISK] google: 45 — Earth Engine hardcoded OAuth secret remains highest-confidence finding (valid cloud-platform credential proven via invalid_grant); native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
 
 [RISK] microsoft: 73 — Elevated due to multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (60), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 42MB source map pair. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+===== ANALYST longcat 2026-08-11 02:55:45 UTC =====
+[0m
+> build · longcat-2.0-free
+[0m
+STEP 1 — DELTA: NO_DELTA — all fresh passive probes (2026-08-11 00:42:25 UTC) confirmed prior ACCEPTED findings unchanged. Robot probes: `graph.microsoft.com/beta/copilot/agentRegistrations/test-id` → 401 (auth-gate intact), `oauth2.googleapis.com/token` → 404 (POST-only gate intact, backtick artifact on retry), `raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py` → 404 on backtick URL, 200 on clean URL. No new surface.
+
+STEP 2 — PRIORITIZE:
+[PRIO] graph.microsoft.com/beta/copilotstudio/.../conversations — 7.55 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:10) — conversation-ID gap in private preview; newest finding; AUTH_HELPED-gated.
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 7.15 (attack:8, business:9, tech:7, gate:3, cloud:8, fresh:6) — Live CORS preflight + metadata zero-restrictions + AUTH_HELPED IDOR path; CORS vector confirmed at 23:24 UTC.
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45 — 7.10 (attack:8, business:9, tech:6, gate:5, cloud:9, fresh:3) — Valid credential proven via RFC 6749 §5.2 invalid_grant; native-app by-design caps severity.
+
+STEP 3 — HYPOTHESES:
+[HYP] Agent Registration cross-principal ownership hijack via PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 88
+reasoning: True CORS preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-Request-Headers:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400. 873-char $metadata block shows 0 OperationRestrictions; createdBy/ownerIds Nullable=false; client-supplied agentIdentityId/managedByAppId/agentCard. Cross-origin authenticated PATCH can rewrite ownership fields.
+evidence_needed: App B cross-origin PATCHes App A's agentRegistration setting ownerIds=[B's oid], managedByAppId=B's appId; GET reflects B's ownership.
+verify_steps: PASSIVE: Confirm preflight returns ACAO:* for Origin:https://attacker.com. AUTH_HELPED: Two App Regs (A,B). App A creates registration. App B cross-origin PATCH {ownerIds:[B's oid]} → 200; GET reflects B owner = IDOR confirmed.
+impact: Take ownership of enterprise agent registrations across tenants; repudiation of agent audit trail; managedByAppId reassignment for privilege escalation; agentCard injection for prompt exfiltration.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token
+class: OATH
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proves credential accepted by server. Secret sha256 3f3f8d6f…d271 confirmed live on master. Scopes cloud-platform+earthengine+drive+devstorage.full_control. Native-app installed client with OOB redirect.
+evidence_needed: Token mint requires refresh_token (grant_type=refresh_token); OOB flow deprecated but credential validity proven.
+verify_steps: PASSIVE: clean GET raw GitHub → 200 len=23110, whole-file sha f4f93c76… unchanged. HUMAN: File Google VRP with evidence bundle (sha256 secret, invalid_grant proof, native-app by-design precedent ADK #2128).
+impact: Public client secret enabling OAuth flow; cloud-platform scope = full GCP project access for projects where Earth Engine API enabled. Severity capped by native-app by-design (public client cannot confidentialize secret).
+testability: HUMAN_ONLY
+
+[HYP] Copilot Studio D2E S2S conversation hijack via unvalidated conversation-ID
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: Inventory confirms conversation-ID not validated server-side. S2S auth binds to app identity via client_credentials, not conversation owner. Private preview = lower maturity controls. Confidence lowered due to private-preview scope restriction and unknown schema-gating.
+evidence_needed: App A creates conversation → 201 with conversationId. App B with valid S2S token PATCH/DELETE/GET on A's conversationId.
+verify_steps: AUTH_HELPED: Provision two Dataverse-backed Copilot Studio apps. App A POST /conversations → 201 conversationId. App B with separate S2S token PATCH /conversations/{A's id} → 200 = IDOR confirmed.
+impact: Read/modify/delete arbitrary Copilot Studio conversations across tenants; data exfiltration, prompt injection, conversation state tampering in enterprise deployments.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE: All three hypotheses survive — confidence ≥ 55, class not on REJECTED list, concrete verify_steps present (2 AUTH_HELPED + 1 HUMAN_ONLY).
+[FINAL]
+1. [88] Agent Registration cross-principal ownership hijack via PATCH (hypotheses-longcat.txt)
+2. [96] Earth Engine hardcoded OAuth credential redeemable for cloud-platform token (hypotheses-longcat.txt)
+3. [55] Copilot Studio D2E S2S conversation hijack via unvalidated conversation-ID (hypotheses-longcat.txt)
+
+STEP 5 — NEXT ACTION:
+[NEXT] SCAN: Download and parse api.myaccount.microsoft.com/bundle/main.4e6e3dc6.js.map (35MB, 4922 source paths). Extract undocumented endpoints via grep for `/api/`, `graph.microsoft.com`, `login.microsoftonline.com`, `redirect_uri`, `client_secret`, `consent`. Highest information-gate action (gate_ease=8, unauthenticated) — may reveal off-metadata endpoints, hardcoded credentials, or auth flow flaws not discoverable via $metadata alone.
+
+STEP 6 — LEARNING:
+[LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED findings unchanged. Key classes remain: agentRegistrations CORS vector LIVE (ACCEPTED), Copilot Studio conversation-ID gap (ACCEPTED), oauth2PermissionGrants caller-chosen resourceId (ACCEPTED), earthengine secret valid credential (ACCEPTED), dual-JWKS rotation desync (REJECTED).
+
+STEP 7 — RISK SCORE:
+[RISK] google: 45 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated. tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] microsoft: 73 — Elevated due to multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0, conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 42MB source map pair. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.

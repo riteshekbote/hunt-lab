@@ -3179,3 +3179,4 @@ evidence_needed: unprivileged employee mints Verified Employee Credential for ar
 verify_steps: AUTH_HELPED: decode main.4e6e3dc6.js.map for canVerifiedIdBeIssued/issueVerifiedEmployeeCredential body; with employee Bearer POST against guest/other-tenant target → record 200 vs 403 + claims.
 impact: forged/mismatched verified-employee identity claims → verifier fraud; CVSS 6.0–8.5.
 testability: AUTH_HELPED
+## 2026-08-11 02:52:42 UTC [google] (model bigpickle)
