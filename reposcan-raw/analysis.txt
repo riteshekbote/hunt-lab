@@ -1,80 +1,35 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "fuzz test key"
-e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5  -
+[0m$ [0mcat << 'EOF'
+# CLASSIFICATION TABLES
+
+## REAL_SECRET
+# None found - no hardcoded credentials with signs of life
+
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/jsonnet/.github/workflows/publish-python.yml | 85,
+/bin/bash: line 10: warning: here-document at line 1 delimited by end-of-file (wanted `EOF')
+# CLASSIFICATION TABLES
+
+## REAL_SECRET
+# None found - no hardcoded credentials with signs of life
+
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/jsonnet/.github/workflows/publish-python.yml | 85,
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "ServerShutdownPassword" && sha256sum <<< "testpassword123" && sha256sum <<< "testpassword" && sha256sum <<< "gemini_api_key" && sha256sum <<< "your_client_secret" && sha256sum <<< "password" && sha256sum <<< "40150cc2c638b09de8ebbfefd50b80a4"
-1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782  -
-790fedf35d9221c0913238d0d9bdd9858747eb9c1582180a78f3b34f519c9e72  -
-e0d7d338cb1259086d775c964fba50b2a84244ba4cd2815e9f6f4a8d9daaa656  -
-1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
-af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
-cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m← [0mWrite triage_report.md
+Wrote file successfully.
 [0m
-### Classification Tables
+**Classification complete.** Wrote full report to `triage_report.md`.
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| *none in this delta* | — | — | The earthengine-api oauth.py:45 secret (sha256 `3f3f8d6f…d271`) is a **KNOWN DUPLICATE** from prior cycles (ACCEPTED 2026-08-07), not a new hit |
+**TL;DR**: 0 `REAL_SECRET` findings. All 53 new delta hits are:
+- **TEST_OR_EXAMPLE**: MathJax 2.7.2 vendored localization/config files (40+ files) + GitHub Actions templated expressions (`${{ ... }}`) in workflow YAMLs
+- **ENDPOINT_LEAK**: One well-known GCP metadata endpoint (`metadata.google.internal`) — documented public endpoint, not a leak
+- **INTERESTING**: None
 
-#### TEST_OR_EXAMPLE
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| google/flatbuffers/.github/workflows/label.yml | 24 | — | `${{ secrets.GITHUB_TOKEN }}` secret ref (proper usage) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | — | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` secret refs |
-| google/qwix/.github/workflows/cla.yml | 23 | — | `${{ secrets.GITHUB_TOKEN }}` secret ref |
-| google/xrblocks/src/ai/AI.ts | 303-304 | — | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` placeholders |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `cfaa7fab…` | Algolia DocSearch key — **REJECTED CLASS** (public by design, 2026-08-07) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `e5dfd035…` | `"fuzz test key"` test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `1731c395…` | `"ServerShutdownPassword"` test constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | — | Test DB connection code |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | — | Documentation URL comment |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | — | Project homepage URL |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `1a539ef3…` | `"gemini_api_key"` placeholder |
-| google/agents-cli/…/staging.yaml | 168,192 | — | GitHub Actions template tokens |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | — | `"-----BEGIN PRIVATE KEY-----…"` placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `6b3a55e0…` | `username="user", password="password"` test creds |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | — | `token="eyAkaknabna...."` test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `6b3a55e0…` | `PASSWORD = "password"` test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `af452314…` | `client_secret="your_client_secret"` placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | — | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` constant name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | — | Template `GOOGLE_API_KEY={google_api_key}` |
-| microsoft/qlib/.github/workflows/release.yml | 63,107 | — | `twine upload --repository-url https://test.pypi.org/legacy/` test PyPI |
-| microsoft/winappCli/…/PackageCommandTests.cs | 575 | `790fedf3…` | `testPassword = "testpassword123"` test const |
-| microsoft/winappCli/…/SignCommandTests.cs | 64,588 | `e0d7d338…` | `testPassword = "testpassword"` test const |
-| microsoft/winappCli/…/winapp-commands.ts | 135 | — | Self-signed cert comment for local testing |
-
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Comment: cloud metadata endpoint |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` | Comment: 302 to metadata service |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | `169.254.169.254` | Comment: metadata endpoint SSRF vector |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | `169.254.169.254` / `fd00:ec2::254` | Comment: DNS-based SSRF noted out of scope |
-| google/orbax/checkpoint/…/environment.py | 22 | `metadata.google.internal` | Hardcoded `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` |
-| google/adk-python/…/container_code_executor.py | 114,154 | `169.254.169.254` | Comments: cloud metadata endpoint privilege escalation |
-
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| *none* | — | No new unusual debug flags, keys, or cloud configs beyond known surfaces |
-
----
-
-### SHORT VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| earthengine-api oauth.py:45 hardcoded secret | REAL_SECRET (KNOWN DUPLICATE) | **no** — already ACCEPTED 2026-08-07, tracked in KB |
-| xrblocks Algolia DocSearch apiKey | REAL_SECRET (REJECTED CLASS) | **no** — REJECTED 2026-08-07 (public by design) |
-| All GitHub Actions `${{ secrets.* }}` refs | TEST_OR_EXAMPLE | **no** — proper secret usage |
-| All test/fixture/placeholder values | TEST_OR_EXAMPLE | **no** — non-production material |
-| Metadata endpoint references (169.254.169.254, metadata.google.internal) | ENDPOINT_LEAK | **no** — documented SSRF surface, no secret |
-| adk-python test credentials/placeholders | TEST_OR_EXAMPLE | **no** — test code in auth_credential.py, auth_schemes.py, etc. |
-| microsoft/qlib test.pypi.org uploads | TEST_OR_EXAMPLE | **no** — test repository |
-| microsoft/winappCli test passwords | TEST_OR_EXAMPLE | **no** — test constants in *Tests.cs files |
-
-**SUMMARY**: Zero new `REPORT_CANDIDATE: yes` findings in this delta. All hits are either known duplicates, rejected classes, test fixtures, placeholder values, or documented endpoint references. The only live secret in the codebase remains the earthengine-api OAuth client_secret (pre-existing, ACCEPTED).
+No reportable secrets this cycle. The `GEMINI_API_KEY = "gemini_api_key"` in agents-cli is a constant placeholder name, not a live key. All workflow files use proper `${{ secrets.* }}` references or templated expressions.
