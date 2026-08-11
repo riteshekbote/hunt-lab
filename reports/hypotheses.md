@@ -1906,3 +1906,15 @@
 - LEARN: NO_DELTA — all fresh passive probes (16:03 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged
 - LEARN: NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
 - LEARN: NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIVE, earth
+
+## RANKED HYPOTHESES 2026-08-11 18:08:34 UTC
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://g
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f…d271`, 
+- LEARN: NO_DELTA — all fresh passive probes (16:03 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged
+- LEARN: NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
+- LEARN: NO_DELTA — all fresh passive probes (17:19:04 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIVE, earth

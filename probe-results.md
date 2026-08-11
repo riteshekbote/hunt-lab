@@ -391,3 +391,9 @@ https://oauth2.googleapis.com/token -> HTTP 404
 
 ## 2026-08-11 17:19:04 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
+
+## 2026-08-11 18:08:35 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
+https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid -> HTTP 401
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
