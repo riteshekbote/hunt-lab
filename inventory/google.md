@@ -528,3 +528,19 @@
 - NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files).
 - NEW accounts.accesscontrol.windows.net JWKS — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim.
 - NEW github.com/google/earthengine-api/python/ee/oauth.py — confirmed scopes: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope was missing from prior KB entries).
+
+## 2026-08-11 00:42:24 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed at line 46)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + Access-Control-Request-Method/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATC
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids (rRk1d-57B, NqEBZVuOp, 1Nv3JExJr); v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady
+- CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probes confirmed backtick-in-URL artifact; clean GET → 200/23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 f
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+- CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)

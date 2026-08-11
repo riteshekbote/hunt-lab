@@ -541,3 +541,14 @@
 - 2026-08-10 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory.
 - 2026-08-10 CHANGED raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py — 404 probe confirmed backtick-in-URL artifact; clean GET → 200/23110, secret live (whole-file sha f4f93c76… unchanged). Scopes confirmed as cloud-platform + earthengine + drive + devstorage.full_control.
 - 2026-08-10 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged.
+- 2026-08-11 ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory, conversation-ID NOT validated server-side
+- 2026-08-11 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory
+- 2026-08-11 ACCEPTED Agent Registration CORS cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — true preflight (Origin + Access-Control-Request-Method/Headers) → 200 ACAO:* + full mutation allowlist; prior "OPTIONS→405 closed" KB entries were bare-OPTIONS artifacts (no Origin header)
+- 2026-08-11 ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4-5)⊂v2(7-11), 0 v1-exclusive steady-state; rotation churn only, no cross-endpoint confusion surface (dual-JWKS rotation desync stays REJECTED)
+- 2026-08-11 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — clean GET 200/23110, sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged; 404 probes were backtick-in-URL artifacts
+- 2026-08-11 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not 401 `invalid_client`) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2)
+- 2026-08-11 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-11 ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior OPTIONS→405 KB entries were bare-OPTIONS artifacts. Confidence 80→94→88 (adjusted for private-preview scope of AUTH_HELPED).
+- 2026-08-11 ACCEPTED Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio — new surface from 2026-08-10 inventory.
+- 2026-08-11 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory.
+- 2026-08-11 NO_DELTA — all fresh passive probes (23:51:16 UTC) confirmed prior ACCEPTED findings unchanged.

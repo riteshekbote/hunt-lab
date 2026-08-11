@@ -330,3 +330,7 @@ https://oauth2.googleapis.com/token`: -> HTTP 404
 
 ## 2026-08-10 23:51:16 UTC
 https://oauth2.googleapis.com/token` -> HTTP 404
+
+## 2026-08-11 00:42:25 UTC
+https://oauth2.googleapis.com/token` -> HTTP 404
+https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id` -> HTTP 401
