@@ -42,3 +42,6 @@
   - **Verdict: VALID**
   - | Q7 | ⚠️ Triager would demand proof the token was valid |
   - | **VALID** | 1 | **ADK #2128** — `/run_sse` broadcasts OAuth `client_secret` (CVSS 9.1) |
+
+- 1 lead(s) marked VALID at 2026-08-11 19:54:02 UTC
+  - | VALID | 0 | — |
