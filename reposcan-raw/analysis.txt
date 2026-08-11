@@ -1,3 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Notes |
+|------|------|-----------------|-------|
+| *none found in delta or full grep* | | | All candidate hits are placeholders, test fixtures, or secret *references* (not values) |
+
+### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| reposcan-raw/google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` |
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret ref, not value) |
+| reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` |
+| reposcan-raw/google/skia-buildbot/go/metadata/metadata.go | 23 | `CLIENT_SECRET = "client_secret"` |
+| reposcan-raw/google/skia-buildbot/go/metadata/metadata.go | 27 | `GMAIL_CACHED_TOKEN = "gmail_cached_token"` |
+| reposcan-raw/google/skia-buildbot/go/metadata/metadata.go | 30 | `GMAIL_CLIENT_SECRET = "gmail_clientsecret"` |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | URL |
+|------|------|-----|
+| reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | 4638 | `https://developers.devsite.corp.google.com/...` |
+| reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js | 4638 | `https://developers.devsite.corp.google.com/...` |
+| reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js | 4639 | `https://developers.devsite.corp.google.com/...` |
+| reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js | 4639 | `https://developers.devsite.corp.google.com/...` |
+| reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `https://source.corp.google.com/...` |
+| reposcan-raw/google/horologist/datalayer/.../PreferencesSerializer.kt | 43 | `https://b.corp.google.com/issues/241749603` |
+| reposcan-raw/google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` |
+| reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh | 82 | Corp docker registry reference |
+| reposcan-raw/google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | `skia-corp.google.com` |
+
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go | 61 | `secretGithubToken = "bugs-central-github-token"` — likely secret *name* in secret manager, not value |
+| reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | Service account email: `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
+| reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js | 27,166,205 | Public `dev.office.com` references (not internal) |
+| *multiple w3c externs* | *various* | Public `dev.w3.org` spec references (not leaks) |
+
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api oauth.py:45 (pre-existing KB) | REAL_SECRET | **yes** — already ACCEPTED in KB (sha256 `3f3f8d6f…d271`), valid credential proven via `invalid_grant` |
+| skia-buildbot bugs-central main.go:61 | INTERESTING | **no** — references secret *name* (`bugs-central-github-token`), not value |
+| closure-compiler corp URLs (4 files) | ENDPOINT_LEAK | **no** — internal documentation URLs in externs, no auth bypass |
+| ErrorManager.java / PreferencesSerializer.kt | ENDPOINT_LEAK | **no** — internal source/issue tracker links in comments |
+| skia-buildbot corp config/scripts | ENDPOINT_LEAK | **no** — deployment-time corp domain references, no runtime exposure |
+| All w3c/dev.w3.org/dev.office.com refs | ENDPOINT_LEAK | **no** — public specification URLs |
+
+**Summary**: No **new** REAL_SECRET candidates in this delta. The only reportable credential remains the pre-existing earthengine-api hardcoded client_secret (already tracked in KB as ACCEPTED). All delta hits are internal doc URLs or public spec references.
