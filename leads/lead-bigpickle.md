@@ -3716,3 +3716,31 @@ testability: HUMAN_ONLY
 [LEARN] NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
 [RISK] google: 85 — earthengine client_secret proven a live valid OAuth credential (sha `3f3f8d6f…d271`, invalid_grant distinction) with cloud-platform scopes, but native-app OOB by-design precedent (ADK #2128) caps VRP; tokeninfo oracle no-reward; residual moderate.
 [RISK] microsoft: 88 — agentRegistrations live CORS mutation allowlist at collection+item with zero ownership-restriction schema across 5 EntityTypes (95) plus oauth2PermissionGrants zero-restriction consent-forge precondition (70); both blocked on the authorized two-principal test (AUTH_HELPED) — the current bottleneck.
+## 2026-08-11 19:18:20 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: item-level true preflight (Origin+ACRM:PATCH+ACH:authorization) re-confirmed this probe → 200 ACAO:* + full mutation allowlist + Max-Age 86400, closing collection-vs-item gap; GET→401/237; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence. Log status+bodies only.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: raw oauth.py 200/23110 this probe, whole-file sha `f4f93c76…` unchanged; POST /token → 400 `invalid_grant` (not 401 `invalid_client`) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control; `installed` client with OOB redirect (native-app by-design caps VRP per ADK #2128).
+evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant proof; request authorized redemption; cite ADK #2128 native-app precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: production v1.0 metadata — oAuth2PermissionGrant EntityType 347 chars, ZERO restriction tags, client-supplied clientId/consentType/principalId/resourceId/scope; GET→401/237 auth-gated; no documented server-side cross-check of requester vs grant target.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation → 201; B GET /me/oauth2PermissionGrants → forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
