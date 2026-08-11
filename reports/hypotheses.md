@@ -1674,3 +1674,18 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — clean GET 200/23110, sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, wh
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (new production-v1
 - LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — robot probes + inventory confirm no new proving-dead or proving-live classes this cycle.
+
+## RANKED HYPOTHESES 2026-08-11 05:49:46 UTC
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201),
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations HEAD → HTTP 405 (Content-Length:0, no WWW-Authenticate Bearer) — RFC 6750 §3 violation extends to A
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4 kids: 6hXLaIYN, AahUf1bC, fEtqrhKT, sa3RgZQ_) ⊂ v2(8 kids), 0 v1-exclus
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256(secret)=3f3f8d6f…d271 verbatim, sha256(file)=f4f93c76… unchanged, raw GitHub 200/l
+- LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-param→400/113 invalid_token; HEAD→404 method-handling gap — confirmed live
+- LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — robot probes + inventory confirm no new proving-dead or proving-live classes this cycle.
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + ACRM:PATCH + 
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged this cycle.

@@ -562,3 +562,7 @@
 - 2026-08-11 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live this cycle — clean GET 200/23110, sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged; scopes cloud-platform+earthengine+drive+devstorage.full_control.
 - 2026-08-11 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (new production-v1.0 surface).
 - 2026-08-11 NO_DELTA on all prior ACCEPTED/REJECTED classes — robot probes + inventory confirm no new proving-dead or proving-live classes this cycle.
+- 2026-08-11 ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin + ACRM:PATCH + ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS 405 entries were artifacts (no Origin header). Confidence 88.
+- 2026-08-11 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant proves valid Google OAuth credential (RFC 6749 §5.2). Confidence 96.
+- 2026-08-11 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface). Confidence 62.
+- 2026-08-11 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged this cycle.

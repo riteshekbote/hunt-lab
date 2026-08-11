@@ -4312,3 +4312,4 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256(secret)=3f3f8d6f…d271 verbatim, sha256(file)=f4f93c76… unchanged, raw GitHub 200/len=23110
 [LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-param→400/113 invalid_token; HEAD→404 method-handling gap — confirmed live
 [RISK] google: 96 reason | microsoft: 88 reason
+## 2026-08-11 05:34:19 UTC [google] (model laguna)

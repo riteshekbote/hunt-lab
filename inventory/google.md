@@ -562,3 +562,5 @@
 - CHANGED oauth2.googleapis.com/token GET → 404 sustained — confirms POST-only alive gate (RFC-compliant), validates earthengine secret hypothesis (only grant_type=refresh_token redemption path)
 
 ## 2026-08-11 04:32:52 UTC
+
+## 2026-08-11 05:49:46 UTC

@@ -3181,3 +3181,44 @@ impact: forged/mismatched verified-employee identity claims → verifier fraud; 
 testability: AUTH_HELPED
 ## 2026-08-11 02:52:42 UTC [google] (model bigpickle)
 ## 2026-08-11 04:15:31 UTC [google] (model bigpickle)
+## 2026-08-11 05:34:09 UTC [google] (model bigpickle)
+[LEARN] ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations HEAD → HTTP 405 (Content-Length:0, no WWW-Authenticate Bearer) — RFC 6750 §3 violation extends to Agent Registration endpoint
+[LEARN] ACCEPTED v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4 kids: 6hXLaIYN, AahUf1bC, fEtqrhKT, sa3RgZQ_) ⊂ v2(8 kids), 0 v1-exclusive steady-state; Access-Control-Allow-Origin:*
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256(secret)=3f3f8d6f…d271 verbatim, sha256(file)=f4f93c76… unchanged, raw GitHub 200/len=23110
+[LEARN] ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-param→400/113 invalid_token; HEAD→404 method-handling gap — confirmed live
+[RISK] google: 96 reason | microsoft: 88 reason
+[LEARN] NO_DELTA on all prior ACCEPTED/REJECTED classes — robot probes + inventory confirm no new proving-dead or proving-live classes this cycle.
+[RISK] google: 42 — Earth Engine hardcoded OAuth secret (valid cloud-platform credential proven via invalid_grant) remains highest-confidence finding; native-app by-design caps severity per ADK #2128 precedent. GCP control-plane APIs uniformly gated (identitytoolkit/iam/beyondcorp all require consumer identity). tokeninfo oracle no-reward per VRP rules. No new Google surfaces this cycle.
+[RISK] google: 42
+[RISK] microsoft: 71 — Elevated due to multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), conversation-ID gap in Copilot Studio D2E (55), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API, unauthenticated 42MB source map pair. Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 5+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
+[RISK] microsoft: 71
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}} + 5 sibling collections
+confidence: 95
+reasoning: this probe re-confirmed true preflight on {id} → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400; GET→401/237; $metadata 873-char block with createdBy/ownerIds Nullable=false and ZERO OperationRestrictions across 5 EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403) with own Bearer; or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {"displayName","createdBy":"<B oid>","ownerIds":["<B oid>"],"agentCard":{}}→201; 2) B GET collection→200 incl. A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence; 5) sibling EntityTypes + policySettings/{id}.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 66
+reasoning: this probe — v1(4)⊂v2(8), 0 v1-exclusive steady-state; dual issuer namespaces + v1.0-only response_type=token verified in prior inventory; v1 kid set never validated against v2 issuer (distinct from REJECTED rotation-desync: key divergence ≠ token validation).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[HYP] Copilot Studio D2E S2S conversation-ID takeover — unvalidated conversationId across bot schemas
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: 2026-08-10 inventory — conversation-ID NOT validated server-side (private preview); sibling powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} accepts client-supplied toolSchemaName+inputs (301 → copilot-studio domain, deprecated). Bot schema names may be enumerable via source maps/inventory.
+evidence_needed: with valid Bearer, replay a victim's {schema}/conversations/{id} and read/inject tool invocation → 200 vs 403.
+verify_steps: AUTH_HELPED: obtain one own conversationId, then with a second principal's Bearer GET/POST the same conversationId; record 200 (foreign read/write) vs 403.
+impact: cross-tenant conversation hijack → prompt/tool-injection in Copilot Studio agent sessions; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds` = B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and B `PATCH {A_id}` (200/204 vs 403). Log status+bodies only; B-200/204 on A's object → report MSRC (conf 95). Cross-origin preflight re-confirmed 200 `ACAO:*` full mutation allowlist this cycle, so victim-context browser mutation is an independent vector.
+[RISK] google: 42 — earthengine hardcoded secret (valid cloud-platform credential proven via invalid_grant) remains top Google finding but native-app by-design caps VRP-worthiness (ADK #2128 precedent); tokeninfo oracle no-reward; no new Google surfaces; source sha `f4f93c76…` unchanged.
+[RISK] microsoft: 70 — agentRegistrations IDOR (95) with zero-restriction metadata + live CORS mutation vector; issuer-confusion (66); Copilot Studio D2E conversation-ID gap (55) all AUTH_HELPED-gated; Verified ID claim-injection now dead but minting primitive still requires two-principal test. 5+ hypotheses blocked on AUTH_HELPED indicate substantial untested exposure.
