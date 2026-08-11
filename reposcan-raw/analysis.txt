@@ -1,92 +1,71 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
+[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [offset=170, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=15, offset=118][0m
+### Classification Tables
 
-REAL_SECRET (0):
-  - None found in this delta
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context | Verdict |
+|------|------|---------------|---------|---------|
+| *(none)* | | | No live hardcoded credentials found | — |
 
-TEST_OR_EXAMPLE (32):
-  - google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) — minified JS build artifacts with parse error messages
-  - google/agents-cli/src/google/agents/cli/auth.py:43 — constant name placeholder "gemini_api_key"
-  - google/copybara/javatests/.../AuthTest.java (4 lines) — test fixtures: "testpassword", "test-token-123"
-  - google/copybara/javatests/.../HttpEndpointTest.java (3 lines) — test fixtures: "testpassword"
-  - google/heir/scripts/author_stats.py:16 — commented placeholder "# TOKEN = \"your_github_token_here\""
-  - microsoft/agent-governance-toolkit/.github/workflows/*.yml (3 files) — GitHub Actions secret refs "${{ secrets.GITHUB_TOKEN }}"
-  - google/flatbuffers/.github/workflows/label.yml:24 — GitHub Actions secret ref "${{ secrets.GITHUB_TOKEN }}"
-  - google/langextract/.github/workflows/ci.yaml:168-170 — GitHub Actions secret refs "${{ secrets.GEMINI_API_KEY }}", "${{ secrets.OPENAI_API_KEY }}"
-  - google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml:168,192 — GitHub Actions expressions "${{ steps.fetch-token.outputs._id_token }}", "${{ steps.fetch-token.outputs._auth_token }}"
+#### TEST_OR_EXAMPLE
+| File | Line | Type | Notes |
+|------|------|------|-------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey | **REJECTED per KB**: search-only key, public by design |
+| google/xrblocks/src/ai/AI.ts | 303 | Gemini API key placeholder | `YOUR_GEMINI_API_KEY_HERE` |
+| google/xrblocks/src/ai/AI.ts | 304 | OpenAI API key placeholder | `YOUR_OPENAI_API_KEY_HERE` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key example | Docstring example, truncated `...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HTTP basic auth fixture | `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Bearer token fixture | `token="eyAkaknabna...."` (fake JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Client secret placeholder | `client_secret="your_client_secret"` in example |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Env var name constant | `GEMINI_API_KEY = "gemini_api_key"` (name, not value) |
+| google/copybara/javatests/.../AuthTest.java | 75 | Test password | `String password = "testpassword"` |
+| google/copybara/javatests/.../AuthTest.java | 102 | Test token | `String token = "test-token-123"` |
+| google/adk-python/cli/browser/chunk-*.js | multiple | JS parser errors | Build artifacts (minified parser tables) |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | JS parser errors | Build artifacts (minified parser tables) |
 
-ENDPOINT_LEAK (14):
-  - google/go-containerregistry/pkg/v1/remote/fetcher.go:85 — comment: 169.254.169.254 (IMDS)
-  - google/go-containerregistry/pkg/v1/remote/transport/bearer.go:91 — comment: 169.254.169.254 SSRF note
-  - google/go-containerregistry/pkg/v1/remote/transport/bearer.go:151 — comment: 169.254.169.254 / fd00:ec2::254
-  - google/go-containerregistry/pkg/v1/google/list.go:206 — comment: cloud metadata endpoints at 169.254.169.254
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:563 — "169.254.169.254" (AWS/Azure IMDS)
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:566 — "metadata.google.internal" (GCP IMDS)
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:568 — "100.100.100.200" (Alibaba IMDS)
-  - microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 — http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer (timestamp server)
-  - microsoft/azure-devops-mcp/server.json:10 — https://mcp.dev.azure.com/{organization} (template)
-  - microsoft/azure-devops-mcp/src/index.ts:62 — https://dev.azure.com/ + orgName
-  - microsoft/azure-devops-mcp/src/org-tenants.ts:38 — https://vssps.dev.azure.com/${orgName}
-  - microsoft/azure-devops-mcp/src/tools/auth.ts:38 — https://vssps.dev.azure.com/${orgName}/_apis/identities
-  - microsoft/azure-devops-mcp/src/tools/repositories.ts:637 — https://almsearch.dev.azure.com/${orgName}/_apis/search/commitSearchResults
-  - microsoft/azure-devops-mcp/src/tools/search.ts:39,97,151 — https://almsearch.dev.azure.com/${orgName}/_apis/search/*
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Well-known cloud metadata IP (public knowledge) |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/...` | Internal artifact registry URL in comment |
 
-INTERESTING (2):
-  - google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 — Cloud Run secret reference "--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest" (correct pattern, not a leak)
-  - google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 — runtime secret_key emission `os << ctx << ".secret_key = " << sk << "\n";` (variable, not hardcoded)
+#### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | Code writes user-supplied key to `.env` — safe if variable is user input |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | Config params for GKE auth — not secrets themselves |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal session key name for VMaaS access token storage |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern (fetches from Secret Manager) |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions OIDC token handling pattern |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 153-165 | Full ServiceAccountCredential example | Complete example config structure (all placeholder values) |
 
-=== VERDICT ===
-REPORT_CANDIDATE: no  (no REAL_SECRET findings; all hits are TEST_OR_EXAMPLE, documented endpoints, or correct secret-reference patterns)
-EOF
-=== CLASSIFICATION TABLE ===
+---
 
-REAL_SECRET (0):
-  - None found in this delta
+### Verdict List
 
-TEST_OR_EXAMPLE (32):
-  - google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) — minified JS build artifacts with parse error messages
-  - google/agents-cli/src/google/agents/cli/auth.py:43 — constant name placeholder "gemini_api_key"
-  - google/copybara/javatests/.../AuthTest.java (4 lines) — test fixtures: "testpassword", "test-token-123"
-  - google/copybara/javatests/.../HttpEndpointTest.java (3 lines) — test fixtures: "testpassword"
-  - google/heir/scripts/author_stats.py:16 — commented placeholder "# TOKEN = \"your_github_token_here\""
-  - microsoft/agent-governance-toolkit/.github/workflows/*.yml (3 files) — GitHub Actions secret refs "${{ secrets.GITHUB_TOKEN }}"
-  - google/flatbuffers/.github/workflows/label.yml:24 — GitHub Actions secret ref "${{ secrets.GITHUB_TOKEN }}"
-  - google/langextract/.github/workflows/ci.yaml:168-170 — GitHub Actions secret refs "${{ secrets.GEMINI_API_KEY }}", "${{ secrets.OPENAI_API_KEY }}"
-  - google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml:168,192 — GitHub Actions expressions "${{ steps.fetch-token.outputs._id_token }}", "${{ steps.fetch-token.outputs._auth_token }}"
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| xrblocks Algolia apiKey (docusaurus.config.ts:175) | **no** | Explicitly REJECTED in KB — search-only key, public by design |
+| xrblocks AI.ts placeholders | **no** | Obvious `YOUR_*_HERE` placeholders |
+| adk-python auth_credential.py examples | **no** | Docstring/test fixtures, all truncated or `user`/`password` |
+| adk-python auth_schemes.py PASSWORD | **no** | Test constant literal `"password"` |
+| adk-python openapi_tool auth_helpers.py | **no** | Example config with `"your_client_secret"` placeholder |
+| agents-cli auth.py GEMINI_API_KEY | **no** | Constant holds env var *name*, not a key value |
+| copybara AuthTest.java | **no** | Unit test fixtures (`testpassword`, `test-token-123`) |
+| adk-python/cli/browser chunk-*.js | **no** | Minified JS parser error tables (build artifacts) |
+| adk-go chunk-*.js | **no** | Same minified parser artifacts |
+| container_code_executor.py metadata IP | **no** | Public knowledge (169.254.169.254) |
+| cli_create.py GOOGLE_API_KEY write | **no** | Writes user-provided variable to local `.env` — expected CLI behavior |
+| gke_code_executor.py kubeconfig params | **no** | Configuration parameters, not credentials |
+| vmaas sandbox_computer.py state key | **no** | Internal session storage key name |
+| adk-go cloudrun.go secret ref | **no** | References Secret Manager, doesn't embed secret |
+| agents-cli staging.yaml token refs | **no** | GitHub Actions OIDC pattern, no secret material |
+| copybara cloudbuild.yaml internal URL | **no** | Comment-only reference to internal artifact registry |
 
-ENDPOINT_LEAK (14):
-  - google/go-containerregistry/pkg/v1/remote/fetcher.go:85 — comment: 169.254.169.254 (IMDS)
-  - google/go-containerregistry/pkg/v1/remote/transport/bearer.go:91 — comment: 169.254.169.254 SSRF note
-  - google/go-containerregistry/pkg/v1/remote/transport/bearer.go:151 — comment: 169.254.169.254 / fd00:ec2::254
-  - google/go-containerregistry/pkg/v1/google/list.go:206 — comment: cloud metadata endpoints at 169.254.169.254
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:563 — "169.254.169.254" (AWS/Azure IMDS)
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:566 — "metadata.google.internal" (GCP IMDS)
-  - microsoft/agent-governance-toolkit/agent-governance-dotnet/src/.../OpaPolicyBackend.cs:568 — "100.100.100.200" (Alibaba IMDS)
-  - microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml:1180 — http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer (timestamp server)
-  - microsoft/azure-devops-mcp/server.json:10 — https://mcp.dev.azure.com/{organization} (template)
-  - microsoft/azure-devops-mcp/src/index.ts:62 — https://dev.azure.com/ + orgName
-  - microsoft/azure-devops-mcp/src/org-tenants.ts:38 — https://vssps.dev.azure.com/${orgName}
-  - microsoft/azure-devops-mcp/src/tools/auth.ts:38 — https://vssps.dev.azure.com/${orgName}/_apis/identities
-  - microsoft/azure-devops-mcp/src/tools/repositories.ts:637 — https://almsearch.dev.azure.com/${orgName}/_apis/search/commitSearchResults
-  - microsoft/azure-devops-mcp/src/tools/search.ts:39,97,151 — https://almsearch.dev.azure.com/${orgName}/_apis/search/*
-
-INTERESTING (2):
-  - google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 — Cloud Run secret reference "--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest" (correct pattern, not a leak)
-  - google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 — runtime secret_key emission `os << ctx << ".secret_key = " << sk << "\n";` (variable, not hardcoded)
-
-=== VERDICT ===
-REPORT_CANDIDATE: no  (no REAL_SECRET findings; all hits are TEST_OR_EXAMPLE, documented endpoints, or correct secret-reference patterns)
-[0m
-**Classification complete. No reportable findings in this delta.**
-
-| Category | Count | Summary |
-|----------|-------|---------|
-| **REAL_SECRET** | 0 | No hardcoded credentials/API keys with signs of life |
-| **TEST_OR_EXAMPLE** | 32 | Minified JS artifacts, test fixtures (`testpassword`, `test-token-123`), commented placeholders, GitHub Actions secret references (`${{ secrets.* }}`) |
-| **ENDPOINT_LEAK** | 14 | IMDS IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) in comments/code — documented public endpoints; Azure DevOps URL templates; Microsoft internal timestamp server |
-| **INTERESTING** | 2 | Cloud Run secret reference (correct pattern); C++ runtime secret emission (variable, not hardcoded) |
-
-**Verdict:** `REPORT_CANDIDATE: no` — All hits are test fixtures, documented endpoints, or proper secret-reference patterns. No new hardcoded secrets or exploitable leaks.
+**Summary**: **0 REPORT_CANDIDATE=yes** — all hits are test fixtures, placeholders, build artifacts, documented patterns, or explicitly rejected (Algolia key). No live hardcoded secrets detected in this delta.
