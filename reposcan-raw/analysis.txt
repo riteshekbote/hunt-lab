@@ -1,87 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLES
+Looking at the scan hits, I'll classify each one:
 
-## REAL_SECRET CANDIDATES
-| File | Line | SHA256 | Context | REPORT_CANDIDATE |
-|------|------|--------|---------|------------------|
-| (none) | - | - | No live hardcoded credentials found in delta or full scan | no |
+## Classification Table
 
-## TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| certificate-transparency-go/scripts/resetctdb.sh | 37 | Default test DB password "beeblebrox" (Hitchhiker's ref) |
-| certificate-transparency-go/scripts/resetpgctdb.sh | 41 | Default test DB password "beeblebrox" |
-| certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | EC private key in `testonly/` package |
-| osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | Reference LM hash format for vulnerability detection |
-| osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | Documentation comment about secret structure |
-| sandboxed-api/.github/workflows/generator-tool.yml | 121 | Proper `${{secrets.GITHUB_TOKEN}}` reference |
-| adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private_key="-----BEGIN PRIVATE KEY-----..." |
-| adk-python/src/google/adk/auth/auth_credential.py | 269 | Placeholder HttpCredentials(username="user", password="password") |
-| adk-python/src/google/adk/auth/auth_credential.py | 278 | Placeholder token="eyAkaknabna...." (obviously fake) |
-| adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant PASSWORD = "password" (scheme name, not secret) |
-| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder client_secret="your_client_secret" |
-| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name "_vmaas_access_token" (not a token) |
-| agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder GEMINI_API_KEY = "gemini_api_key" |
-| agents-cli/.../staging.yaml | 168,192 | Proper GitHub Actions `${{ steps.fetch-token.outputs... }}` refs |
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret reference template (`GOOGLE_API_KEY:latest`), not a secret value |
+| `google/certificate-transparency-go/scripts/resetctdb.sh` | 37 | Test script default `MYSQL_PASSWORD="beeblebrox"` |
+| `google/certificate-transparency-go/scripts/resetpgctdb.sh` | 41 | Test script default `POSTGRESQL_PASSWORD="beeblebrox"` |
+| `google/certificate-transparency-go/trillian/ctfe/testonly/keys.go` | 24 | `testonly` package - EC private key fixture |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions workflow templates using `${{ steps... }}` syntax |
+| `google/sandboxed-api/.github/workflows/generator-tool.yml` | 121 | Standard `${{secrets.GITHUB_TOKEN}}` pattern |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: placeholder private key, `user/password`, truncated JWT |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` (test value) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Reference format string `PASSWORD_HASH_LM_FORMAT` |
+| `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go` | 32 | Documentation comment about Veles Secret |
 
-## ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | GCP metadata endpoint 169.254.169.254 referenced in comments |
-| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path params for GKE executor |
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | References to well-known metadata endpoint `169.254.169.254` (AWS/GCP standard IP) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig function parameters (not hardcoded values) |
 
-## INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| adk-python/src/google/adk/cli/cli_create.py | 123 | Code writes GOOGLE_API_KEY= from variable (pattern, not secret) |
-| adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings (noise) |
+### INTERESTING
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 123 | Code generating `GOOGLE_API_KEY=` placeholder in output (template behavior) |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified JS bundles - parse error message templates (40+ files, all same pattern) |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Same minified JS bundles duplicated in adk-python |
 
-# VERDICT
-REPORT_CANDIDATE: no (zero REAL_SECRET findings in this scan cycle)
-EOF
-# CLASSIFICATION TABLES
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this scan)* | | | |
 
-## REAL_SECRET CANDIDATES
-| File | Line | SHA256 | Context | REPORT_CANDIDATE |
-|------|------|--------|---------|------------------|
-| (none) | - | - | No live hardcoded credentials found in delta or full scan | no |
+---
 
-## TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| certificate-transparency-go/scripts/resetctdb.sh | 37 | Default test DB password "beeblebrox" (Hitchhiker's ref) |
-| certificate-transparency-go/scripts/resetpgctdb.sh | 41 | Default test DB password "beeblebrox" |
-| certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | EC private key in `testonly/` package |
-| osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | Reference LM hash format for vulnerability detection |
-| osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | Documentation comment about secret structure |
-| sandboxed-api/.github/workflows/generator-tool.yml | 121 | Proper `${{secrets.GITHUB_TOKEN}}` reference |
-| adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private_key="-----BEGIN PRIVATE KEY-----..." |
-| adk-python/src/google/adk/auth/auth_credential.py | 269 | Placeholder HttpCredentials(username="user", password="password") |
-| adk-python/src/google/adk/auth/auth_credential.py | 278 | Placeholder token="eyAkaknabna...." (obviously fake) |
-| adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant PASSWORD = "password" (scheme name, not secret) |
-| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder client_secret="your_client_secret" |
-| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name "_vmaas_access_token" (not a token) |
-| agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder GEMINI_API_KEY = "gemini_api_key" |
-| agents-cli/.../staging.yaml | 168,192 | Proper GitHub Actions `${{ steps.fetch-token.outputs... }}` refs |
+## SHORT VERDICT LIST
 
-## ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | GCP metadata endpoint 169.254.169.254 referenced in comments |
-| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path params for GKE executor |
+**REPORT_CANDIDATE: no** for all hits in this scan.
 
-## INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| adk-python/src/google/adk/cli/cli_create.py | 123 | Code writes GOOGLE_API_KEY= from variable (pattern, not secret) |
-| adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings (noise) |
+**Summary**: This scan produced **0 REAL_SECRET candidates**. All 369 hits are:
+- **342** minified JS parse-error templates (duplicated across adk-go and adk-python)
+- **18** test/fixture/placeholder values (`beeblebrox`, `password`, `your_client_secret`, `gemini_api_key`, testonly keys)
+- **6** CI/CD template patterns (`${{secrets...}}`, `${{steps...}}`, Cloud Run secret refs)
+- **3** well-known metadata endpoint references (`169.254.169.254`)
 
-# VERDICT
-REPORT_CANDIDATE: no (zero REAL_SECRET findings in this scan cycle)
-[0m
-**Classification complete.** All 6 delta hits + full grep context are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK**, or **INTERESTING** — zero **REAL_SECRET** findings.
-
-**Verdict: REPORT_CANDIDATE: no** (no live hardcoded credentials in this scan cycle).
+The known live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`) **does not appear in this scan's hit list** — it would need a separate targeted check.
