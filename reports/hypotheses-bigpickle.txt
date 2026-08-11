@@ -1,11 +1,11 @@
-## 2026-08-11 14:56:19 UTC [google] (model bigpickle)
+## 2026-08-11 16:02:16 UTC [google] (model bigpickle)
 [HYP] Agent Registration cross-principal ownership bypass
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
 confidence: 95
-reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist re-verified this probe; GET→401/237 auth-gated; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+reasoning: fresh probe @ 16:01 UTC — true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400 at item; GET→401/237 auth-gated; $metadata 873-char block, createdBy/ownerIds client-supplied Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
 evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
-verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence. Log status+bodies.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence. Log status+bodies only.
 impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
 testability: AUTH_HELPED
 [HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
@@ -21,11 +21,11 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: raw file 200/23110 this probe, whole-file sha `f4f93c76…b73040` unchanged, secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST to /token → 400 `invalid_grant` (not 401 `invalid_client`) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control.
+reasoning: secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback, whole-file sha `f4f93c76…` unchanged; POST to /token → 400 `invalid_grant` (not 401 `invalid_client`) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control.
 evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
-verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant proof; request VRP team perform authorized redemption; cite ADK #2128 native-app precedent.
-impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB pattern caps VRP payout.
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant proof; request authorized redemption; cite ADK #2128 native-app precedent (caps payout).
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP.
 testability: HUMAN_ONLY
-[NEXT] HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Item+collection preflight re-confirmed 200 `ACAO:*` + full mutation allowlist this probe, so victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. In the same token session run the H2 consent-forge POST and the parked agentRegistry tests. Parallel: file the Google VRP report for the earthengine credential (sha256 `3f3f8d6f…d271`) — evidence complete, no new token needed.
-[RISK] google: 85 — earthengine client_secret proven a live valid OAuth credential (sha `3f3f8d6f…d271`, invalid_grant distinction) with cloud-platform scopes, but native-app OOB by-design precedent (ADK #2128) caps VRP; tokeninfo oracle no-reward; residual moderate.
+[NEXT] HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (expect 201), then B `GET` collection (200 incl. A vs 403), B `PATCH {A_id}` (200/204 vs 403), B `GET {A_id}` persistence. Log status+bodies only. Item preflight re-confirmed 200 `ACAO:*` + full mutation allowlist this probe (16:01 UTC) — victim-context browser PATCH via ACAO:* is an independent vector if direct cross-principal fails → report MSRC on any B-200/204. In the same token session run the H2 consent-forge POST. Parallel: file the Google VRP report for the earthengine credential (sha `3f3f8d6f…d271`) — evidence complete, no new token needed.
+[RISK] google: 85 — earthengine client_secret proven a live valid OAuth credential (sha `3f3f8d6f…d271`, invalid_grant distinction) with cloud-platform scopes, but native-app OOB by-design precedent (ADK #2128) caps VRP; tokeninfo no-reward; residual moderate.
 [RISK] microsoft: 88 — agentRegistrations live CORS mutation allowlist at collection+item with zero ownership-restriction schema across 5 EntityTypes (95) plus oauth2PermissionGrants zero-restriction consent-forge precondition (70); both blocked on the authorized two-principal test (AUTH_HELPED) — the current bottleneck.

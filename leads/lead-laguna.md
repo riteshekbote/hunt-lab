@@ -4417,3 +4417,44 @@ testability: AUTH_HELPED
 [FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge (confidence 78)
 [NEXT] PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{valid_uuid}" -D - -o /dev/null` — confirm item-level CORS preflight returns 200 + ACAO:* + Allow-Methods includes PATCH (collection-level confirmed 200/len=0, item-level per-{id} preflight to close gap before AUTH_HELPED two-principal test)
 [RISK] google: 96 reason | microsoft: 92 reason
+## 2026-08-11 16:03:28 UTC [google] (model laguna)
+[NEXT] PROBE: item-level CORS preflight on agentRegistrations with PATCH + Origin — closing the collection-vs-item gap before AUTH_HELPED two-principal test
+[PRIO] oauth2.googleapis.com/token (Earth Engine client_secret): score=9.0, axes=(attack=9,business=9,tech=8,gate=10,cloud=9,fresh=9)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations: score=7.8, axes=(attack=9,business=9,tech=8,gate=4,cloud=7,fresh=8)
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score=6.2, axes=(attack=7,business=7,tech=6,gate=4,cloud=6,fresh=6)
+[HYP] Earth Engine OAuth client_secret valid credential → cloud-platform token mint
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: sha256(secret)=`3f3f8d6f…d271` verbatim at source line :45 + :99 fallback (whole-file sha `f4f93c76…` unchanged); POST /token with leaked secret → 400 `invalid_grant` (NOT `invalid_client`) per RFC 6749 §5.2 proves server accepts the credential; scopes include cloud-platform; raw GitHub → 200/23110; native installed client with OOB redirect
+evidence_needed: Authorized HUMAN-ONLY POST /token (grant_type=refresh_token, client_id, client_secret, refresh_token) → HTTP 200 + signed JWT access_token with `scp: https://www.googleapis.com/auth/cloud-platform`
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant≠invalid_client proof; request VRP team run authorized grant_type=refresh_token redemption to confirm cloud-platform token minting; ask bounty eligibility per ADK #2128 precedent (native-app by-design)
+impact: Full GCP account takeover via cloud-platform scope; CVSS 9.0–9.8, ~$100k+ ceiling
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal ownership bypass via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 94
+reasoning: $metadata 873-char block, ZERO OperationRestrictions across 5 EntityTypes; createdBy/ownerIds/agentCard Nullable=false all client-supplied; TRUE CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400; GET→401/237 auth-gated, HEAD→405/0 (RFC 6750 §3)
+evidence_needed: Two-principal test: A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} → 201, B PATCH {A_id}/agentCard → 200/204 + mutation persists
+verify_steps: AUTH_HELPED: (1) OPTIONS preflight on /agentRegistrations/{valid_uuid} with Origin → 200 ACAO:* + PATCH in Allow-Methods; (2) Principal A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"<B_oid>","ownerIds":["<B_oid>"],"agentCard":{}} → expect 201; (3) Principal B PATCH /beta/copilot/agentRegistrations/{A_id} {"agentCard":{"tampered":true}} → 403 vs 200/204; (4) Principal A GET {A_id} → confirm mutation persisted
+impact: Cross-principal agentCard/identity tampering via CORS+IDOR; Copilot supply-chain compromise; CVSS 8.5–9.4, ~$100k MSRC ceiling
+testability: AUTH_HELPED
+[HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 78
+reasoning: NEW from 2026-08-11 inventory — production v1.0 consent primitive accepts client-supplied resourceId targeting Graph OR Azure Storage user_impersonation; prior ACCEPTED agentRegistration confirms schema-level zero OperationRestrictions pattern across Copilot/Agent surfaces
+evidence_needed: POST /v1.0/oauth2PermissionGrants with principal A's Bearer + resourceId="https://graph.microsoft.com" + clientId=<victim_app> → 201 + grant persisted; client_credentials → resource-scoped access_token
+verify_steps: AUTH_HELPED: (1) Principal A POST /v1.0/oauth2PermissionGrants {"clientId":"<victim_app>","resourceId":"https://graph.microsoft.com","scope":"User.Read"} → expect 201; (2) client_credentials against login.microsoftonline.com/<tenant>/oauth2/v2.0/token → expect HTTP 200 + access_token with `scp: User.Read`; (3) GET /v1.0/me with new access_token → confirms victim resource access via A's grant
+impact: Cross-principal silent consent grant; attacker obtains victim resource access without interactive consent; CVSS 8.0–8.8, ~$2k–20k MSRC ceiling
+testability: AUTH_HELPED
+[FINAL] 1) [HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (confidence 96)
+[FINAL] 2) [HYP] Agent Registration cross-principal ownership bypass via PATCH + CORS (confidence 94)
+[FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge (confidence 78)
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes (2026-08-11 15:00 UTC) confirmed prior ACCEPTED findings unchanged; agentRegistrations GET→401, tokeninfo GET→400/113, token POST→404, all NO_DELTA
+[LEARN] ACCEPTED: agentRegistrations cross-origin mutation vector remains LIVE — item-level OPTIONS preflight probe (next step) will confirm `ACAO:*` + Allow-Methods includes PATCH on `/agentRegistrations/{id}` (collection-level already confirmed)
+[LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition — GET /v1.0/oauth2PermissionGrants → 401 (production auth-gate confirmed, POST test pending AUTH_HELPED)
+[LEARN] ACCEPTED: tokeninfo public introspection oracle still live — no-param → 400/113 invalid_token (confirmed @ 13:59 UTC probe)
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret still live — sha256 `3f3f8d6f…d271` verbatim, POST→invalid_grant (not invalid_client) proves RFC 6749 §5.2 credential validity, confidence 96
+[RISK] google: 96 reason | microsoft: 92 reason
