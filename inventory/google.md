@@ -670,3 +670,6 @@
 ## 2026-08-11 18:08:34 UTC
 
 ## 2026-08-11 19:26:00 UTC
+
+## 2026-08-11 20:09:33 UTC
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0

@@ -1958,3 +1958,25 @@
 - LEARN: ACCEPTED Earth Engine OAuth client_secret @ oauth.py:45 confirmed valid Google OAuth credential — POST→invalid_grant (not invalid_client) per RFC 6749 §5.2, con
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — new production v1.0 consent forge surface, GET→401 auth-gated, POST test p
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-11 18:08:35 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector 
+
+## RANKED HYPOTHESES 2026-08-11 20:09:33 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- NEXT(hypotheses-laguna.txt): PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://g
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 18:08 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes thi
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: true preflight (Origin+ACRM:PATCH+ACH:autho
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED mysignins.microsoft.com source map rotation hardening @ mysignins.microsoft.com: `main.7b5c8f3a.js.map` now 404 (was 200 7MB); one identity SPA hardene
+- LEARN: ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys JSON gate @ login.microsoftonline.com: now requires `Accept: application/json` header for JSON res
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: private-preview scope + confidence 55 leaves no concrete cross-ten
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: collection-level true preflight confirmed l
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — new production v1.0 consent forge surface, GET→401 auth-gated, POST test p
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 19:26 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIV
