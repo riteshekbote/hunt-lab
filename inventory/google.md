@@ -568,3 +568,19 @@
 ## 2026-08-11 06:39:01 UTC
 - CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB); api.myaccount.microsoft.com source map stable 200 35MB
 - CHANGED login.microsoftonline.com/common/discovery/v2.0/keys requires `Accept: application/json` for JSON (was returning HTML without)
+
+## 2026-08-11 07:53:30 UTC
+- NEW Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+- NEW Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+- NEW Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+- NEW ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+- NEW /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+- NEW Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+- NEW earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids; v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady-state
+- CHANGED raw.githubusercontent
+- CHANGED mysignins.microsoft.com source map rotated — `main.7b5c8f3a.js.map` now 404 (was 200 7MB, 4359 paths); api.myaccount.microsoft.com source map still 200/35MB/4922 paths (one SPA hardened, other still e
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys now requires `Accept: application/json` header for JSON response (was returning HTML without — minor hardening of key endpoint)

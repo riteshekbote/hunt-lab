@@ -3259,3 +3259,39 @@ testability: AUTH_HELPED
 [LEARN] NO_DELTA this cycle — all probes confirm prior ACCEPTED/REJECTED findings unchanged.
 [RISK] google: 42 — earthengine hardcoded secret remains the strongest Google finding (valid cloud-platform credential proven via invalid_grant) but native-app by-design caps VRP-worthiness (ADK #2128 precedent); tokeninfo oracle no-reward per VRP rules; GCP control-plane APIs uniformly consumer-identity-gated; no new Google surfaces.
 [RISK] microsoft: 71 — 5+ AUTH_HELPED-gated hypotheses (agentRegistrations IDOR 95 with live CORS mutation vector, issuer-confusion 66, Copilot Studio conversation-ID 55, oauth2PermissionGrants 62, Verified-ID minting) indicate substantial untested exposure; Graph 405 anomaly + off-metadata agentSignInSessions widen the attack surface; passive-only methodology under-tests this program.
+## 2026-08-11 07:53:13 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight re-confirmed 200 ACAO:* + full mutation allowlist + Max-Age 86400 this probe; GET→401/237; $metadata 873-char block, createdBy/ownerIds Nullable=false, ZERO OperationRestrictions across 5 sibling EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] v1.0↔v2.0 issuer-confusion id_token replay via shared JWKS kids + dual issuer namespaces
+class: AUTH
+asset: login.microsoftonline.com (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0)
+confidence: 66
+reasoning: this probe v1(4)⊂v2(6), 0 v1-exclusive; dual issuer namespaces + v1.0-only response_type=token verified; v1 kid set never validated against v2 issuer (distinct from REJECTED rotation-desync).
+evidence_needed: v1.0 id_token (iss=sts.windows.net/{tid}/) accepted by v2.0-only resource enforcing strict iss → 200 vs 401/403.
+verify_steps: AUTH_HELPED: mint v1.0 id_token (response_type=token) in test tenant, present as Bearer to v2.0 Graph resource, record 200 vs 401/403 + body.
+impact: MFA/auth bypass on Microsoft identity plane; CVSS 8.0–9.8.
+testability: AUTH_HELPED
+[HYP] Copilot Studio D2E S2S conversation-ID takeover — unvalidated conversationId across bot schemas
+class: IDOR
+asset: graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations
+confidence: 55
+reasoning: 2026-08-10 inventory — conversation-ID NOT validated server-side (private preview); sibling orchestrated endpoint accepts client-supplied toolSchemaName+inputs.
+evidence_needed: with valid Bearer, replay a victim's {schema}/conversations/{id} → read/inject tool invocation 200 vs 403.
+verify_steps: AUTH_HELPED: obtain own conversationId, then with second principal's Bearer GET/POST same id; record 200 vs 403.
+impact: cross-tenant conversation hijack → prompt/tool-injection in Copilot Studio sessions; CVSS 6.0–8.5.
+testability: AUTH_HELPED
+[NEXT] AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds`=B's oid (expect 201), then B `GET` collection (200 incl. A vs 403) and B `PATCH {A_id}` (200/204 vs 403). Log status+bodies only; B-200/204 on A's object → report MSRC (conf 95). Preflight re-confirmed 200 `ACAO:*` full mutation allowlist this probe, so victim-context browser PATCH is an independent vector if direct cross-principal fails.
+[LEARN] ACCEPTED agentRegistrations CORS mutation vector LIVE — true preflight re-confirmed @ 07:0x UTC: 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Allow-Headers authorization + Max-Age 86400.
+[LEARN] ACCEPTED RFC 6750 §3 method-challenge inconsistency extends to api.mysignins.microsoft.com — GET/POST `/api/session/currentuser`→401 Bearer, PUT/PATCH→405/0 no challenge; `/api/session/issessionvalid` all verbs→405/0. Same class as Graph 405 anomaly — systemic across Microsoft API gateway, not Graph-only.
+[LEARN] ACCEPTED v1⊂v2 JWKS subset invariant intact @ 07:0x UTC — v1(4)⊂v2(6), 0 v1-exclusive (jvm_-Ttaq v2-only this probe); rotation churn only, no cross-endpoint confusion surface (desync class stays REJECTED).
+[LEARN] ACCEPTED mysignins bundle rotation `main.7b5c8f3a`→`main.caa6a456` — 7MB source map live, 28 endpoint paths extracted (~20 new inventory entries); prior "map 404" was stale-hash artifact; all recovered endpoints auth-gated (401/405), no unauth bypass.
+[LEARN] NO_DELTA on all other ACCEPTED/REJECTED classes this cycle.
+[RISK] google: 42 — earthengine hardcoded secret (96, valid cloud-platform credential proven via invalid_grant) remains strongest but capped by native-app by-design (ADK #2128 precedent); tokeninfo oracle no-reward; no new Google surface; GCP control-plane uniformly consumer-identity-gated.
+[RISK] microsoft: 72 — up 1: source-map rotation proves active SPA development on identity plane + RFC 6750 §3 method-challenge pattern now confirmed systemic across a second identity API (mysignins); agentRegistrations CORS mutation vector live with 5 AUTH_HELPED-gated hypotheses (IDOR 95, issuer-confusion 66, conversation-ID 55, oauth2PermissionGrants 62, Verified-ID minting) indicating substantial untested exposure.

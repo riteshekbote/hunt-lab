@@ -1703,3 +1703,19 @@
 - LEARN: ACCEPTED tokeninfo oracle live — no-param → 400/113 invalid_token; HEAD→404 method gap.
 - LEARN: NO_DELTA this cycle — all probes confirm prior ACCEPTED/REJECTED findings unchanged.
 - LEARN: NO_DELTA — all fresh passive probes + inventory confirmed prior ACCEPTED/REJECTED findings unchanged this cycle. Key classes: agentRegistrations CORS vector LIV
+
+## RANKED HYPOTHESES 2026-08-11 07:53:30 UTC
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass — client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-bigpickle.txt)
+- [88] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Agent Registration cross-principal ownership hijack via PATCH + CORS (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-bigpickle.txt): AUTH_HELPED: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` with `createdBy`/`ownerIds`=B's oid (expect 201), t
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector LIVE — true preflight re-confirmed @ 07:0x UTC: 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH 
+- LEARN: ACCEPTED RFC 6750 §3 method-challenge inconsistency extends to api.mysignins.microsoft.com — GET/POST `/api/session/currentuser`→401 Bearer, PUT/PATCH→405/0 no 
+- LEARN: ACCEPTED v1⊂v2 JWKS subset invariant intact @ 07:0x UTC — v1(4)⊂v2(6), 0 v1-exclusive (jvm_-Ttaq v2-only this probe); rotation churn only, no cross-endpoint con
+- LEARN: ACCEPTED mysignins bundle rotation `main.7b5c8f3a`→`main.caa6a456` — 7MB source map live, 28 endpoint paths extracted (~20 new inventory entries); prior "map 40
+- LEARN: NO_DELTA on all other ACCEPTED/REJECTED classes this cycle.
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: CHANGED mysignins.microsoft.com source map rotated to 404 (was 200/7MB) — one identity SPA hardened, but api.myaccount.microsoft.com 35MB map still unauthentica
+- LEARN: NO_DELTA on all prior ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged this cycle.

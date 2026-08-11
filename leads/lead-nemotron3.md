@@ -4142,3 +4142,16 @@ testability: AUTH_HELPED
 [NEXT] PROBE: `curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: POST" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations"` — confirm collection-level CORS preflight returns 200 ACAO:* + Allow-Methods POST + Allow-Headers authorization + Max-Age 86400 (re-validate live mutation vector on collection)  
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact  
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), Copilot Studio D2E conversation-ID unvalidated (confidence 75), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk
+## 2026-08-11 07:50:32 UTC [google] (model nemotron3)
+[NEW] Copilot Studio D2E S2S API @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations — conversation-ID NOT validated server-side (private preview)
+[NEW] Consent primitive POST graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+[NEW] Orchestrated API @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+[NEW] Three-hop Agent User user_fic flow — client_credentials+cert+fmi_path → T1, FIC exchange → T2, grant_type=user_fic with user_id={oid}/upn
+[NEW] Source maps unauthenticated @ mysignins.microsoft.com (7MB, 4359 paths) + api.myaccount.microsoft.com (35MB, 4922 files)
+[NEW] ACS JWKS @ accounts.accesscontrol.windows.net — 5 self-signed keys (3× CN=accounts.accesscontrol.windows.net, 2× CN=login.microsoftonline.us), allowedAudiences claim
+[NEW] /me/agentSignInSessions (v1.0 + beta) fully off-metadata — 0 refs in $metadata, endpoint alive (401)
+[NEW] Agent Registry API (beta, deprecated May-2026) @ graph.microsoft.com/beta/agentRegistry — agentInstances/agentCardManifests/agentCollections
+[NEW] earthengine-api oauth.py scopes confirmed: cloud-platform + earthengine + drive + devstorage.full_control (earthengine scope newly confirmed)
+[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin + ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated (7→11→7), +3 v2-only kids; v1(4-5)⊂v2(7-11) subset invariant intact, 0 v1-exclusive steady-state
+[CHANGED] raw.githubusercontent
