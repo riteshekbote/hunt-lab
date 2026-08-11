@@ -10,3 +10,6 @@
   - ADK issue #2128 (/run_sse client_secret leak) — already public, closed 2025-07-23
   - google/xrblocks docusaurus Algolia apiKey 40150cc2... — public DocSearch search-only key (by design)
   - All other leads: API discovery, auth-gated 401s, scope metadata, patched commits
+
+- 1 lead(s) marked VALID at 2026-08-11 03:00:37 UTC
+  - | **VALID** | 0 | — |
