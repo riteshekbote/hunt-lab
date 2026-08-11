@@ -1980,3 +1980,15 @@
 - LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — new production v1.0 consent forge surface, GET→401 auth-gated, POST test p
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-11 19:26 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIV
+
+## RANKED HYPOTHESES 2026-08-11 21:04:46 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [96] oauth2.googleapis.com/token: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): PROBE: curl -s -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -X OPTIONS "https://gr
+- NEXT(hypotheses-bigpickle.txt): HUMAN: File the Google VRP report for `earthengine-api/python/ee/oauth.py:45` — evidence bundle complete and final: sha256(secret)=`3f3f8d6f29db1b06cbfc212a718c
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 20:09 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: earthengine secret (sha `3f3f8d6f…d271`, whole-
+- LEARN: No new proving-dead or proving-live classes this cycle — all three active hypotheses remain open and unchanged; no new surface items discovered.
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-11 20:09:34 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector 
