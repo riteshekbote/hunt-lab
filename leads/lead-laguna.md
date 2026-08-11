@@ -4458,3 +4458,4 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: tokeninfo public introspection oracle still live — no-param → 400/113 invalid_token (confirmed @ 13:59 UTC probe)
 [LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret still live — sha256 `3f3f8d6f…d271` verbatim, POST→invalid_grant (not invalid_client) proves RFC 6749 §5.2 credential validity, confidence 96
 [RISK] google: 96 reason | microsoft: 92 reason
+## 2026-08-11 17:08:58 UTC [google] (model laguna)

@@ -1895,3 +1895,14 @@
 - LEARN: ACCEPTED: tokeninfo public introspection oracle still live — no-param → 400/113 invalid_token (confirmed @ 13:59 UTC probe)
 - LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret still live — sha256 `3f3f8d6f…d271` verbatim, POST→invalid_grant (not invalid_client) proves RFC 6749 §5.
 - LEARN: NO_DELTA — all fresh passive probes (15:00:17 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIVE, earth
+
+## RANKED HYPOTHESES 2026-08-11 17:19:04 UTC
+- [96] github.com/google/earthengine-api/python/ee/oauth.py:45: Earth Engine hardcoded OAuth credential redeemable for cloud-platform-scoped access token (from reports/hypotheses-longcat.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [94] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Run two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} (
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Run the two-principal IDOR test on `graph.microsoft.com/beta/copilot/agentRegistrations` — A `POST` {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: NO_DELTA — all fresh passive probes (16:03 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged
+- LEARN: NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
+- LEARN: NO_DELTA — all fresh passive probes (16:03:48 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Key classes: agentRegistrations CORS vector LIVE, earth
