@@ -743,3 +743,5 @@
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive RFC 6749 §5.2 proof
 
 ## 2026-08-12 10:40:03 UTC
+
+## 2026-08-12 11:32:33 UTC
