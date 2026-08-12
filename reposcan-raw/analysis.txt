@@ -1,45 +1,189 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mcat << 'EOF' > /tmp/classify.py
+import json
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture (ellipsis truncation) |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:269 | `HttpCredentials(username="user", password="password")` | Obvious test credentials |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:278 | `HttpCredentials(token="eyAkaknabna....")` | Fake JWT (`eyAkaknabna` = base64 of garbage) |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` | Constant name, not a secret value |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` | Placeholder literal |
-| **TEST_OR_EXAMPLE** | xrblocks/src/ai/AI.ts:303-304 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` / `YOUR_OPENAI_API_KEY_HERE` | Explicit placeholders |
-| **TEST_OR_EXAMPLE** | agents-cli/src/google/agents/cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name, not a value |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | `169.254.169.254` (cloud metadata) | Well-known public endpoint |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Config params, not secrets |
-| **ENDPOINT_LEAK** | nearby/sharing/nearby_sharing_service.h:71 | Internal source.corp.google.com link | Source reference, not runtime leak |
-| **INTERESTING** | adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference pattern (correct) |
-| **INTERESTING** | adk-python/src/google/adk/cli/cli_create.py:123 | `GOOGLE_API_KEY={google_api_key}` | Writes variable, not hardcoded |
-| **INTERESTING** | agents-cli/.../staging.yaml:168,192 | `${{ secrets.* }}` GitHub Actions refs | Proper secret handling |
-| **INTERESTING** | cloud-android-orchestration/.../deployment.yaml:121,146,169 | `${{ secrets.artifact-registry-uploader-json-creds }}` | Proper secret handling |
-| **REJECTED (per KB)** | xrblocks/docs/docusaurus.config.ts:175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch key — public by design (KB REJECTED) |
-| **NOISE** | adk-go/python/cli/browser/chunk-*.js | Minified parser error strings | Build artifacts, not secrets |
+hits = [
+    # Google
+    ("google/cadvisor/lib/cadvisorflags/flags.go:54", 'StorageDriverPassword = "storage_driver_password"', "TEST_OR_EXAMPLE", "Default config placeholder value"),
+    ("google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11", 'CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")', "INTERESTING", "Runtime secret fetch from GCP Secret Manager (secret name only, not value)"),
+    ("google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10", 'TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")', "INTERESTING", "Runtime secret fetch from GCP Secret Manager (secret name only, not value)"),
+    ("google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:39", 'SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email")', "ENDPOINT_LEAK", "GCE metadata server endpoint"),
+    ("google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:44", 'curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes"', "ENDPOINT_LEAK", "GCE metadata server endpoint"),
+    ("google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:49", 'ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"', "TEST_OR_EXAMPLE", "Android intent action constant"),
+    ("google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:50", 'ACTION_RESET_PASSWORD = "RESET_PASSWORD"', "TEST_OR_EXAMPLE", "Android intent action constant"),
+    ("google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java:44", 'PARAM_PASSWORD = "password"', "TEST_OR_EXAMPLE", "Parameter name constant"),
+    ("google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml:33", "'https://test.pypi.org/legacy/'", "TEST_OR_EXAMPLE", "Test PyPI URL"),
+    ("google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml:34", "default: 'https://test.pypi.org/legacy/'", "TEST_OR_EXAMPLE", "Test PyPI URL default"),
+    ("google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml:33", "'https://test.pypi.org/legacy/'", "TEST_OR_EXAMPLE", "Test PyPI URL"),
+    ("google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml:34", "default: 'https://test.pypi.org/legacy/'", "TEST_OR_EXAMPLE", "Test PyPI URL default"),
+    ("google/dotprompt/packages/monaco/src/index.ts:181", "{ token: 'delimiter.frontmatter', foreground: '6A9955' }", "TEST_OR_EXAMPLE", "Monaco editor token color config"),
+    ("google/dotprompt/packages/monaco/src/index.ts:182", "{ token: 'keyword.yaml', foreground: '569CD6' }", "TEST_OR_EXAMPLE", "Monaco editor token color config"),
+    ("google/dotprompt/packages/monaco/src/index.ts:183", "{ token: 'variable.yaml', foreground: '9CDCFE' }", "TEST_OR_EXAMPLE", "Monaco editor token color config"),
+    ("google/dotprompt/packages/monaco/src/language.ts:67", "{ open: '{{', close: '}}', token: 'delimiter.handlebars' }", "TEST_OR_EXAMPLE", "Language definition token"),
+    ("google/dotprompt/packages/monaco/src/language.ts:68", "{ open: '{{#', close: '}}', token: 'delimiter.handlebars.block' }", "TEST_OR_EXAMPLE", "Language definition token"),
+    ("google/dotprompt/packages/monaco/src/language.ts:69", "{ open: '{{/', close: '}}', token: 'delimiter.handlebars.block' }", "TEST_OR_EXAMPLE", "Language definition token"),
+    ("google/flatbuffers/.github/workflows/label.yml:24", 'repo-token: "${{ secrets.GITHUB_TOKEN }}"', "TEST_OR_EXAMPLE", "GitHub Actions secret reference"),
+    ("google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh:70", 'network_mtu=$(curl -s -f -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${i}/mtu")', "ENDPOINT_LEAK", "GCE metadata server endpoint"),
+    ("google/go-tpm-tools/launcher/spec/launch_spec.go:110", '"autopush": "https://autopush-confidentialcomputing.sandbox.googleapis.com"', "ENDPOINT_LEAK", "Internal staging endpoint"),
+    ("google/go-tpm-tools/launcher/spec/launch_spec.go:111", '"staging": "https://staging-confidentialcomputing.sandbox.googleapis.com"', "ENDPOINT_LEAK", "Internal staging endpoint"),
+    ("google/go-tpm-tools/run_cloudbuild.sh:16", '# https://pantheon.corp.google.com/compute/images?referrer=search&tab=exports&project=$PROJECT_ID', "ENDPOINT_LEAK", "Internal Google Cloud console URL in comment"),
+    ("google/langextract/.github/workflows/ci.yaml:168", 'GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"', "TEST_OR_EXAMPLE", "GitHub Actions secret reference"),
+    ("google/langextract/.github/workflows/ci.yaml:169", 'LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"', "TEST_OR_EXAMPLE", "GitHub Actions secret reference"),
+    ("google/langextract/.github/workflows/ci.yaml:170", 'OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"', "TEST_OR_EXAMPLE", "GitHub Actions secret reference"),
+    ("google/oss-fuzz/projects/flask/fuzz_json.py:27", 'secret_key = "fuzz test key"', "TEST_OR_EXAMPLE", "Test fixture value"),
+    ("google/oss-fuzz/projects/h2database/TestServer.java:13", 'g_shutdownPassword = "ServerShutdownPassword"', "TEST_OR_EXAMPLE", "Test fixture password"),
+    ("google/oss-fuzz/projects/h2database/TestServer.java:55", 'getConnection("PASSWORD=" + getDatabasePassword() + ";")', "TEST_OR_EXAMPLE", "Test code"),
+    ("google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33", '* https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html', "TEST_OR_EXAMPLE", "Documentation URL in comment"),
+    ("google/oss-fuzz/projects/mysql-connector-j/project.yaml:1", 'homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/"', "TEST_OR_EXAMPLE", "Project homepage URL"),
+    ("google/agents-cli/src/google/agents/cli/auth.py:43", 'GEMINI_API_KEY = "gemini_api_key"', "TEST_OR_EXAMPLE", "Placeholder value"),
+    ("google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168", 'export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"', "TEST_OR_EXAMPLE", "Workflow template variable"),
+    ("google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192", 'export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"', "TEST_OR_EXAMPLE", "Workflow template variable"),
+    
+    # Microsoft
+    ("microsoft/agent-framework/.github/actions/github-app-token/action.yml:94", 'token="$APP_TOKEN"', "TEST_OR_EXAMPLE", "GitHub Actions variable reference"),
+    ("microsoft/agent-framework/.github/actions/github-app-token/action.yml:98", 'token="$FALLBACK_TOKEN"', "TEST_OR_EXAMPLE", "GitHub Actions variable reference"),
+    ("microsoft/agent-framework/.github/actions/github-app-token/action.yml:102", 'token="$FALLBACK_TOKEN"', "TEST_OR_EXAMPLE", "GitHub Actions variable reference"),
+    ("microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:12", 'AnthropicApiKey = "ANTHROPIC_API_KEY"', "TEST_OR_EXAMPLE", "Test settings placeholder constant"),
+    ("microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:37", 'Mem0ApiKey = "MEM0_API_KEY"', "TEST_OR_EXAMPLE", "Test settings placeholder constant"),
+    ("microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:41", 'OpenAIApiKey = "OPENAI_API_KEY"', "TEST_OR_EXAMPLE", "Test settings placeholder constant"),
+    ("microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:298", 'api_key="your_anthropic_api_key"', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:304", 'api_key="your_anthropic_api_key"', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:315", 'api_key="your_anthropic_api_key", base_url="https://custom-anthropic-endpoint.com"', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_embedding_client.py:361", 'api_key="your-api-key"', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_chat_client.py:894", 'api_key="your-api-key"', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py:225", 'weather_tool = WeatherTool(name="get_weather", api_key="secret-key")', "TEST_OR_EXAMPLE", "Example/test code with placeholder"),
+    ("microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py:467", 'openai_client = AsyncOpenAI(api_key="your-api-key")', "TEST_OR_EXAMPLE", "Placeholder in example code"),
+    ("microsoft/agent-framework/python/pyproject.toml:459", 'url = "https://test.pypi.org/simple/"', "TEST_OR_EXAMPLE", "Test PyPI URL"),
+    ("microsoft/agent-framework/python/pyproject.toml:460", 'publish-url = "https://test.pypi.org/legacy/"', "TEST_OR_EXAMPLE", "Test PyPI URL"),
+    ("microsoft/aspire/.github/workflows/tests.yml:576", 'NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/', "ENDPOINT_LEAK", "Public Azure DevOps feed URL"),
+    ("microsoft/aspire/.github/workflows/tests.yml:666", 'NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/', "ENDPOINT_LEAK", "Public Azure DevOps feed URL"),
+    ("microsoft/aspire/.github/workflows/extension-release.yml:465", 'echo "   - **Pre-release:** the automatic merge build is stable-only, so manually queue the [`microsoft-aspire`](https://dev.azure.com/dnceng/internal/_build?definitionId=1602) pipeline', "ENDPOINT_LEAK", "Internal Azure DevOps pipeline URL"),
+    ("microsoft/aspire/.github/workflows/extension-release.yml:466", 'echo "3. Run Azure DevOps pipeline [`release-publish-nuget`](https://dev.azure.com/dnceng/internal/_build?definitionId=1600&_a=summary)"', "ENDPOINT_LEAK", "Internal Azure DevOps pipeline URL"),
+    ("microsoft/aspire/.github/workflows/extension-e2e-tests.yml:11", 'NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/', "ENDPOINT_LEAK", "Public Azure DevOps feed URL"),
+    ("microsoft/aspire/.github/workflows/extension-e2e-tests.yml:80", 'NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/', "ENDPOINT_LEAK", "Public Azure DevOps feed URL"),
+    ("microsoft/aspire/.agents/skills/dependency-update/MigratePackage.cs:25", 'const string AzDoOrg = "https://dev.azure.com/dnceng"', "ENDPOINT_LEAK", "Internal Azure DevOps org URL"),
+    ("microsoft/aspire/.agents/skills/cli-channel-debugging/get-aspire-channel-version.sh:66", 'feed_url="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet9/nuget/v3/flat2/${pkg_lower}/index.json"', "ENDPOINT_LEAK", "Internal Azure DevOps feed URL"),
+    ("microsoft/aspire/.agents/skills/cli-channel-debugging/get-aspire-channel-version.sh:73", 'feed_url="https://pkgs.dev.azure.com/dnceng/public/_packaging/darc-pub-microsoft-aspire-${sha8}/nuget/v3/flat2/${pkg_lower}/index.json"', "ENDPOINT_LEAK", "Internal Azure DevOps feed URL"),
+    ("microsoft/aspire/eng/common/SetupNugetSources.sh:172", 'AddOrEnablePackageSource "$FeedPrefix-internal" "https://pkgs.dev.azure.com/dnceng/internal/_packaging/$FeedPrefix-internal/nuget/$FeedSuffix"', "ENDPOINT_LEAK", "Internal Azure DevOps feed URL"),
+    ("microsoft/aspire/eng/common/SetupNugetSources.sh:173", 'AddOrEnablePackageSource "$FeedPrefix-internal-transport" "https://pkgs.dev.azure.com/dnceng/internal/_packaging/$FeedPrefix-internal-transport/nuget/$FeedSuffix"', "ENDPOINT_LEAK", "Internal Azure DevOps feed URL"),
+]
 
----
+# Group by category
+categories = {}
+for file, line, cat, note in hits:
+    if cat not in categories:
+        categories[cat] = []
+    categories[cat].append((file, line, note))
 
-### SHORT Verdict List
+# Print tables
+for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
+    if cat in categories:
+        print(f"\n## {cat} ({len(categories[cat])} hits)")
+        print("| File | Line | Note |")
+        print("|------|------|------|")
+        for file, line, note in categories[cat]:
+            # Truncate long lines
+            line_short = line[:80] + "..." if len(line) > 80 else line
+            print(f"| {file} | {line_short} | {note} |")
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-python auth_credential.py fixtures | **no** | Test/fixture data (obvious placeholders, fake JWT) |
-| adk-python auth_schemes.py PASSWORD | **no** | Constant name, not secret material |
-| adk-python openapi_tool auth_helpers.py | **no** | `"your_client_secret"` placeholder |
-| xrblocks AI.ts placeholders | **no** | Explicit `YOUR_*_HERE` placeholders |
-| agents-cli auth.py constant | **no** | String is the constant name |
-| xrblocks docusaurus.config.ts Algolia key | **no** | **KB REJECTED** — search-only key, public by design |
-| adk-go cloudrun.go secret ref | **no** | Correct Secret Manager pattern (`--set-secrets=NAME=SECRET:version`) |
-| adk-python cli_create.py | **no** | Variable interpolation, not hardcoded |
-| GitHub Actions `${{ secrets.* }}` refs | **no** | Proper CI secret handling |
-| Container/GKE code executor endpoints | **no** | Known public metadata endpoint / config params |
-| Nearby internal source link | **no** | Source reference, not credential |
+# Verdict
+print("\n\n## VERDICT")
+real_secrets = categories.get("REAL_SECRET", [])
+if real_secrets:
+    for file, line, note in real_secrets:
+        print(f"REPORT_CANDIDATE: yes — {file} — {note}")
+else:
+    print("REPORT_CANDIDATE: no — no REAL_SECRET hits in this delta")
 
----
+EOF
+python3 /tmp/classify.py
+## TEST_OR_EXAMPLE (41 hits)
+| File | Line | Note |
+|------|------|------|
+| google/cadvisor/lib/cadvisorflags/flags.go:54 | StorageDriverPassword = "storage_driver_password" | Default config placeholder value |
+| google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:49 | ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN" | Android intent action constant |
+| google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:50 | ACTION_RESET_PASSWORD = "RESET_PASSWORD" | Android intent action constant |
+| google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java:44 | PARAM_PASSWORD = "password" | Parameter name constant |
+| google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml:33 | 'https://test.pypi.org/legacy/' | Test PyPI URL |
+| google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml:34 | default: 'https://test.pypi.org/legacy/' | Test PyPI URL default |
+| google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml:33 | 'https://test.pypi.org/legacy/' | Test PyPI URL |
+| google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml:34 | default: 'https://test.pypi.org/legacy/' | Test PyPI URL default |
+| google/dotprompt/packages/monaco/src/index.ts:181 | { token: 'delimiter.frontmatter', foreground: '6A9955' } | Monaco editor token color config |
+| google/dotprompt/packages/monaco/src/index.ts:182 | { token: 'keyword.yaml', foreground: '569CD6' } | Monaco editor token color config |
+| google/dotprompt/packages/monaco/src/index.ts:183 | { token: 'variable.yaml', foreground: '9CDCFE' } | Monaco editor token color config |
+| google/dotprompt/packages/monaco/src/language.ts:67 | { open: '{{', close: '}}', token: 'delimiter.handlebars' } | Language definition token |
+| google/dotprompt/packages/monaco/src/language.ts:68 | { open: '{{#', close: '}}', token: 'delimiter.handlebars.block' } | Language definition token |
+| google/dotprompt/packages/monaco/src/language.ts:69 | { open: '{{/', close: '}}', token: 'delimiter.handlebars.block' } | Language definition token |
+| google/flatbuffers/.github/workflows/label.yml:24 | repo-token: "${{ secrets.GITHUB_TOKEN }}" | GitHub Actions secret reference |
+| google/langextract/.github/workflows/ci.yaml:168 | GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" | GitHub Actions secret reference |
+| google/langextract/.github/workflows/ci.yaml:169 | LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" | GitHub Actions secret reference |
+| google/langextract/.github/workflows/ci.yaml:170 | OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" | GitHub Actions secret reference |
+| google/oss-fuzz/projects/flask/fuzz_json.py:27 | secret_key = "fuzz test key" | Test fixture value |
+| google/oss-fuzz/projects/h2database/TestServer.java:13 | g_shutdownPassword = "ServerShutdownPassword" | Test fixture password |
+| google/oss-fuzz/projects/h2database/TestServer.java:55 | getConnection("PASSWORD=" + getDatabasePassword() + ";") | Test code |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33 | * https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-dr... | Documentation URL in comment |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml:1 | homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/" | Project homepage URL |
+| google/agents-cli/src/google/agents/cli/auth.py:43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168 | export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %... | Workflow template variable |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192 | export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endr... | Workflow template variable |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml:94 | token="$APP_TOKEN" | GitHub Actions variable reference |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml:98 | token="$FALLBACK_TOKEN" | GitHub Actions variable reference |
+| microsoft/agent-framework/.github/actions/github-app-token/action.yml:102 | token="$FALLBACK_TOKEN" | GitHub Actions variable reference |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:12 | AnthropicApiKey = "ANTHROPIC_API_KEY" | Test settings placeholder constant |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:37 | Mem0ApiKey = "MEM0_API_KEY" | Test settings placeholder constant |
+| microsoft/agent-framework/dotnet/src/Shared/IntegrationTests/TestSettings.cs:41 | OpenAIApiKey = "OPENAI_API_KEY" | Test settings placeholder constant |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:298 | api_key="your_anthropic_api_key" | Placeholder in example code |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:304 | api_key="your_anthropic_api_key" | Placeholder in example code |
+| microsoft/agent-framework/python/packages/anthropic/agent_framework_anthropic/_chat_client.py:315 | api_key="your_anthropic_api_key", base_url="https://custom-anthropic-endpoint.co... | Placeholder in example code |
+| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_embedding_client.py:361 | api_key="your-api-key" | Placeholder in example code |
+| microsoft/agent-framework/python/packages/mistral/agent_framework_mistral/_chat_client.py:894 | api_key="your-api-key" | Placeholder in example code |
+| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py:225 | weather_tool = WeatherTool(name="get_weather", api_key="secret-key") | Example/test code with placeholder |
+| microsoft/agent-framework/python/packages/core/agent_framework/_serialization.py:467 | openai_client = AsyncOpenAI(api_key="your-api-key") | Placeholder in example code |
+| microsoft/agent-framework/python/pyproject.toml:459 | url = "https://test.pypi.org/simple/" | Test PyPI URL |
+| microsoft/agent-framework/python/pyproject.toml:460 | publish-url = "https://test.pypi.org/legacy/" | Test PyPI URL |
 
-**NO NEW REPORTABLE CANDIDATES in this delta.** All hits are test fixtures, placeholders, proper secret references, or previously rejected (Algolia key). The earthengine-api hardcoded secret (`oauth.py:45`) is **already tracked in KB as ACCEPTED/LIVE** but does not appear in *this* scan's new hits.
+## ENDPOINT_LEAK (17 hits)
+| File | Line | Note |
+|------|------|------|
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:39 | SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/co... | GCE metadata server endpoint |
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:44 | curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetada... | GCE metadata server endpoint |
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh:70 | network_mtu=$(curl -s -f -H "Metadata-Flavor: Google" "http://metadata.google.in... | GCE metadata server endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go:110 | "autopush": "https://autopush-confidentialcomputing.sandbox.googleapis.com" | Internal staging endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go:111 | "staging": "https://staging-confidentialcomputing.sandbox.googleapis.com" | Internal staging endpoint |
+| google/go-tpm-tools/run_cloudbuild.sh:16 | # https://pantheon.corp.google.com/compute/images?referrer=search&tab=exports&pr... | Internal Google Cloud console URL in comment |
+| microsoft/aspire/.github/workflows/tests.yml:576 | NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-... | Public Azure DevOps feed URL |
+| microsoft/aspire/.github/workflows/tests.yml:666 | NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-... | Public Azure DevOps feed URL |
+| microsoft/aspire/.github/workflows/extension-release.yml:465 | echo "   - **Pre-release:** the automatic merge build is stable-only, so manuall... | Internal Azure DevOps pipeline URL |
+| microsoft/aspire/.github/workflows/extension-release.yml:466 | echo "3. Run Azure DevOps pipeline [`release-publish-nuget`](https://dev.azure.c... | Internal Azure DevOps pipeline URL |
+| microsoft/aspire/.github/workflows/extension-e2e-tests.yml:11 | NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-... | Public Azure DevOps feed URL |
+| microsoft/aspire/.github/workflows/extension-e2e-tests.yml:80 | NPM_REGISTRY: https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-... | Public Azure DevOps feed URL |
+| microsoft/aspire/.agents/skills/dependency-update/MigratePackage.cs:25 | const string AzDoOrg = "https://dev.azure.com/dnceng" | Internal Azure DevOps org URL |
+| microsoft/aspire/.agents/skills/cli-channel-debugging/get-aspire-channel-version.sh:66 | feed_url="https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet9/nuget/v3/f... | Internal Azure DevOps feed URL |
+| microsoft/aspire/.agents/skills/cli-channel-debugging/get-aspire-channel-version.sh:73 | feed_url="https://pkgs.dev.azure.com/dnceng/public/_packaging/darc-pub-microsoft... | Internal Azure DevOps feed URL |
+| microsoft/aspire/eng/common/SetupNugetSources.sh:172 | AddOrEnablePackageSource "$FeedPrefix-internal" "https://pkgs.dev.azure.com/dnce... | Internal Azure DevOps feed URL |
+| microsoft/aspire/eng/common/SetupNugetSources.sh:173 | AddOrEnablePackageSource "$FeedPrefix-internal-transport" "https://pkgs.dev.azur... | Internal Azure DevOps feed URL |
+
+## INTERESTING (2 hits)
+| File | Line | Note |
+|------|------|------|
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --s... | Runtime secret fetch from GCP Secret Manager (secret name only, not value) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="g... | Runtime secret fetch from GCP Secret Manager (secret name only, not value) |
+
+
+## VERDICT
+REPORT_CANDIDATE: no — no REAL_SECRET hits in this delta
+[0m
+## Summary
+
+**57 new hits analyzed, 0 REAL_SECRET candidates**
+
+| Category | Count | Details |
+|----------|-------|---------|
+| **TEST_OR_EXAMPLE** | 41 | Placeholders, test fixtures, GH Actions secret refs, example code (`your_api_key`, `secret-key`, `fuzz test key`, `${{ secrets.* }}`) |
+| **ENDPOINT_LEAK** | 17 | GCE metadata server URLs (3), Google internal staging/console URLs (3), Azure DevOps feed/pipeline URLs (11) — all public or internal infra references, no creds |
+| **INTERESTING** | 2 | Runtime secret fetch via `gcloud secrets versions access` (crosvm) — secret *names* only, values retrieved at runtime from Secret Manager |
+| **REAL_SECRET** | 0 | No hardcoded live credentials/API keys/tokens found |
+
+**Verdict:** `REPORT_CANDIDATE: no` — this delta contains no reportable secrets. The crosvm Secret Manager references are proper runtime injection patterns (not hardcoded values). Azure DevOps feed URLs are public/internal infrastructure endpoints, not credentials.
