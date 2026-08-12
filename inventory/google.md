@@ -691,3 +691,6 @@
 - NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
 - NEW /me/agentSignInSessions (v1.0 + beta) — fully off-metadata (0 refs in $metadata), endpoint alive (401)
 - NEW Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1 → FIC exchange → T2 → grant_type=user_fic
+
+## 2026-08-12 03:14:56 UTC
+- NEW NO_DELTA — all fresh passive probes (2026-08-12 00:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base and last leads

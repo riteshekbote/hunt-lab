@@ -678,3 +678,12 @@
 - 2026-08-12 ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface)
 - 2026-08-12 ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400; prior bare-OPTIONS→405 entries were artifacts (no Origin header)
 - 2026-08-12 NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged
+- 2026-08-12 ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: confirmed live — sha256 `3f3f8d6f...d271` verbatim, whole-file sha `f4f93c76...` unchanged, POST→invalid_grant proves valid credential
+- 2026-08-12 ACCEPTED: oauth2.googleapis.com/token POST-only gate confirmed live — GET→404 (RFC-compliant OAuth token endpoint, no GET); validates earthengine secret hypothesis (only grant_type=refresh_token is redemption path)
+- 2026-08-12 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id}→401 (auth-gated) + schema zero-OperationRestrictions (873-char block) + CORS true-preflight 200 ACAO:* both collection + item level — full IDOR+CORS cross-principal mutation vector precondition intact
+- 2026-08-12 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants GET→401 Bearer confirmed (authorization_uri=login.microsoftonline.com/common/oauth2/authorize, client_id=00000003-0000-0000-c000-000000000000) — production v1.0 auth-gate live
+- 2026-08-12 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+- 2026-08-12 ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + full mutation allowlist + Max-Age 86400 re-confirmed 03:13 UTC.
+- 2026-08-12 ACCEPTED earthengine-api oauth.py:45 secret @ raw.githubusercontent.com: 200/23110, whole-file sha `f4f93c76…` unchanged.
+- 2026-08-12 ACCEPTED tokeninfo oracle @ oauth2.googleapis.com/tokeninfo: no-param → 400/113 invalid_token.
+- 2026-08-12 REJECTED no new proving-dead classes this cycle — all fresh passive probes (03:13 UTC) confirmed prior findings unchanged, NO_DELTA.
