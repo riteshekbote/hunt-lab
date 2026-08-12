@@ -1,64 +1,37 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
-
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none found)* | | | No hardcoded live credentials detected |
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern |
-|------|------|---------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` (fake JWT) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` (template var) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/qwix/.github/workflows/cla.yml | 23 | `${{ secrets.GITHUB_TOKEN }}` (CI secret ref) |
-| microsoft/omnichannel-chat-sdk/src/telemetry/TelemetryEvent.ts | 13 | `GetAuthToken = "GetAuthToken"` (event name) |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | `https://staging-confidentialcomputing.sandbox.googleapis.com` |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks `metadata.google.internal` (GCP metadata endpoint) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | Blocks `169.254.0.0/16` (includes GCP metadata 169.254.169.254) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References `169.254.169.254` metadata endpoint (SSRF surface) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`/`kubeconfig_context` params (k8s config injection surface) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (token storage key) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to `169.254.169.254` via NAT64 (SSRF surface) |
-| google/orbax/checkpoint/.../environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | Curl to `metadata.google.internal` for MTU |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches `codecov-google-crosvm` from Secret Manager (proper pattern) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches `github-crosvm-bot` from Secret Manager (proper pattern) |
-| google/ax/manifests/install-ax.sh | 239, 241, 286 | PostgreSQL password via env var or `openssl rand`, passed to k8s secret (proper pattern) |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `KUBECONFIG` from config (k8s config injection surface) |
-
----
-
-## Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|-----------------|--------|
-| Hardcoded secrets in adk-js/adk-python auth files | **no** | All placeholders (`password`, `your_*`, truncated keys) |
-| GCP metadata endpoint references (169.254.169.254) | **no** | Defensive coding (blocklist) + docs; no user-input path proven |
-| go-tpm-tools autopush/staging URLs | **no** | Internal endpoints, no auth bypass, sandbox.googleapis.com scope |
-| kubeconfig_path/context params in gke_code_executor | **no** | Config injection surface but requires AUTH_HELPED to prove exploit |
-| Secret Manager access patterns (crosvm, ax) | **no** | Proper secret handling — not leaks |
-| vmaas access token storage key | **no** | Variable name only, no secret material |
-| KUBECONFIG env manipulation | **no** | Config surface, no credential leak |
-
-**Summary**: 0 reportable secrets. The scan reveals **defensive metadata endpoint blocking** (adk-js/tools), **proper secret management patterns** (crosvm, ax), and **config injection surfaces** (gke_code_executor, base_rl_pipeline) that require authenticated testing to validate. No REAL_SECRET candidates.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "iU5ohAF2qcqrujegE3hQ1cPt"
+405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "iU5ohAF2qcqrujegE3hQ1cPt" | head -c 16
+405bc76ccb59146a
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo 'CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105' | sha256sum | head -c 16
+b7644170ce114167
+[0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=10, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=10, offset=55][0m
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "546535678771" reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/ 2>/dev/null | head -5
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && curl -s "https://www.googleapis.com/oauth2/v1/clientinfo?client_id=546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com" 2>&1 | head -20
+<!DOCTYPE html>
+<html lang=en>
+  <meta charset=utf-8>
+  <meta name=viewport content="initial-scale=1, minimum-scale=1, width=device-width">
+  <title>Error 404 (Not Found)!!1</title>
+  <style>
+    *{margin:0;padding:0}html,code{font:15px/22px arial,sans-serif}html{background:#fff;color:#222;padding:15px}body{margin:7% auto 0;max-width:390px;min-height:180px;padding:30px 0 15px}* > body{background:url(//www.google.com/images/errors/robot.png) 100% 5px no-repeat;padding-right:205px}p{margin:11px 0 22px;overflow:hidden}ins{color:#777;text-decoration:none}a img{border:0}@media screen and (max-width:772px){body{background:none;margin-top:0;max-width:none;padding-right:0}}#logo{background:url(//www.google.com/images/branding/googlelogo/1x/googlelogo_color_150x54dp.png) no-repeat;margin-left:-5px}@media only screen and (min-resolution:192dpi){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat 0% 0%/100% 100%;-moz-border-image:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) 0}}@media only screen and (-webkit-min-device-pixel-ratio:2){#logo{background:url(//www.google.com/images/branding/googlelogo/2x/googlelogo_color_150x54dp.png) no-repeat;-webkit-background-size:100% 100%}}#logo{display:inline-block;height:54px;width:150px}
+  </style>
+  <a href=//www.google.com/><span id=logo aria-label=Google></span></a>
+  <p><b>404.</b> <ins>That’s an error.</ins>
+  <p>The requested URL <code>/oauth2/v1/clientinfo</code> was not found on this server.  <ins>That’s all we know.</ins>
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "ibis" reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | head -3
+# Contains code from https://github.com/ibis-project/ibis/blob/9.2.0/ibis/backends/bigquery/__init__.py
+import bigframes_vendored.ibis
+import bigframes_vendored.ibis.common.exceptions as com
+[0m
