@@ -501,3 +501,10 @@ https://oauth2.googleapis.com/token -> HTTP 404
 
 ## 2026-08-12 18:01:28 UTC
 
+
+## 2026-08-12 18:43:23 UTC
+https://graph.microsoft.com` -> ERR <urlopen error [Errno -2] Name or service not know
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://graph.microsoft.com/beta/copilot/agents/{id -> HTTP 401
+https://graph.microsoft.com/beta/copilot/admin/catalog/packages/{id -> HTTP 401
+https://oauth2.googleapis.com/token -> HTTP 404

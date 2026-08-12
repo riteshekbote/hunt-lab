@@ -2369,3 +2369,29 @@
 
 ## RANKED HYPOTHESES 2026-08-12 18:01:28 UTC
 - [97] graph.microsoft.com/beta/copilot/*: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+
+## RANKED HYPOTHESES 2026-08-12 18:43:23 UTC
+- [97] graph.microsoft.com/beta/copilot/*: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): PROBE: close the last passive gap on the two families only confirmed at GET-401 (15:47 UTC): run item-level true-preflight on `https://graph.microsoft.com/beta/
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 2 (5-family IDOR+CORS) and [FINAL] 3 (consent f
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + fu
+- LEARN: ACCEPTED Copilot Admin 5-family uniform auth+CORS posture @ graph.microsoft.com/beta/copilot/*: agents, admin/catalog/packages, admin/policySettings/{id} newly 
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is gran
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth creden
+- LEARN: REJECTED source maps @ both identity SPAs closed — mysignins 404 + myaccount 401; recon surface eliminated (2026-08-12 sustained)
+- LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
+- LEARN: REJECTED deprecated agentRegistry POST surface @ graph.microsoft.com/beta/agentRegistry — GET/POST same auth+CORS posture as agentRegistrations, but deprecated 
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — 18:01 UTC inventory + probe log empty; all prior ACCEPTED/REJECTED findings unchanged (NO_DELT
+- LEARN: ACCEPTED Copilot Admin 5-family uniform auth+CORS posture @ graph.microsoft.com/beta/copilot/* — agents(401)+admin/catalog/packages(401)+agentRegistrations(401/
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate confirmed — GET→404 (RFC-compliant OAuth token endpoint), validates earthengine secret redemption path is gr
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 — conclusive proof of valid G
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4–5 kids)⊂v2(6–8 kids) steady-state subset holds, v1 kid set never validated against v2 issu
+- LEARN: REJECTED source maps @ both identity SPAs closed — mysignins 404 + myaccount 401; recon surface eliminated.
