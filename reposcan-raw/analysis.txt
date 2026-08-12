@@ -1,45 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results. I need to classify each hit into categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+## Classification Results
 
-Looking at the hits:
+### REAL_SECRET
+*None in the new delta hits.* The only live hardcoded secret in the knowledge base is `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), which is **not** in this scan's new hits (different repo).
 
-1. `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts:41: PASSWORD = 'password',` - This looks like a constant definition for a password scheme, likely test/example
-2. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:214: *       password: "password",` - Example/test password in comments
-3. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:226: *       token: "your_access_token",` - Example placeholder token
-4. `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215: host === 'metadata.google.internal' ||` - Internal metadata endpoint reference
-5. `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts:36: '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)` - GCP metadata endpoint reference
-6. `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:43: GEMINI_API_KEY = "gemini_api_key"` - This looks like a constant name, not an actual key
-7. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168: export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"` - GitHub Actions workflow template with templated token
-8. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192: export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"` - Same, templated
-9. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103: kubeconfig_path: str | None = None` - Config parameter, not a secret
-10. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104: kubeconfig_context: str | None = None` - Config parameter
-11. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115: kubeconfig_path: str | None = None,` - Config parameter
-12. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114: cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For` - Documentation comment about metadata endpoint
-13. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154: network -- in particular the cloud metadata endpoint at 169.254.169.254` - Documentation comment
-14. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")` - Template code that writes an API key variable
-15. Many minified JS chunks - These are build artifacts, not source secrets
-16. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157: private_key="-----BEGIN PRIVATE KEY-----...",` - This looks like a test/fixture private key (truncated with ...)
-17. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269: credentials=HttpCredentials(username="user", password="password"),` - Test credentials
-18. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278: credentials=HttpCredentials(token="eyAkaknabna...."),` - Test token (truncated)
-19. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"` - Constant definition
-20. `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171: network with NAT64, routes to the internal ``169.254.169.254`` metadata` - Documentation comment
-21. `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146: # and 169.254.169.254 in Chrome, so refuse instead of checking it.` - Comment about metadata endpoint
-22. `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",` - Placeholder/example
-23. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` - Constant for state key name
-24. `reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56: vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` - Constant for vulnerability reference format
-25. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32: // Section is a Veles Secret that holds relevant information for a [Mysql MyLogin](https://dev.mysql.com/doc/refman/8.4/en/option-files.html).` - Comment
-26. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40: // - MySQL Documentation: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` - Comment
-27. `reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h:7: // http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3` - Comment with URL
-28. `reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:126: // supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").` - Comment
-29. `reposcan-raw/google/llvm-propeller/propeller/binary_content.h:80: // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40` - Internal Google source link
-30. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168: GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \` - GitHub Actions secret reference (not hardcoded)
-31. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:169: LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \` - Same
-32. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:170: OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \` - Same
-33. `reposcan-raw/google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py:159: # See https://yaqs.corp.google.com/eng/q/4487223501186400256.` - Internal Google link
-34. `reposcan-raw/google/digitalbuildings/tools/abel/model/constants.py:106: ACCESS_TOKEN = 'accessToken'` - Constant for field name
-35. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder
-36. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path reference
-37. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder
-38. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` |
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (constant name) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Placeholder private key, `username="user", password="password"`, `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| google/xrblocks/src/ai/AI.ts | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| google/sam/internal/node/store.go | 35 | `keyRefreshToken = "refresh_token"` (key name) |
+
+### ENDPOINT_LEAK
+| File | Line | Pattern |
+|------|------|---------|
+| google/copybara/cloudbuild.yaml | 27 | Internal Artifact Registry URL (comment) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata IP range) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint |
+
+### INTERESTING
+| File | Line | Pattern |
+|------|------|---------|
+| google/capsem/config/gate.toml | 475 | `password = "password.txt"` (file reference) |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
+| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | Secret injection: `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (param expansion) |
+| google/sam/cmd/sam-console/public/app.js | 486 | Client-side token display alert |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template: `GOOGLE_API_KEY={google_api_key}` (secret injection) |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `40150cc2c638b09de8ebbfefd50b80a4` — **REJECTED per KB** (search-only, public by design) |
+| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` declarations (12 files) — not secrets |
+| google/sam/site/content/docs/manifests/*.yaml | various | Mock/documentation ConfigMaps |
+
+---
+
+## Verdict
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api oauth.py:45 (KB) | **yes** (pre-existing) | Live hardcoded client_secret, valid per RFC 6749 §5.2 (invalid_grant not invalid_client), but native-app OOB by-design per ADK #2128 |
+| Algolia DocSearch key (xrblocks) | **no** | Explicitly REJECTED in KB — search-only, public by design |
+| All new delta hits | **no** | Test fixtures, placeholders, file references, secret injection patterns, ConfigMap kinds, metadata IP refs |
+| GCP metadata endpoint refs (169.254.169.254) | **no** | Known attack surface (SSRF), not a secret leak |
+| GitHub Actions secret refs (`${SECRET}`) | **no** | Correct pattern — secrets not in repo |
+
+**No new REAL_SECRET candidates in this scan delta.** The only reportable credential remains the pre-existing earthengine-api finding (already tracked in KB at confidence 96).
