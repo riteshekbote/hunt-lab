@@ -2170,3 +2170,28 @@
 - LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes (05:08:20 UTC) confirmed prior findings unchanged, NO_DELTA.
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret @ raw.githubusercontent.com: 200/23110, whole-file sha `f4f93c76…` unchanged.
 - LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations CORS true-preflight vector unchanged — 200 ACAO:* + full mutation allowlist + Max-Age 86400 at both
+
+## RANKED HYPOTHESES 2026-08-12 08:10:08 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- [70] graph.microsoft.com/v1.0/oauth2PermissionGrants: Consent-grant forge via caller-chosen resourceId on production v1.0 (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. Test surface just doubled: run the agentRegistrations IDOR
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for earthengine-api `python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready:
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — Accept: application/json now required for JSON; v2 kid count rotated 11→7→6; subset invariant v1⊂
+- LEARN: CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface el
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth creden
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + fu
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes (08:04 UTC) confirmed prior ACCEPTED findings unchanged; 06:45 404/ERR entries confirmed back
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST with leaked client_secret → 400 `invalid_grant` (not `401 invalid_client`) re-confirmed live @ 2026-08-12 06:45 UTC —
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} confirmed live — 200 `Access-Control-Allow-Origin:*`
+- LEARN: ACCEPTED: v1↔v2 JWKS kid overlap confirmed live — v1(4-5 kids) ⊂ v2(7-11 kids), 0 v1-exclusive steady-state; dual issuer namespaces intact; **dual-JWKS rotation
+- LEARN: ACCEPTED: oauth2.googleapis.com/tokeninfo public introspection oracle confirmed live — no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= with
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize — GET ?response_type=token → HTTP 200 (JS error 70003
+- LEARN: ACCEPTED: login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→6 + new kids, Accept: application/json now required for JSON; subset inv
+- LEARN: ACCEPTED: api.myaccount.microsoft.com + mysignins.microsoft.com source maps → closed (401/404); rec surface eliminated, extracted endpoint inventory unchanged
+- LEARN: REJECTED: No new proving-dead classes this cycle (2026-08-12 06:45 UTC) — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELT

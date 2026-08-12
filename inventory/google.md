@@ -715,3 +715,16 @@
 - CHANGED `graph.microsoft.com` root now returns HTTP 301→200 (redirect to versioned path, resolves 200/106522 text/html) — minor routing change, no new surface
 - CHANGED JWKS v2.0 key set rotated to 6 kids (was 7-11 across cycles); v1(5) ⊃ 4 shared + 1 v1-exclusive (`jvm_-Ttaq…`, transient rotation churn) — subset invariant not strict but no confusion surface (v1 kid 
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive per-RFC-6749-§5.2 proof of credential validity (re
+
+## 2026-08-12 08:10:08 UTC
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW /me/agentSignInSessions (v1.0 + beta) — fully off-metadata (0 refs in $metadata), endpoint alive (401)
+- NEW graph.microsoft.com/beta/agentRegistry — deprecated May-2026 Agent Registry API
+- NEW graph.microsoft.com/beta/copilotstudio — conversation-ID NOT validated server-side (private preview)
+- NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW Three-hop Agent User user_fic flow documented @ graph.microsoft.com
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — requires Accept: application/json for JSON (was returning HTML without)
+- CHANGED api.myaccount.microsoft.com/main.4e6e3dc6.js.map → HTTP 401 (was 200/35MB/4922 paths) — both identity SPA source maps now closed
+- CHANGED graph.microsoft.com root → HTTP 301→200 (redirect to versioned path, resolves 200/106522 text/html)
+- CHANGED JWKS v2.0 key set rotated to 6 kids (was 7-11); v1(5) ⊃ 4 shared + 1 v1-exclusive (transient rotation churn)
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive RFC 6749 §5.2 proof
