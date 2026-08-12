@@ -776,3 +776,7 @@
 - 2026-08-12 ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
 - 2026-08-12 ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays REJECTED)
 - 2026-08-12 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
+- 2026-08-12 ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only.
+- 2026-08-12 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 — conclusive proof of valid Google OAuth credential at confidence 96.
+- 2026-08-12 ACCEPTED graph.microsoft.com root → HTTP 200/106522 text/html (signin page) — no auth-bypass surface, no new finding.
+- 2026-08-12 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4–5 kids)⊂v2(6–8 kids) steady-state subset holds across all cycle rotations; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.

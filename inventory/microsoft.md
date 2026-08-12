@@ -778,3 +778,10 @@
 - CHANGED JWKS v2.0 key set rotated to 6 kids (was 7-11); v1(5) ⊃ 4 shared + 1 v1-exclusive (`jvm_-Ttaq…`) — transient rotation churn
 - CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained (was 200/35MB); both identity SPA source maps now closed (mysignins 404 + myaccount 401)
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive RFC 6749 §5.2 proof re-confirmed
+
+## 2026-08-12 21:25:36 UTC
+- NEW graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate confirmed (18:43 UTC)
+- NEW graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate confirmed (18:43 UTC)
+- CHANGED JWKS v2.0 rotated to 6 kids (v1=5, 4 shared + 1 v1-exclusive `jvm_-Ttaq`)
+- CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained (both SPAs now closed)
+- CHANGED oauth2.googleapis.com/token POST with leaked secret + invalid RT → 400 `invalid_grant` re-confirmed
