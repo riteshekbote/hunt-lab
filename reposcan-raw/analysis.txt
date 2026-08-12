@@ -1,64 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
-a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
-[0m
-### Classification Tables
+### Classification Table
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| `google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | Hardcoded OAuth `client_secret` in production credential manager |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions token refs (`${{ steps.fetch-token.outputs... }}`) |
-| `google/cloud-android-orchestration/.github/workflows/deployment.yaml` | 121, 146, 169 | GitHub Actions secret ref (`${{ secrets.artifact-registry-uploader-json-creds }}`) |
-| `google/copybara/javatests/.../AuthTest.java` | 75, 102, 129 | Test fixtures: `"testpassword"`, `"test-token-123"` |
-| `google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | Test fixture: `"testpassword"` |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs (`${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}`) |
-| `google/neuroglancer/.github/workflows/deploy_docs_preview.yml` | 41, 50, 54 | GitHub Actions secret ref (`${{ secrets.GITHUB_TOKEN }}`) |
-| `google/neuroglancer/.github/workflows/deploy_preview.yml` | 41, 50, 54 | GitHub Actions secret ref (`${{ secrets.GITHUB_TOKEN }}`) |
-| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | Commented placeholder `# hf_access_token: "your_token"` |
-| `google/tunix/tunix/cli/base_config.yaml` | 63 | Commented placeholder `# hf_access_token: "your_token"` |
-| `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py` | 193-195 | Tokenizer special tokens (`eot_token`, `system_token`, `user_token`) |
-| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | Test fixture: `"ghp_ABCDEFGHIJKLMNOP"` |
-| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19-20, 24 | Test fixtures: fake `ghp_*` token, fake `AKIA*` AWS key |
-| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | Test data: token pattern |
-| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | Test data: token pattern |
-| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | Test data: token pattern |
-| `microsoft/studentambassadors/.github/workflows/ado.yml` | 17-18 | GitHub Actions secret refs (`${{ secrets.AZURE_DEVOPS_TOKEN }}`, `${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}`) |
-
-#### ENDPOINT_LEAK
-| File | Line | Details |
-|------|------|---------|
-| `google/copybara/cloudbuild.yaml` | 27 | Internal Pantheon URL: `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` |
-| `google/nearby/sharing/nearby_sharing_service.h` | 71 | Internal Piper source URL: `source.corp.google.com/piper///depot/google3/...` |
-| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | Internal Pantheon auth client URL |
-| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 129, 351, 486 | Staging API base: `api.test.osv.dev` |
-| `google/osv.dev/gcp/website/frontend3/src/triage.js` | 94 | Staging API template: `api.test.osv.dev/v1/vulns/{id}` |
-| `google/osv.dev/tools/datafix/reimport_gcs_record.py` | 86 | Staging base URL: `test.osv.dev` |
-| `google/osv.dev/docs/_config.yml` | 78 | Staging linter URL: `test.osv.dev/linter/` |
-| `google/osv.dev/external/pypi/pypi.go` | 80 | Legacy HTTP URL allowlist: `http://dev.mysql.com` |
-| `google/osv.dev/vulnfeeds/pypi/pypi.go` | 80 | Legacy HTTP URL allowlist: `http://dev.mysql.com` |
-| `microsoft/aspire/.github/workflows/tests.yml` | 576, 666 | Internal Azure DevOps NPM registry: `pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/` |
-
-#### INTERESTING
-| File | Line | Details |
-|------|------|---------|
-| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Runtime PostgreSQL password generation via `openssl rand -hex 16`; secret injected via `--from-literal` |
-| `google/tunix/tunix/cli/base_rl_pipeline.py` | 862 | `KUBECONFIG` env override from config |
+| Category | File:Line | Evidence | Verdict |
+|----------|-----------|----------|---------|
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture (ellipsis truncation) |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:269 | `HttpCredentials(username="user", password="password")` | Obvious test credentials |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:278 | `HttpCredentials(token="eyAkaknabna....")` | Fake JWT (`eyAkaknabna` = base64 of garbage) |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` | Constant name, not a secret value |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` | Placeholder literal |
+| **TEST_OR_EXAMPLE** | xrblocks/src/ai/AI.ts:303-304 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` / `YOUR_OPENAI_API_KEY_HERE` | Explicit placeholders |
+| **TEST_OR_EXAMPLE** | agents-cli/src/google/agents/cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name, not a value |
+| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | `169.254.169.254` (cloud metadata) | Well-known public endpoint |
+| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Config params, not secrets |
+| **ENDPOINT_LEAK** | nearby/sharing/nearby_sharing_service.h:71 | Internal source.corp.google.com link | Source reference, not runtime leak |
+| **INTERESTING** | adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference pattern (correct) |
+| **INTERESTING** | adk-python/src/google/adk/cli/cli_create.py:123 | `GOOGLE_API_KEY={google_api_key}` | Writes variable, not hardcoded |
+| **INTERESTING** | agents-cli/.../staging.yaml:168,192 | `${{ secrets.* }}` GitHub Actions refs | Proper secret handling |
+| **INTERESTING** | cloud-android-orchestration/.../deployment.yaml:121,146,169 | `${{ secrets.artifact-registry-uploader-json-creds }}` | Proper secret handling |
+| **REJECTED (per KB)** | xrblocks/docs/docusaurus.config.ts:175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch key — public by design (KB REJECTED) |
+| **NOISE** | adk-go/python/cli/browser/chunk-*.js | Minified parser error strings | Build artifacts, not secrets |
 
 ---
 
-### Verdict List
+### SHORT Verdict List
 
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| Hardcoded OAuth client_secret in Neuroglancer credential manager | `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` | **yes** |
-| All other hits | (see tables above) | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py fixtures | **no** | Test/fixture data (obvious placeholders, fake JWT) |
+| adk-python auth_schemes.py PASSWORD | **no** | Constant name, not secret material |
+| adk-python openapi_tool auth_helpers.py | **no** | `"your_client_secret"` placeholder |
+| xrblocks AI.ts placeholders | **no** | Explicit `YOUR_*_HERE` placeholders |
+| agents-cli auth.py constant | **no** | String is the constant name |
+| xrblocks docusaurus.config.ts Algolia key | **no** | **KB REJECTED** — search-only key, public by design |
+| adk-go cloudrun.go secret ref | **no** | Correct Secret Manager pattern (`--set-secrets=NAME=SECRET:version`) |
+| adk-python cli_create.py | **no** | Variable interpolation, not hardcoded |
+| GitHub Actions `${{ secrets.* }}` refs | **no** | Proper CI secret handling |
+| Container/GKE code executor endpoints | **no** | Known public metadata endpoint / config params |
+| Nearby internal source link | **no** | Source reference, not credential |
 
-**Only one reportable finding:** The hardcoded `client_secret="kuaqECaVXOKEJ2L6ifZu4Aqt"` in Neuroglancer's `default_credentials_manager.py` is a live OAuth client secret embedded in source code. All other hits are either GitHub Actions secret references (correct pattern), test fixtures, internal URL references, or runtime-generated secrets.
+---
+
+**NO NEW REPORTABLE CANDIDATES in this delta.** All hits are test fixtures, placeholders, proper secret references, or previously rejected (Algolia key). The earthengine-api hardcoded secret (`oauth.py:45`) is **already tracked in KB as ACCEPTED/LIVE** but does not appear in *this* scan's new hits.
