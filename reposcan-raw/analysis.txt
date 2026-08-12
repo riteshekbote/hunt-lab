@@ -1,75 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts
-233 reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts
-[0m
-[0m→ [0mRead reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts[90m [offset=150, limit=20][0m
-Now I have a clear picture. Let me classify all hits.
+## Classification Results
 
-## Classification Tables
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found)* | | | No hardcoded live credentials detected |
 
-### REAL_SECRET (reportable credentials)
-| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
-|------|------|----------------|------|------------------|
-| *none found* | - | - | - | - |
+### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` (fake JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` (template var) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
+| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
+| google/qwix/.github/workflows/cla.yml | 23 | `${{ secrets.GITHUB_TOKEN }}` (CI secret ref) |
+| microsoft/omnichannel-chat-sdk/src/telemetry/TelemetryEvent.ts | 13 | `GetAuthToken = "GetAuthToken"` (event name) |
 
-### TEST_OR_EXAMPLE (sample/fixture/placeholder data)
-| File | Line | Reason |
-|------|------|--------|
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
-| google/skia-buildbot/bugs-central/go/bugs-central/main.go | 61 | `secretGithubToken = "bugs-central-github-token"` — secret name reference, not value |
-| google/skia-buildbot/go/metadata/metadata.go | 23 | `CLIENT_SECRET = "client_secret"` — constant name as value |
-| google/skia-buildbot/go/metadata/metadata.go | 27 | `GMAIL_CACHED_TOKEN = "gmail_cached_token"` — constant name as value |
-| google/skia-buildbot/go/metadata/metadata.go | 30 | `GMAIL_CLIENT_SECRET = "gmail_clientsecret"` — constant name as value |
-| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` — default filename convention |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Template passwords `{{ default .Env.POSTGRES_PWD "" }}` — templated, empty default |
-| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` — secret name with `//nolint:gosec` |
-| google/skia-buildbot/skolo/ansible/switchboard/*.yml | 12,7,30,110,4 | `{{ secrets.skolo_password }}` — Ansible vault references |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — constant name as placeholder |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions expressions `${{ steps.fetch-token.outputs... }}` — workflow syntax |
-| google/nomulus/load-testing/.../EppClient.java | 156 | `password = "abcde12345"` — load test fixture, trivial password |
-| google/nomulus/core/src/nonprod/.../GenerateSqlErDiagramCommand.java | 61 | `DB_PASSWORD = "password"` — nonprod test code |
-| google/nomulus/core/src/nonprod/.../GenerateSqlSchemaCommand.java | 40 | `DB_PASSWORD = "domain-registry"` — nonprod test code |
-| google/nomulus/core/src/nonprod/.../PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` — nonprod test code |
-| google/nomulus/core/src/main/.../BsaCredential.java | 61 | `ID_TOKEN = "id_token"` — constant name as value |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+### ENDPOINT_LEAK
 | File | Line | Endpoint |
 |------|------|----------|
-| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com/logs/query...` |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (service account) |
-| google/skia-buildbot/go/k8s/k8s.go | 122 | kubeconfig/local cluster reference |
-| google/skia-buildbot/go/gce/swarming/.../setup-script-linux-ct.sh | 176 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `pantheon.corp.google.com/apis/credentials/key/d74adcc4-...` (API key reference in internal console) |
-| google/skia-buildbot/go/revportforward/revportforward.go | 50-56 | kubeconfig reference |
-| google/skia-buildbot/kube/corp-config.sh | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | `skia-corp.google.com` reference |
-| google/skia-buildbot/get_service_account/.../main.go | 2,16 | `service-account.json` JWT metadata flow |
-| google/skia-buildbot/scripts/is_my_commit_live/.../main.go | 96 | kubeconfig path |
-| google/skia-buildbot/perf/modules/subscription-table-sk/...ts | 207 | `source.corp.google.com/h/chrome-internal/` |
-| google/skia-buildbot/perf/go/.../schema.go (multiple) | 5,7,14,46,12,6,7 | `b.corp.google.com/issues/492077374` (internal issue tracker) |
-| google/skia-buildbot/perf/go/notify/.../android_notification_provider.go | 223 | `android-build.corp.google.com/range_search/...` |
-| google/skia-buildbot/status/modules/tree-status-sk/...ts | 68,75,82 | `rotations.corp.google.com/rotation/...` |
-| google/skia-buildbot/pinpoint/webui/.../header.component.ts | 15 | `b.corp.google.com/issues/new?component=...` |
-| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | `pantheon.corp.google.com/storage/browser/skia-cdn/...` |
-| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| google/nomulus/util/src/main/.../MetricParameters.java | 61 | `http://metadata.google.internal/` (GCE metadata base) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | `https://staging-confidentialcomputing.sandbox.googleapis.com` |
 
-### INTERESTING (unusual configs, debug flags, key constants)
-| File | Line | Note |
-|------|------|------|
-| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | `headerToken = "x-buildbucket-token"` — custom auth header name |
-| google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158-159 | Browser API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` — **referrer-restricted to skottie.skia.org** (by design, not a secret) |
-| google/nomulus/core/src/main/.../XsrfTokenManager.java | 37,40 | CSRF token header/param constants (`X-CSRF-Token`, `xsrfToken`) |
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks `metadata.google.internal` (GCP metadata endpoint) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | Blocks `169.254.0.0/16` (includes GCP metadata 169.254.169.254) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References `169.254.169.254` metadata endpoint (SSRF surface) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`/`kubeconfig_context` params (k8s config injection surface) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (token storage key) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to `169.254.169.254` via NAT64 (SSRF surface) |
+| google/orbax/checkpoint/.../environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` |
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | Curl to `metadata.google.internal` for MTU |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches `codecov-google-crosvm` from Secret Manager (proper pattern) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches `github-crosvm-bot` from Secret Manager (proper pattern) |
+| google/ax/manifests/install-ax.sh | 239, 241, 286 | PostgreSQL password via env var or `openssl rand`, passed to k8s secret (proper pattern) |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `KUBECONFIG` from config (k8s config injection surface) |
 
 ---
 
-## Verdict Summary
+## Verdict List
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Skottie Drive API Key | `skottie-drive-sk.ts:158` | **no** | Browser API key, referrer-locked to `skottie.skia.org`, explicitly documented as safe to hardcode |
-| All other hits | (various) | **no** | Test fixtures, placeholder values, secret-name references, internal URLs, or templated secrets |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|-----------------|--------|
+| Hardcoded secrets in adk-js/adk-python auth files | **no** | All placeholders (`password`, `your_*`, truncated keys) |
+| GCP metadata endpoint references (169.254.169.254) | **no** | Defensive coding (blocklist) + docs; no user-input path proven |
+| go-tpm-tools autopush/staging URLs | **no** | Internal endpoints, no auth bypass, sandbox.googleapis.com scope |
+| kubeconfig_path/context params in gke_code_executor | **no** | Config injection surface but requires AUTH_HELPED to prove exploit |
+| Secret Manager access patterns (crosvm, ax) | **no** | Proper secret handling — not leaks |
+| vmaas access token storage key | **no** | Variable name only, no secret material |
+| KUBECONFIG env manipulation | **no** | Config surface, no credential leak |
 
-**No reportable secrets found in this scan.** The only API key-like value is a public browser key with referrer restrictions (standard Google Cloud pattern for client-side apps). All other "secret-looking" strings are demonstrably test data, constant-name placeholders, or infrastructure references.
+**Summary**: 0 reportable secrets. The scan reveals **defensive metadata endpoint blocking** (adk-js/tools), **proper secret management patterns** (crosvm, ax), and **config injection surfaces** (gke_code_executor, base_rl_pipeline) that require authenticated testing to validate. No REAL_SECRET candidates.
