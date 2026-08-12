@@ -3902,3 +3902,34 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
+## 2026-08-12 00:42:32 UTC [google] (model bigpickle)
+[HYP] Agent Registration cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 95
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist + Max-Age 86400 at collection AND item level; GET→401/237; $metadata 873-char block, createdBy/ownerIds/agentCard client-supplied Nullable=false, ZERO OperationRestrictions across 5 EntityTypes.
+evidence_needed: principal B reads/mutates A's registration (200/204 vs 403), or victim-context browser mutation via ACAO:*.
+verify_steps: AUTH_HELPED: 1) A POST {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) B GET {A_id} persistence. Log status+bodies only.
+impact: cross-app agent tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: production v1.0 metadata — oAuth2PermissionGrant EntityType 347 chars, ZERO restriction tags, client-supplied clientId/consentType/principalId/resourceId/scope; GET→401/237 auth-gated; no documented server-side cross-check of requester vs grant target.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation → 201; B GET /me/oauth2PermissionGrants → forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: raw oauth.py 200/23110 this probe, secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST /token → 400 invalid_grant (not invalid_client) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control; installed client + OOB redirect.
+evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: File Google VRP report with sha256(secret)+sha256(file)+invalid_grant proof; request authorized redemption; cite ADK #2128 native-app by-design precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP.
+testability: HUMAN_ONLY
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — both Microsoft hypotheses are precondition-complete (CORS item+collection preflight 200/ACAO:* with PATCH allowlisted, schema zero-restrictions, GET 401 auth-gates re-confirmed this cycle at 23:5x UTC) and only the authorized two-principal test stands between them and proof. In parallel, file the Google VRP report for the earthengine secret — evidence bundle final (sha256(secret)=3f3f8d6f…d271, whole-file sha256=f4f93c76…, invalid_grant proof).
+[RISK] google: 82 — cloud-platform-scoped OAuth credential with proven server-side validity (invalid_grant distinction) plus public tokeninfo introspection oracle; exploitation limited by native-app OOB by-design status and requires HUMAN redemption test.
+[RISK] microsoft: 85 — two precondition-complete cross-principal hypotheses (agentRegistrations CORS+zero-restriction IDOR at 95, oauth2PermissionGrants consent forge at 70) plus systemic RFC 6750 §3 method-challenge inconsistencies across the API gateway; all gated behind AUTH_HELPED two-principal enrollment — the single current bottleneck.

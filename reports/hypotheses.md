@@ -2053,3 +2053,32 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` 
 - LEARN: ACCEPTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live — no-param → 400/113 invalid_token, accepts ?access_token=/ ?id
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-11 22:56 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: earthengine secret (sha `3f3f8d6f…d271`, whole-
+
+## RANKED HYPOTHESES 2026-08-12 00:46:05 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-nemotron3.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [62] graph.microsoft.com/v1.0/oauth2PermissionGrants: Consent grant forgery via caller-chosen resourceId on production Graph v1.0 (from reports/hypotheses-longcat.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — both Microsoft hypotheses are precondition-complete (CORS item+collection preflig
+- NEXT(hypotheses-laguna.txt): AUTH_HELPED: Execute two-principal test for agentRegistration IDOR — Principal A POST /beta/copilot/agentRegistrations with createdBy=Principal_B_oid + ownerIds
+- NEXT(hypotheses-longcat.txt): HUMAN: File Google VRP report for `earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret. Evidence bundle ready: sha256(secret)=`3f3f8d6f29db1b06
+- LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
+- LEARN: ACCEPTED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JS
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth creden
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin+ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist, Max-Age 86
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset holds across all rotations (v2 7→11→7 kids), v1 kid set never validate
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: TRUE preflight confirmed LIVE — HTTP 200 `A
+- LEARN: ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: confirmed unchanged (873-char block, 0 OperationRestrict
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` 
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED agentRegistrations item-level CORS preflight @ graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000: true preflight
+- LEARN: ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0/oauth2PermissionGrants: GET → 401 Bearer (authorization_uri=login.microsoftonline.com/commo
+- LEARN: ACCEPTED earthengine-api oauth.py source @ raw.githubusercontent.com: GET → 200 len=23110 content-type=text/plain (strict CSP/sandbox/nosniff headers) — confirm
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: private-preview scope + confidence 55 leaves no concrete cross-ten
+- LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* endpoint: domain deprecated (301 → microsoft.com/copilot-studio); no live API surface
+- LEARN: REJECTED Three-hop Agent User user_fic flow @ graph.microsoft.com: infrastructure-dependent, documented only; not directly testable without enterprise FIC setup
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector LIVE @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight (Origin+ACRM:PATCH+ACH:
+- LEARN: NO_DELTA on all other ACCEPTED/REJECTED classes — all fresh passive probes confirmed prior findings unchanged

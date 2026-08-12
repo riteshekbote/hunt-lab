@@ -684,3 +684,13 @@
 ## 2026-08-11 22:56:47 UTC
 
 ## 2026-08-11 23:42:45 UTC
+
+## 2026-08-12 00:46:05 UTC
+- NEW NO_DELTA — all fresh passive probes (2026-08-11 23:42 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base and last leads
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 11→7 (3 v2-only kids dropped), Accept: application/json now required for JSON response
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin+ACRM/Headers) → HTTP 200 ACAO:* + full mutation allowlist + Max-Age 86400 (re-confirmed; prior bare-OPTIONS→405 was ar
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+- NEW graph.microsoft.com/beta/copilotstudio — conversation-ID NOT validated server-side (private preview)
+- NEW powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+- NEW /me/agentSignInSessions (v1.0 + beta) — fully off-metadata (0 refs in $metadata), endpoint alive (401)
+- NEW Three-hop Agent User user_fic flow documented @ graph.microsoft.com — client_credentials+cert+fmi_path → T1 → FIC exchange → T2 → grant_type=user_fic
