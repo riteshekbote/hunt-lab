@@ -1,3 +1,81 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/CertificateService.cs[90m [offset=40, limit=30][0m
+[0m→ [0mRead reposcan-raw/microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Commands/CertGenerateCommand.cs[90m [offset=65, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [limit=20, offset=5][0m
+Based on my analysis of all hits, here are the classifications:
+
+---
+
+### Classification Tables
+
+#### REAL_SECRET — *None found*
+
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(no reportable hardcoded credentials with signs of life)* | | | |
+
+---
+
+#### TEST_OR_EXAMPLE
+
+| File | Line | Context |
+|------|------|---------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — constant name, not a key |
+| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` — test PyPI registry URLs |
+| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` — test PyPI registry URLs |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — GitHub Actions secret ref (proper) |
+| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| `google/tunix/tunix/cli/base_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py` | 193-195 | Tokenizer constants (`eot_token`, `system_token`, `user_token`) |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test server shutdown password — test fixture |
+| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/CertificateService.cs` | 49, 207, 282 | `password = "password"` — **dev cert tool default**, doc: "for local testing only" |
+| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/ICertificateService.cs` | 16, 27, 34 | Interface default `password = "password"` — same dev tool |
+| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/MsixService*.cs` | 19, 21, 36, 65, 217, 262 | `certificatePassword = "password"` — same dev cert tooling |
+| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Commands/CertGenerateCommand.cs` | 72 | Help text: "default password: 'password'. For production, obtain a certificate from a trusted CA" |
+| `microsoft/winappCli/src/winapp-npm/src/winapp-commands.ts` | 135 | Same dev cert command help text |
+
+---
+
+#### ENDPOINT_LEAK (internal / corp / devsite URLs in code)
+
+| File | Line | URL Pattern |
+|------|------|-------------|
+| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 27, 166, 205 | `dev.office.com` — Microsoft Office Add-ins reference docs |
+| `google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | 4638-4639 | `developers.devsite.corp.google.com` — **internal Google devsite** |
+| `google/closure-compiler/externs/browser/*.js` | various | `dev.w3.org`, `http://dev.w3.org` — W3C spec references |
+| `google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `source.corp.google.com` — **internal Google source link** |
+| `google/oss-fuzz/projects/mysql-connector-j/*.java` | 33 | `dev.mysql.com` — MySQL connector docs |
+| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | `dev.mysql.com` — project homepage |
+
+---
+
+#### INTERESTING (proper secret handling patterns)
+
+| File | Line | Pattern |
+|------|------|---------|
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access` — **runtime Secret Manager fetch** |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets versions access` — **runtime Secret Manager fetch** |
+| `google/ax/manifests/install-ax.sh` | 239-286 | `openssl rand -hex 16` → k8s secret — **secure random generation** |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| winappCli `password = "password"` (14 occurrences) | **no** | Dev-only certificate tool; explicit "for local testing only" + "For production, obtain a certificate from a trusted CA" |
+| `GEMINI_API_KEY = "gemini_api_key"` enum | **no** | Constant name, not an actual key |
+| `test.pypi.org` workflow URLs | **no** | Test registry, not production |
+| `secret_key = "fuzz test key"` | **no** | Explicit test fixture |
+| h2database test passwords | **no** | Test server fixtures |
+| closure-compiler devsite.corp.google.com URLs | **no** | Internal doc references in externs, no runtime exposure |
+| crosvm gcloud secret fetch | **no** | Proper runtime secret management |
+| ax `openssl rand` password gen | **no** | Secure generation pattern |
+
+---
+
+**Bottom line:** No reportable secrets in this delta. The winappCli "password" hits are intentional defaults for a **development certificate generation tool** — the command's own help text warns against production use. All Google hits are either test fixtures, proper secret management (Secret Manager), or internal documentation references in externs.
