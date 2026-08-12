@@ -511,3 +511,8 @@ https://oauth2.googleapis.com/token -> HTTP 404
 
 ## 2026-08-12 20:06:35 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
+
+## 2026-08-12 20:29:13 UTC
+https://graph.microsoft.com` -> ERR <urlopen error [Errno -2] Name or service not know
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://oauth2.googleapis.com/token -> HTTP 404

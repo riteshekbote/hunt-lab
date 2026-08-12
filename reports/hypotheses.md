@@ -2405,3 +2405,14 @@
 - LEARN: ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays R
 - LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
 - LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
+
+## RANKED HYPOTHESES 2026-08-12 20:29:12 UTC
+- [97] graph.microsoft.com/beta/copilot/*: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for earthengine-api `oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays R
+- LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface e
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
