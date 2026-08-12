@@ -1,52 +1,25 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+Let me analyze the scan results from the Google and Microsoft GitHub orgs. I need to classify each hit as REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none in delta* | — | — | — |
+Let me go through the hits:
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder value `"gemini_api_key"` |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GitHub Actions `${{ secrets.* }}` references |
-| google/android-cuttlefish/.github/workflows/*.yml | 48, 52, 58, 60, 62, 64, 100, 175 | All use `${{ secrets.GITHUB_TOKEN }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` |
-| google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | 195, 222, 245 | `${{ secrets.artifact-registry-uploader-json-creds }}` |
-| google/capsem/config/gate.toml | 475 | `password = "password.txt"` (file reference, test config) |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads `PASSWORD` from file (script helper) |
-| google/capsem/scripts/preflight.sh | 39 | Reads `password` from file (script helper) |
-| google/langextract/.github/workflows/ci.yaml | 169, 170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269, 278 | `username="user", password="password"`, `token="eyAkaknabna...."` (obvious placeholders) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
+**From the "NEW HITS SINCE LAST SCAN (delta)" section:**
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
-| google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py | 22 | `http://metadata.google.internal/computeMetadata/v1` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` |
-
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — truncated/placeholder (not a live key) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` — template variable, not a secret |
-
----
-
-### Short Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| earthengine-api `oauth.py:45` (known from prior cycles) | REAL_SECRET | **yes** — already ACCEPTED in KB, valid Google OAuth credential (POST→`invalid_grant`) |
-| All delta hits above | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** — placeholders, secret refs, or internal metadata URLs only |
-| `auth_credential.py:157` private_key | INTERESTING | **no** — truncated placeholder (`...`) |
-| GCP metadata endpoint refs (`169.254.169.254`, `metadata.google.internal`) | ENDPOINT_LEAK | **no** — well-known public endpoints, not sensitive |
-
-**No new REAL_SECRET findings in this delta.** The only reportable credential remains the previously-accepted Earth Engine hardcoded `client_secret` at `google/earthengine-api/python/ee/oauth.py:45`.
+1. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:214: *       password: "password",` - This appears to be example/test code (commented with asterisk, placeholder value)
+2. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:226: *       token: "your_access_token",` - Example/placeholder
+3. `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts:41: PASSWORD = 'password',` - Constant definition, likely for auth scheme type, not a real secret
+4. `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215: host === 'metadata.google.internal' ||` - Internal endpoint reference, ENDPOINT_LEAK
+5. `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts:36: '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)` - GCP metadata endpoint reference, ENDPOINT_LEAK
+6. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")` - This writes a variable, not a hardcoded secret. The variable comes from user input or config. INTERESTING but not a secret leak.
+7. `reposcan-raw/google/digitalbuildings/tools/abel/model/constants.py:106: ACCESS_TOKEN = 'accessToken'` - Constant name, not a real token
+8. `reposcan-raw/google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py:159: # See https://yaqs.corp.google.com/eng/q/4487223501186400256.` - Internal Google link, ENDPOINT_LEAK
+9. `reposcan-raw/google/llvm-propeller/propeller/binary_content.h:80: // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40` - Internal Google source link, ENDPOINT_LEAK
+10. `reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56: vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` - This is a reference/constant for LM password hash format, not a real password
+11. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40: // - MySQL Documentation: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` - Documentation link, not a leak
+12. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32: // Section is a Veles Secret that holds relevant information for a [Mysql MyLogin](https://dev.mysql.com/doc/refman/8.4/en/option-files.html).` - Documentation/comment
+13. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder, TEST_OR_EXAMPLE
+14. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder, TEST_OR_EXAMPLE
+15. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path handling, not a secret
+16. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
