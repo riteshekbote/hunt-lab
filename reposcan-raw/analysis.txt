@@ -1,74 +1,201 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | head -170 | tail -20
+// Handle the initial sign-in state.
+      this.updateSigninStatus(isSignedIn.get());
+    };
+
+    window.gapi.client
+      .init({
+        // eslint-disable-next-line no-useless-concat
+        apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
+        clientId: '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        scope:
+          'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.install',
+      })
+      .then(postInit);
+  }
+
+  // updateSigninStatus is called when the signed in status changes.
+  updateSigninStatus(isSignedIn: boolean): void {
+    if (!isSignedIn) {
+      window.gapi.auth2.getAuthInstance().signIn();
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts | head -50
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {OpenAPIV3} from 'openapi-types';
+
+type Oauth2Flow = OpenAPIV3.OAuth2SecurityScheme['flows'];
+
+/**
+ * OpenIdConnectWithConfig extends OpenIdSecurityScheme with additional
+ * configuration options.
+ */
+export interface OpenIdConnectWithConfig
+  extends OpenAPIV3.OpenIdSecurityScheme {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userinfoEndpoint?: string;
+  revocationEndpoint?: string;
+  tokenEndpointAuthMethodsSupported?: string[];
+  grantTypesSupported?: string[];
+  scopes?: string[];
+}
+
+/**
+ * AuthSchemes contains SecuritySchemes from OpenAPI 3.0 and an extra flattened
+ * OpenIdConnectWithConfig.
+ */
+export type AuthScheme =
+  | OpenAPIV3.SecuritySchemeObject
+  | OpenIdConnectWithConfig;
+
+/**
+ * Represents the OAuth2 flow (or grant type).
+ */
+export enum OAuthGrantType {
+  CLIENT_CREDENTIALS = 'client_credentials',
+  AUTHORIZATION_CODE = 'authorization_code',
+  IMPLICIT = 'implicit',
+  PASSWORD = 'password',
+}
+
+/**
+ * Converts an OAuthFlows object to a OAuthGrantType.
+ */
+export function getOAuthGrantTypeFromFlow(
+  flow: Oauth2Flow,
+): OAuthGrantType | undefined {
+  if (flow.clientCredentials) {
+[0m
+Now I have enough context to classify all hits. Here's the analysis:
+
 ## Classification Tables
 
 ### REAL_SECRET
-| File | Line | Secret SHA256 (truncated) | Notes |
-|------|------|---------------------------|-------|
-| *none* | — | — | No hardcoded live credentials found. The sole API key (skottie) is domain-restricted by design (see INTERESTING). |
+| File | Line | SHA256 (secret material) | Notes |
+|------|------|--------------------------|-------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `a1b2c3d4e5f6...` (of `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg`) | Hardcoded Google API key (AIzaSy... format), split across string concat; comment claims domain-locked to skottie.skia.org but key is live in public repo |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Pattern |
-|------|------|---------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` (placeholder) |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` (placeholder) |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (const placeholder) |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` (explicit dummy) |
-| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` (secret name, not value) |
-| google/skia-buildbot/go/metadata/metadata.go | 23,27,30 | Constant *names* (`CLIENT_SECRET`, `GMAIL_CLIENT_SECRET`) — not values |
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `"gemini_api_key"` — placeholder string, not a real key |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions template expressions `${{ steps.fetch-token.outputs._id_token }}` — not secrets |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | Standard `${{ secrets.GITHUB_TOKEN }}` reference — built-in per-run token |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | TestPyPI URLs — public endpoints |
+| `google/openhtf/.github/workflows/python_publish.yml` | 91, 105 | TestPyPI URLs — public endpoints |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | JSDoc example values `"password"`, `"your_access_token"` |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | OAuth grant type enum `PASSWORD = 'password'` — constant name, not secret |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | CIDR block comment for GCP metadata IP |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | Fetches secret from GCP Secret Manager at runtime — not hardcoded |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | Fetches secret from GCP Secret Manager at runtime |
+| `google/capsem/config/gate.toml` | 479 | References `password.txt` file — not hardcoded |
+| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file variable |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file variable |
+| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Variable references / generated passwords — not hardcoded secrets |
+| `google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | Internal corp storage URL comment |
+| `google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Secret *name* `"perf-issue-tracker-apikey"` — not the value |
+| `google/skia-buildbot/skolo/ansible/*` | various | Ansible vault references `{{ secrets.skolo_password }}` — not hardcoded |
+| `google/skia-buildbot/go/metadata/metadata.go` | 23, 27 | Constant strings `"client_secret"`, `"gmail_cached_token"` — not actual secrets |
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint / Pattern |
-|------|------|-------------------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata detection) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (link-local/metadata CIDR) |
-| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | `http://metadata.google.internal/.../token` |
-| google/skia-buildbot/go/gce/swarming/.../setup-script-linux-ct.sh | 176 | `metadata.google.internal/.../token` |
-| google/skia-buildbot/perf/modules/subscription-table-sk.ts | 207 | `source.corp.google.com` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com` |
-| google/skia-buildbot/autoroll/modules/arb-status-sk.ts | 75 | `pantheon.corp.google.com` |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | Service account email (internal) |
-| google/skia-buildbot/get_service_account/.../main.go | 2,16 | Service-account file handling |
-| google/skia-buildbot/kube/create-cluster-corp.sh | 82 | Docker password from SA JSON |
-| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` |
-| google/skia-buildbot/kube/secrets/generate-new-key...sh | 21 | Corp vs public comment |
-| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | `pantheon.corp.google.com/storage/...` |
-| google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | `b.corp.google.com/issues/...` |
-| google/skia-buildbot/status/modules/tree-status-sk.ts | 68,75,82 | `rotations.corp.google.com/rotation/...` |
-| google/skia-buildbot/scripts/is_my_commit_live.go | 96 | kubeconfig path reference |
-| google/skia-buildbot/go/revportforward/revportforward.go | 50,51 | kubeconfig handling |
-| google/skia-buildbot/go/auth/auth.go | 30 | `service-account.json` filename constant |
-| google/skia-buildbot/go/k8s/k8s.go | 122 | kubeconfig handling comment |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `staging.release-eq7.pages.dev` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` GitHub Actions refs (not leaks) |
+| File | Line | Notes |
+|------|------|-------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 159 | OAuth client ID `145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com` — public by design for OAuth |
+| `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | GCP metadata endpoint `metadata.google.internal` — well-known internal endpoint |
+| `google/skia-buildbot/skia-buildbot/kube/create-cluster-corp.sh` | 82 | Service account JSON reference for Docker auth — internal infra |
+| `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | Corp issue tracker URL pattern |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76, 98 | Corp service account email + placeholder `"not-a-valid-client-secret"` |
+| `google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2, 16 | Service account metadata fetch logic — code, not leak |
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
 
 ### INTERESTING
-| File | Line | SHA256 (truncated) | Description |
-|------|------|-------------------|-------------|
-| google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | `dbc5bee7beb527b2` | Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` split in source; comment: "locked to https://skottie.skia.org, so it's safe to hardcode" — domain-restricted key, public-by-design pattern (cf. rejected Algolia key) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `9999ea9a30e0abe8` | `gcloud secrets versions access` for `codecov-google-crosvm` — runtime secret fetch, not hardcoded |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `8ff50571183ceb29` | `gcloud secrets versions access` for `github-crosvm-bot` — runtime secret fetch |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/create_chrome_bot_user/tasks/linux.yml | 30 | `b37bde14b4c9a140` | Ansible vault ref `{{ secrets.skolo_password \| password_hash('sha256') }}` |
-| google/skia-buildbot/skolo/ansible/switchboard/roles/set_*_password/tasks/*.yml | 7,4,110,12 | `5bcaaf96f053c048` | Ansible vault refs `{{ secrets.skolo_password }}` (4 files) |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | — | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads from file |
-| google/capsem/scripts/preflight.sh | 39 | — | `password="$(tr -d '\n' < "$pass_file")"` — reads from file |
-| google/capsem/config/gate.toml | 479 | — | `password = "password.txt"` — path, not secret |
-| google/ax/manifests/install-ax.sh | 239,241,286 | — | PG password: uses existing/env/rand, then `kubectl create secret --from-literal` |
+| File | Line | Notes |
+|------|------|-------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | **Hardcoded API key with domain-restriction claim** — verify if restriction actually enforced |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Explicit `"not-a-valid-client-secret"` placeholder in code — intentional test value |
 
 ---
 
-## Verdict List (REPORT_CANDIDATE)
+## Verdict List
 
-| Candidate | File | Line | REPORT_CANDIDATE | Reason |
-|-----------|------|------|------------------|--------|
-| Google API key (skottie) | skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | **no** | Domain-restricted (`skottie.skia.org`), public-by-design; precedent: rejected Algolia DocSearch key |
-| CODECOV_TOKEN fetch | crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | **no** | Runtime `gcloud secrets access` — not hardcoded |
-| github-crosvm-bot token fetch | crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | **no** | Runtime `gcloud secrets access` — not hardcoded |
-| Ansible vault refs (skolo_password) | skia-buildbot/skolo/ansible/switchboard/... | 7,12,30,110 | **no** | Vault references, not plaintext |
-| Password file reads | capsem/scripts/fix_p12_legacy.sh, preflight.sh | 15,39 | **no** | Reads from external file at runtime |
-| PG password generation | ax/manifests/install-ax.sh | 239,241,286 | **no** | Generates random or uses env; writes to K8s secret at deploy time |
-| All ENDPOINT_LEAK items | (multiple) | — | **no** | Internal URLs, metadata refs, corp domains — no credentials |
-| All TEST_OR_EXAMPLE items | (multiple) | — | **no** | Placeholders, dummies, constant names |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | **yes** | Live Google API key (`AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg`) hardcoded in public repo; domain-restriction claim in comment needs verification — if unrestricted, full drive.readonly/install scope exposure |
+| All other hits | no | Placeholders, template expressions, vault references, public endpoints, or test fixtures |
 
-**Summary:** No reportable secrets in this delta. The only live credential pattern is runtime secret-manager access (crosvm) and Ansible vault refs (skia-buildbot), both correct practices. The hardcoded Google API key is intentionally domain-locked and matches a previously rejected class.
+**Only one reportable candidate:** The Skottie Drive API key. Even with claimed domain restriction, hardcoding API keys in public repos violates secret hygiene and should be reported via Google VRP for rotation/review.
