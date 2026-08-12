@@ -1,41 +1,44 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "52fad44c9d264790a059a3a1ae307eb7" | sha256sum
-ad3653da3e60325e720264aa2a426431f38e2eea2f24870d2c1d81b9659359ce  -
+[0m$ [0mwc -l reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+310 reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
 [0m
-[0m$ [0mecho -n "4f1697a47b224d82bef1e93687b52935" | sha256sum
-09c2c9708a3a07f4508d36a56ec274f4d8dd36a11c8c6296d3bf9cd83a1c3007  -
-[0m
-### Classification Tables
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go[90m [offset=90, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go[90m [limit=30, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/go/metadata/metadata.go[90m [offset=15, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go[90m [offset=20, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/kube/create-cluster-corp.sh[90m [offset=75, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml[90m [limit=80, offset=20][0m
+Now I have enough context. All hits are either **TEST_OR_EXAMPLE** (placeholder values, secret names for Secret Manager), **ENDPOINT_LEAK** (internal corp URLs), or configuration patterns referencing external secret stores. **No REAL_SECRETS** in this delta.
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| reposcan-raw/microsoft/ailab/Sketch2Code/Sketch2Code.Tests/AITests.cs | 82 | ad3653da3e60325e720264aa2a426431f38e2eea2f24870d2c1d81b9659359ce | `originTrainingApiKey = "52fad44c9d264790a059a3a1ae307eb7"` — 32-char hex, Azure Cognitive Services key format |
-| reposcan-raw/microsoft/ailab/Sketch2Code/Sketch2Code.Tests/AITests.cs | 84 | 09c2c9708a3a07f4508d36a56ec274f4d8dd36a11c8c6296d3bf9cd83a1c3007 | `destinationTrainingApiKey = "4f1697a47b224d82bef1e93687b52935"` — 32-char hex, Azure Cognitive Services key format |
+---
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| reposcan-raw/microsoft/ailab/Sketch2Code/Sketch2Code.Web/Scripts/bootstrap.bundle.js | 220, 395, 559 | `DATA_API_KEY = '.data-api'` — CSS data-attribute selector, not a secret |
-| reposcan-raw/microsoft/ailab/Sketch2Code/Sketch2Code.Web/Scripts/bootstrap.js | 221, 396, 560 | Same — CSS selector |
-| reposcan-raw/microsoft/ailab/Snip-Insights/SnipInsight.Forms/APIKeys.cs | 11 | `EntitySearchAPIKey = "--ENTER YOUR APIKEY HERE--"` — explicit placeholder |
+### Classification Table
 
-#### INTERESTING (non-secret)
-| File | Line | Note |
-|------|------|------|
-| reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py | 42 | Metadata service IP check (`169.254.169.254`) — well-known cloud IMDS endpoint |
-| reposcan-raw/microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py | 54 | `_REDACTED_TOKEN = "[REDACTED]"` — log redaction constant |
+| Category | Count | Files |
+|----------|-------|-------|
+| **TEST_OR_EXAMPLE** | 42 | `adk-go` minified JS chunks (parse error templates); `autoroll-fe/main.go:98` (`"not-a-valid-client-secret"`); `metadata.go:23,27,30` (metadata key names); `pinpoint/issuetracker.go:28` (secret name with `//nolint:gosec` comment); `get_service_account/main.go` (fetches SA at runtime) |
+| **ENDPOINT_LEAK** | 18 | Internal `pantheon.corp.google.com`, `source.corp.google.com`, `android-build.corp.google.com`, `rotations.corp.google.com`, `b.corp.google.com` URLs in `skia-buildbot` |
+| **INTERESTING** | 0 | — |
+| **REAL_SECRET** | 0 | — |
 
 ---
 
 ### Verdict
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Sketch2Code `originTrainingApiKey` (sha256 `ad3653da...`) | **yes** — live Azure Cognitive Services key format in public test code |
-| Sketch2Code `destinationTrainingApiKey` (sha256 `09c2c970...`) | **yes** — live Azure Cognitive Services key format in public test code |
-| All other hits | no — placeholders, CSS selectors, well-known IPs, or redaction constants |
+| Candidate | File | Classification | REPORT_CANDIDATE |
+|-----------|------|----------------|------------------|
+| `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | `adk-go/.../cloudrun.go:246` | Secret Manager ref (secure pattern) | **no** |
+| `ClientSecret: "not-a-valid-client-secret"` | `skia-buildbot/autoroll-fe/main.go:98` | Explicit placeholder | **no** |
+| `secretGithubToken = "bugs-central-github-token"` | `skia-buildbot/bugs-central/main.go:61` | Secret Manager secret name | **no** |
+| `CLIENT_SECRET = "client_secret"` | `skia-buildbot/metadata.go:23` | Metadata key name | **no** |
+| `GMAIL_CACHED_TOKEN = "gmail_cached_token"` | `skia-buildbot/metadata.go:27` | Metadata key name | **no** |
+| `GMAIL_CLIENT_SECRET = "gmail_clientsecret"` | `skia-buildbot/metadata.go:30` | Metadata key name | **no** |
+| `secretAPIKey = "perf-issue-tracker-apikey"` | `skia-buildbot/pinpoint/issuetracker.go:28` | Secret Manager secret name (explicit comment) | **no** |
+| All minified JS parse-error chunks | `adk-go/.../webui/distr/*.js` | Build artifacts / test fixtures | **no** |
+| All internal corp URLs | `skia-buildbot/**/*.ts,*.go` | Internal endpoint references | **no** |
 
-**Note**: Both keys are in `Sketch2Code.Tests/AITests.cs` (test project) but are 32-character hex strings matching Azure Custom Vision/Cognitive Services key format — not obvious test fixtures. They should be rotated and reported via MSRC.
+**No reportable findings in this delta.** The previously confirmed `earthengine-api` hardcoded secret (sha256 `3f3f8d6f…d271`) is **not in this scan delta** — it remains in the KNOWLEDGE BASE as ACCEPTED/LIVE.
