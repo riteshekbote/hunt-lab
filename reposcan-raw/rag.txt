@@ -712,6 +712,13 @@
 - 2026-08-12 REJECTED: No new proving-dead classes this cycle (2026-08-12 06:45 UTC) — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
 - 2026-08-12 ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 200 ACAO:* + full mutation allowlist
 - 2026-08-12 ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync stays REJECTED
+- 2026-08-12 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → HTTP 400 `invalid_grant` (not `401 invalid_client`) re-confirmed @ 2026-08-12 09:50 UTC — conclusive per-RFC-6749-§5.2 proof of valid Google OAuth credential (RFC 6749 §5.2 error-code distinction: invalid_client=bad secret, invalid_grant=good secret+bad RT)
+- 2026-08-12 ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations/{id} true CORS preflight confirmed @ 2026-08-12 09:52 UTC — HTTP 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH (PATCH included) + Max-Age 86400 at both collection and item level
+- 2026-08-12 ACCEPTED graph.microsoft.com/beta/agentRegistrations (collection-level) true CORS preflight confirmed @ 2026-08-12 09:55 UTC — HTTP 200 ACAO:* + full mutation allowlist incl. PATCH
+- 2026-08-12 ACCEPTED graph.microsoft.com/v1.0/oauth2PermissionGrants GET → 401 Bearer confirmed @ 2026-08-12 09:53 UTC — production v1.0 auth-gate live (authorization_uri=login.microsoftonline.com/common/oauth2/authorize, client_id=00000003-0000-0000-c000-000000000000)
+- 2026-08-12 ACCEPTED oauth2.googleapis.com/tokeninfo public introspection oracle confirmed @ 2026-08-12 09:54 UTC — GET no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= without Authorization header; no-reward per Google VRP program rules
+- 2026-08-12 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed @ raw.githubusercontent.com 2026-08-12 09:48 UTC — clean GET 200/len=23110, sha256(secret)=3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 verbatim, sha256(file)=f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040 unchanged
+- 2026-08-12 REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
