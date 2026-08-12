@@ -1,67 +1,10 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none)* | | | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Context | SHA256(value) |
-|------|------|---------|---------------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | `a1b2c3d4...` (test fixture) |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | `e5f6a7b8...` (test constant) |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | test connection password | `c9d0e1f2...` (test) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | `placeholder` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | `test` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | `test` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `5e884898...` (test const) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | `placeholder` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` | `template` |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | `test` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | `placeholder` |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint/URL |
-|------|------|--------------|
-| google/nearby/sharing/nearby_sharing_service.h | 71 | `source.corp.google.com/piper///depot/google3/...` |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal/computeMetadata/v1/` |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com/file:google3/` |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | `dev.mysql.com/doc/connector-j/8.0/...` |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `dev.mysql.com/doc/connector-j/8.0/en/` |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `staging.release-eq7.pages.dev` |
-
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` refs |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` ref |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions token refs (`_ID_TOKEN`, `_AUTH_TOKEN`) |
-| google/capsem/config/gate.toml | 470 | `password = "password.txt"` (file ref) |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
-| google/adk-python/.../gke_code_executor.py | 103,104,115 | kubeconfig path/context params |
-| google/adk-python/.../container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` refs |
-| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` constant |
-| google/saxml/.../vision_service.py | 35 | `VIDEO_TO_TOKEN = 'vm.video_to_token'` config |
-| google/clusterfuzz/.../task_creation.py | 152 | TODO b/328691756 (untrusted) |
-| google/clusterfuzz/.../uworker_io.py | 241 | TODO b/328691756 |
-| google/clusterfuzz/.../corpus_pruning_task.py | 890 | TODO b/328691756 |
-
----
-
-### SHORT VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *(none)* | REAL_SECRET | **no** — all hits are test fixtures, placeholders, secret refs (`${{secrets.*}}`), or internal URLs |
-| google/oss-fuzz/* | TEST_OR_EXAMPLE | no — fuzz harness test keys |
-| google/adk-python/auth/* | TEST_OR_EXAMPLE | no — placeholder credentials in auth helpers (ADK #2128/#5520 already tracked) |
-| google/adk-kotlin/.../McpIntegrationTestSupport.kt | TEST_OR_EXAMPLE | no — test probe token |
-| google/agents-cli/auth.py | TEST_OR_EXAMPLE | no — placeholder string |
-| google/nearby/.../nearby_sharing_service.h | ENDPOINT_LEAK | no — internal corp source link, not exploitable |
-| google/clusterfuzz/* | ENDPOINT_LEAK/INTERESTING | no — internal metadata/source URLs, TODO refs |
-| google/capsem/* | INTERESTING | no — password file refs, staging URL |
-| google/langextract/magika/agents-ci workflows | INTERESTING | no — GitHub Actions secret references only |
-| google/adk-python code_executors | INTERESTING | no — kubeconfig/metadata endpoint params, not secrets |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=80, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt[90m [limit=60, offset=40][0m
