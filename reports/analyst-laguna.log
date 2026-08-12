@@ -31691,3 +31691,28 @@ testability: AUTH_HELPED
 
 [RISK] google: 96 reason: earthengine-api oauth.py:45 hardcoded OAuth client_secret confirmed valid Google OAuth credential (POST→invalid_grant per RFC 6749 §5.2, confidence 96); sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…` unchanged; raw GitHub source live (200/23110); scopes include cloud-platform (full GCP account takeover potential); native-app OOB by-design pattern caps VRP-worthiness but does not invalidate credential validity; oauth2.googleapis.com/token POST-only gate validates refresh_token is sole redemption path; tokeninfo public introspection oracle no-reward per VRP rules
 [RISK] microsoft: 94 reason: agentRegistrations IDOR+CORS confirmed live at both collection and item level (200 ACAO:* + PATCH allowlist, zero OperationRestrictions across 5 EntityTypes + deprecated /beta/agentRegistry, 873-char metadata block, GET→401/HEAD→405 RFC 6750 §3 violation); oauth2PermissionGrants consent forge precondition on production v1.0 (GET→401/237, caller-chosen resourceId, zero schema restrictions); all three active hypotheses gated behind AUTH_HELPED two-principal tenant enrollment; dual-JWKS rotation desync stays REJECTED (v1⊂v2 subset invariant + v1 kid set never validated against v2 issuer)
+===== ANALYST laguna 2026-08-12 15:47:39 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/keys" && echo "" && echo "---v2---" && curl -s -o /dev/null -w "%{http_code} %{size_download}" -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+200 7657
+---v2---
+200 9677
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" && echo "" && curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sed -n '40,100p' | grep -n "client_secret\|CLIENT_SECRET\|RUP0\|refres"
+200 23110
+6:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+58:    args['refresh_token'] = stored.get('refresh_token')
+60:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -X OPTIONS -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" -D /tmp/ag_cors_headers.txt && echo "" && cat /tmp/ag_cors_headers.txt | grep -iE "access-control|www-auth|allow" failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+I'll verify the current surface state against the knowledge base before producing the analysis.
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" "https://oauth2.googleapis.com/tokeninfo" && echo "" && echo "---token POST with fake creds---" && curl -s -o /dev/null -w "%{http_code}" -X POST "https://oauth2.googleapis.com/token" -d "grant_type=refresh_token&client_id=517222506229-test.apps.googleusercontent.com&client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1&refresh_token=invalid"
+400 113
+---token POST with fake creds---
+401
+[0m

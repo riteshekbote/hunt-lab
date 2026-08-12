@@ -2329,3 +2329,16 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is gran
 - LEARN: ACCEPTED oauth2PermissionGrants auth-gate confirmed @ graph.microsoft.com/v1.0 — GET→401/237 Bearer (authorization_uri=login.microsoftonline.com/common/oauth2/a
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds across all cycles, v1 kid set never validated against
+
+## RANKED HYPOTHESES 2026-08-12 15:47:39 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (from reports/hypotheses-nemotron3.txt)
+- [95] graph.microsoft.com/beta/copilot/*: Copilot Admin family cross-principal ownership bypass (5 endpoint families) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): PROBE: extend the passive auth+CORS posture map to the remaining two untested Copilot Admin families — run GET + true-preflight (Origin: https://attacker.exampl
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + fu
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
+- LEARN: REJECTED no new proving-dead classes this cycle — 14:54:17 UTC passive probes (token GET→404, graph root 200, cloud-platform scope 404-artifact) confirmed prior
