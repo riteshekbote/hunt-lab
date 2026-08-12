@@ -2259,3 +2259,30 @@
 - LEARN: ACCEPTED agentRegistrations auth-gate confirmed — GET→401/237 Bearer, HEAD→405/0 (no WWW-Authenticate, RFC 6750 §3 violation), extends to Agent Registration end
 - LEARN: ACCEPTED oauth2PermissionGrants auth-gate confirmed @ graph.microsoft.com/v1.0 — GET→401/237 Bearer (authorization_uri=login.microsoftonline.com/common/oauth2/a
 - LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-12 12:20:47 UTC
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- [95] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}: Agent Registration cross-principal ownership bypass (GA + deprecated endpoints) (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-laguna.txt): HUMAN_ONLY: File Google VRP report for earthengine-api `oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f…d271`). Evidence bundle: (1) raw GitHub GET
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — Accept: application/json now required for JSON; v2 kid count rotated 11→7→6; subset invariant v1⊂
+- LEARN: CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface el
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth creden
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + fu
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes (08:04 UTC) confirmed prior ACCEPTED findings unchanged; 06:45 404/ERR entries confirmed back
+- LEARN: ACCEPTED agentRegistrations CORS preflight artifact clarified @ graph.microsoft.com/beta/copilot/agentRegistrations{/{id}}: bare-OPTIONS (no Origin) → 405 was p
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret confirmed live this cycle — raw GitHub GET→200/23110, sha256(secret)=`3f3f8d6f…d271` verbatim, whole-file sha=`f4f93
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET) — validates earthengine secret redemptio
+- LEARN: ACCEPTED oauth2.googleapis.com/tokeninfo public introspection oracle confirmed live — no-param→400/113 invalid_token, accepts ?access_token=/ ?id_token= without
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap confirmed live @ login.microsoftonline.com/common/discovery/keys — v1(4-5 kids) ⊂ v2(6-8 kids), 0 v1-exclusive steady-state, Acc
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5)⊂v2(6-8) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated again
+- LEARN: ACCEPTED api.myaccount.microsoft.com + mysignins.microsoft.com source maps → both closed (404/401); recon surface eliminated, extracted endpoint inventory uncha
+- LEARN: ACCEPTED graph.microsoft.com/v1.0/oauth2PermissionGrants GET→401 Bearer confirmed — production v1.0 auth-gate live, consent forge precondition (caller-chosen re
+- LEARN: ACCEPTED /me/agentSignInSessions (v1.0 + beta) — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, REJECTED as non-actionable
+- LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* — redirects to copilot-studio, domain deprecated, no live API surface
+- LEARN: ACCEPTED v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize — GET ?response_type=token → HTTP 200 (JS error 700038
+- LEARN: ACCEPTED bughunters.google.com root hardening confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options:
