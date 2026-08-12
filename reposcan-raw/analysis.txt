@@ -1,10 +1,93 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go
-reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go
+[0m$ [0msha256sum <<< "gemini_api_key"
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
 [0m
-[0m→ [0mRead reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go[90m [limit=20, offset=90][0m
-[0m→ [0mRead reposcan-raw/google/skia-buildbot/bugs-central/go/bugs-central/main.go[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/skia-buildbot/go/metadata/metadata.go[90m [limit=20, offset=18][0m
-[0m→ [0mRead reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml[90m [offset=20, limit=30][0m
+[0m$ [0msha256sum <<< "id_token"
+62edc68330d50450bbac026d079ea98288eb592811c42d4f625df98bb5d69874  -
+[0m
+[0m$ [0msha256sum <<< "X-CSRF-Token"
+687c4bcc31fce84554957ec4bf567d03704a5f755b5738d9d766292e5d56a044  -
+[0m
+[0m$ [0msha256sum <<< "xsrfToken"
+0385347ae77f15cbc3553d4af9c80beb804dd693142f998f1a3957219cace9c9  -
+[0m
+[0m$ [0msha256sum <<< "password"
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+[0m
+[0m$ [0msha256sum <<< "domain-registry"
+a11cf225be1d4acff574be9aecec39b646ce8e66e523c2c8a471f6f416a8b5ec  -
+[0m
+[0m$ [0msha256sum <<< "abcde12345"
+222f7a818a33921b2d4e7c526a1e06bc2f58de36a31fcf9281d5316dd18c35d0  -
+[0m
+[0m$ [0msha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
+44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
+[0m
+[0m$ [0msha256sum <<< "perf-issue-tracker-apikey"
+5ca6a9c751a791a983cd45e3ee24d94e931125504098611b1aa8a014ab995474  -
+[0m
+### CLASSIFICATION TABLES
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none)* | — | — | No live credentials found |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `1a539ef3ab3bfd31…` | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
+| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | `62edc68330d50450…` | Constant `ID_TOKEN = "id_token"` |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | `687c4bcc31fce845…` | Header name `X_CSRF_TOKEN = "X-CSRF-Token"` |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | `0385347ae77f15cb…` | Param name `P_CSRF_TOKEN = "xsrfToken"` |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | `6b3a55e0261b0304…` | Test fixture `DB_PASSWORD = "password"` (nonprod) |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | `a11cf225be1d4acf…` | Test fixture `DB_PASSWORD = "domain-registry"` (nonprod) |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | `a11cf225be1d4acf…` | Test fixture `DB_PASSWORD = "domain-registry"` (nonprod) |
+| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | `222f7a818a33921b…` | Load-test password `abcde12345` |
+| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `5ca6a9c751a791a9…` | Secret *name* `perf-issue-tracker-apikey` (comment: not a credential) |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `c17000a4…` / `b37bde14…` | GH Actions templates `${{ steps.fetch-token.outputs.* }}` |
+
+#### ENDPOINT_LEAK
+| File | Line | Type |
+|------|------|------|
+| google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | Internal issue tracker `b.corp.google.com` |
+| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | GCE metadata URL `metadata.google.internal` |
+| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | Internal storage `pantheon.corp.google.com` |
+| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68,75,82 | Internal rotations `rotations.corp.google.com` |
+| google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | GCE metadata base URL |
+| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | GCE metadata token URL |
+| google/skia-buildbot/kube/corp-config.sh | 9 | Corp subdomain `skia-corp.google.com` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | Internal Android build URL `android-build.corp.google.com` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | Internal source URL `source.corp.google.com` |
+| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | Internal Issue Tracker API key ref `pantheon.corp.google.com` |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | **API key** `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (SHA256 `44d8f81ddda57c41…`) — **domain-locked to `skottie.skia.org` per comment**, safe to hardcode by design |
+| google/skia-buildbot/skolo/ansible/switchboard/* | 4,7,30,110,12 | Ansible templates referencing `{{ secrets.skolo_password }}` — secret *refs*, not values |
+| google/skia-buildbot/get_service_account/go/get_service_account/main.go | 2,16 | Service account JSON output filename reference |
+| google/skia-buildbot/golden/create-gold-corp-sa.sh | 60 | `kubectl create secret` from service-account.json |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Docker Compose password templates `{{ default .Env.POSTGRES_PWD "" }}` |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `GEMINI_API_KEY = "gemini_api_key"` | **no** | Placeholder string, not a key |
+| `ID_TOKEN = "id_token"` | **no** | Constant name, not a token |
+| `X_CSRF_TOKEN / P_CSRF_TOKEN` | **no** | Header/param name constants |
+| Nonprod `DB_PASSWORD = "password" / "domain-registry"` | **no** | Test fixtures in `nonprod/` |
+| Load-test `password = "abcde12345"` | **no** | Obvious test data |
+| `perf-issue-tracker-apikey` (secret name) | **no** | Comment explicitly: "Not a credential, it is a secret name" |
+| GH Actions `${{ steps.fetch-token.outputs.* }}` | **no** | CI templates, runtime substitution |
+| Internal corp URLs (`*.corp.google.com`, `metadata.google.internal`) | **no** | Internal endpoints, not secrets |
+| Ansible `{{ secrets.skolo_password }}` | **no** | Secret *references*, values not in repo |
+| **Skottie API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg`** | **no** | **Domain-restricted to `skottie.skia.org`** — intended public key per comment, same class as REJECTED Algolia DocSearch key (google/xrblocks) |
+| Service account / kubeconfig refs | **no** | Filenames/patterns only, no key material |
+
+**NO REPORTABLE FINDINGS THIS DELTA.** All hits are test fixtures, templates, internal URLs, or intentionally domain-locked public API keys.
