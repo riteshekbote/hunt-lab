@@ -1,81 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/CertificateService.cs[90m [offset=40, limit=30][0m
-[0m→ [0mRead reposcan-raw/microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Commands/CertGenerateCommand.cs[90m [offset=65, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [limit=20, offset=5][0m
-Based on my analysis of all hits, here are the classifications:
-
----
-
+[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
+a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
+[0m
 ### Classification Tables
 
-#### REAL_SECRET — *None found*
-
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(no reportable hardcoded credentials with signs of life)* | | | |
-
----
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | Hardcoded OAuth `client_secret` in production credential manager |
 
 #### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions token refs (`${{ steps.fetch-token.outputs... }}`) |
+| `google/cloud-android-orchestration/.github/workflows/deployment.yaml` | 121, 146, 169 | GitHub Actions secret ref (`${{ secrets.artifact-registry-uploader-json-creds }}`) |
+| `google/copybara/javatests/.../AuthTest.java` | 75, 102, 129 | Test fixtures: `"testpassword"`, `"test-token-123"` |
+| `google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | Test fixture: `"testpassword"` |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs (`${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}`) |
+| `google/neuroglancer/.github/workflows/deploy_docs_preview.yml` | 41, 50, 54 | GitHub Actions secret ref (`${{ secrets.GITHUB_TOKEN }}`) |
+| `google/neuroglancer/.github/workflows/deploy_preview.yml` | 41, 50, 54 | GitHub Actions secret ref (`${{ secrets.GITHUB_TOKEN }}`) |
+| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | Commented placeholder `# hf_access_token: "your_token"` |
+| `google/tunix/tunix/cli/base_config.yaml` | 63 | Commented placeholder `# hf_access_token: "your_token"` |
+| `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py` | 193-195 | Tokenizer special tokens (`eot_token`, `system_token`, `user_token`) |
+| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | Test fixture: `"ghp_ABCDEFGHIJKLMNOP"` |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19-20, 24 | Test fixtures: fake `ghp_*` token, fake `AKIA*` AWS key |
+| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | Test data: token pattern |
+| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | Test data: token pattern |
+| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | Test data: token pattern |
+| `microsoft/studentambassadors/.github/workflows/ado.yml` | 17-18 | GitHub Actions secret refs (`${{ secrets.AZURE_DEVOPS_TOKEN }}`, `${{ secrets.GH_PERSONAL_ACCESS_TOKEN }}`) |
 
-| File | Line | Context |
+#### ENDPOINT_LEAK
+| File | Line | Details |
 |------|------|---------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — constant name, not a key |
-| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` — test PyPI registry URLs |
-| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` — test PyPI registry URLs |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — GitHub Actions secret ref (proper) |
-| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
-| `google/tunix/tunix/cli/base_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
-| `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py` | 193-195 | Tokenizer constants (`eot_token`, `system_token`, `user_token`) |
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test server shutdown password — test fixture |
-| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/CertificateService.cs` | 49, 207, 282 | `password = "password"` — **dev cert tool default**, doc: "for local testing only" |
-| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/ICertificateService.cs` | 16, 27, 34 | Interface default `password = "password"` — same dev tool |
-| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Services/MsixService*.cs` | 19, 21, 36, 65, 217, 262 | `certificatePassword = "password"` — same dev cert tooling |
-| `microsoft/winappCli/src/winapp-CLI/WinApp.Cli/Commands/CertGenerateCommand.cs` | 72 | Help text: "default password: 'password'. For production, obtain a certificate from a trusted CA" |
-| `microsoft/winappCli/src/winapp-npm/src/winapp-commands.ts` | 135 | Same dev cert command help text |
+| `google/copybara/cloudbuild.yaml` | 27 | Internal Pantheon URL: `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` |
+| `google/nearby/sharing/nearby_sharing_service.h` | 71 | Internal Piper source URL: `source.corp.google.com/piper///depot/google3/...` |
+| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | Internal Pantheon auth client URL |
+| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 129, 351, 486 | Staging API base: `api.test.osv.dev` |
+| `google/osv.dev/gcp/website/frontend3/src/triage.js` | 94 | Staging API template: `api.test.osv.dev/v1/vulns/{id}` |
+| `google/osv.dev/tools/datafix/reimport_gcs_record.py` | 86 | Staging base URL: `test.osv.dev` |
+| `google/osv.dev/docs/_config.yml` | 78 | Staging linter URL: `test.osv.dev/linter/` |
+| `google/osv.dev/external/pypi/pypi.go` | 80 | Legacy HTTP URL allowlist: `http://dev.mysql.com` |
+| `google/osv.dev/vulnfeeds/pypi/pypi.go` | 80 | Legacy HTTP URL allowlist: `http://dev.mysql.com` |
+| `microsoft/aspire/.github/workflows/tests.yml` | 576, 666 | Internal Azure DevOps NPM registry: `pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-public-npm/npm/registry/` |
 
----
-
-#### ENDPOINT_LEAK (internal / corp / devsite URLs in code)
-
-| File | Line | URL Pattern |
-|------|------|-------------|
-| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 27, 166, 205 | `dev.office.com` — Microsoft Office Add-ins reference docs |
-| `google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | 4638-4639 | `developers.devsite.corp.google.com` — **internal Google devsite** |
-| `google/closure-compiler/externs/browser/*.js` | various | `dev.w3.org`, `http://dev.w3.org` — W3C spec references |
-| `google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `source.corp.google.com` — **internal Google source link** |
-| `google/oss-fuzz/projects/mysql-connector-j/*.java` | 33 | `dev.mysql.com` — MySQL connector docs |
-| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | `dev.mysql.com` — project homepage |
-
----
-
-#### INTERESTING (proper secret handling patterns)
-
-| File | Line | Pattern |
+#### INTERESTING
+| File | Line | Details |
 |------|------|---------|
-| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access` — **runtime Secret Manager fetch** |
-| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets versions access` — **runtime Secret Manager fetch** |
-| `google/ax/manifests/install-ax.sh` | 239-286 | `openssl rand -hex 16` → k8s secret — **secure random generation** |
+| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Runtime PostgreSQL password generation via `openssl rand -hex 16`; secret injected via `--from-literal` |
+| `google/tunix/tunix/cli/base_rl_pipeline.py` | 862 | `KUBECONFIG` env override from config |
 
 ---
 
-### SHORT VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| winappCli `password = "password"` (14 occurrences) | **no** | Dev-only certificate tool; explicit "for local testing only" + "For production, obtain a certificate from a trusted CA" |
-| `GEMINI_API_KEY = "gemini_api_key"` enum | **no** | Constant name, not an actual key |
-| `test.pypi.org` workflow URLs | **no** | Test registry, not production |
-| `secret_key = "fuzz test key"` | **no** | Explicit test fixture |
-| h2database test passwords | **no** | Test server fixtures |
-| closure-compiler devsite.corp.google.com URLs | **no** | Internal doc references in externs, no runtime exposure |
-| crosvm gcloud secret fetch | **no** | Proper runtime secret management |
-| ax `openssl rand` password gen | **no** | Secure generation pattern |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Hardcoded OAuth client_secret in Neuroglancer credential manager | `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` | **yes** |
+| All other hits | (see tables above) | **no** |
 
----
-
-**Bottom line:** No reportable secrets in this delta. The winappCli "password" hits are intentional defaults for a **development certificate generation tool** — the command's own help text warns against production use. All Google hits are either test fixtures, proper secret management (Secret Manager), or internal documentation references in externs.
+**Only one reportable finding:** The hardcoded `client_secret="kuaqECaVXOKEJ2L6ifZu4Aqt"` in Neuroglancer's `default_credentials_manager.py` is a live OAuth client secret embedded in source code. All other hits are either GitHub Actions secret references (correct pattern), test fixtures, internal URL references, or runtime-generated secrets.
