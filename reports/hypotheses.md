@@ -2366,3 +2366,6 @@
 - LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
 - LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
 - LEARN: REJECTED deprecated agentRegistry POST surface @ graph.microsoft.com/beta/agentRegistry — GET/POST/HOST same auth+CORS posture as agentRegistrations, but deprec
+
+## RANKED HYPOTHESES 2026-08-12 18:01:28 UTC
+- [97] graph.microsoft.com/beta/copilot/*: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)

@@ -4327,3 +4327,31 @@ testability: AUTH_HELPED
 [LEARN] REJECTED no new proving-dead classes this cycle — all other fresh probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
 [RISK] google: 82 — cloud-platform-scoped OAuth credential with proven server-side validity (RFC 6749 §5.2 invalid_grant distinction, confidence 96) + public tokeninfo introspection oracle; exploitation capped by native-app OOB by-design status and requires HUMAN authorized redemption.
 [RISK] microsoft: 86 — cross-principal IDOR precondition now complete across all 5 Copilot Admin families (97) + oauth2PermissionGrants consent forge (72) + systemic RFC 6750 §3 method-challenge inconsistencies on the Graph gateway; all execution gated behind AUTH_HELPED two-principal enrollment — the single current bottleneck.
+## 2026-08-12 17:43:57 UTC [google] (model bigpickle)
+[HYP] Copilot Admin 5-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/* (agentRegistrations{,/{id}}, agentRegistry, agents, admin/catalog/packages, admin/policySettings/{id})
+confidence: 97
+reasoning: uniform posture verified this cycle — GET→401/237, true-preflight→200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection AND item level; $metadata shows copilotPackage/agentCardManifest/copilotAdminCatalog/agentRegistration with ZERO restriction tags, client-supplied ownership fields (createdBy/ownerIds/managedByAppId Nullable=false).
+evidence_needed: principal B reads/mutates A's resource (200/204 vs 403) on any family.
+verify_steps: AUTH_HELPED: 1) A POST /beta/copilot/agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) repeat on /beta/copilot/agents + /beta/copilot/admin/catalog/packages. Log status+bodies only.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: GET→401/237 auth-gate re-confirmed on production v1.0; live $metadata oAuth2PermissionGrant block has ZERO restriction tags; clientId/consentType/principalId/resourceId/scope all client-supplied; no documented server-side cross-check of requester vs grant target.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation → 201; B GET /me/oauth2PermissionGrants → forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: raw oauth.py 200/len=23110, whole-file sha `f4f93c76…b73040` unchanged, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST /token with secret → 400 `invalid_grant` (not 401 `invalid_client`) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control; installed client + OOB redirect.
+evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: File Google VRP report (secret sha256 `3f3f8d6f…d271` + file sha `f4f93c76…b73040` + invalid_grant proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
