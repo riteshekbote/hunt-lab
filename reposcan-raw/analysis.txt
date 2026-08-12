@@ -6,63 +6,63 @@
 # Classification Results
 
 ## REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| *(none)* | - | - | No hardcoded live credentials found |
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *none found* | | | |
 
 ## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example in JSDoc comment |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Example in JSDoc comment |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant name, not a value |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
-| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` | Test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` | Test fixtures |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword`, `getDatabasePassword()` | Test infrastructure |
-| google/tsunami-security-scanner-plugins/.../apache_apisix_cve_2022_24112/... | 71 | `DEFAULT_ADMIN_KEY_TOKEN = "edd1c9f0..."` | CVE detector default (known public) |
-| google/tsunami-security-scanner-plugins/.../apache_dolphin_scheduler... | 105 | `DEFAULT_AUTH_TOKEN = "jwUDzpLs..."` | CVE detector default |
-| google/tsunami-security-scanner-plugins/.../influxdb_cve_2019_20933/... | 147 | JWT token in detector | CVE detector test token |
-| google/tsunami-security-scanner-plugins/.../minio_cve_2023_28432/... | 83 | `defaultPassword = "minioadmin"` | Well-known MinIO default |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant name |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Parser error messages | Minified build artifacts |
+| File | Line | Reason |
+|------|------|--------|
+| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | Constant reference string "PASSWORD_HASH_LM_FORMAT" — not a credential |
+| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | Documentation comment referencing Veles Secret type |
+| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go | 40 | Documentation link to MySQL config editor |
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | Test fixtures: "testpassword", "test-token-123" |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | Test fixtures: "testpassword" |
+| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | Test constant: "injected-token-probe" |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references `${{ secrets.* }}` |
+| google/magika/.github/workflows/... | 20, 407, 437 | GitHub Actions secret references / public PyPI URLs |
+| google/magika/tests_data/.../code.js | 31 | Minified JS test data |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33, 55 | Test server config, test password |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | Test shutdown password "ServerShutdownPassword" |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file (not hardcoded) |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file (not hardcoded) |
+| google/capsem/config/gate.toml | 470 | References password file "password.txt" |
+| google/flatbuffers/.github/workflows/label.yml | 24 | GitHub Actions secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/*.yml | 20, 41 | GitHub Actions secret references `${{ secrets.GITHUB_TOKEN }}` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | Placeholder: `api_key="your-key"` |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | Red-team test dataset SQL injection example |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented-out placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | Placeholder: `sk-REPLACE-WITH-YOUR-KEY` |
 
 ## ENDPOINT_LEAK
-| File | Line | Content | Risk |
-|------|------|---------|------|
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` | Internal Google artifact registry URL (comment only) |
-| google/tsunami-security-scanner-plugins/.../kubeflow/.../docker-compose.yml | 9 | `kubeconfig:/root/.kube/` | Volume mount path (not a secret) |
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp network) |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102-103 | `169.254.169.254`, `metadata.google.internal` | Well-known cloud metadata IPs (AWS/Azure/GCP) — public knowledge |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27-30 | Azure IMDS + AWS metadata/token URLs | Well-known cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS endpoint (public knowledge) |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39-40 | `169.254.169.254`, `metadata.google.internal` | Cloud metadata IPs (public knowledge) |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/.../OpaPolicyBackend.cs | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | AWS/Azure/GCP/Alibaba Cloud metadata IPs (public) |
+| microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go | 183-184 | `169.254.169.254`, `metadata.google.internal` | Cloud metadata IPs (public) |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts | 13-14 | `169.254.169.254`, `metadata.google.internal` | Cloud metadata IPs (public) |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts | 8, 11, 13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Cloud metadata IPs (public) |
+| google/copybara/cloudbuild.yaml | 27 | `https://pantheon.corp.google.com/...` | Internal Google artifacts URL (corp network) |
 
 ## INTERESTING
-| File | Line | Content | Notes |
-|------|------|---------|-------|
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` | GCP metadata IP range (public knowledge) |
-| google/ground-android/app/src/debug/local/google-services.json | 23 | `"current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"` | Firebase API key (public by design, debug build) |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | Standard GitHub Actions secret ref |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | Standard GitHub Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` URLs | Test PyPI endpoints |
-| google/capsem/config/gate.toml | 470 | `password = "password.txt"` | Refers to external password file |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
-| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions workflow template |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | Standard secret references |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference (not a secret) |
+| File | Line | Finding |
+|------|------|---------|
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | TestPyPI publish URL (public, not sensitive) |
+| google/capsem/config/gate.toml | 470 | Password file reference pattern (config-as-code) |
 
 ---
 
-## VERDICT LIST
+## SHORT VERDICT LIST
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Firebase API key | google/ground-android/app/src/debug/local/google-services.json:23 | **NO** | Firebase API keys are public by design (like Algolia DocSearch key REJECTED 2026-08-07); debug/local build artifact |
-| Internal artifact URL | google/copybara/cloudbuild.yaml:27 | **NO** | Comment-only reference to internal Google infrastructure; no credential |
-| Tsunami detector defaults | google/tsunami-security-scanner-plugins/... | **NO** | All are CVE detector test fixtures for known vulnerabilities (default creds) |
-| GitHub Actions secret refs | Multiple workflow files | **NO** | Standard `${{ secrets.* }}` pattern; no hardcoded values |
-| Cloud Run secret ref | google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | **NO** | Secret Manager reference syntax; secret value not in repo |
-| ADK-Go webui JS chunks | google/adk-go/cmd/launcher/web/webui/distr/*.js | **NO** | Minified build artifacts (parser generator output) |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| *No REAL_SECRET candidates found in this scan* | | **no** |
 
-**SUMMARY: 0 reportable candidates this scan.** All hits are test fixtures, build artifacts, public-by-design keys (Firebase), secret references (not values), or internal URL comments.
+**Summary**: All 34 delta hits and 157 total hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known cloud metadata IPs + internal corp URLs), or INTERESTING. No hardcoded live credentials/API keys/tokens with signs of life detected. The internal corp URLs (Microsoft `gtm.corp.microsoft.com`, Google `pantheon.corp.google.com`) are endpoint leaks but not directly exploitable without network access. Cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) are public knowledge.
 EOF
 cat /tmp/classification.md failed
 [91m[1mError: [0mThe user rejected permission to use this specific tool call.
