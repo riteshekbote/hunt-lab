@@ -782,3 +782,5 @@
 - CHANGED JWKS v2.0 rotated to 6 kids (v1=5, 4 shared + 1 v1-exclusive `jvm_-Ttaq`)
 - CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained (both SPAs now closed)
 - CHANGED oauth2.googleapis.com/token POST with leaked secret + invalid RT → 400 `invalid_grant` re-confirmed
+
+## 2026-08-12 22:12:21 UTC
