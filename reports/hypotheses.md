@@ -2467,3 +2467,10 @@
 - LEARN: REJECTED source maps @ both identity SPAs closed — mysignins 404 + myaccount 401; recon surface eliminated, extracted endpoint inventory unchanged.
 - LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable.
 - LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
+
+## RANKED HYPOTHESES 2026-08-12 23:55:03 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 (5-family IDOR+CORS) and [FINAL] 3 (consent f
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com/common/discovery/keys: v1⊂v2 steady-state subset invariant holds across all cycle rotations (v1=4
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true CORS preflight (Origin+ACRM:PATCH+ACH:
