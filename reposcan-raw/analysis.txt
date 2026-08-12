@@ -1,25 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results from the Google and Microsoft GitHub orgs. I need to classify each hit as REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+Let me analyze the scan results. I need to classify each hit into categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-Let me go through the hits:
+Looking at the hits:
 
-**From the "NEW HITS SINCE LAST SCAN (delta)" section:**
-
-1. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:214: *       password: "password",` - This appears to be example/test code (commented with asterisk, placeholder value)
-2. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:226: *       token: "your_access_token",` - Example/placeholder
-3. `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts:41: PASSWORD = 'password',` - Constant definition, likely for auth scheme type, not a real secret
-4. `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215: host === 'metadata.google.internal' ||` - Internal endpoint reference, ENDPOINT_LEAK
-5. `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts:36: '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)` - GCP metadata endpoint reference, ENDPOINT_LEAK
-6. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")` - This writes a variable, not a hardcoded secret. The variable comes from user input or config. INTERESTING but not a secret leak.
-7. `reposcan-raw/google/digitalbuildings/tools/abel/model/constants.py:106: ACCESS_TOKEN = 'accessToken'` - Constant name, not a real token
-8. `reposcan-raw/google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py:159: # See https://yaqs.corp.google.com/eng/q/4487223501186400256.` - Internal Google link, ENDPOINT_LEAK
-9. `reposcan-raw/google/llvm-propeller/propeller/binary_content.h:80: // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40` - Internal Google source link, ENDPOINT_LEAK
-10. `reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56: vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` - This is a reference/constant for LM password hash format, not a real password
-11. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40: // - MySQL Documentation: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` - Documentation link, not a leak
-12. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32: // Section is a Veles Secret that holds relevant information for a [Mysql MyLogin](https://dev.mysql.com/doc/refman/8.4/en/option-files.html).` - Documentation/comment
-13. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder, TEST_OR_EXAMPLE
-14. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder, TEST_OR_EXAMPLE
-15. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path handling, not a secret
-16. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+1. `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts:41: PASSWORD = 'password',` - This looks like a constant definition for a password scheme, likely test/example
+2. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:214: *       password: "password",` - Example/test password in comments
+3. `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts:226: *       token: "your_access_token",` - Example placeholder token
+4. `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215: host === 'metadata.google.internal' ||` - Internal metadata endpoint reference
+5. `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts:36: '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)` - GCP metadata endpoint reference
+6. `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:43: GEMINI_API_KEY = "gemini_api_key"` - This looks like a constant name, not an actual key
+7. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168: export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"` - GitHub Actions workflow template with templated token
+8. `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192: export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"` - Same, templated
+9. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103: kubeconfig_path: str | None = None` - Config parameter, not a secret
+10. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104: kubeconfig_context: str | None = None` - Config parameter
+11. `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115: kubeconfig_path: str | None = None,` - Config parameter
+12. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114: cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For` - Documentation comment about metadata endpoint
+13. `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154: network -- in particular the cloud metadata endpoint at 169.254.169.254` - Documentation comment
+14. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")` - Template code that writes an API key variable
+15. Many minified JS chunks - These are build artifacts, not source secrets
+16. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157: private_key="-----BEGIN PRIVATE KEY-----...",` - This looks like a test/fixture private key (truncated with ...)
+17. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269: credentials=HttpCredentials(username="user", password="password"),` - Test credentials
+18. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278: credentials=HttpCredentials(token="eyAkaknabna...."),` - Test token (truncated)
+19. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"` - Constant definition
+20. `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171: network with NAT64, routes to the internal ``169.254.169.254`` metadata` - Documentation comment
+21. `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146: # and 169.254.169.254 in Chrome, so refuse instead of checking it.` - Comment about metadata endpoint
+22. `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",` - Placeholder/example
+23. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` - Constant for state key name
+24. `reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56: vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` - Constant for vulnerability reference format
+25. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go:32: // Section is a Veles Secret that holds relevant information for a [Mysql MyLogin](https://dev.mysql.com/doc/refman/8.4/en/option-files.html).` - Comment
+26. `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go:40: // - MySQL Documentation: https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` - Comment
+27. `reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h:7: // http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3` - Comment with URL
+28. `reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:126: // supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").` - Comment
+29. `reposcan-raw/google/llvm-propeller/propeller/binary_content.h:80: // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40` - Internal Google source link
+30. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168: GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \` - GitHub Actions secret reference (not hardcoded)
+31. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:169: LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \` - Same
+32. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:170: OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \` - Same
+33. `reposcan-raw/google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py:159: # See https://yaqs.corp.google.com/eng/q/4487223501186400256.` - Internal Google link
+34. `reposcan-raw/google/digitalbuildings/tools/abel/model/constants.py:106: ACCESS_TOKEN = 'accessToken'` - Constant for field name
+35. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder
+36. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Config path reference
+37. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented placeholder
+38. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
