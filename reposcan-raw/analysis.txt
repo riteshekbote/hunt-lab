@@ -1,13 +1,127 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
-Wrote file successfully.
+[0m$ [0mecho "RUP0RZ6e0pPhDzsqIJ7KlNd1" | sha256sum
+036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
 [0m
-Done. Wrote triage report to `triage_report.md`.
+[0m$ [0mecho -n "CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'" | sha256sum
+54d034ac4ba23e57356bb3c484f7f6317c47e19162a22463f1436a7a55a3735c  -
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | head -50
+"""Earth Engine OAuth2 helper functions for generating client tokens.
 
-**Key findings:**
-- **0 new REAL_SECRET** in this delta scan
-- All 48 delta hits classify as TEST_OR_EXAMPLE (test fixtures, placeholders, build artifacts, GH Actions secret refs), ENDPOINT_LEAK (well-known GCP metadata IP), or INTERESTING (Firebase API key in debug config — public by design per KB precedent)
-- Previously ACCEPTED earthengine-api OAuth client_secret (sha256 `3f3f8d6f…d271`) remains live but is **not in this delta** (separate repo, prior cycle)
-- No new reportable candidates for disclosure
+Typical use-case consists of:
+1. Calling 'get_authorization_url'
+2. Using a browser to access the output URL and copy the generated OAuth2 code
+3. Calling 'request_token' to request a token using that code and the OAuth API
+4. Calling 'write_private_json' to save the token at the path given by
+   'get_credentials_path'
+"""
+
+import base64
+from collections.abc import Sequence
+import errno
+import hashlib
+import http.server
+import json
+import os
+import shutil
+import subprocess
+import sys
+from typing import Any
+import urllib.error
+import urllib.parse
+import urllib.request
+import webbrowser
+
+import google.auth
+from google.auth import _cloud_sdk
+import google.auth.transport.requests
+from google.oauth2 import credentials as credentials_lib
+
+from ee import data as ee_data
+from ee import ee_exception
+
+
+# Optional imports used for specific shells.
+# pylint: disable=g-import-not-at-top
+try:
+  import IPython
+except ImportError:
+  pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`; **ACCEPTED in KB** (valid Google credential, POST→invalid_grant proves RFC 6749 §5.2 validity); native-app OOB pattern (ADK #2128 precedent caps VRP) |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | JSDoc examples (`password: "password"`, `token: "your_access_token"`) |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant name `PASSWORD = 'password'` |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | Test constant `INJECTED_TOKEN = "injected-token-probe"` |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Fuzz test key `secret_key = "fuzz test key"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | Test passwords `ServerShutdownPassword` |
+| google/capsem/config/gate.toml | 470 | Path reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads from file `password="$(tr -d '\n' < "$pass_file")"` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Test fixture `ghp_ABCDEFGHIJKLMNOP` |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19, 20, 24 | Test fixtures `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R`, `AKIA5SXYO7WZ3PLMN8RTV` |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test fixture `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Test fixture `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Test fixture `token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
+| microsoft/Sico/backend/cmd/sico-server/seeds/seeder.go | 72 | Default seed password `operator` |
+| microsoft/Sico/backend/internal/consts/consts.go | 30, 43 | Env var names `DB_PASSWORD`, `REDIS_PASSWORD` |
+| microsoft/Sico/backend/internal/store/.../model_registry_secret.go | 10 | Table name constant |
+| microsoft/Sico/backend/internal/store/.../constants.go | 19, 51 | Key/column name constants `fencing_token` |
+| microsoft/Sico/backend/internal/store/.../errors.go | 15, 16 | Error message constants |
+| microsoft/Sico/backend/internal/transport/http/middleware/sandbox_auth.go | 54 | Context key constant `sandbox_client_secret` |
+| microsoft/Sico/deploy/kind/setup.sh | 349, 350 | Uses env vars `${DB_PASSWORD}`, `${REDIS_PASSWORD}` |
+| microsoft/mssql-jdbc/.../SQLServerCertificateUtils.java | 324 | PEM header constant `-----BEGIN RSA PRIVATE KEY-----` |
+| microsoft/Sico/core/app/tools/plan.py | 708 | Example ADO URL with placeholders |
+
+#### ENDPOINT_LEAK
+| File | Line | Notes |
+|------|------|-------|
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39, 44 | GCP metadata endpoint `metadata.google.internal` (internal, expected) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: metadata endpoint `169.254.169.254` |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: metadata endpoint `169.254.169.254` |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | Comments: metadata endpoint `169.254.169.254` SSRF notes |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | CIDR block `169.254.0.0/16` for metadata |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Metadata host check `metadata.google.internal` |
+| microsoft/mssql-jdbc/.../SQLServerConnection.java | 750 | Azure IMDS endpoint `169.254.169.254/metadata/identity/oauth2/token` (known, NOSONAR) |
+
+#### INTERESTING
+| File | Line | Notes |
+|------|------|-------|
+| google/ax/manifests/install-ax.sh | 239, 241, 286 | PG password from env or generated via `openssl rand -hex 16` (secure pattern) |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | Uses `${{ secrets.GITHUB_TOKEN }}` (correct secret usage) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Uses `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (correct) |
+| google/agents-cli/.../staging.yaml | 168, 192 | Uses `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` (correct) |
+| microsoft/Sico/deploy/kind/infra.yaml | 840 | ConfigMap kind (K8s) |
+| microsoft/Sico/deploy/kind/setup.sh | 320 | ConfigMap kind (K8s) |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/earthengine-api/python/ee/oauth.py:45 | **yes** | **ACCEPTED in KB** — Hardcoded OAuth client_secret confirmed live; valid Google credential (POST→invalid_grant not invalid_client); whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged; native-app OOB pattern caps VRP-worthiness per ADK #2128 precedent |
+| All other hits | **no** | Test fixtures, examples, env var references, comments, metadata endpoints, or correct secret usage patterns |
