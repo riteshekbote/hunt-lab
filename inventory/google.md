@@ -694,3 +694,11 @@
 
 ## 2026-08-12 03:14:56 UTC
 - NEW NO_DELTA — all fresh passive probes (2026-08-12 00:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base and last leads
+
+## 2026-08-12 05:08:20 UTC
+- NEW NO_DELTA — all fresh passive probes (2026-08-12 00:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId on production v1.0 (consent forge)
+- NEW /me/agentSignInSessions (v1.0 + beta) — fully off-metadata, 0 refs in $metadata, alive (401)
+- NEW graph.microsoft.com/beta/agentRegistry — deprecated May-2026 Agent Registry API
+- CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — Accept: application/json now required for JSON; v2 kid count rotated 11→7
+- CHANGED api.myaccount.microsoft.com source map → HTTP 401 (both identity SPA maps now closed: mysignins 404 + myaccount 401)

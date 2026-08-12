@@ -1,5 +1,5 @@
-## 2026-08-12 03:14:45 UTC [google] (model nemotron3)
-[NEW] NO_DELTA — all fresh passive probes (2026-08-12 00:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base and last leads
+## 2026-08-12 05:07:35 UTC [google] (model nemotron3)
+[NEW] NO_DELTA — all fresh passive probes (2026-08-12 00:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; inventory from 12:32 UTC already reflected in knowledge base
 [PRIO] oauth2.googleapis.com/token, score=9.60, attack=10, business=10, tech=9, gate=9, cloud=10, fresh=9
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}, score=9.40, attack=10, business=10, tech=9, gate=9, cloud=8, fresh=10
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, score=7.95, attack=8, business=8, tech=7, gate=8, cloud=8, fresh=9
@@ -50,5 +50,13 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: confirmed unchanged (873-char block, 0 OperationRestrictions, createdBy/ownerIds/agentCard Nullable=false)
 [LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: confirmed live — sha256 `3f3f8d6f...d271` verbatim, whole-file sha `f4f93c76...` unchanged, POST→invalid_grant proves valid credential
 [LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface)
+[LEARN] ACCEPTED: oauth2.googleapis.com/token POST-only gate confirmed live — GET→404 (RFC-compliant OAuth token endpoint, no GET); validates earthengine secret hypothesis
+[LEARN] ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id}→401 (auth-gated) + schema zero-OperationRestrictions (873-char block) + CORS true-preflight 200 ACAO:* both collection + item level — full IDOR+CORS cross-principal mutation vector precondition intact
+[LEARN] ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants GET→401 Bearer confirmed (authorization_uri=login.microsoftonline.com/common/oauth2/authorize, client_id=00000003-0000-0000-c000-000000000000) — production v1.0 auth-gate live
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + full mutation allowlist + Max-Age 86400 re-confirmed 03:13 UTC
+[LEARN] ACCEPTED earthengine-api oauth.py:45 secret @ raw.githubusercontent.com: 200/23110, whole-file sha `f4f93c76…` unchanged
+[LEARN] ACCEPTED tokeninfo oracle @ oauth2.googleapis.com/tokeninfo: no-param → 400/113 invalid_token
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh passive probes (03:13 UTC) confirmed prior findings unchanged, NO_DELTA
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk

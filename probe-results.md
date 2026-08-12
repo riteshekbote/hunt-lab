@@ -444,3 +444,7 @@ https://oauth2.googleapis.com/token -> HTTP 404
 https://oauth2.googleapis.com/token -> HTTP 404
 https://www.googleapis.com/auth/cloud-platform -> 200 len=14 type=text/html
 https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-12 05:08:20 UTC
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://oauth2.googleapis.com/token -> HTTP 404
