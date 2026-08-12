@@ -1735,3 +1735,4 @@ testability: HUMAN_ONLY
 [RISK] microsoft: 68 — Multiple AUTH_HELPED-blocked high-value surfaces: agentRegistration IDOR with live CORS vector (88), consent grant forge on production v1.0 (62), off-metadata /me/agentSignInSessions, deprecated-but-alive Agent Registry API. Source map recon fully closed (both SPAs hardened). Graph 405 anomaly + v1↔v2 dual-issuer remain AUTH_HELPED-gated. Program is under-tested by passive-only methodology — 2+ hypotheses blocked on AUTH_HELPED indicate significant hidden exposure.
 ## 2026-08-12 03:12:57 UTC [google] (model longcat)
 ## 2026-08-12 05:06:20 UTC [google] (model longcat)
+## 2026-08-12 06:40:27 UTC [google] (model longcat)
