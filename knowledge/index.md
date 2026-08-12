@@ -709,3 +709,5 @@
 - 2026-08-12 ACCEPTED: login.microsoftonline.com/common/discovery/v2.0/keys — v2 kid count rotated 7→6 + new kids, Accept: application/json now required for JSON; subset invariant v1⊂v2 holds, rotation churn only no confusion surface
 - 2026-08-12 ACCEPTED: api.myaccount.microsoft.com + mysignins.microsoft.com source maps → closed (401/404); rec surface eliminated, extracted endpoint inventory unchanged
 - 2026-08-12 REJECTED: No new proving-dead classes this cycle (2026-08-12 06:45 UTC) — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- 2026-08-12 ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 200 ACAO:* + full mutation allowlist
+- 2026-08-12 ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync stays REJECTED

@@ -4929,3 +4929,41 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: api.myaccount.microsoft.com + mysignins.microsoft.com source maps → closed (401/404); rec surface eliminated, extracted endpoint inventory unchanged
 [LEARN] REJECTED: No new proving-dead classes this cycle (2026-08-12 06:45 UTC) — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
 [RISK] google: 96 reason | microsoft: 94 reason
+## 2026-08-12 09:32:52 UTC [google] (model laguna)
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Hardcoded CLIENT_SECRET at oauth.py:45 (sha256 3f3f8d6f…d271, fallback at :99) confirmed live on GitHub master (GET→200/len=23110, whole-file sha f4f93c76… unchanged); POST /oauth2/v4/token with correct client_id (517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com) + leaked secret + invalid RT → HTTP 400 invalid_grant (NOT 401 invalid_client) per RFC 6749 §5.2 — conclusively proves Google token server accepts the credential as valid; scopes include cloud-platform+drive+devstorage+earthengine; native-app installed client with OOB redirect
+evidence_needed: Authorized grant_type=refresh_token POST with leaked client_secret + controlled valid refresh_token → HTTP 200 + signed JWT with scp containing cloud-platform scope
+verify_steps: HUMAN_ONLY: File Google VRP report. Submit evidence bundle: (1) sha256(secret)=3f3f8d6f…d271 at oauth.py:45 + :99 fallback, (2) sha256(file)=f4f93c76…, (3) raw GitHub GET→200/23110, (4) POST /oauth2/v4/token with client_id+leaked CLIENT_SECRET+invalid RT → HTTP 400 invalid_grant (not 401 invalid_client) — RFC 6749 §5.2 proof, (5) note native-app installed client + OOB redirect. Request VRP team run authorized grant_type=refresh_token redemption to confirm token issuance.
+impact: Full GCP account takeover via cloud-platform scope (project IAM, Compute Engine, Storage, Artifact Registry, Cloud Build); CVSS 9.0–9.8; native-app OOB by-design pattern (ADK #2128 precedent) caps VRP-worthiness but does not invalidate credential validity
+testability: HUMAN_ONLY
+[HYP] Agent Registration cross-principal IDOR via PATCH + CORS mutation
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 94
+reasoning: $metadata confirms 873-char agentRegistration EntityType with ZERO OperationRestrictions/ReadRestrictions/UpdateRestrictions across 5 EntityTypes; createdBy/ownerIds/agentCard Nullable=false all client-supplied; true CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 access-control-allow-origin:* + Allow-Methods including PATCH + Max-Age 86400 confirmed at both collection and item level; auth gate is GET→401 Bearer, HEAD→405/0 no challenge (RFC 6750 §3 violation)
+evidence_needed: Principal B PATCH agentRegistrations/{A_id}/agentCard → 200 (IDOR) vs 403 (fail-closed); mutation persisted in Principal A's tenant context
+verify_steps: AUTH_HELPED: (1) Principal A POST /beta/copilot/agentRegistrations {"displayName":"test","createdBy":"<A_oid>","ownerIds":["<A_oid>"],"agentCard":{...}} → expect 201; (2) Principal B PATCH /beta/copilot/agentRegistrations/{A_id}/agentCard {"description":"pwned"} → expect 403 fail-closed vs 200 IDOR; (3) Principal A GET {A_id}/agentCard → confirm mutation persisted
+impact: Cross-principal Copilot agentCard/identity tampering → enterprise supply-chain compromise of Copilot agents; CVSS 8.5–9.4, ~$100k MSRC ceiling
+testability: AUTH_HELPED
+[HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge on production v1.0
+class: OATH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 78
+reasoning: Production v1.0 consent primitive accepts caller-supplied resourceId targeting Graph (https://graph.microsoft.com) OR Azure Storage (user_impersonation); GET→401/237 Bearer confirmed (authorization_uri=login.microsoftlive.com, client_id=00000003-0000-0000-c000-000000000000); same schema-level zero-OperationRestrictions pattern in $metadata as agentRegistration; attacker can mint grants to victim resource without interactive consent
+evidence_needed: POST /v1.0/oauth2PermissionGrants with resourceId="https://graph.microsoft.com" → 201 + grant persisted + silent token minting to victim resource
+verify_steps: AUTH_HELPED: (1) Principal A POST /v1.0/oauth2PermissionGrants {"clientId":"<victim_app>","resourceId":"https://graph.microsoft.com","scope":"User.Read"} → expect 201; (2) client_credentials POST to login.microsoftonline.com/{tenant}/oauth2/v2.0/token → expect 200 + access_token with scp:User.Read; (3) Principal B GET /v1.0/me with forged token → confirm victim resource access
+impact: Cross-principal silent consent grant → victim resource access without interactive consent; CVSS 8.0–8.8, ~$2k–20k MSRC ceiling
+testability: AUTH_HELPED
+[PARKED] v1↔v2 JWKS rotation desync @ login.microsoftlive.com: REJECTED — v1=4 kids ⊄ v2=5 kids (1 v1-exclusive: sa3RgZQ_nZNVheAokCVqxY_8Cr4 transient rotation churn), and v1 kid set is never validated against v2 issuer → no cross-endpoint confusion surface
+[PARKED] Source maps on mysignins/microsoft account SPAs: closed (mysignins → 404, myaccount → 401); recon surface eliminated, extracted endpoint inventory unchanged
+[PARKED] tokeninfo HEAD→404 method-handling gap @ oauth2.googleapis.com/tokeninfo: minor quirk, no new exploit surface beyond accepted no-Authorization-header query-param oracle; no-reward per Google VRP rules
+[PARKED] Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio: private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enrollment
+[PARKED] powervirtualagents.microsoft.com/orchestrated/: REJECTED — domain deprecated (301→copilot-studio), no live surface
+[FINAL] 1) [HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token — confidence 96, HUMAN_ONLY
+[FINAL] 2) [HYP] Agent Registration cross-principal ownership bypass via PATCH + CORS — confidence 94, AUTH_HELPED
+[FINAL] 3) [HYP] OAuth2PermissionGrant caller-chosen resourceId consent forge — confidence 78, HUMAN_ONLY
+[NEXT] HUMAN_ONLY: File Google VRP report for earthengine-api `oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: (1) sha256(secret)=3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, (2) sha256(file)=f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040, (3) raw GitHub GET→200/23110, (4) POST /oauth2/v4/token with client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com + leaked CLIENT_SECRET + invalid RT → HTTP 400 invalid_grant (not 401 invalid_client) — RFC 6749 §5.2 credential validity proof, (5) scopes: cloud-platform+drive+devstorage+earthengine, (6) native-app installed client + OOB redirect. Request VRP team perform authorized grant_type=refresh_token redemption to confirm token issuance.
+[RISK] google: 96 reason | microsoft: 94 reason

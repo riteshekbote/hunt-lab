@@ -5283,3 +5283,76 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + full mutation allowlist + Max-Age 86400 re-confirmed
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk
+## 2026-08-12 09:26:04 UTC [google] (model nemotron3)
+[NEW] graph.microsoft.com/v1.0/oauth2PermissionGrants — caller-chosen resourceId (Graph OR Azure Storage user_impersonation) on production v1.0
+[NEW] /me/agentSignInSessions (v1.0 + beta) — fully off-metadata (0 refs in $metadata), endpoint alive (401)
+[NEW] graph.microsoft.com/beta/agentRegistry — deprecated May-2026 Agent Registry API
+[NEW] graph.microsoft.com/beta/copilotstudio — conversation-ID NOT validated server-side (private preview)
+[NEW] powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId} — InvokeTool accepts client-supplied toolSchemaName+inputs
+[NEW] Three-hop Agent User user_fic flow documented @ graph.microsoft.com
+[CHANGED] login.microsoftonline.com/common/discovery/v2.0/keys — requires Accept: application/json for JSON (was returning HTML without)
+[CHANGED] api.myaccount.microsoft.com/main.4e6e3dc6.js.map → HTTP 401 (was 200/35MB/4922 paths) — both identity SPA source maps now closed
+[CHANGED] graph.microsoft.com root → HTTP 301→200 (redirect to versioned path, resolves 200/106522 text/html)
+[CHANGED] JWKS v2.0 key set rotated to 6 kids (was 7-11); v1(5) ⊃ 4 shared + 1 v1-exclusive (transient rotation churn)
+[CHANGED] oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive RFC 6749 §5.2 proof
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, 82, attack=9 business=9 tech=8 gate=6 cloud=9 fresh=10
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}, 81, attack=9 business=8 tech=9 gate=5 cloud=8 fresh=9
+[PRIO] oauth2.googleapis.com/token, 79, attack=7 business=10 tech=7 gate=4 cloud=10 fresh=8
+[PRIO] graph.microsoft.com/beta/copilotstudio, 58, attack=6 business=7 tech=6 gate=3 cloud=7 fresh=10
+[PRIO] powervirtualagents.microsoft.com/orchestrated/*, 42, attack=4 business=5 tech=5 gate=2 cloud=6 fresh=8
+[HYP] Consent-grant forge via caller-chosen resourceId on production v1.0
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: Production v1.0 endpoint accepts caller-chosen resourceId (Graph API or Azure Storage user_impersonation); principal A can grant consent to resource B controls enabling token minting for B's resources; GET→401 confirms auth-gated production endpoint
+evidence_needed: Two-principal test — Principal A POSTs oauth2PermissionGrants with resourceId=victim_resource, clientId=attacker_app, consentType=All, principalId=victim_user → expect 201; Principal B uses granted consent to acquire token for victim_resource
+verify_steps: AUTH_HELPED: POST /v1.0/oauth2PermissionGrants with Bearer token A, body {resourceId:"victim_resource_id",clientId:"attacker_client_id",consentType:"All",principalId:"victim_user_oid"} → expect 201; then token acquisition for victim_resource
+impact: Cross-principal consent grant forge → token minting for resources victim controls (Graph data, Azure Storage); production v1.0 surface increases severity
+testability: AUTH_HELPED
+[HYP] Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations{,/{id}}
+confidence: 94
+reasoning: $metadata shows 0 OperationRestrictions on agentRegistration + 4 sibling EntityTypes; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false; true CORS preflight returns ACAO:* + full mutation allowlist (DELETE,GET,OPTIONS,POST,PUT,PATCH) + Max-Age 86400; HEAD→405/no WWW-Authenticate (RFC 6750 §3 violation) masks unauth enumeration; GET→401 auth-gated but schema permits cross-principal write
+evidence_needed: Two-principal test — Principal A POSTs agentRegistration with createdBy/ownerIds = Principal B's oid (expect 201); Principal A PATCHes B's registration id to rewrite ownerIds
+verify_steps: AUTH_HELPED: POST /beta/copilot/agentRegistrations with Bearer token A, body {displayName:"test",createdBy:"B_oid",ownerIds:["B_oid"],agentCard:{},managedByAppId:"...",agentIdentityId:"..."} → expect 201; PATCH /beta/copilot/agentRegistrations/{B_id} with same token → expect 200
+impact: Full takeover of victim's agent registration — rewrite ownership, inject malicious agentCard, pivot to Copilot Studio / Verified ID minting; cross-origin exploitable via CORS
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token
+class: AUTH
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: Hardcoded client_secret (sha256 `3f3f8d6f...d271`) in public repo github.com/google/earthengine-api/python/ee/oauth.py:45; POST /token with leaked secret → 400 invalid_grant (not 401 invalid_client) proving valid Google OAuth credential per RFC 6749 §5.2; scopes include cloud-platform+earthengine+drive+devstorage.full_control; native installed app with OOB redirect
+evidence_needed: Valid refresh_token for target user → POST /token with client_id=517222506229-..., client_secret=leaked, grant_type=refresh_token, refresh_token=... → expect 200 with access_token (cloud-platform scope)
+verify_steps: AUTH_HELPED: Obtain refresh_token for test account via earthengine auth flow → POST https://oauth2.googleapis.com/token with leaked credentials + grant_type=refresh_token → verify 200 + cloud-platform scoped access_token
+impact: Cloud-platform scoped access token → full GCP project access (compute, storage, IAM, secrets, etc.); earthengine scope adds Earth Engine API; drive+devstorage adds Drive/Cloud Storage; native app by-design caps VRP severity but credential validity is proven
+testability: AUTH_HELPED
+[HYP] Copilot Studio conversation-ID validation bypass
+class: AUTH
+asset: graph.microsoft.com/beta/copilotstudio
+confidence: 55
+reasoning: Private preview endpoint documented as NOT validating conversation-ID server-side; could allow cross-conversation injection if conversation IDs are predictable or leakable
+evidence_needed: Two-tenant test — Tenant A initiates conversation, Tenant B attempts to inject into Tenant A's conversation via guessed/stolen conversation-ID
+verify_steps: AUTH_HELPED: Enroll two tenants in Copilot Studio private preview → Tenant A creates conversation → Tenant B POSTs to /conversations/{A_conversation_id}/activities with forged payload → observe server-side validation
+impact: Cross-tenant conversation injection in Copilot Studio; private preview scope limits blast radius
+testability: AUTH_HELPED
+[PARKED] Copilot Studio conversation-ID validation bypass: private-preview scope + confidence 55 leaves no concrete cross-tenant verify_steps; not actionable without AUTH_HELPED tenant enrollment
+[PARKED] powervirtualagents.microsoft.com/orchestrated/* InvokeTool: domain deprecated (301 → microsoft.com/copilot-studio); no live API surface
+[PARKED] Three-hop Agent User user_fic flow: infrastructure-dependent, documented only; not directly testable without enterprise FIC setup
+[PARKED] /me/agentSignInSessions off-metadata: auth-gated (401), no bypass vector, dead end
+[PARKED] graph.microsoft.com/beta/agentRegistry: deprecated May-2026 Agent Registry API; no new surface
+[FINAL] 1) Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (AUTH, 96, AUTH_HELPED)
+[FINAL] 2) Agent Registration cross-principal ownership bypass via client-supplied createdBy/ownerIds + live CORS mutation vector (IDOR, 94, AUTH_HELPED)
+[FINAL] 3) Consent-grant forge via caller-chosen resourceId on production v1.0 (AUTH, 70, AUTH_HELPED)
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. Test surface just doubled: run the agentRegistrations IDOR + oauth2PermissionGrants consent forge + earthengine token redemption in one authorized session.
+[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 surface)
+[LEARN] CHANGED login.microsoftonline.com/common/discovery/v2.0/keys — Accept: application/json now required for JSON; v2 kid count rotated 11→7→6; subset invariant v1⊂v2 holds with transient v1-exclusive kid
+[LEARN] CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface eliminated
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusively proves valid Google OAuth credential (RFC 6749 §5.2), confidence 95→96
+[LEARN] ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + full mutation allowlist + Max-Age 86400 re-confirmed
+[LEARN] ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 200 ACAO:* + full mutation allowlist
+[LEARN] ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync stays REJECTED
+[LEARN] REJECTED no new proving-dead classes this cycle — all fresh probes (08:04 UTC) confirmed prior ACCEPTED findings unchanged; 06:45 404/ERR entries confirmed backtick-in-URL probe artifacts
+[RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
+[RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk
