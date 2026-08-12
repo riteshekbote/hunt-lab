@@ -1,12 +1,9 @@
-## 2026-08-12 22:09:35 UTC [google] (model bigpickle)
-[PRIO] graph.microsoft.com/beta/copilot/* (5-family: agentRegistrations, agentRegistry, agents, admin/catalog/packages, admin/policySettings): score 8.8 | attack 10, business 9, tech 9, gate 6, cloud 9, fresh 9
-[PRIO] oauth2.googleapis.com/token (+ earthengine-api source): score 8.0 | attack 8, business 9, tech 8, gate 8, cloud 8, fresh 7
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 7.6 | attack 8, business 9, tech 8, gate 6, cloud 8, fresh 7
+## 2026-08-12 23:01:32 UTC [google] (model bigpickle)
 [HYP] Copilot Admin 5-family cross-principal ownership bypass
 class: IDOR
-asset: graph.microsoft.com/beta/copilot/* (agentRegistrations{,/{id}}, agentRegistry, agents{,/{id}}, admin/catalog/packages{,/{id}}, admin/policySettings/{id})
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
-reasoning: item-level true-preflights all 5 families → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 (gateway-level byte-identical config); item-level GET → 401/237 Bearer, auth resolves before ID lookup; $metadata zero OperationRestrictions, createdBy/ownerIds/managedByAppId client-supplied Nullable=false.
+reasoning: item-level true-preflights all 5 families → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 (byte-identical gateway config); item-level GET → 401/237 Bearer (auth resolves before ID lookup); $metadata zero OperationRestrictions, createdBy/ownerIds/managedByAppId client-supplied Nullable=false.
 evidence_needed: principal B reads/mutates A's resource (200/204 vs 403) on any family.
 verify_steps: AUTH_HELPED: 1) A POST /beta/copilot/agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; 2) B GET collection→200 incl A vs 403; 3) B PATCH {A_id}→200/204 vs 403; 4) repeat on agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies only.
 impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
@@ -15,12 +12,12 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: raw oauth.py 200/len=23110, whole-file sha `f4f93c76…b73040` unchanged, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST /token → 400 `invalid_grant` (not 401 `invalid_client`) proves valid credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control; installed client + OOB redirect.
+reasoning: raw oauth.py 200/len=23110, whole-file sha `f4f93c76…` unchanged, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; POST /token with secret → 400 `invalid_grant` (not 401 `invalid_client`) proves valid Google OAuth credential per RFC 6749 §5.2; scopes cloud-platform+drive+devstorage.full_control; installed client + OOB redirect.
 evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
-verify_steps: HUMAN_ONLY: File Google VRP report (secret sha256 `3f3f8d6f…d271`, file sha `f4f93c76…b73040`, invalid_grant proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
+verify_steps: HUMAN_ONLY: File Google VRP report (secret sha256 `3f3f8d6f…d271` + file sha `f4f93c76…` + invalid_grant proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
 testability: HUMAN_ONLY
-[HYP] Consent-grant forge via caller-chosen resourceId (cross-principal)
+[HYP] Consent-grant forge via caller-chosen resourceId
 class: AUTH
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 72
@@ -29,8 +26,7 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
-[FINAL] 1. Copilot Admin 5-family cross-principal ownership bypass (IDOR, 97) — most complete passive map, highest impact, two-principal test defined
-[FINAL] 2. Earth Engine hardcoded client_secret redeemable for cloud-platform token (MISCONFIG, 96) — credential validity proven; capped by native-app by-design precedent
-[FINAL] 3. Consent-grant forge via caller-chosen resourceId (AUTH, 72) — schema+gate preconditions solid, unverified server-side cross-check
-[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck across [FINAL] 1 and 3. Passive surface exhausted (5-family CORS map complete at collection+item level, byte-identical gateway config; oauth2PermissionGrants GET→401 gate live). On grant, execute H1 verify_steps (A POST claim-B + B GET collection + B PATCH A_id across all 5 families) and H3 consent-forge in one session, logging status+bodies only.
-[RISK] google: 55 reason: public tokeninfo oracle (no-reward), earthengine valid-credential secret capped by native-app by-design precedent, no other unauth data-plane exposure — surface is credentials/API-bound | microsoft: 62 reason: Copilot 5-family + oauth2PermissionGrants zero-restriction schema + universal ACAO:* mutation preflights are preconditions only (all 401-gated); exploit requires authorized tenant, but blast radius if confirmed is cross-principal tenant-wide.
+[FINAL] 1. Copilot Admin 5-family cross-principal ownership bypass (IDOR, 97)
+[FINAL] 2. Earth Engine hardcoded client_secret redeemable for cloud-platform token (MISCONFIG, 96)
+[FINAL] 3. Consent-grant forge via caller-chosen resourceId (AUTH, 72)
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (5-family CORS map complete, JWKS subset invariant strict, all gates stable). On grant, execute H1 verify_steps (A POST claim-B, B GET collection, B PATCH A_id across all 5 families) and H3 consent-forge in one session, logging status+bodies only.

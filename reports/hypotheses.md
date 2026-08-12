@@ -2453,3 +2453,17 @@
 - LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
 - LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
 - LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* — redirects to copilot-studio, domain deprecated, no live API surface
+
+## RANKED HYPOTHESES 2026-08-12 23:02:59 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings/{id}}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (5-fam
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 (5-family IDOR+CORS) and [FINAL] 3 (consent f
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/* true CORS preflight → 200 ACAO:* + full mutation allowlist incl. PATCH + Max-Age 86400 at collection+item level — ID
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not invalid_client) — conclusive RFC 6749 §5.2 proof of valid Google OA
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4–5 kids)⊂v2(6–8 kids) steady-state subset holds across all cycle rotations; v1 kid set neve
+- LEARN: REJECTED source maps @ both identity SPAs closed — mysignins 404 + myaccount 401; recon surface eliminated, extracted endpoint inventory unchanged.
+- LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable.
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
