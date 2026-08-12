@@ -1,8 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
+### Classification Tables
 
-### REAL_SECRET
-| File | Line | SHA256(secret) | Notes |
-|------|------|----------------|----
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in delta)* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — standard GHA auto-token |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — standard GHA auto-token |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"` — standard GHA auto-token |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` — scheme constant name |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | Example values in JSDoc comments |
+| google/dotprompt/.github/workflows/*.yml | 33,34 | `https://test.pypi.org/legacy/` — test PyPI URLs |
+| google/magika/.github/workflows/*.yml | 20,407,437 | GHA token ref + test PyPI URLs |
+| google/capsem/scripts/*.sh | 15,39 | Password read from file (not hardcoded) |
+| google/capsem/config/gate.toml | 474 | `password = "password.txt"` — file reference |
+| google/device-infra/src/java/.../DeviceAdminUtil.java | 49,50 | Android action string constants |
+| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | Parameter name constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder value |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | GHA token output references (templates) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag default name `storage_driver_password` |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified build artifacts (parse error messages) |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` — internal Microsoft timestamp server (RFC3161 code signing) |
+| google/horologist/datalayer/.../PreferencesSerializer.kt | 43 | `https://b.corp.google.com/issues/241749603` — internal Google issue tracker |
+| google/libultrahdr/third_party/.../image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` — internal Google code search (cs.corp) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` — staging deployment URL |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563 | `"169.254.169.254"` — AWS/Azure IMDS metadata IP (well-known) |
+| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 566 | `"metadata.google.internal"` — GCP metadata DNS (well-known) |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` — GCP metadata check |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — secret reference pattern (not value) |
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | GCP metadata service calls for SA email/scopes (ADC bootstrapping) |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| microsoft/agent-governance-toolkit esrp-publish.yml timestamp server URL | ENDPOINT_LEAK | **no** (internal corporate infra, not a secret) |
+| microsoft/agent-governance-toolkit OpaPolicyBackend.cs cloud metadata refs | INTERESTING | **no** (well-known public endpoints) |
+| google/horologist internal issue tracker URL | ENDPOINT_LEAK | **no** (internal tracking, no creds) |
+| google/libultrahdr internal cs.corp.google.com URL | ENDPOINT_LEAK | **no** (internal code search, no creds) |
+| google/capsem staging deployment URL | ENDPOINT_LEAK | **no** (staging endpoint, no creds) |
+| google/adk-go Cloud Run `--set-secrets` flag | INTERESTING | **no** (secret *reference* pattern, not value) |
+| google/device-infra GCP metadata service calls | INTERESTING | **no** (standard ADC bootstrapping) |
+| All GitHub Actions `${{ secrets.GITHUB_TOKEN }}` refs | TEST_OR_EXAMPLE | **no** (standard GHA ephemeral token) |
+| All placeholder/example values (`password`, `your_access_token`, etc.) | TEST_OR_EXAMPLE | **no** (obvious non-secrets) |
+
+**Summary**: No REAL_SECRET candidates in this delta. The 6 new Microsoft hits are 3× standard GHA token refs (TEST_OR_EXAMPLE), 1× internal timestamp server URL (ENDPOINT_LEAK, non-secret), 2× well-known cloud metadata endpoints (INTERESTING). All Google hits in full grep are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URLs), or INTERESTING (metadata refs). The previously ACCEPTED earthengine-api OAuth client_secret is **not in this delta** (already known live per KB).
