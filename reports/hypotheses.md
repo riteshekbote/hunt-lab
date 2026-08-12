@@ -2342,3 +2342,27 @@
 - LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
 - LEARN: REJECTED no new proving-dead classes this cycle — all fresh probes confirmed prior ACCEPTED findings unchanged
 - LEARN: REJECTED no new proving-dead classes this cycle — 14:54:17 UTC passive probes (token GET→404, graph root 200, cloud-platform scope 404-artifact) confirmed prior
+
+## RANKED HYPOTHESES 2026-08-12 16:45:11 UTC
+- [97] graph.microsoft.com/beta/copilot/*: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped token (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — passive surface map is now COMPLETE across all 5 Copilot Admin families (identica
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for earthengine-api `oauth.py:45` hardcoded OAuth client_secret. Evidence bundle: (1) sha256(secret)=3f3f8d6f29db1b06cbfc212a718c1
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: ACCEPTED v1(3)⊂v2(5) JWKS strict subset holds this probe @ login.microsoftonline.com — 0 v1-exclusive despite continued rotation (v2 8→11→7→5); rotation-desync 
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: ACCEPTED oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — consent grant forge precondition confirmed in inventory (production-v1.0 s
+- LEARN: ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight → 200 ACAO:* + fu
+- LEARN: ACCEPTED Copilot Admin 5-family uniform auth+CORS posture @ graph.microsoft.com/beta/copilot/*: agents, admin/catalog/packages, admin/policySettings/{id} newly 
+- LEARN: REJECTED no new proving-dead classes this cycle — all other fresh probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is gran
+- LEARN: ACCEPTED agentRegistrations CORS mutation vector confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations — true CORS preflight (Origin+ACRM:PATCH+A
+- LEARN: ACCEPTED oauth2PermissionGrants auth-gate confirmed @ graph.microsoft.com/v1.0 — GET→401/237 Bearer (authorization_uri=login.microsoftonline.com/common/oauth2/a
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live @ 2026-08-12 15:47 UTC — whole-file sha `f4f93c76…` unchanged, secret sha `3f3f8d6f…d271` v
+- LEARN: ACCEPTED bughunters.google.com root hardening confirmed live — HTTPS 200, HSTS max-age=2592000;includeSubDomains, X-Frame-Options: DENY, X-Content-Type-Options:
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds across all cycles (v1=4 kids ⊂ v2=6-8 kids, 0 persist
+- LEARN: REJECTED source maps @ both identity SPAs closed — mysignins 404 + myaccount 401; recon surface eliminated (2026-08-12 sustained)
+- LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
+- LEARN: REJECTED deprecated agentRegistry POST surface @ graph.microsoft.com/beta/agentRegistry — GET/POST/HOST same auth+CORS posture as agentRegistrations, but deprec
