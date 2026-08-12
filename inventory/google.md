@@ -741,3 +741,5 @@
 - CHANGED graph.microsoft.com root → HTTP 301→200 (redirect to versioned path, resolves 200/106522 text/html)
 - CHANGED JWKS v2.0 key set rotated to 6 kids (was 7-11); v1(5) ⊃ 4 shared + 1 v1-exclusive (transient rotation churn)
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) — conclusive RFC 6749 §5.2 proof
+
+## 2026-08-12 10:40:03 UTC
