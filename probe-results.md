@@ -482,3 +482,9 @@ https://oauth2.googleapis.com/token -> HTTP 404
 https://oauth2.googleapis.com/token -> HTTP 404
 https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
 https://graph.microsoft.com` -> ERR <urlopen error [Errno -2] Name or service not know
+
+## 2026-08-12 14:54:17 UTC
+https://www.googleapis.com/auth/cloud-platform` -> HTTP 404
+https://graph.microsoft.com` -> ERR <urlopen error [Errno -2] Name or service not know
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://oauth2.googleapis.com/token -> HTTP 404
