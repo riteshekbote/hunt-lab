@@ -1,245 +1,52 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -130 | tail -20
-dotenv_file_path = os.path.join(agent_folder, ".env")
-  init_file_path = os.path.join(agent_folder, "__init__.py")
-  agent_py_file_path = os.path.join(agent_folder, "agent.py")
-  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+### Classification Tables
 
-  with open(dotenv_file_path, "w", encoding="utf-8") as f:
-    lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
-Example:
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none in delta* | — | — | — |
 
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder value `"gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GitHub Actions `${{ secrets.* }}` references |
+| google/android-cuttlefish/.github/workflows/*.yml | 48, 52, 58, 60, 62, 64, 100, 175 | All use `${{ secrets.GITHUB_TOKEN }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` |
+| google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | 195, 222, 245 | `${{ secrets.artifact-registry-uploader-json-creds }}` |
+| google/capsem/config/gate.toml | 475 | `password = "password.txt"` (file reference, test config) |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads `PASSWORD` from file (script helper) |
+| google/capsem/scripts/preflight.sh | 39 | Reads `password` from file (script helper) |
+| google/langextract/.github/workflows/ci.yaml | 169, 170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269, 278 | `username="user", password="password"`, `token="eyAkaknabna...."` (obvious placeholders) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
 
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py | 22 | `http://metadata.google.internal/computeMetadata/v1` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` |
 
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '55,70p'
-client_secret: The client secret.
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — truncated/placeholder (not a live key) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 123 | `GOOGLE_API_KEY={google_api_key}` — template variable, not a secret |
 
-  Example:
-      config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
+---
 
-  client_id: str
-  auth_uri: str
-  token_uri: str
-  client_secret: str
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | sed -n '170,180p'
-theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-    },
-    algolia: {
-      appId: 'WRVGZCGOJP',
-      apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-      indexName: 'XR Blocks Docs Crawler',
-      contextualSearch: true,
-      // Optional: Replace parts of the item URLs from Algolia. Useful when
-      // using the same search index for multiple deployments using a different
-      // baseUrl. You can use regexp or string in the `from` param. For example:
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | sed -n '4635,4645p'
-* @constructor
- * @deprecated As of version 3.65, google.maps.KmlLayer is deprecated. For
- *     alternative methods of displaying KML data on the map, see <a
- *     href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026">https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026</a>
- */
-google.maps.KmlLayer = function(opts) {};
+### Short Verdict List
 
-/**
- * Get the default viewport for the layer being displayed.
- * @return {?google.maps.LatLngBounds}
- */
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | sed -n '90,100p'
-* <p>This method's name is misleading.
-   *
-   * <p>It is called by the {@code AbstractRule.report} method, but none of the implementations of
-   * this method actually check whether the violation is allowlisted or not. The actual checking of
-   * allowlists is done later at the call-site in the {@code AbstractRule.report} method. See -
-   * https://source.corp.google.com/piper///depot/google3/third_party/java_src/jscomp/java/com/google/javascript/jscomp/ConformanceRules.java;rcl=783510053;l=364
-   *
-   * <p>The implementations of this method always delegate to this method (return true) as long as
-   * the violation is not in a generated code file (which is always safe and never reported) or is
-   * being used by ConformanceAllowlister to generate allowlist updates (therefore not reported).
-   * For all violations other violations (except in generated code), this method returns true.
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h | head -15
-// Copyright (c) 2012 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api `oauth.py:45` (known from prior cycles) | REAL_SECRET | **yes** — already ACCEPTED in KB, valid Google OAuth credential (POST→`invalid_grant`) |
+| All delta hits above | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** — placeholders, secret refs, or internal metadata URLs only |
+| `auth_credential.py:157` private_key | INTERESTING | **no** — truncated placeholder (`...`) |
+| GCP metadata endpoint refs (`169.254.169.254`, `metadata.google.internal`) | ENDPOINT_LEAK | **no** — well-known public endpoints, not sensitive |
 
-// This file contains some protocol structures for use with SPDY 3 and HTTP 2
-// The SPDY 3 spec can be found at:
-// http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3
-
-#ifndef QUICHE_HTTP2_CORE_SPDY_PROTOCOL_H_
-#define QUICHE_HTTP2_CORE_SPDY_PROTOCOL_H_
-
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
-#include <iosfwd>
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h | sed -n '120,135p'
-// Loads a DER-encoded PrivateKeyInfo structure (RFC 5958) as a private key.
-  static std::unique_ptr<CertificatePrivateKey> LoadFromDer(
-      absl::string_view private_key);
-
-  // Loads a private key from a PEM file formatted according to RFC 7468.  Also
-  // supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").
-  static std::unique_ptr<CertificatePrivateKey> LoadPemFromStream(
-      std::istream* input);
-
-  // |signature_algorithm| is a TLS signature algorithm ID.
-  std::string Sign(absl::string_view input, uint16_t signature_algorithm) const;
-
-  // Verifies that the private key in question matches the public key of the
-  // certificate |view|.
-  bool MatchesPublicKey(const CertificateView& view) const;
-[0m
-[0m$ [0mecho "=== REAL_SECRET ===" && echo "None found - no hardcoded live credentials detected" && echo "" && echo "=== TEST_OR_EXAMPLE ===" && cat << 'EOF'
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/xrblocks/src/ai/AI.ts | 303-304 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}`, `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` | Placeholder test keys |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch key (public by design, REJECTED in KB) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant example |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Example placeholder |
-EOF
-echo "" && echo "=== ENDPOINT_LEAK ===" && cat << 'EOF'
-| File | Line | Context | Type |
-|------|------|---------|------|
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | 4638 | `https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026` | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js | 4638 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js | 4639 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js | 4639 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27, 166, 205 | `https://dev.office.com/...` | Microsoft dev docs URLs |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Google source URL |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | `http://dev.chromium.org/spdy/...` | Public Chromium docs (low severity) |
-EOF
-echo "" && echo "=== INTERESTING ===" && cat << 'EOF'
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References to `169.254.169.254` metadata endpoint | Cloud metadata IP documented in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Reference to `169.254.169.254` metadata endpoint | Cloud metadata IP documented in comments |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant name (not a secret) |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment: "supports legacy OpenSSL RSA key format" | Documents legacy key format support |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` | Fetches from Secret Manager at runtime (not hardcoded) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` | Fetches from Secret Manager at runtime (not hardcoded) |
-| google/langextract/.github/workflows/ci.yaml | 168 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | GitHub Actions secret reference (not hardcoded) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-provided `google_api_key` to .env file | User input, not hardcoded |
-EOF
-=== REAL_SECRET ===
-None found - no hardcoded live credentials detected
-
-=== TEST_OR_EXAMPLE ===
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/xrblocks/src/ai/AI.ts | 303-304 | `gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'}`, `openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'}` | Placeholder test keys |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch key (public by design, REJECTED in KB) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Example placeholder |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant example |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Example placeholder |
-
-=== ENDPOINT_LEAK ===
-| File | Line | Context | Type |
-|------|------|---------|------|
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | 4638 | `https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026` | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js | 4638 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js | 4639 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js | 4639 | Same internal URL | Internal Google docs URL |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27, 166, 205 | `https://dev.office.com/...` | Microsoft dev docs URLs |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Google source URL |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | `http://dev.chromium.org/spdy/...` | Public Chromium docs (low severity) |
-
-=== INTERESTING ===
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References to `169.254.169.254` metadata endpoint | Cloud metadata IP documented in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Reference to `169.254.169.254` metadata endpoint | Cloud metadata IP documented in comments |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant name (not a secret) |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment: "supports legacy OpenSSL RSA key format" | Documents legacy key format support |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` | Fetches from Secret Manager at runtime (not hardcoded) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` | Fetches from Secret Manager at runtime (not hardcoded) |
-| google/langextract/.github/workflows/ci.yaml | 168 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | GitHub Actions secret reference (not hardcoded) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 123 | Writes user-provided `google_api_key` to .env file | User input, not hardcoded |
-[0m
-Now I have enough context to classify all hits. Let me produce the classification tables.
-### VERDICT LIST
-
-| Candidate | File | Classification | REPORT_CANDIDATE | Reason |
-|-----------|------|----------------|------------------|--------|
-| Algolia DocSearch key | google/xrblocks/docs/docusaurus.config.ts:175 | TEST_OR_EXAMPLE | **no** | Public-by-design search key (KB REJECTED 2026-08-07) |
-| ADK auth_credential placeholders | google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278 | TEST_OR_EXAMPLE | **no** | Example code with obvious placeholders |
-| ADK auth_schemes PASSWORD | google/adk-python/src/google/adk/auth/auth_schemes.py:68 | TEST_OR_EXAMPLE | **no** | Example constant |
-| ADK openapi client_secret | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | TEST_OR_EXAMPLE | **no** | Example placeholder "your_client_secret" |
-| xrblocks placeholder keys | google/xrblocks/src/ai/AI.ts:303-304 | TEST_OR_EXAMPLE | **no** | Explicit `YOUR_*_API_KEY_HERE` placeholders |
-| Internal Google URLs (devsite.corp) | google/closure-compiler/contrib/externs/maps/*.js | ENDPOINT_LEAK | **no** | Internal docs URLs in externs (type defs), low risk |
-| Internal Google source URL | google/closure-compiler/src/.../ErrorManager.java:95 | ENDPOINT_LEAK | **no** | Internal source link in JavaDoc comment |
-| Microsoft dev.office.com URLs | google/closure-compiler/contrib/externs/ms-office-1.3.js | ENDPOINT_LEAK | **no** | Public Microsoft dev docs |
-| Cloud metadata IP (169.254.169.254) | google/adk-python/.../container_code_executor.py, load_web_page.py | INTERESTING | **no** | Well-known metadata IP documented in comments |
-| Secret Manager usage | google/crosvm/.../codecov_wrapper.sh, push_to_github.sh | INTERESTING | **no** | Proper secret fetching at runtime, not hardcoded |
-| GitHub Actions secret ref | google/langextract/.github/workflows/ci.yaml:168 | INTERESTING | **no** | Proper `${{ secrets.* }}` reference |
-| ADK cli_create .env write | google/adk-python/.../cli_create.py:123 | INTERESTING | **no** | Writes user-provided key, not hardcoded |
-
-**SUMMARY: No REPORT_CANDIDATE=yes findings in this delta.** All hits are either test/examples, proper secret management patterns, or low-severity endpoint leaks in comments/externs. The previously known hardcoded secret in `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) was NOT in this scan delta (different repo).
+**No new REAL_SECRET findings in this delta.** The only reportable credential remains the previously-accepted Earth Engine hardcoded `client_secret` at `google/earthengine-api/python/ee/oauth.py:45`.
