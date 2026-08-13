@@ -805,3 +805,7 @@
 - 2026-08-13 ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPAs now closed (mysignins 404 + myaccount 401); recon surface eliminated
 - 2026-08-13 ACCEPTED v1(4)⊂v2(7) JWKS strict subset restored this probe — 0 v1-exclusive (`jvm_-Ttaq` v1-exclusive rotated out, new v2-only `T5h40q7…` added); rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer)
 - 2026-08-13 ACCEPTED agentRegistrations auth-gate live — GET→401/237 InvalidAuthenticationToken; tokeninfo oracle 400/113 invalid_token; earthengine secret source live (sha `3f3f8d6f…d271` / file `f4f93c76…73040`) — NO_DELTA, no newly-proven-dead or -live classes this cycle
+- 2026-08-13 ACCEPTED Copilot Admin 5-family IDOR precondition intact @ graph.microsoft.com/beta/copilot/* — GET 401/237, true-preflight 200 ACAO:* + full mutation allowlist, $metadata 0 OperationRestrictions; NO_DELTA this cycle.
+- 2026-08-13 ACCEPTED earthengine secret live + valid credential @ oauth2.googleapis.com/token — invalid_grant proof, source sha `f4f93c76…` unchanged; NO_DELTA.
+- 2026-08-13 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds (rotation churn only), no cross-endpoint confusion surface; unchanged.
+- 2026-08-13 REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings (NO_DELTA @ 03:57 UTC).

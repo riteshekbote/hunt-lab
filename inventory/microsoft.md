@@ -805,3 +805,5 @@
 - CHANGED JWKS v2.0 key set rotated to 6 kids (v1=5, 4 shared + 1 v1-exclusive `jvm_-Ttaq…`) — transient rotation churn
 - CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained (both identity SPAs now closed: mysignins 404 + myaccount 401)
 - CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) re-confirmed
+
+## 2026-08-13 05:44:14 UTC

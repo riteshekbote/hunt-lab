@@ -2513,3 +2513,17 @@
 - LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* — redirects to copilot-studio, domain deprecated, no live API surface
 - LEARN: ACCEPTED v1(4)⊂v2(7) JWKS strict subset restored this probe — 0 v1-exclusive (`jvm_-Ttaq` v1-exclusive rotated out, new v2-only `T5h40q7…` added); rotation-desy
 - LEARN: ACCEPTED agentRegistrations auth-gate live — GET→401/237 InvalidAuthenticationToken; tokeninfo oracle 400/113 invalid_token; earthengine secret source live (sha
+
+## RANKED HYPOTHESES 2026-08-13 05:44:14 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (item-level confirmed) (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (NO_DELTA 
+- NEXT(hypotheses-laguna.txt): HUMAN: Two simultaneous tracks. (1) File Google VRP report for [FINAL] 2 (earthengine secret) with evidence bundle — sha256(secret)=`3f3f8d6f…d271`, sha256(file
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-J
+- LEARN: ACCEPTED Copilot Admin 5-family IDOR precondition intact @ graph.microsoft.com/beta/copilot/* — GET 401/237, true-preflight 200 ACAO:* + full mutation allowlist
+- LEARN: ACCEPTED earthengine secret live + valid credential @ oauth2.googleapis.com/token — invalid_grant proof, source sha `f4f93c76…` unchanged; NO_DELTA.
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds (rotation churn only), no cross-endpoint confusion su
+- LEARN: REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings (NO_DELTA @ 03:57 UTC).

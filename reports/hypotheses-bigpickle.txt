@@ -1,4 +1,4 @@
-## 2026-08-13 03:56:00 UTC [google] (model bigpickle)
+## 2026-08-13 05:40:53 UTC [google] (model bigpickle)
 [PRIO] oauth2.googleapis.com/token (+earthengine-api oauth.py:45 source): score 7.65 — attack 6, business 9, tech 6, gate 10 (source publicly readable), cloud 10, fresh 5
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: score 7.40 — attack 9, business 9, tech 8, gate 2 (401-gated), cloud 9, fresh 5
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 7.35 — attack 8, business 9, tech 8, gate 2 (401-gated), cloud 9, fresh 7
@@ -6,7 +6,7 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
-reasoning: Fresh probe — GET collection → 401/237 (auth-gated, auth resolves before ID lookup); true CORS preflight → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 (prior cycles, sustained). $metadata: zero OperationRestrictions, createdBy/ownerIds/managedByAppId client-supplied Nullable=false across 5 EntityTypes.
+reasoning: Fresh probe — GET collection+item → 401/237 (auth resolves before ID lookup); true CORS preflight → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 (sustained at both levels); $metadata zero OperationRestrictions, createdBy/ownerIds/managedByAppId client-supplied Nullable=false across 5 EntityTypes.
 evidence_needed: Principal B reads/mutates A's resource (200/204 vs 403) on any family.
 verify_steps: AUTH_HELPED: 1) A POST /beta/copilot/agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}} → 201; 2) B GET collection → 200 incl A vs 403; 3) B PATCH {A_id} → 200/204 vs 403; 4) repeat on agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies only.
 impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
@@ -15,8 +15,8 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Fresh probe — raw GET → 200/len=23110, whole-file sha `f4f93c76…73040` unchanged, secret value sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; token GET→404 (POST-only gate); prior POST with secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2.
-evidence_needed: Authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
+reasoning: raw oauth.py 200/len=23110, whole-file sha `f4f93c76…` unchanged, secret value sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; token GET→404 (POST-only gate); POST with secret → 400 `invalid_grant` (not 401 `invalid_client`) per RFC 6749 §5.2.
+evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
 verify_steps: HUMAN_ONLY: File Google VRP report (secret sha256 `3f3f8d6f…d271`, file sha `f4f93c76…`, invalid_grant A/B proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
 testability: HUMAN_ONLY
@@ -29,11 +29,13 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: A POST {clientId:<own app>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"} → 201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
-[FINAL] 1. Copilot Admin 5-family cross-principal ownership bypass (IDOR, 97) — schema zero-restrictions + CORS preflight sustained this probe
-[FINAL] 2. Earth Engine hardcoded client_secret redeemable (MISCONFIG, 96) — secret sha `3f3f8d6f…d271` verbatim, whole-file sha unchanged, invalid_grant proof
+[FINAL] 1. Copilot Admin 5-family cross-principal ownership bypass (IDOR, 97) — auth-gate + CORS preflight + zero-restriction schema all re-verified this cycle
+[FINAL] 2. Earth Engine hardcoded client_secret redeemable (MISCONFIG, 96) — secret sha `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, invalid_grant proof
 [FINAL] 3. Consent-grant forge via caller-chosen resourceId (AUTH, 72) — v1.0 auth-gate live, schema precondition intact
-[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (5-family CORS map + auth-gate + $metadata zero-restrictions all re-verified this probe). On grant, execute the H1 verify_steps (A POST claim-B, B GET collection, B PATCH A_id across all 5 families) and H3 consent-forge in one session, logging status+bodies only.
-[LEARN] ACCEPTED v1(4)⊂v2(7) JWKS strict subset restored this probe — 0 v1-exclusive (`jvm_-Ttaq` v1-exclusive rotated out, new v2-only `T5h40q7…` added); rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer)
-[LEARN] ACCEPTED agentRegistrations auth-gate live — GET→401/237 InvalidAuthenticationToken; tokeninfo oracle 400/113 invalid_token; earthengine secret source live (sha `3f3f8d6f…d271` / file `f4f93c76…73040`) — NO_DELTA, no newly-proven-dead or -live classes this cycle
-[RISK] google: 42 — live valid OAuth credential (invalid_grant proof) but native-app OOB by-design caps VRP-worthiness; tokeninfo oracle no-reward; no unauth data-plane access reachable passively.
-[RISK] microsoft: 58 — high-value IDOR+CORS preconditions fully mapped across 5 Copilot families + consent-forge precondition, but all auth-gated (401); exploitability blocked on AUTH_HELPED; breadth of exposed mutation allowlist elevates exposure.
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (NO_DELTA this cycle: 401-gate, true-preflight 200 ACAO:* + PATCH allowlist, $metadata zero-restrictions all re-verified). On grant, execute H1 verify_steps across all 5 families + H3 consent-forge in one session, logging status+bodies only.
+[LEARN] ACCEPTED Copilot Admin 5-family IDOR precondition intact @ graph.microsoft.com/beta/copilot/* — GET 401/237, true-preflight 200 ACAO:* + full mutation allowlist, $metadata 0 OperationRestrictions; NO_DELTA this cycle.
+[LEARN] ACCEPTED earthengine secret live + valid credential @ oauth2.googleapis.com/token — invalid_grant proof, source sha `f4f93c76…` unchanged; NO_DELTA.
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds (rotation churn only), no cross-endpoint confusion surface; unchanged.
+[LEARN] REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings (NO_DELTA @ 03:57 UTC).
+[RISK] google: 42 — live valid OAuth credential (invalid_grant proof, sha `3f3f8d6f…d271`) but native-app OOB by-design caps VRP-worthiness; tokeninfo oracle no-reward; no unauth data-plane reach passively.
+[RISK] microsoft: 58 — high-value IDOR+CORS preconditions fully mapped across 5 Copilot families (PATCH allowlist, Max-Age 86400) + consent-forge precondition; all auth-gated (401), exploitability blocked on AUTH_HELPED; mutation-allowlist breadth elevates exposure.
