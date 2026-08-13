@@ -809,3 +809,6 @@
 - 2026-08-13 ACCEPTED earthengine secret live + valid credential @ oauth2.googleapis.com/token — invalid_grant proof, source sha `f4f93c76…` unchanged; NO_DELTA.
 - 2026-08-13 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds (rotation churn only), no cross-endpoint confusion surface; unchanged.
 - 2026-08-13 REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings (NO_DELTA @ 03:57 UTC).
+- 2026-08-13 ACCEPTED All three hypotheses remain live — NO_DELTA this cycle (05:44 UTC): agentRegistrations 5-family IDOR+CORS, earthengine client_secret valid credential, oauth2PermissionGrants consent forge
+- 2026-08-13 ACCEPTED oauth2.googleapis.com/token GET→404 (POST-only gate) — validates earthengine secret redemption path is grant_type=refresh_token only
+- 2026-08-13 REJECTED No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
