@@ -1,14 +1,35 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
-[0m
-[0m$ [0mgrep -r "iU5ohAF2qcqrujegE3hQ1cPt" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/ 2>/dev/null | head -20
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-[0m
-[0m$ [0mgrep -r "not-a-valid-client-secret" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go:		ClientSecret: "not-a-valid-client-secret",
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/skia-buildbot/go/login/login.go:	oauthConfig = configConstructor("not-a-valid-client-id", "not-a-valid-client-secret", "http://localhost:8000/oauth2callback/")
-[0m
+### Classification Table
+
+| Category | Files | Count |
+|----------|-------|-------|
+| **REAL_SECRET** | *(none)* | 0 |
+| **TEST_OR_EXAMPLE** | adk-js auth_schemes.ts, auth_credential.ts (JSDoc examples), adk-go webui distr (parser errors in minified JS), skia-buildbot auth.go, metadata.go, buildbucket.go, autoroll-fe/main.go (explicitly fake values) | 15+ |
+| **ENDPOINT_LEAK** | closure-compiler externs (dev.w3.org, dev.office.com, developers.devsite.corp.google.com, source.corp.google.com), skia-buildbot metadata URL, issuetracker API key flag help text | 20+ |
+| **INTERESTING** | adk-go cloudrun.go:246 (Cloud Run `--set-secrets` reference to Secret Manager) | 1 |
+
+---
+
+### Verdict List
+
+| File:Line | Classification | REPORT_CANDIDATE | Notes |
+|-----------|---------------|------------------|-------|
+| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | INTERESTING | **no** | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` references Secret Manager, not a hardcoded secret |
+| adk-js/core/src/auth/auth_schemes.ts:41 | TEST_OR_EXAMPLE | **no** | Constant `PASSWORD = 'password'` defines auth scheme type |
+| adk-js/core/src/auth/auth_credential.ts:214,226 | TEST_OR_EXAMPLE | **no** | JSDoc example values `"password"`, `"your_access_token"` |
+| adk-go/cmd/launcher/web/webui/distr/*.js | TEST_OR_EXAMPLE | **no** | Parser error messages in minified/bundled JS |
+| closure-compiler/externs/* | ENDPOINT_LEAK | **no** | Public documentation/spec URLs (dev.w3.org, dev.office.com, developers.devsite.corp.google.com) |
+| closure-compiler/src/.../ErrorManager.java:95 | ENDPOINT_LEAK | **no** | Internal source link (source.corp.google.com) |
+| skia-buildbot/autoroll/go/autoroll-fe/main.go:76 | ENDPOINT_LEAK | **no** | Service account email (not a secret) |
+| skia-buildbot/autoroll/go/autoroll-fe/main.go:98 | TEST_OR_EXAMPLE | **no** | Explicitly fake: `"not-a-valid-client-secret"` |
+| skia-buildbot/bugs-central/go/bugs-central/main.go:61 | TEST_OR_EXAMPLE | **no** | Placeholder value `"bugs-central-github-token"` (not real GH token format) |
+| skia-buildbot/go/auth/auth.go:30 | TEST_OR_EXAMPLE | **no** | Filename constant `"service-account.json"` |
+| skia-buildbot/go/metadata/metadata.go:23,27,30 | TEST_OR_EXAMPLE | **no** | Constant identifiers `"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"` |
+| skia-buildbot/go/buildbucket/buildbucket.go:24 | TEST_OR_EXAMPLE | **no** | Header name constant `"x-buildbucket-token"` |
+| skia-buildbot/go/gce/swarming/.../setup-script-linux-ct.sh:176 | ENDPOINT_LEAK | **no** | GCP metadata server URL (public knowledge) |
+| skia-buildbot/go/issuetracker/getdiscovery.go:15 | ENDPOINT_LEAK | **no** | Flag help text with example corp URL |
+| skia-buildbot/go/revportforward/... | ENDPOINT_LEAK | **no** | Kubeconfig references |
+
+**Summary**: **0 REAL_SECRET findings**. All hits are test fixtures, documentation links, constant identifiers, or Cloud Run secret *references* (not values). No reportable credentials in this delta.
