@@ -2600,3 +2600,12 @@
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
 - NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED). This is the single bottleneck unblocking BOTH Microsoft hypotheses (#1 agentRegist
+
+## RANKED HYPOTHESES 2026-08-13 16:22:20 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED). This is the single bottleneck that unblocks BOTH Microsoft hypotheses (#1 agentReg
+- LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes (2026-08-13 15:16:11 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DE
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate confirmed live — GET→404 (RFC-compliant OAuth token endpoint), validates earthengine secret redemption path 
+- LEARN: ACCEPTED graph.microsoft.com root → 200 text/html signin page confirmed — no auth-bypass surface at root, consistent across all cycles
+- LEARN: ACCEPTED v1↔v2 JWKS kid overlap steady-state confirmed live — v1(4-5 kids)⊂v2(6-8 kids), 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED (v1 kid set ne

@@ -6329,3 +6329,4 @@ testability: AUTH_HELPED
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact
 [RISK] microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Copilot Admin 5-family uniform IDOR surface (confidence 97), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1↔v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk
 ## 2026-08-13 15:15:59 UTC [google] (model nemotron3)
+## 2026-08-13 16:22:09 UTC [google] (model nemotron3)
