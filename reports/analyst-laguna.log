@@ -33355,3 +33355,47 @@ NO_DELTA — all fresh passive probes (2026-08-13 05:44–07:14 UTC) confirmed p
 
 [RISK] google: 96 reason: earthengine-api oauth.py:45 hardcoded OAuth client_secret confirmed valid Google OAuth credential (A/B POST→400 `invalid_grant` vs fake→401 `invalid_client` per RFC 6749 §5.2, sha256 `3f3f8d6f…d271`, raw GitHub live 200/23110); scopes include cloud-platform (full GCP takeover); token POST-only gate (GET→404), tokeninfo oracle (no-reward per VRP rules), bughunters hardened; dual-JWKS rotation desync rejected; identity source maps closed.
 [RISK] microsoft: 97 reason: agentRegistrations 5-family IDOR+CORS confirmed LIVE at collection+item level (200 ACAO:* + PATCH allowlist, zero OperationRestrictions across 5 EntityTypes + deprecated /beta/agentRegistry, HEAD→405 no WWW-Authenticate RFC 6750 §3 violation); agents/{id} + admin/catalog/packages/{id} item-level auth-gates confirmed (401/237); oauth2PermissionGrants consent forge on production v1.0 (caller-chosen resourceId, zero schema restrictions); identity source maps closed; dual-JWKS rotation desync rejected.
+===== ANALYST laguna 2026-08-13 09:51:02 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1; echo " | HEAD agentRegistrations"; curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" -X GET "https://graph.microsoft.com/beta/copilot/agentRegistrations" 2>&1; echo " | GET agentRegistrations"; curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" -X GET "https://graph.microsoft.com/v1.0/oauth2PermissionGrants" 2>&1; echo " | GET oauth2PermissionGrants"
+405 0  | HEAD agentRegistrations
+401 237 application/json | GET agentRegistrations
+401 237 application/json | GET oauth2PermissionGrants
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" -X GET "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>&1; echo " | earthengine oauth.py"; sha256sum /tmp/earth.py 2>/dev/null; curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/earth.py 2>&1; sha256sum /tmp/earth.py 2>&1; grep -n 'client_secret\|YOUR_CLIENT_SECRET\|RUP0R' /tmp/earth.py 2>&1 | head -5
+200 23110 text/plain; charset=utf-8 | earthengine oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/earth.py
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+185:    client_secret: str | None = None,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+290:    client_info = {k: fetched_info[k] for k in ['client_id', 'client_secret']}
+[0m
+I'll analyze the knowledge base and run verification probes on the top surface items to check for deltas.
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code} %{size_download}" -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/keys" 2>&1; echo " | v1.0 keys"; curl -s -o /dev/null -w "%{http_code} %{size_download}" "https://login.microsoftonline.com/common/discovery/v2.0/keys" -H "Accept: application/json" 2>&1; echo " | v2.0 keys"; curl -s -o /dev/null -w "%{http_code} %{size_download} %{content_type}" "https://bughunters.google.com/" 2>&1; echo " | bughunters root"
+200 6145 | v1.0 keys
+200 9677 | v2.0 keys
+200 3535 text/html; charset=utf-8 | bughunters root
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" -H "Origin: https://attacker.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" 2>&1; echo " | OPTIONS preflight (bare)"; curl -s -D - -o /dev/null -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" -H "Origin: https://attacker.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" 2>&1 | grep -i "access-control\|HTTP/"
+200 | OPTIONS preflight (bare)
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{00000000-0000-0000-0000-000000000000}" -H "Origin: https://attacker.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" 2>&1 | grep -i "access-control\|HTTP/"
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -s -o /dev/null -w "%{http_code}" -X POST "https://oauth2.googleapis.com/token" -d "client_id=test&client_secret=fake_secret&grant_type=refresh_token&refresh_token=test" 2>&1; echo " | POST leaked secret (invalid RT)"; curl -s "oauth2.googleapis.com/token" 2>&1 | head -1; curl -s -X POST "https://oauth2.googleapis.com/token" -d "client_id=test&client_secret=RUP0RZ6e0pPd1fake&grant_type=refresh_token&refresh_token=test" -D /tmp/headers.txt 2>&1; echo "---"; grep -i "invalid_grant\|invalid_client\|error" /tmp/headers.txt 2>/dev/null; cat /tmp/headers.txt 2>/dev/null | grep -i "error" | head -3 failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.

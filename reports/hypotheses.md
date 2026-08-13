@@ -2552,3 +2552,10 @@
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (item-level confirmed) (from reports/hypotheses-laguna.txt)
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
 - NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for [FINAL] 2 (Earth Engine client_secret) with evidence bundle — sha256(secret)=`3f3f8d6f…d271`, sha256(file)=`f4f93c76…`, raw Gi
+
+## RANKED HYPOTHESES 2026-08-13 09:51:02 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — unblocks BOTH MS hypotheses ([FINAL] 1 + 3) in one session. Parallel: laguna trac
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 08:53 UTC)
+- LEARN: REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes (08:53 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged (NO_D

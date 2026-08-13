@@ -812,3 +812,5 @@
 - 2026-08-13 ACCEPTED All three hypotheses remain live — NO_DELTA this cycle (05:44 UTC): agentRegistrations 5-family IDOR+CORS, earthengine client_secret valid credential, oauth2PermissionGrants consent forge
 - 2026-08-13 ACCEPTED oauth2.googleapis.com/token GET→404 (POST-only gate) — validates earthengine secret redemption path is grant_type=refresh_token only
 - 2026-08-13 REJECTED No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+- 2026-08-13 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 08:53 UTC)
+- 2026-08-13 REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes (08:53 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
