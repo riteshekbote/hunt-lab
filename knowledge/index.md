@@ -814,3 +814,5 @@
 - 2026-08-13 REJECTED No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
 - 2026-08-13 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 08:53 UTC)
 - 2026-08-13 REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes (08:53 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
+- 2026-08-13 ACCEPTED: All three hypotheses remain live — NO_DELTA @ 2026-08-13 09:51 UTC: agentRegistrations 5-family IDOR+CORS (item-level 401 confirmed 18:43 UTC), earthengine client_secret valid credential (sha `3f3f8d6f…d271` verbatim), oauth2PermissionGrants consent forge (production v1.0)
+- 2026-08-13 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
