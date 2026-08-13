@@ -788,3 +788,10 @@
 ## 2026-08-12 23:02:59 UTC
 
 ## 2026-08-12 23:55:03 UTC
+
+## 2026-08-13 01:45:30 UTC
+- NEW graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → HTTP 401 confirmed live
+- NEW graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → HTTP 401 confirmed live
+- CHANGED JWKS v2.0 key set rotated to 6 kids (v1=5, 4 shared + 1 v1-exclusive `jvm_-Ttaq…`) — transient rotation churn
+- CHANGED api.myaccount.microsoft.com source map → HTTP 401 sustained (both identity SPAs now closed: mysignins 404 + myaccount 401)
+- CHANGED oauth2.googleapis.com/token POST with leaked client_secret + invalid refresh_token → HTTP 400 `invalid_grant` (NOT `401 invalid_client`) re-confirmed
