@@ -2569,3 +2569,13 @@
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 08:53 UTC)
 - LEARN: ACCEPTED: All three hypotheses remain live — NO_DELTA @ 2026-08-13 09:51 UTC: agentRegistrations 5-family IDOR+CORS (item-level 401 confirmed 18:43 UTC), earthe
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-13 11:12:00 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both MS hypotheses ([FINAL] 1 + 3) in one session. P
+- NEXT(hypotheses-laguna.txt): HUMAN: Two simultaneous tracks required. (1) File Google VRP report for Earth Engine client_secret (oauth.py:45) with evidence bundle — sha256(secret)=3f3f8d6f…
+- LEARN: REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes (10:47 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged (NO_D
+- LEARN: ACCEPTED: All three hypotheses remain live — NO_DELTA @ 2026-08-13 10:47 UTC: agentRegistrations 5-family IDOR+CORS (item-level 401 confirmed 18:43 UTC), earthe
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
