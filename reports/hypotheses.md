@@ -2579,3 +2579,6 @@
 - LEARN: REJECTED no newly-proven-dead or newly-live classes this cycle — all fresh passive probes (10:47 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged (NO_D
 - LEARN: ACCEPTED: All three hypotheses remain live — NO_DELTA @ 2026-08-13 10:47 UTC: agentRegistrations 5-family IDOR+CORS (item-level 401 confirmed 18:43 UTC), earthe
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-13 11:53:42 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
