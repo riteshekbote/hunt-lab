@@ -823,3 +823,4 @@
 - 2026-08-13 ACCEPTED oauth2.googleapis.com/token POST-only gate confirmed live — GET→404 (RFC-compliant OAuth token endpoint), validates earthengine secret redemption path is grant_type=refresh_token only
 - 2026-08-13 ACCEPTED graph.microsoft.com root → 200 text/html signin page confirmed — no auth-bypass surface at root, consistent across all cycles
 - 2026-08-13 ACCEPTED v1↔v2 JWKS kid overlap steady-state confirmed live — v1(4-5 kids)⊂v2(6-8 kids), 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED (v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface)
+- 2026-08-13 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 16:22 UTC)

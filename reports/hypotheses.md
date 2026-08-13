@@ -2609,3 +2609,8 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate confirmed live — GET→404 (RFC-compliant OAuth token endpoint), validates earthengine secret redemption path 
 - LEARN: ACCEPTED graph.microsoft.com root → 200 text/html signin page confirmed — no auth-bypass surface at root, consistent across all cycles
 - LEARN: ACCEPTED v1↔v2 JWKS kid overlap steady-state confirmed live — v1(4-5 kids)⊂v2(6-8 kids), 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED (v1 kid set ne
+
+## RANKED HYPOTHESES 2026-08-13 17:15:46 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 16:22 UTC)
