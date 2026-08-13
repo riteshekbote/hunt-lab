@@ -1,47 +1,27 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+Let me analyze the new hits from the static scan. I need to classify each hit as REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-## REAL_SECRET
-None found in this scan delta.
+First, let me look at the delta hits (39 new lines) and the full grep hits for context.
 
-## TEST_OR_EXAMPLE
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password',` | Literal "password" test value |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password",` | Example in JSDoc comment |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token",` | Placeholder in JSDoc comment |
-| google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` | Explicit placeholder |
-| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` | Explicit placeholder |
-| google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` | Example placeholder |
-| google/closure-compiler/externs/browser/*.js | multiple | `http://dev.w3.org/...` | W3C spec reference URLs |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder string |
-| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression syntax |
-| google/cloud-android-orchestration/.../deployment.yaml | 121,146,169 | `${{ secrets.artifact-registry-uploader-json-creds }}` | GitHub Actions secret reference |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Parse error messages | Minified build artifacts |
+From the delta, the key hits that look potentially interesting:
 
-## ENDPOINT_LEAK
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `https://developers.devsite.corp.google.com/...` | Internal Google corp domain |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27,166,205 | `https://dev.office.com/...` | Microsoft dev portal URLs |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `https://source.corp.google.com/...` | Internal Google source URL |
-
-## INTERESTING
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | GCP metadata endpoint check |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` (includes 169.254.169.254) | GCP metadata IP range block |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params | K8s config injection surface |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | GCP metadata endpoint reference |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **Algolia DocSearch key** — REJECTED per KB (search-only, public by design) |
-
-## VERDICT
-- **REPORT_CANDIDATE: no** — No REAL_SECRET findings in this delta. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal doc URLs only), or INTERESTING (metadata endpoint references, secret reference patterns). The Algolia key at xrblocks is a known REJECTED class (public-by-design search key).
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+1. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157: private_key="-----BEGIN PRIVATE KEY-----...",`
+2. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269: credentials=HttpCredentials(username="user", password="password"),`
+3. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278: credentials=HttpCredentials(token="eyAkaknabna...."),`
+4. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"`
+5. Various JS chunk files with parse error messages (likely minified/bundled code, not secrets)
+6. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")`
+7. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`
+8. `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146: # and 169.254.169.254 in Chrome, so refuse instead of checking it.`
+9. `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171: network with NAT64, routes to the internal ``169.254.169.254`` metadata`
+10. `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",`
+11. `reposcan-raw/google/atheris/deployment/deploy_pypi.sh:26: python3 -m pip download --no-build-isolation --index-url 'https://test.pypi.org/simple/' --no-binary=:all: atheris=="${ATHERIS_VERSION}" -d "${TMP_DIR?}" 1>/dev/null`
+12. `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml:17: default: https://staging.release-eq7.pages.dev`
+13. `reposcan-raw/google/capsem/config/gate.toml:478: password = "password.txt"`
+14. `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh:15: PASSWORD="$(tr -d '\n' < "$PASS_FILE")"`
+15. `reposcan-raw/google/capsem/scripts/preflight.sh:39: password="$(tr -d '\n' < "$pass_file")"`
+16. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"`
+17. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"`
+18. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
