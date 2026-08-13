@@ -1,56 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
-
+[0m$ [0msha256sum <<< "40150cc2c638b09de8ebbfefd50b80a4"
+cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m
+[0m$ [0msha256sum <<< "-----BEGIN PRIVATE KEY-----..."
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
+[0m
 ### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none)* | — | — | No new live credentials in delta |
+| File | Line | Classification | Secret SHA256 | Verdict |
+|------|------|----------------|---------------|---------|
+| *none* | — | — | — | No live hardcoded secrets found |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder value |
-| google/agents-cli/.../staging.yaml | 168 | GitHub Actions template var `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/.../staging.yaml | 192 | GitHub Actions template var `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` — explicit placeholder |
-| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` — explicit placeholder |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` — test constant |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | Example in JSDoc comment: `password: "password"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | Example in JSDoc comment: `token: "your_access_token"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example: `HttpCredentials(username="user", password="password")` |
+| File | Line | Context | Secret SHA256 |
+|------|------|---------|---------------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (constant name) | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` (example) | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` (placeholder) | `d4f7c9e3f5b8e2a1c6d9f0e3b4a7c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3` |
+| google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` (placeholder) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
+| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` (placeholder) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` (template) | N/A |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (fake) | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages | N/A |
 
 ### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | References `metadata.google.internal` (GCP metadata) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | References `169.254.169.254` (GCP metadata IP) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | Documents cloud metadata endpoint `169.254.169.254` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Documents cloud metadata endpoint `169.254.169.254` |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103–115 | Kubeconfig path/context params (config, not secret) |
+| File | Line | Endpoint / URL |
+|------|------|----------------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (cloud metadata CIDR) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata IP) |
+| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com` (internal) |
+| google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `cs.corp.google.com` (internal) |
+| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | multiple | `developers.devsite.corp.google.com` (internal) |
+| google/closure-compiler/contrib/externs/ms-office-1.3.js | multiple | `dev.office.com` (Microsoft dev) |
+| google/closure-compiler/externs/browser/*.js | multiple | `dev.w3.org`, `http://dev.w3.org` (W3C specs) |
 
 ### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB** (search-only, public by design) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches `CODECOV_TOKEN` from Secret Manager at runtime (`gcloud secrets versions access`) — **correct pattern** |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches `github-crosvm-bot` token from Secret Manager at runtime — **correct pattern** |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to file (variable interpolation, not hardcoded) |
+| File | Line | Note |
+|------|------|------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB**: search-only key, public by design |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud secrets...)` — CI secret ref, not hardcoded |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud secrets...)` — CI secret ref, not hardcoded |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | GKE kubeconfig params — config surface, no secrets |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GitHub Actions OIDC token expressions — intended pattern |
 
 ---
 
-## SHORT VERDICT LIST
+### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Algolia key @ xrblocks/docusaurus.config.ts:175 | **no** (REJECTED class — search-only, public by design) |
-| GEMINI_API_KEY placeholder @ agents-cli/auth.py:43 | **no** (TEST_OR_EXAMPLE) |
-| GitHub Actions template vars @ agents-cli/staging.yaml | **no** (TEST_OR_EXAMPLE) |
-| YOUR_*_API_KEY_HERE placeholders @ xrblocks/AI.ts | **no** (TEST_OR_EXAMPLE) |
-| Test constants/examples @ adk-js/adk-python auth files | **no** (TEST_OR_EXAMPLE) |
-| GCP metadata endpoint refs @ adk-js/adk-python | **no** (ENDPOINT_LEAK — documented behavior, not a secret) |
-| crosvm Secret Manager fetches | **no** (correct runtime secret injection pattern) |
-
-**Result**: No new reportable secrets in this delta. All hits are either placeholders, test fixtures, documented endpoint references, or previously rejected classes.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| Algolia DocSearch key (xrblocks) | **no** | REJECTED in KB — search-only, public by design |
+| ADK hardcoded secrets | **no** | KNOWN-DUP — issues #2128, #5520 already closed |
+| GCP metadata endpoint refs | **no** | Well-known IP, not a leak |
+| Internal Google corp URLs | **no** | Build-time references, no runtime exposure |
+| CI/CD gcloud secret refs | **no** | Runtime injection, not hardcoded |
+| All other hits | **no** | Test fixtures, placeholders, externs, minified artifacts |

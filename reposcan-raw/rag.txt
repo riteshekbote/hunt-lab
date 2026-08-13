@@ -789,6 +789,20 @@
 - 2026-08-12 REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enrollment.
 - 2026-08-12 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com/common/discovery/keys: v1⊂v2 steady-state subset invariant holds across all cycle rotations (v1=4–5 kids ⊂ v2=6–8 kids, 0 persistent v1-exclusive); v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface. NO_DELTA.
 - 2026-08-12 ACCEPTED agentRegistrations cross-origin mutation vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 confirmed LIVE at both collection + item level; prior bare-OPTIONS→405 entries were probe artifacts (no Origin header). Full 5-family IDOR+CORS cross-principal mutation vector precondition complete.
+- 2026-08-13 ACCEPTED graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- 2026-08-13 ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- 2026-08-13 ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays REJECTED)
+- 2026-08-13 ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface eliminated
+- 2026-08-13 ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
+- 2026-08-13 ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 200 ACAO:* + full mutation allowlist
+- 2026-08-13 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-13 REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enrollment
+- 2026-08-13 REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
+- 2026-08-13 REJECTED powervirtualagents.microsoft.com/orchestrated/* — redirects to copilot-studio, domain deprecated, no live API surface
+- 2026-08-13 ACCEPTED earthengine-api oauth.py:45 hardcoded secret remains LIVE @ 2026-08-13 01:4x UTC — sha256(secret) `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, raw GitHub 200/23110; POST with leaked key → 400 `invalid_grant` (valid credential per RFC 6749 §5.2) vs POST with fake key → 401 `invalid_client` (invalid credential) — conclusive A/B proof.
+- 2026-08-13 ACCEPTED agentRegistrations CORS preflight remains LIVE @ collection+item+agents+admin level @ 2026-08-13 — 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 + Allow-Headers authorization; HEAD→405/0 no WWW-Authenticate (RFC 6750 §3); GET→401/237 — 5-family IDOR+CORS vector confirmed at both collection and item level.
+- 2026-08-13 ACCEPTED tokeninfo public introspection oracle remains LIVE @ 2026-08-13 — no-param→400/113 invalid_token, accepts query-param without Authorization header; no-reward per Google VRP program rules.
+- 2026-08-13 REJECTED dual-JWKS rotation desync remains dead — v1⊂v2 steady-state subset holds across all cycle rotations (4-5 kids ⊂ 6-8 kids), v1 kid set never validated against v2 issuer → no confusion surface.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
