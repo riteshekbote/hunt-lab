@@ -1,19 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
-Wrote file successfully.
-[0m
-**Triage Complete** — No reportable findings in this scan.
+# Classification Results
 
-**Summary:**
-- **25,708 files scanned, 239 hits, +22 delta**
-- **0 REAL_SECRET** — No live hardcoded credentials found
-- **12 TEST_OR_EXAMPLE** — Test passwords, placeholders, example keys (all non-prod/fixture code)
-- **5 ENDPOINT_LEAK** — Well-known metadata endpoints (169.254.169.254, metadata.google.internal) and staging URLs
-- **6 INTERESTING** — Constants, templates, and correct secret-reference patterns (GitHub Actions `${{ secrets.* }}`)
-- **22 DELTA HITS** — All minified JS parser error messages (`chunk-*.js`), classified as TEST_OR_EXAMPLE
+## REAL_SECRET Candidates
 
-The previously tracked Earth Engine OAuth client_secret (`google/earthengine-api/python/ee/oauth.py:45`) **was not in this scan's file set** (different repo subset).
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `a1b2c3d4e5f6...` (computed from `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg`) | Google API key (AIzaSy...), domain-restricted to skottie.skia.org per comment |
 
-Full report written to `triage_report.md`.
+## TEST_OR_EXAMPLE
+
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Constant `PASSWORD = 'password'` |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214 | JSDoc example `password: "password"` |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 226 | JSDoc example `token: "your_access_token"` |
+| `google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholder `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | `ClientSecret: "not-a-valid-client-secret"` |
+| `google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant names `CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET` |
+| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch key (REJECTED per KB: search-only, public by design) |
+
+## ENDPOINT_LEAK (Internal/Dev URLs)
+
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` (GCP metadata) |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.169.254` (GCP metadata IP) |
+| `google/go-cloud/docstore/gcpfirestore/create_indexes.sh` | 20,33 | `firebase.corp.google.com` |
+| `google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `pantheon.corp.google.com` |
+| `google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | `skia-corp.google.com` service account |
+| `google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh` | 176 | `metadata.google.internal` token URL |
+| `google/skia-buildbot/go/issuetracker/getdiscovery.go` | 15 | `pantheon.corp.google.com/apis/credentials` |
+| `google/skia-buildbot/kube/corp-config.sh` | 9 | `skia-corp.google.com` |
+| `google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `source.corp.google.com` |
+| `google/skia-buildbot/perf/go/*.go` | multiple | `b.corp.google.com/issues/492077374` |
+| `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | `android-build.corp.google.com` |
+| `google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts` | 68,75,82 | `rotations.corp.google.com` |
+| `google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `b.corp.google.com/issues/new` |
+| `google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | `pantheon.corp.google.com/storage` |
+| `google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | `metadata.google.internal` token URL |
+| `google/skia-buildbot/go/buildbucket/buildbucket.go` | 24 | Header `x-buildbucket-token` (internal) |
+| `google/skia-buildbot/go/auth/auth.go` | 30 | `service-account.json` default filename |
+| `google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 16 | `service-account.json` output filename |
+
+## INTERESTING
+
+| File | Line | Finding |
+|------|------|---------|
+| `google/skia-buildbot/bugs-central/go/bugs-central/main.go` | 61 | Secret name reference: `secretGithubToken = "bugs-central-github-token"` |
+| `google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Secret name reference: `secretAPIKey = "perf-issue-tracker-apikey"` (comment: not a credential) |
+| `google/skia-buildbot/go/revportforward/revportforward.go` | 50-56 | Kubeconfig handling functions |
+| `google/skia-buildbot/golden/create-gold-corp-sa.sh` | 60 | `kubectl create secret` from service-account.json |
+| `google/skia-buildbot/skolo/ansible/switchboard/*` | multiple | Ansible `secrets.skolo_password` references (template variables) |
+| `google/cloud-android-orchestration/.github/workflows/deployment.yaml` | 121,146,169 | GitHub Actions `${{ secrets.artifact-registry-uploader-json-creds }}` |
+| `google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | Template password variables `.Env.POSTGRES_PWD`, `$visibility_pwd`, `.Env.ES_PWD` |
+
+---
+
+# VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` (Google API key) | **yes** | Live Google API key (AIzaSy...) in public repo; domain restriction mitigates but doesn't eliminate risk; not on REJECTED list |
+| `google/xrblocks/docs/docusaurus.config.ts:175` (Algolia key) | **no** | REJECTED per KB: search-only key, public by design |
+| All TEST_OR_EXAMPLE | **no** | Placeholders, fixtures, constant names |
+| All ENDPOINT_LEAK | **no** | Internal URLs/metadata endpoints; info-only, no credential |
+| All INTERESTING | **no** | Secret names, template variables, config patterns — no live secret material |
