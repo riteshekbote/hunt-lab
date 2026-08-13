@@ -2625,3 +2625,14 @@
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 17:15 UTC)
 - LEARN: ACCEPTED: All three hypotheses remain live — NO_DELTA @ 2026-08-13 17:15:46 UTC: agentRegistrations 5-family IDOR+CORS (true preflight 200 ACAO:* + PATCH allowl
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-13 19:37:36 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both MS hypotheses (#1 + #3) in one session; then ex
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED). This is the single bottleneck that unblocks BOTH Microsoft hypotheses (#1 agentReg
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (18:12:28 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged, 
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/ReJECTED findings unchanged, NO_DELTA.
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live — true CORS preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agents+admin level;
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256 3f3f8d6f…d271 verbatim, raw GitHub 200/23110, POST→invalid_grant (vs fake→invalid_c
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — GET→401/237 Bearer on production v1.0, zero-restriction schema pattern i
