@@ -840,3 +840,4 @@
 - 2026-08-13 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:06 UTC)
 - 2026-08-13 NO_DELTA — all fresh passive probes (2026-08-13 20:06 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged.
 - 2026-08-13 ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live — true CORS preflight 200 ACAO:* + PATCH allowlist at collection+item+agents+admin level; $metadata 873-char block, 0 OperationRestrictions across 5 EntityTypes.
+- 2026-08-13 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
