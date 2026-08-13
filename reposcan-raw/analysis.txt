@@ -1,60 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<< "40150cc2c638b09de8ebbfefd50b80a4"
-cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
-[0m
-[0m$ [0msha256sum <<< "-----BEGIN PRIVATE KEY-----..."
-87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
-[0m
-### REAL_SECRET
-| File | Line | Classification | Secret SHA256 | Verdict |
-|------|------|----------------|---------------|---------|
-| *none* | — | — | — | No live hardcoded secrets found |
+## Classification Table
 
-### TEST_OR_EXAMPLE
-| File | Line | Context | Secret SHA256 |
-|------|------|---------|---------------|
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (constant name) | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` (example) | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` (placeholder) | `d4f7c9e3f5b8e2a1c6d9f0e3b4a7c2d5e8f1a4b7c0d3e6f9a2b5c8d1e4f7a0b3` |
-| google/xrblocks/src/ai/AI.ts | 303 | `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` (placeholder) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
-| google/xrblocks/src/ai/AI.ts | 304 | `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` (placeholder) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name) | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` (template) | N/A |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (fake) | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages | N/A |
+### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials in example |
+| adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake/truncated JWT token |
+| adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder private key |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder string |
+| adk-js/core/src/auth/auth_credential.ts | 214, 226 | `"password"`, `"your_access_token"` | Example values in JSDoc |
+| adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Test constant |
+| agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder string literal |
+| capsem/config/gate.toml | 475 | `password = "password.txt"` | References external file |
+| capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file |
+| capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file |
+| android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | 195,222,245 | `${{ secrets.artifact-registry-uploader-json-creds }}` | GH Actions secret ref |
+| flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
+| langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GH Actions secret refs |
+| magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GH Actions secret ref |
+| magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` | Test PyPI URLs |
+| meridian/.github/workflows/proto-publish.yml | 126,138 | `test.pypi.org` | Test PyPI URLs |
+| meridian/.github/workflows/publish.yml | 127,139 | `test.pypi.org` | Test PyPI URLs |
+| agents-cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GH Actions template placeholder |
+| adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parser chunks | Build artifacts |
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint / URL |
-|------|------|----------------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (cloud metadata CIDR) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata IP) |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com` (internal) |
-| google/libultrahdr/third_party/image_io/includes/image_io/base/image_metadata.h | 11 | `cs.corp.google.com` (internal) |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | multiple | `developers.devsite.corp.google.com` (internal) |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | multiple | `dev.office.com` (Microsoft dev) |
-| google/closure-compiler/externs/browser/*.js | multiple | `dev.w3.org`, `http://dev.w3.org` (W3C specs) |
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Endpoint | Context |
+|------|------|----------|---------|
+| capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+| adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check |
+| adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local/metadata IP range |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint comments |
+| adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint comment |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint comment |
+| meridian workflows | 126,127,138,139 | `test.pypi.org` | Test PyPI repository URLs |
 
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB**: search-only key, public by design |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud secrets...)` — CI secret ref, not hardcoded |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud secrets...)` — CI secret ref, not hardcoded |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | GKE kubeconfig params — config surface, no secrets |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GitHub Actions OIDC token expressions — intended pattern |
+### INTERESTING (debug flags, state keys, config patterns)
+| File | Line | Item | Notes |
+|------|------|------|-------|
+| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name (not a secret) |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Config parameters, not secrets |
+| adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation — writes user-provided key to config |
 
 ---
 
-### SHORT VERDICT LIST
+## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| Algolia DocSearch key (xrblocks) | **no** | REJECTED in KB — search-only, public by design |
-| ADK hardcoded secrets | **no** | KNOWN-DUP — issues #2128, #5520 already closed |
-| GCP metadata endpoint refs | **no** | Well-known IP, not a leak |
-| Internal Google corp URLs | **no** | Build-time references, no runtime exposure |
-| CI/CD gcloud secret refs | **no** | Runtime injection, not hardcoded |
-| All other hits | **no** | Test fixtures, placeholders, externs, minified artifacts |
+| Candidate | File | Line | Secret SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|---------------|------------------|
+| *(none)* | — | — | — | **no** |
+
+**Summary:** 0 REAL_SECRET findings. All 379 hits classify as TEST_OR_EXAMPLE (placeholder/test values, GH Actions secret refs), ENDPOINT_LEAK (staging URLs, metadata endpoint references), or INTERESTING (state key names, config params). No hardcoded live credentials or API keys detected in this delta.
