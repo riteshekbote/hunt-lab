@@ -1,35 +1,117 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mcat << 'EOF'
+# Classification Results
 
-| Category | Files | Count |
-|----------|-------|-------|
-| **REAL_SECRET** | *(none)* | 0 |
-| **TEST_OR_EXAMPLE** | adk-js auth_schemes.ts, auth_credential.ts (JSDoc examples), adk-go webui distr (parser errors in minified JS), skia-buildbot auth.go, metadata.go, buildbucket.go, autoroll-fe/main.go (explicitly fake values) | 15+ |
-| **ENDPOINT_LEAK** | closure-compiler externs (dev.w3.org, dev.office.com, developers.devsite.corp.google.com, source.corp.google.com), skia-buildbot metadata URL, issuetracker API key flag help text | 20+ |
-| **INTERESTING** | adk-go cloudrun.go:246 (Cloud Run `--set-secrets` reference to Secret Manager) | 1 |
+## REAL_SECRET (hardcoded credential with signs of life)
+NONE in this delta scan.
 
----
+## TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Truncated placeholder ("...") |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Fake JWT (invalid base64, "....") |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Test constant |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Parser error messages | Minified build artifacts (22 files) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Explicit placeholder |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | password: "password" | Test example in JSDoc |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | token: "your_access_token" | Placeholder in JSDoc |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | PASSWORD = 'password' | Test constant |
+| google/dagger/util/latest-dagger-version.sh | 9 | GITHUB_TOKEN="${GH_TOKEN:-}" | Shell var reference (CI pattern) |
+| google/flatbuffers/.github/workflows/label.yml | 24 | repo-token: "${{ secrets.GITHUB_TOKEN }}" | Proper GH Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }}, etc. | Proper GH Actions secret refs |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | repo_token: "${{secrets.GITHUB_TOKEN}}" | Proper GH Actions secret ref |
+| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481,1522 | https://dev.azure.com/org/proj/... | Example URLs in docstrings |
+| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | # ADO: https://dev.azure.com/... | Comment with example |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 531,817,851 | https://dev.azure.com/{org}/... | URL format documentation |
+| microsoft/apm/src/apm_cli/commands/marketplace/__init__.py | 495 | https://dev.azure.com/org/proj/... | Example CLI command |
 
-### Verdict List
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints, metadata refs)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | GCP metadata endpoint (docs/comments) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context | Kubeconfig reference patterns |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Comment blocking metadata access |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | NAT64 routing comment |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | GCP metadata hostname check |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.0.0/16 | Link-local CIDR comment (includes metadata) |
+| google/nearby/sharing/nearby_sharing_service.h | 71 | source.corp.google.com/piper/... | Internal Google source link |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 711 | metadata.google.internal | GCP metadata hostname |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 841 | 169.254.169.254 | GCP metadata IP |
+| microsoft/apm/src/apm_cli/core/host_providers.py | 54 | https://dev.azure.com | Azure DevOps base URL (public) |
+| microsoft/apm/src/apm_cli/core/auth.py | 898,904 | dev.azure.com/{org}/_usersSettings/tokens | ADO PAT endpoint pattern |
+| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | dev.azure.com/org/project/_git/repo | ADO Git URL pattern |
+| microsoft/apm/src/apm_cli/install/mcp/registry.py | 200 | 169.254.169.254 | Link-local metadata comment |
 
-| File:Line | Classification | REPORT_CANDIDATE | Notes |
-|-----------|---------------|------------------|-------|
-| adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | INTERESTING | **no** | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` references Secret Manager, not a hardcoded secret |
-| adk-js/core/src/auth/auth_schemes.ts:41 | TEST_OR_EXAMPLE | **no** | Constant `PASSWORD = 'password'` defines auth scheme type |
-| adk-js/core/src/auth/auth_credential.ts:214,226 | TEST_OR_EXAMPLE | **no** | JSDoc example values `"password"`, `"your_access_token"` |
-| adk-go/cmd/launcher/web/webui/distr/*.js | TEST_OR_EXAMPLE | **no** | Parser error messages in minified/bundled JS |
-| closure-compiler/externs/* | ENDPOINT_LEAK | **no** | Public documentation/spec URLs (dev.w3.org, dev.office.com, developers.devsite.corp.google.com) |
-| closure-compiler/src/.../ErrorManager.java:95 | ENDPOINT_LEAK | **no** | Internal source link (source.corp.google.com) |
-| skia-buildbot/autoroll/go/autoroll-fe/main.go:76 | ENDPOINT_LEAK | **no** | Service account email (not a secret) |
-| skia-buildbot/autoroll/go/autoroll-fe/main.go:98 | TEST_OR_EXAMPLE | **no** | Explicitly fake: `"not-a-valid-client-secret"` |
-| skia-buildbot/bugs-central/go/bugs-central/main.go:61 | TEST_OR_EXAMPLE | **no** | Placeholder value `"bugs-central-github-token"` (not real GH token format) |
-| skia-buildbot/go/auth/auth.go:30 | TEST_OR_EXAMPLE | **no** | Filename constant `"service-account.json"` |
-| skia-buildbot/go/metadata/metadata.go:23,27,30 | TEST_OR_EXAMPLE | **no** | Constant identifiers `"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"` |
-| skia-buildbot/go/buildbucket/buildbucket.go:24 | TEST_OR_EXAMPLE | **no** | Header name constant `"x-buildbucket-token"` |
-| skia-buildbot/go/gce/swarming/.../setup-script-linux-ct.sh:176 | ENDPOINT_LEAK | **no** | GCP metadata server URL (public knowledge) |
-| skia-buildbot/go/issuetracker/getdiscovery.go:15 | ENDPOINT_LEAK | **no** | Flag help text with example corp URL |
-| skia-buildbot/go/revportforward/... | ENDPOINT_LEAK | **no** | Kubeconfig references |
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Writes API key to generated file (variable, not hardcoded) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Token storage key name |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | kubeconfig content secret embeds cert/token | Comment describing kubeconfig sensitivity |
 
-**Summary**: **0 REAL_SECRET findings**. All hits are test fixtures, documentation links, constant identifiers, or Cloud Run secret *references* (not values). No reportable credentials in this delta.
+# VERDICT
+REPORT_CANDIDATE: no
+
+No REAL_SECRET findings in this delta. All hits are test fixtures, placeholders, proper secret references (${{secrets.*}}), documentation examples, or informational endpoint references. The previously known earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...) is NOT in this delta — it was confirmed live in prior cycles (knowledge base ACCEPTED).
+EOF
+# Classification Results
+
+## REAL_SECRET (hardcoded credential with signs of life)
+NONE in this delta scan.
+
+## TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Truncated placeholder ("...") |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Fake JWT (invalid base64, "....") |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Test constant |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Parser error messages | Minified build artifacts (22 files) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Explicit placeholder |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | password: "password" | Test example in JSDoc |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | token: "your_access_token" | Placeholder in JSDoc |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | PASSWORD = 'password' | Test constant |
+| google/dagger/util/latest-dagger-version.sh | 9 | GITHUB_TOKEN="${GH_TOKEN:-}" | Shell var reference (CI pattern) |
+| google/flatbuffers/.github/workflows/label.yml | 24 | repo-token: "${{ secrets.GITHUB_TOKEN }}" | Proper GH Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }}, etc. | Proper GH Actions secret refs |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | repo_token: "${{secrets.GITHUB_TOKEN}}" | Proper GH Actions secret ref |
+| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481,1522 | https://dev.azure.com/org/proj/... | Example URLs in docstrings |
+| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | # ADO: https://dev.azure.com/... | Comment with example |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 531,817,851 | https://dev.azure.com/{org}/... | URL format documentation |
+| microsoft/apm/src/apm_cli/commands/marketplace/__init__.py | 495 | https://dev.azure.com/org/proj/... | Example CLI command |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints, metadata refs)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | GCP metadata endpoint (docs/comments) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context | Kubeconfig reference patterns |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Comment blocking metadata access |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | NAT64 routing comment |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | GCP metadata hostname check |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.0.0/16 | Link-local CIDR comment (includes metadata) |
+| google/nearby/sharing/nearby_sharing_service.h | 71 | source.corp.google.com/piper/... | Internal Google source link |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 711 | metadata.google.internal | GCP metadata hostname |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 841 | 169.254.169.254 | GCP metadata IP |
+| microsoft/apm/src/apm_cli/core/host_providers.py | 54 | https://dev.azure.com | Azure DevOps base URL (public) |
+| microsoft/apm/src/apm_cli/core/auth.py | 898,904 | dev.azure.com/{org}/_usersSettings/tokens | ADO PAT endpoint pattern |
+| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | dev.azure.com/org/project/_git/repo | ADO Git URL pattern |
+| microsoft/apm/src/apm_cli/install/mcp/registry.py | 200 | 169.254.169.254 | Link-local metadata comment |
+
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Writes API key to generated file (variable, not hardcoded) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Token storage key name |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | kubeconfig content secret embeds cert/token | Comment describing kubeconfig sensitivity |
+
+# VERDICT
+REPORT_CANDIDATE: no
+
+No REAL_SECRET findings in this delta. All hits are test fixtures, placeholders, proper secret references (${{secrets.*}}), documentation examples, or informational endpoint references. The previously known earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...) is NOT in this delta — it was confirmed live in prior cycles (knowledge base ACCEPTED).
+[0m
+**Summary:** This delta scan contains **zero reportable secrets**. All 55 new hits are test fixtures, placeholder values, proper CI secret references (`${{secrets.*}}`), documentation examples, or informational endpoint references (GCP metadata IP, Azure DevOps URL patterns). 
+
+The previously confirmed live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`) is **not in this delta** — it remains ACCEPTED in the knowledge base from prior cycles.
