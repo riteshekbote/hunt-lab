@@ -1,4 +1,4 @@
-## 2026-08-13 01:45:19 UTC [google] (model nemotron3)
+## 2026-08-13 03:57:15 UTC [google] (model nemotron3)
 [NEW] graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → HTTP 401 confirmed live
 [NEW] graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → HTTP 401 confirmed live
 [CHANGED] JWKS v2.0 key set rotated to 6 kids (v1=5, 4 shared + 1 v1-exclusive `jvm_-Ttaq…`) — transient rotation churn
@@ -34,9 +34,6 @@ evidence_needed: Two-principal test — Principal A POSTs oauth2PermissionGrants
 verify_steps: AUTH_HELPED: POST /v1.0/oauth2PermissionGrants with Bearer token A, body {resourceId:"victim_resource_id",clientId:"attacker_client_id",consentType:"All",principalId:"victim_user_oid"} → expect 201; then token acquisition for victim_resource
 impact: Cross-principal consent grant forge → token minting for resources victim controls (Graph data, Azure Storage); production v1.0 surface increases severity
 testability: AUTH_HELPED
-[PARKED] Copilot Studio D2E S2S conversation-ID validation gap: private-preview scope + confidence 55 leaves no concrete cross-tenant verify_steps; not actionable without AUTH_HELPED tenant enrollment
-[PARKED] powervirtualagents.microsoft.com/orchestrated/* InvokeTool client-supplied toolSchemaName+inputs: domain deprecated (301 → microsoft.com/copilot-studio); no live API surface
-[PARKED] Three-hop Agent User user_fic flow: infrastructure-dependent, documented only; not directly testable without enterprise FIC setup
 [FINAL] 1) Copilot Admin 5-family cross-principal ownership bypass (IDOR, 97, AUTH_HELPED)
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (AUTH, 96, AUTH_HELPED)
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId on production v1.0 (AUTH, 70, AUTH_HELPED)
@@ -44,7 +41,7 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
 [LEARN] ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
 [LEARN] ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays REJECTED)
-[LEARN] ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPA source maps now closed (mysignins 404 + myaccount 401); recon surface eliminated
+[LEARN] ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPAs now closed (mysignins 404 + myaccount 401); recon surface eliminated
 [LEARN] ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
 [LEARN] ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 200 ACAO:* + full mutation allowlist
 [LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface

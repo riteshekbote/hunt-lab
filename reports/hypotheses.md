@@ -2494,3 +2494,22 @@
 - LEARN: ACCEPTED agentRegistrations CORS preflight remains LIVE @ collection+item+agents+admin level @ 2026-08-13 — 200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,P
 - LEARN: ACCEPTED tokeninfo public introspection oracle remains LIVE @ 2026-08-13 — no-param→400/113 invalid_token, accepts query-param without Authorization header; no-
 - LEARN: REJECTED dual-JWKS rotation desync remains dead — v1⊂v2 steady-state subset holds across all cycle rotations (4-5 kids ⊂ 6-8 kids), v1 kid set never validated a
+
+## RANKED HYPOTHESES 2026-08-13 03:57:25 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck for [FINAL] 1 and 3. Passive surface fully exhausted (5-fam
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) for [FINAL] 1 (5-family IDOR+CORS at collection+item level) and [FINAL] 3 (consent 
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agents/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/admin/catalog/packages/{id} item-level auth-gate → 401 (18:43 UTC probe) — extends 5-family IDOR surface to item level
+- LEARN: ACCEPTED JWKS v2.0 rotation to 6 kids with v1(5) ⊃ 4 shared + 1 v1-exclusive — transient rotation churn, no confusion surface (dual-JWKS rotation desync stays R
+- LEARN: ACCEPTED api.myaccount.microsoft.com source map → HTTP 401 sustained — both identity SPAs now closed (mysignins 404 + myaccount 401); recon surface eliminated
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) — conclusive RFC 6749 §5.2 proof re-confirmed
+- LEARN: ACCEPTED deprecated agentRegistry same auth+CORS posture as GA agentRegistrations @ graph.microsoft.com/beta/agentRegistry: GET 401/237, HEAD 405/0, preflight 2
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds across all rotations, v1 kid set never validated against v2 iss
+- LEARN: REJECTED Copilot Studio D2E S2S conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enr
+- LEARN: REJECTED /me/agentSignInSessions @ graph.microsoft.com — fully off-metadata (0 refs in $metadata), alive (401), no bypass vector, not actionable
+- LEARN: REJECTED powervirtualagents.microsoft.com/orchestrated/* — redirects to copilot-studio, domain deprecated, no live API surface
+- LEARN: ACCEPTED v1(4)⊂v2(7) JWKS strict subset restored this probe — 0 v1-exclusive (`jvm_-Ttaq` v1-exclusive rotated out, new v2-only `T5h40q7…` added); rotation-desy
+- LEARN: ACCEPTED agentRegistrations auth-gate live — GET→401/237 InvalidAuthenticationToken; tokeninfo oracle 400/113 invalid_token; earthengine secret source live (sha
