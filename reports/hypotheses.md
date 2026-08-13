@@ -2669,3 +2669,14 @@
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
 - [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
 - NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 5-family IDOR+CORS + #
+
+## RANKED HYPOTHESES 2026-08-13 23:26:30 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded client_secret redeemable for cloud-platform token (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both MS hypotheses (#1 + #3) in one session; on gran
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live — true CORS preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agents+admin level;
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256 3f3f8d6f…d271 verbatim, raw GitHub 200/23110, POST→invalid_grant (vs fake→invalid_c
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — GET→401/237 Bearer on production v1.0, zero-restriction schema pattern i
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated a

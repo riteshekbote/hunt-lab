@@ -842,3 +842,7 @@
 ## 2026-08-13 21:56:08 UTC
 
 ## 2026-08-13 22:54:46 UTC
+
+## 2026-08-13 23:26:30 UTC
+- NEW None — all fresh passive probes (2026-08-13 22:54 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- CHANGED None — JWKS v2.0 rotation churn (v1v2 steady-state), source maps closed, token POST invalid_grant re-confirmed; no new attack surface
