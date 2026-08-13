@@ -1,251 +1,76 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF' > /tmp/classify.py
-import re
-import hashlib
-
-hits = [
-    # Delta hits
-    ("reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js", 4638, 'href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026"'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js", 4638, 'href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026"'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js", 4639, 'href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026"'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js", 4639, 'href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_30_2026"'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js", 166, 'See https://dev.office.com/reference/add-ins/shared/context'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js", 205, 'https://dev.office.com/reference/add-ins/outlook/1.1/Office.context.mailbox'),
-    ("reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js", 27, 'See https://dev.office.com/reference/add-ins/outlook/1.1/Office'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/html5.js", 1703, '@see http://dev.w3.org/html5/workers/'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/html5.js", 1764, '@see http://dev.w3.org/html5/workers/'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/html5.js", 22, '@see http://dev.w3.org/html5/spec/Overview.html'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js", 3477, '@see http://dev.w3.org/csswg/cssom-view/#dom-document-scrollingelement'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js", 4313, 'http://dev.w3.org/csswg/css-font-loading/'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js", 4318, '@see http://dev.w3.org/csswg/css-font-loading/#enumdef-fontfaceloadstatus'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js", 22, 'Created from http://dev.w3.org/geo/api/spec-source-orientation.'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js", 34, '@see http://dev.w3.org/2006/webapi/FileAPI/#dfn-Blob'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js", 1597, '@see {http://dev.w3.org/2011/webrtc/editor/getusermedia.html#'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js", 3333, '{@see http://dev.w3.org/2011/webrtc/editor/webrtc.html}'),
-    ("reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js", 202, '@see http://dev.w3.org/2006/webapi/WebNotifications/publish/#dialog-if'),
-    ("reposcan-raw/google/closure-compiler/externs/es6.js", 392, '@see http://dev.w3.org/html5/postmsg/'),
-    ("reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java", 95, 'https://source.corp.google.com/piper///depot/google3/third_party/java_src/jscomp/java/com/google/javascript/jscomp/ConformanceRules.java;rcl=783510053;l=364'),
-    ("reposcan-raw/google/copybara/cloudbuild.yaml", 27, 'https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel'),
-    ("reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java", 102, 'String token = "test-token-123";'),
-    ("reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java", 129, 'String password = "testpassword";'),
-    ("reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java", 75, 'String password = "testpassword";'),
-    ("reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java", 136, 'String password = "testpassword";'),
-    ("reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h", 7, 'http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3'),
-    ("reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h", 126, 'supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY")'),
-    # Full grep additional
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 103, 'kubeconfig_path: str | None = None'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 104, 'kubeconfig_context: str | None = None'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 115, 'kubeconfig_path: str | None = None,'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 114, 'cloud metadata endpoint at ``169.254.169.254``'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 154, 'network -- in particular the cloud metadata endpoint at 169.254.169.254'),
-    ("reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py", 131, 'lines.append(f"GOOGLE_API_KEY={google_api_key}")'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 157, 'private_key="-----BEGIN PRIVATE KEY-----..."'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 269, 'credentials=HttpCredentials(username="user", password="password")'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 278, 'credentials=HttpCredentials(token="eyAkaknabna....")'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py", 68, 'PASSWORD = "password"'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py", 171, 'network with NAT64, routes to the internal ``169.254.169.254`` metadata'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py", 146, '169.254.169.254 in Chrome, so refuse instead of checking it.'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py", 62, 'client_secret="your_client_secret",'),
-    ("reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py", 47, '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"'),
-]
-
-def classify(file, line, content):
-    content_lower = content.lower()
-    
-    # REAL_SECRET patterns
-    if re.search(r'(api[_-]?key|secret|token|password|private[_-]?key)\s*[:=]\s*["\'][a-zA-Z0-9_\-]{20,}["\']', content):
-        return "REAL_SECRET"
-    if re.search(r'(ya29\.|eyJ|gh[opsu]_[a-zA-Z0-9]{36,})', content):
-        return "REAL_SECRET"
-    
-    # TEST_OR_EXAMPLE patterns
-    if any(x in file for x in ['test', 'Test', 'TEST', 'example', 'Example', 'fixture', 'Fixture']):
-        if any(x in content_lower for x in ['test', 'example', 'fake', 'dummy', 'placeholder', 'your_', '...']):
-            return "TEST_OR_EXAMPLE"
-    if any(x in content_lower for x in ['testpassword', 'test-token', 'test-token-123', 'your_client_secret', 'your_api_key', 'password="password"', 'username="user"', 'token="eyAkaknabna', 'private_key="-----begin private key-----']):
-        return "TEST_OR_EXAMPLE"
-    if 'PASSWORD = "password"' in content:
-        return "TEST_OR_EXAMPLE"
-    
-    # ENDPOINT_LEAK patterns
-    if any(x in content for x in ['corp.google.com', 'devsite.corp.google.com', 'source.corp.google.com', 'pantheon.corp.google.com', 'dev.office.com']):
-        return "ENDPOINT_LEAK"
-    if re.search(r'https?://(dev|internal|staging|prod)\.', content):
-        return "ENDPOINT_LEAK"
-    
-    # INTERESTING patterns
-    if '169.254.169.254' in content:
-        return "INTERESTING"
-    if 'kubeconfig' in content_lower:
-        return "INTERESTING"
-    if 'GOOGLE_API_KEY' in content:
-        return "INTERESTING"
-    if '_STATE_KEY_ACCESS_TOKEN' in content or '_vmaas_access_token' in content:
-        return "INTERESTING"
-    if 'legacy openssl rsa key format' in content_lower or 'BEGIN RSA PRIVATE KEY' in content:
-        return "INTERESTING"
-    if '@see http://dev.w3.org' in content or '@see {http://dev.w3.org' in content:
-        return "TEST_OR_EXAMPLE"  # Spec references
-    
-    return "TEST_OR_EXAMPLE"
-
-results = {"REAL_SECRET": [], "TEST_OR_EXAMPLE": [], "ENDPOINT_LEAK": [], "INTERESTING": []}
-for f, l, c in hits:
-    cat = classify(f, l, c)
-    # Compute sha256 of secret material if REAL_SECRET
-    secret_hash = ""
-    if cat == "REAL_SECRET":
-        # Extract potential secret
-        m = re.search(r'["\']([a-zA-Z0-9_\-\.]{20,})["\']', c)
-        if m:
-            secret_hash = hashlib.sha256(m.group(1).encode()).hexdigest()[:16]
-        else:
-            secret_hash = hashlib.sha256(c.encode()).hexdigest()[:16]
-    results[cat].append((f, l, c[:100], secret_hash))
-
-for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
-    print(f"\n=== {cat} ===")
-    for f, l, c, h in results[cat]:
-        h_str = f"  sha256:{h}" if h else ""
-        print(f"  {f}:{l}: {c}{h_str}")
-
-# Verdict
-print("\n=== VERDICT ===")
-for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
-    for f, l, c, h in results[cat]:
-        if cat == "REAL_SECRET":
-            print(f"REPORT_CANDIDATE: yes  {f}:{l}  sha256:{h}")
-        else:
-            print(f"REPORT_CANDIDATE: no   {f}:{l}  ({cat})")
-
-EOF
-python3 /tmp/classify.py
-=== REAL_SECRET ===
-
-=== TEST_OR_EXAMPLE ===
-  reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:102: String token = "test-token-123";
-  reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:129: String password = "testpassword";
-  reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:75: String password = "testpassword";
-  reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java:136: String password = "testpassword";
-  reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157: private_key="-----BEGIN PRIVATE KEY-----..."
-  reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269: credentials=HttpCredentials(username="user", password="password")
-  reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278: credentials=HttpCredentials(token="eyAkaknabna....")
-  reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"
-  reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",
-
-=== ENDPOINT_LEAK ===
-  reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js:4638: href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_
-  reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js:4638: href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_
-  reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js:4639: href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_
-  reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js:4639: href="https://developers.devsite.corp.google.com/maps/deprecations#kml_layer_deprecated_as_of_april_
-  reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:166: See https://dev.office.com/reference/add-ins/shared/context
-  reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:205: https://dev.office.com/reference/add-ins/outlook/1.1/Office.context.mailbox
-  reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:27: See https://dev.office.com/reference/add-ins/outlook/1.1/Office
-  reposcan-raw/google/closure-compiler/externs/browser/html5.js:1703: @see http://dev.w3.org/html5/workers/
-  reposcan-raw/google/closure-compiler/externs/browser/html5.js:1764: @see http://dev.w3.org/html5/workers/
-  reposcan-raw/google/closure-compiler/externs/browser/html5.js:22: @see http://dev.w3.org/html5/spec/Overview.html
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:3477: @see http://dev.w3.org/csswg/cssom-view/#dom-document-scrollingelement
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4313: http://dev.w3.org/csswg/css-font-loading/
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4318: @see http://dev.w3.org/csswg/css-font-loading/#enumdef-fontfaceloadstatus
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js:22: Created from http://dev.w3.org/geo/api/spec-source-orientation.
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js:34: @see http://dev.w3.org/2006/webapi/FileAPI/#dfn-Blob
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js:1597: @see {http://dev.w3.org/2011/webrtc/editor/getusermedia.html#
-  reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js:3333: {@see http://dev.w3.org/2011/webrtc/editor/webrtc.html}
-  reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js:202: @see http://dev.w3.org/2006/webapi/WebNotifications/publish/#dialog-if
-  reposcan-raw/google/closure-compiler/externs/es6.js:392: @see http://dev.w3.org/html5/postmsg/
-  reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java:95: https://source.corp.google.com/piper///depot/google3/third_party/java_src/jscomp/java/com/google/jav
-  reposcan-raw/google/copybara/cloudbuild.yaml:27: https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel
-  reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h:7: http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3
-
-=== INTERESTING ===
-  reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:126: supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY")
-  reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103: kubeconfig_path: str | None = None
-  reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104: kubeconfig_context: str | None = None
-  reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115: kubeconfig_path: str | None = None,
-  reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114: cloud metadata endpoint at ``169.254.169.254``
-  reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154: network -- in particular the cloud metadata endpoint at 169.254.169.254
-  reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")
-  reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171: network with NAT64, routes to the internal ``169.254.169.254`` metadata
-  reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146: 169.254.169.254 in Chrome, so refuse instead of checking it.
-  reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-
-=== VERDICT ===
-REPORT_CANDIDATE: no   reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:102  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:129  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java:75  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java:136  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62  (TEST_OR_EXAMPLE)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js:4638  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js:4638  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js:4639  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js:4639  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:166  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:205  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/contrib/externs/ms-office-1.3.js:27  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/html5.js:1703  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/html5.js:1764  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/html5.js:22  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:3477  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4313  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4318  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js:22  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js:34  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js:1597  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js:3333  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js:202  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/externs/es6.js:392  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java:95  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/copybara/cloudbuild.yaml:27  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h:7  (ENDPOINT_LEAK)
-REPORT_CANDIDATE: no   reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:126  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146  (INTERESTING)
-REPORT_CANDIDATE: no   reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47  (INTERESTING)
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "not in reposcan-raw"
+not in reposcan-raw
 [0m
-### Classification Summary
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -rn "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/ 2>/dev/null || echo "not found in reposcan-raw"
+reposcan-raw/rag.txt:123:- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed still live — secret string 'RUP0RZ6e0pPhDzsqIJ7KlNd1', sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes include cloud-platform, drive, devstorage.full_control
+reposcan-raw/rag.txt:151:- 2026-08-08 ACCEPTED: earthengine-api oauth.py:45 secret confirmed plaintext-readable from raw GitHub at 10:56 UTC — `RUP0RZ6e0pPhDzsqIJ7KlNd1` matches sha256 `3f3f8d6f…d271`; AUTH_HELPED test still needed for Graph agentRegistration IDOR (two-principal test-tenant).
+reposcan-raw/rag.txt:154:- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, sha256 `3f3f8d6f…d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage.
+reposcan-raw/rag.txt:156:- 2026-08-08 ACCEPTED Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live at 10:56 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, sha256 `3f3f8d6f…d271`, line :45 + :99 fallback, scopes cloud-platform+drive+devstorage
+reposcan-raw/rag.txt:197:- 2026-08-08 ACCEPTED: Hardcoded OAuth client_secret @ earthengine-api oauth.py:45 confirmed still live — sha256 `3f3f8d6f…d271`, plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub, whole-file sha `f4f93c76…` unchanged.
+reposcan-raw/rag.txt:254:- 2026-08-09 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 05:18 UTC — plaintext `RUP0RZ6e0pPhDzsqIJ7KlNd1` readable from raw GitHub (200 len=23110), sha256 `3f3f8d6f…d271` verbatim match, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged, line :45 + :99 fallback + scopes cloud-platform+drive+devstorage intact.
+reposcan-raw/rag.txt:274:- 2026-08-09 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed LIVE @ current cycle — raw GitHub GET → 200 len=23110, line :45 (`RUP0RZ6e0pPhDzsqIJ7KlNd1`) + :99 fallback, sha256(secret line)=`91c14e76…463e`, whole-file sha=`f4f93c76…`, scopes cloud-platform+drive+devstorage.
+reposcan-raw/analysis.txt:4:[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "not in reposcan-raw"
+[0m
+### Classification Tables
 
-| Category | Count | Details |
-|----------|-------|---------|
-| **REAL_SECRET** | 0 | No hardcoded credentials with signs of life |
-| **TEST_OR_EXAMPLE** | 9 | Test files with `testpassword`, `test-token-123`, placeholder `your_client_secret`, `-----BEGIN PRIVATE KEY-----...` |
-| **ENDPOINT_LEAK** | 23 | W3C spec refs (`dev.w3.org`), internal Google docs (`corp.google.com`, `pantheon.corp.google.com`, `source.corp.google.com`), MS Office dev refs (`dev.office.com`), Chromium SPDY ref |
-| **INTERESTING** | 10 | Cloud metadata endpoint `169.254.169.254` refs (6×), kubeconfig params (3×), `GOOGLE_API_KEY` interpolation, legacy RSA key format comment, `_vmaas_access_token` state key |
+#### REAL_SECRET (reportable hardcoded credentials)
+| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
+|------|------|---------------|---------|------------------|
+| *(none new in delta)* | — | — | Earth Engine secret already tracked in KB (sha256 `3f3f8d6f…d271`) | no |
+
+#### TEST_OR_EXAMPLE (sample/fixture/placeholder data)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE | `PASSWORD = 'password'` — auth scheme type constant |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | TEST_OR_EXAMPLE | JSDoc example: `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | TEST_OR_EXAMPLE | JSDoc example: `token: "your_access_token"` |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | TEST_OR_EXAMPLE | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder |
+| google/skia-buildbot/go/metadata/metadata.go | 23 | TEST_OR_EXAMPLE | `CLIENT_SECRET = "client_secret"` — OAuth param name constant |
+| google/skia-buildbot/go/metadata/metadata.go | 27 | TEST_OR_EXAMPLE | `GMAIL_CACHED_TOKEN = "gmail_cached_token"` — key name constant |
+| google/skia-buildbot/go/metadata/metadata.go | 30 | TEST_OR_EXAMPLE | `GMAIL_CLIENT_SECRET = "gmail_clientsecret"` — key name constant |
+| google/skia-buildbot/go/buildbucket/buildbucket.go | 24 | TEST_OR_EXAMPLE | `headerToken = "x-buildbucket-token"` — header name constant |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | TEST_OR_EXAMPLE | Template placeholders `{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`, `{{ .Env.ES_PWD }}` |
+| google/skia-buildbot/bugs-central/go/bugs-central/main.go | 61 | TEST_OR_EXAMPLE | `secretGithubToken = "bugs-central-github-token"` — secret **name**, not value |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata endpoint check |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (incl. 169.254.169.254) | Link-local / GCP metadata IP |
+| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `developers.devsite.corp.google.com` | Internal Google devsite |
+| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com` | Internal Google source (piper) |
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com/logs/...` | Internal logging/observability |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` | Internal service account |
+| google/skia-buildbot/go/gce/swarming/instance_types/setup-script-linux-ct.sh | 176 | `metadata.google.internal/computeMetadata/...` | GCP metadata token endpoint |
+| google/skia-buildbot/go/issuetracker/getdiscovery.go | 15 | `pantheon.corp.google.com/apis/credentials/key/d74adcc4-...` | Internal Cloud Console API key reference |
+| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` | Internal corp domain |
+| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | `skia-corp.google.com` | Internal corp domain reference |
+| google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `source.corp.google.com/h/chrome-internal/` | Internal source browsing |
+| google/skia-buildbot/perf/go/*/schema/schema.go | multiple | `b.corp.google.com/issues/492077374` | Internal issue tracker |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com/range_search/...` | Internal Android build system |
+| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27,166,205 | `dev.office.com` | External Microsoft API (in externs) |
+
+#### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access --secret="codecov-google-crosvm"` | **Good pattern**: fetches secret from Secret Manager at runtime |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access --secret="github-crosvm-bot"` | **Good pattern**: fetches GitHub token from Secret Manager at runtime |
+| google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` | Service account file naming convention |
+| google/skia-buildbot/golden/create-gold-corp-sa.sh | 60 | `kubectl create secret generic --from-file=service-account.json` | K8s secret creation from SA file (deployment pattern) |
+| google/skia-buildbot/go/revportforward/revportforward.go | 50-56 | Kubeconfig handling | Infrastructure reverse-port-forward logic |
+| google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go | 96 | Kubeconfig path resolution | Commit liveness check utility |
 
 ---
 
-### Verdict
+### SHORT VERDICT
 
-| File | Line | Category | REPORT_CANDIDATE |
-|------|------|----------|------------------|
-| `reposcan-raw/google/copybara/javatests/.../AuthTest.java` | 75,102,129 | TEST_OR_EXAMPLE | **no** |
-| `reposcan-raw/google/copybara/javatests/.../HttpEndpointTest.java` | 136 | TEST_OR_EXAMPLE | **no** |
-| `reposcan-raw/google/adk-python/.../auth_credential.py` | 157,269,278 | TEST_OR_EXAMPLE | **no** |
-| `reposcan-raw/google/adk-python/.../auth_schemes.py` | 68 | TEST_OR_EXAMPLE | **no** |
-| `reposcan-raw/google/adk-python/.../auth_helpers.py` | 62 | TEST_OR_EXAMPLE | **no** |
-| `reposcan-raw/google/closure-compiler/.../maps/google_maps_api_v3*.js` | 4638-4639 | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/closure-compiler/.../ms-office-1.3.js` | 27,166,205 | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/closure-compiler/.../browser/*.js` | various | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/closure-compiler/.../ErrorManager.java` | 95 | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/copybara/cloudbuild.yaml` | 27 | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/quiche/.../spdy_protocol.h` | 7 | ENDPOINT_LEAK | **no** |
-| `reposcan-raw/google/quiche/.../certificate_view.h` | 126 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../gke_code_executor.py` | 103,104,115 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../container_code_executor.py` | 114,154 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../cli_create.py` | 131 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../load_web_page.py` | 171 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../computer_use_toolset.py` | 146 | INTERESTING | **no** |
-| `reposcan-raw/google/adk-python/.../sandbox_computer.py` | 47 | INTERESTING | **no** |
+**No new REAL_SECRET candidates in this delta.** The only live hardcoded credential remains the **Earth Engine OAuth client_secret** (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — already **ACCEPTED** in KB, confirmed live across 50+ probes, valid credential per RFC 6749 §5.2 (`invalid_grant` not `invalid_client`), but native-app OOB by-design per ADK #2128 precedent.
 
-**No REPORT_CANDIDATE: yes** findings in this delta. All hits are test fixtures, documentation references, or code patterns — no live secrets.
+**Notable positive patterns**: CrosVM uses GCP Secret Manager correctly (`gcloud secrets versions access`) — no static secrets in repo.
+
+**Endpoints leaked**: Internal Google corp domains (`*.corp.google.com`, `*.devsite.corp.google.com`, `pantheon.corp.google.com`, `source.corp.google.com`, `android-build.corp.google.com`, `skia-corp.google.com`) and GCP metadata endpoints — recon value only, no direct exploit.
+
+**All other hits**: Test fixtures, placeholder constants, externs references, or deployment/infrastructure patterns.
