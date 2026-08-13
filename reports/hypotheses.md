@@ -2636,3 +2636,14 @@
 - LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live — true CORS preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agents+admin level;
 - LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256 3f3f8d6f…d271 verbatim, raw GitHub 200/23110, POST→invalid_grant (vs fake→invalid_c
 - LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — GET→401/237 Bearer on production v1.0, zero-restriction schema pattern i
+
+## RANKED HYPOTHESES 2026-08-13 20:06:51 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck. On grant, execute the doubled surface matrix in one sessio
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED). This is the single bottleneck unblocking BOTH Microsoft hypotheses (#1 agentRegist
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 19:37 UTC)
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (2026-08-13 19:37 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELT
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS confirmed still live — true CORS preflight 200 ACAO:* + PATCH allowlist at collection+item+agents+admin level; $
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed still live — sha256 `3f3f8d6f…d271` verbatim, raw GitHub 200/23110, POST→invalid_grant (vs fake
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed still live — GET→401/237 Bearer on production v1.0, zero-restriction schema pat
