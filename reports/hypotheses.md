@@ -2547,3 +2547,8 @@
 - LEARN: ACCEPTED All three hypotheses remain live — NO_DELTA this cycle (05:44 UTC): agentRegistrations 5-family IDOR+CORS, earthengine client_secret valid credential, 
 - LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 (POST-only gate) — validates earthengine secret redemption path is grant_type=refresh_token only
 - LEARN: REJECTED No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged
+
+## RANKED HYPOTHESES 2026-08-13 08:53:43 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (item-level confirmed) (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: File Google VRP report for [FINAL] 2 (Earth Engine client_secret) with evidence bundle — sha256(secret)=`3f3f8d6f…d271`, sha256(file)=`f4f93c76…`, raw Gi
