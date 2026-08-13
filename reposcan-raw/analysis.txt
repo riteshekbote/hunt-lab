@@ -1,58 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
-
 ### REAL_SECRET
-*None in the new delta hits.* The only live hardcoded secret in the knowledge base is `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), which is **not** in this scan's new hits (different repo).
+
+| File | Line | SHA256 | Classification |
+|------|------|--------|----------------|
+| *(none in this scan)* | | | |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Pattern |
+
+| File | Line | Context |
 |------|------|---------|
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` |
-| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (constant name) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Placeholder private key, `username="user", password="password"`, `token="eyAkaknabna...."` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| google/xrblocks/src/ai/AI.ts | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| google/sam/internal/node/store.go | 35 | `keyRefreshToken = "refresh_token"` (key name) |
+| adk-python/src/google/adk/cli/browser/chunk-*.js (19 files) | 3,9,11 | Generated parser error templates (PEG.js output) |
+| adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | 5 | Minified parser runtime |
+| adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` (auth scheme constant) |
+| adk-js/core/src/auth/auth_credential.ts | 214, 226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
+| adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
+| adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `HttpCredentials(username="user", password="password")` |
+| adk-python/src/google/adk/auth/auth_credential.py | 278 | Example JWT `token="eyAkaknabna...."` |
+| adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (auth scheme constant) |
+| closure-compiler/externs/browser/*.js | various | W3C spec references (`dev.w3.org`) — externs documentation |
+| closure-compiler/contrib/externs/ms-office-1.3.js | 27,166,205 | Microsoft Office JS API references (`dev.office.com`) — externs |
+| closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | Deprecation notice URLs (internal corp domain in public externs) |
 
 ### ENDPOINT_LEAK
-| File | Line | Pattern |
-|------|------|---------|
-| google/copybara/cloudbuild.yaml | 27 | Internal Artifact Registry URL (comment) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata IP range) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint |
+
+| File | Line | Endpoint |
+|------|------|----------|
+| closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `https://developers.devsite.corp.google.com/...` (internal corp domain) |
+| closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `https://source.corp.google.com/...` (internal source URL) |
+| go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
+| go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/...` (internal corp URL in comment) |
 
 ### INTERESTING
-| File | Line | Pattern |
-|------|------|---------|
-| google/capsem/config/gate.toml | 475 | `password = "password.txt"` (file reference) |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
-| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | Secret injection: `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (param expansion) |
-| google/sam/cmd/sam-console/public/app.js | 486 | Client-side token display alert |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template: `GOOGLE_API_KEY={google_api_key}` (secret injection) |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `40150cc2c638b09de8ebbfefd50b80a4` — **REJECTED per KB** (search-only, public by design) |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` declarations (12 files) — not secrets |
-| google/sam/site/content/docs/manifests/*.yaml | various | Mock/documentation ConfigMaps |
+
+| File | Line | Note |
+|------|------|------|
+| adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks `host === 'metadata.google.internal'` (GCP metadata) |
+| adk-js/core/src/tools/load_web_page.ts | 36 | CIDR `169.254.0.0/16` comment (includes GCP metadata 169.254.169.254) |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` params (cloud config) |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References 169.254.169.254 in docstrings (GCP metadata) |
+| adk-python/src/google/adk/cli/cli_create.py | 131 | Template writes `GOOGLE_API_KEY={google_api_key}` (user-supplied) |
+| adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment references 169.254.169.254 metadata endpoint |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment references 169.254.169.254 (Chrome metadata block) |
+| go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | Curls `metadata.google.internal` (legitimate GCP metadata access) |
 
 ---
 
-## Verdict
+### VERDICT
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (KB) | **yes** (pre-existing) | Live hardcoded client_secret, valid per RFC 6749 §5.2 (invalid_grant not invalid_client), but native-app OOB by-design per ADK #2128 |
-| Algolia DocSearch key (xrblocks) | **no** | Explicitly REJECTED in KB — search-only, public by design |
-| All new delta hits | **no** | Test fixtures, placeholders, file references, secret injection patterns, ConfigMap kinds, metadata IP refs |
-| GCP metadata endpoint refs (169.254.169.254) | **no** | Known attack surface (SSRF), not a secret leak |
-| GitHub Actions secret refs (`${SECRET}`) | **no** | Correct pattern — secrets not in repo |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| *(no REAL_SECRET hits in this scan)* | — |
 
-**No new REAL_SECRET candidates in this scan delta.** The only reportable credential remains the pre-existing earthengine-api finding (already tracked in KB at confidence 96).
+**Notes:**
+- The **earthengine-api** hardcoded `client_secret` (sha256 `3f3f8d6f…d271` at `oauth.py:45`) is **ACCEPTED LIVE** per knowledge base (REPORT_CANDIDATE=yes) but **not present in this scan's hits** (different repo).
+- All ADK `ya29.*` / `/run_sse` secrets are **KNOWN DUPLICATES** (issues #2128, #5520 — closed/redacted).
+- Closure-compiler `devsite.corp.google.com` / `source.corp.google.com` / `pantheon.corp.google.com` leaks are **internal doc URLs in public externs/source** — low severity, not credential leaks.
+- `go-tpm-tools` sandbox/staging endpoints are **non-prod environment URLs** — no secrets exposed.
+- All `169.254.169.254` / `metadata.google.internal` references are **legitimate GCP metadata usage patterns**, not leaks.
