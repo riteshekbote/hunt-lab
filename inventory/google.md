@@ -908,3 +908,6 @@
 - CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page in prior cycles); cosmetic redirect per KB, no auth-bypass surface
 
 ## 2026-08-14 21:39:58 UTC
+
+## 2026-08-14 22:01:19 UTC
+- NEW None — all fresh passive probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
