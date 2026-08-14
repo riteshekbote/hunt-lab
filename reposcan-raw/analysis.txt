@@ -1,87 +1,96 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+Let me analyze the scan results and classify each hit according to the categories provided. I need to be careful to:
+1. Not report REJECTED classes from the knowledge base
+2. Not report KNOWN DUPLICATES
+3. Only report REAL_SECRET findings that are actually live credentials
+4. Classify everything else appropriately
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none) | - | - | No hardcoded live credentials found in this delta | no |
+Let me go through the hits systematically.
 
-## TEST_OR_EXAMPLE
-| File | Line | Value/Pattern | Context |
-|------|------|---------------|---------|
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | "password" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | "domain-registry" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | "domain-registry" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | "abcde12345" | Load-test client password |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Template variable, not hardcoded |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | ${{ steps.fetch-token.outputs._id_token }}, ${{ steps.fetch-token.outputs._auth_token }} | GitHub Actions expressions |
+First, let me identify the REJECTED classes from the knowledge base that I should NOT propose:
+- Firebase config reads (getProjects/getProjectConfig) @ identitytoolkit.googleapis.com
+- delegatedProjectNumber cross-project lookup
+- AAD deferred redirect_uri validation
+- legacy ACS
+- internal backend URL leaks in SPA config
+- /health metadata leaks
+- email/phone enumeration differential (Firebase sendOobCode)
+- endpoint maps with all-401 responses
+- implicit-flow / client-registration hygiene
+- Algolia DocSearch apiKey in docusaurus config
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | https://staging-www.sandbox.googleapis.com | Staging API root |
-| reposcan-raw/google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | http://metadata.google.internal/ | GCE metadata endpoint (internal) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | Cloud metadata endpoint (docs/warning) |
-| reposcan-raw/google/kf/operator/pkg/operand/transformations/deployment_transform.go | 51 | http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token | Metadata token curl (runtime bootstrap) |
-| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | https://firebase.corp.google.com/project/$project_id/... | Internal Firebase console URL (corp) |
-| reposcan-raw/google/kf/operator/pkg/release/release.go | 65 | https://source.corp.google.com/... | Internal source.corp reference (comment) |
+KNOWN DUPLICATES to skip:
+- ADK /run_sse OAuth client_secret to untrusted clients: google/adk-python issue #2128
+- ADK hardcoded ya29.* OAuth token in git history: google/adk-python issue #5520
+- CVE-2026-47391, Benchikh OAuth, Tenable SSRF
 
-## INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| reposcan-raw/google/kf/operator/cmd/manager/main.go | 34-36 | MasterURL/Kubeconfig flags for out-of-cluster K8s access |
-| reposcan-raw/google/kf/operator/pkg/operand/transformations/deployment_transform.go | 51 | Retry-loop curl to metadata endpoint for service-account token |
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37,40 | CSRF token header constants (X-CSRF-Token, xsrfToken) |
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | ID_TOKEN = "id_token" constant |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS bundles (parse-error strings) — source maps not present in repo |
-| reposcan-raw/google/kf/**/config*.yaml | 16 | Standard K8s ConfigMap kinds (no data leaked) |
+Now let me classify each hit from the scan:
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
-No REAL_SECRET findings in this delta. All credentials are test fixtures (nonprod), template variables, or GitHub Actions expressions. Endpoint leaks are staging/internal references with no exploitable secrets. Intelligent findings are configuration/constants only.
-EOF
-=== CLASSIFICATION TABLES ===
+**google/adk-python/src/google/adk/auth/auth_credential.py:157** - `private_key="-----BEGIN PRIVATE KEY-----..."`
+This looks like a placeholder/test private key (the "..." suggests it's truncated/example). This is likely TEST_OR_EXAMPLE.
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none) | - | - | No hardcoded live credentials found in this delta | no |
+**google/adk-python/src/google/adk/auth/auth_credential.py:269** - `credentials=HttpCredentials(username="user", password="password")`
+This is clearly test/fixture data - "user"/"password" are placeholder credentials. TEST_OR_EXAMPLE.
 
-## TEST_OR_EXAMPLE
-| File | Line | Value/Pattern | Context |
-|------|------|---------------|---------|
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | "password" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | "domain-registry" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | "domain-registry" | Test fixture DB password (nonprod) |
-| reposcan-raw/google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | "abcde12345" | Load-test client password |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Template variable, not hardcoded |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | ${{ steps.fetch-token.outputs._id_token }}, ${{ steps.fetch-token.outputs._auth_token }} | GitHub Actions expressions |
+**google/adk-python/src/google/adk/auth/auth_credential.py:278** - `credentials=HttpCredentials(token="eyAkaknabna....")`
+The token "eyAkaknabna...." looks like a fake JWT (starts with "eyJ" typically for real JWTs, but this is "eyA" and has "...." suggesting placeholder). TEST_OR_EXAMPLE.
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | https://staging-www.sandbox.googleapis.com | Staging API root |
-| reposcan-raw/google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | http://metadata.google.internal/ | GCE metadata endpoint (internal) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | Cloud metadata endpoint (docs/warning) |
-| reposcan-raw/google/kf/operator/pkg/operand/transformations/deployment_transform.go | 51 | http://169.254.169.254/computeMetadata/v1/instance/service-accounts/default/token | Metadata token curl (runtime bootstrap) |
-| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | https://firebase.corp.google.com/project/$project_id/... | Internal Firebase console URL (corp) |
-| reposcan-raw/google/kf/operator/pkg/release/release.go | 65 | https://source.corp.google.com/... | Internal source.corp reference (comment) |
+**google/adk-python/src/google/adk/auth/auth_schemes.py:68** - `PASSWORD = "password"`
+Hardcoded string "password" - this is a constant/default value, not a real secret. TEST_OR_EXAMPLE.
 
-## INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| reposcan-raw/google/kf/operator/cmd/manager/main.go | 34-36 | MasterURL/Kubeconfig flags for out-of-cluster K8s access |
-| reposcan-raw/google/kf/operator/pkg/operand/transformations/deployment_transform.go | 51 | Retry-loop curl to metadata endpoint for service-account token |
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37,40 | CSRF token header constants (X-CSRF-Token, xsrfToken) |
-| reposcan-raw/google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | ID_TOKEN = "id_token" constant |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS bundles (parse-error strings) — source maps not present in repo |
-| reposcan-raw/google/kf/**/config*.yaml | 16 | Standard K8s ConfigMap kinds (no data leaked) |
+**google/adk-python/src/google/adk/cli/browser/chunk-*.js** - These are all JavaScript parser error messages, not secrets. These are minified/bundled JS files with parse error strings. Not secrets.
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
-No REAL_SECRET findings in this delta. All credentials are test fixtures (nonprod), template variables, or GitHub Actions expressions. Endpoint leaks are staging/internal references with no exploitable secrets. Intelligent findings are configuration/constants only.
-[0m
-Done. No reportable secrets in this delta — all credential-like hits are test fixtures (`nonprod` paths, values like `"password"`, `"abcde12345"`), template variables, or CI expressions. Endpoint leaks are staging/internal references without exploitable material.
+**google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47** - `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`
+This is a constant/key name for storing an access token in state, not an actual token. INTERESTING (debug/config) but not a secret.
+
+**google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146** - Comment about 169.254.169.254 metadata endpoint
+This is a comment about cloud metadata endpoint, not a secret. INTERESTING (cloud config reference).
+
+**google/adk-python/src/google/adk/tools/load_web_page.py:171** - Comment about 169.254.169.254 metadata endpoint
+Same as above. INTERESTING.
+
+**google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62** - `client_secret="your_client_secret"`
+This is clearly a placeholder ("your_client_secret"). TEST_OR_EXAMPLE.
+
+**google/capsem/.github/workflows/release-channel-staging.yaml:17** - `default: https://staging.release-eq7.pages.dev`
+This is a staging URL, not a secret. ENDPOINT_LEAK (staging URL).
+
+**google/capsem/config/gate.toml:478** - `password = "password.txt"`
+This references a password file, not an actual password. Could be INTERESTING (config pattern).
+
+**google/capsem/scripts/fix_p12_legacy.sh:15** - `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"`
+This reads password from a file, not hardcoded. Not a secret leak.
+
+**google/capsem/scripts/preflight.sh:39** - `password="$(tr -d '\n' < "$pass_file")"`
+Same as above, reads from file.
+
+**google/langextract/.github/workflows/ci.yaml:168-170** - `${{ secrets.GEMINI_API_KEY }}` and `${{ secrets.OPENAI_API_KEY }}`
+These are GitHub Actions secret references, not actual secrets. This is the correct pattern. Not a leak.
+
+**google/magika/.github/workflows/github-issue-labeler.yml:20** - `${{secrets.GITHUB_TOKEN}}`
+GitHub Actions secret reference. Correct pattern.
+
+**google/magika/.github/workflows/python-build-and-release-package.yml:407,437** - test.pypi.org URLs
+These are public PyPI test URLs. Not secrets.
+
+**google/meridian/.github/workflows/proto-publish.yml:126,138** and **publish.yml:127,139** - test.pypi.org URLs
+Same, public test PyPI URLs.
+
+**google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py:59** - `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"`
+This is a constant naming an environment variable, not the actual secret. The value is the name of the env var. INTERESTING (config pattern).
+
+**google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py:61** - `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"`
+Same pattern.
+
+**google/tunix/tunix/cli/base_agentic_config.yaml:63** - `#   hf_access_token: "your_token"`
+Commented out placeholder. TEST_OR_EXAMPLE.
+
+**google/tunix/tunix/cli/base_config.yaml:63** - `#   hf_access_token: "your_token"`
+Same.
+
+**google/tunix/tunix/cli/base_rl_pipeline.py:862** - `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")`
+Setting KUBECONFIG from config. Not a secret.
+
+**google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193** - `eot_token="
