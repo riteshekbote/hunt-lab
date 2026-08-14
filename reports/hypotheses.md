@@ -2761,3 +2761,14 @@
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
 - LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live @ 2026-08-14 cycle — true CORS preflight 200 ACAO:* + PATCH allowlist at collection+item+agents+adm
 - LEARN: NO_DELTA — fresh probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged: agentRegs GET 401/237 + preflight 200 ACAO:* full mutation allo
+
+## RANKED HYPOTHESES 2026-08-14 10:51:40 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking BOTH Microsoft hypotheses (#1 5-family IDOR+CORS + #
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live @ 2026-08-14 cycle — true CORS preflight 200 ACAO:* + PATCH allowlist at collection+item+agents+adm
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged, raw GitHub 200/23110; A
+- LEARN: ACCEPTED: oauth2PermissionGrants production v1.0 auth-gate confirmed live — GET→401/237 Bearer; zero-restriction EntityType schema identical to agentRegistratio
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
