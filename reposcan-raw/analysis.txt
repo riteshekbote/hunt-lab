@@ -1,28 +1,75 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
-
-| Category | Files/Lines | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | *none* | No hardcoded credentials with signs of life found |
-| **TEST_OR_EXAMPLE** | `adk-python/src/google/adk/auth/auth_credential.py:157` (placeholder private key)<br>`adk-python/src/google/adk/auth/auth_credential.py:269` (username="user", password="password")<br>`adk-python/src/google/adk/auth/auth_credential.py:278` (placeholder JWT `eyAkaknabna...`)<br>`adk-python/src/google/adk/auth/auth_schemes.py:68` (const `PASSWORD = "password"`)<br>`agents-cli/src/google/agents/cli/auth.py:43` (const `GEMINI_API_KEY = "gemini_api_key"`)<br>`adk-python/src/google/adk/cli/cli_create.py:131` (variable interpolation)<br>All `adk-go/cmd/launcher/web/webui/distr/*.js` & `adk-python/src/google/adk/cli/browser/*.js` (minified build artifacts) | Test fixtures, placeholder constants, build outputs — not reportable |
-| **ENDPOINT_LEAK** | `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154`<br>`adk-python/src/google/adk/tools/load_web_page.py:171` | References to `169.254.169.254` (well-known GCP metadata endpoint IP) — public knowledge, not a leak |
-| **INTERESTING** | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` (`--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest`)<br>`agents-cli/.../staging.yaml:168,192` (GitHub Actions templated token refs) | Secret Manager reference pattern & CI/CD token wiring — infrastructure config, not secrets |
+[0m$ [0mecho "AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k" | sha256sum
+c1ae220caaabc916a8197874126ef0fe1874435e94c74453fd52b848afc85234  -
+[0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=20, offset=470][0m
+[0m→ [0mRead reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts[90m [limit=30, offset=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=15, offset=55][0m
+Now I have all the context needed. Let me classify all hits.
 
 ---
 
-### Verdict List
+### CLASSIFICATION TABLES
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `adk-go/cloudrun.go:246` | **no** | Secret Manager reference (`GOOGLE_API_KEY:latest`), not a hardcoded value |
-| `agents-cli/auth.py:43` | **no** | Placeholder constant `"gemini_api_key"` (variable name as string) |
-| `agents-cli/staging.yaml:168,192` | **no** | GitHub Actions `${{ steps.fetch-token.outputs.* }}` templated variables |
-| `adk-python/auth_credential.py:157,269,278` | **no** | Test fixtures (placeholder key, `user`/`password`, truncated JWT) |
-| `adk-python/auth_schemes.py:68` | **no** | Constant definition `PASSWORD = "password"` |
-| `adk-python/cli_create.py:131` | **no** | Variable interpolation `f"GOOGLE_API_KEY={google_api_key}"` |
-| All `.js` chunks (adk-go/adk-python) | **no** | Minified build artifacts — parser error messages |
-| Metadata endpoint refs (169.254.169.254) | **no** | Well-known public IP for GCP metadata service |
+#### REAL_SECRET (hardcoded credential with signs of life)
 
-**No reportable findings in this delta.** All hits are test fixtures, build artifacts, infrastructure config, or public knowledge.
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/ground-platform/web/src/environments/environment.staging.ts` | 23 | `c1ae220caaabc916a8197874126ef0fe1874435e94c74453fd52b848afc85234` | Firebase API key `AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k` for project `ground-dev-sig` |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+
+| File | Line | Reason |
+|------|------|--------|
+| `google/kube-startup-cpu-boost/.github/workflows/release.yaml` | 90 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
+| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL |
+| `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | Documentation URL in comment |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test key `"fuzz test key"` |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | Test shutdown password `"ServerShutdownPassword"` |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test DB connection code |
+| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file `$pass_file` |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file `$PASS_FILE` |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `"gemini_api_key"` |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions token references in template |
+| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Shell vars for Postgres password (env/random) |
+| `google/ground-platform/web/src/environments/environment.test.ts` | 33 | Mock key `"mock-api-key"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Placeholder private key / credentials in examples |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | Kubeconfig path params (None defaults) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Example placeholder `"your_client_secret"` |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant `_vmaas_access_token` |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template generating env var |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified/bundled JS build artifacts (parse errors) |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret reference |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified/bundled JS build artifacts |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+
+| File | Line | Reason |
+|------|------|--------|
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
+
+#### INTERESTING (debug flags, keys, cloud configs, metadata refs)
+
+| File | Line | Reason |
+|------|------|--------|
+| `google/capsem/config/gate.toml` | 478 | References password file `password.txt` (actual secret not in repo) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments about 169.254.169.254 metadata endpoint blocking |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about 169.254.169.254 metadata endpoint |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment about 169.254.169.254 metadata endpoint blocking |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| `ground-platform` Firebase API key (staging) | **no** | Firebase API keys are **public by design** (client-side identification only); project `ground-dev-sig` appears to be a dev/staging project; auth controlled by Firebase Auth/Firestore rules, not API key secrecy |
+| All other hits | **no** | Placeholders, test fixtures, template variables, build artifacts, or file-path references — no live credentials |
+
+---
+
+### SUMMARY
+**Zero reportable secrets** in this delta. The only live-looking key (Firebase `AIzaSy...` in staging) is a **public-by-design Firebase API key** for a dev project — not a secret per Google VRP policy. All other hits are placeholders, test data, or CI/templates.
