@@ -1,14 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-The user wants me to triage a static scan of public repos from google/ and microsoft/ GitHub orgs. I need to classify each hit from the scan results into categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'fuzz test key'
+e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'ServerShutdownPassword'
+1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782  -
+[0m
+### CLASSIFICATION TABLES
 
-Let me analyze the hits from the scan results:
+#### DELTA HITS (6 new lines vs previous scan)
 
-**NEW HITS (delta - 9 new lines):**
-1. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168: GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` - This is a GitHub Actions secret reference, not a hardcoded secret
-2. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:169: LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"` - Same, secret reference
-3. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:170: OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"` - Same, secret reference
-4. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder
-5. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder
-6. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+| Category | File:Line | Evidence | SHA256(secret) |
+|----------|-----------|----------|----------------|
+| **TEST_OR_EXAMPLE** | `google/flatbuffers/.github/workflows/label.yml:24` | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — GitHub Actions secret ref, not hardcoded | — |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/flask/fuzz_json.py:27` | `secret_key = "fuzz test key"` — explicit test fixture | `e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5` |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java:13` | `g_shutdownPassword = "ServerShutdownPassword"` — test server constant | `1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782` |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java:55` | `getConnection("PASSWORD=" + getDatabasePassword() + ";")` — test helper | — |
+| **ENDPOINT_LEAK** | `google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33` | Javadoc URL to public MySQL docs | — |
+| **ENDPOINT_LEAK** | `google/oss-fuzz/projects/mysql-connector-j/project.yaml:1` | `homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/"` — public project URL | — |
+
+#### FULL GREP HITS (context — all previously known / triaged)
+
+| Category | Count | Notes |
+|----------|-------|-------|
+| **TEST_OR_EXAMPLE** | ~50 | All ADK/auth_credential fixtures, placeholder tokens (`your_client_secret`, `password`, `eyAkaknabna....`), template code, commented placeholders |
+| **ENDPOINT_LEAK** | ~5 | Public documentation URLs (Algolia DocSearch keys in templates, metadata IP references, kubeconfig paths) |
+| **REAL_SECRET** | 0 | **No new hardcoded credentials with signs of life** — earthengine-api oauth.py:45 (sha256 `3f3f8d6f…d271`) already ACCEPTED in KB, not new |
+
+---
+
+### VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| flatbuffers workflow `${{ secrets.GITHUB_TOKEN }}` | TEST_OR_EXAMPLE | **no** |
+| flask fuzz_json.py `"fuzz test key"` | TEST_OR_EXAMPLE | **no** |
+| h2database TestServer `"ServerShutdownPassword"` | TEST_OR_EXAMPLE | **no** |
+| h2database TestServer `getDatabasePassword()` | TEST_OR_EXAMPLE | **no** |
+| mysql-connector-j Javadoc URL | ENDPOINT_LEAK (public) | **no** |
+| mysql-connector-j project homepage | ENDPOINT_LEAK (public) | **no** |
+| **Any other hit in full grep** | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** |
+
+**SUMMARY**: **NO new REAL_SECRET candidates** in this delta. All 6 new hits are test fixtures or public documentation URLs. The only live hardcoded secret in google/ repos remains the previously-ACCEPTED earthengine-api `oauth.py:45` (sha256 `3f3f8d6f…d271`), already tracked in KB.
