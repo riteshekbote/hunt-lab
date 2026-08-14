@@ -5664,3 +5664,42 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
 [RISK] google: 55 — surface dominated by one valid-but-by-design native-app client_secret (invalid_grant A/B proven, VRP-worthiness capped by ADK #2128 precedent) plus tokeninfo oracle (no-reward per VRP rules); passive surface otherwise hardened, no new classes.
 [RISK] microsoft: 72 — Copilot Admin 5-family uniform 200 `ACAO:*` + full mutation allowlist on schema-zero-restriction EntityTypes (client-supplied ownership fields) plus production v1.0 oauth2PermissionGrants consent-forge precondition live; only the two-principal auth gate (AUTH_HELPED) separates precondition from proof.
+## 2026-08-14 15:48:28 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings} | score 6.85 | attack=8 business=9 tech=7 gate=5 cloud=5 fresh=3
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | score 6.30 | attack=7 business=8 tech=6 gate=5 cloud=5 fresh=4
+[PRIO] earthengine oauth.py:45 secret / oauth2.googleapis.com/token | score 6.05 | attack=5 business=7 tech=6 gate=7 cloud=8 fresh=3
+[HYP] Copilot Admin 5-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: fresh probe — item-level true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400; GET→401/237 auth-gate; $metadata 873-char block, 0 OperationRestrictions, client-supplied createdBy/ownerIds/managedByAppId across 5 EntityTypes.
+evidence_needed: Principal B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 incl A vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies only.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: fresh probe — raw oauth.py 200/23110, whole-file sha `f4f93c76…b73040` verbatim, bare-secret sha `3f3f8d6f…d271` at :45 (+:99 fallback); token GET→404 POST-only; prior A/B: leaked secret→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2).
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: file Google VRP report (secret sha256 `3f3f8d6f…d271`, file sha `f4f93c76…b73040`, invalid_grant A/B proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: GET→401/237 Bearer re-confirmed; oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions/ReadRestrictions, clientId/consentType/principalId/resourceId/scope all client-supplied, no documented requester-vs-target cross-check.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[FINAL] 1. agentRegistrations 5-family IDOR+CORS (97) 2. earthengine secret (96) 3. oauth2PermissionGrants forge (72)
+[NEXT] HUMAN: Request MSRC-authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck unblocking hypotheses #1 and #3 in one session. On grant execute the doubled matrix: A POST /beta/copilot/agentRegistrations {createdBy:B, ownerIds:[B]} → 201; B GET collection → 200-incl-A vs 403; B PATCH {A_id} → 200/204 vs 403; A POST /v1.0/oauth2PermissionGrants {principalId:B, resourceId:<storage appId>} → 201; B GET /v1.0/me/oauth2PermissionGrants → present vs absent. Log status+bodies only. Passive surface is saturated — 28+ byte-stable cycles; the only live change (graph root 301→200) is cosmetic, further passive probing yields no new information.
+[LEARN] ACCEPTED: agentRegistrations item-level true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 re-confirmed live this probe — full cross-origin mutation vector intact at collection+item; bare-OPTIONS→405 remains probe artifact (no Origin header).
+[LEARN] ACCEPTED: earthengine oauth.py source unchanged this probe — whole-file sha `f4f93c76…b73040` verbatim, bare-secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; token GET→404 POST-only gate + tokeninfo 400/113 oracle live.
+[LEARN] ACCEPTED: JWKS v2=7 kids, all 4 v1 kids present (0 v1-exclusive) this probe — steady-state subset invariant holds despite rotation churn; dual-JWKS rotation desync class stays REJECTED (v1 kid set never validated against v2 issuer).
+[LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+[RISK] google: 55 — surface dominated by one valid-but-by-design native-app client_secret (invalid_grant A/B proven, VRP-worthiness capped by ADK #2128 precedent) plus tokeninfo oracle (no-reward per VRP rules); passive surface otherwise hardened, no new classes.
+[RISK] microsoft: 72 — Copilot Admin 5-family uniform 200 `ACAO:*` + full mutation allowlist on schema-zero-restriction EntityTypes (client-supplied ownership fields) plus production v1.0 oauth2PermissionGrants consent-forge precondition live; only the two-principal auth gate (AUTH_HELPED) separates precondition from proof.
