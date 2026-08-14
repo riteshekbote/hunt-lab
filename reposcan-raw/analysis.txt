@@ -1,3 +1,54 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+## Classification Results
+
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none new* | — | — | The only live hardcoded secret remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), already ACCEPTED in KB |
+
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` — placeholders |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Truncated private key fixture (`-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` — test creds |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` — truncated test token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — constant name |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test code |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | GitHub Actions templated vars (`${{ steps.fetch-token.outputs._id_token }}`) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.* }}` references (not hardcoded) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — secret-manager fetch |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` — secret-manager fetch |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/cls/from_id/%s/to_id/%s/` |
+| google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `https://source.corp.google.com/h/chrome-internal/` |
+| google/yggdrasil-decision-forests/yggdrasil_decision_forests/port/python/ydf/model/export_docker.py | 68 | `https://pantheon.corp.google.com/run` (comment) |
+
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References to `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | References to `169.254.169.254` metadata endpoint |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51 | Template password vars (`{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`) |
+| google/skia-buildbot/perf/go/*/schema/schema.go | multiple | Internal issue refs `b.corp.google.com/issues/492077374` (UUID→Text migration) |
+
+---
+
+## Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api oauth.py:45 (pre-existing) | REAL_SECRET | **no** (already ACCEPTED in KB, native-app OOB by-design per ADK #2128) |
+| xrblocks Algolia apiKey | TEST_OR_EXAMPLE | **no** (REJECTED in KB: search-only key, public by design) |
+| All new delta hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** (no live credentials, no new attack surface) |
+
+**Summary**: No new reportable findings this scan. All hits are placeholders, test fixtures, internal corp URLs, or previously catalogued surfaces.
