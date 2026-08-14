@@ -1,27 +1,458 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | head -30
-apiVersion: serving.knative.dev/v1
-kind: Service
-metadata:
-  name: osv-website
-spec:
-  template:
-    metadata:
-      annotations:
-        autoscaling.knative.dev/minScale: '1'
-        run.googleapis.com/vpc-access-connector: projects/oss-vdb-test/locations/us-west2/connectors/connector
-    spec:
-      containers:
-      - image: osv-website
-        env:
-        - name: OSV_VULNERABILITIES_BUCKET
-          value: 'osv-test-vulnerabilities'
-        - name: REDISHOST
-          value: '10.189.34.180'
-        - name: REDISPORT
-          value: '6379'
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | head -30
+name: Stage Asset Channel
+
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Staging asset channel name.
+        required: true
+        default: staging
+      deploy_branch:
+        description: Cloudflare Pages preview branch to publish.
+        required: true
+        default: staging
+      release_site_url:
+        description: Cloudflare Pages preview URL for the deploy branch.
+        required: true
+        default: https://staging.release-eq7.pages.dev
+      manifest_version:
+        description: Staged manifest contract version.
+        required: true
+        default: 1.0.2
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  assemble-staging-channel:
+    runs-on: ubuntu-latest
+    name: Assemble staging asset channel
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | sed -n '470,490p'
+# Local signing material. Absent on a developer machine, which is why the rail
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+shell_timeout_seconds = 300
+
+# Every binary the package must install. Each reports the package version
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/preflight.sh | sed -n '35,50p'
+fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | sed -n '10,25p'
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
+
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
+
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+if [[ "$FMT" != "PBES2" ]]; then
+    echo "    Already legacy format ($FMT). Nothing to do."
+    exit 0
+fi
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/langextract/.github/workflows/ci.yaml | sed -n '160,180p'
+env:
+          GITHUB_TOKEN: ""
+        run: |
+          set -euo pipefail
+          if [[ -z '${{ secrets.GEMINI_API_KEY }}' && -z '${{ secrets.OPENAI_API_KEY }}' ]]; then
+            echo "::notice::Live API tests skipped - API keys not configured"
+            exit 0
+          fi
+          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+          tox -e live-api
+
+  plugin-integration-test:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | sed -n '160,200p'
+_AUTH_TOKEN=$(gcloud auth print-access-token -q)
+          echo "::add-mask::${_AUTH_TOKEN}"
+          echo "_auth_token=${_AUTH_TOKEN}" >> $GITHUB_OUTPUT
+{%- endif %}
+
+      - name: Run load test
+        run: |
+{%- if cookiecutter.deployment_target == 'cloud_run' %}
+          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
+          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H ${_STAGING_URL} \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- elif cookiecutter.deployment_target == 'gke' %}
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H http://127.0.0.1:8080 \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+          LOCUST_EXIT_CODE=$?
+          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
+          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
+            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
+            exit $LOCUST_EXIT_CODE
+          fi
+{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
+          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -t 30s -u 2 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- endif %}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,170p'
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | sed -n '65,75p'
+CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '58,70p'
+config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  client_secret: str
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/gopacket/layers/radiotap.go | sed -n '548,560p'
+token = "80(40L)"
+		case 6:
+			token = "80(40U)"
+		case 7:
+			token = "80(20LL)"
+		case 8:
+			token = "80(20LU)"
+		case 9:
+			token = "80(20UL)"
+		case 10:
+			token = "80(20UU)"
+		case 11:
+			token = "160"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | sed -n '20,35p'
+import flask
+  from flask import Flask as _Flask
+  from werkzeug.http import parse_set_header
+
+
+class FuzzFlask(_Flask):
+  testing = True
+  secret_key = "fuzz test key"
+
+def TestOneInput(data):
+  fdp = atheris.FuzzedDataProvider(data)
+  app = FuzzFlask("flask_test", root_path=os.path.dirname(__file__))
+  app.config["DEBUG"] = True
+  app.config["TRAP_BAD_REQUEST_ERRORS"] = False
+
+  @app.route("/json", methods=["POST"])
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | sed -n '10,60p'
+public class TestServer {
+
+	private static String g_shutdownPassword = "ServerShutdownPassword"; // needs to be non-empty string
+	private Server m_server = null;
+	private boolean m_verbose;
+	private String m_password;
+
+	String getDatabasePassword() {
+		return m_password;
+	}
+
+	void diagnostic(String message) {
+		if (m_verbose) {
+			System.out.println(message);
+		}
+	}
+
+	void diagnostic(Exception ex) {
+		if (m_verbose) {
+			ex.printStackTrace(System.out);
+		}
+	}
+
+	TestServer(String password, boolean verbose) throws SQLException {
+		m_verbose = verbose;
+		m_password = password;
+
+		String args[] = new String[]{ "-tcpPassword", g_shutdownPassword, "-ifNotExists", "-tcpDaemon" };
+		m_server = Server.createTcpServer(args).start();
+		diagnostic("Server started");
+
+		try {
+			// passwords default to empty string/null
+			setPassword("", password);
+		} catch (SQLException ex) {
+			setPassword(password, password);
+		}
+	}
+
+	String getConnectionURL() {
+		return "jdbc:h2:" + m_server.getURL() + "/~/" + getTestName() + ";";
+	}
+
+	Connection getConnection() throws SQLException {
+		return getConnection("PASSWORD=" + getDatabasePassword() + ";");
+	}
+
+	Connection getConnection(String options) throws SQLException {
+		Connection connection = DriverManager.getConnection(getConnectionURL() + options, null, null);
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go | sed -n '85,160p'
+realm, ok := pr.Parameters["realm"]
+	if !ok {
+		return nil, fmt.Errorf("malformed www-authenticate, missing realm: %v", pr.Parameters)
+	}
+	// Validate the realm URL before storing it. A malicious or compromised
+	// registry can supply a realm pointing at an internal service or cloud
+	// metadata endpoint (e.g. 169.254.169.254), causing SSRF when the client
+	// subsequently fetches a token.
+	if err := validateRealmURL(realm, reg.RegistryStr(), pr.Insecure); err != nil {
+		return nil, fmt.Errorf("invalid realm in www-authenticate: %w", err)
+	}
+	service := pr.Parameters["service"]
+	scheme := "https"
+	if pr.Insecure {
+		scheme = "http"
+	}
+	return &bearerTransport{
+		inner:    t,
+		basic:    auth,
+		realm:    realm,
+		registry: reg,
+		service:  service,
+		scopes:   scopes,
+		scheme:   scheme,
+	}, nil
+}
+
+// realmRedirectCheck mimics the default http.Client redirect policy but also
+// validates each redirect URL with validateRealmURL.
+func realmRedirectCheck(registryHost string, insecure bool) func(*http.Request, []*http.Request) error {
+	return func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 10 {
+			return fmt.Errorf("stopped after 10 redirects")
+		}
+		if err := validateRealmURL(req.URL.String(), registryHost, insecure); err != nil {
+			return fmt.Errorf("refusing token-server redirect to %q: %w", req.URL, err)
+		}
+		return nil
+	}
+}
+
+// validateRealmURL returns an error if the realm URL uses a disallowed scheme
+// or resolves to a private / link-local IP address. Realm URLs matching the
+// registry host:port are always allowed. See #2258.
+func validateRealmURL(realm, registryHost string, insecure bool) error {
+	u, err := url.Parse(realm)
+	if err != nil {
+		return fmt.Errorf("parsing realm %q: %w", realm, err)
+	}
+	switch u.Scheme {
+	case "https":
+		// always allowed
+	case "http":
+		if !insecure {
+			return fmt.Errorf("realm scheme %q not allowed for a secure registry; use https", u.Scheme)
+		}
+	default:
+		return fmt.Errorf("realm scheme %q not allowed; must be https (or http for insecure registries)", u.Scheme)
+	}
+	// Always allow realms matching the registry host:port.
+	if registryHost != "" && u.Host == registryHost {
+		return nil
+	}
+	// Reject IP literals that resolve to private or link-local ranges.
+	// This blocks direct references to RFC 1918 addresses, loopback, and
+	// link-local ranges including the cloud instance metadata service
+	// (169.254.169.254 / fd00:ec2::254).  DNS-based SSRF is out of scope
+	// here; callers should apply network-level controls if needed.
+	host := u.Hostname()
+	if ip := net.ParseIP(host); ip != nil {
+		if ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsLinkLocalMulticast() || ip.IsPrivate() || ip.IsUnspecified() {
+			return fmt.Errorf("realm host %q is a private or link-local address", host)
+		}
+	}
+	return nil
+}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go | sed -n '200,215p'
+return linkURL, nil
+}
+
+// validatePaginationURL checks that a pagination URL is safe to follow.
+// It ensures the URL points to the same registry host to prevent SSRF attacks
+// where a malicious registry could include a Link header pointing to internal
+// services (e.g., cloud metadata endpoints at 169.254.169.254).
+func validatePaginationURL(u *url.URL, repo name.Repository) error {
+	// Must use same scheme as the registry
+	if u.Scheme != repo.Scheme() {
+		return fmt.Errorf("pagination URL scheme %q does not match registry scheme %q", u.Scheme, repo.Scheme())
+	}
+
+	// Must point to the same registry host
+	if u.Host != repo.RegistryStr() {
+		return errors.New("pagination URL host does not match registry host: potential SSRF attack")
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go | sed -n '80,95p'
+}, nil
+}
+
+// checkRedirectSSRF rejects HTTP redirects that cross from a public host to a
+// private or link-local IP literal. This prevents a malicious registry from
+// issuing a 302 to a cloud instance metadata service (e.g. 169.254.169.254)
+// or another internal network address during blob or manifest downloads.
+//
+// Same-host redirects and redirects to non-IP hostnames (including DNS names
+// that may resolve to private addresses) are allowed. The first redirect in
+// the chain uses the original request URL as the "origin host" via
+// req.Response.Request, falling back to req.URL when no prior response exists.
+func checkRedirectSSRF(req *http.Request, via []*http.Request) error {
+	if len(via) == 0 || req.Response == nil {
+		return nil
+	}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | sed -n '30,40p'
+static boolean m_dummy = initializeMysqlConnectorJ();
+
+	/*
+	 * https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html
+	 */
+	static boolean initializeMysqlConnectorJ() {
+		try {
+            // The newInstance() call is a work around for some
+            // broken Java implementations
+
+            Class.forName("com.mysql.jdbc.Driver").newInstance();
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | sed -n '20,30p'
+value: '6379'
         
         # --- Authentication Variables ---
         # Get this Client ID from https://pantheon.corp.google.com/auth/clients
@@ -33,56 +464,99 @@ spec:
               name: google-oauth-client-secret
               key: 'latest'
 [0m
-[0m$ [0mcat reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/skaffold.yaml | head -10
-apiVersion: skaffold/v3
-kind: Config
-metadata:
-  name: osv-website
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,55p'
+"""Supported authentication methods."""
 
-profiles:
-- name: staging
-  manifests:
-    rawYaml:
-    - run-staging.yaml
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    """
+    click.echo()
+    click.echo("  To use this API key in your current session, run:")
+    click.echo()
 [0m
-[0m$ [0mcat reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go | head -90 | tail -20
-"https://www.python.org":     true,
-	"https://gitee.com":          true,
-	"http://github.com":          true,
-	"http://www.cisco.com":       true,
-	"http://www.redhat.com":      true,
-	"http://www.hp.com":          true,
-	"http://www.oracle.com":      true,
-	"https://www.oracle.com":     true,
-	"http://www.python.org":      true,
-	"http://dev.mysql.com":       true,
-	"https://aws.amazon.com":     true,
-	"https://github.com/aws":     true,
-	"unknown":                    true,
-}
-
-func readOrPanic(path string) []byte {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		log.Fatalf("Failed to read %s: %v", path, err)
-	}
-[0m
-### Classification Table
-
-| File | Line | Hit | Classification | Reason |
-|------|------|-----|----------------|--------|
-| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | `# Get this Client ID from https://pantheon.corp.google.com/auth/clients` | **ENDPOINT_LEAK** | Internal Google corp URL (pantheon.corp.google.com) referenced in comment; Client ID in file is public OAuth ID, secret correctly pulled from K8s secret |
-| `google/osv.dev/deployment/clouddeploy/osv-website/skaffold.yaml` | 2 | `kind: Config` | **TEST_OR_EXAMPLE** | Standard skaffold config header, no sensitive data |
-| `google/osv.dev/vulnfeeds/pypi/pypi.go` | 80 | `"http://dev.mysql.com": true,` | **TEST_OR_EXAMPLE** | Public package index URL in allowlist map (dev.mysql.com is public), not an internal endpoint |
+Now I have a complete picture. Let me classify all hits and produce the output.
 
 ---
 
-### Verdict List
+### CLASSIFICATION TABLES
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| run-staging.yaml:23 (pantheon.corp.google.com) | ENDPOINT_LEAK | **no** — internal URL reference only; no credential exposed |
-| skaffold.yaml:2 | TEST_OR_EXAMPLE | **no** — boilerplate config |
-| pypi.go:80 (dev.mysql.com) | TEST_OR_EXAMPLE | **no** — public domain in allowlist |
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
+|------|------|---------------|---------|------------------|
+| *(none)* | — | — | No hardcoded live credentials found in this delta | — |
 
-**Summary**: 0 REAL_SECRETS in this delta. All 3 new hits are non-reportable (2 TEST_OR_EXAMPLE, 1 ENDPOINT_LEAK with no credential exposure). The Client ID in run-staging.yaml is a public OAuth client identifier; the corresponding secret is properly externalized to a Kubernetes secret.
+#### TEST_OR_EXAMPLE
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/capsem/config/gate.toml | 478 | TEST_OR_EXAMPLE | `password = "password.txt"` — references local file, not hardcoded secret |
+| google/capsem/scripts/preflight.sh | 39 | TEST_OR_EXAMPLE | Reads password from `$pass_file` (local file) |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | TEST_OR_EXAMPLE | Reads password from `$PASS_FILE` (local file) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` references |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Placeholder constant `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | Cookiecutter template variables `{{ steps.fetch-token.outputs._id_token }}` |
+| google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` reference |
+| google/adk-python/.../auth_credential.py | 157 | TEST_OR_EXAMPLE | Placeholder service account example (`your_project_id`, `-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/.../auth_credential.py | 269 | TEST_OR_EXAMPLE | Test fixture `password="password"` |
+| google/adk-python/.../auth_credential.py | 278 | TEST_OR_EXAMPLE | Placeholder token `token="eyAkaknabna...."` |
+| google/adk-python/.../auth_schemes.py | 68 | TEST_OR_EXAMPLE | OAuth grant type constant `PASSWORD = "password"` |
+| google/adk-python/.../auth_helpers.py | 62 | TEST_OR_EXAMPLE | Placeholder `client_secret="your_client_secret"` |
+| google/gopacket/layers/radiotap.go | 552,554,556 | TEST_OR_EXAMPLE | Radiotap protocol token constants (`80(20LL)`, `80(20LU)`, `80(20UL)`) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | TEST_OR_EXAMPLE | Test fixture `secret_key = "fuzz test key"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | TEST_OR_EXAMPLE | Test server password `ServerShutdownPassword` |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | TEST_OR_EXAMPLE | Documentation URL reference only |
+
+#### ENDPOINT_LEAK
+| File | Line | Leak Type | Details |
+|------|------|-----------|---------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging URL | `https://staging.release-eq7.pages.dev` (Cloudflare Pages preview) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Internal IP reference | Comment: `cloud metadata endpoints at 169.254.169.254` |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Internal IP reference | Comment: `302 to a cloud instance metadata service (e.g. 169.254.169.254)` |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Internal IP reference | SSRF protection comments referencing `169.254.169.254` / `fd00:ec2::254` |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Internal Google URL | `https://pantheon.corp.google.com/auth/clients` (corp-internal) |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | — | OAuth Client ID | `175272184261-plkdbn2vea10d769llle6e965u8hupat.apps.googleusercontent.com` (public client ID, not secret) |
+
+#### INTERESTING
+| File | Line | Interest | Details |
+|------|------|----------|---------|
+| google/adk-python/.../gke_code_executor.py | 103,104,115 | Kubeconfig params | `kubeconfig_path`, `kubeconfig_context` optional params for GKE executor |
+| google/adk-python/.../container_code_executor.py | 114,154 | Metadata endpoint docs | Documents `169.254.169.254` cloud metadata SSRF risk |
+| google/adk-python/.../load_web_page.py | 171 | Metadata endpoint | Documents NAT64 route to `169.254.169.254` in Chrome |
+| google/adk-python/.../computer_use_toolset.py | 146 | Metadata endpoint | Refuses connections to `169.254.169.254` in Chrome |
+| google/adk-python/.../sandbox_computer.py | 47 | State key | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` constant |
+| google/adk-python/.../cli_create.py | 131 | Template | `GOOGLE_API_KEY={google_api_key}` cookiecutter template |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | Allowlist | `http://dev.mysql.com` in HTTP allowlist for vuln feeds |
+| google/osv.dev/deployment/clouddeploy/osv-api/skaffold.yaml | 2 | Config | Skaffold `kind: Config` |
+| google/osv.dev/deployment/clouddeploy/osv-website/skaffold.yaml | 2 | Config | Skaffold `kind: Config` |
+| google/adk-python/.../cli/browser/*.js | multiple | Minified JS | Source-mapped browser chunks (not secrets) |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| google/capsem `password.txt` refs | TEST_OR_EXAMPLE | **no** | References local file, not hardcoded secret |
+| google/langextract GitHub secrets | TEST_OR_EXAMPLE | **no** | Proper `${{ secrets.* }}` references |
+| google/agents-cli `gemini_api_key` const | TEST_OR_EXAMPLE | **no** | Placeholder constant name, not a key |
+| google/flatbuffers GITHUB_TOKEN ref | TEST_OR_EXAMPLE | **no** | Proper `${{ secrets.GITHUB_TOKEN }}` reference |
+| google/adk-python placeholder examples | TEST_OR_EXAMPLE | **no** | All `your_*`, `password`, `eyAkaknabna....` placeholders |
+| google/gopacket radiotap tokens | TEST_OR_EXAMPLE | **no** | Protocol constants, not secrets |
+| google/oss-fuzz test fixtures | TEST_OR_EXAMPLE | **no** | Explicit test/fuzz fixtures (`fuzz test key`, `ServerShutdownPassword`) |
+| google/capsem staging URL | ENDPOINT_LEAK | **no** | Public Cloudflare Pages staging domain |
+| google/go-containerregistry 169.254 refs | ENDPOINT_LEAK | **no** | SSRF protection code comments, not leaks |
+| google/osv.dev pantheon.corp.google.com | ENDPOINT_LEAK | **no** | Internal doc reference in deploy config; client ID is public |
+| google/adk-python kubeconfig/metadata refs | INTERESTING | **no** | Documentation of cloud metadata SSRF risks |
+| google/osv.dev skaffold configs | INTERESTING | **no** | Standard deployment configs |
+
+---
+
+### SUMMARY
+**No REAL_SECRET candidates in this delta.** All 21 new hits are properly classified as TEST_OR_EXAMPLE (16), ENDPOINT_LEAK (6), or INTERESTING (10). The ENDPOINT_LEAK items are either public staging URLs, SSRF protection code comments referencing well-known metadata IPs, or an internal doc URL with a public OAuth client ID — none are actionable secrets or exploitable endpoints.
