@@ -2720,3 +2720,16 @@
 - LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — GET→401/237 Bearer on production v1.0, zero-restriction schema pattern i
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1v2 steady-state subset invariant holds across all cycle rotations, v1 kid set n
 - LEARN: NO_DELTA — fresh probes (2026-08-14 04:4x UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: agentRegs GET 401/237 + preflight 200 ACAO:* full mutation 
+
+## RANKED HYPOTHESES 2026-08-14 06:05:04 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck unblocking BOTH Microsoft hypotheses (#1 + #3) in one sessi
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking BOTH Microsoft hypotheses (#1 5-family IDOR+CORS + #
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
+- LEARN: NO_DELTA — fresh probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged: agentRegs GET 401/237, tokeninfo 400/113, oauth.py whole-file s
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS confirmed live @ 2026-08-14 cycle — true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 Access-
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, raw GitHub
+- LEARN: ACCEPTED: oauth2PermissionGrants production v1.0 auth-gate confirmed live — GET→401/237 Bearer; zero-restriction EntityType schema identical to agentRegistratio
+- LEARN: ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400/113 invalid_token; accepts ?access_token=/ ?id_token= without Authorization head
