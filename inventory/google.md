@@ -889,3 +889,10 @@
 ## 2026-08-14 18:34:59 UTC
 - NEW None — all fresh passive probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
 - CHANGED None — JWKS v2.0 rotation churn (v1⊂v2 steady-state), source maps closed, token POST invalid_grant re-confirmed; no new attack surface
+
+## 2026-08-14 19:39:11 UTC
+- NEW None — all fresh passive probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- CHANGED None — JWKS v2.0 rotation churn (v1⊂v2 steady-state), source maps closed, token POST invalid_grant re-confirmed; no new attack surface
+- NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including resourceId (Graph OR
+- CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact (no Origin header = not true preflight); verified true CORS preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-
+- CHANGED Earth Engine secret A/B proof refined — leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret→401 `invalid_client "The provided client secret is invalid."` — conclusive d

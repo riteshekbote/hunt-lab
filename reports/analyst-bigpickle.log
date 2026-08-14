@@ -24146,3 +24146,64 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 55 — surface dominated by one valid-but-by-design native-app client_secret (invalid_grant A/B proven, VRP-worthiness capped by ADK #2128) plus tokeninfo oracle (no-reward per VRP rules); passive surface otherwise hardened, no new classes.
 - [RISK] microsoft: 72 — Copilot Admin 5-family uniform 200 ACAO:* + full mutation allowlist on schema-zero-restriction EntityTypes (client-supplied ownership) plus production v1.0 oauth2PermissionGrants consent-forge precondition live; only the two-principal auth gate (AUTH_HELPED) separates precondition from proof.
+===== ANALYST bigpickle 2026-08-14 19:39:11 UTC =====
+[0m
+> build · big-pickle
+[0m
+## STEP 1 — DELTA
+- [NEW] None — 18:34:59 UTC probe set (token GET→404) plus 16:38/17:38 inventories confirm prior ACCEPTED/REJECTED classes unchanged: agentRegs GET 401/237, item-level CORS preflight 200 `ACAO:*`+PATCH+Max-Age 86400, oauth2PermissionGrants GET 401/237, tokeninfo 400/113, v2.0 authorize 200/23890–23939 (RFC 6749 §3), graph root 200/301 cosmetic, earthengine oauth.py sha `f4f93c76…b73040` verbatim.
+- [CHANGED] None — JWKS v1(4)⊂v2(6-7) subset churn only; no new attack surface.
+- NO_DELTA.
+
+## STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: score 7.25 (attack 9, business 9, tech 8, gate 1, cloud 9, fresh 5) — 5-family IDOR+CORS, full mutation allowlist incl PATCH, 0 OperationRestrictions on 5 EntityTypes.
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 7.05 (attack 7, business 9, tech 8, gate 1, cloud 9, fresh 8) — oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied props incl caller-chosen resourceId; confirmed live 2026-08-14.
+- [PRIO] oauth2.googleapis.com/token (earthengine-api oauth.py:45): score 6.65 (attack 5, business 9, tech 7, gate 6, cloud 10, fresh 2) — A/B invalid_grant vs invalid_client proof; redemption blocked only by missing refresh_token (HUMAN_ONLY).
+
+## STEP 3 — HYPOTHESES
+[HYP] Copilot Admin 5-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: fresh probes — item-level true preflight (Origin+ACRM:PATCH+ACH:authorization)→200 `ACAO:*`+Allow-Methods incl PATCH+Max-Age 86400; GET→401/237 auth-gate; $metadata 873-char block, 0 OperationRestrictions, client-supplied createdBy/ownerIds/managedByAppId across 5 EntityTypes.
+evidence_needed: Principal B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 incl A vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies only.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: fresh probes — GET→401/237 Bearer re-confirmed; oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied properties (clientId, consentType, principalId, resourceId, scope), resourceId targets Graph OR Azure Storage user_impersonation, no requester-vs-target cross-check.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: fresh probes — raw oauth.py 200/23110, whole-file sha `f4f93c76…b73040` verbatim, bare-secret sha `3f3f8d6f…d271` at :45 + :99 fallback; token GET→404 POST-only; A/B proof leaked secret→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2).
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: file Google VRP report (secret sha256 `3f3f8d6f…d271`, file sha `f4f93c76…b73040`, invalid_grant A/B proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
+
+## STEP 4 — SELF-CRITIQUE
+- Kept: Copilot Admin 5-family IDOR (97, AUTH_HELPED, concrete two-principal steps) — survives.
+- Kept: Consent-grant forge (72, AUTH_HELPED, concrete POST+GET differential) — survives; not on REJECTED list.
+- Kept: Earth Engine secret (96, HUMAN_ONLY, VRP-filing path) — survives; no viable passive alternative.
+- Dropped: none (all ≥40, all with concrete verify_steps).
+- [FINAL] 1) Copilot Admin 5-family IDOR+CORS (97, AUTH_HELPED) 2) Earth Engine client_secret redemption (96, HUMAN_ONLY) 3) Consent-grant forge (72, AUTH_HELPED).
+
+## STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (5-family IDOR #1 + consent forge #3) in one session; include exact POST/PATCH/GET test matrix from both hypotheses for scope approval.
+
+## STEP 6 — LEARNING
+- [LEARN] NO_DELTA: no class newly proven dead or alive this cycle — all fresh passive probes (18:34:59 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged.
+
+## STEP 7 — RISK SCORE
+- [RISK] google: 55 — single high-value finding (earthengine secret, conf 96) capped by native-app OOB by-design precedent (ADK #2128); tokeninfo oracle no-reward; residual surface all 401/404-gated.
+- [RISK] microsoft: 78 — Copilot Admin 5-family IDOR+CORS (conf 97) + consent forge (72) pending AUTH_HELPED, systemic RFC 6750/6749 method-challenge inconsistencies across Graph gateway, broad 5-EntityType zero-restriction schema family; exposure concentrated but auth-gated.
