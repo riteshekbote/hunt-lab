@@ -1,75 +1,82 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho "AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k" | sha256sum
-c1ae220caaabc916a8197874126ef0fe1874435e94c74453fd52b848afc85234  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password.txt" | cut -d' ' -f1
+62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c
 [0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=20, offset=470][0m
-[0m→ [0mRead reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts[90m [limit=30, offset=15][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=15, offset=55][0m
-Now I have all the context needed. Let me classify all hits.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && printf 'fuzz test key' | sha256sum | cut -d' ' -f1 && printf 'ServerShutdownPassword' | sha256sum | cut -d' ' -f1 && printf 'gemini_api_key' | sha256sum | cut -d' ' -f1 && printf 'password' | sha256sum | cut -d' ' -f1 && printf 'your_client_secret' | sha256sum | cut -d' ' -f1 && printf 'PASSWORD_HASH_LM_FORMAT' | sha256sum | cut -d' ' -f1 && printf 'render_token' | sha256sum | cut -d' ' -f1
+fb6a3b29de3865e2e57235b799309069ada65075335dd33f3b8ba723742145f8
+680e5b27a7ece10fcb6166bcd9697636bebd7b020c65aaeb556373234c2abb88
+d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e
+5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8
+7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f
+4178653d041853cd337659fc9ac406b32a18bec9e67063c426f4825c504c9f2b
+3db744205be00596c811f1e80dc0a581a23af4074b956c18da586f9c67f8cf58
+[0m
+### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *(none)* | | | No hardcoded live credentials found in this delta |
 
----
-
-### CLASSIFICATION TABLES
-
-#### REAL_SECRET (hardcoded credential with signs of life)
-
+### TEST_OR_EXAMPLE
 | File | Line | Secret SHA256 | Context |
 |------|------|---------------|---------|
-| `google/ground-platform/web/src/environments/environment.staging.ts` | 23 | `c1ae220caaabc916a8197874126ef0fe1874435e94c74453fd52b848afc85234` | Firebase API key `AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k` for project `ground-dev-sig` |
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | fb6a3b29de3865e2e57235b799309069ada65075335dd33f3b8ba723742145f8 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | 680e5b27a7ece10fcb6166bcd9697636bebd7b020c65aaeb556373234c2abb88 | `g_shutdownPassword = "ServerShutdownPassword"` — test harness |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 | `HttpCredentials(username="user", password="password")` — test fixture |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | 7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f | `HttpCredentials(token="eyAkaknabna....")` — test fixture (truncated JWT) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 | `PASSWORD = "password"` — test constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | 7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f | `client_secret="your_client_secret"` — documentation placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | (template) | `GOOGLE_API_KEY={google_api_key}` — scaffold template variable |
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20, 33 | `https://firebase.corp.google.com/project/$project_id/database/firestore/indexes` | Internal Google Corp URL (firebase.corp) |
+| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `https://dev.mysql.com/doc/connector-j/8.0/en/` | Public docs (not sensitive) |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | `https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html` | Public docs |
+| reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go | 40 | `https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` | Public docs |
 
-| File | Line | Reason |
-|------|------|--------|
-| `google/kube-startup-cpu-boost/.github/workflows/release.yaml` | 90 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL |
-| `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | Documentation URL in comment |
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test key `"fuzz test key"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | Test shutdown password `"ServerShutdownPassword"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test DB connection code |
-| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file `$pass_file` |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file `$PASS_FILE` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `"gemini_api_key"` |
-| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions token references in template |
-| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Shell vars for Postgres password (env/random) |
-| `google/ground-platform/web/src/environments/environment.test.ts` | 33 | Mock key `"mock-api-key"` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Placeholder private key / credentials in examples |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | Kubeconfig path params (None defaults) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Example placeholder `"your_client_secret"` |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant `_vmaas_access_token` |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template generating env var |
-| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified/bundled JS build artifacts (parse errors) |
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret reference |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | multiple | Minified/bundled JS build artifacts |
-
-#### ENDPOINT_LEAK (internal/dev/staging URLs)
-
-| File | Line | Reason |
-|------|------|--------|
-| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
-
-#### INTERESTING (debug flags, keys, cloud configs, metadata refs)
-
-| File | Line | Reason |
-|------|------|--------|
-| `google/capsem/config/gate.toml` | 478 | References password file `password.txt` (actual secret not in repo) |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments about 169.254.169.254 metadata endpoint blocking |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about 169.254.169.254 metadata endpoint |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment about 169.254.169.254 metadata endpoint blocking |
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| reposcan-raw/google/capsem/config/gate.toml | 480 | `password = "password.txt"` | Config references external password file (not a secret itself) |
+| reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform variable reference (proper secret handling) |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168–170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (correct pattern) |
+| reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` | Security research constant (LM hash format identifier) |
+| reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | MySQL MyLogin config parser | Legitimate secrets extraction logic for defensive tooling |
+| reposcan-raw/google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` | Android SharedPreferences key constant |
+| reposcan-raw/google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` | Duplicate constant |
+| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file (runtime secret injection) |
+| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file (runtime secret injection) |
+| reposcan-raw/google/ax/manifests/install-ax.sh | 239, 241, 286 | `pg_password` handling + `--from-literal=password` | K8s secret generation from env/rand (proper pattern) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture (truncated placeholder) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | Kubeconfig references (standard client config) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint | Cloud metadata IP references (documentation/warning) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | Same — NAT64 route warning |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint | Chrome metadata access refusal |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key constant |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | (multiple) | Minified JS bundles | Build artifacts (source maps would be INTERESTING but these are .js) |
+| reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle | Build artifact |
 
 ---
 
 ### VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| `ground-platform` Firebase API key (staging) | **no** | Firebase API keys are **public by design** (client-side identification only); project `ground-dev-sig` appears to be a dev/staging project; auth controlled by Firebase Auth/Firestore rules, not API key secrecy |
-| All other hits | **no** | Placeholders, test fixtures, template variables, build artifacts, or file-path references — no live credentials |
+| Candidate | Category | REPORT_CANDIDATE | Rationale |
+|-----------|----------|------------------|-----------|
+| `firebase.corp.google.com` URLs (create_indexes.sh) | ENDPOINT_LEAK | **no** | Internal Corp URL in comment-only context; no credentials, no exploitable surface |
+| `staging.release-eq7.pages.dev` | ENDPOINT_LEAK | **no** | Public staging pages.dev URL; no sensitive surface |
+| `gate.toml: password = "password.txt"` | INTERESTING | **no** | References external file; no hardcoded secret |
+| `winlocal_windows.go: PASSWORD_HASH_LM_FORMAT` | INTERESTING | **no** | Security research constant for LM hash detection (defensive) |
+| `mysqlmylogin` extractor | INTERESTING | **no** | Defensive secrets extraction logic (OSS-Fuzz/OSV project) |
+| `RenderToken` constants | INTERESTING | **no** | Android SharedPreferences key names; not secrets |
+| `capsem` scripts reading password files | INTERESTING | **no** | Runtime secret injection pattern (correct practice) |
+| `ax/manifests/install-ax.sh` K8s secret gen | INTERESTING | **no** | Proper secret handling via env/rand + kubectl literal |
+| All ADK-Python test fixtures (`password`, `your_client_secret`, `gemini_api_key`, etc.) | TEST_OR_EXAMPLE | **no** | Known test fixtures; ADK hardcoded secret class already DUP #2128/#5520 |
+| All minified JS bundles (adk-python, adk-java) | INTERESTING | **no** | Build artifacts; no source maps in this delta |
+| `kubeconfig` / metadata endpoint references | INTERESTING | **no** | Standard client config patterns and documentation warnings |
 
----
-
-### SUMMARY
-**Zero reportable secrets** in this delta. The only live-looking key (Firebase `AIzaSy...` in staging) is a **public-by-design Firebase API key** for a dev project — not a secret per Google VRP policy. All other hits are placeholders, test data, or CI/templates.
+**SUMMARY**: No reportable findings in this delta. All hits are test fixtures, defensive tooling, proper secret references, or build artifacts. No LIVE hardcoded credentials, no new endpoint leaks with exploitable surface, no deviations from prior ACCEPTED/REJECTED classes.
