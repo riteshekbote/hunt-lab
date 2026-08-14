@@ -1,37 +1,80 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan results, here's my classification:
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=10, offset=473][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [offset=10, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go[90m [offset=25, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_config.yaml[90m [offset=58, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
+[0m→ [0mRead reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh[90m [offset=15, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=165, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=30][0m
+Now I have a complete picture. All hits are test fixtures, docstring examples, template placeholders, or code that references/extracts secrets — **no live hardcoded credentials**.
 
 ---
 
-### Classification Table
+### Classification Tables
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | *(none new)* | No new hardcoded credentials with signs of life. The known `earthengine-api` client_secret (oauth.py:45) was already tracked in KB. |
-| **TEST_OR_EXAMPLE** | `go-github/github/github.go:1990` — `"your app's client secret"`<br>`adk-js/core/src/auth/auth_schemes.ts:41` — `PASSWORD = 'password'` (constant name)<br>`adk-js/core/src/auth/auth_credential.ts:214,226` — example values in JSDoc comments<br>`agents-cli/src/google/agents/cli/auth.py:43` — `GEMINI_API_KEY = "gemini_api_key"` (constant name)<br>`agents-cli/.../staging.yaml:168,192` — `${{ steps.fetch-token.outputs... }}` CI variable refs<br>`cloud-android-orchestration/.../deployment.yaml:121,146,169` — `${{ secrets.artifact-registry-uploader-json-creds }}` CI secret refs<br>`adk-python/.../gke_code_executor.py:103,104,115` — kubeconfig param definitions<br>`adk-python/.../cli_create.py:131` — `f"GOOGLE_API_KEY={google_api_key}"` variable interpolation (runtime value) | All are placeholders, examples, CI variable references, or runtime variable interpolation — **not hardcoded secrets** |
-| **ENDPOINT_LEAK** | `closure-compiler/contrib/externs/maps/google_maps_api_v3*.js:4638-4639` — `developers.devsite.corp.google.com` (internal docs)<br>`closure-compiler/src/.../ErrorManager.java:95` — `source.corp.google.com` (internal source)<br>`adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` — `metadata.google.internal` (GCP metadata)<br>`adk-js/core/src/tools/load_web_page.ts:36` — `169.254.0.0/16` (GCP metadata CIDR)<br>`adk-python/.../container_code_executor.py:114,154` — `169.254.169.254` (GCP metadata IP) | Internal / metadata endpoints documented in code — **known surface, not new** |
-| **INTERESTING** | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` — `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref pattern)<br>`adk-go/cmd/launcher/web/webui/distr/*.js` — minified build artifacts (parser error messages)<br>`closure-compiler/externs/browser/*.js` — W3C/dev.w3.org public standards URLs<br>`closure-compiler/contrib/externs/ms-office-1.3.js` — dev.office.com public docs | Build artifacts, public references, or deployment patterns — **no actionable finding** |
+#### TEST_OR_EXAMPLE (docstring examples, test fixtures, template placeholders)
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Docstring example: `username="user", password="password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Docstring example: `token="eyAkaknabna...."` (fake JWT) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum constant: `PASSWORD = "password"` (OAuth grant type name) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template: `GOOGLE_API_KEY={google_api_key}` (variable interpolation) |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value: `GEMINI_API_KEY = "gemini_api_key"` (auth type name) |
+| `google/agents-cli/.../staging.yaml` | 168,192 | Cookiecutter/Jinja2 template placeholders (`${{ steps.fetch-token.outputs._id_token }}`) |
+| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | Commented placeholder: `# hf_access_token: "your_token"` |
+| `google/tunix/tunix/cli/base_config.yaml` | 63 | Commented placeholder: `# hf_access_token: "your_token"` |
+| `google/capsem/config/gate.toml` | 478 | Config value: `password = "password.txt"` (filename reference) |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| `google/capsem/scripts/preflight.sh` | 39 | Reads from file: `password="$(tr -d '\n' < "$pass_file")"` |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secrets refs: `${{ secrets.GEMINI_API_KEY }}` |
+
+#### ENDPOINT_LEAK (internal URLs in comments)
+| File | Line | Context |
+|------|------|---------|
+| `google/go-cloud/docstore/gcpfirestore/create_indexes.sh` | 20,33 | Comments reference `https://firebase.corp.google.com/project/$project_id/...` (internal corp console) |
+
+#### INTERESTING (secret-handling code, metadata refs)
+| File | Line | Context |
+|------|------|---------|
+| `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Vulnerability reference constant: `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` |
+| `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32,40 | MySQL `.mylogin.cnf` secret extractor (defensive tooling) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments about `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment refusing metadata endpoint access |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py` | 193-195 | Token format constants: `eot_token`, `system_token`, `user_token` |
+
+#### NOISE (minified JS parse errors — not secrets)
+| Pattern | Files |
+|---------|-------|
+| `chunk-*.js` parse error strings | 20+ files under `google/adk-python/src/google/adk/cli/browser/` |
 
 ---
 
-### Verdict Summary
+### Verdict
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` | **no** — secret reference, not a secret value |
-| `google/go-github/github/github.go:1990` | **no** — placeholder/example |
-| `google/adk-js/core/src/auth/*.ts` | **no** — test constants & example comments |
-| `google/agents-cli/src/google/agents/cli/auth.py:43` | **no** — constant name only |
-| `google/agents-cli/.../staging.yaml` | **no** — CI variable references |
-| `google/cloud-android-orchestration/.../deployment.yaml` | **no** — CI secret references |
-| `google/adk-python/.../gke_code_executor.py` | **no** — config parameters |
-| `google/adk-python/.../container_code_executor.py` | **no** — metadata IP references (known) |
-| `google/adk-python/.../cli_create.py:131` | **no** — runtime variable interpolation |
-| `google/closure-compiler/...` (internal URLs) | **no** — known internal endpoint docs |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | **no** — minified build artifacts |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `adk-python` auth_credential.py private_key | TEST_OR_EXAMPLE | **no** (docstring placeholder `-----BEGIN PRIVATE KEY-----...`) |
+| `adk-python` auth_credential.py HTTP creds | TEST_OR_EXAMPLE | **no** (obvious test fixtures) |
+| `adk-python` auth_schemes.py PASSWORD enum | TEST_OR_EXAMPLE | **no** (OAuth grant type name, not a secret) |
+| `adk-python` openapi_tool client_secret | TEST_OR_EXAMPLE | **no** (docstring placeholder `"your_client_secret"`) |
+| `capsem` gate.toml password | TEST_OR_EXAMPLE | **no** (references `password.txt` file) |
+| `capsem` scripts password reading | TEST_OR_EXAMPLE | **no** (reads from external file at runtime) |
+| `go-cloud` firebase.corp URLs | ENDPOINT_LEAK | **no** (internal console URLs in comments, no creds) |
+| `langextract` CI secrets refs | TEST_OR_EXAMPLE | **no** (GitHub Actions `${{ secrets.* }}` indirection) |
+| `osv-scalibr` detector/extractor code | INTERESTING | **no** (defensive tooling for finding secrets) |
+| `tunix` commented HF tokens | TEST_OR_EXAMPLE | **no** (commented placeholders) |
+| `agents-cli` enum/template values | TEST_OR_EXAMPLE | **no** (auth type names, Cookiecutter templates) |
 
----
-
-**Bottom line:** **No new REAL_SECRET findings** in this delta. All hits are test fixtures, examples, CI variable references, internal endpoint documentation, or build artifacts. The only live hardcoded credential in Google repos remains the previously-tracked `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already ACCEPTED in KB.
+**No REAL_SECRET findings in this delta.** All hits are accounted for in KNOWN DUPLICATES (ADK test fixtures) or are clearly non-exploitable patterns.
