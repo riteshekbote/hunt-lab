@@ -1,406 +1,216 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | head -150
-name: Publish Proto # For tagging and publishing releases.
-
-on:
-  push:
-    branches:
-      - main  # This entire workflow only runs on a push to the `main` branch (i.e. POST SUBMIT).
-    paths:
-      - 'proto/**' # Trigger only on changes to the proto directory.
-    tags:
-      - 'proto-v*'  # Trigger only on pushed tags whose names start with 'proto-v'.
-  workflow_dispatch:
-    inputs:
-      publish_proto_to_pypi:  # Creates a boolean `github.event.inputs.publish_to_pypi` variable.
-        description: 'Publish Proto to PyPI'
-        required: false
-        type: boolean
-        default: false
-      publish_proto_to_testpypi:
-        description: 'Publish Proto to TestPyPI'
-        required: false
-        type: boolean
-        default: false
-
-env:
-  USE_PYTHON_VERSION: "3.11"
-  PROTO_DIR: "proto"
-  BUILD_ARTIFACT_NAME: "mmm-proto-package-distribution"
-  PYPI_PACKAGE_NAME: "mmm-proto-schema"
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/build
-        with:
-          python_version: ${{ env.USE_PYTHON_VERSION }}
-          working_directory: ${{ env.PROTO_DIR }}
-          output_path: ${{env.PROTO_DIR}}/dist/
-          artifact_name: ${{ env.BUILD_ARTIFACT_NAME }}
-
-  # Check if the current `version` semver has been incremented. If so, set a
-  # `new_version` output.
-  check-proto-version:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      new_version: ${{ steps.compare_versions.outputs.new_version }}
-    steps:
-      - uses: actions/checkout@v6
-      - name: Get mmm-proto-schema version
-        id: get_proto_version
-        uses: ./.github/actions/get-proto-version
-        with:
-          python_version: ${{ env.USE_PYTHON_VERSION }}
-
-      - name: Compare versions
-        id: compare_versions
-        uses: ./.github/actions/version-check
-        with:
-          python_version: ${{ env.USE_PYTHON_VERSION }}
-          semver_prefix: proto-v
-          current_version: ${{ steps.get_proto_version.outputs.value }}
-
-  create-proto-tag:
-    needs: check-proto-version
-    # Only run if new_version was discovered, and do this only on the main branch.
-    if: >
-      github.ref == 'refs/heads/main'
-      && needs.check-proto-version.outputs.new_version != ''
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # Allow to create tags
-    steps:
-      - uses: actions/checkout@v6
-      - uses: ./.github/actions/create-version-tag
-        with:
-          new_version: proto-v${{ needs.check-proto-version.outputs.new_version }}
-
-  publish-proto-to-pypi:
-    name: Publish Proto Python distribution to PyPI
-    needs:
-      - build
-      - check-proto-version
-    # Check if it's a tag push, or the `publish_proto_to_pypi` workflow is selected in a manual trigger.
-    # or if a new version was discovered in a push to the `main` branch.
-    if: >
-      github.repository == 'google/meridian' && (
-        (github.ref_type == 'tag' && startsWith(github.ref, 'refs/tags/proto-v'))
-        || (github.event_name == 'workflow_dispatch'
-            && github.event.inputs.publish_proto_to_pypi == 'true')
-        || (github.event_name == 'push' && github.ref == 'refs/heads/main'
-            && needs.check-proto-version.outputs.new_version != '')
-      )
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi-proto
-      url: https://pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ env.BUILD_ARTIFACT_NAME }}
-          path: dist/
-
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          verbose: true
-
-  publish-proto-to-testpypi:
-    name: Publish Proto Python distribution to TestPyPI
-    needs: build
-    # Check if the `publish_proto_to_testpypi` workflow is selected in a manual trigger.
-    if: >
-      github.repository == 'google/meridian' && (
-        (github.event_name == 'workflow_dispatch'
-            && github.event.inputs.publish_proto_to_testpypi == 'true')
-      )
-    runs-on: ubuntu-latest
-    environment:
-      name: testpypi-proto
-      url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-    steps:
-      - name: Download all the dists
-        uses: actions/download-artifact@v8
-        with:
-          name: ${{ env.BUILD_ARTIFACT_NAME }}
-          path: dist/
-      - name: Publish distribution to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          verbose: true
+[0m$ [0mls reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN"
+NOT IN SCAN
 [0m
-[0m$ [0mcat reposcan-raw/google/langextract/.github/workflows/ci.yaml | head -180
-# Copyright 2025 Google LLC.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-name: CI
-
-on:
-  workflow_dispatch:
-    inputs:
-      pr_number:
-        description: "Fork PR number for secure live API testing"
-        required: false
-        type: string
-        default: ""
-      pr_head_sha:
-        description: "Exact fork PR head SHA to test"
-        required: false
-        type: string
-        default: ""
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-  pull_request_target:
-    types: [labeled]
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.inputs.pr_number || github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
-# Keep ordinary PR formatting and secure fork formatting on the same
-# pyink/isort versions. The regular format-check job installs lint-imports
-# separately because only that path runs the import-structure check.
-env:
-  FORMATTER_PIP_PACKAGES: pyink==24.3.0 isort==5.13.2
-  IMPORT_LINTER_PIP_PACKAGE: import-linter==2.11
-
-permissions:
-  contents: read
-
-jobs:
-  format-check:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      issues: write
-    steps:
-      - name: Checkout PR branch
-        uses: actions/checkout@v6
-        with:
-          repository: ${{ github.event.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.pull_request.head.ref }}
-          persist-credentials: false
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Install format tools
-        run: |
-          python -m pip install --upgrade pip
-          pip install ${FORMATTER_PIP_PACKAGES} ${IMPORT_LINTER_PIP_PACKAGE}
-
-      - name: Check formatting
-        id: format-check
-        env:
-          GITHUB_TOKEN: ""
-        run: |
-          set -euo pipefail
-          pyink --check --diff .
-          isort --check-only --diff .
-
-      - name: Check import structure
-        id: import-check
-        env:
-          GITHUB_TOKEN: ""
-        run: |
-          set -euo pipefail
-          lint-imports --config pyproject.toml
-
-      - name: Comment on PR if formatting fails
-        if: failure() && steps.format-check.outcome == 'failure'
-        uses: actions/github-script@v9
-        continue-on-error: true
-        with:
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '❌ **Formatting Check Failed**\n\nYour PR has formatting issues. Please run the following command locally and push the changes:\n\n```bash\n./autoformat.sh\n```\n\nThis will automatically fix all formatting issues using pyink (Google\'s Python formatter) and isort.'
-            }).catch(err => {
-              console.log('Comment posting failed:', err.message);
-            });
-
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11", "3.12"]
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tox
-          pip install -e ".[dev,test]"
-
-      - name: Run unit tests and linting
-        run: |
-          PY_VERSION=$(echo "${{ matrix.python-version }}" | tr -d '.')
-          # Format check is handled by separate job for better isolation
-          tox -e py${PY_VERSION},lint-src,lint-tests
-
-  live-api-tests:
-    needs: test
-    runs-on: ubuntu-latest
-    if: |
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository)
-
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.11"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install tox
-          pip install -e ".[dev,test]"
-
-      - name: Run live API tests
-        env:
-          GITHUB_TOKEN: ""
-        run: |
-          set -euo pipefail
-          if [[ -z '${{ secrets.GEMINI_API_KEY }}' && -z '${{ secrets.OPENAI_API_KEY }}' ]]; then
-            echo "::notice::Live API tests skipped - API keys not configured"
-            exit 0
-          fi
-          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
-          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
-          tox -e live-api
-
-  plugin-integration-test:
-    needs: test
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: read
+[0m$ [0mls reposcan-raw/google/ | head -20
+Accessibility-Test-Framework-for-Android
+CFU-Playground
+ChromeBrowserEnterprise
+CodeCity
+EarlGrey
+GoogleAppMeasurement
+GoogleDataTransport
+GoogleSignIn-iOS
+OpenSK
+XNNPACK
+Xee
+aarch64-esr-decoder
+aarch64-paging
+acai
+accompanist
+addlicense
+adk-docs
+adk-go
+adk-java
+adk-js
 [0m
-[0m$ [0mgrep -n "secret_key\|password\|client_secret\|apiKey\|access_token" reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -20
-71:  """Represents the secret token value for HTTP authentication, like user name, password, oauth token, etc."""
-74:  password: Annotated[str | None, Field(repr=False)] = None
-81:        password=data.get("password"),
-102:  client_secret: Annotated[str | None, Field(repr=False)] = None
-115:  access_token: Annotated[str | None, Field(repr=False)] = None
-126:          "client_secret_basic",
-127:          "client_secret_post",
-128:          "client_secret_jwt",
-132:  ) = "client_secret_basic"
-233:  API_KEY = "apiKey"
-269:          credentials=HttpCredentials(username="user", password="password"),
-287:          client_secret="secret",
-296:          client_secret="secret",
+[0m$ [0mls reposcan-raw/microsoft/ 2>/dev/null | head -20
+0xDeCA10B
+AI
+AI-Engineering-Coach
+AI-Red-Teaming-Playground-Labs
+AI-Robot-Challenge-Lab
+AIAgentsforITOps
+AIOpsLab
+AIforITOps
+AL
+AL-Go
+AL-Go-PTE
+ALAppExtensions
+APSI
+ARI
+AaronLocker
+ActiveDirectoryTierModel
+Agent-Framework-Samples
+Agent365-Samples
+Agent365-devTools
+Agent365-nodejs
 [0m
-[0m$ [0mgrep -n "your_client_secret\|your_token\|fuzz test key\|ServerShutdownPassword" reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py reposcan-raw/google/tunix/tunix/cli/base_config.yaml
-reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py:27:  secret_key = "fuzz test key"
-reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:13:	private static String g_shutdownPassword = "ServerShutdownPassword"; // needs to be non-empty string
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62:          client_secret="your_client_secret",
-reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63:  #   hf_access_token: "your_token"
+[0m$ [0mgrep -r "client_secret\|api_key\|password\|secret" reposcan-raw/microsoft/ --include="*.py" --include="*.js" --include="*.ts" --include="*.yaml" --include="*.yml" --include="*.json" 2>/dev/null | grep -v "secrets\." | grep -v "your_" | grep -v "test" | grep -v "example" | grep -v "placeholder" | head -30
+reposcan-raw/microsoft/vscode-codicons/src/template/metadata.json:      "secret",
+reposcan-raw/microsoft/vscode-codicons/src/template/metadata.json:  "gist-secret": {
+reposcan-raw/microsoft/vscode-codicons/src/template/metadata.json:      "password",
+reposcan-raw/microsoft/vscode-codicons/src/template/metadata.json:      "secret",
+reposcan-raw/microsoft/vscode-codicons/src/template/metadata.json:    "description": "Key or password"
+reposcan-raw/microsoft/vscode-codicons/src/template/mapping.json:    "gist-secret"
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_openreview.py:        password=os.environ.get('OPENREVIEW_PASS', ''),
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/gen_pipeline.py:    api_key = os.getenv("AZURE_OPENAI_API_KEY", "")
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/gen_pipeline.py:            api_key=api_key,
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_semanticscholar.py:    api_key = os.environ.get('SEMANTICSCHOLAR_API_KEY', '')
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_semanticscholar.py:    if api_key:
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_semanticscholar.py:        headers['x-api-key'] = api_key
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_openalex.py:    """Issue one OpenAlex GET. Adds api_key. Raises on HTTP error."""
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_openalex.py:    api_key = os.environ.get('OPENALEX_API_KEY', '')
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_openalex.py:    if api_key:
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/search_openalex.py:        params = {**params, 'api_key': api_key}
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:    api_key = os.environ.get("SEMANTICSCHOLAR_API_KEY", "")
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:                if api_key:
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:                    req.add_header("x-api-key", api_key)
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:    api_key = os.environ.get("SEMANTICSCHOLAR_API_KEY", "")
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:            if api_key:
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/idea_spark/scripts/fetch_sections.py:                req.add_header("x-api-key", api_key)
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/paper_search/scripts/search_papers_by_openreview.py:    password = os.environ.get("OPENREVIEW_PASS") or sdk_env.get(
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/paper_search/scripts/search_papers_by_openreview.py:    if username or password:
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/paper_search/scripts/search_papers_by_openreview.py:        v2.login_user(username=username, password=password)
+reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Idea/skills/paper_search/scripts/search_papers_by_openreview.py:        v1.login_user(username=username, password=password)
+reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-claude-code/config/default-policy.json:      "id": "secret-read",
+reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-claude-code/config/default-policy.json:      "reason": "Direct reads of credentials, secret files, and environment dumps are blocked by AGT policy.",
+reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-claude-code/config/default-policy.json:          "source": "\\b(cat|less|more|head|tail|sed|awk)\\b[^\\n\\r]*(\\.env(\\.[\\w-]+)?|id_rsa|id_ed25519|~/.ssh|/\\.ssh/|/\\.aws/|/\\.azure/|/\\.config/gcloud|/\\.config/gh/hosts\\.yml|/\\.docker/config\\.json|/\\.kube/config|/\\.netrc|/\\.git-credentials|/\\.npmrc|/\\.pypirc|secrets?\\.json)",
+reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-claude-code/config/default-policy.json:          "source": "\\b(Get-Content|gc|type)\\b[^\\n\\r]*(\\.env(\\.[\\w-]+)?|id_rsa|id_ed25519|\\\\\\.ssh\\\\|\\\\\\.aws\\\\|\\\\\\.azure\\\\|\\\\\\.config\\\\gcloud|\\\\\\.config\\\\gh\\\\hosts\\.yml|\\\\\\.docker\\\\config\\.json|\\\\\\.kube\\\\config|\\\\\\.netrc|\\\\\\.git-credentials|\\\\\\.npmrc|\\\\\\.pypirc|secrets?\\.json)",
 [0m
-### Classification Table
-
-| Category | File:Line | Evidence | Classification |
-|----------|-----------|----------|----------------|
-| **TEST_OR_EXAMPLE** | meridian/.github/workflows/proto-publish.yml:126,138 | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` / `repository-url: https://test.pypi.org/legacy/` | CI/CD config for **test PyPI** publishing; variable substitution, no secrets |
-| **TEST_OR_EXAMPLE** | meridian/.github/workflows/publish.yml:127,139 | Same test.pypi.org pattern | Duplicate of above; test publishing workflow |
-| **ENDPOINT_LEAK** | closure-compiler/externs/browser/html5.js:22 | `@see http://dev.w3.org/html5/spec/Overview.html` | Public W3C spec URL in externs (documentation) |
-| **TEST_OR_EXAMPLE** | langextract/.github/workflows/ci.yaml:168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | **GitHub Actions secret references** — not hardcoded values |
-| **ENDPOINT_LEAK** | oss-fuzz/projects/mysql-connector-j/* | `https://dev.mysql.com/...` | Public MySQL Connector/J documentation URLs |
-| **TEST_OR_EXAMPLE** | oss-fuzz/projects/flask/fuzz_json.py:27 | `secret_key = "fuzz test key"` | Explicitly labeled **fuzz test** fixture |
-| **TEST_OR_EXAMPLE** | oss-fuzz/projects/h2database/TestServer.java:13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test fixture password, comment says "needs to be non-empty string" |
-| **TEST_OR_EXAMPLE** | pebble/devsite/source/assets/js/404.js:24, quicksearch.js:33 | `apiKey: '{{ site.algolia_api_key }}'` | **Template placeholder** (Jekyll `{{ }}` syntax), not a key |
-| **TEST_OR_EXAMPLE** | flatbuffers/.github/workflows/label.yml:24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret reference |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:269,278,296 | `password="password"`, `client_secret="secret"` | Example/test credentials in credential helper class |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` | Test constant in auth schemes enum |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` | Placeholder literal in example code |
-| **TEST_OR_EXAMPLE** | tunix/tunix/cli/base_config.yaml:63 | `# hf_access_token: "your_token"` | **Commented** placeholder |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | `169.254.169.254` metadata endpoint references | Cloud metadata IP (well-known, not secret) |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/tools/load_web_page.py:171 | `169.254.169.254` reference | Same metadata endpoint |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | `169.254.169.254` reference | Same metadata endpoint |
-| **INTERESTING** | tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195 | `eot_token="<|endoftext|>"`, `system_token="<|system|>"`, `user_token="<|user|>"` | Chat template special tokens (model config, not secrets) |
-| **ENDPOINT_LEAK** | closure-compiler/externs/es6.js:392, w3c_device_sensor_event.js:22 | W3C spec URLs | Public spec references in externs |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/cli/cli_create.py:131 | `GOOGLE_API_KEY={google_api_key}` | Template variable in CLI output |
+[0m$ [0mgrep -r "client_secret\|api_key\|password\|secret" reposcan-raw/google/ --include="*.py" --include="*.js" --include="*.ts" --include="*.yaml" --include="*.yml" --include="*.json" 2>/dev/null | grep -v "secrets\." | grep -v "your_" | grep -v "test" | grep -v "example" | grep -v "placeholder" | grep -v "fuzz" | head -40
+reposcan-raw/google/langextract/benchmarks/benchmark.py:              api_key=GEMINI_API_KEY,
+reposcan-raw/google/langextract/langextract/providers/gemini.py:  api_key: str | None = None
+reposcan-raw/google/langextract/langextract/providers/gemini.py:      api_key: str | None = None,
+reposcan-raw/google/langextract/langextract/providers/gemini.py:      api_key: API key for Gemini service.
+reposcan-raw/google/langextract/langextract/providers/gemini.py:    self.api_key = api_key
+reposcan-raw/google/langextract/langextract/providers/gemini.py:    if not self.api_key and not self.vertexai:
+reposcan-raw/google/langextract/langextract/providers/gemini.py:          'Gemini models require either:\n  - An API key via api_key parameter'
+reposcan-raw/google/langextract/langextract/providers/gemini.py:    if self.api_key and self.vertexai:
+reposcan-raw/google/langextract/langextract/providers/gemini.py:        api_key=self.api_key,
+reposcan-raw/google/langextract/langextract/providers/openai.py:  api_key: str | None = None
+reposcan-raw/google/langextract/langextract/providers/openai.py:      api_key: str | None = None,
+reposcan-raw/google/langextract/langextract/providers/openai.py:      api_key: API key for OpenAI service.
+reposcan-raw/google/langextract/langextract/providers/openai.py:    self.api_key = api_key
+reposcan-raw/google/langextract/langextract/providers/openai.py:    if not self.api_key:
+reposcan-raw/google/langextract/langextract/providers/openai.py:        api_key=self.api_key,
+reposcan-raw/google/langextract/langextract/providers/ollama.py:    lx.extract(..., language_model_params={"api_key": "sk-..."})
+reposcan-raw/google/langextract/langextract/providers/ollama.py:  _api_key: str | None = None
+reposcan-raw/google/langextract/langextract/providers/ollama.py:    api_key_display = '[REDACTED]' if self._api_key else None
+reposcan-raw/google/langextract/langextract/providers/ollama.py:        f'api_key={api_key_display})'
+reposcan-raw/google/langextract/langextract/providers/ollama.py:    self._api_key = kwargs.pop('api_key', None)
+reposcan-raw/google/langextract/langextract/providers/ollama.py:    if self._api_key:
+reposcan-raw/google/langextract/langextract/providers/ollama.py:    if self._api_key:
+reposcan-raw/google/langextract/langextract/providers/ollama.py:        headers[self._auth_header] = f'{self._auth_scheme} {self._api_key}'
+reposcan-raw/google/langextract/langextract/providers/ollama.py:        headers[self._auth_header] = self._api_key
+reposcan-raw/google/langextract/langextract/extraction.py:    api_key: str | None = None,
+reposcan-raw/google/langextract/langextract/extraction.py:      api_key: API key for Gemini or other LLM services (can also use
+reposcan-raw/google/langextract/langextract/extraction.py:        model_id, api_key, and language_model_type parameters. When both model
+reposcan-raw/google/langextract/langextract/extraction.py:        "api_key": api_key,
+reposcan-raw/google/langextract/langextract/core/debug_utils.py:    "api_key",
+reposcan-raw/google/langextract/langextract/core/debug_utils.py:    "secret",
+reposcan-raw/google/langextract/langextract/core/debug_utils.py:    "password",
+reposcan-raw/google/langextract/langextract/core/debug_utils.py:  Automatically redacts api_key, token, etc. and truncates large outputs.
+reposcan-raw/google/langextract/langextract/factory.py:  if "api_key" not in resolved and not resolved.get("vertexai", False):
+reposcan-raw/google/langextract/langextract/factory.py:          resolved["api_key"] = found_keys[0][1]
+reposcan-raw/google/langextract/scripts/create_provider_plugin.py:    def __init__(self, model_id: str, api_key: str | None = None, **kwargs):
+reposcan-raw/google/langextract/scripts/create_provider_plugin.py:          api_key: API key for authentication.
+reposcan-raw/google/langextract/scripts/create_provider_plugin.py:      self.api_key = api_key or os.environ.get("{env_var_safe}"){schema_init}
+reposcan-raw/google/langextract/scripts/create_provider_plugin.py:      # self.client = YourClient(api_key=self.api_key)
+reposcan-raw/google/zx/.github/workflows/dev-publish.yml:      # Uses the `docker/login-action` action to log in to the Container registry using the account and password that will publish the packages. Once published, the packages are scoped to the account defined here.
+reposcan-raw/google/quiche/build/source_list.json:    "quiche/quic/core/crypto/crypto_secret_boxer.h",
+[0m
+[0m$ [0mgrep -r "BEGIN PRIVATE KEY\|BEGIN RSA PRIVATE KEY\|-----BEGIN" reposcan-raw/google/ reposcan-raw/microsoft/ 2>/dev/null | head -20
+reposcan-raw/google/oss-fuzz/projects/nodejs/fuzz_sources/fuzz_tls_socket_request.cc:const key = `-----BEGIN EC PARAMETERS-----
+reposcan-raw/google/oss-fuzz/projects/nodejs/fuzz_sources/fuzz_tls_socket_request.cc:-----BEGIN EC PRIVATE KEY-----
+reposcan-raw/google/oss-fuzz/projects/nodejs/fuzz_sources/fuzz_tls_socket_request.cc:const cert = `-----BEGIN CERTIFICATE-----
+reposcan-raw/google/oss-fuzz/projects/msal/fuzz_auth.py:    cert = "-----BEGIN CERTIFICATE-----%s-----END CERTIFICATE-----"%fdp.ConsumeString(200)
+reposcan-raw/google/oss-fuzz/projects/pem/data.pem:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/oss-fuzz/projects/phosphor-certificate-manager/corpus/seed_expired.pem:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/oss-fuzz/projects/phosphor-certificate-manager/corpus/seed_pre_epoch.pem:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/oss-fuzz/projects/phosphor-certificate-manager/corpus/seed_rsa.pem:-----BEGIN PRIVATE KEY-----
+reposcan-raw/google/oss-fuzz/projects/phosphor-certificate-manager/corpus/seed_rsa.pem:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:    R"(-----BEGIN CERTIFICATE-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:-----BEGIN CERTIFICATE-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:    R"(-----BEGIN CERTIFICATE-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:    R"(-----BEGIN PRIVATE KEY-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:    R"(-----BEGIN RSA PRIVATE KEY-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:    R"(-----BEGIN EC PARAMETERS-----
+reposcan-raw/google/quiche/quiche/quic/test_tools/test_certificates.cc:-----BEGIN EC PRIVATE KEY-----
+reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:  // "-----BEGIN CERTIFICATE-----", the |type| would be "CERTIFICATE").
+reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:  // supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").
+reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.cc:  constexpr absl::string_view kPemBegin = "-----BEGIN ";
+[0m
+Based on the scan results, here's my classification:
 
 ---
 
-### Verdict List
+### **REAL_SECRET**
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *None found in this scan* | | | |
 
-| Candidate | File | Line | Type | REPORT_CANDIDATE |
-|-----------|------|------|------|------------------|
-| test.pypi.org workflow URLs | meridian/.github/workflows/proto-publish.yml | 126,138 | TEST_OR_EXAMPLE | **no** |
-| test.pypi.org workflow URLs | meridian/.github/workflows/publish.yml | 127,139 | TEST_OR_EXAMPLE | **no** |
-| W3C spec URL | closure-compiler/externs/browser/html5.js | 22 | ENDPOINT_LEAK | **no** |
-| GitHub Actions secret refs | langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | **no** |
-| MySQL docs URLs | oss-fuzz/projects/mysql-connector-j/* | - | ENDPOINT_LEAK | **no** |
-| Fuzz test secret_key | oss-fuzz/projects/flask/fuzz_json.py | 27 | TEST_OR_EXAMPLE | **no** |
-| H2 test password | oss-fuzz/projects/h2database/TestServer.java | 13 | TEST_OR_EXAMPLE | **no** |
-| Algolia template placeholder | pebble/devsite/source/assets/js/*.js | 24,33 | TEST_OR_EXAMPLE | **no** |
-| GITHUB_TOKEN secret ref | flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | **no** |
-| ADK example credentials | adk-python/src/google/adk/auth/auth_credential.py | 269,278,296 | TEST_OR_EXAMPLE | **no** |
-| ADK test constant | adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
-| ADK placeholder client_secret | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
-| Commented HF token placeholder | tunix/tunix/cli/base_config.yaml | 63 | TEST_OR_EXAMPLE | **no** |
-| Cloud metadata endpoint refs | adk-python/src/google/adk/code_executors/*.py | multiple | ENDPOINT_LEAK | **no** |
-| Chat template tokens | tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | INTERESTING | **no** |
-| W3C spec URLs (externs) | closure-compiler/externs/es6.js, w3c_device_sensor_event.js | - | ENDPOINT_LEAK | **no** |
-| CLI template variable | adk-python/src/google/adk/cli/cli_create.py | 131 | TEST_OR_EXAMPLE | **no** |
+> The previously known `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f...d271`) is **NOT in this scan's repo set** — it's a KNOWN DUPLICATE per KB (already reported/closed).
 
 ---
 
-### Summary
-**No new REAL_SECRET candidates in this delta.** All 5 new hits are CI/CD test-PyPI URLs with variable substitution. The full grep corpus contains only:
-- GitHub Actions **secret references** (`${{ secrets.* }}`) — not hardcoded values
-- **Test fixtures** explicitly labeled as such (`"fuzz test key"`, `"ServerShutdownPassword"`)
-- **Template placeholders** (`{{ site.algolia_api_key }}`, `"your_client_secret"`, `"your_token"`)
-- **Public documentation URLs** (W3C, MySQL)
-- **Well-known metadata endpoint** `169.254.169.254` references
-- **Model config tokens** (chat template special tokens)
+### **TEST_OR_EXAMPLE**
+| File | Line | Reason |
+|------|------|--------|
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test connection logic |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — truncated placeholder in test code |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `username="user", password="password"` — obvious test credentials |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` — placeholder JWT |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — constant for test scheme |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` — explicit placeholder |
+| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| `google/tunix/tunix/cli/base_config.yaml` | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| `google/oss-fuzz/projects/nodejs/fuzz_sources/fuzz_tls_socket_request.cc` | — | Test EC private key in fuzz corpus |
+| `google/oss-fuzz/projects/pem/data.pem` | — | Test certificate in fuzz corpus |
+| `google/oss-fuzz/projects/phosphor-certificate-manager/corpus/*.pem` | — | Test certs/keys in fuzz corpus |
+| `google/quiche/quiche/quic/test_tools/test_certificates.cc` | — | Test certificates/keys in test tools |
 
-The previously ACCEPTED hardcoded Earth Engine OAuth client_secret (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the sole live credential in the Google org — already tracked in knowledge base.
+---
+
+### **ENDPOINT_LEAK**
+| File | Line | Type |
+|------|------|------|
+| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` — public test PyPI endpoint (not internal) |
+| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` — public test PyPI endpoint |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` — standard cloud metadata IP (documented, not leak) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` — same |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` — same |
+| `google/tunix/tunix/cli/base_rl_pipeline.py` | 862 | `~/.kube/config` — standard kubeconfig path |
+| `google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | `dev.mysql.com` — public docs URL |
+| `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | `dev.mysql.com` — public docs URL |
+| `google/closure-compiler/externs/browser/html5.js` | 1703, 1764 | `dev.w3.org` — W3C spec URLs (documentation) |
+| `google/closure-compiler/externs/browser/w3c_css.js` | 3994 | `dev.w3.org` — W3C spec URL |
+| `google/closure-compiler/externs/es6.js` | 392 | `dev.w3.org` — W3C spec URL |
+| `google/closure-compiler/externs/browser/w3c_device_sensor_event.js` | 22 | `dev.w3.org` — W3C spec URL |
+
+---
+
+### **INTERESTING**
+| File | Line | Note |
+|------|------|------|
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Uses `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — proper secret injection (no hardcoded values) |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | Uses `${{ secrets.GITHUB_TOKEN }}` — standard GitHub Actions token |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` — writes variable to config (variable sourced elsewhere) |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name, not a token |
+| `google/langextract/langextract/core/debug_utils.py` | — | Redaction logic for `api_key`, `secret`, `password` — defensive coding |
+| `google/quiche/quiche/quic/core/crypto/certificate_view.h` | 126 | Comment about legacy OpenSSL RSA key format support |
+
+---
+
+### **VERDICT**
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (none in this scan) | **no** |
+
+**Summary**: This scan produced **zero reportable secrets**. All hits are test fixtures, placeholders, documentation references, public endpoints, or proper secret-injection patterns. The only historically live secret (earthengine-api OAuth client_secret) is absent from this repo set and is a KNOWN DUPLICATE per KB.
