@@ -906,3 +906,5 @@
 - CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact (no Origin header = not true preflight); verified true CORS preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-
 - CHANGED Earth Engine secret A/B proof refined — leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret→401 `invalid_client "The provided client secret is invalid."` — conclusive d
 - CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page in prior cycles); cosmetic redirect per KB, no auth-bypass surface
+
+## 2026-08-14 21:39:58 UTC

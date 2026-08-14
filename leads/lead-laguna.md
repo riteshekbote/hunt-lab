@@ -6838,3 +6838,32 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA)
 [RISK] google: 96 | reason: earthengine-api oauth.py:45 hardcoded OAuth client_secret (sha256 3f3f8d6f…d271) verified valid Google credential via A/B differential proof (invalid_grant vs invalid_client per RFC 6749 §5.2); scopes cloud-platform+drive+devstorage+earthengine grant full GCP takeover; raw GitHub 200/23110 live; token POST-only gate (GET→404) confirmed; native installed client + OOB redirect matches public-client by-design pattern (ADK #2128 precedent caps VRP-worthiness but does not invalidate credential validity); tokeninfo public introspection oracle (no-Authorization-header) confirmed live but no-reward per Google VRP program rules.
 [RISK] microsoft: 97 | reason: agentRegistrations 5-family IDOR+CORS confirmed LIVE at both collection+item level across all 5 endpoint families — true CORS preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400, 873-char metadata block with 0 OperationRestrictions across 5 EntityTypes, item-level auth-gates 401, HEAD→405 no Bearer (RFC 6750 §3 violation); oauth2PermissionGrants consent forge on production v1.0 with zero schema restrictions (458-char EntityType block, resourceId caller-supplied targeting Graph OR Azure Storage) — identical zero-restriction defect class extending to OAuth2 consent grants; all confirmed live @ 2026-08-14 21:07 UTC probe.
+## 2026-08-14 21:39:46 UTC [google] (model laguna)
+[HYP] Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True CORS preflight (Origin + ACRM:PATCH + ACH:authorization) confirmed at BOTH collection + item level → HTTP 200 ACAO:* + Allow-Methods incl. PATCH + Max-Age 86400. $metadata shows 873-char EntityType block with ZERO OperationRestrictions across all 5 sibling types; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. GET→401/237; HEAD→405/0 no Bearer (RFC 6750 §3 violation). bare-OPTIONS→405 is probe artifact (no Origin = not a preflight).
+evidence_needed: Cross-origin PATCH by principal B on principal A's ownerIds/createdBy returns HTTP 200/204 vs fail-closed 403; GET {id}/agentCard returns hijacked card
+verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {"displayName":"t","createdBy":"<A_oid>","ownerIds":["<A_oid>"]} → 201. (2) App B PATCH /beta/copilot/agentRegistrations/{A_id} {"ownerIds":["<B_oid>"]} → 200/204 vs fail-closed 403. (3) GET {A_id}/agentCard → hijacked. (4) Repeat at /agents/{id}, /admin/catalog/packages/{id}, /admin/policySettings/{id}, /agentRegistry.
+impact: Cross-principal enterprise Copilot agentCard/identity tampering → supply-chain compromise across 5 endpoint families; CVSS 8.5-9.4
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret valid Google credential (cloud-platform scope)
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: raw.githubusercontent.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) confirmed verbatim at oauth.py:45 + :99 fallback, whole-file sha f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040 unchanged. Conclusive A/B differential proof: leaked secret → 400 invalid_grant (valid credential per RFC 6749 §5.2); fake secret → 401 invalid_client (invalid credential). Native installed client (line 420 dict installed) + OOB redirect (urn:ietf:wg:oauth:2.0:oob). Scopes cloud-platform+drive+devstorage+earthengine.
+evidence_needed: Signed JWT (scp:cloud-platform) issued from POST /token with leaked client_id+secret + controlled valid refresh_token; or VRP team confirmation of cloud-platform token issuance
+verify_steps: HUMAN_ONLY: File Google VRP report with evidence bundle (secret sha256 3f3f8d6f…d271, file sha f4f93c76…) with A/B invalid_grant-vs-invalid_client proof + native installed+OOB classification; request VRP team perform authorized grant_type=refresh_token redemption to confirm cloud-platform token issuance
+impact: Full GCP project/account takeover via cloud-platform scope; CVSS 9.0-9.8
+testability: HUMAN_ONLY
+[HYP] oauth2PermissionGrants consent forge via caller-supplied resourceId
+class: OATH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 85
+reasoning: oAuth2PermissionGrant EntityType confirmed @ graph.microsoft.com/beta/$metadata: 458-char block, ZERO OperationRestrictions, 7 client-supplied properties including resourceId (caller-supplied targeting Graph OR Azure Storage user_impersonation). GET /v1.0/oauth2PermissionGrants → 401/237 Bearer (authorization_uri=login.microsoftonline.com/common/oauth2/authorize, client_id=00000003-0000-0000-c000-000000000000) — production v1.0 auth-gate confirmed.
+evidence_needed: App A creates consent grant with caller-chosen resourceId + principalId → App B's access token carries forged scope targeting victim's Graph/Azure Storage resources
+verify_steps: AUTH_HELPED: (1) App A POST /v1.0/oauth2PermissionGrants {"clientId":"<A_app_id>","consentType":"Principal","principalId":"<B_oid>","resourceId":"https://graph.microsoft.com","scope":"User.Read"} → 201. (2) App B GET /me/oauth2PermissionGrants → forged grant visible (resourceId caller-supplied targeting Graph). (3) Repeat resourceId="https://<storage>.blob.core.windows.net". (4) App B request access token → observe forged scope.
+impact: Cross-principal OAuth consent forge → unauthorized delegated access to victim principal's Graph/Azure Storage resources; CVSS 7.5-8.2
+testability: AUTH_HELPED
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 agentRegistrations 5-family IDOR+CORS + #3 oauth2PermissionGrants consent forge). Provide App A + App B principal pair with cross-tenant app-registration + PATCH consent rights so verify_steps execute simultaneously. Concurrently file Google VRP report for earthengine secret (HUMAN_ONLY) with A/B invalid_grant-vs-invalid_client evidence bundle.
