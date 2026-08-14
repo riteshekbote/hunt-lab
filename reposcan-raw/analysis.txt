@@ -1,22 +1,46 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan results, I'll classify each finding:
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-## Classification Tables
+| Category          | File                                                                 | Line | SHA256 (secret material)     | Verdict        |
+|-------------------|----------------------------------------------------------------------|------|------------------------------|----------------|
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh    | 20   | f1282e43efb57eec             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh    | 24   | f1282e43efb57eec             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_common.sh         | 28   | db0789cba6bec87f             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh  | 20   | b137582f663517be             | Test mock for metadata server (127.0.0.1) |
+| TEST_OR_EXAMPLE   | reposcan-raw/google/heir/scripts/author_stats.py                    | 16   | a427bc6b187488ae             | Commented placeholder "# TOKEN = \"your_github_token_here\"" |
 
-### REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *None found* | | | |
+=== REAL_SECRET: none ===
+=== TEST_OR_EXAMPLE: 1 hit ===
+=== ENDPOINT_LEAK: 4 hits (all GCE metadata server - standard infra pattern) ===
+=== INTERESTING: 0 hits ===
 
-**No REAL_SECRET findings** - all credential-like values are clearly test/fixture data.
+=== SHORT VERDICT LIST ===
+REPORT_CANDIDATE: no (all hits are infrastructure code or test fixtures)
+EOF
+=== CLASSIFICATION TABLES ===
 
----
+| Category          | File                                                                 | Line | SHA256 (secret material)     | Verdict        |
+|-------------------|----------------------------------------------------------------------|------|------------------------------|----------------|
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh    | 20   | f1282e43efb57eec             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_clusterfuzz.sh    | 24   | f1282e43efb57eec             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_common.sh         | 28   | db0789cba6bec87f             | GCE metadata server call (standard infra) |
+| ENDPOINT_LEAK     | reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh  | 20   | b137582f663517be             | Test mock for metadata server (127.0.0.1) |
+| TEST_OR_EXAMPLE   | reposcan-raw/google/heir/scripts/author_stats.py                    | 16   | a427bc6b187488ae             | Commented placeholder "# TOKEN = \"your_github_token_here\"" |
 
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context | REPORT_CANDIDATE |
-|------|------|---------|------------------|
-| `google/nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java` | 61 | `DB_PASSWORD = "password"` | no |
-| `google/nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java` | 40 | `DB_PASSWORD = "domain-registry"` | no |
-| `google/nomulus/core/src/non
+=== REAL_SECRET: none ===
+=== TEST_OR_EXAMPLE: 1 hit ===
+=== ENDPOINT_LEAK: 4 hits (all GCE metadata server - standard infra pattern) ===
+=== INTERESTING: 0 hits ===
+
+=== SHORT VERDICT LIST ===
+REPORT_CANDIDATE: no (all hits are infrastructure code or test fixtures)
+[0m
+**Triage complete.** All 5 delta hits are **non-reportable**:
+
+- **4× ENDPOINT_LEAK** — Standard GCE metadata server calls (`metadata.google.internal`) in ClusterFuzz docker setup scripts. This is legitimate infrastructure code for GCP instance metadata retrieval, not a secret leak.
+- **1× TEST_OR_EXAMPLE** — Commented placeholder `# TOKEN = "your_github_token_here"` in a stats script.
+
+**No REAL_SECRET findings.** The metadata server endpoints are only accessible from within GCE instances (not externally), and the mock script explicitly uses `127.0.0.1`.
