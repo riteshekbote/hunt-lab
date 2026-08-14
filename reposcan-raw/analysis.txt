@@ -1,27 +1,37 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the new hits from the static scan. I need to classify each hit as REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+Based on the scan results, here's my classification:
 
-First, let me look at the delta hits (39 new lines) and the full grep hits for context.
+---
 
-From the delta, the key hits that look potentially interesting:
+### Classification Table
 
-1. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157: private_key="-----BEGIN PRIVATE KEY-----...",`
-2. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269: credentials=HttpCredentials(username="user", password="password"),`
-3. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278: credentials=HttpCredentials(token="eyAkaknabna...."),`
-4. `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68: PASSWORD = "password"`
-5. Various JS chunk files with parse error messages (likely minified/bundled code, not secrets)
-6. `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131: lines.append(f"GOOGLE_API_KEY={google_api_key}")`
-7. `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47: _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`
-8. `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146: # and 169.254.169.254 in Chrome, so refuse instead of checking it.`
-9. `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171: network with NAT64, routes to the internal ``169.254.169.254`` metadata`
-10. `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62: client_secret="your_client_secret",`
-11. `reposcan-raw/google/atheris/deployment/deploy_pypi.sh:26: python3 -m pip download --no-build-isolation --index-url 'https://test.pypi.org/simple/' --no-binary=:all: atheris=="${ATHERIS_VERSION}" -d "${TMP_DIR?}" 1>/dev/null`
-12. `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml:17: default: https://staging.release-eq7.pages.dev`
-13. `reposcan-raw/google/capsem/config/gate.toml:478: password = "password.txt"`
-14. `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh:15: PASSWORD="$(tr -d '\n' < "$PASS_FILE")"`
-15. `reposcan-raw/google/capsem/scripts/preflight.sh:39: password="$(tr -d '\n' < "$pass_file")"`
-16. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"`
-17. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"`
-18. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | *(none new)* | No new hardcoded credentials with signs of life. The known `earthengine-api` client_secret (oauth.py:45) was already tracked in KB. |
+| **TEST_OR_EXAMPLE** | `go-github/github/github.go:1990` — `"your app's client secret"`<br>`adk-js/core/src/auth/auth_schemes.ts:41` — `PASSWORD = 'password'` (constant name)<br>`adk-js/core/src/auth/auth_credential.ts:214,226` — example values in JSDoc comments<br>`agents-cli/src/google/agents/cli/auth.py:43` — `GEMINI_API_KEY = "gemini_api_key"` (constant name)<br>`agents-cli/.../staging.yaml:168,192` — `${{ steps.fetch-token.outputs... }}` CI variable refs<br>`cloud-android-orchestration/.../deployment.yaml:121,146,169` — `${{ secrets.artifact-registry-uploader-json-creds }}` CI secret refs<br>`adk-python/.../gke_code_executor.py:103,104,115` — kubeconfig param definitions<br>`adk-python/.../cli_create.py:131` — `f"GOOGLE_API_KEY={google_api_key}"` variable interpolation (runtime value) | All are placeholders, examples, CI variable references, or runtime variable interpolation — **not hardcoded secrets** |
+| **ENDPOINT_LEAK** | `closure-compiler/contrib/externs/maps/google_maps_api_v3*.js:4638-4639` — `developers.devsite.corp.google.com` (internal docs)<br>`closure-compiler/src/.../ErrorManager.java:95` — `source.corp.google.com` (internal source)<br>`adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` — `metadata.google.internal` (GCP metadata)<br>`adk-js/core/src/tools/load_web_page.ts:36` — `169.254.0.0/16` (GCP metadata CIDR)<br>`adk-python/.../container_code_executor.py:114,154` — `169.254.169.254` (GCP metadata IP) | Internal / metadata endpoints documented in code — **known surface, not new** |
+| **INTERESTING** | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` — `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref pattern)<br>`adk-go/cmd/launcher/web/webui/distr/*.js` — minified build artifacts (parser error messages)<br>`closure-compiler/externs/browser/*.js` — W3C/dev.w3.org public standards URLs<br>`closure-compiler/contrib/externs/ms-office-1.3.js` — dev.office.com public docs | Build artifacts, public references, or deployment patterns — **no actionable finding** |
+
+---
+
+### Verdict Summary
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` | **no** — secret reference, not a secret value |
+| `google/go-github/github/github.go:1990` | **no** — placeholder/example |
+| `google/adk-js/core/src/auth/*.ts` | **no** — test constants & example comments |
+| `google/agents-cli/src/google/agents/cli/auth.py:43` | **no** — constant name only |
+| `google/agents-cli/.../staging.yaml` | **no** — CI variable references |
+| `google/cloud-android-orchestration/.../deployment.yaml` | **no** — CI secret references |
+| `google/adk-python/.../gke_code_executor.py` | **no** — config parameters |
+| `google/adk-python/.../container_code_executor.py` | **no** — metadata IP references (known) |
+| `google/adk-python/.../cli_create.py:131` | **no** — runtime variable interpolation |
+| `google/closure-compiler/...` (internal URLs) | **no** — known internal endpoint docs |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | **no** — minified build artifacts |
+
+---
+
+**Bottom line:** **No new REAL_SECRET findings** in this delta. All hits are test fixtures, examples, CI variable references, internal endpoint documentation, or build artifacts. The only live hardcoded credential in Google repos remains the previously-tracked `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already ACCEPTED in KB.
