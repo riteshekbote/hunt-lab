@@ -1,117 +1,74 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
-
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in this scan) | | | | |
-
-## TEST_OR_EXAMPLE
-| File | Line | Type | Reason |
-|------|------|------|--------|
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | minified JS | Build artifact, parse error messages |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | minified JS | 20+ build artifacts, parse error messages |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | minified JS | 6 build artifacts, parse error messages |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | placeholder | `private_key="-----BEGIN PRIVATE KEY-----..."` truncated |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | test fixture | `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | placeholder | `token="eyAkaknabna...."` fake JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | test constant | `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | placeholder | `client_secret="your_client_secret"` |
-| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | reference const | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | doc comment | MySQL MyLogin documentation URL |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | secret ref | `${{ secrets.GEMINI_API_KEY }}` GitHub Actions ref |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | placeholder | `GEMINI_API_KEY = "gemini_api_key"` |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | template | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
-| google/capsem/config/gate.toml | 480 | config ref | `password = "password.txt"` file reference |
-| google/capsem/scripts/preflight.sh | 39 | file read | `password="$(tr -d '\n' < "$pass_file")"` |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | file read | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | comment | Internal UI reference (firebase.corp.google.com) |
-| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | tf var | `master_password = "${var.db_password}"` |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | CI config | test.pypi.org URLs with `${{ env.PYPI_PACKAGE_NAME }}` |
-| google/meridian/.github/workflows/publish.yml | 127,139 | CI config | test.pypi.org URLs with `${{ env.PYPI_PACKAGE_NAME }}` |
-
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | https://firebase.corp.google.com/ | Internal Google Corp UI |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | https://staging.release-eq7.pages.dev | Staging deployment URL |
-
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path, kubeconfig_context params | GKE executor config surface |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata endpoint | Cloud metadata access warning |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint | NAT64 route warning |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint | Chrome metadata access blocked |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` written to file | CLI writes user-supplied key to config |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run Secret Manager ref pattern |
-
-=== VERDICT LIST ===
-- REAL_SECRET candidates: 0 (no hardcoded live credentials found in this scan)
-- TEST_OR_EXAMPLE: 30+ entries (minified JS build artifacts, placeholder credentials, secret references, test constants)
-- ENDPOINT_LEAK: 2 entries (internal firebase.corp.google.com, staging.pages.dev) — info only
-- INTERESTING: 7 entries (cloud metadata endpoint refs, kubeconfig params, Cloud Run secret pattern, internal state key) — recon value only
-
-NO REPORTABLE FINDINGS this cycle. The earthengine-api oauth.py:45 secret (sha256 3f3f8d6f…d271) from KB is NOT in this scan's repo set.
-EOF
-=== CLASSIFICATION TABLES ===
-
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in this scan) | | | | |
-
-## TEST_OR_EXAMPLE
-| File | Line | Type | Reason |
-|------|------|------|--------|
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | minified JS | Build artifact, parse error messages |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | minified JS | 20+ build artifacts, parse error messages |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | minified JS | 6 build artifacts, parse error messages |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | placeholder | `private_key="-----BEGIN PRIVATE KEY-----..."` truncated |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | test fixture | `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | placeholder | `token="eyAkaknabna...."` fake JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | test constant | `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | placeholder | `client_secret="your_client_secret"` |
-| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | reference const | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | doc comment | MySQL MyLogin documentation URL |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | secret ref | `${{ secrets.GEMINI_API_KEY }}` GitHub Actions ref |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | placeholder | `GEMINI_API_KEY = "gemini_api_key"` |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | template | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
-| google/capsem/config/gate.toml | 480 | config ref | `password = "password.txt"` file reference |
-| google/capsem/scripts/preflight.sh | 39 | file read | `password="$(tr -d '\n' < "$pass_file")"` |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | file read | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | comment | Internal UI reference (firebase.corp.google.com) |
-| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | tf var | `master_password = "${var.db_password}"` |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | CI config | test.pypi.org URLs with `${{ env.PYPI_PACKAGE_NAME }}` |
-| google/meridian/.github/workflows/publish.yml | 127,139 | CI config | test.pypi.org URLs with `${{ env.PYPI_PACKAGE_NAME }}` |
-
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | https://firebase.corp.google.com/ | Internal Google Corp UI |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | https://staging.release-eq7.pages.dev | Staging deployment URL |
-
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path, kubeconfig_context params | GKE executor config surface |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata endpoint | Cloud metadata access warning |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint | NAT64 route warning |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint | Chrome metadata access blocked |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` written to file | CLI writes user-supplied key to config |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run Secret Manager ref pattern |
-
-=== VERDICT LIST ===
-- REAL_SECRET candidates: 0 (no hardcoded live credentials found in this scan)
-- TEST_OR_EXAMPLE: 30+ entries (minified JS build artifacts, placeholder credentials, secret references, test constants)
-- ENDPOINT_LEAK: 2 entries (internal firebase.corp.google.com, staging.pages.dev) — info only
-- INTERESTING: 7 entries (cloud metadata endpoint refs, kubeconfig params, Cloud Run secret pattern, internal state key) — recon value only
-
-NO REPORTABLE FINDINGS this cycle. The earthengine-api oauth.py:45 secret (sha256 3f3f8d6f…d271) from KB is NOT in this scan's repo set.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271" --include="*.py" 2>/dev/null | head -5
+(no output)
 [0m
-**Summary:** This scan produced **0 REAL_SECRET candidates**. All 533 hits classify as TEST_OR_EXAMPLE (minified JS bundles, placeholder credentials, secret references, test fixtures), ENDPOINT_LEAK (2 internal/staging URLs), or INTERESTING (cloud metadata refs, kubeconfig params, Cloud Run secret pattern). The known-live earthengine-api secret (KB) is not in this repo set. No reportable findings.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "RUP0RZ6e0pPhDzsqIJ7KlNd1" --include="*.py" 2>/dev/null | head -5
+(no output)
+[0m
+Based on the scan data provided, here's the triage classification:
+
+---
+
+### **REAL_SECRET** — *None in this delta*
+No hardcoded live credentials detected in the 3 new delta hits or the 530 full-scan hits. The previously known `earthengine-api` secret (`sha256: 3f3f8d6f…d271`) is **not present** in this scan output.
+
+---
+
+### **TEST_OR_EXAMPLE** — *512 hits*
+| File Pattern | Count | Reason |
+|--------------|-------|--------|
+| `adk-python/src/google/adk/auth/auth_credential.py` | 3 | Placeholder private key (`-----BEGIN PRIVATE KEY-----...`), `password`, `eyAkaknabna....` |
+| `adk-python/src/google/adk/auth/auth_schemes.py` | 1 | `PASSWORD = "password"` test constant |
+| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 1 | `client_secret="your_client_secret"` placeholder |
+| `adk-python/src/google/adk/cli/cli_create.py` | 1 | Template var `GOOGLE_API_KEY={google_api_key}` |
+| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 1 | Const name `_STATE_KEY_ACCESS_TOKEN` |
+| `adk-go/cmd/launcher/web/webui/distr/*.js` + `adk-python/src/google/adk/cli/browser/*.js` | ~480 | Minified JS parser error messages (build artifacts) |
+| `agents-cli/src/google/agents/cli/auth.py` | 1 | String const `"gemini_api_key"` (placeholder) |
+| `agents-cli/scaffold/**/staging.yaml` | 2 | GitHub Actions `{{ steps.fetch-token.outputs._id_token }}` templates |
+| `langextract/.github/workflows/ci.yaml` | 3 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — secret refs, not values |
+| `meridian/.github/workflows/*.yml` | 4 | `test.pypi.org` URLs with `${{ env.PYPI_PACKAGE_NAME }}` — CI config |
+| `osv-scalibr/**/*.go` | 3 | Documentation refs to `PASSWORD_HASH_LM_FORMAT`, MySQL login docs |
+| `capsem/**/*` | 5 | `password.txt` file refs, `tr -d '\n' < "$pass_file"` — config patterns |
+| `adk-python/src/google/adk/code_executors/*` | 6 | `kubeconfig_path`, `169.254.169.254` metadata endpoint — docs/comments |
+| `adk-python/src/google/adk/tools/*` | 4 | `169.254.169.254` in comments — documentation |
+
+---
+
+### **ENDPOINT_LEAK** — *8 hits*
+| File | Line | Endpoint | Context |
+|------|------|----------|---------|
+| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | Config params, not live endpoints |
+| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | Cloud metadata endpoint (documented) |
+| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | NAT64 route documentation |
+| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Chrome refusal comment |
+| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref pattern |
+
+---
+
+### **INTERESTING** — *10 hits*
+| File | Line | Finding |
+|------|------|---------|
+| `adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Auth credential examples show schema for `private_key`, `HttpCredentials(username/password)`, `HttpCredentials(token)` — useful for understanding attack surface |
+| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` enum value — shows auth scheme constants |
+| `adk-python/src/google/adk/cli/browser/main-KSQARI5D.js` | 5 | Source map reference `fhe=["number","bigint","boolean","string","object"]` — TypeScript types in minified output |
+| `capsem/config/gate.toml` | 480 | `password = "password.txt"` — config file referencing external secret file |
+| `capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` — secret ingestion pattern |
+| `capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — same pattern |
+
+---
+
+### **VERDICT**
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `earthengine-api` secret (known from KB) | **no** | Not in this scan delta; already tracked in KB as ACCEPTED but native-app OOB by-design (ADK #2128 precedent) |
+| ADK auth credential examples | **no** | Placeholder/test data only |
+| GitHub Actions `${{ secrets.* }}` refs | **no** | Proper secret management, not leaks |
+| Cloud Run `--set-secrets` pattern | **no** | Infrastructure config, not a secret value |
+| Minified JS parser errors (480+ hits) | **no** | Build artifacts, zero signal |
+| `169.254.169.254` metadata refs | **no** | Well-known documented endpoint |
+| `capsem` password file patterns | **no** | Config references to external secret files |
+
+**Bottom line**: This scan delta produces **zero reportable findings**. The 3 new hits are minified JS parser errors. The full scan is dominated by test fixtures, placeholder examples, proper secret references (GitHub Actions/Cloud Run), and documentation of well-known endpoints.
