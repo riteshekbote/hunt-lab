@@ -1,90 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/triage_results.md << 'EOF'
-# Static Scan Triage Results
-**Scan Date:** 2026-08-14  
-**Orgs:** google/, microsoft/  
-**Total Files Scanned:** 17,300  
-**Total Hits:** 259  
-**New Hits (Delta):** 37
-
----
+Looking at the scan results, I'll classify each finding:
 
 ## Classification Tables
 
-### REAL_SECRET (Reportable Credentials)
-| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
-|------|------|----------------|------|------------------|
-| *None found* | - | - | - | - |
+### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *None found* | | | |
 
-**Verdict:** No hardcoded live credentials detected in this delta. The previously known `earthengine-api` secret (sha256 `3f3f8d6f...d271`) was already tracked in KB and is **not new**.
-
----
-
-### TEST_OR_EXAMPLE (Fixtures, Samples, Placeholders)
-| File | Line | Pattern | Context | REPORT_CANDIDATE |
-|------|------|---------|---------|------------------|
-| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `ghp_ABCDEFGHIJKLMNOP` | Test fixture (alphabetic pattern) | no |
-| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Test fixture in detection test | no |
-| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Assertion on test fixture | no |
-| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 24 | `AKIA5SXYO7WZ3PLMN8RTV` | AWS key test fixture | no |
-| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Redaction test fixture | no |
-| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Evaluation test data | no |
-| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | OCR test data | no |
-| `google/heir/scripts/author_stats.py` | 16 | `your_github_token_here` | Commented placeholder | no |
-| `microsoft/Olive/.azure_pipelines/job_templates/huggingface-login-template.yaml` | 2 | `huggingface_token` | Template placeholder value | no |
-| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 27,166,205 | `dev.office.com` URLs | Documentation references | no |
-| `google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | ~4638 | `developers.devsite.corp.google.com` | Internal doc links in externs | no |
-| `google/closure-compiler/externs/browser/*.js` | Various | `dev.w3.org` URLs | W3C spec references in externs | no |
-| `google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `source.corp.google.com` | Internal source link in comment | no |
+**No REAL_SECRET findings** - all credential-like values are clearly test/fixture data.
 
 ---
 
-### ENDPOINT_LEAK (Internal/Dev/Staging URLs, Metadata Endpoints)
-| File | Line | Endpoint | Type | REPORT_CANDIDATE |
-|------|------|----------|------|------------------|
-| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCP Metadata Service | no (well-known) |
-| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `http://169.254.169.254/latest/meta-data/iam/` | AWS IMDS | no (well-known) |
-| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP Metadata check | no (well-known) |
-| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local/GCP metadata CIDR | no (well-known) |
-| `microsoft/Olive/.azure_pipelines/scripts/find_failed_commit.py` | 36 | `https://dev.azure.com/aiinfra/` | Azure DevOps org URL | no (public org) |
-
----
-
-### INTERESTING (Config Patterns, Secret Handling, Non-Secret Security Items)
-| File | Line | Finding | Notes | REPORT_CANDIDATE |
-|------|------|---------|-------|------------------|
-| `google/ax/manifests/install-ax.sh` | 239-286 | PG password handling: reads existing or generates via `openssl rand -hex 16` | Secure pattern (no hardcoded secret) | no |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper GitHub Secrets usage: `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Good practice | no |
-| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets versions access` for GitHub token | Secret Manager integration | no |
-| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access` for Codecov token | Secret Manager integration | no |
-| `microsoft/SPARROW/updater/install.sh` | 49 | `GITHUB_TOKEN="${UPDATER_GITHUB_TOKEN}"` | Env var reference (not hardcoded) | no |
-| `microsoft/vscode-documentdb/src/plugins/service-kubernetes/kubernetesClient.ts` | 99-102 | Kubeconfig context extraction logic | Config parsing, no secrets | no |
-| `microsoft/vscode-documentdb/src/plugins/service-kubernetes/config.ts` | 43,47,59 | Multi-source kubeconfig storage + secret-storage key prefix | Design docs for secret storage | no |
-
----
-
-## Summary Verdict
-
-| Category | Count | Report Candidates |
-|----------|-------|-------------------|
-| REAL_SECRET | 0 | 0 |
-| TEST_OR_EXAMPLE | 14 | 0 |
-| ENDPOINT_LEAK | 5 | 0 |
-| INTERESTING | 7 | 0 |
-| **TOTAL NEW** | **26 unique findings** | **0** |
-
-**Overall:** **NO_DELTA** for reportable findings. All 37 delta hits resolve to test fixtures, documentation references, well-known metadata endpoints, or secure configuration patterns. No new hardcoded credentials, API keys, or tokens with signs of life.
-
-**Previously Tracked (KB) - Still Live:**
-- `google/earthengine-api/python/ee/oauth.py:45` — OAuth client_secret (sha256 `3f3f8d6f...d271`) — **KNOWN, NOT NEW**
-- Microsoft Graph `agentRegistrations` CORS + IDOR surface — **KNOWN, NOT NEW**
-- `oauth2.googleapis.com/tokeninfo` introspection oracle — **KNOWN, NOT NEW**
-- Dual-JWKS rotation desync — **REJECTED (steady-state subset holds)**
-
-**Action Required:** None for this scan cycle. Continue monitoring.
-EOF
-cat /tmp/triage_results.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context | REPORT_CANDIDATE |
+|------|------|---------|------------------|
+| `google/nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java` | 61 | `DB_PASSWORD = "password"` | no |
+| `google/nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java` | 40 | `DB_PASSWORD = "domain-registry"` | no |
+| `google/nomulus/core/src/non
