@@ -1,56 +1,405 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-# Triage Results — google/ & microsoft/ reposcan delta
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | head -30
+name: Stage Asset Channel
 
-## REAL_SECRET
-*None found in this delta.*
+on:
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Staging asset channel name.
+        required: true
+        default: staging
+      deploy_branch:
+        description: Cloudflare Pages preview branch to publish.
+        required: true
+        default: staging
+      release_site_url:
+        description: Cloudflare Pages preview URL for the deploy branch.
+        required: true
+        default: https://staging.release-eq7.pages.dev
+      manifest_version:
+        description: Staged manifest contract version.
+        required: true
+        default: 1.0.2
 
-## TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `#   hf_access_token: "your_token"` (commented placeholder) |
-| `google/tunix/tunix/cli/base_config.yaml` | 63 | `#   hf_access_token: "your_token"` (commented placeholder) |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, not a key) |
-| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` expressions |
-| `google/adk-python/.../auth_credential.py` | 157, 269, 278 | Placeholder private_key, HttpCredentials(username="user", password="password"), token="eyAkaknabna...." |
-| `google/adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` (obvious placeholder) |
-| `google/adk-python/.../auth_helpers.py` | 62 | `client_secret="your_client_secret"` (placeholder) |
-| `google/adk-python/.../cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` (template variable) |
-| `google/adk-python/.../browser/chunk-*.js` | multiple | Minified/build artifact JS (parse error messages) |
+permissions:
+  contents: read
+  deployments: write
 
-## ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| `google/closure-compiler/.../google_maps_api_v3.js` | 4638 | `developers.devsite.corp.google.com` (internal Google docs) |
-| `google/closure-compiler/.../ms-office-1.3.js` | 27, 166, 205 | `dev.office.com` (Microsoft dev portal references) |
-| `google/closure-compiler/.../html5.js` | 22, 1703, 1764 | `dev.w3.org` (W3C spec references) |
-| `google/closure-compiler/.../w3c_css.js` | 3994, 4830, 4835 | `dev.w3.org` (W3C CSS spec references) |
-| `google/closure-compiler/.../w3c_device_sensor_event.js` | 22 | `dev.w3.org` (W3C geo API spec) |
-| `google/closure-compiler/.../w3c_fileapi.js` | 34 | `dev.w3.org` (W3C FileAPI spec) |
-| `google/closure-compiler/.../w3c_rtc.js` | 1597, 3333 | `dev.w3.org` (W3C WebRTC spec) |
-| `google/closure-compiler/.../webkit_notifications.js` | 202 | `dev.w3.org` (W3C Web Notifications spec) |
-| `google/closure-compiler/.../es6.js` | 392 | `dev.w3.org` (W3C postMessage spec) |
-| `google/closure-compiler/.../ErrorManager.java` | 95 | `source.corp.google.com` (internal Google Piper source link) |
-| `google/llvm-propeller/.../binary_content.h` | 80 | `source.corp.google.com` (internal Google kernel source link) |
+jobs:
+  assemble-staging-channel:
+    runs-on: ubuntu-latest
+    name: Assemble staging asset channel
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | sed -n '475,490p'
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | head -30
+#!/usr/bin/env bash
+# Re-exports the Apple .p12 certificate with legacy 3DES/SHA1 encryption.
+# macOS `security import` rejects modern PBES2/AES-256-CBC p12 files created
+# by OpenSSL 3.x. This converts to the legacy format macOS understands.
+set -euo pipefail
 
-## INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| `google/tunix/tunix/cli/base_rl_pipeline.py` | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` |
-| `google/tunix/.../chat_template_parser/parser.py` | 193–195 | Token constants: `eot_token="<|im_end|>"`, `system_token="<|system|>\n"`, `user_token="<|user|>\n"` |
-| `google/adk-python/.../gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` parameters for GKE |
-| `google/adk-python/.../container_code_executor.py` | 114, 154 | Comments referencing `169.254.169.254` cloud metadata endpoint |
-| `google/adk-python/.../load_web_page.py` | 171 | Comment about `169.254.169.254` metadata endpoint with NAT64 |
-| `google/adk-python/.../computer_use_toolset.py` | 146 | Explicit refusal to check `169.254.169.254` in Chrome |
-| `google/adk-python/.../vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal token key name) |
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CERT_DIR="$(dirname "$SCRIPT_DIR")/private/apple-certificate"
+P12="$CERT_DIR/capsem.p12"
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
+
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
+
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+if [[ "$FMT" != "PBES2" ]]; then
+    echo "    Already legacy format ($FMT). Nothing to do."
+    exit 0
+fi
+
+echo "    Current: $FMT (modern, macOS-incompatible)"
+echo "==> Re-exporting with 3DES/SHA1..."
+
+openssl pkcs12 -in "$P12" -passin "pass:$PASSWORD" -nodes -out "$TMPDIR_WORK/combined.pem" 2>/dev/null
+openssl pkcs12 -export -in "$TMPDIR_WORK/combined.pem" -out "$TMPDIR_WORK/legacy.p12" \
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
+#!/usr/bin/env bash
+# Preflight checks for release builds.
+# Validates environment, credentials, and tools BEFORE slow CI jobs run.
+# Add new checks as functions -- they run in order, fail-fast on first error.
+set -euo pipefail
+
+PASS=0
+FAIL=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+
+# --------------------------------------------------------------------------
+# Check: Apple certificate can be imported into a macOS keychain
+# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
+# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
+# with a misleading "wrong password" error. Re-export with:
+#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
+#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
+#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+# --------------------------------------------------------------------------
+check_apple_certificate() {
+    echo ""
+    echo "== Apple Certificate =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local pass_file="$cert_dir/p12-password.txt"
+
+    if [[ ! -f "$p12" ]]; then
+        fail "capsem.p12 not found at $p12"
+        return
+    fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -60
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    """
+    click.echo()
+    click.echo("  To use this API key in your current session, run:")
+    click.echo()
+    click.secho(f'    export {var_name}="YOUR_API_KEY"', bold=True)
+    click.echo()
+    click.echo(
+        "  To persist this variable across sessions, you can add it to your shell profile."
+    )
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,170p'
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | sed -n '65,75p'
+CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '58,70p'
+config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  client_secret: str
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | sed -n '43,55p'
+# Session state keys for sharing resources across sessions
+_STATE_KEY_AGENT_ENGINE_NAME = "_vmaas_agent_engine_name"
+_STATE_KEY_SANDBOX_NAME = "_vmaas_sandbox_name"
+_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
+_STATE_KEY_TOKEN_EXPIRY = "_vmaas_token_expiry"
+
+# Default token timeout in seconds
+_DEFAULT_TOKEN_TIMEOUT = 3600
+
+# Buffer time before token expiry to trigger refresh (60 seconds)
+_TOKEN_REFRESH_BUFFER = 60
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | sed -n '125,140p'
+lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | sed -n '60,70p'
+# Hugging Face if no `model_path` is given. By default, it uses the `HF_TOKEN`
+  # environment variable. You can also explicitly specify it here:
+  # kwargs:
+  #   hf_access_token: "your_token"
+  #   base_emb_dim: 4096
+  #   sparse_matmul: true
+  #   remat_policy: "minimal"
+
+  rng_seed: 0
+
+  # Display model
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/tunix/tunix/cli/base_config.yaml | sed -n '60,70p'
+# Hugging Face if no `model_path` is given. By default, it uses the `HF_TOKEN`
+  # environment variable. You can also explicitly specify it here:
+  # kwargs:
+  #   hf_access_token: "your_token"
+  #   base_emb_dim: 4096
+  #   sparse_matmul: true
+  #   remat_policy: "minimal"
+
+  rng_seed: 0
+
+  # Display model
+[0m
+Now I have enough context to classify all hits. Let me create the classification tables.
+
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in new delta or full hits)* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context | Why |
+|------|------|---------|-----|
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value, not actual key |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example with placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Example HTTP basic auth |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated placeholder JWT |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth grant type enum value |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring placeholder |
+| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper GitHub Actions secret ref |
+| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | GitHub Actions expression |
+
+#### ENDPOINT_LEAK
+| File | Line | Context | Why |
+|------|------|---------|-----|
+| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Public Cloudflare Pages staging URL |
+| reposcan-raw/google/closure-compiler/externs/... | various | `http://dev.w3.org/...` | Public W3C spec URLs |
+
+#### INTERESTING
+| File | Line | Context | Why |
+|------|------|---------|-----|
+| reposcan-raw/google/capsem/config/gate.toml | 481 | `password = "password.txt"` | Config references password file (not the secret itself) |
+| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` at runtime | Proper secret handling pattern |
+| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` at runtime | Proper secret handling pattern |
+| reposcan-raw/google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path` references | Kubeconfig config, not secret |
+| reposcan-raw/google/adk-python/.../container_code_executor.py | 114,154 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
+| reposcan-raw/google/adk-python/.../load_web_page.py | 171 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
+| reposcan-raw/google/adk-python/.../computer_use_toolset.py | 146 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
+| reposcan-raw/google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key constant |
+| reposcan-raw/google/adk-python/.../cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to .env | Generates env from user input |
+| reposcan-raw/google/tunix/.../base_rl_pipeline.py | 862 | Sets `KUBECONFIG` from config | Kubeconfig path reference |
 
 ---
 
-## VERDICT
+### SHORT VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE |
 |-----------|------------------|
-| *(no REAL_SECRET candidates in this delta)* | — |
+| capsem staging URL | no (public staging endpoint) |
+| capsem password.txt reference | no (references file, not secret) |
+| capsem shell scripts reading password files | no (proper runtime secret loading) |
+| langextract workflow secret refs | no (proper `${{ secrets.* }}` usage) |
+| agents-cli auth.py enum value | no (string constant, not credential) |
+| adk-python auth_credential.py examples | no (docstring placeholders) |
+| adk-python auth_schemes.py enum | no (OAuth grant type constant) |
+| adk-python openapi auth_helpers.py | no (docstring placeholder) |
+| adk-python vmaas state keys | no (internal constant names) |
+| adk-python cli_create.py env generation | no (writes user-provided key to .env) |
+| tunix config.yaml commented placeholders | no (commented examples) |
+| closure-compiler W3C URLs | no (public spec URLs) |
 
-**Summary:** This delta contains only documentation URL references (ENDPOINT_LEAK), test/fixture placeholders (TEST_OR_EXAMPLE), and cloud-config-related code patterns (INTERESTING). No live credentials, API keys, or tokens were detected. The previously ACCEPTED hardcoded Earth Engine OAuth client_secret (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not present in this scan's file set** — it remains a live finding per KB but outside this reposcan scope.
+**Summary: 0 REAL_SECRET findings in this delta. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (public), or INTERESTING (config patterns/docs). No reportable credentials.**
