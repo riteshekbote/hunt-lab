@@ -4,136 +4,110 @@
 [0m$ [0mcat << 'EOF'
 === CLASSIFICATION TABLES ===
 
-REAL_SECRET (hardcoded credential with signs of life):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ NONE in this scan delta.                                                            │
-│ (Prior ACCEPTED: google/earthengine-api/python/ee/oauth.py:45 client_secret        │
-│  sha256=3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 —        │
-│  confirmed live in KB, not in this scan's new hits)                                │
-└────────────────────────────────────────────────────────────────────────────────────┘
+REAL_SECRET:
+(none in this delta scan)
 
-TEST_OR_EXAMPLE (sample/test/fixture/placeholder data):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 157  │  private_key="-----BEGIN PRIVATE KEY-----..." (placeholder)
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 269  │  username="user", password="password" (test fixture)
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 278  │  token="eyAkaknabna...." (placeholder JWT)
-│ google/adk-python/src/google/adk/auth/auth_schemes.py                        │ 68   │  PASSWORD = "password" (constant default)
-│ google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py     │ 62   │  client_secret="your_client_secret" (placeholder)
-│ google/capsem/config/gate.toml                                               │ 480  │  password = "password.txt" (file reference, not secret)
-│ google/capsem/scripts/preflight.sh                                           │ 39   │  password="$(tr -d '\n' < "$pass_file")" (reads from file)
-│ google/capsem/scripts/fix_p12_legacy.sh                                      │ 15   │  PASSWORD="$(tr -d '\n' < "$PASS_FILE")" (reads from file)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 168  │  GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" (GH Actions ref)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 169  │  LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" (GH Actions ref)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 170  │  OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 247  │  google-client-secret="${GOOGLE_CLIENT_SECRET}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 249  │  github-client-secret="${GITHUB_CLIENT_SECRET}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 250  │  cli-oauth-secret="${CLI_OAUTH_SECRET}" (GH Actions ref)
-│ google/sam/development/kind/run.sh                                           │ 139  │  OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" (shell var ref)
-│ google/tunix/tunix/cli/base_agentic_config.yaml                              │ 63   │  # hf_access_token: "your_token" (commented placeholder)
-│ google/adk-python/src/google/adk/cli/browser/*.js (6 files)                  │ 3/9  │  Parser error messages (generated/compiled code)
-│ google/sam/**/templates/*.yaml, **/k8s/*.yaml                                 │ -    │  ConfigMap kind declarations (templates)
-│ google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go     │ 56   │  vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT" (constant ref)
-│ google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py      │ 47   │  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (const key name)
-│ google/adk-python/src/google/adk/cli/cli_create.py                           │ 131  │  GOOGLE_API_KEY={google_api_key} (variable interpolation)
-└────────────────────────────────────────────────────────────────────────────────────┘
+TEST_OR_EXAMPLE:
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant string literal |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell param expansion (empty default) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | --from-literal=...="${SECRET}" | GitHub Actions secret refs |
+| google/sam/.github/k8s/*.yaml | 2,14 | kind: ConfigMap | K8s ConfigMap definitions |
+| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT" | Constant reference string |
+| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go | 32,40 | MySQL docs/comments | Documentation references |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Truncated test fixture (... suffix) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Truncated test JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Constant string literal |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder text |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Constant key name |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation (CLI tool) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Parse error messages | Minified JS source chunks |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | hf_access_token: "your_token" | Commented placeholder |
 
-ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/capsem/.github/workflows/release-channel-staging.yaml                   │ 17   │  default: https://staging.release-eq7.pages.dev (public staging)
-│ google/adk-python/src/google/adk/code_executors/container_code_executor.py     │ 114  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/code_executors/container_code_executor.py     │ 154  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/tools/load_web_page.py                        │ 171  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py    │ 146  │  Refuses to check 169.254.169.254 (defensive)
-└────────────────────────────────────────────────────────────────────────────────────┘
+ENDPOINT_LEAK:
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | metadata.google.internal/computeMetadata/v1/... | GCP instance metadata (well-known) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | autopush-confidentialcomputing.sandbox.googleapis.com | Sandbox autopush endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | staging-confidentialcomputing.sandbox.googleapis.com | Sandbox staging endpoint |
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | pantheon.corp.google.com (comment) | Internal Google console URL |
 
-INTERESTING (unusual patterns, debug flags, cloud configs):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 157  │  Private key placeholder in test fixture — near real auth logic
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 103  │  kubeconfig_path/config_context params — GKE auth surface
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 104  │  kubeconfig_context param
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 115  │  kubeconfig_path param in executor
-│ google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go      │ 40   │  MySQL config editor documentation reference
-│ google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go │ 32   │  "Veles Secret" reference for MySQL credentials
-└────────────────────────────────────────────────────────────────────────────────────┘
+INTERESTING:
+| File | Line | Finding | Note |
+|------|------|---------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context params | Config options, not secrets |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata refs | Standard cloud metadata IP (well-known) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 in Chrome | Standard cloud metadata IP |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 refusal | Explicit metadata endpoint blocking |
 
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (no new REAL_SECRET in this scan delta)
-  - All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (documentation/warnings), or INTERESTING
-  - Prior ACCEPTED earthengine-api client_secret (sha256 3f3f8d6f…d271) remains live per KB
-  - No new hardcoded credentials with signs of life discovered in this 29,854-file scan
+=== VERDICT ===
+REPORT_CANDIDATE: no
+- No REAL_SECRET findings in this delta
+- All ENDPOINT_LEAKs are well-known internal/staging endpoints or metadata services
+- All TEST_OR_EXAMPLE are fixtures, placeholders, or secret references
+- The earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...d271) was from PRIOR scans, not this delta
 EOF
 === CLASSIFICATION TABLES ===
 
-REAL_SECRET (hardcoded credential with signs of life):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ NONE in this scan delta.                                                            │
-│ (Prior ACCEPTED: google/earthengine-api/python/ee/oauth.py:45 client_secret        │
-│  sha256=3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 —        │
-│  confirmed live in KB, not in this scan's new hits)                                │
-└────────────────────────────────────────────────────────────────────────────────────┘
+REAL_SECRET:
+(none in this delta scan)
 
-TEST_OR_EXAMPLE (sample/test/fixture/placeholder data):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 157  │  private_key="-----BEGIN PRIVATE KEY-----..." (placeholder)
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 269  │  username="user", password="password" (test fixture)
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 278  │  token="eyAkaknabna...." (placeholder JWT)
-│ google/adk-python/src/google/adk/auth/auth_schemes.py                        │ 68   │  PASSWORD = "password" (constant default)
-│ google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py     │ 62   │  client_secret="your_client_secret" (placeholder)
-│ google/capsem/config/gate.toml                                               │ 480  │  password = "password.txt" (file reference, not secret)
-│ google/capsem/scripts/preflight.sh                                           │ 39   │  password="$(tr -d '\n' < "$pass_file")" (reads from file)
-│ google/capsem/scripts/fix_p12_legacy.sh                                      │ 15   │  PASSWORD="$(tr -d '\n' < "$PASS_FILE")" (reads from file)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 168  │  GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" (GH Actions ref)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 169  │  LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" (GH Actions ref)
-│ google/langextract/.github/workflows/ci.yaml                                 │ 170  │  OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 247  │  google-client-secret="${GOOGLE_CLIENT_SECRET}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 249  │  github-client-secret="${GITHUB_CLIENT_SECRET}" (GH Actions ref)
-│ google/sam/.github/workflows/deploy.yaml                                     │ 250  │  cli-oauth-secret="${CLI_OAUTH_SECRET}" (GH Actions ref)
-│ google/sam/development/kind/run.sh                                           │ 139  │  OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" (shell var ref)
-│ google/tunix/tunix/cli/base_agentic_config.yaml                              │ 63   │  # hf_access_token: "your_token" (commented placeholder)
-│ google/adk-python/src/google/adk/cli/browser/*.js (6 files)                  │ 3/9  │  Parser error messages (generated/compiled code)
-│ google/sam/**/templates/*.yaml, **/k8s/*.yaml                                 │ -    │  ConfigMap kind declarations (templates)
-│ google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go     │ 56   │  vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT" (constant ref)
-│ google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py      │ 47   │  _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (const key name)
-│ google/adk-python/src/google/adk/cli/cli_create.py                           │ 131  │  GOOGLE_API_KEY={google_api_key} (variable interpolation)
-└────────────────────────────────────────────────────────────────────────────────────┘
+TEST_OR_EXAMPLE:
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant string literal |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | K8s ConfigMap definition |
+| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell param expansion (empty default) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | --from-literal=...="${SECRET}" | GitHub Actions secret refs |
+| google/sam/.github/k8s/*.yaml | 2,14 | kind: ConfigMap | K8s ConfigMap definitions |
+| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT" | Constant reference string |
+| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go | 32,40 | MySQL docs/comments | Documentation references |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Truncated test fixture (... suffix) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Truncated test JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Constant string literal |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder text |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Constant key name |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation (CLI tool) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Parse error messages | Minified JS source chunks |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | hf_access_token: "your_token" | Commented placeholder |
 
-ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/capsem/.github/workflows/release-channel-staging.yaml                   │ 17   │  default: https://staging.release-eq7.pages.dev (public staging)
-│ google/adk-python/src/google/adk/code_executors/container_code_executor.py     │ 114  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/code_executors/container_code_executor.py     │ 154  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/tools/load_web_page.py                        │ 171  │  Documents 169.254.169.254 metadata endpoint (warning)
-│ google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py    │ 146  │  Refuses to check 169.254.169.254 (defensive)
-└────────────────────────────────────────────────────────────────────────────────────┘
+ENDPOINT_LEAK:
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | metadata.google.internal/computeMetadata/v1/... | GCP instance metadata (well-known) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | autopush-confidentialcomputing.sandbox.googleapis.com | Sandbox autopush endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | staging-confidentialcomputing.sandbox.googleapis.com | Sandbox staging endpoint |
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | pantheon.corp.google.com (comment) | Internal Google console URL |
 
-INTERESTING (unusual patterns, debug flags, cloud configs):
-┌────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                         │ Line │
-├────────────────────────────────────────────────────────────────────────────────────┤
-│ google/adk-python/src/google/adk/auth/auth_credential.py                     │ 157  │  Private key placeholder in test fixture — near real auth logic
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 103  │  kubeconfig_path/config_context params — GKE auth surface
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 104  │  kubeconfig_context param
-│ google/adk-python/src/google/adk/code_executors/gke_code_executor.py         │ 115  │  kubeconfig_path param in executor
-│ google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go      │ 40   │  MySQL config editor documentation reference
-│ google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go │ 32   │  "Veles Secret" reference for MySQL credentials
-└────────────────────────────────────────────────────────────────────────────────────┘
+INTERESTING:
+| File | Line | Finding | Note |
+|------|------|---------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context params | Config options, not secrets |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata refs | Standard cloud metadata IP (well-known) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 in Chrome | Standard cloud metadata IP |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 refusal | Explicit metadata endpoint blocking |
 
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (no new REAL_SECRET in this scan delta)
-  - All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (documentation/warnings), or INTERESTING
-  - Prior ACCEPTED earthengine-api client_secret (sha256 3f3f8d6f…d271) remains live per KB
-  - No new hardcoded credentials with signs of life discovered in this 29,854-file scan
+=== VERDICT ===
+REPORT_CANDIDATE: no
+- No REAL_SECRET findings in this delta
+- All ENDPOINT_LEAKs are well-known internal/staging endpoints or metadata services
+- All TEST_OR_EXAMPLE are fixtures, placeholders, or secret references
+- The earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...d271) was from PRIOR scans, not this delta
 [0m
-**Summary:** No new `REAL_SECRET` findings in this scan delta (29,854 files, 696 hits). All new hits classify as `TEST_OR_EXAMPLE` (placeholders, GH Actions secret refs, test fixtures, generated parser code), `ENDPOINT_LEAK` (documentation/warnings about metadata endpoint 169.254.169.254, public staging URL), or `INTERESTING` (GKE kubeconfig params, MySQL secret extractor refs).
+**Classification complete. No new REAL_SECRET findings in this delta.**
 
-The previously `ACCEPTED` hardcoded Earth Engine OAuth `client_secret` at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) remains live per KB — confirmed by A/B token-endpoint test (`invalid_grant` vs `invalid_client` per RFC 6749 §5.2) — but it is **not** a new hit in this scan.
+**Summary:**
+- **REAL_SECRET**: 0 (the earthengine-api `oauth.py:45` secret with sha256 `3f3f8d6f…d271` is from prior scans, already tracked in KB as ACCEPTED)
+- **TEST_OR_EXAMPLE**: 18 entries (fixtures, placeholders, `${{secrets.*}}` refs, truncated test data)
+- **ENDPOINT_LEAK**: 4 entries (GCP metadata endpoint, sandbox autopush/staging URLs, internal console URL in comment) — all well-known/low-risk
+- **INTERESTING**: 4 entries (standard 169.254.169.254 metadata IP references, kubeconfig params)
+
+**REPORT_CANDIDATE: no** — nothing new to report from this scan cycle.
