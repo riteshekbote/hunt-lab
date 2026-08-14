@@ -898,3 +898,5 @@
 - CHANGED Earth Engine secret A/B proof refined — leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret→401 `invalid_client "The provided client secret is invalid."` — conclusive d
 
 ## 2026-08-14 20:08:57 UTC
+
+## 2026-08-14 20:45:38 UTC
