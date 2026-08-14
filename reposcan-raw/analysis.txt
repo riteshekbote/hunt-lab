@@ -1,74 +1,111 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat > /tmp/classification.md << 'EOF'
-# Classification Results
+[0m$ [0mcat << 'EOF'
+# TRIAGE RESULTS — google/ + microsoft/ static scan (2026-08-14)
 
 ## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this delta)* | | | |
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| (none found in this delta) | | | | |
 
 ## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Placeholder in JSDoc example |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder in JSDoc example |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Auth scheme constant for testing |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test fixture credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Truncated placeholder token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant for testing |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name placeholder |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions template variable |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions template variable |
-| google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Template var (Algolia search-only, public by design) |
-| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Template var (Algolia search-only, public by design) |
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | Example password literal `"password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | Placeholder token `"your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `HttpCredentials(username="user", password="password")` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Truncated placeholder token `"eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template `GOOGLE_API_KEY={google_api_key}` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | GitHub Actions `${{ steps.fetch-token.outputs.* }}` refs |
+| google/capsem/config/gate.toml | 480 | Password file reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file `$(tr -d '\n' < "$pass_file")` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `$(tr -d '\n' < "$PASS_FILE")` |
+| google/ax/manifests/install-ax.sh | 239,241,286 | Variable refs + `openssl rand -hex 16` generation |
+| google/pebble/devsite/source/assets/js/404.js | 24 | Template `{{ site.algolia_api_key }}` |
+| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | Template `{{ site.algolia_api_key }}` |
+| google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | Spec URL comment |
+| google/closure-compiler/externs/*.js | multiple | W3C spec URLs (`dev.w3.org`) — 4 new in this delta |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parse-error chunks (noise) |
 
 ## ENDPOINT_LEAK
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | CIDR block including GCP metadata IP |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` | Comment: 302 to metadata service |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | `169.254.169.254` | Comment: SSRF via metadata endpoint |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | `169.254.169.254 / fd00:ec2::254` | Comment: DNS-based SSRF noted out of scope |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Comment: cloud metadata endpoints |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | `169.254.169.254` | Docstring: metadata endpoint SSRF risk |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | `169.254.169.254` | Comment: metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Comment: internal metadata endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Comment: Chrome blocks metadata endpoint |
+| File | Line | Endpoint / Reference |
+|------|------|---------------------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (link-local, includes 169.254.169.254) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint |
 
 ## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/capsem/config/gate.toml | 480 | `password = "password.txt"` | Reads password from file (not hardcoded) |
-| google/capsem/scripts/preflight.sh | 39 | `password=$(tr -d '\n' < "$pass_file")` | Reads password from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD=$(tr -d '\n' < "$PASS_FILE")` | Reads password from file |
-| google/ax/manifests/install-ax.sh | 239-241 | `pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"` | Env var with secure random fallback |
-| google/ax/manifests/install-ax.sh | 286 | `secret_args+=(--from-literal=password="${pg_password}")` | K8s secret from generated password |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation (not hardcoded) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` | Config options for GKE auth |
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key naming pattern |
 
----
-
-## VERDICT LIST
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| (none) | REAL_SECRET | no |
-
-**Summary**: This delta contains **no reportable secrets**. All hits are either:
-- Test fixtures / placeholder values (TEST_OR_EXAMPLE)
-- Documentation/comments referencing GCP metadata endpoint 169.254.169.254 (ENDPOINT_LEAK - known SSRF surface, documented in code as warning)
-- Configuration patterns reading secrets from files/env (INTERESTING - secure patterns)
-- Algolia search-only API keys in templates (public by design, previously REJECTED per KB)
-
-The previously confirmed live finding (Earth Engine OAuth client_secret in `google/earthengine-api/python/ee/oauth.py:45`) is **not in this delta** — it was confirmed in prior cycles and remains live per KB.
+## VERDICT
+- **REPORT_CANDIDATE: no** for all findings in this delta
+- No REAL_SECRET found in the 4 new hits (all W3C spec URLs in closure-compiler externs) or the full grep set
+- The previously ACCEPTED earthengine-api OAuth client_secret (`oauth.py:45`, sha256 `3f3f8d6f...d271`) is **not in this scan scope** (different repo)
+- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal metadata/kubeconfig refs), or INTERESTING — none are actionable secrets
 EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+# TRIAGE RESULTS — google/ + microsoft/ static scan (2026-08-14)
+
+## REAL_SECRET
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| (none found in this delta) | | | | |
+
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | Example password literal `"password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | Placeholder token `"your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `HttpCredentials(username="user", password="password")` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Truncated placeholder token `"eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template `GOOGLE_API_KEY={google_api_key}` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | GitHub Actions `${{ steps.fetch-token.outputs.* }}` refs |
+| google/capsem/config/gate.toml | 480 | Password file reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file `$(tr -d '\n' < "$pass_file")` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `$(tr -d '\n' < "$PASS_FILE")` |
+| google/ax/manifests/install-ax.sh | 239,241,286 | Variable refs + `openssl rand -hex 16` generation |
+| google/pebble/devsite/source/assets/js/404.js | 24 | Template `{{ site.algolia_api_key }}` |
+| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | Template `{{ site.algolia_api_key }}` |
+| google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | Spec URL comment |
+| google/closure-compiler/externs/*.js | multiple | W3C spec URLs (`dev.w3.org`) — 4 new in this delta |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parse-error chunks (noise) |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint / Reference |
+|------|------|---------------------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (link-local, includes 169.254.169.254) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint |
+
+## INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key naming pattern |
+
+## VERDICT
+- **REPORT_CANDIDATE: no** for all findings in this delta
+- No REAL_SECRET found in the 4 new hits (all W3C spec URLs in closure-compiler externs) or the full grep set
+- The previously ACCEPTED earthengine-api OAuth client_secret (`oauth.py:45`, sha256 `3f3f8d6f...d271`) is **not in this scan scope** (different repo)
+- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal metadata/kubeconfig refs), or INTERESTING — none are actionable secrets
+[0m
+**Summary:** No reportable secrets in this scan delta. The 4 new hits are W3C spec URL comments in closure-compiler externs. All other hits are test fixtures, placeholder values, internal endpoint references (metadata/kubeconfig), or minified JS noise. The known-live earthengine-api client_secret is in a different repo not covered by this scan.
