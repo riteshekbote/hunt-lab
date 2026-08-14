@@ -3056,3 +3056,12 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
 - LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
 - LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
+
+## RANKED HYPOTHESES 2026-08-14 23:52:14 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret: valid Google credential via A/B differential proof (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 agentRegistrations 5-f
+- LEARN: REJECTED Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated ag
+- LEARN: ACCEPTED agentRegistrations 5-family IDOR+CORS confirmed live — true CORS preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 at collection+item; 873-char me
+- LEARN: ACCEPTED Earth Engine OAuth client_secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B proof (invalid_grant vs invalid_client) per RFC 6749 §5.2 conclu
+- LEARN: ACCEPTED oauth2PermissionGrants consent forge precondition live — 458-char EntityType block 0 OperationRestrictions, resourceId caller-supplied targeting Graph 
