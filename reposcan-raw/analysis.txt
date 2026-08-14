@@ -1,3 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "storage_driver_password" | cut -d' ' -f1
+398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password.txt" | cut -d' ' -f1
+62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c
+[0m
+**REAL_SECRET** — none found. All "secret-like" hits are placeholders, test fixtures, or env-var references.
+
+**TEST_OR_EXAMPLE**
+
+| File | Line | Pattern | SHA256 (value) |
+|------|------|---------|----------------|
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | `398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287` |
+| google/capsem/config/gate.toml | 480 | `password = "password.txt"` | `62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c` |
+| google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` | `a1b2c3d4e5f6...` (placeholder) |
+| google/langfun/langfun/core/ems/openai.py | 47 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/anthropic.py | 938 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/azure_openai.py | 52 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/deepseek.py | 118 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/google_genai.py | 49 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/groq.py | 284 | `api_key='MY_API_KEY'` | placeholder |
+| google/langfun/langfun/core/llms/openai.py | 1077 | `api_key='MY_API_KEY'` | placeholder |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | constant key name |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | placeholder |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string from Azure AD>"` | placeholder |
+| microsoft/TypeAgent/ts/tools/scripts/code/lintReport.ts | 976 | `LINT_ALLOW_TOKEN = "code-lint-allow"` | constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/debtMarkersReport.ts | 664 | `DEBT_ALLOW_TOKEN = "code-debt-allow"` | constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/complexityReport.ts | 374 | `COMPLEXITY_ALLOW_TOKEN = "code-complexity-allow"` | constant |
+| microsoft/TypeAgent/ts/packages/agentServer/server/src/speechToken.ts | 28 | `IdentityApiKey = "identity"` | constant |
+
+**ENDPOINT_LEAK**
+
+| File | Line | Leak |
+|------|------|------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (staging URL) |
+| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `developers.devsite.corp.google.com` (internal corp docs) |
+| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27,166,205 | `dev.office.com` (public MS docs) |
+| google/closure-compiler/externs/browser/*.js | various | `dev.w3.org`, `http://dev.w3.org` (public W3C specs) |
+| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com/piper///depot/google3/...` (internal source link) |
+| microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `https://dev.azure.com/msctoproj` (Azure DevOps org) |
+
+**INTERESTING**
+
+| File | Line | Note |
+|------|------|------|
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| google/capsem/scripts/preflight.sh | 39 | Same pattern: `password="$(tr -d '\n' < "$pass_file")"` |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret refs: `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET` |
+| google/sam/.github/k8s/*.yaml | various | K8s ConfigMap templates (dex, node templates) |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs: `GEMINI_API_KEY`, `OPENAI_API_KEY` |
+
+---
+
+**VERDICT**
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (none — no REAL_SECRET found) | — |
+
+**Summary**: 182 hits scanned across google/ and microsoft/ repos. Zero hardcoded live credentials. All secret-like patterns are placeholders (`MY_API_KEY`, `your app's client secret`, `<...>`), test constants, file-read patterns, or GitHub Actions `${{ secrets.* }}` references. No reportable findings.
