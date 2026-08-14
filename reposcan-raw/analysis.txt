@@ -1,123 +1,34 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLE
+### REAL_SECRET
+| File | Line | Secret SHA256 (trunc) | Verdict |
+|------|------|----------------------|---------|
+| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06... | REPORT_CANDIDATE: yes |
 
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none in this delta) |  |  |  |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Fake GH PAT placeholder `ghp_ABCDEFGHIJKLMNOP` |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19 | Test OCR string with fake GH token |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 20 | Assertion with same fake GH token |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | Assertion with fake AWS key `AKIA5SXYO7WZ3PLMN8RTV` |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test word list with fake GH token |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Evaluation fixture with fake GH token |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Evaluation fixture with fake GH token |
 
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (correct pattern) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test fixture |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder default |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GH Actions expression |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example/placeholder in test code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not secret |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
-| google/gopacket/layers/radiotap.go | 552-556 | `token = "80(20LL)"` etc | Protocol constants |
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| (none in delta) | — | — |
 
-## ENDPOINT_LEAK
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` | Internal corp Google URL in comment |
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| (none in delta) | — | — |
 
-## INTERESTING
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 to 169.254.169.254 metadata service | SSRF discussion in code comments |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF risk | SSRF discussion |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: DNS-based SSRF out of scope | SSRF scope discussion |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 | SSRF discussion |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comment: 169.254.169.254 metadata endpoint | SSRF risk documented |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: routes to 169.254.169.254 metadata | SSRF risk documented |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: refuses 169.254.169.254 in Chrome | SSRF mitigation noted |
-| google/capsem/config/gate.toml | 478 | `password = "password.txt"` | Config references password file |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file | Operational script |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | Operational script |
+---
 
-# SHORT VERDICT LIST
-
-| Candidate | File | Category | REPORT_CANDIDATE |
-|-----------|------|----------|------------------|
-| Internal corp URL in comment | google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml:23 | ENDPOINT_LEAK | no (info only, no credential) |
-| SSRF metadata endpoint discussions | go-containerregistry + adk-python (multiple files) | INTERESTING | no (documented risk, not exploitable finding) |
-| capsem password file refs | google/capsem/config/gate.toml:478 + scripts | INTERESTING | no (operational config, no hardcoded secret) |
-
-# SUMMARY
-- 0 REAL_SECRET in this delta (earthengine-api oauth.py:45 already tracked in KB as live)
-- 19 TEST_OR_EXAMPLE (proper secret refs, test fixtures, placeholders)
-- 1 ENDPOINT_LEAK (internal URL in comment, no credential)
-- 11 INTERESTING (SSRF discussions in comments, operational config patterns)
-- NO new reportable findings in this scan delta
-EOF
-# CLASSIFICATION TABLE
-
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none in this delta) |  |  |  |
-
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (correct pattern) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test fixture |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder default |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GH Actions expression |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GH Actions secret ref |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example/placeholder in test code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not secret |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
-| google/gopacket/layers/radiotap.go | 552-556 | `token = "80(20LL)"` etc | Protocol constants |
-
-## ENDPOINT_LEAK
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` | Internal corp Google URL in comment |
-
-## INTERESTING
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 to 169.254.169.254 metadata service | SSRF discussion in code comments |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF risk | SSRF discussion |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: DNS-based SSRF out of scope | SSRF scope discussion |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 | SSRF discussion |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comment: 169.254.169.254 metadata endpoint | SSRF risk documented |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: routes to 169.254.169.254 metadata | SSRF risk documented |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: refuses 169.254.169.254 in Chrome | SSRF mitigation noted |
-| google/capsem/config/gate.toml | 478 | `password = "password.txt"` | Config references password file |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file | Operational script |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | Operational script |
-
-# SHORT VERDICT LIST
-
-| Candidate | File | Category | REPORT_CANDIDATE |
-|-----------|------|----------|------------------|
-| Internal corp URL in comment | google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml:23 | ENDPOINT_LEAK | no (info only, no credential) |
-| SSRF metadata endpoint discussions | go-containerregistry + adk-python (multiple files) | INTERESTING | no (documented risk, not exploitable finding) |
-| capsem password file refs | google/capsem/config/gate.toml:478 + scripts | INTERESTING | no (operational config, no hardcoded secret) |
-
-# SUMMARY
-- 0 REAL_SECRET in this delta (earthengine-api oauth.py:45 already tracked in KB as live)
-- 19 TEST_OR_EXAMPLE (proper secret refs, test fixtures, placeholders)
-- 1 ENDPOINT_LEAK (internal URL in comment, no credential)
-- 11 INTERESTING (SSRF discussions in comments, operational config patterns)
-- NO new reportable findings in this scan delta
-[0m
-**Triage complete.** No new `REAL_SECRET` findings in this delta — the only live hardcoded secret (earthengine-api `oauth.py:45` client_secret) is already tracked in KB as confirmed live. All 277 hits classify as `TEST_OR_EXAMPLE` (19), `ENDPOINT_LEAK` (1, internal URL in comment only), or `INTERESTING` (11, SSRF discussions in comments + operational config patterns). Zero `REPORT_CANDIDATE: yes`.
+**Verdict:**
+- `google/earthengine-api/python/ee/oauth.py:45` — **REPORT_CANDIDATE: yes** (hardcoded OAuth client_secret, live on master, valid credential per RFC 6749 §5.2 A/B test: `invalid_grant` vs `invalid_client`; native-app OOB by-design pattern caps VRP-worthiness but credential is valid)
+- All 7 microsoft/skill-recorder hits — **REPORT_CANDIDATE: no** (test/fixture data in `.test.ts` and `evals/` paths, clearly fake placeholder values)
