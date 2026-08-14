@@ -1,56 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+# Triage Results — google/ & microsoft/ reposcan delta
 
 ## REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | REPORT_CANDIDATE: yes (already ACCEPTED in KB, live on master) |
+*None found in this delta.*
 
 ## TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Homepage URL, not secret |
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Test server URL |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Explicit "fuzz test key" |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test shutdown password |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB password reference |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder "gemini_api_key" |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions template `{{% raw %}${{...}}` |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions template `{{% raw %}${{...}}` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test HttpCredentials username="user", password="password" |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Placeholder token "eyAkaknabna...." |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant PASSWORD = "password" |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder "your_client_secret" |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
-| reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
-| reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified source map content |
+| File | Line | Context |
+|------|------|---------|
+| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `#   hf_access_token: "your_token"` (commented placeholder) |
+| `google/tunix/tunix/cli/base_config.yaml` | 63 | `#   hf_access_token: "your_token"` (commented placeholder) |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, not a key) |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` expressions |
+| `google/adk-python/.../auth_credential.py` | 157, 269, 278 | Placeholder private_key, HttpCredentials(username="user", password="password"), token="eyAkaknabna...." |
+| `google/adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` (obvious placeholder) |
+| `google/adk-python/.../auth_helpers.py` | 62 | `client_secret="your_client_secret"` (placeholder) |
+| `google/adk-python/.../cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` (template variable) |
+| `google/adk-python/.../browser/chunk-*.js` | multiple | Minified/build artifact JS (parse error messages) |
 
 ## ENDPOINT_LEAK
-| File | Line | Detail |
-|------|------|--------|
-| reposcan-raw/google/llvm-propeller/propeller/binary_content.h | 80 | Internal Google source URL `source.corp.google.com/h/prodkernel/kernel/release/11xx/...` |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path references (config, not secret) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` reference |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Cloud metadata endpoint `169.254.169.254` reference |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Cloud metadata endpoint `169.254.169.254` reference |
+| File | Line | Context |
+|------|------|---------|
+| `google/closure-compiler/.../google_maps_api_v3.js` | 4638 | `developers.devsite.corp.google.com` (internal Google docs) |
+| `google/closure-compiler/.../ms-office-1.3.js` | 27, 166, 205 | `dev.office.com` (Microsoft dev portal references) |
+| `google/closure-compiler/.../html5.js` | 22, 1703, 1764 | `dev.w3.org` (W3C spec references) |
+| `google/closure-compiler/.../w3c_css.js` | 3994, 4830, 4835 | `dev.w3.org` (W3C CSS spec references) |
+| `google/closure-compiler/.../w3c_device_sensor_event.js` | 22 | `dev.w3.org` (W3C geo API spec) |
+| `google/closure-compiler/.../w3c_fileapi.js` | 34 | `dev.w3.org` (W3C FileAPI spec) |
+| `google/closure-compiler/.../w3c_rtc.js` | 1597, 3333 | `dev.w3.org` (W3C WebRTC spec) |
+| `google/closure-compiler/.../webkit_notifications.js` | 202 | `dev.w3.org` (W3C Web Notifications spec) |
+| `google/closure-compiler/.../es6.js` | 392 | `dev.w3.org` (W3C postMessage spec) |
+| `google/closure-compiler/.../ErrorManager.java` | 95 | `source.corp.google.com` (internal Google Piper source link) |
+| `google/llvm-propeller/.../binary_content.h` | 80 | `source.corp.google.com` (internal Google kernel source link) |
 
 ## INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key `_vmaas_access_token` naming |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY=` to file (code that generates config) |
-| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (template, not secret) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js | 9 | Minified parser error (build artifact) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js | 3 | Minified parser error (build artifact) |
+| File | Line | Context |
+|------|------|---------|
+| `google/tunix/tunix/cli/base_rl_pipeline.py` | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` |
+| `google/tunix/.../chat_template_parser/parser.py` | 193–195 | Token constants: `eot_token="<|im_end|>"`, `system_token="<|system|>\n"`, `user_token="<|user|>\n"` |
+| `google/adk-python/.../gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` parameters for GKE |
+| `google/adk-python/.../container_code_executor.py` | 114, 154 | Comments referencing `169.254.169.254` cloud metadata endpoint |
+| `google/adk-python/.../load_web_page.py` | 171 | Comment about `169.254.169.254` metadata endpoint with NAT64 |
+| `google/adk-python/.../computer_use_toolset.py` | 146 | Explicit refusal to check `169.254.169.254` in Chrome |
+| `google/adk-python/.../vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal token key name) |
 
-## SUMMARY VERDICT
-- **REPORT_CANDIDATE: yes** — `google/earthengine-api/python/ee/oauth.py:45` (hardcoded OAuth client_secret, already ACCEPTED in KB, confirmed live, valid credential per RFC 6749 §5.2 A/B proof)
-- **REPORT_CANDIDATE: no** — All other hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URL reference), or INTERESTING (config patterns, build artifacts)
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+---
+
+## VERDICT
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| *(no REAL_SECRET candidates in this delta)* | — |
+
+**Summary:** This delta contains only documentation URL references (ENDPOINT_LEAK), test/fixture placeholders (TEST_OR_EXAMPLE), and cloud-config-related code patterns (INTERESTING). No live credentials, API keys, or tokens were detected. The previously ACCEPTED hardcoded Earth Engine OAuth client_secret (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not present in this scan's file set** — it remains a live finding per KB but outside this reposcan scope.
