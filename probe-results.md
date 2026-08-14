@@ -656,3 +656,10 @@ https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
 ## 2026-08-14 15:49:36 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
 https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-14 16:38:31 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
+https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id= -> 200 len=23890 type=text/html; charset=utf-8
+https://graph.microsoft.com/v1.0/me -> HTTP 401
+https://oauth2.googleapis.com/tokeninfo?access_token=invalid -> HTTP 400

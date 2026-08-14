@@ -2852,3 +2852,20 @@
 - LEARN: ACCEPTED: earthengine oauth.py source unchanged this probe — whole-file sha `f4f93c76…b73040` verbatim, bare-secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fa
 - LEARN: ACCEPTED: JWKS v2=7 kids, all 4 v1 kids present (0 v1-exclusive) this probe — steady-state subset invariant holds despite rotation churn; dual-JWKS rotation des
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+
+## RANKED HYPOTHESES 2026-08-14 16:38:30 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking Microsoft hypotheses #1 (5-family IDOR+CORS) and #5 
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — HTTP 200 `ACAO:*` + `All
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions confirmed @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions/
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret A/B proof re-confirmed @ oauth2.googleapis.com/token — leaked secret→400 invalid_grant (valid credential per RFC 6749
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4 kids: AahUf1bC, fEtqrhKT, sa3RgZQ_, 6hXLaIYN) ⊂ v2(6 kids: same 4 + rRk1d-57B, NqEBZVuOp)
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize — response_type=token → HTTP 200/23886 (RFC 6749 §3 v
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com — HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) confirmed extends to /beta/copilot/agentR
+- LEARN: ACCEPTED agentRegistrations true CORS preflight with PATCH confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: HTTP 200 `Access-Control-A
+- LEARN: ACCEPTED oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-su
+- LEARN: ACCEPTED Earth Engine OAuth client_secret A/B proof @ oauth2.googleapis.com/token: leaked secret (sha256 `3f3f8d6f…d271`) → 400 `invalid_grant`; fake secret → 4
+- LEARN: ACCEPTED Graph API 405 anomaly extends to graph.microsoft.com/beta/copilot/agentRegistrations and /v1.0/oauth2PermissionGrants: HEAD→405/0 no WWW-Authenticate B
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4-5 kids)⊂v2(7-11 kids) steady-state subset invariant holds, 0 persistent v1-exclusive; v1 ki
