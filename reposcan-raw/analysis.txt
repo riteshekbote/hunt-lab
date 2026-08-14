@@ -1,138 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+## Classification Tables
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in this delta scan) | | | | |
+### REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | DB_PASSWORD = "domain-registry" | nonprod test fixture |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | DB_PASSWORD = "domain-registry" | nonprod test fixture |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | DB_PASSWORD = "password" | nonprod test fixture |
-| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | password = "abcde12345" | load-testing test credential |
-| google/langextract/.github/workflows/ci.yaml | 168 | ${{ secrets.GEMINI_API_KEY }} | GitHub Actions secret reference |
-| google/langextract/.github/workflows/ci.yaml | 169 | ${{ secrets.GEMINI_API_KEY }} | GitHub Actions secret reference |
-| google/langextract/.github/workflows/ci.yaml | 170 | ${{ secrets.OPENAI_API_KEY }} | GitHub Actions secret reference |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | test server fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + getDatabasePassword()) | test code |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18 | 169.254.169.254/32 | mock metadata IP for testing |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 20 | metadata.google.internal | test mock /etc/hosts entry |
-| google/heir/scripts/author_stats.py | 16 | TOKEN = "your_github_token_here" | placeholder comment |
+### TEST_OR_EXAMPLE
+| File | Line | Context | REPORT_CANDIDATE |
+|------|------|---------|------------------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | no |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | no |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` (commented) | no |
+| microsoft/agent-governance-toolkit/.../red_team_dataset.py | 306 | Red-team benchmark payload with `newpass123` | no |
+| microsoft/agent-governance-toolkit/.../build_and_publish.sh | 105 | `test.pypi.org` install URL | no |
+| microsoft/agent-governance-toolkit/.../adapter.py | 17 | `OpenAI(api_key="your-key")` placeholder | no |
+| microsoft/agent-governance-toolkit/.../alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented) | no |
+| microsoft/agent-governance-toolkit/.../extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` placeholder | no |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint/URL | Type |
-|------|------|--------------|------|
-| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | https://staging-www.sandbox.googleapis.com | staging API endpoint |
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | GCE metadata endpoint |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | 169.254.169.254/latest/meta-data/iam/ | AWS IMDS endpoint |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | https://source.corp.google.com/... | internal corp source URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | 4638 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js | 4639 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js | 4639 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js | 4638 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | http://metadata.google.internal/computeMetadata/v1/ | GCE metadata endpoint |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459 | https://source.corp.google.com/file:google3// | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 460 | https://source.corp.google.com/file:google3/ | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | https://buganizer.corp.google.com/issues/334956516 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | metadata.google.internal | GCE metadata server constant |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | https://cs.corp.google.com/... | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 126 | https://cs.corp.google.com/... | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 131 | https://source.corp.google.com/h/googleplex-android/ | internal corp source URL |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20 | http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket | GCE metadata endpoint |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 24 | http://metadata.google.internal/computeMetadata/v1/instance/attributes/host-job-selection | GCE metadata endpoint |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | http://metadata.google.internal/computeMetadata/v1/instance/hostname | GCE metadata endpoint |
+### ENDPOINT_LEAK
+| File | Line | Endpoint / Detail | REPORT_CANDIDATE |
+|------|------|-------------------|------------------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | no (staging URL) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` metadata endpoint (comment) | no (well-known) |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` metadata endpoint (comment) | no (well-known) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` / `fd00:ec2::254` (comments) | no (well-known) |
+| google/closure-compiler/src/.../ErrorManager.java | 95 | `source.corp.google.com` internal URL (comment) | no (internal ref) |
+| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638+ | `developers.devsite.corp.google.com` (externs) | no (type defs) |
+| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563,566,568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | no (IMDS constants) |
+| microsoft/agent-governance-toolkit/.../http_client.py | 102,103 | `169.254.169.254`, `metadata.google.internal` | no (IMDS constants) |
+| microsoft/agent-governance-toolkit/.../cedar.ts | 8,11,13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | no (IMDS constants) |
+| microsoft/agent-governance-toolkit/.../opa.ts | 13,14 | `169.254.169.254`, `metadata.google.internal` | no (IMDS constants) |
 
-## INTERESTING
-| File | Line | Finding | Note |
-|------|------|---------|------|
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | X_CSRF_TOKEN = "X-CSRF-Token" | CSRF header name constant |
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | P_CSRF_TOKEN = "xsrfToken" | CSRF parameter name constant |
-| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | ID_TOKEN = "id_token" | OAuth token type constant |
+### INTERESTING
+| File | Line | Detail | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| google/capsem/config/gate.toml | 480 | `password = "password.txt"` (file reference) | no |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` | no |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` | no |
+| google/crosvm/infra/.../codecov_wrapper.sh | 11 | Fetches `CODECOV_TOKEN` from Secret Manager | no (proper pattern) |
+| google/crosvm/infra/.../push_to_github.sh | 10 | Fetches GitHub token from Secret Manager | no (proper pattern) |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `secret_key` variable to output (codegen) | no (variable, not literal) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Uses `${{ secrets.GEMINI_API_KEY }}` properly | no (correct pattern) |
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
-- No REAL_SECRET findings in this delta scan
-- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal/staging URLs), or INTERESTING (constants)
-- The earthengine-api oauth.py hardcoded secret (tracked in KB as ACCEPTED) was NOT in this scan's delta — it remains a live finding from prior cycles but no new secrets detected here
-EOF
-=== CLASSIFICATION TABLES ===
+---
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
-|------|------|----------------|---------|------------------|
-| (none found in this delta scan) | | | | |
+## SHORT VERDICT
 
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | DB_PASSWORD = "domain-registry" | nonprod test fixture |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | DB_PASSWORD = "domain-registry" | nonprod test fixture |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | DB_PASSWORD = "password" | nonprod test fixture |
-| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | password = "abcde12345" | load-testing test credential |
-| google/langextract/.github/workflows/ci.yaml | 168 | ${{ secrets.GEMINI_API_KEY }} | GitHub Actions secret reference |
-| google/langextract/.github/workflows/ci.yaml | 169 | ${{ secrets.GEMINI_API_KEY }} | GitHub Actions secret reference |
-| google/langextract/.github/workflows/ci.yaml | 170 | ${{ secrets.OPENAI_API_KEY }} | GitHub Actions secret reference |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | test server fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD=" + getDatabasePassword()) | test code |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18 | 169.254.169.254/32 | mock metadata IP for testing |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 20 | metadata.google.internal | test mock /etc/hosts entry |
-| google/heir/scripts/author_stats.py | 16 | TOKEN = "your_github_token_here" | placeholder comment |
+**No REPORT_CANDIDATE: yes** — Zero hardcoded live secrets found.
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint/URL | Type |
-|------|------|--------------|------|
-| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | https://staging-www.sandbox.googleapis.com | staging API endpoint |
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | GCE metadata endpoint |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | 169.254.169.254/latest/meta-data/iam/ | AWS IMDS endpoint |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | https://source.corp.google.com/... | internal corp source URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3.js | 4638 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js | 4639 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js | 4639 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3_64.js | 4638 | https://developers.devsite.corp.google.com/... | internal corp devsite |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | http://metadata.google.internal/computeMetadata/v1/ | GCE metadata endpoint |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459 | https://source.corp.google.com/file:google3// | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 460 | https://source.corp.google.com/file:google3/ | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | https://b.corp.google.com/issues/328691756 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | https://buganizer.corp.google.com/issues/334956516 | internal bug tracker |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | metadata.google.internal | GCE metadata server constant |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | https://cs.corp.google.com/... | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 126 | https://cs.corp.google.com/... | internal corp source URL |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 131 | https://source.corp.google.com/h/googleplex-android/ | internal corp source URL |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20 | http://metadata.google.internal/computeMetadata/v1/project/attributes/deployment-bucket | GCE metadata endpoint |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 24 | http://metadata.google.internal/computeMetadata/v1/instance/attributes/host-job-selection | GCE metadata endpoint |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | http://metadata.google.internal/computeMetadata/v1/instance/hostname | GCE metadata endpoint |
-
-## INTERESTING
-| File | Line | Finding | Note |
-|------|------|---------|------|
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | X_CSRF_TOKEN = "X-CSRF-Token" | CSRF header name constant |
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | P_CSRF_TOKEN = "xsrfToken" | CSRF parameter name constant |
-| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | ID_TOKEN = "id_token" | OAuth token type constant |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-- No REAL_SECRET findings in this delta scan
-- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal/staging URLs), or INTERESTING (constants)
-- The earthengine-api oauth.py hardcoded secret (tracked in KB as ACCEPTED) was NOT in this scan's delta — it remains a live finding from prior cycles but no new secrets detected here
-[0m
-**VERDICT: REPORT_CANDIDATE: no**
-
-No new `REAL_SECRET` findings in this delta scan (0 new hits vs previous). All 197 hits classify as:
-- **TEST_OR_EXAMPLE** (13): nonprod test fixtures, load-test credentials, CI secret refs (`${{ secrets.* }}`), fuzz test keys, mock metadata setup
-- **ENDPOINT_LEAK** (23): staging.googleapis.com, GCE/AWS metadata endpoints (169.254.169.254, metadata.google.internal), internal corp URLs (source.corp.google.com, developers.devsite.corp.google.com, cs.corp.google.com, b.corp.google.com, buganizer.corp.google.com)
-- **INTERESTING** (3): CSRF header/param constants, OAuth token type constant
-
-The earthengine-api `oauth.py:45` hardcoded secret (KB: `sha256 3f3f8d6f…d271`, ACCEPTED live) was **not in this scan's delta** — it remains a live prior-cycle finding but no *new* secrets detected here.
+**Summary:**
+- All credential-like hits are **TEST_OR_EXAMPLE** (placeholders, fuzz keys, red-team fixtures) or **proper secret management** (gcloud Secret Manager access, GitHub Actions `${{ secrets.* }}`).
+- All endpoint hits are **well-known IMDS addresses** (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`) used as constants in policy/SSRF-guard code — not exploitable leaks.
+- The `google/heir` JaxiteWordEmitter emits a *variable* (`sk`) at codegen time, not a hardcoded literal.
+- The `google/capsem` password lines reference external files (`password.txt`, `$PASS_FILE`), no plaintext secrets in repo.
