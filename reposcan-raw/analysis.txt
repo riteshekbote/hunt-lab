@@ -1,65 +1,25 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [limit=30, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=20, offset=475][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=15, offset=38][0m
-Now I have full context. The RSA key is explicitly a synthetic test fixture, the "gemini_api_key" is an enum value, and the password.txt is a file reference. All hits are non-secrets.
+[0m← [0mWrite triage_report.md
+Wrote file successfully.
+[0m
+**Triage Complete — No Reportable Secrets**
 
-### Classification Tables
+| Category | Count |
+|----------|-------|
+| REAL_SECRET | 0 |
+| TEST_OR_EXAMPLE | 28 |
+| ENDPOINT_LEAK | 26 |
+| INTERESTING | 4 |
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No live credentials found in delta |
+**Verdict:** `REPORT_CANDIDATE: no` — Zero hardcoded credentials with signs of life in this delta.
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/capsem/config/gate.toml | 480 | `password = "password.txt"` — file reference, not a secret |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` env |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` env |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` (placeholder string) |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions `${{ steps.fetch-token.outputs... }}` template syntax |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified parser generator error messages ("Parse error on line...") |
-| microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | 81-84 | **Synthetic test PEM** — explicitly labeled "Synthetic, non-functional PEM... Truncated key body so it cannot accidentally be used to authenticate anywhere" |
-| microsoft/apm/scripts/github-token-helper.sh | 31,52,58 | Shell var assignments referencing `$GITHUB_TOKEN`, `$GITHUB_APM_PAT` |
-| microsoft/apm/scripts/runtime/setup-codex.sh | 95,97,99 | Token vars from env (`$GITHUB_TOKEN`, `$GITHUB_APM_PAT`, `$GH_TOKEN`) |
-| microsoft/apm/scripts/runtime/setup-copilot.sh | 103,105,107 | Copilot token vars from env |
-| microsoft/apm/scripts/test-auth-acceptance.sh | 88,166,167 | Test script env handling (commented/default expansions) |
-| microsoft/apm/scripts/test-integration.sh | 80,324 | Self-assignment `export GITHUB_TOKEN="$GITHUB_TOKEN"` |
-| microsoft/apm/src/apm_cli/commands/marketplace/__init__.py | 495 | Example Azure DevOps URL `https://dev.azure.com/org/proj/_git/repo` |
-| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | Example ADO URL in code |
-| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481,1522 | Example URLs in docstrings/comments |
-| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | Comment with example ADO URL |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 531,817,851 | Docstrings documenting ADO URL formats |
+**Key findings:**
+- All `PASSWORD = "PASSWORD"` and `api_key = "sk-REPLACE-WITH-YOUR-KEY"` / `"your-key"` / `"gemini_api_key"` are obvious placeholders
+- All `${{secrets.*}}` references are proper GitHub Actions secret usage (not leaks)
+- Cloud metadata endpoints (`169.254.169.254`, `metadata.google.internal`) are well-known public IPs by design
+- Internal corp URLs (`corp.google.com`, `corp.microsoft.com`, `dev.azure.com`) and staging endpoints (`test.pypi.org`) are not secrets
+- Internal bug tracker links (buganizer.corp.google.com) are INTERESTING but not exploitable
 
-#### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | Internal Google source link `https://cs.corp.google.com/piper///depot/google3/...` |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 711 | `"metadata.google.internal"` — GCP metadata endpoint |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 841 | `` `169.254.169.254` `` — cloud metadata IP (well-known) |
-| microsoft/apm/src/apm_cli/core/host_providers.py | 54 | `"https://dev.azure.com"` — public Azure DevOps endpoint |
-| microsoft/apm/src/apm_cli/core/auth.py | 898,904 | Azure DevOps token settings URL patterns (public service) |
-
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | Comment: "the kubeconfig content secret -- it embeds a client cert / bearer token" |
-| microsoft/apm/src/apm_cli/install/mcp/registry.py | 200 | Warning about link-local/metadata hosts (169.254.169.254) |
-| microsoft/apm/src/apm_cli/install/mcp/warnings.py | 33-34 | Hardcoded metadata IPs: AWS/Azure/GCP (169.254.169.254), Alibaba (100.100.100.200) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
-
----
-
-### Verdict List
-
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| RSA private key in workflow | microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml:81 | **no** — synthetic test fixture, explicitly documented as non-functional/truncated |
-| GEMINI_API_KEY enum | google/agents-cli/src/google/agents/cli/auth.py:43 | **no** — enum placeholder string |
-| password.txt reference | google/capsem/config/gate.toml:480 | **no** — file path reference |
-| All other hits | (various) | **no** — test fixtures, env var references, example URLs, parser generator output, or public endpoint documentation |
-
-**Summary:** No reportable secrets in this delta. The only superficially alarming hit (RSA key in workflow) is a documented synthetic test fixture. All other hits are test code, template syntax, example URLs, or metadata IP documentation.
+Full report written to `triage_report.md`.
