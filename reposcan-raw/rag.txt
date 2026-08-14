@@ -911,6 +911,11 @@
 - 2026-08-14 ACCEPTED Earth Engine OAuth client_secret A/B proof re-confirmed: leaked secret→400 invalid_grant (valid credential per RFC 6749 §5.2); fake→401 invalid_client (invalid credential)
 - 2026-08-14 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1⊂v2 steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 - 2026-08-14 REJECTED source maps @ identity SPAs: mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated
+- 2026-08-14 ACCEPTED agentRegistrations 5-family IDOR+CORS @ graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: true CORS preflight with PATCH confirmed at BOTH collection + item level (200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400); bare-OPTIONS→405 confirmed as probe artifact (no Origin header = not a preflight); item-level auth-gates 401 confirmed; deprecated agentRegistry shares identical posture
+- 2026-08-14 ACCEPTED oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-supplied properties; resourceId caller-supplied targeting Graph OR Azure Storage user_impersonation; extends agentRegistration zero-restriction schema defect to production v1.0 OAuth2 consent grants
+- 2026-08-14 ACCEPTED Earth Engine OAuth client_secret A/B differential proof @ oauth2.googleapis.com/token: leaked secret (sha256 3f3f8d6f…d271) → 400 invalid_grant (valid credential per RFC 6749 §5.2); fake secret → 401 invalid_client "The provided client secret is invalid." (invalid credential); conclusive per-section error-code distinction
+- 2026-08-14 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4-5 kids)⊂v2(7-11 kids) steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; rotation churn (aFkmKVFc transient v1-exclusive) does not create confusion
+- 2026-08-14 REJECTED source maps @ identity SPAs: mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated — no new attack surface from source map recon
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 

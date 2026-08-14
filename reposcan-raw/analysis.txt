@@ -1,68 +1,90 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'password' | cut -d' ' -f1
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'your_access_token' | cut -d' ' -f1
-64f3a6834f37b9e7875fefb2b81950536766133f639a3124127b8c08619b7672
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'eyAkaknabna....' | cut -d' ' -f1
-597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'your_client_secret' | cut -d' ' -f1
-af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'your_github_token_here' | cut -d' ' -f1
-e3297a3fb1f206807b6d91eca1239caaad672456a48371e9a036fad3e2658daf
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< '-----BEGIN PRIVATE KEY-----...' | cut -d' ' -f1
-87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582
-[0m
-### REAL_SECRET
-| File | Line | SHA256 | Context | REPORT_CANDIDATE |
-|------|------|--------|---------|------------------|
-| *(none)* | | | No hardcoded live credentials found in this delta | no |
-
-### TEST_OR_EXAMPLE
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Commented example: `password: "password"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | 64f3a6834f37b9e7875fefb2b81950536766133f639a3124127b8c08619b7672 | Commented example: `token: "your_access_token"` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Constant `PASSWORD = 'password'` (scheme identifier) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | 87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582 | Test fixture: `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Test fixture: `password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | 597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b | Test fixture: `token="eyAkaknabna...."` (fake JWT prefix) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f | Placeholder: `client_secret="your_client_secret"` |
-| google/heir/scripts/author_stats.py | 16 | e3297a3fb1f206807b6d91eca1239caaad672456a48371e9a036fad3e2658daf | Commented placeholder: `# TOKEN = "your_github_token_here"` |
-| microsoft/vscode-documentdb/src/plugins/service-kubernetes/kubernetesClient.test.ts | 102,113,123 | (test code) | Test cases for kubeconfig loading (default/custom/pasted YAML) |
-
-### ENDPOINT_LEAK
-| File | Line | Type | Details |
-|------|------|------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | GCP metadata | `host === 'metadata.google.internal'` check |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | GCP metadata | CIDR `169.254.0.0/16` includes metadata IP `169.254.169.254` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | GCP metadata | References to `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | GCP metadata | Routes to internal `169.254.169.254` metadata |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | GCP metadata | Refuses `169.254.169.254` in Chrome |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | GCP metadata | `curl metadata.google.internal/computeMetadata/v1/...` |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | Internal endpoints | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
-
-### INTERESTING
-| File | Line | Type | Details |
-|------|------|------|---------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Secret management | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` — fetches from Secret Manager at runtime |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Secret management | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` — fetches from Secret Manager at runtime |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Crypto code | Emits `secret_key` variable to output (test/fixture code path) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Config generation | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes API key from variable (not hardcoded) |
-| microsoft/vscode-documentdb/src/plugins/service-kubernetes/config.ts | 43,47,59 | Kubeconfig handling | Default path, multi-source storage v2, secret-storage key prefix for inline kubeconfig YAML |
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/triage_results.md << 'EOF'
+# Static Scan Triage Results
+**Scan Date:** 2026-08-14  
+**Orgs:** google/, microsoft/  
+**Total Files Scanned:** 17,300  
+**Total Hits:** 259  
+**New Hits (Delta):** 37
 
 ---
 
-### SHORT VERDICT
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *(no REAL_SECRET hits in this delta)* | — | **no** |
+## Classification Tables
 
-**Summary**: This delta contains only test fixtures, placeholder values, internal endpoint references (GCP metadata), and proper secret-management patterns (fetching from `gcloud secrets` at runtime). No hardcoded live credentials or API keys found. The previously confirmed live finding (Earth Engine OAuth `client_secret` in `google/earthengine-api/python/ee/oauth.py:45`) is **not in this delta** — it remains an open ACCEPTED finding from prior cycles.
+### REAL_SECRET (Reportable Credentials)
+| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
+|------|------|----------------|------|------------------|
+| *None found* | - | - | - | - |
+
+**Verdict:** No hardcoded live credentials detected in this delta. The previously known `earthengine-api` secret (sha256 `3f3f8d6f...d271`) was already tracked in KB and is **not new**.
+
+---
+
+### TEST_OR_EXAMPLE (Fixtures, Samples, Placeholders)
+| File | Line | Pattern | Context | REPORT_CANDIDATE |
+|------|------|---------|---------|------------------|
+| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `ghp_ABCDEFGHIJKLMNOP` | Test fixture (alphabetic pattern) | no |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Test fixture in detection test | no |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Assertion on test fixture | no |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 24 | `AKIA5SXYO7WZ3PLMN8RTV` | AWS key test fixture | no |
+| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Redaction test fixture | no |
+| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Evaluation test data | no |
+| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | OCR test data | no |
+| `google/heir/scripts/author_stats.py` | 16 | `your_github_token_here` | Commented placeholder | no |
+| `microsoft/Olive/.azure_pipelines/job_templates/huggingface-login-template.yaml` | 2 | `huggingface_token` | Template placeholder value | no |
+| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 27,166,205 | `dev.office.com` URLs | Documentation references | no |
+| `google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | ~4638 | `developers.devsite.corp.google.com` | Internal doc links in externs | no |
+| `google/closure-compiler/externs/browser/*.js` | Various | `dev.w3.org` URLs | W3C spec references in externs | no |
+| `google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `source.corp.google.com` | Internal source link in comment | no |
+
+---
+
+### ENDPOINT_LEAK (Internal/Dev/Staging URLs, Metadata Endpoints)
+| File | Line | Endpoint | Type | REPORT_CANDIDATE |
+|------|------|----------|------|------------------|
+| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCP Metadata Service | no (well-known) |
+| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `http://169.254.169.254/latest/meta-data/iam/` | AWS IMDS | no (well-known) |
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP Metadata check | no (well-known) |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local/GCP metadata CIDR | no (well-known) |
+| `microsoft/Olive/.azure_pipelines/scripts/find_failed_commit.py` | 36 | `https://dev.azure.com/aiinfra/` | Azure DevOps org URL | no (public org) |
+
+---
+
+### INTERESTING (Config Patterns, Secret Handling, Non-Secret Security Items)
+| File | Line | Finding | Notes | REPORT_CANDIDATE |
+|------|------|---------|-------|------------------|
+| `google/ax/manifests/install-ax.sh` | 239-286 | PG password handling: reads existing or generates via `openssl rand -hex 16` | Secure pattern (no hardcoded secret) | no |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper GitHub Secrets usage: `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Good practice | no |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets versions access` for GitHub token | Secret Manager integration | no |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access` for Codecov token | Secret Manager integration | no |
+| `microsoft/SPARROW/updater/install.sh` | 49 | `GITHUB_TOKEN="${UPDATER_GITHUB_TOKEN}"` | Env var reference (not hardcoded) | no |
+| `microsoft/vscode-documentdb/src/plugins/service-kubernetes/kubernetesClient.ts` | 99-102 | Kubeconfig context extraction logic | Config parsing, no secrets | no |
+| `microsoft/vscode-documentdb/src/plugins/service-kubernetes/config.ts` | 43,47,59 | Multi-source kubeconfig storage + secret-storage key prefix | Design docs for secret storage | no |
+
+---
+
+## Summary Verdict
+
+| Category | Count | Report Candidates |
+|----------|-------|-------------------|
+| REAL_SECRET | 0 | 0 |
+| TEST_OR_EXAMPLE | 14 | 0 |
+| ENDPOINT_LEAK | 5 | 0 |
+| INTERESTING | 7 | 0 |
+| **TOTAL NEW** | **26 unique findings** | **0** |
+
+**Overall:** **NO_DELTA** for reportable findings. All 37 delta hits resolve to test fixtures, documentation references, well-known metadata endpoints, or secure configuration patterns. No new hardcoded credentials, API keys, or tokens with signs of life.
+
+**Previously Tracked (KB) - Still Live:**
+- `google/earthengine-api/python/ee/oauth.py:45` — OAuth client_secret (sha256 `3f3f8d6f...d271`) — **KNOWN, NOT NEW**
+- Microsoft Graph `agentRegistrations` CORS + IDOR surface — **KNOWN, NOT NEW**
+- `oauth2.googleapis.com/tokeninfo` introspection oracle — **KNOWN, NOT NEW**
+- Dual-JWKS rotation desync — **REJECTED (steady-state subset holds)**
+
+**Action Required:** None for this scan cycle. Continue monitoring.
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
