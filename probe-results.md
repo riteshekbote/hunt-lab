@@ -668,3 +668,6 @@ https://oauth2.googleapis.com/tokeninfo?access_token=invalid -> HTTP 400
 https://oauth2.googleapis.com/token -> HTTP 404
 https://login.microsoftonline.com/common/oauth2/v2.0/authorize?response_type=token&client_id=00000003-0000-0000-c000-000000000000 -> 200 len=23939 type=text/html; charset=utf-8
 https://graph.microsoft.com -> 200 len=? type=text/html; charset=utf-8
+
+## 2026-08-14 18:34:59 UTC
+https://oauth2.googleapis.com/token -> HTTP 404

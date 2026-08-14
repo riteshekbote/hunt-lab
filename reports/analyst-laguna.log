@@ -36566,3 +36566,33 @@ testability: PASSIVE
 
 [RISK] google: 96 | reason: earthengine-api oauth.py:45 hardcoded OAuth client_secret (sha256 3f3f8d6f…d271) verified valid Google credential via A/B proof (invalid_grant vs invalid_client per RFC 6749 §5.2); scopes cloud-platform+drive+devstorage+earthengine grant full GCP takeover; raw GitHub 200/23110 live; token POST-only gate (GET→404) confirmed; native installed client + OOB redirect matches public-client by-design pattern (ADK #2128 precedent caps VRP-worthiness but does not invalidate credential validity)
 [RISK] microsoft: 97 | reason: agentRegistrations 5-family IDOR+CORS confirmed LIVE at collection+item+agents+admin level (true CORS preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400, 873-char metadata block with 0 OperationRestrictions across 5 EntityTypes, item-level auth-gates 401, HEAD→405 no Bearer RFC 6750 §3 violation); oauth2PermissionGrants consent forge on production v1.0 with zero schema restrictions (458-char block, resourceId caller-supplied); deprecated agentRegistry shares same auth+CORS posture; all confirmed live @ 2026-08-14 16:38 UTC probe
+===== ANALYST laguna 2026-08-14 18:34:59 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m✱ [0mGlob "reports/*.txt"[90m 5 matches[0m
+[0m✱ [0mGlob "**/*.txt"[90m 13 matches[0m
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead reports/hypotheses-laguna.txt
+[0m→ [0mRead reports/hypotheses-nemotron3.txt
+[0m→ [0mRead reposcan-raw/rag.txt
+[0m→ [0mRead reposcan-raw/analysis.txt[90m [limit=50][0m
+[0m
+[0m$ [0mdate -u && ls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/
+Fri Aug 14 18:32:01 UTC 2026
+total 328
+drwxr-xr-x   4 runner runner   4096 Aug 14 18:31 .
+drwxr-xr-x  12 runner runner   4096 Aug 14 18:31 ..
+-rw-r--r--   1 runner runner  18558 Aug 14 18:31 analysis.txt
+drwxr-xr-x 346 runner runner  12288 Aug 14 18:31 google
+-rw-r--r--   1 runner runner   1773 Aug 14 18:31 grep-delta.txt
+-rw-r--r--   1 runner runner   9593 Aug 14 18:31 grep-hits.prev.txt
+-rw-r--r--   1 runner runner  10494 Aug 14 18:31 grep-hits.txt
+drwxr-xr-x 760 runner runner  32768 Aug 14 18:31 microsoft
+-rw-r--r--   1 runner runner 226361 Aug 14 18:31 rag.txt
+[0m
+[0m→ [0mRead reposcan-raw/grep-delta.txt
+## STEP 1 — DELTA
+
+NO_DELTA — all fresh passive probes (2026-08-14 17:38 UTC robot run + reposcan-delta at 18:31 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. Reposcan delta = 6 new hit lines, all compiled JS parser messages (`chunk-*.js`, `Expecting...`) + `tunix/cli/base_agentic_config.yaml:63` commented placeholder (`hf_access_token: "your_token"`); zero REAL_SECRET, zero new endpoint leaks.
