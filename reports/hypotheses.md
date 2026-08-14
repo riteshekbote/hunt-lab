@@ -2751,3 +2751,13 @@
 - NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking BOTH Microsoft hypotheses (#1 5-family IDOR+CORS + #
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
 - LEARN: NO_DELTA — fresh probes (2026-08-14 08:5x UTC) confirmed prior ACCEPTED/REJECTED findings unchanged: agentRegs GET 401/237 + preflight 200 ACAO:* full mutation 
+
+## RANKED HYPOTHESES 2026-08-14 09:53:59 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH + CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking BOTH Microsoft hypotheses (#1 5-family IDOR+CORS + #
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — the single bottleneck unblocking BOTH Microsoft hypotheses (#1 + #3) in one sessi
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 20:58 UTC)
+- LEARN: ACCEPTED: agentRegistrations 5-family IDOR+CORS remains live @ 2026-08-14 cycle — true CORS preflight 200 ACAO:* + PATCH allowlist at collection+item+agents+adm
+- LEARN: NO_DELTA — fresh probes (2026-08-14 cycle) confirmed prior ACCEPTED/REJECTED findings unchanged: agentRegs GET 401/237 + preflight 200 ACAO:* full mutation allo
