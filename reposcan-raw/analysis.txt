@@ -1,70 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No hardcoded credentials with signs of life found |
+## REAL_SECRET
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | REPORT_CANDIDATE: yes (already ACCEPTED in KB, live on master) |
 
-### TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value, not a real key |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression (runtime substitution) |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions expression (runtime substitution) |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `test.pypi.org` URLs | Test PyPI publishing config |
-| google/meridian/.github/workflows/publish.yml | 127,139 | `test.pypi.org` URLs | Test PyPI publishing config |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=` + `getDatabasePassword()` | Test connection string builder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder (truncated with `...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Placeholder JWT (truncated) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Homepage URL, not secret |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Test server URL |
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Explicit "fuzz test key" |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test shutdown password |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB password reference |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder "gemini_api_key" |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions template `{{% raw %}${{...}}` |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions template `{{% raw %}${{...}}` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test HttpCredentials username="user", password="password" |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Placeholder token "eyAkaknabna...." |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant PASSWORD = "password" |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder "your_client_secret" |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
+| reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
+| reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified source map content |
 
-### ENDPOINT_LEAK
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/closure-compiler/externs/browser/w3c_css.js | 4830, 4835 | `dev.w3.org/csswg/css-font-loading/` | Documentation reference in externs |
-| google/closure-compiler/externs/browser/webkit_notifications.js | 202 | `dev.w3.org/2006/webapi/WebNotifications/` | Documentation reference in externs |
-| google/closure-compiler/externs/browser/w3c_fileapi.js | 34 | `dev.w3.org/2006/webapi/FileAPI/` | Documentation reference in externs |
-| google/closure-compiler/externs/browser/w3c_rtc.js | 1597, 3333 | `dev.w3.org/2011/webrtc/` | Documentation reference in externs |
-| google/closure-compiler/externs/browser/html5.js | 22, 1703, 1764 | `dev.w3.org/html5/` | Documentation reference in externs |
-| google/closure-compiler/externs/es6.js | 392 | `dev.w3.org/html5/postmsg/` | Documentation reference in externs |
-| google/closure-compiler/externs/browser/w3c_device_sensor_event.js | 22 | `dev.w3.org/geo/api/spec-source-orientation` | Documentation reference in externs |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27, 166 | `dev.office.com/reference/add-ins/` | Documentation reference in externs |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `dev.mysql.com/doc/connector-j/8.0/en/` | Project homepage URL |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | `dev.mysql.com/doc/connector-j/8.0/en/...` | Documentation reference in test |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com/piper/...` | Internal Google source link (code reference) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint | Documented security warning in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | Documented security warning in comments |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint | Explicitly refused in code |
+## ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/llvm-propeller/propeller/binary_content.h | 80 | Internal Google source URL `source.corp.google.com/h/prodkernel/kernel/release/11xx/...` |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path references (config, not secret) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Cloud metadata endpoint `169.254.169.254` reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Cloud metadata endpoint `169.254.169.254` reference |
 
-### INTERESTING
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | GKE auth config parameters (not secrets) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name for token storage |
+## INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key `_vmaas_access_token` naming |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY=` to file (code that generates config) |
+| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (template, not secret) |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js | 9 | Minified parser error (build artifact) |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js | 3 | Minified parser error (build artifact) |
 
----
-
-## SHORT VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| GEMINI_API_KEY placeholder | **no** (TEST_OR_EXAMPLE) |
-| GitHub Actions token expressions | **no** (TEST_OR_EXAMPLE) |
-| Closure-compiler externs documentation URLs | **no** (ENDPOINT_LEAK - docs only) |
-| Test PyPI publishing config | **no** (TEST_OR_EXAMPLE) |
-| OSS-Fuzz test fixtures (flask, h2database, mysql-connector-j) | **no** (TEST_OR_EXAMPLE) |
-| ADK auth_credential placeholders | **no** (TEST_OR_EXAMPLE) |
-| ADK GKE/kubeconfig params | **no** (INTERESTING - config only) |
-| ADK metadata endpoint references (169.254.169.254) | **no** (ENDPOINT_LEAK - documented warnings, not leaks) |
-| ADK vmaas state key name | **no** (INTERESTING - key name only) |
-| Internal Google source.corp.google.com link | **no** (ENDPOINT_LEAK - code reference only) |
-
-**NO REPORTABLE FINDINGS THIS SCAN** — All hits are test fixtures, placeholders, documentation references, or config parameters. No live credentials, internal endpoints, or actionable secrets detected.
+## SUMMARY VERDICT
+- **REPORT_CANDIDATE: yes** — `google/earthengine-api/python/ee/oauth.py:45` (hardcoded OAuth client_secret, already ACCEPTED in KB, confirmed live, valid credential per RFC 6749 §5.2 A/B proof)
+- **REPORT_CANDIDATE: no** — All other hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URL reference), or INTERESTING (config patterns, build artifacts)
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
