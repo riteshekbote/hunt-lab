@@ -1,229 +1,73 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF' > /tmp/classify.py
-import re
-import hashlib
+## Classification Tables
 
-hits = [
-    ("google/adk-java/dev/browser/main-TCIQIOZ3.js", 5, "minified JS bundle"),
-    ("google/adk-js/core/src/auth/auth_credential.ts", 214, 'password: "password"'),
-    ("google/adk-js/core/src/auth/auth_credential.ts", 226, 'token: "your_access_token"'),
-    ("google/adk-js/core/src/auth/auth_schemes.ts", 41, "PASSWORD = 'password'"),
-    ("google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts", 215, "host === 'metadata.google.internal'"),
-    ("google/adk-js/core/src/tools/load_web_page.ts", 36, "'169.254.0.0/16' link-local/GCP metadata"),
-    ("google/grr/grr/client/grr_response_client/client_actions/cloud.py", 41, 'AMAZON_TOKEN_URL = "http://169.254.169.254/latest/api/token"'),
-    ("google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py", 9, 'AMAZON_URL_BASE = "http://169.254.169.254/latest/meta-data"'),
-    ("google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py", 12, "comment about metadata IP"),
-    ("google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py", 14, 'GOOGLE_URL_BASE = "http://169.254.169.254/computeMetadata/v1"'),
-    ("google/grr/grr/server/grr_response_server/flows/general/cloud.py", 524, '_HTTP_SERVICE_IP_ADDRESS = ipaddress.ip_address("169.254.169.254")'),
-    ("google/grr/grr/server/grr_response_server/databases/mysql.py", 648, "MySQL datetime comment"),
-    ("google/grr/grr/server/grr_response_server/databases/db.py", 667, "MySQL datetime comment"),
-    ("google/grr/grr/server/grr_response_server/databases/mysql_pool.py", 225, "MySQL drop-table comment"),
-    ("google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts", 232, "CSRF token extraction curl command"),
-    ("google/grr/docker/docker-entrypoint.sh", 21, '--admin_password="${ADMIN_PASSWORD}"'),
-    ("google/grr/docker/docker-entrypoint.sh", 26, '--mysql_password="${GRR_MYSQL_PASSWORD}"'),
-    ("google/grr/docker_config_files/server/grr.server.yaml", 25, 'PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"'),
-    ("google/oss-fuzz/projects/mysql-connector-j/project.yaml", 1, "homepage URL"),
-    ("google/oss-fuzz/projects/mysql-connector-j/TestServer.java", 33, "MySQL connector URL comment"),
-    ("google/oss-fuzz/projects/flask/fuzz_json.py", 27, 'secret_key = "fuzz test key"'),
-    ("google/oss-fuzz/projects/h2database/TestServer.java", 13, 'g_shutdownPassword = "ServerShutdownPassword"'),
-    ("google/oss-fuzz/projects/h2database/TestServer.java", 55, 'return getConnection("PASSWORD=" + getDatabasePassword())'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 157, 'private_key="-----BEGIN PRIVATE KEY-----..."'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 269, 'credentials=HttpCredentials(username="user", password="password")'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 278, 'credentials=HttpCredentials(token="eyAkaknabna....")'),
-    ("google/adk-python/src/google/adk/auth/auth_schemes.py", 68, 'PASSWORD = "password"'),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 103, "kubeconfig_path: str | None = None"),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 104, "kubeconfig_context: str | None = None"),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 115, "kubeconfig_path parameter"),
-    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py", 114, "comment about cloud metadata endpoint 169.254.169.254"),
-    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py", 154, "comment about 169.254.169.254"),
-    ("google/adk-python/src/google/adk/tools/load_web_page.py", 171, "comment about NAT64 and metadata endpoint"),
-    ("google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py", 146, "comment about refusing 169.254.169.254"),
-    ("google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py", 62, 'client_secret="your_client_secret"'),
-    ("google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py", 47, '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"'),
-    ("google/adk-python/src/google/adk/cli/cli_create.py", 131, 'lines.append(f"GOOGLE_API_KEY={google_api_key}")'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-VJTRHJAQ.js", 11, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js", 9, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-OCQO4LX3.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-RNTHHQWK.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-WEKWG7SS.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-ZO3BTNJM.js", 3, "minified JS"),
-    ("google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js", 5, "minified JS"),
-    ("google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js", 5, "minified JS (same as adk-java)"),
-    ("google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt", 49, 'const val INJECTED_TOKEN = "injected-token-probe"'),
-    ("google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go", 246, '--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest'),
-    ("google/adk-go/cmd/launcher/web/webui/distr/chunk-PVEI6UQ6.js", 3, "minified JS"),
-]
+### REAL_SECRET: hardcoded credential/API key/token with signs of life
+*None found in this scan delta or full grep. All candidates are placeholders, test fixtures, or template variables.*
 
-def classify(filepath, line, content):
-    content_lower = content.lower()
-    
-    # REAL_SECRET patterns - actual credentials with entropy
-    if re.search(r'(ya29\.[a-zA-Z0-9_-]+|ghp_[a-zA-Z0-9]{36}|sk-[a-zA-Z0-9]{48}|AIza[a-zA-Z0-9_-]{35})', content):
-        return "REAL_SECRET"
-    
-    # TEST_OR_EXAMPLE patterns
-    test_patterns = [
-        r'password\s*[=:]\s*["\']password["\']',
-        r'token\s*[=:]\s*["\']your_access_token["\']',
-        r'PASSWORD\s*[=:]\s*["\']password["\']',
-        r'secret_key\s*[=:]\s*["\']fuzz test key["\']',
-        r'shutdownPassword\s*[=:]\s*["\']ServerShutdownPassword["\']',
-        r'private_key\s*[=:]\s*["\']-----BEGIN PRIVATE KEY-----\.\.\.["\']',
-        r'username\s*[=:]\s*["\']user["\'].*password\s*[=:]\s*["\']password["\']',
-        r'token\s*[=:]\s*["\']eyAkaknabna\.\.\.["\']',
-        r'client_secret\s*[=:]\s*["\']your_client_secret["\']',
-        r'INJECTED_TOKEN\s*[=:]\s*["\']injected-token-probe["\']',
-    ]
-    for pat in test_patterns:
-        if re.search(pat, content, re.IGNORECASE):
-            return "TEST_OR_EXAMPLE"
-    
-    # ENDPOINT_LEAK - internal/metadata endpoints
-    if any(x in content for x in ['169.254.169.254', 'metadata.google.internal', 'metadata.azure.com', 'metadata.aws']):
-        return "ENDPOINT_LEAK"
-    
-    # INTERESTING - config references, secret managers, etc.
-    if any(x in content_lower for x in ['set-secrets', 'secret manager', 'vault', 'kubeconfig', 'private-key.pem', 'ADMIN_PASSWORD', 'GRR_MYSQL_PASSWORD']):
-        return "INTERESTING"
-    
-    # Minified JS / build artifacts
-    if filepath.endswith('.js') and ('minified' in content_lower or 'chunk-' in filepath or 'main-' in filepath):
-        return "TEST_OR_EXAMPLE"  # build artifacts
-    
-    # Comments, URLs, homepage
-    if content_lower.startswith('comment') or content_lower.startswith('homepage') or content_lower.startswith('url'):
-        return "TEST_OR_EXAMPLE"
-    
-    return "INTERESTING"
+| File | Line | Pattern | SHA256 | Verdict |
+|------|------|---------|--------|---------|
+| *(none)* | | | | |
 
-results = {}
-for f, l, c in hits:
-    cat = classify(f, l, c)
-    if cat not in results:
-        results[cat] = []
-    results[cat].append((f, l, c))
+### TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
 
-for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
-    if cat in results:
-        print(f"\n=== {cat} ({len(results[cat])}) ===")
-        for f, l, c in results[cat]:
-            # Compute sha256 of the "secret material" if applicable
-            if cat == "REAL_SECRET":
-                # Extract potential secret
-                sha = hashlib.sha256(c.encode()).hexdigest()[:16]
-                print(f"  {f}:{l}  sha256={sha}  | {c[:80]}")
-            else:
-                print(f"  {f}:{l}  | {c[:80]}")
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder with `...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder with `....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Test fixture |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Placeholder |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Test constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test constant |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=" + getDatabasePassword()` | Test code |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture |
+| google/grr/docker/docker-entrypoint.sh | 21 | `--admin_password="${ADMIN_PASSWORD}"` | Env var reference |
+| google/grr/docker/docker-entrypoint.sh | 26 | `--mysql_password="${GRR_MYSQL_PASSWORD}"` | Env var reference |
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem\|file)"` | Config template |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not a token |
 
-# Verdict
-print("\n=== VERDICT ===")
-real_secrets = results.get("REAL_SECRET", [])
-if real_secrets:
-    for f, l, c in real_secrets:
-        sha = hashlib.sha256(c.encode()).hexdigest()[:16]
-        print(f"REPORT_CANDIDATE: yes  |  {f}:{l}  sha256={sha}")
-else:
-    print("REPORT_CANDIDATE: no  |  No REAL_SECRET findings in this scan")
+### ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
 
-EOF
-python3 /tmp/classify.py
-=== TEST_OR_EXAMPLE (34) ===
-  google/adk-java/dev/browser/main-TCIQIOZ3.js:5  | minified JS bundle
-  google/adk-js/core/src/auth/auth_credential.ts:214  | password: "password"
-  google/adk-js/core/src/auth/auth_credential.ts:226  | token: "your_access_token"
-  google/adk-js/core/src/auth/auth_schemes.ts:41  | PASSWORD = 'password'
-  google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py:12  | comment about metadata IP
-  google/oss-fuzz/projects/mysql-connector-j/project.yaml:1  | homepage URL
-  google/oss-fuzz/projects/flask/fuzz_json.py:27  | secret_key = "fuzz test key"
-  google/oss-fuzz/projects/h2database/TestServer.java:13  | g_shutdownPassword = "ServerShutdownPassword"
-  google/adk-python/src/google/adk/auth/auth_credential.py:157  | private_key="-----BEGIN PRIVATE KEY-----..."
-  google/adk-python/src/google/adk/auth/auth_credential.py:269  | credentials=HttpCredentials(username="user", password="password")
-  google/adk-python/src/google/adk/auth/auth_schemes.py:68  | PASSWORD = "password"
-  google/adk-python/src/google/adk/tools/load_web_page.py:171  | comment about NAT64 and metadata endpoint
-  google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62  | client_secret="your_client_secret"
-  google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-VJTRHJAQ.js:11  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-OCQO4LX3.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-RNTHHQWK.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-WEKWG7SS.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/chunk-ZO3BTNJM.js:3  | minified JS
-  google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js:5  | minified JS
-  google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js:5  | minified JS (same as adk-java)
-  google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt:49  | const val INJECTED_TOKEN = "injected-token-probe"
-  google/adk-go/cmd/launcher/web/webui/distr/chunk-PVEI6UQ6.js:3  | minified JS
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata (internal) |
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `169.254.169.254` | AWS IMDS |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9,12,14 | `169.254.169.254` | AWS/GCP IMDS |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | IMDS |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | IMDS (docstring warning) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | IMDS (docstring warning) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | IMDS (refusal logic) |
 
-=== ENDPOINT_LEAK (8) ===
-  google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215  | host === 'metadata.google.internal'
-  google/grr/grr/client/grr_response_client/client_actions/cloud.py:41  | AMAZON_TOKEN_URL = "http://169.254.169.254/latest/api/token"
-  google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py:9  | AMAZON_URL_BASE = "http://169.254.169.254/latest/meta-data"
-  google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py:14  | GOOGLE_URL_BASE = "http://169.254.169.254/computeMetadata/v1"
-  google/grr/grr/server/grr_response_server/flows/general/cloud.py:524  | _HTTP_SERVICE_IP_ADDRESS = ipaddress.ip_address("169.254.169.254")
-  google/adk-python/src/google/adk/code_executors/container_code_executor.py:114  | comment about cloud metadata endpoint 169.254.169.254
-  google/adk-python/src/google/adk/code_executors/container_code_executor.py:154  | comment about 169.254.169.254
-  google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146  | comment about refusing 169.254.169.254
+### INTERESTING: unusual patterns (debug flags, keys, cloud configs)
+*None beyond the above.*
 
-=== INTERESTING (17) ===
-  google/adk-js/core/src/tools/load_web_page.ts:36  | '169.254.0.0/16' link-local/GCP metadata
-  google/grr/grr/server/grr_response_server/databases/mysql.py:648  | MySQL datetime comment
-  google/grr/grr/server/grr_response_server/databases/db.py:667  | MySQL datetime comment
-  google/grr/grr/server/grr_response_server/databases/mysql_pool.py:225  | MySQL drop-table comment
-  google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts:232  | CSRF token extraction curl command
-  google/grr/docker/docker-entrypoint.sh:21  | --admin_password="${ADMIN_PASSWORD}"
-  google/grr/docker/docker-entrypoint.sh:26  | --mysql_password="${GRR_MYSQL_PASSWORD}"
-  google/grr/docker_config_files/server/grr.server.yaml:25  | PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"
-  google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33  | MySQL connector URL comment
-  google/oss-fuzz/projects/h2database/TestServer.java:55  | return getConnection("PASSWORD=" + getDatabasePassword())
-  google/adk-python/src/google/adk/auth/auth_credential.py:278  | credentials=HttpCredentials(token="eyAkaknabna....")
-  google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103  | kubeconfig_path: str | None = None
-  google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104  | kubeconfig_context: str | None = None
-  google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115  | kubeconfig_path parameter
-  google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47  | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-  google/adk-python/src/google/adk/cli/cli_create.py:131  | lines.append(f"GOOGLE_API_KEY={google_api_key}")
-  google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246  | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest
+---
 
-=== VERDICT ===
-REPORT_CANDIDATE: no  |  No REAL_SECRET findings in this scan
-[0m
-**Classification Summary**
+## Delta Hits (2 new lines vs previous scan)
 
-| Category | Count | Key Findings |
-|----------|-------|--------------|
-| **TEST_OR_EXAMPLE** | 34 | Placeholder credentials (`password`, `your_access_token`, `your_client_secret`), test keys (`fuzz test key`, `injected-token-probe`), minified JS bundles, truncated private key examples |
-| **ENDPOINT_LEAK** | 8 | Cloud metadata endpoint references (`169.254.169.254`, `metadata.google.internal`) in GRR and ADK code — legitimate client-side metadata access patterns, not secret leaks |
-| **INTERESTING** | 17 | Secret manager references (`--set-secrets=GOOGLE_API_KEY=...`), env var interpolation (`${ADMIN_PASSWORD}`), kubeconfig params, CSRF token extraction — all **configuration patterns**, not hardcoded secrets |
-| **REAL_SECRET** | 0 | No live credentials/API keys/tokens with entropy found |
+| File | Line | Classification | Reason |
+|------|------|----------------|--------|
+| google/closure-compiler/externs/browser/w3c_device_sensor_event.js | 22 | TEST_OR_EXAMPLE | Comment referencing W3C spec URL (`http://dev.w3.org/geo/api/spec-source-orientation`) |
+| google/closure-compiler/externs/es6.js | 392 | TEST_OR_EXAMPLE | Comment referencing W3C spec URL (`http://dev.w3.org/html5/postmsg/`) |
 
-**Verdict**
+---
 
-| Finding | REPORT_CANDIDATE |
-|---------|------------------|
-| **Overall scan** | **no** — Zero REAL_SECRET hits. All 478 grep matches resolve to test fixtures, metadata endpoint references (expected in cloud client libs), secret-manager wiring, or build artifacts. |
+## Verdict List
 
-**Notes**
-- The `earthengine-api` hardcoded secret (`oauth.py:45`, sha256 `3f3f8d6f…d271`) **was not in this scan's delta** — it's a known ACCEPTED finding from prior cycles (tracked in KB).
-- ADK `/run_sse` client_secret (issue #2128) and ya29 token (issue #5520) are KNOWN DUPLICATES per KB.
-- No new reportable secrets discovered in this reposcan pass.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| closure-compiler externs (2 new delta hits) | **no** | Documentation comments referencing public W3C specs; not secrets, endpoints, or credentials |
+| adk-python/adk-js auth fixtures | **no** | All are test fixtures, placeholders (`"password"`, `"your_client_secret"`, `"..."`), or template variables |
+| GRR docker/config secrets | **no** | Env var references (`${ADMIN_PASSWORD}`) and config templates, not hardcoded values |
+| OSS-Fuzz test constants | **no** | Explicitly test/fuzz harness values (`"fuzz test key"`, `"ServerShutdownPassword"`) |
+| IMDS endpoint references (169.254.169.254) | **no** | Well-known cloud metadata IPs documented in code comments/docstrings; not leaks |
+| metadata.google.internal reference | **no** | Internal GCP metadata hostname; documented in auth discovery code, not a secret |
+
+---
+
+**Summary**: **NO REPORTABLE FINDINGS** in this scan cycle. The 2 new delta hits are benign documentation comments. All other hits in the full grep are pre-existing test fixtures, placeholders, env var references, or well-known cloud metadata endpoints — none are live secrets or novel attack surface.
