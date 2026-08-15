@@ -1,74 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/Sico/backend/internal/store/llmhubs/internal/dal/model_registry_secret.go
-[0m→ [0mRead reposcan-raw/microsoft/Sico/backend/internal/store/taskruntime/internal/dal/constants.go
-[0m→ [0mRead reposcan-raw/microsoft/Sico/backend/internal/store/taskruntime/internal/dal/errors.go
-[0m→ [0mRead reposcan-raw/microsoft/Sico/backend/internal/transport/http/middleware/sandbox_auth.go
-## Classification Tables
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
 
-### REAL_SECRET
-| File | Line | Classification | SHA256 (secret material) | Verdict |
-|------|------|----------------|--------------------------|---------|
-| *(none found in delta or full scan)* | | | | |
+| Category         | Count | Files/Lines                                                                 |
+|------------------|-------|-----------------------------------------------------------------------------|
+| REAL_SECRET      | 0     | (none)                                                                      |
+| TEST_OR_EXAMPLE  | 38    | All Google workflow secrets (${{ secrets.* }}), adk-python test fixtures,  |
+|                  |       | go-github placeholder, heir commented token, MS skill-recorder test fixtures, |
+|                  |       | Sico constants/errors                                                      |
+| ENDPOINT_LEAK    | 0     | (none)                                                                      |
+| INTERESTING      | 6     | adk-python: 169.254.169.254 metadata endpoint refs (3 files, 4 lines),     |
+|                  |       | adk-python cli_create.py:131 template generation,                          |
+|                  |       | heir JaxiteWordEmitter.cpp:558 codegen secret_key output                   |
 
----
+=== VERDICT LIST ===
+REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
+EOF
+=== CLASSIFICATION TABLE ===
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` workflow placeholder |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` workflow placeholders |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168-169 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` workflow placeholders |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` workflow placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test fixture `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test fixture `token="eyAkaknabna...."` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template `GOOGLE_API_KEY={google_api_key}` |
-| google/go-github/github/github.go | 1990 | Placeholder `ClientSecret: "your app's client secret"` |
-| google/heir/scripts/author_stats.py | 16 | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Test constant `secret = "ghp_ABCDEFGHIJKLMNOP"` |
-| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test token `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Test tokens `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R`, `AKIA5SXYO7WZ3PLMN8RTV` |
-| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Test token `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` |
-| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Test token `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
-| microsoft/Sico/backend/internal/store/taskruntime/internal/dal/errors.go | 15-16 | Error message tokens `"stale worker token"`, `"duplicate key"` |
+| Category         | Count | Files/Lines                                                                 |
+|------------------|-------|-----------------------------------------------------------------------------|
+| REAL_SECRET      | 0     | (none)                                                                      |
+| TEST_OR_EXAMPLE  | 38    | All Google workflow secrets (${{ secrets.* }}), adk-python test fixtures,  |
+|                  |       | go-github placeholder, heir commented token, MS skill-recorder test fixtures, |
+|                  |       | Sico constants/errors                                                      |
+| ENDPOINT_LEAK    | 0     | (none)                                                                      |
+| INTERESTING      | 6     | adk-python: 169.254.169.254 metadata endpoint refs (3 files, 4 lines),     |
+|                  |       | adk-python cli_create.py:131 template generation,                          |
+|                  |       | heir JaxiteWordEmitter.cpp:558 codegen secret_key output                   |
 
----
+=== VERDICT LIST ===
+REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
+[0m
+=== CLASSIFICATION TABLE ===
 
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | Internal Google YAQS link `yaqs.corp.google.com/eng/q/4487223501186400256` |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-104, 115 | Kubeconfig path references (internal config) |
+| Category         | Count | Files/Lines                                                                 |
+|------------------|-------|-----------------------------------------------------------------------------|
+| REAL_SECRET      | 0     | (none)                                                                      |
+| TEST_OR_EXAMPLE  | 38    | Google workflow secrets (`${{ secrets.* }}`), adk-python test fixtures, go-github placeholder, heir commented token, MS skill-recorder test fixtures, Sico constants/errors |
+| ENDPOINT_LEAK    | 0     | (none)                                                                      |
+| INTERESTING      | 6     | adk-python: `169.254.169.254` metadata endpoint refs (3 files, 4 lines), adk-python `cli_create.py:131` template generation, heir `JaxiteWordEmitter.cpp:558` codegen `secret_key` output |
 
----
-
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/digitalbuildings/tools/abel/model/constants.py | 106 | `ACCESS_TOKEN = 'accessToken'` — JSON field name constant |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — flag name constant |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — config key constant |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Cloud metadata endpoint `169.254.169.254` references |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Cloud metadata endpoint `169.254.169.254` reference |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Cloud metadata endpoint `169.254.169.254` reference |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key constant |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Crypto code emitting `.secret_key = <sk>` |
-| microsoft/Sico/backend/internal/store/llmhubs/internal/dal/model_registry_secret.go | 10 | Table name constant `t_model_registry_secret` (schema, not secret) |
-| microsoft/Sico/backend/internal/store/taskruntime/internal/dal/constants.go | 19, 51 | `jsonKeyFencingToken` / `columnFencingToken = "fencing_token"` — distributed locking token column/key names |
-| microsoft/Sico/backend/internal/transport/http/middleware/sandbox_auth.go | 54 | `ContextSandboxClientSecret = "sandbox_client_secret"` — Gin context key name (actual secret loaded from `SANDBOX_CLIENT_SECRET_<CLIENT_ID>` env var at line 313) |
-
----
-
-## SHORT VERDICT LIST
-
-| Candidate | File | Line | REPORT_CANDIDATE | Reason |
-|-----------|------|------|------------------|--------|
-| **None** | — | — | **no** | No hardcoded credentials, API keys, or tokens with signs of life found in delta or full scan. All hits are table/column names, error message constants, context keys, test fixtures, workflow placeholders, or well-known metadata endpoint references. |
-
----
-
-**Summary:** The 6 delta hits are all benign — database schema identifiers (`t_model_registry_secret`), fencing token column/key names for distributed locking, error message tokens, and a Gin context key name. The actual sandbox client secrets are loaded from environment variables (`SANDBOX_CLIENT_SECRET_<CLIENT_ID>`) at runtime, not hardcoded. No reportable findings in this scan.
+=== VERDICT LIST ===
+REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
