@@ -1089,3 +1089,8 @@
 - NEW graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
 - NEW www.googleapis.com/storage/v1/b → HTTP 400 (new probe target, bucket listing requires auth)
 - CHANGED www.googleapis.com/storage/v1/b 400 resolved as missing-param artifact — with `?project=` (both earthengine number 517222506229 and ID) → 401 `storage.buckets.list` denied for anonymous caller; no byp
+
+## 2026-08-15 23:00:59 UTC
+- NEW graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+- NEW www.googleapis.com/storage/v1/b → HTTP 400 (new probe target, bucket listing requires auth)
+- CHANGED www.googleapis.com/storage/v1/b 400 resolved as missing-param artifact — with `?project=` → 401 `storage.buckets.list` denied for anonymous caller; no bypass
