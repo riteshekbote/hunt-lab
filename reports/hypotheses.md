@@ -3714,3 +3714,19 @@
 - LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
 - LEARN: REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged this cycle (NO_NEW_DELTA @ 2026-08-15 19:55 UTC).
+
+## RANKED HYPOTHESES 2026-08-15 20:45:37 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit reports/google-vrp-earthengine-secret.md to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle — secret s
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) remains conclusive per RFC 6749 §5.2 — valid Go
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint fam
+- LEARN: ACCEPTED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed live — GET→401/237 Bearer on production v1.0; oAuth2PermissionGrant EntityType 458-
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- LEARN: REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4
+- LEARN: REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection witho
+- LEARN: ACCEPTED: All three hypotheses (agentRegistrations 6-family IDOR+CORS 97, earthengine client_secret 96, oauth2PermissionGrants consent forge 62) remain live — N
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(7-11 kids) steady-state subset holds, v1 kid set never validated 
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param introspection without Au
+- LEARN: REJECTED: Source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
