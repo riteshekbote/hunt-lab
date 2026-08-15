@@ -27627,3 +27627,53 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 - [RISK] google: 42 | live surface is one valid-but-by-design public OAuth secret (native-app OOB caps VRP-worthiness per ADK #2128), no-reward tokeninfo oracle, POST-only token gate; no unproven high-value Google attack surface.
 - [RISK] microsoft: 68 | two high-confidence authz-defect hypotheses (IDOR+CORS 97, consent forge 72) with complete schema-level preconditions and systemic RFC 6750 §3 method-challenge anomalies, but all mutation surfaces sit behind auth requiring two-principal test to disprove.
+===== ANALYST bigpickle 2026-08-15 17:31:50 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mecho "=== v1 JWKS ==="; curl -s -o /tmp/jwks1.json -w "%{http_code} %{size_download}\n" "https://login.microsoftonline.com/common/discovery/keys" -H "Accept: application/json"; echo "=== v2 JWKS ==="; curl -s -o /tmp/jwks2.json -w "%{http_code} %{size_download}\n" "https://login.microsoftonline.com/common/discovery/v2.0/keys" -H "Accept: application/json"; echo "=== v1 kids ==="; python3 -c "import json;d=json.load(open('/tmp/jwks1.json'));print(sorted(k['kid'] for k in d['keys']))" 2>/dev/null || head -c 200 /tmp/jwks1.json; echo; echo "=== v2 kids ==="; python3 -c "import json;d=json.load(open('/tmp/jwks2.json'));print(sorted(k['kid'] for k in d['keys']))" 2>/dev/null || head -c 200 /tmp/jwks2.json
+=== v1 JWKS ===
+200 9198
+=== v2 JWKS ===
+200 14496
+=== v1 kids ===
+['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'T5h40q7G0x49qn41lM9-kKjpD98', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'kPNphcDT-3CkaSpuFhApqNImFAs', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+
+=== v2 kids ===
+['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'N6SfdzXgL4EfRv0-MqEz1xZk6s4', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'T5h40q7G0x49qn41lM9-kKjpD98', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'kPNphcDT-3CkaSpuFhApqNImFAs', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mecho "=== tokeninfo no-param ==="; curl -s -o /tmp/ti.json -w "%{http_code} %{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; cat /tmp/ti.json; echo; echo "=== token GET ==="; curl -s -o /dev/null -w "%{http_code}\n" "https://oauth2.googleapis.com/token" failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+[0m
+[0m$ [0mecho "=== agentRegs true preflight item ==="; curl -s -o /tmp/pf.txt -D - -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -o /dev/null -w "HTTP %{http_code}\n"; curl -s -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/00000000-0000-0000-0000-000000000000" -H "Origin: https://evil.example.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -D - -o /dev/null | grep -iE "^(HTTP|access-control|allow-methods|allow-headers|max-age)"
+=== agentRegs true preflight item ===
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: d13c87f3-75c3-42d7-84e3-c8c959e99464
+client-request-id: d13c87f3-75c3-42d7-84e3-c8c959e99464
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"Central US","Slice":"E","Ring":"4","ScaleUnit":"008","RoleInstance":"DS3PEPF00016F41"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Sat, 15 Aug 2026 17:30:21 GMT
+Content-Length: 0
+
+HTTP 200
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+[0m
+I'll ground this cycle in fresh read-only probes before analyzing.
+[0m$ [0mecho "=== earthengine oauth.py sha ==="; curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/oauth.py -w "%{http_code} %{size_download}\n"; sha256sum /tmp/oauth.py; echo "=== secret line grep ==="; grep -n "CLIENT_SECRET\|RUP0" /tmp/oauth.py | head -5 | sha256sum
+=== earthengine oauth.py sha ===
+200 23110
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/oauth.py
+=== secret line grep ===
+4425c6d40f749cc01ef8a7cbd9eb10b766b0389ec71f07d285ede68a482d7abd  -
+[0m

@@ -7129,3 +7129,4 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
+## 2026-08-15 17:30:23 UTC [google] (model bigpickle)
