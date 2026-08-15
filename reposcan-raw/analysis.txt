@@ -1,3 +1,217 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py | head -40
+# @license
+# Copyright 2017 Google Inc.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from . import (
+    boss_credentials,
+    credentials_provider,
+    dvid_credentials,
+    google_credentials,
+)
+
+default_credentials_manager = credentials_provider.CredentialsManager()
+boss_credentials_provider = boss_credentials.BossCredentialsProvider()
+default_credentials_manager.register(
+    "google-brainmaps",
+    lambda _parameters: google_credentials.GoogleOAuth2FlowCredentialsProvider(
+        client_id="639403125587-ue3c18dalqidqehs1n1p5rjvgni5f7qu.apps.googleusercontent.com",
+        client_secret="kuaqECaVXOKEJ2L6ifZu4Aqt",
+        scopes=["https://www.googleapis.com/auth/brainmaps"],
+    ),
+)
+
+default_credentials_manager.register(
+    "gcs",
+    lambda _parameters: google_credentials.get_google_application_default_credentials_provider(),
+)
+
+default_credentials_manager.register(
+    "boss", lambda _parameters: boss_credentials_provider
+)
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | head -100
+name: Verify shared/apm.md matrix secret-stripping fix
+
+# Empirical proof for fixes in .github/workflows/shared/apm.md.
+#
+# Three job sets:
+#
+#   A. prove-old-pattern-strips-output (regression sentinel)
+#      Replicates the pre-fix shape (PEM embedded in a job output). Asserts
+#      that GitHub Actions still drops the output via its secret-redaction
+#      filter (HostContext.SecretMasker.MaskSecrets in actions/runner). If
+#      this job ever fails, GH has loosened the rule and we should reassess
+#      the fix.
+#
+#   B. prove-new-pattern-survives (positive proof of the fix)
+#      Replicates the post-fix shape (secret-free matrix + env-relay creds).
+#      Asserts: (1) the matrix output survives, (2) the dependent matrix job
+#      fans out to the expected number of rows, (3) each row successfully
+#      resolves ROW_APP_ID / ROW_PRIVATE_KEY via $GITHUB_ENV, and the PEM
+#      round-trips intact (SHA-256 comparison; the SHA is not a substring
+#      of the PEM and is therefore not masked).
+#
+#   C. apm-version-pinning (positive proof of the import-default fix)
+#      Proves the apm-version import-schema default in shared/apm.md pins
+#      every non-opting consumer to a bare-semver CLI release instead of
+#      floating to 'latest'. Two independent checks:
+#        (1) Artifact assertion (no deps): every compiled *.lock.yml that
+#            calls microsoft/apm-action renders a pinned `apm-version:
+#            <semver>` literal and carries NO raw
+#            `apm-version: ${{ github.aw.import-inputs.apm-version }}`
+#            token. The raw token (the bug shape from PR #1842) is empty
+#            at runtime, so apm-action resolves '' || 'latest' and floats.
+#        (2) Drift guard (source of truth): the schema default in
+#            shared/apm.md MUST equal the apm-version input default
+#            declared by the pinned microsoft/apm-action ref. Fetches the
+#            action's action.yml at that exact ref and compares. Fails if
+#            the mirror drifts (see the MAINTENANCE note in shared/apm.md).
+#
+#   D. pack-format-consumer-compat (cross-repo drift guard)
+#      Proves the `apm pack --archive` default archive format (.zip) stays
+#      inside the extension set the pinned microsoft/apm-action release
+#      detects when it scans the build dir for a bundle. Source of truth:
+#      src/apm_cli/commands/pack.py (the --archive-format Click default the
+#      CLI exposes and apm-action invokes) vs apm-action src/bundler.ts at the
+#      pinned ref (consumer detection); the bundle/packer.py dataclass default
+#      is asserted consistent. Fails on the
+#      'apm pack produced no bundle' outage shape -- the CLI default flipped
+#      from .tar.gz to .zip while apm-action still filtered only .tar.gz, so
+#      the GH-AW Compatibility job saw no bundle. Keep the CLI default in
+#      apm-action's detected set, or bump the pinned apm-action ref in
+#      lockstep.
+#
+# Self-contained: no real GitHub-App credentials required. The synthetic
+# PEM below is registered at runtime via ::add-mask:: which feeds the same
+# HostContext.SecretMasker that processes repo / org secrets.
+
+on:
+  pull_request:
+    paths:
+      - .github/workflows/shared/apm.md
+      - .github/workflows/verify-shared-apm-matrix.yml
+      - .github/workflows/*.lock.yml
+      - src/apm_cli/bundle/packer.py
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/shared/apm.md
+      - .github/workflows/verify-shared-apm-matrix.yml
+      - .github/workflows/*.lock.yml
+      - src/apm_cli/bundle/packer.py
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Synthetic, non-functional PEM used in both job sets. Truncated key body
+  # so it cannot accidentally be used to authenticate anywhere. Both job
+  # sets register it via ::add-mask:: so the runner treats it as a secret.
+  SYNTHETIC_PEM: |
+    -----BEGIN RSA PRIVATE KEY-----
+    MIIBOgIBAAJBAKj34GkxFhD90vcNLYLInFEX6Ppy1tPf9Cnzj4p4WGeKLs1Pt8Qu
+    SYNTHETIC-TEST-KEY-DO-NOT-USE
+    -----END RSA PRIVATE KEY-----
+
+jobs:
+  # =====================================================================
+  # Job set A: regression sentinel.
+  # =====================================================================
+  a-bug-prep:
+    name: A. Old pattern (broken) - prep
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.emit.outputs.matrix }}
+    steps:
+      - name: Register synthetic PEM as a job secret
+        id: pem
+        run: |
+          set -euo pipefail
+          # ::add-mask:: registers the value in this job's SecretMasker.
+[0m
+[0m$ [0msha256sum <<< "kuaqECaVXOKEJ2L6ifZu4Aqt"
+231a4dc64b3a81192c67ae90ba21d54bffeb7d6ac9ab2c3d33fb8625c92e1439  -
+[0m
+[0m$ [0msha256sum <<< "RUP0RZ6e0pPhDzsqIJ7KlNd1"
+036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
+[0m
+### Classification Tables
+
+#### REAL_SECRET (reportable credentials)
+
+| File | Line | Type | SHA256(secret) | Verdict |
+|------|------|------|----------------|---------|
+| `google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | OAuth client_secret | `231a4dc64b3a81192c67ae90ba21d54bffeb7d6ac9ab2c3d33fb8625c92e1439` | **REPORT_CANDIDATE: yes** — Hardcoded Google OAuth client_secret for project "google-brainmaps" (client_id `639403125587-ue3c18dalqidqehs1n1p5rjvgni5f7qu.apps.googleusercontent.com`), scopes `https://www.googleapis.com/auth/brainmaps`. Production credential in source. |
+
+#### TEST_OR_EXAMPLE (non-reportable)
+
+| File | Line | Reason |
+|------|------|--------|
+| `google/grr/docker/docker-entrypoint.sh` | 21, 26 | Env var substitution (`${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}`) — no secret material |
+| `google/grr/docker_config_files/server/grr.server.yaml` | 25 | File reference pattern `%(/configs/private-key.pem\|file)` — not a key |
+| `google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py` | 9, 12, 14 | Public IMDS endpoints (169.254.169.254) — well-known metadata URLs |
+| `google/grr/grr/server/grr_response_server/flows/general/cloud.py` | 524 | IMDS IP constant — public knowledge |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test value |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | `g_shutdownPassword = "ServerShutdownPassword"` — test fixture |
+| `google/magika/.github/workflows/*.yml` | 20, 407, 437 | `${{secrets.GITHUB_TOKEN}}` references + test.pypi.org URLs — proper secret handling |
+| `google/pebble/devsite/source/assets/js/*.js` | 24, 33 | `{{ site.algolia_api_key }}` — Jekyll/Liquid template placeholder |
+| `google/adk-kotlin/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` — test probe constant |
+| `google/go-github/github/github.go` | 1990 | `"your app's client secret"` — documentation placeholder |
+| `google/heir/scripts/author_stats.py` | 16 | Commented `# TOKEN = "your_github_token_here"` — placeholder |
+| `google/private-compute-services/.../*.kt` | 41, 43, 82, 88, 91 | Constant *names* (`KEY_RENDER_TOKEN = "render_token"`) — not secret values |
+| `microsoft/apm/src/apm_cli/.../reference.py` | 1481, 1522 | Example AzDO URLs in docstrings |
+| `microsoft/apm/src/apm_cli/.../download_strategies.py` | 230 | Example AzDO URL in code |
+| `microsoft/apm/src/apm_cli/.../policy/discovery.py` | 1010 | Example AzDO URL in comment |
+| `microsoft/apm/src/apm_cli/.../github_host.py` | 531, 817, 851 | AzDO URL format documentation strings |
+| `microsoft/apm/src/apm_cli/.../host_providers.py` | 54 | `"https://dev.azure.com"` — hostname constant |
+| `microsoft/apm/src/apm_cli/.../auth.py` | 898, 904 | AzDO PAT URL templates with placeholders |
+| `microsoft/apm/src/apm_cli/.../marketplace/__init__.py` | 495 | Example CLI command with placeholder URL |
+| `microsoft/apm/src/apm_cli/.../mcp/registry.py` | 200 | Comment referencing IMDS |
+| `microsoft/apm/src/apm_cli/.../mcp/warnings.py` | 33, 34 | IMDS IPs in warning list (169.254.169.254, 100.100.100.200) — public knowledge |
+| `microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml` | 81 | `SYNTHETIC_PEM` — explicitly labeled synthetic test key, truncated, registered via `::add-mask::` for GH Actions secret-masker testing |
+
+#### ENDPOINT_LEAK (internal/dev endpoints — low severity, mostly public metadata)
+
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/grr/grr/client/grr_response_client/client_actions/cloud.py` | 41 | `http://169.254.169.254/latest/api/token` (AWS IMDS) |
+| `google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py` | 9, 14 | `http://169.254.169.254/latest/meta-data`, `/computeMetadata/v1` (AWS/GCP IMDS) |
+| `google/grr/grr/server/grr_response_server/flows/general/cloud.py` | 524 | `169.254.169.254` (IMDS IP) |
+| `microsoft/apm/src/apm_cli/core/script_executors.py` | 711, 841 | `"metadata.google.internal"`, `169.254.169.254` (GCP/Azure IMDS) |
+
+#### INTERESTING (unusual patterns, not directly exploitable)
+
+| File | Line | Note |
+|------|------|------|
+| `google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts` | 232 | CSRF token extraction via `curl \| grep csrftoken \| cut -f 7` — demonstrates token handling pattern |
+| `microsoft/apm/src/apm_cli/core/script_executors.py` | 208 | Comment: "kubeconfig content secret — it embeds a client cert / bearer token" — documents secret-in-kubeconfig pattern |
+
+---
+
+### Summary Verdict
+
+**Only 1 reportable finding from this delta scan:**
+
+1. **`google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28`** — Hardcoded OAuth client_secret for "google-brainmaps" project. **REPORT_CANDIDATE: yes** — Valid Google OAuth credential (client_id + secret pair), scopes include brainmaps API. Submit via Google VRP.
+
+**All other hits are:**
+- Test fixtures / placeholders / template variables (properly handled)
+- Public metadata endpoints (IMDS — not secrets)
+- Synthetic test keys in CI (explicitly for secret-masker verification)
+- Documentation/examples
