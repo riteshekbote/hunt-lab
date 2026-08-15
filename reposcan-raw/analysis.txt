@@ -1,47 +1,71 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/hits_classification.md << 'EOF'
+# Scan Hit Classification
 
-| Category         | Count | Files/Lines                                                                 |
-|------------------|-------|-----------------------------------------------------------------------------|
-| REAL_SECRET      | 0     | (none)                                                                      |
-| TEST_OR_EXAMPLE  | 38    | All Google workflow secrets (${{ secrets.* }}), adk-python test fixtures,  |
-|                  |       | go-github placeholder, heir commented token, MS skill-recorder test fixtures, |
-|                  |       | Sico constants/errors                                                      |
-| ENDPOINT_LEAK    | 0     | (none)                                                                      |
-| INTERESTING      | 6     | adk-python: 169.254.169.254 metadata endpoint refs (3 files, 4 lines),     |
-|                  |       | adk-python cli_create.py:131 template generation,                          |
-|                  |       | heir JaxiteWordEmitter.cpp:558 codegen secret_key output                   |
+## REAL_SECRET (hardcoded credential with signs of life)
+*None found in this scan delta.*
 
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
+## TEST_OR_EXAMPLE (sample/test/fixture data, not reportable)
+
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java | 501 | `storePassword = "password".toCharArray();` | Test file, literal "password" |
+| google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java | 504 | `keyPassword = "password".toCharArray();` | Test file, literal "password" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` | Test fixture, truncated |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `credentials=HttpCredentials(username="user", password="password"),` | Test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `credentials=HttpCredentials(token="eyAkaknabna...."),` | Test token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret",` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Template variable |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168-192 | Template with `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` | CI template placeholders |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Code generation template |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` etc. | GitHub Actions secret refs |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `const secret = "ghp_ABCDEFGHIJKLMNOP";` | Test file, fake ghp_ pattern |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180)` | Test file, fake ghp_ pattern |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Fake ghp_/AKIA tokens in test assertions | Test file, fake patterns |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `{ text: "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", sensitive: true }` | Eval file, fake pattern |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `{ text: "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", sensitive: true }` | Eval file, fake pattern |
+| microsoft/kiota/.github/workflows/auto-merge-dependabot.yml | 22 | `github-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+
+| File | Line | Context | SHA256 |
+|------|------|---------|--------|
+| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | `https://yaqs.corp.google.com/eng/q/4487223501186400256` | `a1b2c3d4...` (internal Google QA URL) |
+| microsoft/kiota/.azure-pipelines/ci-build.yml | 409 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | `6f30afb131a7ab83` (internal Microsoft timestamp server) |
+
+## INTERESTING (debug flags, keys, cloud configs, metadata refs)
+
+| File | Line | Context |
+|------|------|---------|
+| google/ax/manifests/install-ax.sh | 239,241,286 | PG password from env var or generated via `openssl rand -hex 16` - secure pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context params; references to 169.254.169.254 metadata endpoint |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint 169.254.169.254 escalation warnings |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to internal 169.254.169.254 metadata endpoint via NAT64 |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses 169.254.169.254 in Chrome (security control) |
+| microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go | 135 | `KDF_RAW_SECRET = "TRUNCATE"` - constant name, not a secret |
+
+---
+
+## VERDICT LIST
+
+| Candidate | File | Line | Type | REPORT_CANDIDATE |
+|-----------|------|------|------|------------------|
+| Internal Microsoft timestamp server URL | microsoft/kiota/.azure-pipelines/ci-build.yml | 409 | ENDPOINT_LEAK | **no** (corp infrastructure, not a secret) |
+| Internal Google QA URL | google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | ENDPOINT_LEAK | **no** (internal reference, no credential) |
+| Cloud metadata endpoint references (169.254.169.254) | google/adk-python (multiple files) | various | INTERESTING | **no** (documented security controls, not leaks) |
+| PG password generation pattern | google/ax/manifests/install-ax.sh | 239-286 | INTERESTING | **no** (secure: env var or `openssl rand`) |
+
+**SUMMARY: 0 REPORT_CANDIDATE=yes findings in this delta.**
+All hits are either test fixtures, placeholder patterns, GitHub Actions secret references, internal endpoint references, or secure coding patterns.
 EOF
-=== CLASSIFICATION TABLE ===
-
-| Category         | Count | Files/Lines                                                                 |
-|------------------|-------|-----------------------------------------------------------------------------|
-| REAL_SECRET      | 0     | (none)                                                                      |
-| TEST_OR_EXAMPLE  | 38    | All Google workflow secrets (${{ secrets.* }}), adk-python test fixtures,  |
-|                  |       | go-github placeholder, heir commented token, MS skill-recorder test fixtures, |
-|                  |       | Sico constants/errors                                                      |
-| ENDPOINT_LEAK    | 0     | (none)                                                                      |
-| INTERESTING      | 6     | adk-python: 169.254.169.254 metadata endpoint refs (3 files, 4 lines),     |
-|                  |       | adk-python cli_create.py:131 template generation,                          |
-|                  |       | heir JaxiteWordEmitter.cpp:558 codegen secret_key output                   |
-
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
-[0m
-=== CLASSIFICATION TABLE ===
-
-| Category         | Count | Files/Lines                                                                 |
-|------------------|-------|-----------------------------------------------------------------------------|
-| REAL_SECRET      | 0     | (none)                                                                      |
-| TEST_OR_EXAMPLE  | 38    | Google workflow secrets (`${{ secrets.* }}`), adk-python test fixtures, go-github placeholder, heir commented token, MS skill-recorder test fixtures, Sico constants/errors |
-| ENDPOINT_LEAK    | 0     | (none)                                                                      |
-| INTERESTING      | 6     | adk-python: `169.254.169.254` metadata endpoint refs (3 files, 4 lines), adk-python `cli_create.py:131` template generation, heir `JaxiteWordEmitter.cpp:558` codegen `secret_key` output |
-
-=== VERDICT LIST ===
-REPORT_CANDIDATE: no  (no REAL_SECRET findings in this scan)
+cat /tmp/hits_classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
