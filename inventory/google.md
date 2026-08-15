@@ -931,3 +931,9 @@
 ## 2026-08-15 04:05:50 UTC
 
 ## 2026-08-15 04:46:21 UTC
+
+## 2026-08-15 05:07:27 UTC
+- NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including resourceId (Graph OR
+- CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact (no Origin header = not true preflight); verified true CORS preflight (Origin + Access-Control-Request-Method:PATCH + Access-Control-
+- CHANGED Earth Engine secret A/B proof refined — leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret→401 `invalid_client "The provided client secret is invalid."` — conclusive d
+- CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page in prior cycles); cosmetic redirect per KB, no auth-bypass surface
