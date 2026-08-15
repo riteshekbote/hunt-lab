@@ -1,72 +1,82 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/scan_classification.md << 'EOF'
-# Scan Classification Results
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password" | cut -d' ' -f1
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && for s in "your_access_token" "fuzz test key" "ServerShutdownPassword" "injected-token-probe" "your_client_secret" "eyAkaknabna...."; do echo -n "$s" | sha256sum | cut -d' ' -f1; done
+1d9b33b82eaccfb05e1f15f02d55a5e8c0e944cabbcd29ad851fdf52540e5a31
+fb6a3b29de3865e2e57235b799309069ada65075335dd33f3b8ba723742145f8
+680e5b27a7ece10fcb6166bcd9697636bebd7b020c65aaeb556373234c2abb88
+3e208f9efce6ff4c3dcb80fe3d7a86d0a730b0a330be921b4da098bce484f1c1
+7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f
+6c90d62b4dd549d621bd810f0a27c4bad9a044934e410669476140b9efdfd3a2
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n '-----BEGIN PRIVATE KEY-----...' | sha256sum | cut -d' ' -f1
+a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3
+[0m
+Now let me produce the classification tables and verdict.
 
-## REAL_SECRET (reportable credentials)
-*None found in this delta scan*
+---
 
-## TEST_OR_EXAMPLE (test fixtures, placeholders, examples)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Test placeholder |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Test placeholder |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Test constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated test placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Test placeholder |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Integration test token |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=` + getDatabasePassword() | Test code |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable (not hardcoded) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
+### Classification Tables
 
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | Well-known GCP metadata endpoint (public) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local/GCP metadata CIDR (public knowledge) |
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `ipaddress.ip_address("169.254.169.254")` | Metadata IP constant (public) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint in comment |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint in comment |
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *(none found in this scan)* | | | The known live earthengine-api secret (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not in this scan's hits** — it was found in prior passive probes (KB ACCEPTED 2026-08-07–2026-08-15). |
 
-## INTERESTING (debug flags, keys, cloud configs, proper secret handling)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/grr/docker/docker-entrypoint.sh | 21 | `--admin_password="${ADMIN_PASSWORD}"` | Proper env var usage (not hardcoded) |
-| google/grr/docker/docker-entrypoint.sh | 26 | `--mysql_password="${GRR_MYSQL_PASSWORD}"` | Proper env var usage (not hardcoded) |
-| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | Config template referencing file (not the key) |
-| google/grr/grr/server/grr_response_server/gui/ui/components/.../client_flows.ts | 232 | CSRF token extraction command | Test/debug command in UI component |
-| google/closure-compiler/externs/es6.js | 392 | `http://dev.w3.org/html5/postmsg/` | Spec URL in externs |
-| google/closure-compiler/externs/browser/w3c_device_sensor_event.js | 22 | `http://dev.w3.org/geo/api/spec-source-orientation` | Spec URL in externs |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` | Project homepage URL |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL in comment | Documentation reference |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path parameters | Config parameters (not secrets) |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle | Compiled artifact (not source) |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle | Compiled artifact (not source) |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS chunks | Compiled artifacts (not source) |
+#### TEST_OR_EXAMPLE
+| File | Line | Secret SHA256 | Pattern |
+|------|------|---------------|---------|
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214 | `6b3a55e0…a10f4e` | `password: "password"` |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 226 | `1d9b33b8…0e5a31` | `token: "your_access_token"` |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `6b3a55e0…a10f4e` | `PASSWORD = 'password'` |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `fb6a3b29…2145f8` | `secret_key = "fuzz test key"` |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `680e5b27…2abb88` | `g_shutdownPassword = "ServerShutdownPassword"` |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | `680e5b27…2abb88` | `PASSWORD=` + getter (test) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `a88f242b…0e04f3` | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `6b3a55e0…a10f4e` | `username="user", password="password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `6c90d62b…fd3a2` | `token="eyAkaknabna...."` (truncated placeholder) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `6b3a55e0…a10f4e` | `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `7a412f5e…06d0de0f` | `client_secret="your_client_secret"` |
+| `google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt` | 49 | `3e208f9e…84f1c1` | `INJECTED_TOKEN = "injected-token-probe"` |
+| `google/grr/docker/docker-entrypoint.sh` | 21, 26 | — | Env-var references `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` (not hardcoded) |
 
-## VERDICT SUMMARY
+#### ENDPOINT_LEAK (metadata / internal endpoints)
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` (GCP metadata) |
+| `google/grr/grr/client/grr_response_client/client_actions/cloud.py` | 41 | `http://169.254.169.254/latest/api/token` (AWS IMDSv2 token) |
+| `google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py` | 9 | `http://169.254.169.254/latest/meta-data` (AWS IMDS) |
+| `google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py` | 14 | `http://169.254.169.254/computeMetadata/v1` (GCP metadata) |
+| `google/grr/grr/server/grr_response_server/flows/general/cloud.py` | 524 | `169.254.169.254` (IP literal) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` (comments) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (comment) |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (comment) |
 
-| Category | Count | Report Candidates |
-|----------|-------|-------------------|
-| REAL_SECRET | 0 | **REPORT_CANDIDATE: no** |
-| TEST_OR_EXAMPLE | 14 | Not reportable |
-| ENDPOINT_LEAK | 10 | Not reportable (well-known public endpoints) |
-| INTERESTING | 18 | Not reportable (proper patterns, compiled artifacts, config templates) |
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts` | 232 | CSRF token extraction via `curl | grep csrftoken` — admin/debug helper |
+| `google/grr/docker_config_files/server/grr.server.yaml` | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem\|file)"` — file-ref config pattern |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `f"GOOGLE_API_KEY={google_api_key}"` — writes API key to file at runtime (pattern, not a leak) |
 
-**OVERALL: NO NEW REPORTABLE FINDINGS IN THIS DELTA SCAN**
+---
 
-The previously confirmed earthengine-api oauth.py:45 hardcoded secret (sha256 `3f3f8d6f...d271`) remains LIVE per knowledge base but was not in this delta (0 new hits vs previous scan).
-EOF
-cat /tmp/scan_classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+### Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `google/earthengine-api/python/ee/oauth.py:45` (KB live secret, sha256 `3f3f8d6f…d271`) | REAL_SECRET (pre-existing, not in this scan) | **yes** — valid Google OAuth client_secret (native installed app + OOB); A/B proof: leaked→`invalid_grant`, fake→`invalid_client` per RFC 6749 §5.2; VRP severity capped by ADK #2128 by-design precedent |
+| All TEST_OR_EXAMPLE entries | TEST_OR_EXAMPLE | **no** — placeholders, fixtures, test constants |
+| All ENDPOINT_LEAK entries | ENDPOINT_LEAK | **no** — metadata endpoints (169.254.169.254, metadata.google.internal) are well-known, documented, not secrets |
+| All INTERESTING entries | INTERESTING | **no** — debug/admin patterns, config templates, code patterns; no exploitable secret material |
+
+---
+
+### Summary
+- **0 new REAL_SECRET** in this scan's 272 hits.
+- **1 pre-existing REAL_SECRET** (earthengine-api) remains live per KB — already triaged, draft report at `reports/google-vrp-earthengine-secret.md`.
+- All other hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata IPs), or **INTERESTING** (debug/config patterns) — **not reportable**.
+- **NO_DELTA** on all three active hypotheses (agentRegistrations 6-family IDOR+CORS, earthengine secret, oauth2PermissionGrants consent forge).
