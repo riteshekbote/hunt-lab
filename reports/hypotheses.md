@@ -3132,3 +3132,15 @@
 - LEARN: No new classes proven dead or alive this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA)
 - LEARN: ACCEPTED v1↔v2 JWKS subset invariant @ login.microsoftonline.com/discovery/keys: v1 rotated to 5 kids (T5h40q7 added) all ⊂ v2(8), 0 v1-exclusive — rotation chu
 - LEARN: ACCEPTED agentRegistrations 5-family IDOR+CORS precondition @ graph.microsoft.com/beta/copilot/* re-verified live this cycle — GET 401/237, HEAD 405/0, item-lev
+
+## RANKED HYPOTHESES 2026-08-15 04:05:50 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — provide App A + App B principal pair with cross-tenant app registration + PATCH c
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 agentRegistrations 5-f
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-s
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: HTTP 200 `ACAO:*` + `Allo
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret A/B proof re-confirmed @ oauth2.googleapis.com/token: leaked secret→400 invalid_grant (valid credential per RFC 6749 
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration

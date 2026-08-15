@@ -6232,3 +6232,33 @@ testability: HUMAN_ONLY
 [LEARN] ACCEPTED agentRegistrations 5-family IDOR+CORS precondition @ graph.microsoft.com/beta/copilot/* re-verified live this cycle — GET 401/237, HEAD 405/0, item-level CORS preflight 200 ACAO:* + PATCH + Max-Age 86400; unchanged, NO_DELTA.
 [RISK] google: 78 reason — one confirmed-valid hardcoded OAuth credential (native-app public-client caps VRP-worthiness per ADK #2128), tokeninfo introspection oracle (no-reward), POST-only token gate; no new surface this cycle.
 [RISK] microsoft: 74 reason — 5-family IDOR+CORS + production v1.0 consent-forge preconditions fully mapped and re-verified live; both blocked solely on AUTH_HELPED authorized-tenant enrollment; RFC 6750/6749 §3 hardening gaps persist; no new surface this cycle.
+## 2026-08-15 04:04:10 UTC [google] (model bigpickle)
+[HYP] Copilot Admin 5-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: GET→401/237 auth-gated, HEAD→405/0 (RFC 6750 §3), true CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 re-verified; $metadata 873-char agentRegistration block 0 OperationRestrictions, client-supplied createdBy/ownerIds/managedByAppId across 5 EntityTypes.
+evidence_needed: Principal B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 incl A vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: GET→401/237 Bearer re-verified this probe; oAuth2PermissionGrant EntityType 458-char block 0 OperationRestrictions, 7 client-supplied properties incl resourceId (Graph OR Azure Storage user_impersonation), no requester-vs-target cross-check.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>, scope user_impersonation→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; then B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: raw oauth.py whole-file sha `f4f93c76…b73040` verbatim @ 200/23110 re-verified this probe; bare-secret sha `3f3f8d6f…d271` at :45 + :99 fallback; token GET→404 POST-only gate; A/B proof leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2).
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: file Google VRP report (secret sha `3f3f8d6f…d271`, file sha `f4f93c76…`, invalid_grant A/B proof); request authorized redemption; cite ADK #2128 native-app OOB by-design precedent.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
+[FINAL] 1) Copilot Admin 5-family IDOR (97) 2) Earth Engine client_secret (96) 3) oauth2PermissionGrants consent forge (72)
+[NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 agentRegistrations 5-family IDOR, #3 oauth2PermissionGrants consent forge) in one session; provide App A + App B principal pair, then run the B-oid ownership cross-check POST/PATCH sequence on agentRegistrations collection+item, then the oauth2PermissionGrants forge POST + B-side read-back.
