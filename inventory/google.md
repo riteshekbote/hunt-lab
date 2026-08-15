@@ -1022,3 +1022,6 @@
 - CHANGED agentRegistrations item-level true CORS preflight gap CLOSED — Origin+ACRM:PATCH+ACH:authorization → 200 ACAO:* + PATCH allowlist + Max-Age 86400 confirmed at both collection+item level across all 6 C
 - CHANGED CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — REJECTED false positive (SweetAlert2 DOM element ID pattern swal-input1/2/3/4, not a credential) — MISCONFIG class colla
 - CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+
+## 2026-08-15 15:55:32 UTC
+- NEW NO_DELTA — all surface items unchanged since last cycle; MSRC/Google VRP drafts prepared but not new attack surface

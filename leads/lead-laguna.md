@@ -8273,3 +8273,42 @@ testability: PASSIVE
 [LEARN] REJECTED CodeWorld Password='swal-input2' @ google/codeworld/web/js/utils/auth.js:30: SweetAlert2 DOM element ID pattern (swal-input1/2/3/4), not a credential — MISCONFIG false-positive collapsed
 [RISK] google: 91 reason: Hardcoded live OAuth client_secret in public earthengine-api repo (confidence 96, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, scopes cloud-platform+earthengine+drive+devstorage, token POST-only gate confirms grant_type=refresh_token redemption path); tokeninfo public introspection oracle (no-auth query-param acceptance, 400/113 invalid_token) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation); native installed app OOB by-design caps VRP severity but does not invalidate credential validity
 [RISK] microsoft: 94 reason: Copilot Admin 6-family IDOR+CORS (true CORS preflight 200 ACAO:* + PATCH allowlist at both collection+item across agentRegistrations/agentRegistry/agents/admin/catalog/packages/admin/policySettings, $metadata 0 OperationRestrictions); oauth2PermissionGrants consent-forge on production v1.0 (458-char EntityType zero-restriction schema, caller-supplied resourceId targeting Graph OR Azure Storage); Graph 405 anomaly systemic (RFC 6750 §3 violation across /v1.0, /beta/copilot, /v1.0/oauth2PermissionGrants); v1↔v2 JWKS kid overlap REJECTED (v1⊂v2 subset invariant holds, v1 kid set never validated against v2 issuer → no confusion surface)
+## 2026-08-15 15:51:01 UTC [google] (model laguna)
+[PRIO] `graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/*` + `graph.microsoft.com/v1.0/oauth2PermissionGrants`, 9.55, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
+[PRIO] `oauth2.googleapis.com/token` (Earth Engine secret redemption), 9.25, attack=10 business=10 tech=10 gate=6 cloud=10 fresh=9
+[PRIO] `graph.microsoft.com/beta/copilot/{agentRegistry,agents,admin/*}`, 9.05, attack=10 business=10 tech=10 gate=5 cloud=9 fresh=9
+[HYP] Copilot Admin 6-family + oauth2PermissionGrants cross-principal ownership bypass via CORS+PATCH+forge
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings} + graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 97
+reasoning: Fresh probe confirms true CORS preflight at both collection+item level across 6 Copilot Admin endpoint families → 200 ACAO:* + PATCH allowlist + Max-Age 86400; oAuth2PermissionGrant EntityType (458-char block, 0 OperationRestrictions, caller-supplied resourceId targeting Graph OR Azure Storage) newly confirmed on production v1.0 — same zero-restriction schema defect extends from beta/copilot to v1.0 consent grants
+evidence_needed: App B PATCH returns 200/204 against resource owned by App A; cross-principal GET returns 200; App A POST oauth2PermissionGrants with resourceId=victim_resource_uri → 201
+verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations body {"displayName":"t","createdBy":"A_oid","ownerIds":["A_oid"]}→201; (2) App B PATCH /beta/copilot/agentRegistrations/{id} Origin:https://evil.example Authorization:Bearer_B body {"ownerIds":["B_oid"]}→expect 200/204 (vuln) vs 403 (fixed); (3) App B GET /beta/copilot/agentRegistrations/{id}→expect 200 (vuln) vs 403; (4) App A POST /v1.0/oauth2PermissionGrants BearerA body {"resourceId":"<victim_resource_uri>","clientId":"<attacker_app>","consentType":"All","principalId":"<victim_oid>","scope":"user_impersonation"}→expect 201 (vuln) vs 403
+impact: Cross-principal ownership takeover across entire Copilot Admin surface (6 families) + consent-grant forge enabling unauthorized delegated token minting for victim Graph/Azure Storage resources (CVSS 8.5-9.4)
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform access token
+class: AUTH
+asset: oauth2.googleapis.com/token
+confidence: 96
+reasoning: Raw GitHub GET→200/len=23110 confirmed, secret sha256 `3f3f8d6f…d271` verbatim at oauth.py:45 + :99 fallback, whole-file sha `f4f93c76…b73040` unchanged; A/B proof: leaked secret→400 invalid_grant (valid credential per RFC 6749 §5.2), fake secret→401 invalid_client; token GET→404 confirms POST-only gate; scopes cloud-platform+earthengine+drive+devstorage
+evidence_needed: Valid refresh_token redemption using leaked client_secret + known client_id → HTTP 200 + signed cloud-platform access token
+verify_steps: HUMAN_ONLY: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle
+impact: Full GCP project takeover via cloud-platform scope (CVSS 9.0-9.8)
+testability: HUMAN_ONLY
+[HYP] Graph API 405 anomaly systemic across Microsoft API gateway
+class: MISCONFIG
+asset: graph.microsoft.com/v1.0, /beta/copilot/agentRegistrations, /v1.0/oauth2PermissionGrants
+confidence: 50
+reasoning: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) on /v1.0, /v1.0/me, /v1.0/users, /beta/copilot/agentRegistrations, /v1.0/oauth2PermissionGrants; GET returns proper 401 with Bearer challenge — systemic gateway misconfiguration
+evidence_needed: Unauth HEAD request against multiple Microsoft API paths returns HTTP 405 with Content-Length 0 and no WWW-Authenticate header
+verify_steps: PASSIVE: `curl -I HEAD https://graph.microsoft.com/v1.0`; `curl -I HEAD https://graph.microsoft.com/v1.0/oauth2PermissionGrants`; `curl -I HEAD https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id`
+impact: Breaks SDK auto-auth, masks IDOR enumeration, enables differential analysis attacks (low direct impact but violates RFC 6750 §3 consistency)
+testability: PASSIVE
+[PARKED] None — all 3 hypotheses meet confidence >= 40, no class on REJECTED list, all have concrete verify_steps.
+[FINAL]
+[FINAL] 1) [97] Copilot Admin 6-family + oauth2PermissionGrants cross-principal ownership bypass via CORS+PATCH+forge (AUTH_HELPED)
+[FINAL] 2) [96] Earth Engine hardcoded OAuth client_secret redeemable for cloud-platform access token (HUMAN_ONLY)
+[FINAL] 3) [50] Graph API 405 anomaly systemic across Microsoft API gateway (PASSIVE)
+[NEXT] HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle (secret sha256 `3f3f8d6f…d271`, client_id `517222506229-…`, scopes cloud-platform+earthengine+drive+devstorage). Simultaneously submit `reports/msrc-two-principal-request.md` to MSRC portal requesting authorized two-principal (App A + App B) tenant enrollment — one authorization unblocks both Microsoft hypotheses (6-family IDOR+CORS at collection+item + oauth2PermissionGrants consent forge on production v1.0).
+[RISK] google: 91 reason: Hardcoded live OAuth client_secret sha256 `3f3f8d6f…d271` in public earthengine-api repo (confidence 96, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, scopes cloud-platform+earthengine+drive+devstorage, token GET→404 POST-only gate confirms grant_type=refresh_token redemption path); tokeninfo public introspection oracle (no-auth query-param acceptance, 400/113 invalid_token, no-reward per VRP rules) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation)
+[RISK] microsoft: 94 reason: Copilot Admin 6-family IDOR+CORS (true CORS preflight 200 ACAO:* + PATCH allowlist at both collection+item across agentRegistrations/agentRegistry/agents/admin/catalog/packages/admin/policySettings, $metadata 0 OperationRestrictions across 6 EntityTypes) + oauth2PermissionGrants consent-forge on production v1.0 (458-char EntityType zero-restriction schema, caller-supplied resourceId targeting Graph OR Azure Storage) + Graph 405 anomaly systemic (RFC 6750 §3 violation across /v1.0, /beta/copilot, /v1.0/oauth2PermissionGrants); v1↔v2 JWKS kid overlap REJECTED (v1⊂v2 subset invariant holds, v1 kid set never validated against v2 issuer → no confusion surface)
