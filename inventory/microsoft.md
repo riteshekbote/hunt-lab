@@ -952,3 +952,9 @@
 ## 2026-08-15 07:26:24 UTC
 - NEW `google/codeworld/web/js/utils/auth.js:30` — hardcoded password `swal-input2` (sha256 `ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5`) deployed to production client-side JS; verifie
 - CHANGED Re-classification: bare-OPTIONS→405 on agentRegistrations confirmed as probe artifact (true CORS preflight with Origin header → 200 ACAO:* + PATCH + Max-Age 86400, item-level verified)
+
+## 2026-08-15 07:54:14 UTC
+- NEW `google/codeworld/web/js/utils/auth.js:30` — hardcoded `PASSWORD = 'swal-input2'` (sha256 `ffd0ae7d...`) in production client-side JS
+- CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact; true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + PATCH allowlist + Max-Age 86400 confirmed at item level
+- CHANGED Earth Engine A/B proof refined — leaked secret→400 `invalid_grant`, fake secret→401 `invalid_client` (conclusive RFC 6749 §5.2 differential)
+- CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html); cosmetic redirect, no auth-bypass surface
