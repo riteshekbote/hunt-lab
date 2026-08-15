@@ -28855,3 +28855,141 @@ testability: HUMAN_ONLY
 **STEP 7 — RISK SCORE**
 - [RISK] google: 42 — no unauthenticated exposure remains (token POST-only, tokeninfo no-reward, storage.buckets.list anonymous-denied, secret is by-design public-client OOB pattern); only residual risk is the valid cloud-platform-scoped credential pending VRP determination.
 - [RISK] microsoft: 64 — three auth-gated but high-value cross-principal preconditions live (6-family CORS+PATCH IDOR 97, consent forge 74); systemic RFC 6750 §3 method-challenge inconsistency; exploitability gated entirely on authorized two-principal tenant.
+===== ANALYST bigpickle 2026-08-15 23:50:17 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mprobe() { printf '%-70s' "$2"; curl -s -o /dev/null -m 15 -w "%{http_code} len=%{size_download}\n" "$1" "$@" 2>/dev/null || echo ERR; }
+probe "https://graph.microsoft.com/v1.0" "GET graph /v1.0"
+curl -s -o /dev/null -m 15 -w "HEAD graph /v1.0 -> %{http_code} len=%{size_download}\n" -X HEAD "https://graph.microsoft.com/v1.0"
+GET graph /v1.0                                                       200 len=4779
+{"@odata.context":"https://graph.microsoft.com/v1.0/$metadata","value":[{"name":"directoryObjects","kind":"EntitySet","url":"directoryObjects"},{"name":"invitations","kind":"EntitySet","url":"invitations"},{"name":"users","kind":"EntitySet","url":"users"},{"name":"applicationTemplates","kind":"EntitySet","url":"applicationTemplates"},{"name":"authenticationMethodConfigurations","kind":"EntitySet","url":"authenticationMethodConfigurations"},{"name":"identityProviders","kind":"EntitySet","url":"identityProviders"},{"name":"applications","kind":"EntitySet","url":"applications"},{"name":"appRoleAssignments","kind":"EntitySet","url":"appRoleAssignments"},{"name":"certificateBasedAuthConfiguration","kind":"EntitySet","url":"certificateBasedAuthConfiguration"},{"name":"contacts","kind":"EntitySet","url":"contacts"},{"name":"contracts","kind":"EntitySet","url":"contracts"},{"name":"devices","kind":"EntitySet","url":"devices"},{"name":"directoryRoles","kind":"EntitySet","url":"directoryRoles"},{"name":"directoryRoleTemplates","kind":"EntitySet","url":"directoryRoleTemplates"},{"name":"domainDnsRecords","kind":"EntitySet","url":"domainDnsRecords"},{"name":"domains","kind":"EntitySet","url":"domains"},{"name":"groups","kind":"EntitySet","url":"groups"},{"name":"groupSettings","kind":"EntitySet","url":"groupSettings"},{"name":"groupSettingTemplates","kind":"EntitySet","url":"groupSettingTemplates"},{"name":"oauth2PermissionGrants","kind":"EntitySet","url":"oauth2PermissionGrants"},{"name":"organization","kind":"EntitySet","url":"organization"},{"name":"permissionGrants","kind":"EntitySet","url":"permissionGrants"},{"name":"scopedRoleMemberships","kind":"EntitySet","url":"scopedRoleMemberships"},{"name":"servicePrincipals","kind":"EntitySet","url":"servicePrincipals"},{"name":"subscribedSkus","kind":"EntitySet","url":"subscribedSkus"},{"name":"places","kind":"EntitySet","url":"places"},{"name":"drives","kind":"EntitySet","url":"drives"},{"name":"shares","kind":"EntitySet","url":"shares"},{"name":"sites","kind":"EntitySet","url":"sites"},{"name":"schemaExtensions","kind":"EntitySet","url":"schemaExtensions"},{"name":"groupLifecyclePolicies","kind":"EntitySet","url":"groupLifecyclePolicies"},{"name":"filterOperators","kind":"EntitySet","url":"filterOperators"},{"name":"functions","kind":"EntitySet","url":"functions"},{"name":"agreementAcceptances","kind":"EntitySet","url":"agreementAcceptances"},{"name":"agreements","kind":"EntitySet","url":"agreements"},{"name":"dataPolicyOperations","kind":"EntitySet","url":"dataPolicyOperations"},{"name":"subscriptions","kind":"EntitySet","url":"subscriptions"},{"name":"connections","kind":"EntitySet","url":"connections"},{"name":"chats","kind":"EntitySet","url":"chats"},{"name":"teams","kind":"EntitySet","url":"teams"},{"name":"teamsTemplates","kind":"EntitySet","url":"teamsTemplates"},{"name":"identityGovernance","kind":"Singleton","url":"identityGovernance"},{"name":"auditLogs","kind":"Singleton","url":"auditLogs"},{"name":"reports","kind":"Singleton","url":"reports"},{"name":"authenticationMethodsPolicy","kind":"Singleton","url":"authenticationMethodsPolicy"},{"name":"informationProtection","kind":"Singleton","url":"informationProtection"},{"name":"solutions","kind":"Singleton","url":"solutions"},{"name":"identity","kind":"Singleton","url":"identity"},{"name":"deviceManagement","kind":"Singleton","url":"deviceManagement"},{"name":"privacy","kind":"Singleton","url":"privacy"},{"name":"security","kind":"Singleton","url":"security"},{"name":"compliance","kind":"Singleton","url":"compliance"},{"name":"copilot","kind":"Singleton","url":"copilot"},{"name":"directory","kind":"Singleton","url":"directory"},{"name":"me","kind":"Singleton","url":"me"},{"name":"policies","kind":"Singleton","url":"policies"},{"name":"tenantRelationships","kind":"Singleton","url":"tenantRelationships"},{"name":"admin","kind":"Singleton","url":"admin"},{"name":"education","kind":"Singleton","url":"education"},{"name":"roleManagement","kind":"Singleton","url":"roleManagement"},{"name":"drive","kind":"Singleton","url":"drive"},{"name":"storage","kind":"Singleton","url":"storage"},{"name":"communications","kind":"Singleton","url":"communications"},{"name":"identityProtection","kind":"Singleton","url":"identityProtection"},{"name":"deviceAppManagement","kind":"Singleton","url":"deviceAppManagement"},{"name":"search","kind":"Singleton","url":"search"},{"name":"planner","kind":"Singleton","url":"planner"},{"name":"print","kind":"Singleton","url":"print"},{"name":"external","kind":"Singleton","url":"external"},{"name":"appCatalogs","kind":"Singleton","url":"appCatalogs"},{"name":"teamwork","kind":"Singleton","url":"teamwork"},{"name":"employeeExperience","kind":"Singleton","url":"employeeExperience"}]}200 len=4779
+000 len=0
+ERR
+HEAD graph /v1.0 -> 405 len=0
+[0m
+[0m$ [0mcurl -s -o /dev/null -m 15 -w "OPTIONS agentRegs/{id} preflight -> %{http_code} ACAO=%header{access-control-allow-origin} methods=%header{access-control-allow-methods}\n" -X OPTIONS -H "Origin: https://attacker.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" "https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id"
+curl -s -o /dev/null -m 15 -w "GET oauth2PermissionGrants -> %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants"
+OPTIONS agentRegs/{id} preflight -> 200 ACAO=* methods=DELETE, GET, OPTIONS, POST, PUT, PATCH
+GET oauth2PermissionGrants -> 401 len=237
+[0m
+[0m$ [0mcurl -s -o /dev/null -m 15 -w "GET token -> %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/token"
+curl -s -m 15 -w "tokeninfo -> %{http_code} len=%{size_download}\n" -o /tmp/opencode/tokeninfo.out "https://oauth2.googleapis.com/tokeninfo"; head -c 120 /tmp/opencode/tokeninfo.out; echo
+curl -s -m 15 -w "storage/v1/b?project -> %{http_code} len=%{size_download}\n" -o /tmp/opencode/storage.out "https://www.googleapis.com/storage/v1/b?project=517222506229"; head -c 160 /tmp/opencode/storage.out; echo
+GET token -> 404 len=0
+tokeninfo -> 400 len=113
+{
+  "error": "invalid_token",
+  "error_description": "Either access_token, id_token, or token_handle required"
+}
+
+storage/v1/b?project -> 401 len=1014
+{
+  "error": {
+    "code": 401,
+    "message": "Anonymous caller does not have storage.buckets.list access to the Google Cloud project. Permission 'storage.buck
+[0m
+[0m$ [0mcurl -s -m 20 -w "\nkeys -> %{http_code} len=%{size_download}\n" -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/v2.0/keys" -o /tmp/opencode/jwks2.json
+curl -s -m 20 -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/keys" -o /tmp/opencode/jwks1.json
+python3 -c "
+import json
+j1=json.load(open('/tmp/opencode/jwks1.json')); j2=json.load(open('/tmp/opencode/jwks2.json'))
+k1={k['kid'] for k in j1['keys']}; k2={k['kid'] for k in j2['keys']}
+print('v1 kids:',sorted(k1)); print('v2 kids:',sorted(k2)); print('v1_exclusive:',sorted(k1-k2)); print('v2_exclusive:',sorted(k2-k1))
+"
+keys -> 200 len=12894
+v1 kids: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'T5h40q7G0x49qn41lM9-kKjpD98', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+v2 kids: ['6hXLaIYNSJ0o7zu09dMyI0ji3ug', 'AahUf1bCXvx0JTRcXLrr0U4SluY', 'N6SfdzXgL4EfRv0-MqEz1xZk6s4', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'fEtqrhKT1bXAGafSdQoN1vXTRpI', 'kPNphcDT-3CkaSpuFhApqNImFAs', 'rRk1d-57BGZfsM4BUHrkx8cQbic', 'sa3RgZQ_nZNVheAokCVqxY_8Cr4']
+v1_exclusive: ['T5h40q7G0x49qn41lM9-kKjpD98']
+v2_exclusive: ['N6SfdzXgL4EfRv0-MqEz1xZk6s4', 'NqEBZVuOpstZ__5iZuWH3HPswcI', 'kPNphcDT-3CkaSpuFhApqNImFAs', 'rRk1d-57BGZfsM4BUHrkx8cQbic']
+[0m
+[0m$ [0mcurl -s -m 20 "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" -o /tmp/opencode/oauth.py
+wc -c /tmp/opencode/oauth.py; sha256sum /tmp/opencode/oauth.py
+grep -n "CLIENT_SECRET\|client_id\|REDIRECT_URI" /tmp/opencode/oauth.py | head -8
+sed -n '45p' /tmp/opencode/oauth.py | tr -d ' \t' | sha256sum
+23110 /tmp/opencode/oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/opencode/oauth.py
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+52:REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+112:  client_id = credentials and getattr(credentials, 'client_id', None)
+113:  return _project_number_from_client_id(client_id)
+172:      'client_id': CLIENT_ID,
+174:      'redirect_uri': redirect_uri or REDIRECT_URI,
+0de00bb13b5e47cae9d350fd02f65200ab094eb0eddd0756420255b2cd793bfe  -
+[0m
+[0m$ [0mpython3 -c "
+import hashlib,re
+src=open('/tmp/opencode/oauth.py').read()
+m=re.search(r\"CLIENT_SECRET = '([^']+)'\",src)
+s=m.group(1)
+print('bare_secret_sha256:',hashlib.sha256(s.encode()).hexdigest())
+print('len_secret:',len(s))
+print('client_id:',re.search(r\"CLIENT_ID = '([^']+)'\",src).group(1))
+"
+Traceback (most recent call last):
+  File "<string>", line 8, in <module>
+AttributeError: 'NoneType' object has no attribute 'group'
+bare_secret_sha256: 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271
+len_secret: 24
+[0m
+STEP 1 — DELTA
+- [CHANGED] `graph.microsoft.com` root: 200 text/html signin → HTTP 301 → `developer.microsoft.com/graph` (cosmetic; already in inventory as REJECTED, no auth-bypass surface)
+- [NEW] `www.googleapis.com/storage/v1/b`: bare → 400 (missing `project`); with `?project=517222506229` → 401 `storage.buckets.list` denied — re-verified this probe, REJECTED (auth-gated, no bypass)
+- [CHANGED] JWKS v1=5 kids, `T5h40q7…` v1-exclusive this probe (v2=8) — transient rotation churn, same REJECTED class as `aFkmKVFc`/`kPNphcDT`/`jvm_-Ttaq`
+- Fresh probes otherwise confirm NO_DELTA: GET /v1.0 200/4779; HEAD /v1.0 405/0 no WWW-Authenticate (RFC 6750 §3); agentRegistrations/{id} true preflight 200 `ACAO:*` + Allow-Methods incl PATCH + Max-Age 86400; oauth2PermissionGrants GET 401/237; token GET 404; tokeninfo 400/113 invalid_token; earthengine oauth.py 200/23110 whole-file sha `f4f93c76…b73040` unchanged, bare-secret sha `3f3f8d6f…d271` confirmed
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/* (6-family): 6.95 | attack 8, business 9, tech 7, gate 1 (auth-gated), cloud 7, fresh 8
+- [PRIO] oauth2.googleapis.com/token (earthengine secret): 6.70 | attack 6, business 9 (GCP cloud-platform), tech 7, gate 2 (secret known, needs RT), cloud 9, fresh 7
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: 6.30 | attack 6, business 9, tech 6, gate 1, cloud 7, fresh 8
+- [PRIO] www.googleapis.com/storage/v1/b: 4.85 | attack 4, business 5, tech 3, gate 3 (denied), cloud 8, fresh 9 — parked (REJECTED this probe)
+
+STEP 3 — HYPOTHESES
+[HYP] Copilot Admin 6-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 re-verified at item level this probe; GET→401/237, HEAD→405/0 no WWW-Authenticate; $metadata 873-char agentRegistration block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 74
+reasoning: GET→401/237 Bearer + HEAD→405/0 re-verified this probe; oAuth2PermissionGrant EntityType 458-char block @ $metadata, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Whole-file sha `f4f93c76…b73040` verbatim (200/23110) this probe; bare-secret sha `3f3f8d6f…d271` at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2) per KB; token GET→404 POST-only gate; storage.buckets.list anonymous-denied (devstorage does not unlock enumeration).
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
+
+STEP 4 — SELF-CRITIQUE
+- All three survive (confidence ≥ 74; none on REJECTED list; each has concrete verify_steps). storage/v1/b bucket-enumeration dropped (anonymous 401 denied this probe → REJECTED). Copilot Studio D2E and source-map classes not re-emitted (REJECTED/closed in KB).
+- [FINAL] 1) Copilot Admin 6-family IDOR+CORS (97, AUTH_HELPED) 2) Earth Engine client_secret (96, HUMAN_ONLY) 3) oAuth2PermissionGrant consent forge (74, AUTH_HELPED)
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Submit the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks the top-two AUTH_HELPED hypotheses ([97] 6-family IDOR+CORS, [74] consent forge); both passive preconditions remain fully verified meanwhile.
+
+STEP 6 — LEARNING
+- REJECTED storage.buckets.list anonymous enumeration @ www.googleapis.com/storage/v1/b: bare→400 missing-param, with `?project=`→401 denied for anonymous caller; devstorage-scope hypothesis does not unlock bucket enumeration, no bypass.
+- REJECTED graph.microsoft.com root redirect @ graph.microsoft.com: 200 text/html → 301 → developer.microsoft.com/graph; cosmetic, no auth-bypass surface.
+- REJECTED JWKS v1-exclusive kid `T5h40q7…` @ login.microsoftonline.com/common/discovery/keys: transient rotation churn (v1=5 ⊄ v2=8 this probe); same class as aFkmKVFc/kPNphcDT/jvm_-Ttaq, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- ACCEPTED all 3 active hypotheses precondition state re-verified live this probe (6-family preflight 200 ACAO:*+PATCH; earthengine file+secret sha unchanged; oauth2PermissionGrants GET 401/237).
+
+STEP 7 — RISK SCORE
+- [RISK] google: 55 — earthengine client_secret is a valid Google OAuth credential (A/B RFC 6749 §5.2 proof) but native-app OOB by-design caps severity; tokeninfo oracle and storage enumeration no-reward/denied; no active bypass on GCP data plane.
+- [RISK] microsoft: 72 — systemic RFC 6750 §3 method-challenge gap (HEAD 405/0) + fully-mapped 6-family CORS+PATCH cross-principal IDOR precondition + oAuth2PermissionGrant consent-forge precondition on production v1.0; all gated behind AUTH_HELPED two-principal test but preconditions uniformly live and stable.
