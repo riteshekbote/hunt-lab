@@ -3199,3 +3199,14 @@
 - LEARN: ACCEPTED: Earth Engine OAuth client_secret @ oauth.py:45 remains valid Google OAuth credential — A/B proof (leaked secret→400 invalid_grant, fake secret→401 inv
 - LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition remains live — 458-char oAuth2PermissionGrant EntityType block 0 OperationRestrictions @ 
 - LEARN: ACCEPTED: tokeninfo public introspection oracle remains live — no-param → 400/113 invalid_token; accepts ?access_token=/ ?id_token= without Authorization header
+
+## RANKED HYPOTHESES 2026-08-15 06:01:52 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3). Provide App A (
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-s
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: HTTP 200 `ACAO:*` + `Allo
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret A/B proof re-confirmed @ oauth2.googleapis.com/token: leaked secret→400 invalid_grant (valid credential per RFC 6749 
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
