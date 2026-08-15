@@ -1,162 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
-Example:
+Looking at the scan results, I'll classify each hit. None appear to be REAL_SECRET candidates with signs of life — they're test fixtures, placeholders, metadata endpoint references, or config patterns.
 
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | JSDoc example: `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | JSDoc example: `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const `PASSWORD = 'password'` (test constant for auth scheme) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key in example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials: `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Placeholder token: `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const `PASSWORD = "password"` (test constant) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder: `client_secret="your_client_secret"` |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Fuzz test key: `secret_key = "fuzz test key"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | Test passwords |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-PVEI6UQ6.js | 3 | Minified JS parse error |
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS source map |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified JS source map |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS chunks (all test/build artifacts) |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-PVEI6UQ6.js | 3 | Minified JS |
 
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | sed -n '60,80p'
-class OAuthGrantType(str, Enum):
-  """Represents the OAuth2 flow (or grant type)."""
-
-  CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
-      return OAuthGrantType.AUTHORIZATION_CODE
-    if flow.implicit:
-      return OAuthGrantType.IMPLICIT
-    if flow.password:
-      return OAuthGrantType.PASSWORD
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '55,70p'
-client_secret: The client secret.
-
-  Example:
-      config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-
-  client_id: str
-  auth_uri: str
-  token_uri: str
-  client_secret: str
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | sed -n '125,140p'
-lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-
-  if type == "config":
-    with open(agent_config_file_path, "w", encoding="utf-8") as f:
-[0m
-### Classification Tables
-
-#### REAL_SECRET (reportable credentials)
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *none found* | — | — | — |
-
-#### TEST_OR_EXAMPLE (sample/fixture data, not reportable)
-| File | Line | Pattern | Context |
-|------|------|---------|---------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example, truncated placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Basic auth example in docstring |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake JWT example in docstring |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value for OAuth grant type "password" |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring placeholder |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
-| google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` | Docstring placeholder |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
-
-#### ENDPOINT_LEAK (internal/metadata endpoints)
+### ENDPOINT_LEAK (internal/dev metadata endpoints)
 | File | Line | Endpoint |
 |------|------|----------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (GCP metadata) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (metadata) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (metadata) |
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` (AWS IMDSv2) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9,12,14 | AWS/GCP metadata base URLs |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `ipaddress.ip_address("169.254.169.254")` |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata 169.254.169.254) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome |
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `169.254.169.254/latest/api/token` (AWS IMDSv2) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9, 12, 14 | AWS/GCP metadata URLs |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` IP reference |
 
-#### INTERESTING (debug flags, configs, non-secret constants)
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key name) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params (config, not secret) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` (generates .env from var) |
-| google/grr/docker/docker-entrypoint.sh | 21,26 | `--admin_password="${ADMIN_PASSWORD}"` (env var, good practice) |
-| google/grr/docker_config_files/server/grr.server.yaml | 25 | Private key path reference `%(/configs/private-key.pem|file)` |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Code emitting `secret_key = <var>` (not hardcoded) |
-| google/private-compute-services/... | 41,43,82,88,91 | Constant names for token keys (`KEY_RENDER_TOKEN`, `IPP_*_TOKEN`) |
+### INTERESTING (config patterns, security references)
+| File | Line | Note |
+|------|------|------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref, not hardcoded) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig params (config, not secrets) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name `_vmaas_access_token` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | CLI writes `GOOGLE_API_KEY={var}` to file (variable, not hardcoded) |
+| google/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts | 232 | CSRF token extraction command pattern |
+| google/grr/docker/docker-entrypoint.sh | 21, 26 | Admin/MySQL passwords from env vars (proper secret handling) |
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | Private key file reference `%(/configs/private-key.pem\|file)` |
 
 ---
 
-### SHORT VERDICT LIST
+### VERDICT: No REPORT_CANDIDATE findings
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-python auth_credential.py private_key example | **no** | Truncated placeholder in docstring |
-| adk-python auth_credential.py basic auth example | **no** | `user`/`password` in docstring |
-| adk-python auth_credential.py bearer token example | **no** | Fake JWT `eyAkaknabna....` in docstring |
-| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth grant type enum value |
-| adk-python openapi_tool auth_helpers.py client_secret | **no** | `"your_client_secret"` placeholder |
-| adk-kotlin McpIntegrationTestSupport.kt INJECTED_TOKEN | **no** | Test probe constant |
-| go-github ClientSecret placeholder | **no** | Docstring example |
-| oss-fuzz flask fuzz_json secret_key | **no** | Fuzz test fixture |
-| oss-fuzz h2database shutdown password | **no** | Test constant |
-| 169.254.169.254 metadata refs (adk-python, grr) | **no** | Well-known cloud metadata IP, not a secret |
-| grr docker-entrypoint.sh env var passwords | **no** | Proper secret injection via env |
-| grr grr.server.yaml private key path | **no** | Config reference, not key material |
-| private-compute-services token key constants | **no** | Constant names, not values |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| (none) | — | **no** |
 
-**NO REAL SECRETS FOUND IN THIS DELTA.** All 33 new hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — zero REAL_SECRET.
+**Summary:** All 406 hits are TEST_OR_EXAMPLE (placeholders in test/example code), ENDPOINT_LEAK (well-known cloud metadata IPs), or INTERESTING (config patterns using env vars/Secret Manager). No hardcoded live credentials found. The ADK hardcoded secrets from prior cycles (ya29 token, /run_sse client_secret) are KNOWN DUPLICATES per knowledge base. The Earth Engine OAuth client_secret (tracked separately) is not in this scan delta.
