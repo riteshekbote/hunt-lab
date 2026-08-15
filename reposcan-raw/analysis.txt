@@ -1,59 +1,162 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
-a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [limit=30, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py[90m [offset=20, limit=40][0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
 [0m
-[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
-a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | sed -n '60,80p'
+class OAuthGrantType(str, Enum):
+  """Represents the OAuth2 flow (or grant type)."""
+
+  CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+      return OAuthGrantType.AUTHORIZATION_CODE
+    if flow.implicit:
+      return OAuthGrantType.IMPLICIT
+    if flow.password:
+      return OAuthGrantType.PASSWORD
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '55,70p'
+client_secret: The client secret.
+
+  Example:
+      config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  client_secret: str
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | sed -n '125,140p'
+lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
 [0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 (secret) | Context |
-|------|------|-----------------|---------|
-| `reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | Hardcoded OAuth `client_secret` for `google-brainmaps` (client_id `639403125587-...`), scope `brainmaps` — used in `GoogleOAuth2FlowCredentialsProvider` |
+#### REAL_SECRET (reportable credentials)
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *none found* | — | — | — |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
-| `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test harness |
-| `reposcan-raw/google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` — integration test probe |
-| `reposcan-raw/google/go-github/github/github.go` | 1990 | `ClientSecret: "your app's client secret"` — documentation placeholder |
-| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` — commented placeholder |
-| `reposcan-raw/google/grr/docker/docker-entrypoint.sh` | 21, 26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` — env-var references |
-| `reposcan-raw/google/grr/docker_config_files/server/grr.server.yaml` | 25 | `%(/configs/private-key.pem\|file)` — file reference, not inline key |
-| `reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml` | 81 | `SYNTHETIC-TEST-KEY-DO-NOT-USE` — explicitly marked synthetic PEM |
-| `reposcan-raw/microsoft/apm/scripts/*.sh` | multiple | `GITHUB_TOKEN`, `GH_TOKEN` — env-var references |
-| `reposcan-raw/google/neuroglancer/.github/workflows/*.yml` | multiple | `${{ secrets.GITHUB_TOKEN }}` — proper GitHub Actions secret refs |
+#### TEST_OR_EXAMPLE (sample/fixture data, not reportable)
+| File | Line | Pattern | Context |
+|------|------|---------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example, truncated placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Basic auth example in docstring |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Fake JWT example in docstring |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value for OAuth grant type "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring placeholder |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
+| google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` | Docstring placeholder |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
 
-#### ENDPOINT_LEAK (public/well-known, not sensitive)
+#### ENDPOINT_LEAK (internal/metadata endpoints)
 | File | Line | Endpoint |
 |------|------|----------|
-| `reposcan-raw/google/grr/.../cloud.py` | 41, 9, 14, 524 | `169.254.169.254` (AWS/GCP IMDS) — public metadata IP |
-| `reposcan-raw/microsoft/apm/.../script_executors.py` | 711, 841 | `metadata.google.internal`, `169.254.169.254` — public metadata |
-| `reposcan-raw/microsoft/apm/.../warnings.py` | 33, 34 | `169.254.169.254`, `100.100.100.200` — documented IMDS IPs |
-| `reposcan-raw/microsoft/apm/.../github_host.py` | 531, 817, 851 | `dev.azure.com` URL templates — documentation |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (metadata) |
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` (AWS IMDSv2) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9,12,14 | AWS/GCP metadata base URLs |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `ipaddress.ip_address("169.254.169.254")` |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `reposcan-raw/google/grr/.../client_flows.ts` | 232 | CSRF token extraction via `curl` — runtime technique, not a secret |
-| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | Emits `.secret_key = <var>` — codegen, not hardcoded |
-| `reposcan-raw/google/private-compute-services/.../*.kt` | 41, 43, 82, 88, 91 | Constant *names* (`KEY_RENDER_TOKEN`, `IPP_*_TOKEN`) — not values |
+#### INTERESTING (debug flags, configs, non-secret constants)
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key name) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params (config, not secret) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` (generates .env from var) |
+| google/grr/docker/docker-entrypoint.sh | 21,26 | `--admin_password="${ADMIN_PASSWORD}"` (env var, good practice) |
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | Private key path reference `%(/configs/private-key.pem|file)` |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Code emitting `secret_key = <var>` (not hardcoded) |
+| google/private-compute-services/... | 41,43,82,88,91 | Constant names for token keys (`KEY_RENDER_TOKEN`, `IPP_*_TOKEN`) |
 
 ---
 
-### Verdict List
+### SHORT VERDICT LIST
 
-| Candidate | File | REPORT_CANDIDATE | Rationale |
-|-----------|------|------------------|-----------|
-| Neuroglancer OAuth `client_secret` | `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` | **YES** | Hardcoded Google OAuth client secret (`sha256: a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d`) for project `google-brainmaps` with `brainmaps` scope — live credential in public source |
-| Microsoft APM RSA PEM | `microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml:81` | **NO** | Explicitly labeled `SYNTHETIC-TEST-KEY-DO-NOT-USE`, registered via `::add-mask::` for CI masking tests |
-| All other hits | — | **NO** | Test fixtures, env-var refs, public metadata IPs, documentation, or constant names |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py private_key example | **no** | Truncated placeholder in docstring |
+| adk-python auth_credential.py basic auth example | **no** | `user`/`password` in docstring |
+| adk-python auth_credential.py bearer token example | **no** | Fake JWT `eyAkaknabna....` in docstring |
+| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth grant type enum value |
+| adk-python openapi_tool auth_helpers.py client_secret | **no** | `"your_client_secret"` placeholder |
+| adk-kotlin McpIntegrationTestSupport.kt INJECTED_TOKEN | **no** | Test probe constant |
+| go-github ClientSecret placeholder | **no** | Docstring example |
+| oss-fuzz flask fuzz_json secret_key | **no** | Fuzz test fixture |
+| oss-fuzz h2database shutdown password | **no** | Test constant |
+| 169.254.169.254 metadata refs (adk-python, grr) | **no** | Well-known cloud metadata IP, not a secret |
+| grr docker-entrypoint.sh env var passwords | **no** | Proper secret injection via env |
+| grr grr.server.yaml private key path | **no** | Config reference, not key material |
+| private-compute-services token key constants | **no** | Constant names, not values |
 
-**Only one reportable candidate:** the Neuroglancer OAuth client secret.
+**NO REAL SECRETS FOUND IN THIS DELTA.** All 33 new hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — zero REAL_SECRET.
