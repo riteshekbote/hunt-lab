@@ -7130,3 +7130,31 @@ verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",princi
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
 ## 2026-08-15 17:30:23 UTC [google] (model bigpickle)
+## 2026-08-15 17:51:38 UTC [google] (model bigpickle)
+[HYP] Copilot Admin 6-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + PATCH + Max-Age 86400 at collection+item; GET→401/237, HEAD→405/0 (RFC 6750 §3); $metadata 873-char block, 0 OperationRestrictions, createdBy/ownerIds Nullable=false across 6 EntityTypes.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 74
+reasoning: NEW this cycle — v1.0 $metadata oAuth2PermissionGrant block 347 chars, 0 OperationRestrictions/ReadRestrictions, resourceId+clientId Nullable=false, consentType/principalId/scope Nullable=true (client-supplied). GET /v1.0/oauth2PermissionGrants→401/237 Bearer; HEAD→405/0. Production-v1.0 schema precondition now directly proven, not inferred from beta.
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged (200/23110); secret sha `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` verbatim at :45+:99; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate.
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha 97aa66f0; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
