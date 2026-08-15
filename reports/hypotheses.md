@@ -3122,3 +3122,13 @@
 - LEARN: ACCEPTED Graph API 405 anomaly confirmed live @ 2026-08-15 02:30 UTC — HEAD /v1.0 → 405/0 (Content-Length: 0, no WWW-Authenticate Bearer, RFC 6750 §3 violation)
 - LEARN: ACCEPTED tokeninfo public introspection oracle confirmed live @ 2026-08-15 02:30 UTC — GET no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= 
 - LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path i
+
+## RANKED HYPOTHESES 2026-08-15 03:25:05 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass via PATCH+CORS (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 5-family cross-principal ownership bypass (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3) in one session; 
+- NEXT(hypotheses-laguna.txt): PROBE: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — provide App A + App B principal pair with cross-tenant app registration + PATCH c
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 agentRegistrations 5-f
+- LEARN: No new classes proven dead or alive this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA)
+- LEARN: ACCEPTED v1↔v2 JWKS subset invariant @ login.microsoftonline.com/discovery/keys: v1 rotated to 5 kids (T5h40q7 added) all ⊂ v2(8), 0 v1-exclusive — rotation chu
+- LEARN: ACCEPTED agentRegistrations 5-family IDOR+CORS precondition @ graph.microsoft.com/beta/copilot/* re-verified live this cycle — GET 401/237, HEAD 405/0, item-lev
