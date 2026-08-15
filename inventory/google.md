@@ -999,3 +999,8 @@
 ## 2026-08-15 12:52:31 UTC
 
 ## 2026-08-15 13:24:48 UTC
+
+## 2026-08-15 13:53:16 UTC
+- NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceI
+- CHANGED agentRegistrations item-level true CORS preflight gap CLOSED — Origin+ACRM:PATCH+ACH:authorization→200 ACAO:* + PATCH allowlist + Max-Age 86400 confirmed at both collection+item level across all 6 Cop
+- CHANGED CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — REJECTED false positive (SweetAlert2 DOM element ID pattern, not a credential) — collapsed MISCONFIG class

@@ -3454,3 +3454,14 @@
 - LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
 - LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+
+## RANKED HYPOTHESES 2026-08-15 13:53:16 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-laguna.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` to the MSRC portal requesting authorized two-principal (App A + App B) tenant enrollment — this single aut
+- LEARN: ACCEPTED agentRegistrations 6-family IDOR+CORS @ graph.microsoft.com/beta/copilot/*: true CORS preflight with PATCH (Origin+ACRM:PATCH+ACH:authorization → 200 A
+- LEARN: ACCEPTED Earth Engine OAuth client_secret @ oauth2.googleapis.com/token: raw GitHub GET→200/len=23110, secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallb
+- LEARN: ACCEPTED oAuth2PermissionGrant caller-chosen resourceId @ graph.microsoft.com/v1.0/oauth2PermissionGrants: oAuth2PermissionGrant EntityType 458-char block @ $me
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds with 0 v1-exclusive; v1 kid set never valid
+- LEARN: REJECTED source maps @ identity SPAs: mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated, extracted endpoin
+- LEARN: REJECTED CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30: confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4),
