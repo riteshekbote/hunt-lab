@@ -1,3 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
+a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
+[0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | `client_secret="kuaqECaVXOKEJ2L6ifZu4Aqt"` — hardcoded OAuth client secret in production code path |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/neuroglancer/.github/workflows/deploy_docs_preview.yml` | 41,50,54 | `${{ secrets.GITHUB_TOKEN }}` — GitHub Actions secret reference |
+| `google/neuroglancer/.github/workflows/deploy_preview.yml` | 41,50,54 | `${{ secrets.GITHUB_TOKEN }}` — GitHub Actions secret reference |
+| `microsoft/STL/.github/workflows/update-status-chart.yml` | 29 | `${{ github.token }}` — GitHub Actions built-in token |
+| `microsoft/semantic-kernel/.github/workflows/label-pr.yml` | 21 | `${{ secrets.GH_ACTIONS_PR_WRITE }}` — secret reference |
+| `microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/...` | 35,22 | `test-api-key` / `test_api_key` — test fixture values |
+| `microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/...` | 20,21,42,43,79,80 | `test_api_key` — test fixture values |
+| `microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py` | 103,180 | `your-api-key` — placeholder value |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — secret references |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `gemini_api_key` — placeholder value |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168,192 | `${{ steps.fetch-token.outputs... }}` — secret references |
+| `google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` — commented placeholder |
+
+#### ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| `google/neuroglancer/src/util/drag_and_drop.ts` | 25 | `https://dev.w3.org/html5/spec-preview/dnd.html` — public spec URL |
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` — staging domain |
+| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 16 | `https://test.osv.dev` — test environment |
+| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 129,351,486 | `https://api.test.osv.dev` — test API endpoints |
+| `google/osv.dev/tools/datafix/reimport_gcs_record.py` | 86 | `https://test.osv.dev/` — test environment |
+| `google/osv.dev/docs/_config.yml` | 78 | `https://test.osv.dev/linter/` — test environment |
+| `google/horologist/datalayer/core/src/main/java/.../PreferencesSerializer.kt` | 43 | `https://b.corp.google.com/issues/241749603` — internal issue tracker |
+| `microsoft/vscode-cpptools/**/package-lock.json` | multiple | `https://pkgs.dev.azure.com/azure-public/VisualCpp/_packaging/cpp_PublicPackages/npm/registry/` — Azure DevOps package registry |
+| `microsoft/vscode-team-kit/build-health/skills/build-health/scripts/fetch-builds.sh` | 22 | `https://dev.azure.com/monacotools` — Azure DevOps organization |
+
+#### INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| `google/capsem/config/gate.toml` | 481 | `password = "password.txt"` — references password file |
+| `google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` — reads password from file |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads password from file |
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `os << ctx << ".secret_key = " << sk << "\n";` — code emits secret key variable |
+| `microsoft/semantic-kernel/python/semantic_kernel/connectors/memory_stores/azure_cognitive_search/utils.py` | 39 | `ENV_VAR_API_KEY = "AZURE_COGNITIVE_SEARCH_ADMIN_KEY"` — env var name convention |
+
+---
+
+### Verdict List
+
+| File | Category | REPORT_CANDIDATE |
+|------|----------|------------------|
+| `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` | REAL_SECRET | **yes** — hardcoded OAuth client secret in production credential manager |
+| All TEST_OR_EXAMPLE entries | TEST_OR_EXAMPLE | no — secret references, test fixtures, placeholders |
+| All ENDPOINT_LEAK entries | ENDPOINT_LEAK | no — public/test/staging URLs, package registries |
+| All INTERESTING entries | INTERESTING | no — config patterns, env var names, code emitting variables |
+
+---
+
+**Summary**: Only **1 reportable candidate** — the hardcoded `client_secret` in `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` (SHA256: `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d`). This appears to be a live Google OAuth client secret embedded in the Neuroglancer Python client's default credential manager.
