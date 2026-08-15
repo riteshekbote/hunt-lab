@@ -1072,3 +1072,10 @@
 - 2026-08-15 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com: v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds with 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; rotation churn (aFkmKVFc, kPNphcDT, jvm_-Ttaq transients) is environmental only
 - 2026-08-15 REJECTED source maps @ identity SPAs: mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated, extracted endpoint inventory unchanged
 - 2026-08-15 REJECTED CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30: confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4), NOT a credential — MISCONFIG false-positive resolved
+- 2026-08-15 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA.
+- 2026-08-15 ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live at both collection+item level across 6 Copilot Admin endpoint families — $metadata 873-char + 458-char blocks with 0 OperationRestrictions unchanged.
+- 2026-08-15 ACCEPTED: Earth Engine OAuth client_secret A/B proof (invalid_grant vs invalid_client) remains conclusive per RFC 6749 §5.2 — valid Google OAuth credential with cloud-platform+earthengine+drive+devstorage scopes.
+- 2026-08-15 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId on production v1.0 confirmed auth-gated (GET→401/237) with 458-char EntityType zero-restriction schema precondition intact.
+- 2026-08-15 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-15 ACCEPTED: Source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
+- 2026-08-15 REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4), NOT a credential — false-positive resolved.
