@@ -40314,3 +40314,727 @@ Dual-JWKS rotation desync class confirmed REJECTED again this cycle — v1(5 kid
 
 [RISK] google: 89 reason: Hardcoded live OAuth client_secret sha256 `3f3f8d6f…d271` — A/B invalid_grant-vs-invalid_client proof conclusive (confidence 96); secret at oauth.py:45 + :99 fallback with cloud-platform scope (full GCP); raw GitHub public readability; tokeninfo public introspection oracle accepting query-param tokens without Authorization header (no-auth 400/113); v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation); token POST-only gate confirmed (GET→404)
 [RISK] microsoft: 94 reason: agentRegistrations 6-family IDOR with live CORS cross-origin mutation vector including PATCH at collection+item+agents+admin+policySettings+agentRegistry level (confidence 97, ACAO:* + PATCH allowlist + Max-Age 86400, 873-char metadata block 0 OperationRestrictions across 6 EntityTypes); oauth2PermissionGrants caller-chosen resourceId consent forge on production v1.0 (confidence 70, 458-char EntityType block 0 OperationRestrictions, caller-supplied resourceId targeting Graph OR Azure Storage); Graph 405 anomaly (RFC 6750 §3 violation) systemic across /v1.0, /me, /users, /beta/copilot, /v1.0/oauth2PermissionGrants (HEAD→405/0 no Bearer); v1↔v2 JWKS kid overlap with dual issuer namespaces intact
+===== ANALYST laguna 2026-08-15 10:57:19 UTC =====
+[0m
+> build · laguna-s-2.1-free
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab
+README.md
+analyst-out.txt
+analyst-prompt.txt
+ctx.txt
+inventory
+knowledge
+leads
+probe-results.md
+reports
+reposcan-raw
+research
+scope.yml
+scripts
+state_bigpickle.json
+state_laguna.json
+state_ling3.json
+state_longcat.json
+state_nemotron3.json
+triage
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reports 2>/dev/null || echo "no reports dir"
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+google-vrp-earthengine-secret.md
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+msrc-two-principal-request.md
+valid-bugs.md
+[0m
+[0m→ [0mRead state_nemotron3.json
+[0m→ [0mRead reports/hypotheses-nemotron3.txt
+[0m→ [0mRead reports/google-vrp-earthengine-secret.md
+[0m→ [0mRead scope.yml
+[0m→ [0mRead state_bigpickle.json
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead probe-results.md
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/inventory /home/runner/work/hunt-lab/hunt-lab/knowledge /home/runner/work/hunt-lab/hunt-lab/triage /home/runner/work/hunt-lab/hunt-lab/leads 2>/dev/null
+/home/runner/work/hunt-lab/hunt-lab/inventory:
+google.md
+microsoft.md
+
+/home/runner/work/hunt-lab/hunt-lab/knowledge:
+index.md
+
+/home/runner/work/hunt-lab/hunt-lab/leads:
+lead-bigpickle.md
+lead-laguna.md
+lead-ling3.md
+lead-longcat.md
+lead-nemotron3.md
+reposcan-2026-08-07-08-25.md
+reposcan-2026-08-07-08-29.md
+reposcan-2026-08-07-08-34.md
+reposcan-2026-08-07-08-40.md
+reposcan-2026-08-07-08-52.md
+reposcan-2026-08-07-09-02.md
+reposcan-2026-08-07-14-23.md
+reposcan-2026-08-07-14-50.md
+reposcan-2026-08-07-14-58.md
+reposcan-2026-08-07-15-29.md
+reposcan-2026-08-07-15-54.md
+reposcan-2026-08-07-16-17.md
+reposcan-2026-08-07-16-31.md
+reposcan-2026-08-07-16-44.md
+reposcan-2026-08-07-17-29.md
+reposcan-2026-08-07-17-44.md
+reposcan-2026-08-07-18-28.md
+reposcan-2026-08-07-18-37.md
+reposcan-2026-08-07-19-03.md
+reposcan-2026-08-07-19-29.md
+reposcan-2026-08-07-19-35.md
+reposcan-2026-08-07-19-42.md
+reposcan-2026-08-07-20-29.md
+reposcan-2026-08-07-20-48.md
+reposcan-2026-08-07-21-16.md
+reposcan-2026-08-07-21-43.md
+reposcan-2026-08-07-21-59.md
+reposcan-2026-08-07-22-45.md
+reposcan-2026-08-07-23-35.md
+reposcan-2026-08-07-23-39.md
+reposcan-2026-08-07-23-58.md
+reposcan-2026-08-08-01-47.md
+reposcan-2026-08-08-01-57.md
+reposcan-2026-08-08-03-20.md
+reposcan-2026-08-08-03-41.md
+reposcan-2026-08-08-04-36.md
+reposcan-2026-08-08-05-04.md
+reposcan-2026-08-08-05-28.md
+reposcan-2026-08-08-06-08.md
+reposcan-2026-08-08-06-28.md
+reposcan-2026-08-08-07-21.md
+reposcan-2026-08-08-07-33.md
+reposcan-2026-08-08-08-09.md
+reposcan-2026-08-08-08-49.md
+reposcan-2026-08-08-09-03.md
+reposcan-2026-08-08-09-45.md
+reposcan-2026-08-08-09-50.md
+reposcan-2026-08-08-10-21.md
+reposcan-2026-08-08-10-41.md
+reposcan-2026-08-08-10-59.md
+reposcan-2026-08-08-11-37.md
+reposcan-2026-08-08-12-03.md
+reposcan-2026-08-08-12-59.md
+reposcan-2026-08-08-13-05.md
+reposcan-2026-08-08-13-57.md
+reposcan-2026-08-08-14-42.md
+reposcan-2026-08-08-15-11.md
+reposcan-2026-08-08-15-36.md
+reposcan-2026-08-08-15-50.md
+reposcan-2026-08-08-16-48.md
+reposcan-2026-08-08-16-53.md
+reposcan-2026-08-08-17-07.md
+reposcan-2026-08-08-17-26.md
+reposcan-2026-08-08-17-48.md
+reposcan-2026-08-08-17-58.md
+reposcan-2026-08-08-18-12.md
+reposcan-2026-08-08-18-28.md
+reposcan-2026-08-08-19-02.md
+reposcan-2026-08-08-19-08.md
+reposcan-2026-08-08-19-36.md
+reposcan-2026-08-08-19-46.md
+reposcan-2026-08-08-20-08.md
+reposcan-2026-08-08-20-45.md
+reposcan-2026-08-08-20-50.md
+reposcan-2026-08-08-21-10.md
+reposcan-2026-08-08-21-24.md
+reposcan-2026-08-08-21-50.md
+reposcan-2026-08-08-21-57.md
+reposcan-2026-08-08-22-14.md
+reposcan-2026-08-08-22-22.md
+reposcan-2026-08-08-22-50.md
+reposcan-2026-08-08-23-00.md
+reposcan-2026-08-08-23-26.md
+reposcan-2026-08-08-23-53.md
+reposcan-2026-08-09-00-41.md
+reposcan-2026-08-09-01-02.md
+reposcan-2026-08-09-03-00.md
+reposcan-2026-08-09-03-08.md
+reposcan-2026-08-09-04-15.md
+reposcan-2026-08-09-04-37.md
+reposcan-2026-08-09-05-25.md
+reposcan-2026-08-09-05-37.md
+reposcan-2026-08-09-06-08.md
+reposcan-2026-08-09-06-30.md
+reposcan-2026-08-09-07-19.md
+reposcan-2026-08-09-07-35.md
+reposcan-2026-08-09-08-10.md
+reposcan-2026-08-09-08-25.md
+reposcan-2026-08-09-09-04.md
+reposcan-2026-08-09-09-13.md
+reposcan-2026-08-09-09-58.md
+reposcan-2026-08-09-10-26.md
+reposcan-2026-08-09-11-03.md
+reposcan-2026-08-09-11-42.md
+reposcan-2026-08-09-12-13.md
+reposcan-2026-08-09-13-16.md
+reposcan-2026-08-09-14-01.md
+reposcan-2026-08-09-14-06.md
+reposcan-2026-08-09-14-35.md
+reposcan-2026-08-09-14-54.md
+reposcan-2026-08-09-15-08.md
+reposcan-2026-08-09-15-22.md
+reposcan-2026-08-09-15-47.md
+reposcan-2026-08-09-16-01.md
+reposcan-2026-08-09-16-07.md
+reposcan-2026-08-09-16-31.md
+reposcan-2026-08-09-16-55.md
+reposcan-2026-08-09-17-10.md
+reposcan-2026-08-09-17-27.md
+reposcan-2026-08-09-17-52.md
+reposcan-2026-08-09-17-59.md
+reposcan-2026-08-09-18-21.md
+reposcan-2026-08-09-18-33.md
+reposcan-2026-08-09-19-13.md
+reposcan-2026-08-09-19-59.md
+reposcan-2026-08-09-20-23.md
+reposcan-2026-08-09-20-37.md
+reposcan-2026-08-09-21-03.md
+reposcan-2026-08-09-21-41.md
+reposcan-2026-08-09-22-08.md
+reposcan-2026-08-09-22-50.md
+reposcan-2026-08-09-23-17.md
+reposcan-2026-08-09-23-24.md
+reposcan-2026-08-09-23-54.md
+reposcan-2026-08-10-00-06.md
+reposcan-2026-08-10-00-52.md
+reposcan-2026-08-10-01-18.md
+reposcan-2026-08-10-03-09.md
+reposcan-2026-08-10-03-22.md
+reposcan-2026-08-10-04-53.md
+reposcan-2026-08-10-05-06.md
+reposcan-2026-08-10-06-23.md
+reposcan-2026-08-10-08-06.md
+reposcan-2026-08-10-08-16.md
+reposcan-2026-08-10-09-52.md
+reposcan-2026-08-10-10-04.md
+reposcan-2026-08-10-10-57.md
+reposcan-2026-08-10-11-07.md
+reposcan-2026-08-10-11-46.md
+reposcan-2026-08-10-11-52.md
+reposcan-2026-08-10-12-43.md
+reposcan-2026-08-10-12-47.md
+reposcan-2026-08-10-15-22.md
+reposcan-2026-08-10-16-17.md
+reposcan-2026-08-10-16-25.md
+reposcan-2026-08-10-17-13.md
+reposcan-2026-08-10-17-23.md
+reposcan-2026-08-10-18-05.md
+reposcan-2026-08-10-18-15.md
+reposcan-2026-08-10-19-22.md
+reposcan-2026-08-10-20-10.md
+reposcan-2026-08-10-21-02.md
+reposcan-2026-08-10-21-18.md
+reposcan-2026-08-10-21-54.md
+reposcan-2026-08-10-22-02.md
+reposcan-2026-08-10-22-23.md
+reposcan-2026-08-10-22-32.md
+reposcan-2026-08-10-23-07.md
+reposcan-2026-08-10-23-29.md
+reposcan-2026-08-10-23-50.md
+reposcan-2026-08-10-23-56.md
+reposcan-2026-08-11-00-46.md
+reposcan-2026-08-11-01-06.md
+reposcan-2026-08-11-03-04.md
+reposcan-2026-08-11-03-26.md
+reposcan-2026-08-11-04-54.md
+reposcan-2026-08-11-05-53.md
+reposcan-2026-08-11-06-38.md
+reposcan-2026-08-11-06-43.md
+reposcan-2026-08-11-07-57.md
+reposcan-2026-08-11-08-49.md
+reposcan-2026-08-11-09-46.md
+reposcan-2026-08-11-09-58.md
+reposcan-2026-08-11-10-39.md
+reposcan-2026-08-11-10-45.md
+reposcan-2026-08-11-11-35.md
+reposcan-2026-08-11-12-11.md
+reposcan-2026-08-11-12-35.md
+reposcan-2026-08-11-13-43.md
+reposcan-2026-08-11-14-03.md
+reposcan-2026-08-11-14-45.md
+reposcan-2026-08-11-15-06.md
+reposcan-2026-08-11-15-46.md
+reposcan-2026-08-11-16-08.md
+reposcan-2026-08-11-16-36.md
+reposcan-2026-08-11-17-35.md
+reposcan-2026-08-11-17-43.md
+reposcan-2026-08-11-18-13.md
+reposcan-2026-08-11-18-41.md
+reposcan-2026-08-11-19-29.md
+reposcan-2026-08-11-20-13.md
+reposcan-2026-08-11-20-28.md
+reposcan-2026-08-11-21-07.md
+reposcan-2026-08-11-21-15.md
+reposcan-2026-08-11-22-08.md
+reposcan-2026-08-11-23-03.md
+reposcan-2026-08-11-23-44.md
+reposcan-2026-08-12-00-00.md
+reposcan-2026-08-12-00-49.md
+reposcan-2026-08-12-01-31.md
+reposcan-2026-08-12-03-19.md
+reposcan-2026-08-12-03-37.md
+reposcan-2026-08-12-05-13.md
+reposcan-2026-08-12-05-21.md
+reposcan-2026-08-12-06-54.md
+reposcan-2026-08-12-08-15.md
+reposcan-2026-08-12-09-29.md
+reposcan-2026-08-12-09-41.md
+reposcan-2026-08-12-10-43.md
+reposcan-2026-08-12-11-35.md
+reposcan-2026-08-12-12-18.md
+reposcan-2026-08-12-12-28.md
+reposcan-2026-08-12-13-56.md
+reposcan-2026-08-12-14-14.md
+reposcan-2026-08-12-14-48.md
+reposcan-2026-08-12-15-01.md
+reposcan-2026-08-12-15-41.md
+reposcan-2026-08-12-15-53.md
+reposcan-2026-08-12-16-52.md
+reposcan-2026-08-12-17-47.md
+reposcan-2026-08-12-18-17.md
+reposcan-2026-08-12-18-37.md
+reposcan-2026-08-12-18-47.md
+reposcan-2026-08-12-19-52.md
+reposcan-2026-08-12-20-22.md
+reposcan-2026-08-12-20-32.md
+reposcan-2026-08-12-20-36.md
+reposcan-2026-08-12-21-28.md
+reposcan-2026-08-12-22-12.md
+reposcan-2026-08-12-22-15.md
+reposcan-2026-08-12-23-06.md
+reposcan-2026-08-13-00-01.md
+reposcan-2026-08-13-00-45.md
+reposcan-2026-08-13-01-49.md
+reposcan-2026-08-13-03-21.md
+reposcan-2026-08-13-04-10.md
+reposcan-2026-08-13-05-11.md
+reposcan-2026-08-13-05-50.md
+reposcan-2026-08-13-06-53.md
+reposcan-2026-08-13-07-23.md
+reposcan-2026-08-13-08-21.md
+reposcan-2026-08-13-08-58.md
+reposcan-2026-08-13-09-45.md
+reposcan-2026-08-13-10-07.md
+reposcan-2026-08-13-10-58.md
+reposcan-2026-08-13-11-16.md
+reposcan-2026-08-13-11-32.md
+reposcan-2026-08-13-12-22.md
+reposcan-2026-08-13-12-43.md
+reposcan-2026-08-13-13-59.md
+reposcan-2026-08-13-14-27.md
+reposcan-2026-08-13-14-51.md
+reposcan-2026-08-13-15-19.md
+reposcan-2026-08-13-15-42.md
+reposcan-2026-08-13-16-43.md
+reposcan-2026-08-13-17-30.md
+reposcan-2026-08-13-17-45.md
+reposcan-2026-08-13-18-27.md
+reposcan-2026-08-13-18-51.md
+reposcan-2026-08-13-19-40.md
+reposcan-2026-08-13-19-55.md
+reposcan-2026-08-13-20-09.md
+reposcan-2026-08-13-20-23.md
+reposcan-2026-08-13-21-02.md
+reposcan-2026-08-13-21-17.md
+reposcan-2026-08-13-21-58.md
+reposcan-2026-08-13-22-09.md
+reposcan-2026-08-13-23-04.md
+reposcan-2026-08-13-23-28.md
+reposcan-2026-08-13-23-49.md
+reposcan-2026-08-14-00-12.md
+reposcan-2026-08-14-00-46.md
+reposcan-2026-08-14-02-49.md
+reposcan-2026-08-14-03-14.md
+reposcan-2026-08-14-04-33.md
+reposcan-2026-08-14-05-03.md
+reposcan-2026-08-14-06-11.md
+reposcan-2026-08-14-06-42.md
+reposcan-2026-08-14-07-52.md
+reposcan-2026-08-14-08-05.md
+reposcan-2026-08-14-08-57.md
+reposcan-2026-08-14-09-21.md
+reposcan-2026-08-14-09-55.md
+reposcan-2026-08-14-10-36.md
+reposcan-2026-08-14-10-56.md
+reposcan-2026-08-14-11-30.md
+reposcan-2026-08-14-11-39.md
+reposcan-2026-08-14-12-10.md
+reposcan-2026-08-14-12-37.md
+reposcan-2026-08-14-13-44.md
+reposcan-2026-08-14-14-05.md
+reposcan-2026-08-14-14-44.md
+reposcan-2026-08-14-14-57.md
+reposcan-2026-08-14-15-33.md
+reposcan-2026-08-14-15-52.md
+reposcan-2026-08-14-16-26.md
+reposcan-2026-08-14-16-41.md
+reposcan-2026-08-14-17-26.md
+reposcan-2026-08-14-17-43.md
+reposcan-2026-08-14-18-18.md
+reposcan-2026-08-14-18-39.md
+reposcan-2026-08-14-19-16.md
+reposcan-2026-08-14-19-43.md
+reposcan-2026-08-14-19-59.md
+reposcan-2026-08-14-20-12.md
+reposcan-2026-08-14-20-28.md
+reposcan-2026-08-14-20-48.md
+reposcan-2026-08-14-20-55.md
+reposcan-2026-08-14-21-14.md
+reposcan-2026-08-14-21-19.md
+reposcan-2026-08-14-21-42.md
+reposcan-2026-08-14-21-49.md
+reposcan-2026-08-14-22-03.md
+reposcan-2026-08-14-22-17.md
+reposcan-2026-08-14-22-37.md
+reposcan-2026-08-14-22-43.md
+reposcan-2026-08-14-23-01.md
+reposcan-2026-08-14-23-20.md
+reposcan-2026-08-14-23-25.md
+reposcan-2026-08-14-23-57.md
+reposcan-2026-08-15-00-05.md
+reposcan-2026-08-15-00-22.md
+reposcan-2026-08-15-01-50.md
+reposcan-2026-08-15-02-47.md
+reposcan-2026-08-15-03-24.md
+reposcan-2026-08-15-03-28.md
+reposcan-2026-08-15-04-05.md
+reposcan-2026-08-15-04-09.md
+reposcan-2026-08-15-04-50.md
+reposcan-2026-08-15-05-05.md
+reposcan-2026-08-15-05-10.md
+reposcan-2026-08-15-05-43.md
+reposcan-2026-08-15-06-05.md
+reposcan-2026-08-15-06-42.md
+reposcan-2026-08-15-06-57.md
+reposcan-2026-08-15-07-18.md
+reposcan-2026-08-15-07-30.md
+reposcan-2026-08-15-07-52.md
+reposcan-2026-08-15-07-59.md
+reposcan-2026-08-15-08-24.md
+reposcan-2026-08-15-08-58.md
+reposcan-2026-08-15-09-00.md
+reposcan-2026-08-15-09-21.md
+reposcan-2026-08-15-09-50.md
+reposcan-2026-08-15-10-11.md
+reposcan-2026-08-15-10-15.md
+reposcan-2026-08-15-10-41.md
+reposcan-latest.md
+
+/home/runner/work/hunt-lab/hunt-lab/triage:
+run-2026-08-07-10-16.md
+run-2026-08-07-11-10.md
+run-2026-08-07-11-59.md
+run-2026-08-07-13-41.md
+run-2026-08-07-15-10.md
+run-2026-08-07-16-09.md
+run-2026-08-07-17-09.md
+run-2026-08-07-18-03.md
+run-2026-08-07-19-17.md
+run-2026-08-07-20-02.md
+run-2026-08-07-21-00.md
+run-2026-08-07-21-57.md
+run-2026-08-07-22-56.md
+run-2026-08-07-23-49.md
+run-2026-08-08-02-22.md
+run-2026-08-08-04-29.md
+run-2026-08-08-05-57.md
+run-2026-08-08-07-17.md
+run-2026-08-08-08-04.md
+run-2026-08-08-09-02.md
+run-2026-08-08-09-55.md
+run-2026-08-08-10-52.md
+run-2026-08-08-11-44.md
+run-2026-08-08-13-13.md
+run-2026-08-08-13-59.md
+run-2026-08-08-14-50.md
+run-2026-08-08-15-47.md
+run-2026-08-08-16-59.md
+run-2026-08-08-17-54.md
+run-2026-08-08-19-06.md
+run-2026-08-08-19-49.md
+run-2026-08-08-20-18.md
+run-2026-08-08-20-54.md
+run-2026-08-08-21-52.md
+run-2026-08-08-22-26.md
+run-2026-08-08-23-16.md
+run-2026-08-08-23-50.md
+run-2026-08-09-01-13.md
+run-2026-08-09-03-11.md
+run-2026-08-09-04-42.md
+run-2026-08-09-05-39.md
+run-2026-08-09-06-35.md
+run-2026-08-09-07-43.md
+run-2026-08-09-08-27.md
+run-2026-08-09-09-27.md
+run-2026-08-09-10-21.md
+run-2026-08-09-11-01.md
+run-2026-08-09-11-52.md
+run-2026-08-09-12-47.md
+run-2026-08-09-13-40.md
+run-2026-08-09-14-22.md
+run-2026-08-09-15-01.md
+run-2026-08-09-15-54.md
+run-2026-08-09-17-02.md
+run-2026-08-09-17-54.md
+run-2026-08-09-19-09.md
+run-2026-08-09-19-53.md
+run-2026-08-09-20-58.md
+run-2026-08-09-21-55.md
+run-2026-08-09-22-56.md
+run-2026-08-09-23-55.md
+run-2026-08-10-02-39.md
+run-2026-08-10-04-20.md
+run-2026-08-10-05-53.md
+run-2026-08-10-08-11.md
+run-2026-08-10-09-54.md
+run-2026-08-10-11-29.md
+run-2026-08-10-12-39.md
+run-2026-08-10-14-11.md
+run-2026-08-10-15-29.md
+run-2026-08-10-16-40.md
+run-2026-08-10-17-41.md
+run-2026-08-10-18-39.md
+run-2026-08-10-19-46.md
+run-2026-08-10-20-29.md
+run-2026-08-10-21-30.md
+run-2026-08-10-22-24.md
+run-2026-08-10-23-23.md
+run-2026-08-11-00-47.md
+run-2026-08-11-03-00.md
+run-2026-08-11-04-47.md
+run-2026-08-11-05-46.md
+run-2026-08-11-06-47.md
+run-2026-08-11-08-03.md
+run-2026-08-11-09-38.md
+run-2026-08-11-10-41.md
+run-2026-08-11-11-37.md
+run-2026-08-11-12-39.md
+run-2026-08-11-14-15.md
+run-2026-08-11-15-30.md
+run-2026-08-11-16-45.md
+run-2026-08-11-17-48.md
+run-2026-08-11-18-45.md
+run-2026-08-11-19-54.md
+run-2026-08-11-20-46.md
+run-2026-08-11-21-35.md
+run-2026-08-11-22-31.md
+run-2026-08-11-23-27.md
+run-2026-08-11-23-30.md
+run-2026-08-12-00-57.md
+run-2026-08-12-03-34.md
+run-2026-08-12-05-21.md
+run-2026-08-12-06-53.md
+run-2026-08-12-08-18.md
+run-2026-08-12-09-37.md
+run-2026-08-12-10-48.md
+run-2026-08-12-11-38.md
+run-2026-08-12-12-39.md
+run-2026-08-12-14-11.md
+run-2026-08-12-15-26.md
+run-2026-08-12-16-43.md
+run-2026-08-12-17-48.md
+run-2026-08-12-18-45.md
+run-2026-08-12-19-54.md
+run-2026-08-12-21-10.md
+run-2026-08-12-22-07.md
+run-2026-08-12-23-07.md
+run-2026-08-13-00-04.md
+run-2026-08-13-03-04.md
+run-2026-08-13-05-15.md
+run-2026-08-13-06-52.md
+run-2026-08-13-08-21.md
+run-2026-08-13-09-39.md
+run-2026-08-13-10-50.md
+run-2026-08-13-11-41.md
+run-2026-08-13-12-40.md
+run-2026-08-13-14-13.md
+run-2026-08-13-15-27.md
+run-2026-08-13-16-42.md
+run-2026-08-13-17-47.md
+run-2026-08-13-18-44.md
+run-2026-08-13-19-49.md
+run-2026-08-13-20-33.md
+run-2026-08-13-21-33.md
+run-2026-08-13-22-29.md
+run-2026-08-13-23-29.md
+run-2026-08-14-00-55.md
+run-2026-08-14-03-32.md
+run-2026-08-14-05-23.md
+run-2026-08-14-06-54.md
+run-2026-08-14-08-41.md
+run-2026-08-14-09-49.md
+run-2026-08-14-10-50.md
+run-2026-08-14-11-39.md
+run-2026-08-14-12-36.md
+run-2026-08-14-14-06.md
+run-2026-08-14-15-12.md
+run-2026-08-14-16-10.md
+run-2026-08-14-17-23.md
+run-2026-08-14-18-25.md
+run-2026-08-14-19-40.md
+run-2026-08-14-20-20.md
+run-2026-08-14-20-54.md
+run-2026-08-14-21-46.md
+run-2026-08-14-22-10.md
+run-2026-08-14-22-45.md
+run-2026-08-14-23-10.md
+run-2026-08-14-23-43.md
+run-2026-08-15-00-32.md
+run-2026-08-15-02-06.md
+run-2026-08-15-03-09.md
+run-2026-08-15-04-00.md
+run-2026-08-15-04-54.md
+run-2026-08-15-05-25.md
+run-2026-08-15-06-17.md
+run-2026-08-15-07-04.md
+run-2026-08-15-07-49.md
+run-2026-08-15-08-15.md
+run-2026-08-15-08-51.md
+run-2026-08-15-09-21.md
+run-2026-08-15-09-48.md
+run-2026-08-15-10-12.md
+run-2026-08-15-10-44.md
+[0m
+[0m→ [0mRead leads/reposcan-latest.md
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead inventory/google.md
+[0m→ [0mRead probe-results.md[90m [offset=480, limit=400][0m
+[0m→ [0mRead analyst-prompt.txt
+[0m→ [0mRead analyst-out.txt
+[0m
+[0m$ [0mtail -60 /home/runner/work/hunt-lab/hunt-lab/knowledge/index.md
+- 2026-08-15 ACCEPTED tokeninfo public introspection oracle confirmed live @ 2026-08-15 02:30 UTC — GET no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= without Authorization header; no-reward per Google VRP program rules
+- 2026-08-15 ACCEPTED oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only
+- 2026-08-15 No new classes proven dead or alive this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA)
+- 2026-08-15 ACCEPTED v1↔v2 JWKS subset invariant @ login.microsoftonline.com/discovery/keys: v1 rotated to 5 kids (T5h40q7 added) all ⊂ v2(8), 0 v1-exclusive — rotation churn only; dual-JWKS rotation desync stays REJECTED (v1 kid set never validated against v2 issuer).
+- 2026-08-15 ACCEPTED agentRegistrations 5-family IDOR+CORS precondition @ graph.microsoft.com/beta/copilot/* re-verified live this cycle — GET 401/237, HEAD 405/0, item-level CORS preflight 200 ACAO:* + PATCH + Max-Age 86400; unchanged, NO_DELTA.
+- 2026-08-15 ACCEPTED: agentRegistrations true CORS preflight with PATCH @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} confirmed live @ 2026-08-15 04:44 UTC — true preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400; HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3); GET→401/237 auth-gated; bare-OPTIONS→405 confirmed as probe artifact (no Origin header)
+- 2026-08-15 ACCEPTED: Earth Engine OAuth client_secret @ oauth2.googleapis.com/token confirmed live @ 2026-08-15 — raw GitHub GET→200/len=23110, secret sha256 `3f3f8d6f…d271` verbatim at line 45 + :99 fallback, whole-file sha `f4f93c76…` unchanged; client_id `517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com` confirmed at :43; POST with leaked secret→400 invalid_grant (valid credential per RFC 6749 §5.2), POST with fake secret→401 invalid_client; token GET→404 POST-only gate; native installed app + OOB redirect (line 420)
+- 2026-08-15 ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including resourceId (caller-supplied targeting Graph OR Azure Storage user_impersonation)
+- 2026-08-15 ACCEPTED: v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys — v1(4 kids: 6hXLaIYN, AahUf1bC, fEtqrhKT, sa3RgZQ_) ⊂ v2(7 kids: +NqEBZVuOp, T5h40q7, rRk1d-57B), 0 v1-exclusive steady-state; Accept: application/json required for v2.0 JSON; Access-Control-Allow-Origin: * confirmed; dual issuer namespaces intact
+- 2026-08-15 ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize — GET ?response_type=token → HTTP 200 (body 23782 bytes, JS error 700038, RFC 6749 §3 violation) confirmed live
+- 2026-08-15 ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com — HEAD /v1.0 and /v1.0/me → HTTP 405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation); GET → 401 with proper Bearer challenge — systemic across Microsoft API gateway
+- 2026-08-15 ACCEPTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-param → 400/113 invalid_token, accepts ?access_token=/ ?id_token= without Authorization header; no-reward per Google VRP program rules
+- 2026-08-15 ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live at collection+item+agents+admin+policySettings levels — 200 ACAO:* + PATCH allowlist + Max-Age 86400 across 6 EntityType families (graph.microsoft.com/beta/copilot/*)
+- 2026-08-15 ACCEPTED: Earth Engine OAuth client_secret valid credential confirmed live — sha256 3f3f8d6f…d271 verbatim + A/B invalid_grant-vs-invalid_client proof (RFC 6749 §5.2); POST-only token endpoint confirmed
+- 2026-08-15 ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions confirmed @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId (Graph OR Azure Storage)
+- 2026-08-15 ACCEPTED: tokeninfo public introspection oracle confirmed live — no-param → 400/113 invalid_token; accepts ?access_token=/ ?id_token= without Authorization header (no-reward per Google VRP rules)
+- 2026-08-15 ACCEPTED: Graph API 405 anomaly systemic — HEAD → 405/0 no WWW-Authenticate Bearer (RFC 6750 §3 violation) extends to /v1.0, /v1.0/me, /v1.0/users, /beta/copilot/agentRegistrations, /v1.0/oauth2PermissionGrants
+- 2026-08-15 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed live — GET response_type=token → 200/23782 bytes (JS error 700038, RFC 6749 §3 violation)
+- 2026-08-15 REJECTED: dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids) ⊂ v2(7-11) steady-state subset invariant holds, 0 persistent v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface (rotation churn only)
+- 2026-08-15 REJECTED: source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- 2026-08-15 ACCEPTED: agentRegistrations true CORS preflight with PATCH remains live — confirmed at collection+item+agents+admin+policySettings levels (200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400); bare-OPTIONS→405 is probe artifact (no Origin header = not a true preflight); $metadata 873-char agentRegistration + 458-char oAuth2PermissionGrant block, 0 OperationRestrictions across 6 EntityTypes
+- 2026-08-15 ACCEPTED: Earth Engine OAuth client_secret @ oauth.py:45 remains valid Google OAuth credential — A/B proof (leaked secret→400 invalid_grant, fake secret→401 invalid_client per RFC 6749 §5.2) conclusive; token POST-only gate confirmed (GET→404); native installed app + deprecated OOB redirect (line 420) match public-client by-design pattern (ADK #2128 precedent caps VRP severity)
+- 2026-08-15 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition remains live — 458-char oAuth2PermissionGrant EntityType block 0 OperationRestrictions @ graph.microsoft.com/beta/$metadata; resourceId caller-supplied targeting Graph OR Azure Storage; GET /v1.0/oauth2PermissionGrants → 401/237 Bearer (production v1.0 auth-gate live)
+- 2026-08-15 ACCEPTED: tokeninfo public introspection oracle remains live — no-param → 400/113 invalid_token; accepts ?access_token=/ ?id_token= without Authorization header; no-reward per Google VRP program rules.
+- 2026-08-15 REVOKE-CHECK PASSED (still LIVE) @ google/earthengine-api python/ee/oauth.py:45 CLIENT_SECRET='RUP0RZ6e0pPhDzsqIJ7KlNd1' — A/B 2026-08-15 06:4x: real→400 invalid_grant, fake→401 invalid_client (RFC 6749 §5.2). Still in main HEAD (blob sha 97aa66f0, last commit 22970614 2026-08-07 "Fix pyrefly" — secret untouched). CLIENT_ID='517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com'. Draft submission → reports/google-vrp-earthengine-secret.md.
+- 2026-08-15 DRAFTED MSRC two-principal request @ reports/msrc-two-principal-request.md — unblocks [97] Copilot Admin 5-family (agentRegistrations PATCH+CORS cross-principal) + oAuth2PermissionGrant #3. Human step: send to MSRC portal.
+- 2026-08-15 ACCEPTED: google/codeworld/web/js/utils/auth.js:30 — `PASSWORD = 'swal-input2'` verified as SweetAlert prompt DOM element ID pattern (swal-input1/2/3/4 = input field IDs from SweetAlert2.prompt), NOT a hardcoded credential — REJECTED as reportable finding, class MISCONFIG false-positive
+- 2026-08-15 ACCEPTED: All 3 prior hypotheses remain live unchanged — agentRegistrations 5-family IDOR+CORS (97, AUTH_HELPED), earthengine secret (96, HUMAN_ONLY), oauth2PermissionGrants consent forge (70, AUTH_HELPED)
+- 2026-08-15 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no confusion surface
+- 2026-08-15 REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated
+- 2026-08-15 REJECTED: Copilot Studio D2E conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enrollment
+- 2026-08-15 REJECTED: MISCONFIG @ google/codeworld/web/js/utils/auth.js:30 — `PASSWORD = 'swal-input2'` verified as SweetAlert prompt DOM element ID pattern (swal-input1/2/3/4 = input field IDs from SweetAlert2.prompt), NOT a hardcoded credential
+- 2026-08-15 ACCEPTED: CodeWorld Password='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 confirmed as SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4), NOT credential — false-positive fully resolved, MISCONFIG class collapses
+- 2026-08-15 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint); validates earthengine secret hypothesis — only grant_type=refresh_token is the redemption path
+- 2026-08-15 ACCEPTED: agentRegistrations CORS preflight with PATCH confirmed live at collection+item+agents+admin+policySettings levels — full cross-origin mutation vector intact (200 ACAO:* + PATCH allowlist + Max-Age 86400)
+- 2026-08-15 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-15 ACCEPTED: All three hypotheses remain live unchanged @ 2026-08-15 07:26:24 UTC cycle — agentRegistrations 5-family IDOR+CORS (97, AUTH_HELPED), earthengine secret (96, HUMAN_ONLY, A/B invalid_grant-vs-invalid_client proof), oauth2PermissionGrants consent forge (70, AUTH_HELPED)
+- 2026-08-15 ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live at both collection+item+agents+admin+policySettings levels — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400
+- 2026-08-15 ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ $metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including caller-supplied resourceId
+- 2026-08-15 ACCEPTED: tokeninfo public introspection oracle remains live — no-param → 400/113 invalid_token, accepts query params without Authorization header
+- 2026-08-15 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- 2026-08-15 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-15 ACCEPTED all 3 hypotheses still live @ 2026-08-15 08:2x UTC — agentRegs GET 401/237 + preflight 200 ACAO:* + PATCH allowlist, oauth.py whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged, oauth2PermissionGrants GET 401/237 + HEAD 405/0, token GET 404, tokeninfo 400/113. NO_DELTA.
+- 2026-08-15 REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 08:2x UTC).
+- 2026-08-15 ACCEPTED: All three hypotheses remain live unchanged @ 2026-08-15 07:26:24 UTC cycle — agentRegistrations 5-family IDOR+CORS (97, AUTH_HELPED), earthengine secret (96, HUMAN_ONLY), oauth2PermissionGrants consent forge (70, AUTH_HELPED)
+- 2026-08-15 ACCEPTED all 3 hypotheses still live @ 2026-08-15 probe — agentRegs GET 401/237 + HEAD 405/0 + CORS preflight 200 ACAO:*, oauth.py whole-file sha `f4f93c76…b73040` unchanged, oauth2PermissionGrants GET 401/237, token GET 404, tokeninfo 400/113, JWKS v1(4)⊂v2(7) 0 v1-exclusive. NO_DELTA.
+- 2026-08-15 REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
+- 2026-08-15 REJECTED: No new proving-dead classes this cycle — all fresh passive probes (oauth2.googleapis.com/token GET→404, graph.microsoft.com→200/301, cloud-platform scope echo 200/14) confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- 2026-08-15 REJECTED: MISCONFIG @ google/codeworld/web/js/utils/auth.js:30 (`PASSWORD = 'swal-input2'`) — confirmed as SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4), NOT a credential — false-positive fully resolved, MISCONFIG class collapses
+- 2026-08-15 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret hypothesis (only grant_type=refresh_token is redemption path)
+- 2026-08-15 REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ current probe).
+- 2026-08-15 ACCEPTED v1⊂v2 JWKS subset invariant holds — v1(5)⊂v2(9), 0 v1-exclusive; rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer).
+- 2026-08-15 ACCEPTED: All three active hypotheses confirmed live @ 2026-08-15 10:35 UTC — no change in precondition state.
+- 2026-08-15 accepted agentRegistration EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 873-char block, 0 OperationRestrictions across 6 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage, copilotAdminCatalog), createdBy/ownerIds/agentCard Nullable=false — confirmed unchanged.
+- 2026-08-15 accepted oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId targeting Graph OR Azure Storage — confirmed unchanged, extends agentRegistration schema defect class to production v1.0 consent grants.
+- 2026-08-15 accepted Earth Engine OAuth client_secret @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py:45: source 200/len=23110, sha256(secret)=`3f3f8d6f…d271` verbatim at :45 + :99 fallback, file sha `f4f93c76…` unchanged; A/B proof: leaked secret→400 invalid_grant (valid credential), fake secret→401 invalid_client (invalid credential) per RFC 6749 §5.2 — conclusive.
+- 2026-08-15 accepted agentRegistrations true CORS preflight @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Origin+ACRM:PATCH+ACH:authorization → HTTP 200 ACAO:* + Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 confirmed LIVE at both collection + item level; bare-OPTIONS→405 confirmed as probe artifact (no Origin header = not a true preflight).
+- 2026-08-15 accepted tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: no-param→400/113 invalid_token; HEAD→404 method-handling gap; accepts ?access_token=/ ?id_token= without Authorization header; no-reward per Google VRP program rules.
+- 2026-08-15 accepted v1↔v2 JWKS kid overlap @ login.microsoftonline.com/common/discovery/keys: v1(5 kids) ⊂ v2(8 kids), 0 v1-exclusive steady-state; Access-Control-Allow-Origin: *; dual issuer namespaces intact (sts.windows.net/{tid}/ vs login.microsoftonline.com/{tid}/v2.0); v1.0-only response_type=token excluded from v2.0.
+- 2026-08-15 rejected: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset invariant holds across all probe cycles (v1=4-5 kids ⊂ v2=6-11 kids, 0 persistent v1-exclusive); v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; rotation churn (aFkmKVFc, kPNphcDT, jvm_-Ttaq transients) is environmental only.
+[0m
+[0m→ [0mRead reports/hypotheses.md
+[0m→ [0mRead reports/msrc-two-principal-request.md
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead leads/reposcan-2026-08-15-10-41.md
+## Objective
+- Continue bug-bounty triage on TARGET_BOTH (Google VRP + MSRC) surface, building on three live ACCEPTED hypotheses at 2026-08-15 10:37 UTC to reach first report submission or AUTH_HELPED verification.
+
+## Important Details
+- Rules: passive-only (GET/HEAD, 1 req/s), no account creation, no data modification, never disclose pre-response, sha256-of-secrets only (never raw values), never propose REJECTED-class items.
+- Two Microsoft hypotheses (agentRegistrations 6-family IDOR+CORS, oauth2PermissionGrants consent-forge) are AUTH_HELPED-gated: require MSRC-authorized two-principal (App A + App B) tenant enrollment.
+- One Google hypothesis (earthengine oauth.py:45 hardcoded client_secret) is HUMAN_ONLY-gated: A/B proof (leaked-secret→`400 invalid_grant`, fake-secret→`401 invalid_client`, RFC 6749 §5.2) is conclusive but redemption is human-gated; VRP report `reports/google-vrp-earthengine-secret.md` already drafted.
+- Drafted MSRC two-principal request: `reports/msrc-two-principal-request.md`.
+- REJECTED: dual-JWKS rotation desync, Firebase config reads, AAD deferred redirect validation, legacy ACS, internal backend URL leaks, source maps (now closed: mysignins 404, myaccount 401), CodeWorld `PASSWORD='swal-input2'` (SweetAlert2 DOM ID, false positive), ADK client_secret/ya29 DUPs (#2128, #5520).
+- Latest reposcan 2026-08-15 10:41 UTC: 18250 files, 381 hits — all TEST_OR_EXAMPLE/KNOWN-DUP, zero REAL_SECRET.
+
+## Work State
+### Completed
+- Three live hypotheses accepted & continuously re-verified NO_DELTA through 2026-08-15 10:37 UTC.
+- Earth Engine A/B differential proof complete: `oauth2.googleapis.com/token` with leaked secret→400 `invalid_grant`; with fake secret→401 `invalid_client "The provided client secret is invalid."`; proves valid Google OAuth credential (RFC 6749 §5.2).
+- agentRegistrations true CORS preflight confirmed at collection+item+agents+admin+policySettings levels: Origin+ACRM:PATCH+ACH:authorization→200 ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400.
+- oAuth2PermissionGrant EntityType schema: 458-char block @ `$metadata`, 0 OperationRestrictions, 7 client-supplied props incl caller-supplied resourceId (Graph OR Azure Storage user_impersonization).
+- agentRegistration EntityType schema: 873-char block, 0 OperationRestrictions across 6 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage, copilotAdminCatalog).
+- VRP bundle drafted at `reports/google-vrp-earthengine-secret.md`; MSRC request drafted at `reports/msrc-two-principal-request.md`.
+- REJECTED: v1↔v2 JWKS kid-overlap dual-issuer kid-confusion (v1⊂v2 strict subset invariant held every probe, v1 kid set never validated against v2 issuer → no confusion surface); source maps closed; CodeWorld MISCONFIG false positive.
+
+### Active
+- model state: `state_bigpickle.json` = `{"phase": "POC", "status": "HIGH_POTENTIAL"}` (current model rotation).
+- Three ranked hypotheses (2026-08-15 10:37 UTC ranking): agentRegistrations 6-family IDOR+CORS [97], earthengine client_secret [96], oauth2PermissionGrants consent-forge [70].
+- Blocking on human/authorization handoff for both Microsoft (MSRC tenant enrollment) and Google (VRP report + authorized redemption confirmation) hypotheses.
+
+### Blocked
+- agentRegistrations IDOR+CORS: AUTH_HELPED — needs two-app-principal test tenant (App A POST agentRegistrations with createdBy=B-oid; App B PATCH {id} → expect 200/204 vs 403).
+- oauth2PermissionGrants consent-forge: AUTH_HELPED — needs two-principal POST /v1.0/oauth2PermissionGrants BearerA body {resourceId:<victim>,clientId:<attacker>,consentType:"All",principalId:<victim_oid>,scope:"user_impersonation"} → expect 201 vs 403.
+- Earth Engine secret redemption: HUMAN_ONLY — needs Google VRP team authorized refresh_token redemption confirmation (POST grant_type=refresh_token using leaked client_secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` + client_id `517222506229-…apps.googleusercontent.com`).
+
+## Next Move
+1. HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (attach A/B invalid_grant-vs-invalid_client evidence) and request authorized refresh_token redemption confirmation for earthengine secret (sha `3f3f8d6f…d271`).
+2. HUMAN: Submit `reports/msrc-two-principal-request.md` to MSRC portal with request for authorized two-principal App A/App B tenant enrollment (unblocks agentRegistrations IDOR+CORS #1 + oauth2PermissionGrants consent-forge #3 in one session).
+
+## Relevant Files
+- `reports/google-vrp-earthengine-secret.md`: VRP report draft (secret sha256 `3f3f8d6f…d271`, file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`, A/B RFC 6749 §5.2 proof).
+- `reports/msrc-two-principal-request.md`: MSRC authorized two-principal access request for agentRegistrations + oauth2PermissionGrants verification.
+- `state_bigpickle.json`: current model state (POC/HIGH_POTENTIAL).
+- `reports/hypotheses-bigpickle.txt`: ranked hypotheses for bigpickle model.
+- `leads/reposcan-2026-08-15-10-41.md`: latest reposcan (18250 files / 381 hits, all TEST_OR_EXAMPLE/KNOWN-DUP).
+- `probe-results.md`: passive probe log (agentRegistrations GET 401/237+, HEAD 405, oauth2.googleapis.com/token GET 404 POST-only gate, tokeninfo 400/113).
+- `inventory/microsoft.md` + `inventory/google.md`: surface inventory seeds.
+- `scope.yml`: program definitions + rules (passive_only, no_account_creation, redact_secrets_in_commits).
+- `knowledge/index.md`: RAG knowledge base through 2026-08-15 10:37 UTC.
+Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+Both remaining actions are human-gated (VRP report submission to Google, two-principal access request to MSRC). I cannot execute these without explicit direction.
+
+How would you like to proceed:
+1. **Review/edit the drafts** before you submit (`reports/google-vrp-earthengine-secret.md` + `reports/msrc-two-principal-request.md`)?
+2. **I attempt re-verification probes** on the two live hypotheses (agentRegistrations CORS preflight, oauth2PermissionGrants `$metadata`, earthengine file fetch) to refresh the knowledge base while you prepare submissions?
+3. **Stand by** until MSRC/GCP grant authorized access?
+
+What's your call?

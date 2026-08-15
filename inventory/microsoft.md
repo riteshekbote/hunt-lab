@@ -987,3 +987,5 @@
 - CHANGED none — agentRegistrations bare-OPTIONS→405 reclassified as probe artifact (true preflight with Origin+ACRM:PATCH+ACH:authorization → 200 ACAO:* + PATCH + Max-Age 86400 already confirmed), Earth Engine
 
 ## 2026-08-15 10:37:06 UTC
+
+## 2026-08-15 10:57:19 UTC
