@@ -1,56 +1,76 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan hits, I'll classify each finding:
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts[90m [offset=205, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts[90m [limit=20, offset=160][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts[90m [limit=30, offset=205][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts[90m [limit=25, offset=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py[90m [offset=160, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=25, offset=100][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py[90m [offset=140, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt[90m [offset=40, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java[90m [limit=20, offset=90][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js[90m [limit=10, offset=0][0m
+Now I have full context. All hits are test fixtures, security controls blocking metadata endpoints, CI secret references, or bundled/minified assets. No real secrets found.
+### Classification Tables
 
-## Classification Tables
-
-### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/adk-js/core/src/auth/auth_credential.ts` | 214 | `password: "password"` | Test fixture placeholder |
-| `google/adk-js/core/src/auth/auth_credential.ts` | 226 | `token: "your_access_token"` | Documentation placeholder |
-| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` | Test constant |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture in auth_credential.py |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` | Test credentials |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `HttpCredentials(token="eyAkaknabna....")` | Truncated test JWT |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Test constant |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Documentation placeholder |
-| `google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test token constant |
-| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified JS chunks | Build artifacts, not source |
-
-### ENDPOINT_LEAK (internal/dev references, not secrets)
-| File | Line | Pattern | Type |
-|------|------|---------|------|
-| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP metadata hostname |
-| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local/metadata CIDR |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | GCP metadata IP |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | GCP metadata IP |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | GCP metadata IP |
-| `google/closure-compiler/src/.../ErrorManager.java` | 95 | `source.corp.google.com` | Internal Google source link |
-| `google/closure-compiler/externs/*.js` | multiple | `dev.w3.org`, `dev.office.com` | Public spec URLs |
-
-### INTERESTING (unusual patterns, not directly exploitable)
+#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
 | File | Line | Pattern | Notes |
 |------|------|---------|-------|
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation, not hardcoded |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig params | Config options, not secrets |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret refs (correct pattern) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | `@example` JSDoc for HTTP basic auth |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | `@example` JSDoc placeholder |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | OAuthGrantType enum value (grant type name) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example with ellipsis placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | Docstring example for HTTP basic auth |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Docstring example JWT with ellipsis |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Module-level constant for grant type |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example placeholder |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test probe constant, explicitly named |
+
+#### ENDPOINT_LEAK (internal endpoint references — all are security BLOCKS, not leaks)
+| File | Line | Reference | Context |
+|------|------|-----------|---------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | **Blocked** in hostname validation (security control) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | **Blocked** CIDR (link-local, includes GCP metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Comment: NAT64 routes to metadata — **blocked** |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | `169.254.169.254` | Docstring: metadata endpoint **blocked** by default |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | `169.254.169.254` | Comment: cannot reach metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Chrome parsing quirk — **refused/blocked** |
+| google/closure-compiler/src/.../ErrorManager.java | 95 | `source.corp.google.com` | Internal docs URL in Javadoc comment |
+
+#### INTERESTING (config/debug/CI references)
+| File | Line | Item | Assessment |
+|------|------|------|------------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Standard GitHub Actions secret reference |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Writes user-supplied var to .env (not hardcoded) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context | Config parameters, not secrets |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified bundles | Compiled Angular/Prism assets (not source) |
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified bundle | Compiled asset |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified bundle | Compiled asset |
 
 ---
 
-## REAL_SECRET Candidates
-**None found in this scan delta.**
+### Verdict List
 
-The previously tracked `google/earthengine-api/python/ee/oauth.py:45` hardcoded client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) **does not appear in this scan's hits** — it was confirmed live in prior cycles via live probe but isn't caught by the current static grep rules.
+| Candidate | Category | REPORT_CANDIDATE | Rationale |
+|-----------|----------|------------------|-----------|
+| adk-js auth_credential.ts examples | TEST_OR_EXAMPLE | **no** | Docstring placeholders (`password`, `your_access_token`) |
+| adk-js auth_schemes.ts PASSWORD enum | TEST_OR_EXAMPLE | **no** | OAuth grant type name, not a credential |
+| adk-python auth_credential.py examples | TEST_OR_EXAMPLE | **no** | Docstring examples with `...` ellipsis placeholders |
+| adk-python auth_schemes.py PASSWORD | TEST_OR_EXAMPLE | **no** | Grant type constant |
+| adk-python openapi_tool auth_helpers.py | TEST_OR_EXAMPLE | **no** | Docstring `your_client_secret` placeholder |
+| adk-kotlin McpIntegrationTestSupport.kt | TEST_OR_EXAMPLE | **no** | Explicit test probe token `injected-token-probe` |
+| GCP metadata endpoint refs (7 files) | ENDPOINT_LEAK | **no** | All are **security blocks** preventing SSRF to 169.254.169.254 |
+| source.corp.google.com in ErrorManager.java | ENDPOINT_LEAK | **no** | Internal docs URL in comment, not a secret |
+| CI secret refs (langextract) | INTERESTING | **no** | Standard `${{ secrets.* }}` pattern |
+| cli_create.py GOOGLE_API_KEY generation | INTERESTING | **no** | Writes user-provided variable, not hardcoded |
+| Minified JS bundles (adk-python/java/kotlin) | INTERESTING | **no** | Compiled assets, not source secrets |
 
 ---
 
-## Verdict List
-
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| (none in delta) | — | — | — | — |
-
-**Summary**: This scan delta produces **0 reportable findings**. All hits are test fixtures, documentation placeholders, internal endpoint references, or build artifacts. The known live `earthengine-api` client_secret remains valid per live probes but isn't captured by the current static rules.
+**SUMMARY: 0 REPORT_CANDIDATE findings.** All 208 grep hits resolve to test fixtures, security-hardening code that blocks metadata endpoints, CI secret references, or compiled assets. No hardcoded credentials, API keys, or tokens with signs of life. The prior ACCEPTED finding (earthengine-api `oauth.py:45` client_secret) is **not in this scan delta** — different repository.
