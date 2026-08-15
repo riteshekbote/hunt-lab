@@ -3676,3 +3676,13 @@
 - LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds, v1 kid set never validated a
 - LEARN: REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection witho
 - LEARN: REJECTED no new proving-dead or proving-live classes this cycle @ google+microsoft: all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchange
+
+## RANKED HYPOTHESES 2026-08-15 19:38:23 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit reports/google-vrp-earthengine-secret.md to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle — secret s
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) remains conclusive per RFC 6749 §5.2 — valid Go
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint fam
+- LEARN: ACCEPTED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed live — GET→401/237 Bearer on production v1.0; oAuth2PermissionGrant EntityType 458-
