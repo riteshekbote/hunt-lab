@@ -1,40 +1,75 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [limit=20, offset=550][0m
+[0m→ [0mRead reposcan-raw/google/codeworld/web/js/utils/auth.js[90m [limit=15, offset=25][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=15, offset=35][0m
+### Classification Tables
 
-| Category | Files (line) | Classification | Notes |
-|----------|--------------|----------------|-------|
-| **TEST_OR_EXAMPLE** | nomulus: PostgresqlCommand.java:28, GenerateSqlSchemaCommand.java:40, GenerateSqlErDiagramCommand.java:61, EppClient.java:156 | Test/fixture passwords in `nonprod` & load-testing code |
-| | nomulus: XsrfTokenManager.java:37,40 | Header/param name constants (not secrets) |
-| | nomulus: BsaCredential.java:61 | OAuth constant `"id_token"` |
-| | langextract CI: 168-170 | `${{ secrets.* }}` GitHub Actions refs |
-| | codeworld auth.js:30 | Client-side placeholder `'swal-input2'` (sweetalert input) |
-| | magika CI: 20, 407, 437 | GITHUB_TOKEN ref + test.pypi.org URLs |
-| | magika tests_data/code.js:31 | Minified test fixture |
-| | capsem CI: 17, gate.toml:481, preflight.sh:39, fix_p12_legacy.sh:15 | Staging URL + password file refs (no actual secrets) |
-| | agents-cli auth.py:43 | Placeholder constant `"gemini_api_key"` |
-| | agents-cli staging.yaml:168,192 | Template syntax `{% raw %}${{...}}{% endraw %}` |
-| | adk-python auth_credential.py:157,269,278 | Test fixtures: placeholder private_key, `user`/`password`, truncated JWT |
-| | adk-python auth_schemes.py:68 | Constant `"password"` |
-| | adk-python openapi_tool/auth_helpers.py:62 | Placeholder `"your_client_secret"` |
-| | adk-python cli_create.py:131 | Template generating `GOOGLE_API_KEY={var}` |
-| | adk-python cli/browser/chunk-*.js | Minified build artifacts (15 files) |
-| **ENDPOINT_LEAK** | nomulus default-config.yaml:260 | `staging-www.sandbox.googleapis.com` |
-| | nomulus MetricParameters.java:61 | `http://metadata.google.internal/` (GCE metadata) |
-| | capsem release-channel-staging.yaml:17 | `staging.release-eq7.pages.dev` |
-| | magika python-build CI: 407, 437 | `test.pypi.org` URLs |
-| | adk-python gke/container_code_executor.py, load_web_page.py, computer_use_toolset.py | `169.254.169.254` (GCE metadata endpoint) — 5 refs |
-| **INTERESTING** | capsem gate.toml:481, preflight.sh:39, fix_p12_legacy.sh:15 | Password file reference pattern |
-| | adk-python sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| **REAL_SECRET** | *(none)* | No hardcoded live credentials/API keys/tokens found |
+#### REAL_SECRET — Hardcoded credentials with signs of life
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | | | No hardcoded live secrets found |
+
+#### TEST_OR_EXAMPLE — Sample/test/fixture data, proper secret refs, placeholders
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/android-cuttlefish/.github/workflows/*.yml | 100,175,48,50,46 | `${{ secrets.GITHUB_TOKEN }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}`, `${{ secrets.artifact-registry-uploader-json-creds }}` | Proper GitHub Actions secret references |
+| google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access --secret="codecov-google-crosvm"` | Runtime Secret Manager fetch |
+| google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud secrets versions access --secret="github-crosvm-bot"` | Runtime Secret Manager fetch |
+| google/dotprompt/packages/monaco/src/*.ts | 67-69,181-183 | Monaco tokenizer `token: 'delimiter.handlebars'` etc. | Editor syntax highlighting config |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk` | MLIR codegen emitting Python variable assignment (sk = SSA value name) |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/tunix/tunix/cli/base_*_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| google/tunix/tunix/rl/agentic/parser/.../parser.py | 193-195 | `eot_token="<|endoftext|>"` etc. | Tokenizer special tokens |
+| google/nomulus/core/src/.../PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` | Test fixture |
+| google/nomulus/.../EppClient.java | 156 | `password = "abcde12345"` | Test fixture |
+| google/nomulus/.../XsrfTokenManager.java | 37,40 | `X_CSRF_TOKEN`, `xsrfToken` | Header name constants |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Proper GitHub Actions secret refs |
+| google/codeworld/web/js/utils/auth.js | 29-32 | `USER_ID='swal-input1'`, `PASSWORD='swal-input2'` | SweetAlert DOM element IDs (not credentials) |
+| google/magika/.github/workflows/*.yml | 407,437 | `https://test.pypi.org/legacy/` | Test PyPI endpoint |
+| google/agents-cli/src/.../auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Config key name constant |
+| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions token flow |
+
+#### ENDPOINT_LEAK — Internal/dev/staging URLs
+| File | Line | Endpoint |
+|------|------|----------|
+| google/dotprompt/.github/workflows/*.yml | 33,34 | `https://test.pypi.org/legacy/` (×4) |
+| google/nomulus/core/src/.../default-config.yaml | 260 | `https://staging-www.sandbox.googleapis.com` |
+| google/magika/.github/workflows/*.yml | 407,437 | `https://test.pypi.org/legacy/` (×2) |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` (file reference) |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+
+#### INTERESTING — Unusual patterns (secret file handling, debug flags)
+| File | Line | Pattern |
+|------|------|---------|
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` — secret loaded from file at runtime |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` — secret file read pattern |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — same pattern |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — kubeconfig path handling |
 
 ---
 
-## Verdict List
+### SHORT VERDICT LIST
 
-| File | Line | SHA256(secret) | REPORT_CANDIDATE |
-|------|------|----------------|------------------|
-| *(no real secrets found)* | — | — | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| android-cuttlefish workflow secrets | **no** | Proper `${{ secrets.* }}` references |
+| crosvm gcloud secret access | **no** | Runtime Secret Manager fetch (correct pattern) |
+| dotprompt test.pypi.org URLs | **no** | Public test endpoint, not sensitive |
+| heir JaxiteWordEmitter codegen | **no** | Emits variable name `sk` in generated Python, not a secret |
+| heir author_stats.py placeholder | **no** | Commented example |
+| tunix HF token placeholders | **no** | Commented examples |
+| tunix tokenizer special tokens | **no** | Standard tokenizer config (`<|endoftext|>` etc.) |
+| nomulus test DB passwords | **no** | Non-production test fixtures |
+| nomulus staging URL | **no** | Staging environment endpoint (known) |
+| langextract CI secret refs | **no** | Proper `${{ secrets.* }}` usage |
+| codeworld SweetAlert DOM IDs | **no** | Element IDs (`swal-input2`), not credentials |
+| magika test PyPI URLs | **no** | Public test endpoint |
+| capsem password.txt file pattern | **no** | Runtime secret file read (ops pattern, no secret in repo) |
+| capsem staging.pages.dev URL | **no** | Staging deployment endpoint |
+| agents-cli config key constant | **no** | String constant `"gemini_api_key"` is the config key name |
+| agents-cli scaffold token steps | **no** | Proper GitHub Actions token flow |
 
-**Summary**: 292 hits scanned → **0 REAL_SECRET**, 247 TEST_OR_EXAMPLE, 11 ENDPOINT_LEAK, 3 INTERESTING. All "secrets" are test fixtures, placeholders, GitHub Actions secret refs (`${{secrets.*}}`), template syntax, or internal endpoint constants. No reportable credentials.
+**SUMMARY: 0 REAL_SECRET candidates. All hits are proper secret references, test fixtures, placeholders, code generation templates, or staging endpoints. No reportable findings.**
