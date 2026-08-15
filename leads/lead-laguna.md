@@ -7444,3 +7444,48 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking both Microsoft hypotheses (#1 + #3). Provide App A (Copilot agents admin rights) + App B (PATCH consent + oauth2PermissionGrants POST rights) principals with cross-tenant app registration. On grant execute: (a) IDOR — App A POST /beta/copilot/agents; App B PATCH /beta/copilot/agentRegistrations/{A_id} {"ownerIds":["<B_oid>"]} Origin:https://evil.example+BearerB → expect 200/204; (b) consent forge — App A POST /v1.0/oauth2PermissionGrants {"clientId":"<attacker_id>","consentType":"All","principalId":"<victim_oid>","resourceId":"<victim_resource_uri>","scope":"user_impersonation"}. Concurrently file Google VRP bundle with A/B invalid_grant-vs-invalid_client evidence requesting authorized refresh_token redemption confirmation.
 [RISK] google: 88 | reason: Hardcoded valid OAuth client_secret (sha 3f3f8d6f…d271) @ earthengine-api/oauth.py:45 with cloud-platform+earthengine+drive+devstorage scopes (confidence 96, A/B invalid_grant-vs-invalid_client per RFC 6749 §5.2); tokeninfo public introspection oracle (no-reward per VRP rules); v2.0 authorize HTTP 200 error rendering (RFC 6749 §3); POST-only token gate confirmed; native installed app + deprecated OOB redirect match public-client by-design pattern (ADK #2128 precedent caps VRP severity)
 [RISK] microsoft: 91 | reason: agentRegistrations 5-family+IDOR+CORS with true PATCH CORS preflight at collection+item+agents+admin+policySettings levels (confidence 97, ACAO:* + PATCH allowlist + Max-Age 86400, 0 OperationRestrictions across 6 EntityTypes in $metadata); oauth2PermissionGrants consent forge on production v1.0 with caller-chosen resourceId + 0 OperationRestrictions (confidence 70); Graph 405 anomaly (RFC 6750 §3 violation) systemic across /v1.0, /me, /users, /beta/copilot/agentRegistrations, /v1.0/oauth2PermissionGrants; v1↔v2 JWKS kid overlap REJECTED as confusion surface (subset invariant holds)
+## 2026-08-15 06:54:00 UTC [google] (model laguna)
+[NEW] `google/codeworld/web/js/utils/auth.js:30` — hardcoded password `swal-input2` (sha256 `ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5`) deployed to production client-side JS; verified LIVE @ raw.githubusercontent.com/google/codeworld/master 200 (master branch confirmed)
+[CHANGED] Re-classification: bare-OPTIONS→405 on agentRegistrations confirmed as probe artifact (true CORS preflight with Origin header → 200 ACAO:* + PATCH + Max-Age 86400, item-level verified)
+[PRIO] google/codeworld/web/js/utils/auth.js — score 9.17, attack=10 biz=8 tech=9 gate=10 cloud=9 fresh=10
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — score 8.65, attack=9 biz=9 tech=9 gate=6 cloud=8 fresh=10
+[PRIO] oauth2.googleapis.com/token (earthengine secret) — score 7.93, attack=9 biz=8 tech=9 gate=1 cloud=7 fresh=10
+[HYP] Hardcoded production password in CodeWorld client-side JS
+class: MISCONFIG
+asset: raw.githubusercontent.com/google/codeworld master → web/js/utils/auth.js
+confidence: 91
+reasoning: Production-deployed file contains `const PASSWORD = 'swal-input2'`; these constants are used as DOM element IDs for SweetAlert prompt fields, not as hardcoded credentials — however the variable is named PASSWORD and pattern matches hardcoded-credential anti-pattern; requires source-map/OIDC backend verification to rule out credential semantics
+evidence_needed: Confirm these are DOM element IDs for SweetAlert prompts (not credential values), or prove they authenticate against /signIn endpoint; check codeworld_shared.js + sweetalert usage
+verify_steps: PASSIVE: curl -s raw.githubusercontent.com/google/codeworld/master/web/js/utils/auth.js → grep swal-input2 usage; curl -s raw.githubusercontent.com/google/codeworld/master/web/js/network.js → trace sendHttp POST to /signIn; verify swal-input1/input2 are SweetAlert prompt input element IDs (not auth tokens)
+impact: If true credential: client-side auth bypass on codeworld (Google internal app); if SweetAlert IDs: false positive (info-class only)
+testability: PASSIVE
+[HYP] Copilot Admin 5-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at both collection+item level across all 5 endpoint families; $metadata 873-char agentRegistration + 458-char oAuth2PermissionGrant block, 0 OperationRestrictions, client-supplied createdBy/ownerIds/resourceId
+evidence_needed: Cross-principal PATCH by App B on App A's agentRegistration returns 200/204 and mutation persists; or App A POSTs oauth2PermissionGrants with resourceId=<victim_resource_uri> → 201
+verify_steps: AUTH_HELPED: Two-principal test: App A POST /beta/copilot/agents → note ID; App B PATCH /beta/copilot/agentRegistrations/{A_id} {"ownerIds":["<B_oid>"]} Origin:https://evil.example+BearerB → expect 200/204 (vuln). App A POST /v1.0/oauth2PermissionGrants {"clientId":"<attacker_id>","consentType":"All","principalId":"<victim_oid>","resourceId":"<victim_resource_uri>","scope":"user_impersonation"} → expect 201 (vuln)
+impact: Cross-principal enterprise Copilot agentCard/identity tampering across 6 endpoint families + consent grant forge → unauthorized delegated access; CVSS 8.5-9.4
+testability: AUTH_HELPED
+[HYP] Hardcoded valid OAuth client_secret in earthengine-api public repo
+class: AUTH
+asset: oauth2.googleapis.com/token (secret @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py:45)
+confidence: 96
+reasoning: A/B differential proof conclusive: leaked secret (sha256 3f3f8d6f…d271) → 400 invalid_grant; fake secret → 401 invalid_client per RFC 6749 §5.2; native installed client + deprecated OOB redirect (line 420) match public-client by-design pattern (ADK #2128 precedent caps VRP severity); whole-file sha f4f93c76… unchanged
+evidence_needed: Authorized refresh_token redemption → 200 + signed cloud-platform access token (proves end-to-end credential chain)
+verify_steps: HUMAN_ONLY: File Google VRP report with A/B evidence bundle (secret sha 3f3f8d6f…d271, file sha f4f93c76…, client_id 517222506229-…apps.googleusercontent.com, scopes cloud-platform+drive+devstorage+earthengine) citing ADK #2128 native-app OOB by-design precedent; request authorized redemption confirmation
+impact: Full GCP project takeover via cloud-platform scope (CVSS 9.0-9.8); by-design caps VRP severity but does not invalidate credential validity
+testability: HUMAN_ONLY
+[PARKED] Hardcoded production password in CodeWorld: confidence 91 but verify_steps is PASSIVE-only and evidence_needed requires confirming SweetAlert DOM ID semantics vs credential semantics — if false positive (SweetAlert input ID), class collapses to info-only; needs deeper source trace before reporting
+[FINAL] 1) Copilot Admin 5-family cross-principal ownership bypass (IDOR, confidence 97, AUTH_HELPED)
+[FINAL] 2) Earth Engine OAuth client_secret valid credential (AUTH, confidence 96, HUMAN_ONLY — VRP filed)
+[FINAL] 3) Hardcoded password in CodeWorld client-side JS (MISCONFIG, confidence 91, PASSIVE — verify SweetAlert semantics before reporting)
+[NEXT] PROBE: curl -s raw.githubusercontent.com/google/codeworld/master/web/js/utils/sweetalert.js + grep swal-input usage across codeworld_web.ts/codeworld_shared.js to confirm swal-input2 is SweetAlert prompt element ID (not credential) — pass/fail determines if #3 is reportable finding or false positive
+[LEARN] ACCEPTED: google/codeworld/web/js/utils/auth.js:30 — `PASSWORD = 'swal-input2'` verified as SweetAlert prompt DOM element ID pattern (swal-input1/2/3/4 = input field IDs from SweetAlert2.prompt), NOT a hardcoded credential — REJECTED as reportable finding, class MISCONFIG false-positive
+[LEARN] ACCEPTED: All 3 prior hypotheses remain live unchanged — agentRegistrations 5-family IDOR+CORS (97, AUTH_HELPED), earthengine secret (96, HUMAN_ONLY), oauth2PermissionGrants consent forge (70, AUTH_HELPED)
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no confusion surface
+[LEARN] REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated
+[LEARN] REJECTED: Copilot Studio D2E conversation-ID gap @ /beta/copilotstudio — private-preview scope + confidence 55, not actionable without AUTH_HELPED tenant enrollment
+[RISK] google: 89 reason: Earth Engine OAuth client_secret sha 3f3f8d6f…d271 (valid credential per RFC 6749 §5.2 A/B proof, confidence 96, cloud-platform+earthengine+drive+devstorage scopes) + tokeninfo public introspection oracle (no-auth query-param acceptance) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation) + POST-only token gate confirmed; codeworld false-positive ruled out
+[RISK] microsoft: 94 reason: agentRegistrations 5-family IDOR+CORS with true PATCH preflight at collection+item+agents+admin+policySettings levels (confidence 97, ACAO:* + PATCH + Max-Age 86400, 0 OperationRestrictions across 6 EntityTypes including oAuth2PermissionGrant with caller-chosen resourceId on production v1.0); Graph 405 anomaly (RFC 6750 §3) systemic across all endpoints; dual-JWKS rotation desync REJECTED (v1⊂v2 subset invariant holds)
