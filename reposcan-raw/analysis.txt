@@ -1,55 +1,1761 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "GOOGLE_API_KEY" reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -20 reposcan-raw/google/capsem/config/gate.toml
+# The build and release gate's data, in one place.
+#
+# `src/capsem/gate/` holds the decisions; this holds the values those decisions
+# are made from -- container names, scratch paths, timeouts, the boundary/rail
+# pairs the storage policy accepts, the artifacts an asset build must produce.
+#
+# It exists because the same values were previously spelled inside whichever
+# module happened to need them, which is how the justfile ended up with eleven
+# hand-written copies of one storage command and four disagreeing `case` blocks
+# over architecture names. A value that lives in one file can be read by the
+# code, by the contract tests, and by a person deciding whether to change it.
+#
+# Loaded through `capsem.gate.config`, which validates it with Pydantic: a
+# missing key or a wrong type fails at load with the field named, not deep
+# inside a forty-minute run.
+version = 1
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No live hardcoded credentials found |
+# ---------------------------------------------------------------------------
+# Architectures
+# ---------------------------------------------------------------------------
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '475,490p' reposcan-raw/google/capsem/config/gate.toml
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
+#!/usr/bin/env bash
+# Re-exports the Apple .p12 certificate with legacy 3DES/SHA1 encryption.
+# macOS `security import` rejects modern PBES2/AES-256-CBC p12 files created
+# by OpenSSL 3.x. This converts to the legacy format macOS understands.
+set -euo pipefail
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example in comment |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc example in comment |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Test/default constant |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref (not a secret) |
-| google/atheris/deployment/deploy_pypi.sh | 26 | `test.pypi.org/simple/` | CI deploy to test PyPI |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test/default constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
-| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Explicit test probe |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CERT_DIR="$(dirname "$SCRIPT_DIR")/private/apple-certificate"
+P12="$CERT_DIR/capsem.p12"
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | GCP metadata IP range (link-local) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | GCP metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | GCP metadata endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | GCP metadata endpoint |
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
 
-#### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/closure-compiler/externs/*.js | various | `dev.w3.org` documentation references (harmless) |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified build artifacts (source maps not present) |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified build artifact |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified build artifact |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig parameters (config surface, not secret) |
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
 
----
+if [[ "$FMT" != "PBES2" ]]; then
+    echo "    Already legacy format ($FMT). Nothing to do."
+    exit 0
+fi
 
-### Verdict List
+echo "    Current: $FMT (modern, macOS-incompatible)"
+echo "==> Re-exporting with 3DES/SHA1..."
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| google/atheris/deployment/deploy_pypi.sh:26 (delta) | **no** — test PyPI deploy script |
-| All TEST_OR_EXAMPLE hits | **no** — fixtures, placeholders, examples |
-| All ENDPOINT_LEAK hits | **no** — well-known GCP metadata IP (169.254.169.254), documented public surface |
-| All INTERESTING hits | **no** — build artifacts, documentation refs, config params |
+openssl pkcs12 -in "$P12" -passin "pass:$PASSWORD" -nodes -out "$TMPDIR_WORK/combined.pem" 2>/dev/null
+openssl pkcs12 -export -in "$TMPDIR_WORK/combined.pem" -out "$TMPDIR_WORK/legacy.p12" \
+    -passout "pass:$PASSWORD" -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
 
-**Summary**: Zero reportable findings in this delta. The single new hit is a CI deploy script pointing to `test.pypi.org`. All other hits are pre-existing test fixtures, placeholder values, documented metadata endpoints, or build artifacts — consistent with prior REJECTED classes in the knowledge base.
+cp "$TMPDIR_WORK/legacy.p12" "$P12"
+base64 -i "$P12" -o "$B64"
+
+echo "    Updated: $P12"
+echo "    Updated: $B64"
+echo ""
+echo "==> Verify with: scripts/preflight.sh"
+echo "==> Upload with: gh secret set APPLE_CERTIFICATE < $B64"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/preflight.sh
+#!/usr/bin/env bash
+# Preflight checks for release builds.
+# Validates environment, credentials, and tools BEFORE slow CI jobs run.
+# Add new checks as functions -- they run in order, fail-fast on first error.
+set -euo pipefail
+
+PASS=0
+FAIL=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+
+# --------------------------------------------------------------------------
+# Check: Apple certificate can be imported into a macOS keychain
+# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
+# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
+# with a misleading "wrong password" error. Re-export with:
+#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
+#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
+#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+# --------------------------------------------------------------------------
+check_apple_certificate() {
+    echo ""
+    echo "== Apple Certificate =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local pass_file="$cert_dir/p12-password.txt"
+
+    if [[ ! -f "$p12" ]]; then
+        fail "capsem.p12 not found at $p12"
+        return
+    fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+
+    # Try actual keychain import
+    local keychain="preflight-$$.keychain"
+    security create-keychain -p "" "$keychain" 2>/dev/null
+
+    if ! security import "$p12" -k "$keychain" -P "$password" -T /usr/bin/codesign >/dev/null 2>&1; then
+        security delete-keychain "$keychain" 2>/dev/null || true
+        fail "keychain import failed"
+        return
+    fi
+    pass "keychain import succeeded"
+
+    security set-key-partition-list -S apple-tool:,apple: -k "" "$keychain" >/dev/null 2>&1
+
+    local identity
+    identity=$(security find-identity -v -p codesigning "$keychain" 2>/dev/null | grep "Developer ID" || true)
+    security delete-keychain "$keychain" 2>/dev/null || true
+
+    if [[ -z "$identity" ]]; then
+        fail "no Developer ID signing identity found"
+        return
+    fi
+    pass "signing identity: $(echo "$identity" | sed 's/.*"\(.*\)"/\1/')"
+}
+
+# --------------------------------------------------------------------------
+# Check: base64-encoded certificate matches the p12 on disk
+# --------------------------------------------------------------------------
+check_b64_matches_p12() {
+    echo ""
+    echo "== Base64 Sync =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local b64="$cert_dir/capsem-b64.txt"
+
+    if [[ ! -f "$b64" ]]; then
+        fail "capsem-b64.txt not found"
+        return
+    fi
+
+    local disk_b64
+    disk_b64="$(base64 -i "$p12")"
+    local file_b64
+    file_b64="$(tr -d '\n\r ' < "$b64")"
+
+    if [[ "$disk_b64" != "$file_b64" ]]; then
+        fail "capsem-b64.txt does not match capsem.p12 -- regenerate with: base64 -i capsem.p12 -o capsem-b64.txt"
+        return
+    fi
+    pass "capsem-b64.txt matches capsem.p12"
+}
+
+# --------------------------------------------------------------------------
+# Check: required tools are available
+# --------------------------------------------------------------------------
+check_tools() {
+    echo ""
+    echo "== Required Tools =="
+
+    local tools=(openssl codesign security cargo pnpm node gh uv)
+    for tool in "${tools[@]}"; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            pass "$tool"
+        else
+            fail "$tool not found"
+        fi
+    done
+}
+
+# --------------------------------------------------------------------------
+# Check: Rust targets are installed
+# --------------------------------------------------------------------------
+check_rust_targets() {
+    echo ""
+    echo "== Rust Targets =="
+
+    if rustup target list --installed 2>/dev/null | grep -q "aarch64-unknown-linux-musl"; then
+        pass "aarch64-unknown-linux-musl installed"
+    else
+        fail "aarch64-unknown-linux-musl not installed -- run: rustup target add aarch64-unknown-linux-musl"
+    fi
+
+    if rustup target list --installed 2>/dev/null | grep -q "x86_64-unknown-linux-musl"; then
+        pass "x86_64-unknown-linux-musl installed"
+    else
+        fail "x86_64-unknown-linux-musl not installed -- run: rustup target add x86_64-unknown-linux-musl"
+    fi
+}
+
+
+# --------------------------------------------------------------------------
+# Check: Apple notarization credentials are present and work
+# --------------------------------------------------------------------------
+check_notarization() {
+    echo ""
+    echo "== Notarization =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p8="$cert_dir/capsem.p8"
+    local info="$cert_dir/api-key-info.txt"
+
+    if [[ ! -f "$p8" ]]; then
+        fail ".p8 key not found at $p8"
+        return
+    fi
+    pass ".p8 key file exists"
+
+    if [[ ! -f "$info" ]]; then
+        fail "api-key-info.txt not found at $info"
+        return
+    fi
+
+    local api_key api_issuer
+    api_key=$(grep '^APPLE_API_KEY=' "$info" | head -1 | cut -d= -f2)
+    api_issuer=$(grep '^APPLE_API_ISSUER=' "$info" | head -1 | cut -d= -f2)
+
+    if [[ -z "$api_key" ]]; then
+        fail "API Key ID not found in api-key-info.txt"
+        return
+    fi
+    pass "API Key ID: $api_key"
+
+    if [[ -z "$api_issuer" ]]; then
+        fail "API Issuer ID not found in api-key-info.txt"
+        return
+    fi
+    pass "API Issuer ID: $api_issuer"
+
+    if ! command -v xcrun >/dev/null 2>&1; then
+        fail "xcrun not found"
+        return
+    fi
+
+    if ! xcrun notarytool --help >/dev/null 2>&1; then
+        fail "xcrun notarytool not available"
+        return
+    fi
+    pass "xcrun notarytool available"
+
+    # Live check: verify credentials work against Apple's API (fast, no upload)
+    if xcrun notarytool history \
+        --key "$p8" \
+        --key-id "$api_key" \
+        --issuer "$api_issuer" \
+        >/dev/null 2>&1; then
+        pass "notarytool history succeeded (credentials valid)"
+    else
+        fail "notarytool history failed -- check .p8 key, Key ID, and Issuer ID"
+    fi
+}
+
+# --------------------------------------------------------------------------
+# Check: capsem-init does not allow state to persist between VM sessions.
+# Invariants:
+#   (1) scratch disk is always formatted unconditionally at boot (no ext4 detection skip)
+#   (2) overlay upperdir is always on tmpfs, never on the scratch disk
+# See docs/ephemeral_model.md for the incident that motivated these checks.
+# --------------------------------------------------------------------------
+check_ephemeral_model() {
+    echo ""
+    echo "== Ephemeral VM Model =="
+
+    local init="$ROOT_DIR/guest/artifacts/capsem-init"
+
+    if [[ ! -f "$init" ]]; then
+        fail "capsem-init not found at $init"
+        return
+    fi
+
+    # FAIL: conditional mke2fs skip on scratch disk (block mode must always format).
+    # The VirtioFS ext4 loopback check (blkid + mke2fs for /mnt/shared/system/rootfs.img)
+    # is expected and safe -- it only formats on first boot of the loopback image.
+    # We only flag if the BLOCK mode scratch disk (/dev/vdb) conditionally skips formatting.
+    if grep -B5 'mke2fs.*scratch\|mke2fs.*vdb' "$init" | grep -qE 'blkid.*ext4'; then
+        fail "capsem-init conditionally skips mke2fs on scratch disk -- would persist across reboots"
+    else
+        pass "capsem-init: scratch disk always formatted (or not used)"
+    fi
+
+    # FAIL: scratch disk used as overlay upper layer
+    if grep -qE 'UPPER=.*scratch|upperdir[=[:space:]].*scratch' "$init"; then
+        fail "capsem-init uses scratch disk as overlayfs upper -- all rootfs writes would persist"
+    else
+        pass "capsem-init: scratch disk not used as overlay upper"
+    fi
+
+    # PASS: mke2fs must be present (scratch disk formatted at boot)
+    if grep -q 'mke2fs' "$init"; then
+        pass "capsem-init: mke2fs present (scratch disk formatted at every boot)"
+    else
+        fail "capsem-init: mke2fs missing -- scratch disk never formatted"
+    fi
+
+    # PASS: tmpfs used for overlay upper directory
+    if grep -qE 'mount -t tmpfs tmpfs /mnt/b' "$init"; then
+        pass "capsem-init: tmpfs used for overlay upper layer"
+    else
+        fail "capsem-init: tmpfs overlay upper not found -- writes may persist"
+    fi
+
+    # PASS: tmpfs mount failure must abort boot (no silent degraded mode)
+    if grep -qE 'exit 1' "$init" && grep -A3 'mount -t tmpfs tmpfs /mnt/b' "$init" | grep -q 'exit 1'; then
+        pass "capsem-init: tmpfs mount failure aborts boot (no silent degraded fallback)"
+    else
+        fail "capsem-init: tmpfs mount failure does not abort boot -- VM may start with wrong upper layer"
+    fi
+
+    # VirtioFS mode checks
+    if grep -q 'mount -t virtiofs capsem' "$init"; then
+        pass "capsem-init: VirtioFS overlay path present"
+    else
+        fail "capsem-init: VirtioFS overlay path missing"
+    fi
+
+    if grep -A5 'mount -t virtiofs capsem' "$init" | grep -q 'exit 1'; then
+        pass "capsem-init: VirtioFS mount failure aborts boot"
+    else
+        fail "capsem-init: VirtioFS mount failure does not abort boot"
+    fi
+}
+
+# --------------------------------------------------------------------------
+# Check: every [[bin]] in capsem-agent is referenced in Dockerfile + justfile
+# Source of truth: crates/capsem-agent/Cargo.toml [[bin]] entries.
+# --------------------------------------------------------------------------
+check_guest_binaries() {
+    echo ""
+    echo "== Guest Binaries =="
+
+    local cargo_toml="$ROOT_DIR/crates/capsem-agent/Cargo.toml"
+    local dockerfile="$ROOT_DIR/config/docker/Dockerfile.rootfs.j2"
+    local justfile="$ROOT_DIR/justfile"
+
+    if [[ ! -f "$cargo_toml" ]]; then
+        fail "capsem-agent Cargo.toml not found at $cargo_toml"
+        return
+    fi
+
+    # Extract [[bin]] name values from Cargo.toml
+    local binaries
+    binaries=$(grep -A1 '^\[\[bin\]\]' "$cargo_toml" | grep '^name' | sed 's/.*= *"\(.*\)"/\1/')
+
+    if [[ -z "$binaries" ]]; then
+        fail "no [[bin]] entries found in $cargo_toml"
+        return
+    fi
+
+    for bin in $binaries; do
+        # Guest binaries are injected via initrd repack, not baked into rootfs.
+        # Check justfile _pack-initrd references the binary.
+        if grep -q "$bin" "$justfile"; then
+            pass "justfile _pack-initrd: $bin"
+        else
+            fail "justfile missing $bin in _pack-initrd"
+        fi
+    done
+}
+
+# --------------------------------------------------------------------------
+# Run all checks
+# --------------------------------------------------------------------------
+main() {
+    echo "Capsem Release Preflight Checks"
+    echo "================================"
+
+    check_tools
+    check_rust_targets
+    check_apple_certificate
+    check_b64_matches_p12
+    check_notarization
+    check_ephemeral_model
+    check_guest_binaries
+
+    echo ""
+    echo "================================"
+    echo "Results: $PASS passed, $FAIL failed"
+
+    if [[ $FAIL -gt 0 ]]; then
+        echo ""
+        echo "Fix the failures above before releasing."
+        exit 1
+    fi
+
+    echo "All preflight checks passed."
+}
+
+main "$@"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "PASSWORD = 'password'" reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts
+41:  PASSWORD = 'password',
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '35,50p' reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts
+* Represents the OAuth2 flow (or grant type).
+ */
+export enum OAuthGrantType {
+  CLIENT_CREDENTIALS = 'client_credentials',
+  AUTHORIZATION_CODE = 'authorization_code',
+  IMPLICIT = 'implicit',
+  PASSWORD = 'password',
+}
+
+/**
+ * Converts an OAuthFlows object to a OAuthGrantType.
+ */
+export function getOAuthGrantTypeFromFlow(
+  flow: Oauth2Flow,
+): OAuthGrantType | undefined {
+  if (flow.clientCredentials) {
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '210,230p' reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts
+*   http: {
+ *     scheme: "basic",
+ *     credentials: {
+ *       username: "user",
+ *       password: "password",
+ *     },
+ *   }
+ * }
+ *
+ * @example
+ * // OAuth2 Bearer Token in HTTP Header
+ * const authCredential: AuthCredential = {
+ *   authType: AuthCredentialTypes.HTTP,
+ *   http: {
+ *     scheme: "bearer",
+ *     credentials: {
+ *       token: "your_access_token",
+ *     },
+ *   }
+ * }
+ *
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '210,220p' reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts
+const addresses = [...new Set(records.map((record) => record.address))];
+  if (addresses.length === 0) {
+    throw new Error(`Unable to resolve host: ${hostname}`);
+  }
+  return addresses;
+}
+
+/**
+ * Validates the URL's scheme and hostname up front (before any network access).
+ * Throws for malformed URLs, disallowed schemes, and blocked hostnames.
+ */
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '30,45p' reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts
+*/
+const BLOCKED_IPV4_CIDRS = [
+  '0.0.0.0/8', // "this host on this network"
+  '10.0.0.0/8', // private
+  '100.64.0.0/10', // shared address space / CGNAT
+  '127.0.0.0/8', // loopback
+  '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)
+  '172.16.0.0/12', // private
+  '192.0.0.0/24', // IETF protocol assignments
+  '192.0.2.0/24', // TEST-NET-1 (documentation)
+  '192.88.99.0/24', // 6to4 relay anycast (deprecated)
+  '192.168.0.0/16', // private
+  '198.18.0.0/15', // benchmarking
+  '198.51.100.0/24', // TEST-NET-2 (documentation)
+  '203.0.113.0/24', // TEST-NET-3 (documentation)
+  '224.0.0.0/4', // multicast
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '160,175p' reposcan-raw/google/langextract/.github/workflows/ci.yaml
+env:
+          GITHUB_TOKEN: ""
+        run: |
+          set -euo pipefail
+          if [[ -z '${{ secrets.GEMINI_API_KEY }}' && -z '${{ secrets.OPENAI_API_KEY }}' ]]; then
+            echo "::notice::Live API tests skipped - API keys not configured"
+            exit 0
+          fi
+          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+          tox -e live-api
+
+  plugin-integration-test:
+    needs: test
+    runs-on: ubuntu-latest
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp
+#include "lib/Target/JaxiteWord/JaxiteWordEmitter.h"
+
+#include <cmath>
+#include <cstdint>
+#include <functional>
+#include <iterator>
+#include <numeric>
+#include <string>
+
+#include "lib/Analysis/SelectVariableNames/SelectVariableNames.h"
+#include "lib/Dialect/JaxiteWord/IR/JaxiteWordDialect.h"
+#include "lib/Dialect/JaxiteWord/IR/JaxiteWordOps.h"
+#include "lib/Dialect/JaxiteWord/IR/JaxiteWordTypes.h"
+#include "lib/Dialect/LWE/IR/LWEAttributes.h"
+#include "lib/Dialect/LWE/IR/LWEDialect.h"
+#include "lib/Dialect/LWE/IR/LWETypes.h"
+#include "lib/Target/JaxiteWord/JaxiteWordTemplates.h"
+#include "lib/Utils/TargetUtils.h"
+#include "llvm/include/llvm/ADT/TypeSwitch.h"            // from @llvm-project
+#include "llvm/include/llvm/Support/Format.h"            // from @llvm-project
+#include "llvm/include/llvm/Support/FormatVariadic.h"    // from @llvm-project
+#include "llvm/include/llvm/Support/raw_ostream.h"       // from @llvm-project
+#include "mlir/include/mlir/Dialect/Arith/IR/Arith.h"    // from @llvm-project
+#include "mlir/include/mlir/Dialect/Func/IR/FuncOps.h"   // from @llvm-project
+#include "mlir/include/mlir/Dialect/MemRef/IR/MemRef.h"  // from @llvm-project
+#include "mlir/include/mlir/Dialect/SCF/IR/SCF.h"        // from @llvm-project
+#include "mlir/include/mlir/Dialect/Tensor/IR/Tensor.h"  // from @llvm-project
+#include "mlir/include/mlir/IR/BuiltinAttributes.h"      // from @llvm-project
+#include "mlir/include/mlir/IR/BuiltinOps.h"             // from @llvm-project
+#include "mlir/include/mlir/IR/BuiltinTypeInterfaces.h"  // from @llvm-project
+#include "mlir/include/mlir/IR/BuiltinTypes.h"           // from @llvm-project
+#include "mlir/include/mlir/IR/DialectRegistry.h"        // from @llvm-project
+#include "mlir/include/mlir/IR/Types.h"                  // from @llvm-project
+#include "mlir/include/mlir/IR/Value.h"                  // from @llvm-project
+#include "mlir/include/mlir/IR/ValueRange.h"             // from @llvm-project
+#include "mlir/include/mlir/IR/Visitors.h"               // from @llvm-project
+#include "mlir/include/mlir/Support/LLVM.h"              // from @llvm-project
+#include "mlir/include/mlir/Support/LogicalResult.h"     // from @llvm-project
+#include "mlir/include/mlir/Tools/mlir-translate/Translation.h"  // from @llvm-project
+
+namespace mlir {
+namespace heir {
+namespace jaxiteword {
+
+void registerToJaxiteWordTranslation() {
+  TranslateFromMLIRRegistration reg(
+      "emit-jaxiteword",
+      "translate the JaxiteWord dialect to python code for jaxiteword",
+      [](Operation* op, llvm::raw_ostream& output) {
+        return translateToJaxiteWord(op, output);
+      },
+      [](DialectRegistry& registry) {
+        registry
+            .insert<func::FuncDialect, jaxiteword::JaxiteWordDialect,
+                    arith::ArithDialect, tensor::TensorDialect, scf::SCFDialect,
+                    lwe::LWEDialect, memref::MemRefDialect>();
+      });
+}
+
+LogicalResult translateToJaxiteWord(Operation* op, llvm::raw_ostream& os) {
+  SelectVariableNames variableNames(op);
+  JaxiteWordEmitter emitter(os, &variableNames);
+  return emitter.translate(*op);
+}
+
+static int getMaxCurrentInModule(Operation* op) {
+  auto module = op->getParentOfType<ModuleOp>();
+  if (!module) return 0;
+  int maxCurrent = 0;
+  module.walk([&](Operation* inner) {
+    for (auto result : inner->getResults()) {
+      if (auto ctType = dyn_cast<lwe::LWECiphertextType>(result.getType())) {
+        maxCurrent =
+            std::max(maxCurrent, ctType.getModulusChain().getCurrent());
+      }
+    }
+    for (auto operand : inner->getOperands()) {
+      if (auto ctType = dyn_cast<lwe::LWECiphertextType>(operand.getType())) {
+        maxCurrent =
+            std::max(maxCurrent, ctType.getModulusChain().getCurrent());
+      }
+    }
+  });
+  return maxCurrent;
+}
+
+static std::string getCrossLevelExpr(Value ct, StringRef ctxName, Operation* op,
+                                     int extraOffset = 1) {
+  auto ctType = cast<lwe::LWECiphertextType>(ct.getType());
+  int current = ctType.getModulusChain().getCurrent();
+  int maxCurrent = getMaxCurrentInModule(op);
+  int rescalesFromFresh = maxCurrent - current;
+  int totalOffset = rescalesFromFresh + extraOffset;
+  if (totalOffset == 0) {
+    return (ctxName + ".max_level").str();
+  }
+  if (totalOffset == 1) {
+    return (ctxName + ".max_level - 1").str();
+  }
+  return (ctxName + ".max_level - " + Twine(totalOffset)).str();
+}
+
+static FailureOr<std::string> getConstantAsString(Value value) {
+  if (auto constantOp =
+          dyn_cast_or_null<arith::ConstantOp>(value.getDefiningOp())) {
+    auto valueAttr = constantOp.getValue();
+    if (auto intAttr = dyn_cast<IntegerAttr>(valueAttr)) {
+      return std::to_string(intAttr.getInt());
+    }
+  }
+  return failure();
+}
+
+LogicalResult JaxiteWordEmitter::translate(Operation& op) {
+  LogicalResult status =
+      llvm::TypeSwitch<Operation&, LogicalResult>(op)
+          .Case<ModuleOp>([&](auto op) { return printOperation(op); })
+          .Case<func::FuncOp, func::ReturnOp>(
+              [&](auto op) { return printOperation(op); })
+          .Case<AddOp, SubOp, NegateOp, SquareOp, MulOp, MulNoRelinOp,
+                ModReduceOp, RotOp, RelinOp, AddPlainOp, SubPlainOp, MulPlainOp,
+                AddInPlaceOp, SubInPlaceOp, EncodeOp, DecodeOp, EncryptOp,
+                DecryptOp, GenParamsOp, GenKeyPairOp, GenMulKeyOp, GenRotKeyOp,
+                ProgramInitializationOp>(
+              [&](auto op) { return printOperation(op); })
+          .Case<tensor::ExtractOp, tensor::FromElementsOp, tensor::EmptyOp,
+                tensor::InsertOp, tensor::ExtractSliceOp,
+                tensor::InsertSliceOp>(
+              [&](auto op) { return printOperation(op); })
+          .Case<scf::ForOp, scf::IfOp, scf::YieldOp>(
+              [&](auto op) { return printOperation(op); })
+          .Case<memref::LoadOp, memref::StoreOp, memref::AllocOp>(
+              [&](auto op) { return printOperation(op); })
+          .Case<arith::ConstantOp>([&](auto op) { return printOperation(op); })
+          .Case<arith::IndexCastOp, arith::AddIOp, arith::SubIOp, arith::MulIOp,
+                arith::DivSIOp, arith::RemSIOp, arith::CmpIOp, arith::SelectOp,
+                arith::ExtSIOp, arith::ExtUIOp, arith::TruncIOp>(
+              [&](auto op) { return printOperation(op); })
+          .Default([&](Operation&) {
+            return op.emitOpError("unable to find printer for op");
+          });
+
+  if (failed(status)) {
+    op.emitOpError(llvm::formatv("Failed to translate op {0}", op.getName()));
+    return failure();
+  }
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(ModuleOp moduleOp) {
+  os << kModulePrelude << "\n";
+  for (Operation& op : moduleOp) {
+    if (failed(translate(op))) {
+      return failure();
+    }
+  }
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(func::FuncOp funcOp) {
+  os << "def " << funcOp.getName() << "(\n";
+  os.indent();
+  for (Value arg : funcOp.getArguments()) {
+    auto argName = variableNames->getNameForValue(arg);
+    os << argName << ": ";
+    if (failed(emitType(arg.getType()))) {
+      return funcOp.emitOpError()
+             << "Failed to emit JaxiteWord type " << arg.getType();
+    }
+    os << ",\n";
+    if (isa<lwe::LWECiphertextType>(arg.getType())) {
+      CiphertextArg_ = argName;
+    }
+  }
+  os.unindent();
+  os << ")";
+
+  if (funcOp.getNumResults() > 0) {
+    os << " -> ";
+    if (funcOp.getNumResults() == 1) {
+      Type result = funcOp.getResultTypes()[0];
+      if (failed(emitType(result))) {
+        return funcOp.emitOpError()
+               << "Failed to emit JaxiteWord type " << result;
+      }
+    } else {
+      auto result = commaSeparatedTypes(
+          funcOp.getResultTypes(), [&](Type type) -> FailureOr<std::string> {
+            auto result = convertType(type);
+            if (failed(result)) {
+              return funcOp.emitOpError()
+                     << "Failed to emit JaxiteWord type " << type;
+            }
+            return result;
+          });
+      os << "(" << result.value() << ")";
+    }
+  }
+
+  os << ":\n";
+  os.indent();
+
+  for (Block& block : funcOp.getBlocks()) {
+    for (Operation& op : block.getOperations()) {
+      if (failed(translate(op))) {
+        return failure();
+      }
+    }
+  }
+
+  os.unindent();
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(func::ReturnOp op) {
+  std::function<std::string(Value)> resultValue = [&](Value value) {
+    if (isa<BlockArgument>(value)) {
+      return variableNames->getNameForValue(value);
+    } else {
+      return variableNames->getNameForValue(value);
+    }
+  };
+  if (op.getNumOperands() == 0) {
+    return success();
+  }
+  if (op.getNumOperands() == 1) {
+    os << "return " << resultValue(op.getOperands()[0]) << "\n";
+    return success();
+  } else {
+    os << "return (" << commaSeparatedValues(op.getOperands(), resultValue)
+       << ")\n";
+    return success();
+  }
+  return failure();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(AddOp op) {
+  return printBinaryOpHelper(
+      op.getResult(), op.getLhs(), op.getRhs(),
+      [&](StringRef lhs, StringRef rhs, StringRef result) {
+        os << lhs << "\n";
+        os << llvm::formatv(kAddCoreTemplate.data(), result, rhs);
+      });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(SubOp op) {
+  return printBinaryOpHelper(
+      op.getResult(), op.getLhs(), op.getRhs(),
+      [&](StringRef lhs, StringRef rhs, StringRef result) {
+        os << lhs << "\n";
+        std::string rhsCiphertext = (rhs + ".ciphertext").str();
+        os << llvm::formatv(kSubTemplate.data(), result, rhsCiphertext);
+      });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(NegateOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getCiphertext()) << ".mul(-1)\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(SquareOp op) {
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto level =
+      getCrossLevelExpr(op.getCiphertext(), ctx, op, /*extraOffset=*/1);
+
+  emitAssignPrefix(op.getResult());
+  os << ctx << ".he_mul[" << level << "].mul(" << ct << ", " << ct << ")\n";
+  return success();
+}
+
+void JaxiteWordEmitter::emitAssignPrefix(Value result) {
+  os << variableNames->getNameForValue(result) << " = ";
+}
+
+LogicalResult JaxiteWordEmitter::printBinaryOpHelper(
+    Value result, Value lhs, Value rhs,
+    llvm::function_ref<void(StringRef, StringRef, StringRef)> callback) {
+  auto lhsName = variableNames->getNameForValue(lhs);
+  auto rhsName = variableNames->getNameForValue(rhs);
+  auto resultName = variableNames->getNameForValue(result);
+
+  emitAssignPrefix(result);
+  callback(lhsName, rhsName, resultName);
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printInPlaceBinaryOpHelper(
+    Value lhs, Value rhs,
+    llvm::function_ref<void(StringRef, StringRef)> callback) {
+  auto lhsName = variableNames->getNameForValue(lhs);
+  auto rhsName = variableNames->getNameForValue(rhs);
+
+  callback(lhsName, rhsName);
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printMulOpHelper(
+    Value result, Value lhs, Value rhs, Value ctx, Operation* op,
+    llvm::function_ref<void(StringRef, StringRef, StringRef, StringRef,
+                            StringRef)>
+        callback) {
+  auto lhsName = variableNames->getNameForValue(lhs);
+  auto rhsName = variableNames->getNameForValue(rhs);
+  auto ctxName = variableNames->getNameForValue(ctx);
+  auto resultName = variableNames->getNameForValue(result);
+  auto level = getCrossLevelExpr(lhs, ctxName, op, /*extraOffset=*/1);
+
+  emitAssignPrefix(result);
+  callback(lhsName, rhsName, ctxName, resultName, level);
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(EncodeOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getCryptoContext()) << ".encode("
+     << variableNames->getNameForValue(op.getInput()) << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(EncryptOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto pk = variableNames->getNameForValue(op.getPublicKey());
+  os << ctx << ".public_key = " << pk << "\n";
+
+  emitAssignPrefix(op.getResult());
+  os << ctx << ".encrypt(" << variableNames->getNameForValue(op.getPlaintext())
+     << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(MulOp op) {
+  return printMulOpHelper(op.getResult(), op.getLhs(), op.getRhs(),
+                          op.getCryptoContext(), op.getOperation(),
+                          [&](StringRef lhs, StringRef rhs, StringRef ctx,
+                              StringRef result, StringRef level) {
+                            os << ctx << ".he_mul[" << level << "].hemul("
+                               << lhs << ", " << rhs << ")\n";
+                          });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(MulNoRelinOp op) {
+  return printMulOpHelper(op.getResult(), op.getLhs(), op.getRhs(),
+                          op.getCryptoContext(), op.getOperation(),
+                          [&](StringRef lhs, StringRef rhs, StringRef ctx,
+                              StringRef result, StringRef level) {
+                            os << ctx << ".he_mul[" << level
+                               << "].hemul_no_relin(" << lhs << ", " << rhs
+                               << ")\n";
+                          });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(RelinOp op) {
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto level =
+      getCrossLevelExpr(op.getCiphertext(), ctx, op, /*extraOffset=*/1);
+
+  auto result = variableNames->getNameForValue(op.getOutput());
+  os << llvm::formatv(kRelinTemplate.data(), result, ctx, level, ct);
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(ModReduceOp op) {
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+  emitAssignPrefix(op.getResult());
+  os << ct << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(RotOp op) {
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto rotIndex = op.getIndex();
+  auto level =
+      getCrossLevelExpr(op.getCiphertext(), ctx, op, /*extraOffset=*/0);
+
+  emitAssignPrefix(op.getResult());
+  os << ctx << ".he_rot[" << level << ", " << rotIndex << "].rotate(" << ct
+     << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(DecryptOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+
+  auto ctType = cast<lwe::LWECiphertextType>(op.getCiphertext().getType());
+  int current = ctType.getModulusChain().getCurrent();
+  int maxCurrent = getMaxCurrentInModule(op);
+  int rescales = maxCurrent - current;
+
+  os << llvm::formatv(kDecryptTemplate.data(), ctx, sk, rescales, ct);
+
+  emitAssignPrefix(op.getResult());
+  os << ctx << ".decrypt(_ct_for_dec)\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(DecodeOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getCryptoContext()) << ".decode("
+     << variableNames->getNameForValue(op.getPlaintext())
+     << ", is_ntt=False).real";
+
+  if (auto tensorType = dyn_cast<RankedTensorType>(op.getResult().getType())) {
+    os << ".reshape(";
+    auto shape = tensorType.getShape();
+    for (size_t i = 0; i < shape.size(); ++i) {
+      if (i > 0) os << ", ";
+      os << shape[i];
+    }
+    os << ")";
+  }
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(MulPlainOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto ct = variableNames->getNameForValue(op.getCiphertext());
+  auto pt = variableNames->getNameForValue(op.getPlaintext());
+  auto level =
+      getCrossLevelExpr(op.getCiphertext(), ctx, op, /*extraOffset=*/0);
+
+  os << ctx << ".ptct_mul[" << level << "].set_plaintext(" << pt << ")\n";
+  emitAssignPrefix(op.getResult());
+  os << ctx << ".ptct_mul[" << level << "].mul(" << ct << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(AddPlainOp op) {
+  auto lhs = variableNames->getNameForValue(op.getLhs());
+  auto rhs = variableNames->getNameForValue(op.getRhs());
+  os << lhs << ".ciphertext = " << lhs << ".ciphertext + " << rhs << "\n";
+  os << llvm::formatv(kAddModReduceTemplate.data(), lhs);
+
+  emitAssignPrefix(op.getResult());
+  os << lhs << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(SubPlainOp op) {
+  auto lhs = variableNames->getNameForValue(op.getLhs());
+  auto rhs = variableNames->getNameForValue(op.getRhs());
+  os << llvm::formatv(kSubTemplate.data(), lhs, rhs);
+  emitAssignPrefix(op.getResult());
+  os << lhs << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(AddInPlaceOp op) {
+  return printInPlaceBinaryOpHelper(
+      op.getLhs(), op.getRhs(), [&](StringRef lhs, StringRef rhs) {
+        os << llvm::formatv(kAddCoreTemplate.data(), lhs, rhs);
+      });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(SubInPlaceOp op) {
+  return printInPlaceBinaryOpHelper(
+      op.getLhs(), op.getRhs(), [&](StringRef lhs, StringRef rhs) {
+        std::string rhsCiphertext = (rhs + ".ciphertext").str();
+        os << llvm::formatv(kSubTemplate.data(), lhs, rhsCiphertext);
+      });
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(GenKeyPairOp op) {
+  auto pk = variableNames->getNameForValue(op.getPublicKey());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+
+  os << "key_pair = key_gen.gen_pke_pair(" << ctx << ".q_towers, " << ctx
+     << ".p_towers, " << "degree=" << ctx << ".degree" << ")\n";
+  os << sk << " = key_pair[\"secret_key\"]\n";
+  os << pk << " = key_pair[\"public_key\"]\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(GenMulKeyOp op) {
+  auto ek = variableNames->getNameForValue(op.getResult());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+
+  os << ek << " = key_gen.gen_evaluation_key(" << sk << ", " << "q=" << ctx
+     << ".q_towers, " << "P=" << ctx << ".p_towers, " << "dnum=" << ctx
+     << ".parameters.get('dnum', 3)" << ")\n";
+
+  heMulVarName_ = "he_mul";
+  os << llvm::formatv(kGenMulKeyTemplate.data(), ctx, heMulVarName_, ek);
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(GenRotKeyOp op) {
+  auto rk = variableNames->getNameForValue(op.getResult());
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+
+  rotKeysDictVarName_ = rk + "_dict";
+  std::string indicesStr;
+  llvm::raw_string_ostream indicesOs(indicesStr);
+  llvm::interleaveComma(op.getIndices(), indicesOs);
+
+  os << llvm::formatv(kGenRotKeyTemplate.data(), rotKeysDictVarName_,
+                      indicesStr, sk, ctx, heRotVarName_, rk);
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(GenParamsOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  cryptoContextVarName_ = ctx;
+
+  os << "params = {\n";
+  os.indent();
+  auto qTowers = op.getQTowers();
+  auto pTowers = op.getPTowers();
+  int32_t compDeg = op.getCompositeDegree();
+
+  os << "\"degree\": " << op.getDegree() << ",\n";
+  os << "\"num_slots\": " << op.getNumSlots() << ",\n";
+  os << "\"batch\": " << op.getBatch() << ",\n";
+  os << "\"r\": " << op.getR() << ",\n";
+  os << "\"c\": " << op.getC() << ",\n";
+  os << "\"dnum\": " << op.getDnum() << ",\n";
+  os << "\"numEvalMult\": " << op.getNumEvalMult() << ",\n";
+  os << "\"scaling_factor\": " << op.getScalingFactor() << ",\n";
+
+  os << "\"q_towers\": [";
+  llvm::interleaveComma(qTowers, os);
+  os << "],\n";
+
+  os << "\"p_towers\": [";
+  llvm::interleaveComma(pTowers, os);
+  os << "],\n";
+
+  os << "\"composite_degree\": " << compDeg << ",\n";
+  os << "\"p\": 30,\n";
+  os << "\"max_bits_in_word\": 61,\n";
+  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
+  os << "\"noise_scale_degree\": 1,\n";
+  os << "\"CKKS_M_FACTOR\": 1\n";
+  os.unindent();
+  os << "}\n";
+
+  os << ctx << " = ckks.CKKSContext(params)\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
+
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
+
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
+  os << ")\n";
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::ExtractOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getTensor());
+
+  os << "[";
+  for (size_t i = 0; i < op.getIndices().size(); ++i) {
+    if (i > 0) os << ", ";
+    Value idx = op.getIndices()[i];
+    auto constStr = getConstantAsString(idx);
+    if (succeeded(constStr)) {
+      os << constStr.value();
+    } else {
+      os << variableNames->getNameForValue(idx);
+    }
+  }
+  os << "]\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::FromElementsOp op) {
+  if (op.getNumOperands() == 0) {
+    return success();
+  }
+  if (isa<jaxiteword::AddOp>(op->getOperands()[0].getDefiningOp())) {
+    return success();
+  }
+  emitAssignPrefix(op.getResult());
+  os << "[" << commaSeparatedValues(op.getOperands(), [&](Value value) {
+    return variableNames->getNameForValue(value);
+  }) << "]\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(memref::LoadOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getMemref());
+  if (isa<BlockArgument>(op.getMemref())) {
+    os << "["
+       << flattenedIndex(
+              op.getMemRefType(), op.getIndices(),
+              [&](Value value) {
+                return dyn_cast<IntegerAttr>(
+                           dyn_cast<arith::ConstantOp>(value.getDefiningOp())
+                               .getValue())
+                    .getValue()
+                    .getSExtValue();
+              })
+       << "]";
+  } else {
+    os << bracketEnclosedValues(op.getIndices(), [&](Value value) {
+      SmallString<16> idx_str;
+      dyn_cast<IntegerAttr>(
+          dyn_cast<arith::ConstantOp>(value.getDefiningOp()).getValue())
+          .getValue()
+          .toStringUnsigned(idx_str);
+      return std::string(idx_str);
+    });
+  }
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(memref::AllocOp op) {
+  emitAssignPrefix(op.getResult());
+  os << "jnp.full(("
+     << std::accumulate(std::next(op.getMemref().getType().getShape().begin()),
+                        op.getMemref().getType().getShape().end(),
+                        std::to_string(op.getMemref().getType().getShape()[0]),
+                        [&](const std::string& a, int64_t b) {
+                          return a + "*" + std::to_string(b);
+                        })
+     << "), None)";
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(memref::StoreOp op) {
+  os << variableNames->getNameForValue(op.getMemref());
+  os << "["
+     << flattenedIndex(
+            op.getMemRefType(), op.getIndices(),
+            [&](Value value) {
+              return dyn_cast<IntegerAttr>(
+                         dyn_cast<arith::ConstantOp>(value.getDefiningOp())
+                             .getValue())
+                  .getValue()
+                  .getSExtValue();
+            })
+     << "]";
+  os << " = " << variableNames->getNameForValue(op.getValueToStore());
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::EmptyOp op) {
+  RankedTensorType resultType = op.getResult().getType();
+  auto shape = resultType.getShape();
+  Type elemType = resultType.getElementType();
+
+  if (isa<lwe::LWECiphertextType>(elemType) ||
+      isa<lwe::LWEPlaintextType>(elemType)) {
+    emitAssignPrefix(op.getResult());
+    os << "[None] * ";
+    int64_t totalSize = 1;
+    for (auto dim : shape) totalSize *= dim;
+    os << totalSize << "\n";
+    return success();
+  }
+
+  os << " = np.zeros((";
+  for (size_t i = 0; i < shape.size(); ++i) {
+    if (i > 0) os << ", ";
+    os << shape[i];
+  }
+  os << ",)";
+
+  if (elemType.isF32()) {
+    os << ", dtype=np.float32";
+  } else if (elemType.isF64()) {
+    os << ", dtype=np.float64";
+  } else if (elemType.isInteger(32)) {
+    os << ", dtype=np.int32";
+  } else if (elemType.isInteger(64)) {
+    os << ", dtype=np.int64";
+  }
+  os << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::InsertOp op) {
+  std::string destName = variableNames->getNameForValue(op.getDest());
+  std::string resultName = variableNames->getNameForValue(op.getResult());
+  std::string scalarName = variableNames->getNameForValue(op.getScalar());
+
+  os << destName << "[";
+  for (size_t i = 0; i < op.getIndices().size(); ++i) {
+    if (i > 0) os << ", ";
+    Value idx = op.getIndices()[i];
+    auto constStr = getConstantAsString(idx);
+    if (succeeded(constStr)) {
+      os << constStr.value();
+    } else {
+      os << variableNames->getNameForValue(idx);
+    }
+  }
+  os << "] = " << scalarName << "\n";
+
+  if (resultName != destName) {
+    os << resultName << " = " << destName << "\n";
+  }
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::ExtractSliceOp op) {
+  RankedTensorType resultType = op.getResult().getType();
+  std::string resultName = variableNames->getNameForValue(op.getResult());
+  std::string sourceName = variableNames->getNameForValue(op.getSource());
+
+  SmallVector<OpFoldResult> offsets = op.getMixedOffsets();
+  ArrayRef<int64_t> sizes = op.getStaticSizes();
+  ArrayRef<int64_t> strides = op.getStaticStrides();
+
+  os << resultName << " = " << sourceName << "[";
+  for (size_t i = 0; i < offsets.size(); ++i) {
+    if (i > 0) os << ", ";
+
+    std::string offsetStr;
+    if (auto intAttr = offsets[i].dyn_cast<Attribute>()) {
+      offsetStr =
+          std::to_string(cast<IntegerAttr>(intAttr).getValue().getSExtValue());
+    } else {
+      offsetStr = variableNames->getNameForValue(cast<Value>(offsets[i]));
+    }
+
+    int64_t size = sizes[i];
+    int64_t stride = strides[i];
+
+    os << offsetStr << ":" << offsetStr << " + " << size;
+    if (stride != 1) {
+      os << ":" << stride;
+    }
+  }
+  os << "]";
+
+  if (resultType.getRank() < (int64_t)offsets.size()) {
+    os << ".reshape(";
+    auto shape = resultType.getShape();
+    for (size_t i = 0; i < shape.size(); ++i) {
+      if (i > 0) os << ", ";
+      os << shape[i];
+    }
+    os << ")";
+  }
+  os << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::InsertSliceOp op) {
+  std::string destName = variableNames->getNameForValue(op.getDest());
+  std::string resultName = variableNames->getNameForValue(op.getResult());
+  std::string sourceName = variableNames->getNameForValue(op.getSource());
+
+  os << resultName << " = " << destName << ".copy()\n";
+
+  SmallVector<OpFoldResult> offsets = op.getMixedOffsets();
+  ArrayRef<int64_t> sizes = op.getStaticSizes();
+  ArrayRef<int64_t> strides = op.getStaticStrides();
+
+  os << resultName << "[";
+  for (size_t i = 0; i < offsets.size(); ++i) {
+    if (i > 0) os << ", ";
+
+    std::string offsetStr;
+    if (auto intAttr = offsets[i].dyn_cast<Attribute>()) {
+      offsetStr =
+          std::to_string(cast<IntegerAttr>(intAttr).getValue().getSExtValue());
+    } else {
+      offsetStr = variableNames->getNameForValue(cast<Value>(offsets[i]));
+    }
+
+    int64_t size = sizes[i];
+    int64_t stride = strides[i];
+
+    os << offsetStr << ":" << offsetStr << " + " << size;
+    if (stride != 1) {
+      os << ":" << stride;
+    }
+  }
+  os << "] = " << sourceName << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(scf::ForOp op) {
+  for (auto i = 0; i < op.getNumRegionIterArgs(); ++i) {
+    Value result = op.getResults()[i];
+    Value operand = op.getInitArgs()[i];
+    Value iterArg = op.getRegionIterArgs()[i];
+    Value yieldedValue = op.getYieldedValues()[i];
+
+    std::string resultName = variableNames->getNameForValue(result);
+    std::string initName = variableNames->getNameForValue(operand);
+
+    variableNames->mapValueNameToValue(iterArg, result);
+    variableNames->mapValueNameToValue(yieldedValue, result);
+
+    if (resultName == initName) {
+      continue;
+    }
+
+    emitAssignPrefix(result);
+    os << initName;
+    if (isa<ShapedType>(result.getType())) {
+      os << ".copy()";
+    }
+    os << "\n";
+  }
+
+  auto getLbOrUb = [&](Value value) -> std::string {
+    auto constStr = getConstantAsString(value);
+    if (succeeded(constStr)) {
+      return constStr.value();
+    }
+    return variableNames->getNameForValue(value);
+  };
+
+  std::string lb = getLbOrUb(op.getLowerBound());
+  std::string ub = getLbOrUb(op.getUpperBound());
+  std::string step = getLbOrUb(op.getStep());
+  std::string inductionVar =
+      variableNames->getNameForValue(op.getInductionVar());
+
+  os << "for " << inductionVar << " in range(" << lb << ", " << ub;
+  if (step != "1") {
+    os << ", " << step;
+  }
+  os << "):\n";
+  os.indent();
+
+  for (Operation& bodyOp : *op.getBody()) {
+    if (failed(translate(bodyOp))) {
+      return bodyOp.emitOpError() << "Failed to translate for loop body";
+    }
+  }
+
+  os.unindent();
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(scf::IfOp op) {
+  for (auto i = 0; i < op.getNumResults(); ++i) {
+    Value result = op.getResults()[i];
+    Value thenYielded = op.thenYield().getResults()[i];
+    Value elseYielded = op.elseYield().getResults()[i];
+
+    variableNames->mapValueNameToValue(thenYielded, result);
+    variableNames->mapValueNameToValue(elseYielded, result);
+  }
+
+  os << "if " << variableNames->getNameForValue(op.getCondition()) << ":\n";
+  os.indent();
+  for (Operation& thenOp : *op.thenBlock()) {
+    if (failed(translate(thenOp))) {
+      return thenOp.emitOpError() << "Failed to translate if then block";
+    }
+  }
+  os.unindent();
+
+  os << "else:\n";
+  os.indent();
+  for (Operation& elseOp : *op.elseBlock()) {
+    if (failed(translate(elseOp))) {
+      return elseOp.emitOpError() << "Failed to translate if else block";
+    }
+  }
+  os.unindent();
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(scf::YieldOp op) {
+  if (auto ifOp = dyn_cast<scf::IfOp>(op->getParentOp())) {
+    for (auto i = 0; i < op.getNumOperands(); ++i) {
+      Value operand = op.getOperands()[i];
+      Value result = ifOp.getResults()[i];
+      if (!isa<ShapedType>(result.getType())) {
+        emitAssignPrefix(result);
+        os << variableNames->getNameForValue(operand) << "\n";
+      }
+    }
+  }
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::ConstantOp op) {
+  std::string varName = variableNames->getNameForValue(op.getResult());
+  Attribute valueAttr = op.getValue();
+
+  if (auto intAttr = dyn_cast<IntegerAttr>(valueAttr)) {
+    os << varName << " = " << intAttr.getInt() << "\n";
+  } else if (auto floatAttr = dyn_cast<FloatAttr>(valueAttr)) {
+    os << varName << " = " << floatAttr.getValueAsDouble() << "\n";
+  } else if (auto denseAttr = dyn_cast<DenseElementsAttr>(valueAttr)) {
+    auto shapedType = denseAttr.getType();
+    auto shape = shapedType.getShape();
+    Type elemType = shapedType.getElementType();
+
+    if (denseAttr.isSplat()) {
+      std::string dtype = "np.float32";
+      if (elemType.isF64())
+        dtype = "np.float64";
+      else if (elemType.isInteger(16))
+        dtype = "np.int16";
+      else if (elemType.isInteger(32))
+        dtype = "np.int32";
+      else if (elemType.isInteger(64))
+        dtype = "np.int64";
+
+      os << varName << " = np.full((";
+      for (size_t i = 0; i < shape.size(); ++i) {
+        if (i > 0) os << ", ";
+        os << shape[i];
+      }
+      os << ",), ";
+
+      if (elemType.isF32() || elemType.isF64()) {
+        os << denseAttr.getSplatValue<APFloat>().convertToDouble();
+      } else if (elemType.isInteger(16) || elemType.isInteger(32) ||
+                 elemType.isInteger(64)) {
+        os << denseAttr.getSplatValue<APInt>().getSExtValue();
+      } else {
+        os << "0";
+      }
+      os << ", dtype=" << dtype << ")\n";
+    } else {
+      os << varName << " = np.array([";
+
+      bool first = true;
+      if (elemType.isF32() || elemType.isF64()) {
+        for (auto val : denseAttr.getValues<APFloat>()) {
+          if (!first) os << ", ";
+          first = false;
+          os << val.convertToDouble();
+        }
+      } else if (elemType.isInteger(16) || elemType.isInteger(32) ||
+                 elemType.isInteger(64)) {
+        for (auto val : denseAttr.getValues<APInt>()) {
+          if (!first) os << ", ";
+          first = false;
+          os << val.getSExtValue();
+        }
+      }
+
+      os << "]";
+      std::string dtype = "np.float32";
+      if (elemType.isF64())
+        dtype = "np.float64";
+      else if (elemType.isInteger(16))
+        dtype = "np.int16";
+      else if (elemType.isInteger(32))
+        dtype = "np.int32";
+      else if (elemType.isInteger(64))
+        dtype = "np.int64";
+      os << ", dtype=" << dtype << ")";
+
+      if (shape.size() > 1) {
+        os << ".reshape(";
+        for (size_t i = 0; i < shape.size(); ++i) {
+          if (i > 0) os << ", ";
+          os << shape[i];
+        }
+        os << ")";
+      }
+      os << "\n";
+    }
+  } else {
+    os << varName << " = 0  # placeholder\n";
+  }
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::IndexCastOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = int("
+     << variableNames->getNameForValue(op.getIn()) << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::AddIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " + "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::SubIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " - "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::MulIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " * "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::DivSIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " // "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::RemSIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " % "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::CmpIOp op) {
+  std::string cmpOp;
+  switch (op.getPredicate()) {
+    case arith::CmpIPredicate::eq:
+      cmpOp = "==";
+      break;
+    case arith::CmpIPredicate::ne:
+      cmpOp = "!=";
+      break;
+    case arith::CmpIPredicate::slt:
+      cmpOp = "<";
+      break;
+    case arith::CmpIPredicate::sle:
+      cmpOp = "<=";
+      break;
+    case arith::CmpIPredicate::sgt:
+      cmpOp = ">";
+      break;
+    case arith::CmpIPredicate::sge:
+      cmpOp = ">=";
+      break;
+    case arith::CmpIPredicate::ult:
+      cmpOp = "<";
+      break;
+    case arith::CmpIPredicate::ule:
+      cmpOp = "<=";
+      break;
+    case arith::CmpIPredicate::ugt:
+      cmpOp = ">";
+      break;
+    case arith::CmpIPredicate::uge:
+      cmpOp = ">=";
+      break;
+  }
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getLhs()) << " " << cmpOp << " "
+     << variableNames->getNameForValue(op.getRhs()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::SelectOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = "
+     << variableNames->getNameForValue(op.getTrueValue()) << " if "
+     << variableNames->getNameForValue(op.getCondition()) << " else "
+     << variableNames->getNameForValue(op.getFalseValue()) << "\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::ExtSIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = int("
+     << variableNames->getNameForValue(op.getIn()) << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::ExtUIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = int("
+     << variableNames->getNameForValue(op.getIn()) << ")\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(arith::TruncIOp op) {
+  os << variableNames->getNameForValue(op.getResult()) << " = int("
+     << variableNames->getNameForValue(op.getIn()) << ")\n";
+  return success();
+}
+
+FailureOr<std::string> JaxiteWordEmitter::convertType(Type type) {
+  if (type.isF64() || type.isF32()) {
+    return std::string("float");
+  }
+  if (type.isInteger(1)) {
+    return std::string("bool");
+  }
+  if (type.isInteger(16) || type.isInteger(32) || type.isInteger(64) ||
+      type.isIndex()) {
+    return std::string("int");
+  }
+
+  if (auto shapedType = dyn_cast<ShapedType>(type)) {
+    return std::string("np.ndarray");
+  }
+
+  return llvm::TypeSwitch<Type, FailureOr<std::string>>(type)
+      .Case<lwe::LWECiphertextType>(
+          [&](auto) { return std::string("Ciphertext"); })
+      .Case<PublicKeyType>([&](auto) { return std::string("np.ndarray"); })
+      .Case<PrivateKeyType>([&](auto) { return std::string("np.ndarray"); })
+      .Case<EvalKeyType>([&](auto) { return std::string("dict"); })
+      .Case<CryptoContextType>(
+          [&](auto) { return std::string("ckks.CKKSContext"); })
+      .Case<lwe::LWEPlaintextType>(
+          [&](auto) { return std::string("Ciphertext"); })
+      .Default([&](Type) { return failure(); });
+}
+
+LogicalResult JaxiteWordEmitter::emitType(Type type) {
+  auto result = convertType(type);
+  if (failed(result)) {
+    return failure();
+  }
+  os << result;
+  return success();
+}
+
+JaxiteWordEmitter::JaxiteWordEmitter(raw_ostream& os,
+                                     SelectVariableNames* variableNames)
+    : os(os), variableNames(variableNames) {}
+
+}  // namespace jaxiteword
+}  // namespace heir
+}  // namespace mlir
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "KEY_RENDER_TOKEN" reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt
+37:    bundle.putParcelable(KEY_RENDER_TOKEN, renderToken)
+41:    private const val KEY_RENDER_TOKEN = "render_token"
+46:          BundleCompat.getParcelable(bundle, KEY_RENDER_TOKEN, RenderToken::class.java)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "KEY_RENDER_TOKEN" reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenInsight.kt
+39:    bundle.putParcelable(KEY_RENDER_TOKEN, renderToken)
+43:    private const val KEY_RENDER_TOKEN = "render_token"
+47:        BundleCompat.getParcelable(bundle, KEY_RENDER_TOKEN, RenderToken::class.java)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '240,255p' reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
+func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
+	return util.LogStartStop("Deploying to Cloud Run",
+		func(p util.Printer) error {
+			params := []string{
+				"run", "deploy", f.cloudRun.serviceName,
+				"--source", ".",
+				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+				"--region", f.gcloud.region,
+				"--project", f.gcloud.projectName,
+				"--ingress", "all",
+				"--no-allow-unauthenticated",
+			}
+
+			cmd := exec.Command("gcloud", params...)
+
+			cmd.Dir = f.build.tempDir
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -20 reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-6HSYUS5O.js
+import{G as re,N as se,R as oe,S as le,T as he,U as ce,V as de,W as ue,X as Dt,Y as qt,p as ne,r as L}from"./chunk-37QI3DOO.js";import{a as mt,g as s,i as dt,t as zt}from"./chunk-JRNAXTJ7.js";import{a as Q}from"./chunk-RMXJBC7V.js";var Vt=(function(){var t=s(function(Y,r,l,u){for(l=l||{},u=Y.length;u--;l[Y[u]]=r);return l},"o"),a=[1,3],p=[1,4],f=[1,5],o=[1,6],x=[1,7],_=[1,4,5,10,12,13,14,18,25,35,37,39,41,42,48,50,51,52,53,54,55,56,57,60,61,63,64,65,66,67],h=[1,4,5,10,12,13,14,18,25,28,35,37,39,41,42,48,50,51,52,53,54,55,56,57,60,61,63,64,65,66,67],c=[55,56,57],k=[2,36],m=[1,37],q=[1,36],y=[1,38],b=[1,35],T=[1,43],g=[1,41],ot=[1,14],ut=[1,23],xt=[1,18],ft=[1,19],gt=[1,20],lt=[1,21],_t=[1,22],ht=[1,24],i=[1,25],wt=[1,26],Bt=[1,27],Rt=[1,28],Nt=[1,29],W=[1,32],U=[1,33],A=[1,34],F=[1,39],P=[1,40],v=[1,42],C=[1,44],H=[1,62],X=[1,61],E=[4,5,8,10,12,13,14,18,44,47,49,55,56,57,63,64,65,66,67],Wt=[1,65],Ut=[1,66],Qt=[1,67],Ot=[1,68],Ht=[1,69],Xt=[1,70],Mt=[1,71],Yt=[1,72],jt=[1,73],Gt=[1,74],Kt=[1,75],Zt=[1,76],w=[4,5,6,7,8,9,10,11,12,13,14,15,18],K=[1,90],Z=[1,91],J=[1,92],$=[1,99],tt=[1,93],et=[1,96],it=[1,94],at=[1,95],nt=[1,97],rt=[1,98],At=[1,102],Jt=[10,55,56,57],R=[4,5,6,8,10,11,13,17,18,19,20,55,56,57],Ft={trace:s(function(){},"trace"),yy:{},symbols_:{error:2,idStringToken:3,ALPHA:4,NUM:5,NODE_STRING:6,DOWN:7,MINUS:8,DEFAULT:9,COMMA:10,COLON:11,AMP:12,BRKT:13,MULT:14,UNICODE_TEXT:15,styleComponent:16,UNIT:17,SPACE:18,STYLE:19,PCT:20,idString:21,style:22,stylesOpt:23,classDefStatement:24,CLASSDEF:25,start:26,eol:27,QUADRANT:28,document:29,line:30,statement:31,axisDetails:32,quadrantDetails:33,points:34,title:35,title_value:36,acc_title:37,acc_title_value:38,acc_descr:39,acc_descr_value:40,acc_descr_multiline_value:41,section:42,text:43,point_start:44,point_x:45,point_y:46,class_name:47,"X-AXIS":48,"AXIS-TEXT-DELIMITER":49,"Y-AXIS":50,QUADRANT_1:51,QUADRANT_2:52,QUADRANT_3:53,QUADRANT_4:54,NEWLINE:55,SEMI:56,EOF:57,alphaNumToken:58,textNoTagsToken:59,STR:60,MD_STR:61,alphaNum:62,PUNCTUATION:63,PLUS:64,EQUALS:65,DOT:66,UNDERSCORE:67,$accept:0,$end:1},terminals_:{2:"error",4:"ALPHA",5:"NUM",6:"NODE_STRING",7:"DOWN",8:"MINUS",9:"DEFAULT",10:"COMMA",11:"COLON",12:"AMP",13:"BRKT",14:"MULT",15:"UNICODE_TEXT",17:"UNIT",18:"SPACE",19:"STYLE",20:"PCT",25:"CLASSDEF",28:"QUADRANT",35:"title",36:"title_value",37:"acc_title",38:"acc_title_value",39:"acc_descr",40:"acc_descr_value",41:"acc_descr_multiline_value",42:"section",44:"point_start",45:"point_x",46:"point_y",47:"class_name",48:"X-AXIS",49:"AXIS-TEXT-DELIMITER",50:"Y-AXIS",51:"QUADRANT_1",52:"QUADRANT_2",53:"QUADRANT_3",54:"QUADRANT_4",55:"NEWLINE",56:"SEMI",57:"EOF",60:"STR",61:"MD_STR",63:"PUNCTUATION",64:"PLUS",65:"EQUALS",66:"DOT",67:"UNDERSCORE"},productions_:[0,[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[21,1],[21,2],[22,1],[22,2],[23,1],[23,3],[24,5],[26,2],[26,2],[26,2],[29,0],[29,2],[30,2],[31,0],[31,1],[31,2],[31,1],[31,1],[31,1],[31,2],[31,2],[31,2],[31,1],[31,1],[34,4],[34,5],[34,5],[34,6],[32,4],[32,3],[32,2],[32,4],[32,3],[32,2],[33,2],[33,2],[33,2],[33,2],[27,1],[27,1],[27,1],[43,1],[43,2],[43,1],[43,1],[62,1],[62,2],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[59,1],[59,1],[59,1]],performAction:s(function(r,l,u,d,S,e,ct){var n=e.length-1;switch(S){case 23:this.$=e[n];break;case 24:this.$=e[n-1]+""+e[n];break;case 26:this.$=e[n-1]+e[n];break;case 27:this.$=[e[n].trim()];break;case 28:e[n-2].push(e[n].trim()),this.$=e[n-2];break;case 29:this.$=e[n-4],d.addClass(e[n-2],e[n]);break;case 37:this.$=[];break;case 42:this.$=e[n].trim(),d.setDiagramTitle(this.$);break;case 43:this.$=e[n].trim(),d.setAccTitle(this.$);break;case 44:case 45:this.$=e[n].trim(),d.setAccDescription(this.$);break;case 46:d.addSection(e[n].substr(8)),this.$=e[n].substr(8);break;case 47:d.addPoint(e[n-3],"",e[n-1],e[n],[]);break;case 48:d.addPoint(e[n-4],e[n-3],e[n-1],e[n],[]);break;case 49:d.addPoint(e[n-4],"",e[n-2],e[n-1],e[n]);break;case 50:d.addPoint(e[n-5],e[n-4],e[n-2],e[n-1],e[n]);break;case 51:d.setXAxisLeftText(e[n-2]),d.setXAxisRightText(e[n]);break;case 52:e[n-1].text+=" \u27F6 ",d.setXAxisLeftText(e[n-1]);break;case 53:d.setXAxisLeftText(e[n]);break;case 54:d.setYAxisBottomText(e[n-2]),d.setYAxisTopText(e[n]);break;case 55:e[n-1].text+=" \u27F6 ",d.setYAxisBottomText(e[n-1]);break;case 56:d.setYAxisBottomText(e[n]);break;case 57:d.setQuadrant1Text(e[n]);break;case 58:d.setQuadrant2Text(e[n]);break;case 59:d.setQuadrant3Text(e[n]);break;case 60:d.setQuadrant4Text(e[n]);break;case 64:this.$={text:e[n],type:"text"};break;case 65:this.$={text:e[n-1].text+""+e[n],type:e[n-1].type};break;case 66:this.$={text:e[n],type:"text"};break;case 67:this.$={text:e[n],type:"markdown"};break;case 68:this.$=e[n];break;case 69:this.$=e[n-1]+""+e[n];break}},"anonymous"),table:[{18:a,26:1,27:2,28:p,55:f,56:o,57:x},{1:[3]},{18:a,26:8,27:2,28:p,55:f,56:o,57:x},{18:a,26:9,27:2,28:p,55:f,56:o,57:x},t(_,[2,33],{29:10}),t(h,[2,61]),t(h,[2,62]),t(h,[2,63]),{1:[2,30]},{1:[2,31]},t(c,k,{30:11,31:12,24:13,32:15,33:16,34:17,43:30,58:31,1:[2,32],4:m,5:q,10:y,12:b,13:T,14:g,18:ot,25:ut,35:xt,37:ft,39:gt,41:lt,42:_t,48:ht,50:i,51:wt,52:Bt,53:Rt,54:Nt,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(_,[2,34]),{27:45,55:f,56:o,57:x},t(c,[2,37]),t(c,k,{24:13,32:15,33:16,34:17,43:30,58:31,31:46,4:m,5:q,10:y,12:b,13:T,14:g,18:ot,25:ut,35:xt,37:ft,39:gt,41:lt,42:_t,48:ht,50:i,51:wt,52:Bt,53:Rt,54:Nt,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(c,[2,39]),t(c,[2,40]),t(c,[2,41]),{36:[1,47]},{38:[1,48]},{40:[1,49]},t(c,[2,45]),t(c,[2,46]),{18:[1,50]},{4:m,5:q,10:y,12:b,13:T,14:g,43:51,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:52,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:53,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:54,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:55,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:56,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,44:[1,57],47:[1,58],58:60,59:59,63:A,64:F,65:P,66:v,67:C},t(E,[2,64]),t(E,[2,66]),t(E,[2,67]),t(E,[2,70]),t(E,[2,71]),t(E,[2,72]),t(E,[2,73]),t(E,[2,74]),t(E,[2,75]),t(E,[2,76]),t(E,[2,77]),t(E,[2,78]),t(E,[2,79]),t(E,[2,80]),t(_,[2,35]),t(c,[2,38]),t(c,[2,42]),t(c,[2,43]),t(c,[2,44]),{3:64,4:Wt,5:Ut,6:Qt,7:Ot,8:Ht,9:Xt,10:Mt,11:Yt,12:jt,13:Gt,14:Kt,15:Zt,21:63},t(c,[2,53],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,49:[1,77],63:A,64:F,65:P,66:v,67:C}),t(c,[2,56],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,49:[1,78],63:A,64:F,65:P,66:v,67:C}),t(c,[2,57],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,58],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,59],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,60],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),{45:[1,79]},{44:[1,80]},t(E,[2,65]),t(E,[2,81]),t(E,[2,82]),t(E,[2,83]),{3:82,4:Wt,5:Ut,6:Qt,7:Ot,8:Ht,9:Xt,10:Mt,11:Yt,12:jt,13:Gt,14:Kt,15:Zt,18:[1,81]},t(w,[2,23]),t(w,[2,1]),t(w,[2,2]),t(w,[2,3]),t(w,[2,4]),t(w,[2,5]),t(w,[2,6]),t(w,[2,7]),t(w,[2,8]),t(w,[2,9]),t(w,[2,10]),t(w,[2,11]),t(w,[2,12]),t(c,[2,52],{58:31,43:83,4:m,5:q,10:y,12:b,13:T,14:g,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(c,[2,55],{58:31,43:84,4:m,5:q,10:y,12:b,13:T,14:g,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),{46:[1,85]},{45:[1,86]},{4:K,5:Z,6:J,8:$,11:tt,13:et,16:89,17:it,18:at,19:nt,20:rt,22:88,23:87},t(w,[2,24]),t(c,[2,51],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,54],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,47],{22:88,16:89,23:100,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),{46:[1,101]},t(c,[2,29],{10:At}),t(Jt,[2,27],{16:103,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),t(R,[2,25]),t(R,[2,13]),t(R,[2,14]),t(R,[2,15]),t(R,[2,16]),t(R,[2,17]),t(R,[2,18]),t(R,[2,19]),t(R,[2,20]),t(R,[2,21]),t(R,[2,22]),t(c,[2,49],{10:At}),t(c,[2,48],{22:88,16:89,23:104,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),{4:K,5:Z,6:J,8:$,11:tt,13:et,16:89,17:it,18:at,19:nt,20:rt,22:105},t(R,[2,26]),t(c,[2,50],{10:At}),t(Jt,[2,28],{16:103,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt})],defaultActions:{8:[2,30],9:[2,31]},parseError:s(function(r,l){if(l.recoverable)this.trace(r);else{var u=new Error(r);throw u.hash=l,u}},"parseError"),parse:s(function(r){var l=this,u=[0],d=[],S=[null],e=[],ct=this.table,n="",yt=0,$t=0,te=0,Ce=2,ee=1,Le=e.slice.call(arguments,1),D=Object.create(this.lexer),j={yy:{}};for(var Pt in this.yy)Object.prototype.hasOwnProperty.call(this.yy,Pt)&&(j.yy[Pt]=this.yy[Pt]);D.setInput(r,j.yy),j.yy.lexer=D,j.yy.parser=this,typeof D.yylloc>"u"&&(D.yylloc={});var vt=D.yylloc;e.push(vt);var Ee=D.options&&D.options.ranges;typeof j.yy.parseError=="function"?this.parseError=j.yy.parseError:this.parseError=Object.getPrototypeOf(this).parseError;function De(B){u.length=u.length-2*B,S.length=S.length-B,e.length=e.length-B}s(De,"popStack");function ie(){var B;return B=d.pop()||D.lex()||ee,typeof B!="number"&&(B instanceof Array&&(d=B,B=d.pop()),B=l.symbols_[B]||B),B}s(ie,"lex");for(var V,Ct,G,N,We,Lt,st={},bt,M,ae,Tt;;){if(G=u[u.length-1],this.defaultActions[G]?N=this.defaultActions[G]:((V===null||typeof V>"u")&&(V=ie()),N=ct[G]&&ct[G][V]),typeof N>"u"||!N.length||!N[0]){var Et="";Tt=[];for(bt in ct[G])this.terminals_[bt]&&bt>Ce&&Tt.push("'"+this.terminals_[bt]+"'");D.showPosition?Et="Parse error on line "+(yt+1)+`:
+`+D.showPosition()+`
+Expecting `+Tt.join(", ")+", got '"+(this.terminals_[V]||V)+"'":Et="Parse error on line "+(yt+1)+": Unexpected "+(V==ee?"end of input":"'"+(this.terminals_[V]||V)+"'"),this.parseError(Et,{text:D.match,token:this.terminals_[V]||V,line:D.yylineno,loc:vt,expected:Tt})}if(N[0]instanceof Array&&N.length>1)throw new Error("Parse Error: multiple actions possible at state: "+G+", token: "+V);switch(N[0]){case 1:u.push(V),S.push(D.yytext),e.push(D.yylloc),u.push(N[1]),V=null,Ct?(V=Ct,Ct=null):($t=D.yyleng,n=D.yytext,yt=D.yylineno,vt=D.yylloc,te>0&&te--);break;case 2:if(M=this.productions_[N[1]][1],st.$=S[S.length-M],st._$={first_line:e[e.length-(M||1)].first_line,last_line:e[e.length-1].last_line,first_column:e[e.length-(M||1)].first_column,last_column:e[e.length-1].last_column},Ee&&(st._$.range=[e[e.length-(M||1)].range[0],e[e.length-1].range[1]]),Lt=this.performAction.apply(st,[n,$t,yt,j.yy,N[1],S,e].concat(Le)),typeof Lt<"u")return Lt;M&&(u=u.slice(0,-1*M*2),S=S.slice(0,-1*M),e=e.slice(0,-1*M)),u.push(this.productions_[N[1]][0]),S.push(st.$),e.push(st._$),ae=ct[u[u.length-2]][u[u.length-1]],u.push(ae);break;case 3:return!0}}return!0},"parse")},ve=(function(){var Y={EOF:1,parseError:s(function(l,u){if(this.yy.parser)this.yy.parser.parseError(l,u);else throw new Error(l)},"parseError"),setInput:s(function(r,l){return this.yy=l||this.yy||{},this._input=r,this._more=this._backtrack=this.done=!1,this.yylineno=this.yyleng=0,this.yytext=this.matched=this.match="",this.conditionStack=["INITIAL"],this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0},this.options.ranges&&(this.yylloc.range=[0,0]),this.offset=0,this},"setInput"),input:s(function(){var r=this._input[0];this.yytext+=r,this.yyleng++,this.offset++,this.match+=r,this.matched+=r;var l=r.match(/(?:\r\n?|\n).*/g);return l?(this.yylineno++,this.yylloc.last_line++):this.yylloc.last_column++,this.options.ranges&&this.yylloc.range[1]++,this._input=this._input.slice(1),r},"input"),unput:s(function(r){var l=r.length,u=r.split(/(?:\r\n?|\n)/g);this._input=r+this._input,this.yytext=this.yytext.substr(0,this.yytext.length-l),this.offset-=l;var d=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1),this.matched=this.matched.substr(0,this.matched.length-1),u.length-1&&(this.yylineno-=u.length-1);var S=this.yylloc.range;return this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:u?(u.length===d.length?this.yylloc.first_column:0)+d[d.length-u.length].length-u[0].length:this.yylloc.first_column-l},this.options.ranges&&(this.yylloc.range=[S[0],S[0]+this.yyleng-l]),this.yyleng=this.yytext.length,this},"unput"),more:s(function(){return this._more=!0,this},"more"),reject:s(function(){if(this.options.backtrack_lexer)this._backtrack=!0;else return this.parseError("Lexical error on line "+(this.yylineno+1)+`. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).
+`+this.showPosition(),{text:"",token:null,line:this.yylineno});return this},"reject"),less:s(function(r){this.unput(this.match.slice(r))},"less"),pastInput:s(function(){var r=this.matched.substr(0,this.matched.length-this.match.length);return(r.length>20?"...":"")+r.substr(-20).replace(/\n/g,"")},"pastInput"),upcomingInput:s(function(){var r=this.match;return r.length<20&&(r+=this._input.substr(0,20-r.length)),(r.substr(0,20)+(r.length>20?"...":"")).replace(/\n/g,"")},"upcomingInput"),showPosition:s(function(){var r=this.pastInput(),l=new Array(r.length+1).join("-");return r+this.upcomingInput()+`
+`+l+"^"},"showPosition"),test_match:s(function(r,l){var u,d,S;if(this.options.backtrack_lexer&&(S={yylineno:this.yylineno,yylloc:{first_line:this.yylloc.first_line,last_line:this.last_line,first_column:this.yylloc.first_column,last_column:this.yylloc.last_column},yytext:this.yytext,match:this.match,matches:this.matches,matched:this.matched,yyleng:this.yyleng,offset:this.offset,_more:this._more,_input:this._input,yy:this.yy,conditionStack:this.conditionStack.slice(0),done:this.done},this.options.ranges&&(S.yylloc.range=this.yylloc.range.slice(0))),d=r[0].match(/(?:\r\n?|\n).*/g),d&&(this.yylineno+=d.length),this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:d?d[d.length-1].length-d[d.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+r[0].length},this.yytext+=r[0],this.match+=r[0],this.matches=r,this.yyleng=this.yytext.length,this.options.ranges&&(this.yylloc.range=[this.offset,this.offset+=this.yyleng]),this._more=!1,this._backtrack=!1,this._input=this._input.slice(r[0].length),this.matched+=r[0],u=this.performAction.call(this,this.yy,this,l,this.conditionStack[this.conditionStack.length-1]),this.done&&this._input&&(this.done=!1),u)return u;if(this._backtrack){for(var e in S)this[e]=S[e];return!1}return!1},"test_match"),next:s(function(){if(this.done)return this.EOF;this._input||(this.done=!0);var r,l,u,d;this._more||(this.yytext="",this.match="");for(var S=this._currentRules(),e=0;e<S.length;e++)if(u=this._input.match(this.rules[S[e]]),u&&(!l||u[0].length>l[0].length)){if(l=u,d=e,this.options.backtrack_lexer){if(r=this.test_match(u,S[e]),r!==!1)return r;if(this._backtrack){l=!1;continue}else return!1}else if(!this.options.flex)break}return l?(r=this.test_match(l,S[d]),r!==!1?r:!1):this._input===""?this.EOF:this.parseError("Lexical error on line "+(this.yylineno+1)+`. Unrecognized text.
+`+this.showPosition(),{text:"",token:null,line:this.yylineno})},"next"),lex:s(function(){var l=this.next();return l||this.lex()},"lex"),begin:s(function(l){this.conditionStack.push(l)},"begin"),popState:s(function(){var l=this.conditionStack.length-1;return l>0?this.conditionStack.pop():this.conditionStack[0]},"popState"),_currentRules:s(function(){return this.conditionStack.length&&this.conditionStack[this.conditionStack.length-1]?this.conditions[this.conditionStack[this.conditionStack.length-1]].rules:this.conditions.INITIAL.rules},"_currentRules"),topState:s(function(l){return l=this.conditionStack.length-1-Math.abs(l||0),l>=0?this.conditionStack[l]:"INITIAL"},"topState"),pushState:s(function(l){this.begin(l)},"pushState"),stateStackSize:s(function(){return this.conditionStack.length},"stateStackSize"),options:{"case-insensitive":!0},performAction:s(function(l,u,d,S){var e=S;switch(d){case 0:break;case 1:break;case 2:return 55;case 3:break;case 4:return this.begin("title"),35;break;case 5:return this.popState(),"title_value";break;case 6:return this.begin("acc_title"),37;break;case 7:return this.popState(),"acc_title_value";break;case 8:return this.begin("acc_descr"),39;break;case 9:return this.popState(),"acc_descr_value";break;case 10:this.begin("acc_descr_multiline");break;case 11:this.popState();break;case 12:return"acc_descr_multiline_value";case 13:return 48;case 14:return 50;case 15:return 49;case 16:return 51;case 17:return 52;case 18:return 53;case 19:return 54;case 20:return 25;case 21:this.begin("md_string");break;case 22:return"MD_STR";case 23:this.popState();break;case 24:this.begin("string");break;case 25:this.popState();break;case 26:return"STR";case 27:this.begin("class_name");break;case 28:return this.popState(),47;break;case 29:return this.begin("point_start"),44;break;case 30:return this.begin("point_x"),45;break;case 31:this.popState();break;case 32:this.popState(),this.begin("point_y");break;case 33:return this.popState(),46;break;case 34:return 28;case 35:return 4;case 36:return 11;case 37:return 64;case 38:return 10;case 39:return 65;case 40:return 65;case 41:return 14;case 42:return 13;case 43:return 67;case 44:return 66;case 45:return 12;case 46:return 8;case 47:return 5;case 48:return 18;case 49:return 56;case 50:return 63;case 51:return 57}},"anonymous"),rules:[/^(?:%%(?!\{)[^\n]*)/i,/^(?:[^\}]%%[^\n]*)/i,/^(?:[\n\r]+)/i,/^(?:%%[^\n]*)/i,/^(?:title\b)/i,/^(?:(?!\n||)*[^\n]*)/i,/^(?:accTitle\s*:\s*)/i,/^(?:(?!\n||)*[^\n]*)/i,/^(?:accDescr\s*:\s*)/i,/^(?:(?!\n||)*[^\n]*)/i,/^(?:accDescr\s*\{\s*)/i,/^(?:[\}])/i,/^(?:[^\}]*)/i,/^(?: *x-axis *)/i,/^(?: *y-axis *)/i,/^(?: *--+> *)/i,/^(?: *quadrant-1 *)/i,/^(?: *quadrant-2 *)/i,/^(?: *quadrant-3 *)/i,/^(?: *quadrant-4 *)/i,/^(?:classDef\b)/i,/^(?:["][`])/i,/^(?:[^`"]+)/i,/^(?:[`]["])/i,/^(?:["])/i,/^(?:["])/i,/^(?:[^"]*)/i,/^(?::::)/i,/^(?:^\w+)/i,/^(?:\s*:\s*\[\s*)/i,/^(?:(1)|(0(.\d+)?))/i,/^(?:\s*\] *)/i,/^(?:\s*,\s*)/i,/^(?:(1)|(0(.\d+)?))/i,/^(?: *quadrantChart *)/i,/^(?:[A-Za-z]+)/i,/^(?::)/i,/^(?:\+)/i,/^(?:,)/i,/^(?:=)/i,/^(?:=)/i,/^(?:\*)/i,/^(?:#)/i,/^(?:[\_])/i,/^(?:\.)/i,/^(?:&)/i,/^(?:-)/i,/^(?:[0-9]+)/i,/^(?:\s)/i,/^(?:;)/i,/^(?:[!"#$%&'*+,-.`?\\_/])/i,/^(?:$)/i],conditions:{class_name:{rules:[28],inclusive:!1},point_y:{rules:[33],inclusive:!1},point_x:{rules:[32],inclusive:!1},point_start:{rules:[30,31],inclusive:!1},acc_descr_multiline:{rules:[11,12],inclusive:!1},acc_descr:{rules:[9],inclusive:!1},acc_title:{rules:[7],inclusive:!1},title:{rules:[5],inclusive:!1},md_string:{rules:[22,23],inclusive:!1},string:{rules:[25,26],inclusive:!1},INITIAL:{rules:[0,1,2,3,4,6,8,10,13,14,15,16,17,18,19,20,21,24,27,29,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51],inclusive:!0}}};return Y})();Ft.lexer=ve;function pt(){this.yy={}}return s(pt,"Parser"),pt.prototype=Ft,Ft.Parser=pt,new pt})();Vt.parser=Vt;var ze=Vt,I=ne(),Ve=class{constructor(){this.classes=new Map,this.config=this.getDefaultConfig(),this.themeConfig=this.getDefaultThemeConfig(),this.data=this.getDefaultData()}static{s(this,"QuadrantBuilder")}getDefaultData(){return{titleText:"",quadrant1Text:"",quadrant2Text:"",quadrant3Text:"",quadrant4Text:"",xAxisLeftText:"",xAxisRightText:"",yAxisBottomText:"",yAxisTopText:"",points:[]}}getDefaultConfig(){return{showXAxis:!0,showYAxis:!0,showTitle:!0,chartHeight:L.quadrantChart?.chartWidth||500,chartWidth:L.quadrantChart?.chartHeight||500,titlePadding:L.quadrantChart?.titlePadding||10,titleFontSize:L.quadrantChart?.titleFontSize||20,quadrantPadding:L.quadrantChart?.quadrantPadding||5,xAxisLabelPadding:L.quadrantChart?.xAxisLabelPadding||5,yAxisLabelPadding:L.quadrantChart?.yAxisLabelPadding||5,xAxisLabelFontSize:L.quadrantChart?.xAxisLabelFontSize||16,yAxisLabelFontSize:L.quadrantChart?.yAxisLabelFontSize||16,quadrantLabelFontSize:L.quadrantChart?.quadrantLabelFontSize||16,quadrantTextTopPadding:L.quadrantChart?.quadrantTextTopPadding||5,pointTextPadding:L.quadrantChart?.pointTextPadding||5,pointLabelFontSize:L.quadrantChart?.pointLabelFontSize||12,pointRadius:L.quadrantChart?.pointRadius||5,xAxisPosition:L.quadrantChart?.xAxisPosition||"top",yAxisPosition:L.quadrantChart?.yAxisPosition||"left",quadrantInternalBorderStrokeWidth:L.quadrantChart?.quadrantInternalBorderStrokeWidth||1,quadrantExternalBorderStrokeWidth:L.quadrantChart?.quadrantExternalBorderStrokeWidth||2}}getDefaultThemeConfig(){return{quadrant1Fill:I.quadrant1Fill,quadrant2Fill:I.quadrant2Fill,quadrant3Fill:I.quadrant3Fill,quadrant4Fill:I.quadrant4Fill,quadrant1TextFill:I.quadrant1TextFill,quadrant2TextFill:I.quadrant2TextFill,quadrant3TextFill:I.quadrant3TextFill,quadrant4TextFill:I.quadrant4TextFill,quadrantPointFill:I.quadrantPointFill,quadrantPointTextFill:I.quadrantPointTextFill,quadrantXAxisTextFill:I.quadrantXAxisTextFill,quadrantYAxisTextFill:I.quadrantYAxisTextFill,quadrantTitleFill:I.quadrantTitleFill,quadrantInternalBorderStrokeFill:I.quadrantInternalBorderStrokeFill,quadrantExternalBorderStrokeFill:I.quadrantExternalBorderStrokeFill}}clear(){this.config=this.getDefaultConfig(),this.themeConfig=this.getDefaultThemeConfig(),this.data=this.getDefaultData(),this.classes=new Map,dt.info("clear called")}setData(t){this.data=Q(Q({},this.data),t)}addPoints(t){this.data.points=[...t,...this.data.points]}addClass(t,a){this.classes.set(t,a)}setConfig(t){dt.trace("setConfig called with: ",t),this.config=Q(Q({},this.config),t)}setThemeConfig(t){dt.trace("setThemeConfig called with: ",t),this.themeConfig=Q(Q({},this.themeConfig),t)}calculateSpace(t,a,p,f){let o=this.config.xAxisLabelPadding*2+this.config.xAxisLabelFontSize,x={top:t==="top"&&a?o:0,bottom:t==="bottom"&&a?o:0},_=this.config.yAxisLabelPadding*2+this.config.yAxisLabelFontSize,h={left:this.config.yAxisPosition==="left"&&p?_:0,right:this.config.yAxisPosition==="right"&&p?_:0},c=this.config.titleFontSize+this.config.titlePadding*2,k={top:f?c:0},m=this.config.quadrantPadding+h.left,q=this.config.quadrantPadding+x.top+k.top,y=this.config.chartWidth-this.config.quadrantPadding*2-h.left-h.right,b=this.config.chartHeight-this.config.quadrantPadding*2-x.top-x.bottom-k.top,T=y/2,g=b/2;return{xAxisSpace:x,yAxisSpace:h,titleSpace:k,quadrantSpace:{quadrantLeft:m,quadrantTop:q,quadrantWidth:y,quadrantHalfWidth:T,quadrantHeight:b,quadrantHalfHeight:g}}}getAxisLabels(t,a,p,f){let{quadrantSpace:o,titleSpace:x}=f,{quadrantHalfHeight:_,quadrantHeight:h,quadrantLeft:c,quadrantHalfWidth:k,quadrantTop:m,quadrantWidth:q}=o,y=!!this.data.xAxisRightText,b=!!this.data.yAxisTopText,T=[];return this.data.xAxisLeftText&&a&&T.push({text:this.data.xAxisLeftText,fill:this.themeConfig.quadrantXAxisTextFill,x:c+(y?k/2:0),y:t==="top"?this.config.xAxisLabelPadding+x.top:this.config.xAxisLabelPadding+m+h+this.config.quadrantPadding,fontSize:this.config.xAxisLabelFontSize,verticalPos:y?"center":"left",horizontalPos:"top",rotation:0}),this.data.xAxisRightText&&a&&T.push({text:this.data.xAxisRightText,fill:this.themeConfig.quadrantXAxisTextFill,x:c+k+(y?k/2:0),y:t==="top"?this.config.xAxisLabelPadding+x.top:this.config.xAxisLabelPadding+m+h+this.config.quadrantPadding,fontSize:this.config.xAxisLabelFontSize,verticalPos:y?"center":"left",horizontalPos:"top",rotation:0}),this.data.yAxisBottomText&&p&&T.push({text:this.data.yAxisBottomText,fill:this.themeConfig.quadrantYAxisTextFill,x:this.config.yAxisPosition==="left"?this.config.yAxisLabelPadding:this.config.yAxisLabelPadding+c+q+this.config.quadrantPadding,y:m+h-(b?_/2:0),fontSize:this.config.yAxisLabelFontSize,verticalPos:b?"center":"left",horizontalPos:"top",rotation:-90}),this.data.yAxisTopText&&p&&T.push({text:this.data.yAxisTopText,fill:this.themeConfig.quadrantYAxisTextFill,x:this.config.yAxisPosition==="left"?this.config.yAxisLabelPadding:this.config.yAxisLabelPadding+c+q+this.config.quadrantPadding,y:m+_-(b?_/2:0),fontSize:this.config.yAxisLabelFontSize,verticalPos:b?"center":"left",horizontalPos:"top",rotation:-90}),T}getQuadrants(t){let{quadrantSpace:a}=t,{quadrantHalfHeight:p,quadrantLeft:f,quadrantHalfWidth:o,quadrantTop:x}=a,_=[{text:{text:this.data.quadrant1Text,fill:this.themeConfig.quadrant1TextFill,x:0,y:0,fontSize:this.config.quadrantLabelFontSize,verticalPos:"center",horizontalPos:"middle",rotation:0},x:f+o,y:x,width:o,height:p,fill:this.themeConfig.quadrant1Fill},{text:{text:this.data.quadrant2Text,fill:this.themeConfig.quadrant2TextFill,x:0,y:0,fontSize:this.config.quadrantLabelFontSize,verticalPos:"center",horizontalPos:"middle",rotation:0},x:f,y:x,width:o,height:p,fill:this.themeConfig.quadrant2Fill},{text:{text:this.data.quadrant3Text,fill:this.themeConfig.quadrant3TextFill,x:0,y:0,fontSize:this.config.quadrantLabelFontSize,verticalPos:"center",horizontalPos:"middle",rotation:0},x:f,y:x+p,width:o,height:p,fill:this.themeConfig.quadrant3Fill},{text:{text:this.data.quadrant4Text,fill:this.themeConfig.quadrant4TextFill,x:0,y:0,fontSize:this.config.quadrantLabelFontSize,verticalPos:"center",horizontalPos:"middle",rotation:0},x:f+o,y:x+p,width:o,height:p,fill:this.themeConfig.quadrant4Fill}];for(let h of _)h.text.x=h.x+h.width/2,this.data.points.length===0?(h.text.y=h.y+h.height/2,h.text.horizontalPos="middle"):(h.text.y=h.y+this.config.quadrantTextTopPadding,h.text.horizontalPos="top");return _}getQuadrantPoints(t){let{quadrantSpace:a}=t,{quadrantHeight:p,quadrantLeft:f,quadrantTop:o,quadrantWidth:x}=a,_=zt().domain([0,1]).range([f,x+f]),h=zt().domain([0,1]).range([p+o,o]);return this.data.points.map(k=>{let m=this.classes.get(k.className);return m&&(k=Q(Q({},m),k)),{x:_(k.x),y:h(k.y),fill:k.color??this.themeConfig.quadrantPointFill,radius:k.radius??this.config.pointRadius,text:{text:k.text,fill:this.themeConfig.quadrantPointTextFill,x:_(k.x),y:h(k.y)+this.config.pointTextPadding,verticalPos:"center",horizontalPos:"top",fontSize:this.config.pointLabelFontSize,rotation:0},strokeColor:k.strokeColor??this.themeConfig.quadrantPointFill,strokeWidth:k.strokeWidth??"0px"}})}getBorders(t){let a=this.config.quadrantExternalBorderStrokeWidth/2,{quadrantSpace:p}=t,{quadrantHalfHeight:f,quadrantHeight:o,quadrantLeft:x,quadrantHalfWidth:_,quadrantTop:h,quadrantWidth:c}=p;return[{strokeFill:this.themeConfig.quadrantExternalBorderStrokeFill,strokeWidth:this.config.quadrantExternalBorderStrokeWidth,x1:x-a,y1:h,x2:x+c+a,y2:h},{strokeFill:this.themeConfig.quadrantExternalBorderStrokeFill,strokeWidth:this.config.quadrantExternalBorderStrokeWidth,x1:x+c,y1:h+a,x2:x+c,y2:h+o-a},{strokeFill:this.themeConfig.quadrantExternalBorderStrokeFill,strokeWidth:this.config.quadrantExternalBorderStrokeWidth,x1:x-a,y1:h+o,x2:x+c+a,y2:h+o},{strokeFill:this.themeConfig.quadrantExternalBorderStrokeFill,strokeWidth:this.config.quadrantExternalBorderStrokeWidth,x1:x,y1:h+a,x2:x,y2:h+o-a},{strokeFill:this.themeConfig.quadrantInternalBorderStrokeFill,strokeWidth:this.config.quadrantInternalBorderStrokeWidth,x1:x+_,y1:h+a,x2:x+_,y2:h+o-a},{strokeFill:this.themeConfig.quadrantInternalBorderStrokeFill,strokeWidth:this.config.quadrantInternalBorderStrokeWidth,x1:x+a,y1:h+f,x2:x+c-a,y2:h+f}]}getTitle(t){if(t)return{text:this.data.titleText,fill:this.themeConfig.quadrantTitleFill,fontSize:this.config.titleFontSize,horizontalPos:"top",verticalPos:"center",rotation:0,y:this.config.titlePadding,x:this.config.chartWidth/2}}build(){let t=this.config.showXAxis&&!!(this.data.xAxisLeftText||this.data.xAxisRightText),a=this.config.showYAxis&&!!(this.data.yAxisTopText||this.data.yAxisBottomText),p=this.config.showTitle&&!!this.data.titleText,f=this.data.points.length>0?"bottom":this.config.xAxisPosition,o=this.calculateSpace(f,t,a,p);return{points:this.getQuadrantPoints(o),quadrants:this.getQuadrants(o),axisLabels:this.getAxisLabels(f,t,a,o),borderLines:this.getBorders(o),title:this.getTitle(p)}}},kt=class extends Error{static{s(this,"InvalidStyleError")}constructor(t,a,p){super(`value for ${t} ${a} is invalid, please use a valid ${p}`),this.name="InvalidStyleError"}};function It(t){return!/^#?([\dA-Fa-f]{6}|[\dA-Fa-f]{3})$/.test(t)}s(It,"validateHexCode");function xe(t){return!/^\d+$/.test(t)}s(xe,"validateNumber");function fe(t){return!/^\d+px$/.test(t)}s(fe,"validateSizeInPixels");var Ie=qt();function O(t){return re(t.trim(),Ie)}s(O,"textSanitizer");var z=new Ve;function ge(t){z.setData({quadrant1Text:O(t.text)})}s(ge,"setQuadrant1Text");function pe(t){z.setData({quadrant2Text:O(t.text)})}s(pe,"setQuadrant2Text");function ye(t){z.setData({quadrant3Text:O(t.text)})}s(ye,"setQuadrant3Text");function be(t){z.setData({quadrant4Text:O(t.text)})}s(be,"setQuadrant4Text");function Te(t){z.setData({xAxisLeftText:O(t.text)})}s(Te,"setXAxisLeftText");function me(t){z.setData({xAxisRightText:O(t.text)})}s(me,"setXAxisRightText");function qe(t){z.setData({yAxisTopText:O(t.text)})}s(qe,"setYAxisTopText");function ke(t){z.setData({yAxisBottomText:O(t.text)})}s(ke,"setYAxisBottomText");function St(t){let a={};for(let p of t){let[f,o]=p.trim().split(/\s*:\s*/);if(f==="radius"){if(xe(o))throw new kt(f,o,"number");a.radius=parseInt(o)}else if(f==="color"){if(It(o))throw new kt(f,o,"hex code");a.color=o}else if(f==="stroke-color"){if(It(o))throw new kt(f,o,"hex code");a.strokeColor=o}else if(f==="stroke-width"){if(fe(o))throw new kt(f,o,"number of pixels (eg. 10px)");a.strokeWidth=o}else throw new Error(`style named ${f} is not supported.`)}return a}s(St,"parseStyles");function Se(t,a,p,f,o){let x=St(o);z.addPoints([Q({x:p,y:f,text:O(t.text),className:a},x)])}s(Se,"addPoint");function _e(t,a){z.addClass(t,St(a))}s(_e,"addClass");function Ae(t){z.setConfig({chartWidth:t})}s(Ae,"setWidth");function Fe(t){z.setConfig({chartHeight:t})}s(Fe,"setHeight");function Pe(){let t=qt(),{themeVariables:a,quadrantChart:p}=t;return p&&z.setConfig(p),z.setThemeConfig({quadrant1Fill:a.quadrant1Fill,quadrant2Fill:a.quadrant2Fill,quadrant3Fill:a.quadrant3Fill,quadrant4Fill:a.quadrant4Fill,quadrant1TextFill:a.quadrant1TextFill,quadrant2TextFill:a.quadrant2TextFill,quadrant3TextFill:a.quadrant3TextFill,quadrant4TextFill:a.quadrant4TextFill,quadrantPointFill:a.quadrantPointFill,quadrantPointTextFill:a.quadrantPointTextFill,quadrantXAxisTextFill:a.quadrantXAxisTextFill,quadrantYAxisTextFill:a.quadrantYAxisTextFill,quadrantExternalBorderStrokeFill:a.quadrantExternalBorderStrokeFill,quadrantInternalBorderStrokeFill:a.quadrantInternalBorderStrokeFill,quadrantTitleFill:a.quadrantTitleFill}),z.setData({titleText:Dt()}),z.build()}s(Pe,"getQuadrantData");var we=s(function(){z.clear(),oe()},"clear"),Be={setWidth:Ae,setHeight:Fe,setQuadrant1Text:ge,setQuadrant2Text:pe,setQuadrant3Text:ye,setQuadrant4Text:be,setXAxisLeftText:Te,setXAxisRightText:me,setYAxisTopText:qe,setYAxisBottomText:ke,parseStyles:St,addPoint:Se,addClass:_e,getQuadrantData:Pe,clear:we,setAccTitle:le,getAccTitle:he,setDiagramTitle:ue,getDiagramTitle:Dt,getAccDescription:de,setAccDescription:ce},Re=s((t,a,p,f)=>{function o(i){return i==="top"?"hanging":"middle"}s(o,"getDominantBaseLine");function x(i){return i==="left"?"start":"middle"}s(x,"getTextAnchor");function _(i){return`translate(${i.x}, ${i.y}) rotate(${i.rotation||0})`}s(_,"getTransformation");let h=qt();dt.debug(`Rendering quadrant chart
+`+t);let c=h.securityLevel,k;c==="sandbox"&&(k=mt("#i"+a));let q=(c==="sandbox"?mt(k.nodes()[0].contentDocument.body):mt("body")).select(`[id="${a}"]`),y=q.append("g").attr("class","main"),b=h.quadrantChart?.chartWidth??500,T=h.quadrantChart?.chartHeight??500;se(q,T,b,h.quadrantChart?.useMaxWidth??!0),q.attr("viewBox","0 0 "+b+" "+T),f.db.setHeight(T),f.db.setWidth(b);let g=f.db.getQuadrantData(),ot=y.append("g").attr("class","quadrants"),ut=y.append("g").attr("class","border"),xt=y.append("g").attr("class","data-points"),ft=y.append("g").attr("class","labels"),gt=y.append("g").attr("class","title");g.title&&gt.append("text").attr("x",0).attr("y",0).attr("fill",g.title.fill).attr("font-size",g.title.fontSize).attr("dominant-baseline",o(g.title.horizontalPos)).attr("text-anchor",x(g.title.verticalPos)).attr("transform",_(g.title)).text(g.title.text),g.borderLines&&ut.selectAll("line").data(g.borderLines).enter().append("line").attr("x1",i=>i.x1).attr("y1",i=>i.y1).attr("x2",i=>i.x2).attr("y2",i=>i.y2).style("stroke",i=>i.strokeFill).style("stroke-width",i=>i.strokeWidth);let lt=ot.selectAll("g.quadrant").data(g.quadrants).enter().append("g").attr("class","quadrant");lt.append("rect").attr("x",i=>i.x).attr("y",i=>i.y).attr("width",i=>i.width).attr("height",i=>i.height).attr("fill",i=>i.fill),lt.append("text").attr("x",0).attr("y",0).attr("fill",i=>i.text.fill).attr("font-size",i=>i.text.fontSize).attr("dominant-baseline",i=>o(i.text.horizontalPos)).attr("text-anchor",i=>x(i.text.verticalPos)).attr("transform",i=>_(i.text)).text(i=>i.text.text),ft.selectAll("g.label").data(g.axisLabels).enter().append("g").attr("class","label").append("text").attr("x",0).attr("y",0).text(i=>i.text).attr("fill",i=>i.fill).attr("font-size",i=>i.fontSize).attr("dominant-baseline",i=>o(i.horizontalPos)).attr("text-anchor",i=>x(i.verticalPos)).attr("transform",i=>_(i));let ht=xt.selectAll("g.data-point").data(g.points).enter().append("g").attr("class","data-point");ht.append("circle").attr("cx",i=>i.x).attr("cy",i=>i.y).attr("r",i=>i.radius).attr("fill",i=>i.fill).attr("stroke",i=>i.strokeColor).attr("stroke-width",i=>i.strokeWidth),ht.append("text").attr("x",0).attr("y",0).text(i=>i.text.text).attr("fill",i=>i.text.fill).attr("font-size",i=>i.text.fontSize).attr("dominant-baseline",i=>o(i.text.horizontalPos)).attr("text-anchor",i=>x(i.text.verticalPos)).attr("transform",i=>_(i.text))},"draw"),Ne={draw:Re},Xe={parser:ze,db:Be,renderer:Ne,styles:s(()=>"","styles")};export{Xe as diagram};
+[0m
+Now I have enough information to classify all the hits. Let me summarize:
+
+## Classification Summary
+
+### REAL_SECRET
+**None found** - No hardcoded credentials/API keys/tokens with signs of life in the new delta.
+
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` (18 files) | Various | Minified/bundled JS build artifacts with parser error message templates |
+| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | Minified JS build artifact |
+| `google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js` | 5 | Minified JS build artifact |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | JSDoc example code with placeholder values (`"password"`, `"your_access_token"`) |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | OAuth2 grant type enum value `PASSWORD = 'password'` (standard OAuth2 terminology) |
+| `google/heir/scripts/author_stats.py` | 16 | Commented placeholder `# TOKEN = "your_github_token_here"` |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper GitHub Actions secret references `${{ secrets.GEMINI_API_KEY }}` |
+| `google/private-compute-services/.../RenderTokenHint.kt` | 41 | Android Bundle parcelable key constant `"render_token"` |
+| `google/private-compute-services/.../RenderTokenInsight.kt` | 43 | Android Bundle parcelable key constant `"render_token"` |
+
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| `google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` (4 files) | ~4638 | Internal Google documentation URLs (`developers.devsite.corp.google.com`) in externs |
+| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 205 | Microsoft dev office URL in externs |
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | GCP metadata endpoint reference `metadata.google.internal` (defensive coding) |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | Link-local CIDR block including GCP metadata IP (defensive SSRF protection) |
+
+### INTERESTING
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets` flag referencing Secret Manager (proper secret management pattern) |
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | Staging deployment URL |
+| `google/capsem/config/gate.toml` | 481 | Config referencing password file + env variable for Tauri signing |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Script reading p12 password from file (CI secret pattern) |
+| `google/capsem/scripts/preflight.sh` | 39 | Script reading passwords/API keys from files (CI secret pattern) |
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | FHE code generation emitting `secret_key` variable assignment (runtime variable, not hardcoded) |
+| `google/atheris/deployment/deploy_pypi.sh` | 26 | PyPI test deployment script (no secrets) |
+
+## Verdict
+
+**No REAL_SECRET findings in this delta.** All hits are either:
+- Build artifacts / minified code (TEST_OR_EXAMPLE)
+- Documentation examples / placeholders (TEST_OR_EXAMPLE)
+- Proper secret management patterns referencing external secret stores (INTERESTING)
+- Internal documentation URLs in externs files (ENDPOINT_LEAK)
+- Defensive coding patterns (SSRF protection, metadata blocking) (ENDPOINT_LEAK)
+
+The Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` is a **correct** usage of Google Cloud Secret Manager - it mounts a secret at runtime rather than hardcoding it.
+
+The capsem scripts properly read credentials from files that would be populated from CI/CD secrets at runtime.
+
+No reportable findings in this scan delta.
