@@ -3312,3 +3312,22 @@
 - LEARN: ACCEPTED: All three hypotheses remain live unchanged @ 2026-08-15 07:26:24 UTC cycle — agentRegistrations 5-family IDOR+CORS (97, AUTH_HELPED), earthengine secr
 - LEARN: ACCEPTED all 3 hypotheses still live @ 2026-08-15 probe — agentRegs GET 401/237 + HEAD 405/0 + CORS preflight 200 ACAO:*, oauth.py whole-file sha `f4f93c76…b730
 - LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA).
+
+## RANKED HYPOTHESES 2026-08-15 09:45:48 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Request MSRC authorized two-principal tenant enrollment (AUTH_HELPED) — single bottleneck unblocking Microsoft hypotheses #1 + #3 in one session; attach 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- LEARN: REJECTED: MISCONFIG @ google/codeworld/web/js/utils/auth.js:30 — `PASSWORD = 'swal-input2'` verified as SweetAlert prompt DOM element ID pattern (swal-input1/2/
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-s
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed live @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: HTTP 200 `ACAO:*` + `Allo
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret A/B proof re-confirmed @ oauth2.googleapis.com/token: leaked secret→400 invalid_grant (valid credential per RFC 6749 
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes (oauth2.googleapis.com/token GET→404, graph.microsoft.com→200/301, cloud-platform sc
+- LEARN: REJECTED: MISCONFIG @ google/codeworld/web/js/utils/auth.js:30 (`PASSWORD = 'swal-input2'`) — confirmed as SweetAlert2.prompt DOM element ID pattern (swal-input
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret hypothesis (only
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ curr
+- LEARN: ACCEPTED v1⊂v2 JWKS subset invariant holds — v1(5)⊂v2(9), 0 v1-exclusive; rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer).

@@ -972,3 +972,12 @@
 - CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact; true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + PATCH allowlist + Max-Age 86400 confirmed at item level
 - CHANGED Earth Engine A/B proof refined — leaked secret→400 `invalid_grant`, fake secret→401 `invalid_client` (conclusive RFC 6749 §5.2 differential)
 - CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html); cosmetic redirect, no auth-bypass surface
+
+## 2026-08-15 09:45:48 UTC
+- NEW none — all surface items already tracked; CodeWorld `PASSWORD='swal-input2'` previously analyzed & rejected as SweetAlert2 DOM ID pattern (swal-input1/2/3/4), not a credential
+- CHANGED none — agentRegistrations bare-OPTIONS→405 reclassified as probe artifact (true preflight with Origin+ACRM:PATCH+ACH:authorization → 200 ACAO:* + PATCH + Max-Age 86400 already confirmed), Earth Engine
+- CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact; true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + PATCH allowlist + Max-Age 86400 confirmed at item level
+- CHANGED Earth Engine A/B proof refined — leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret→401 `invalid_client "The provided client secret is invalid."` — conclusive differen
+- CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+- NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including caller-supplied reso
+- NEW oauth2.googleapis.com/token GET → 404 confirms POST-only alive gate; validates earthengine secret hypothesis (only grant_type=refresh_token is redemption path)
