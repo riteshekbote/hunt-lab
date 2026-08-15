@@ -1,75 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [limit=20, offset=550][0m
-[0m→ [0mRead reposcan-raw/google/codeworld/web/js/utils/auth.js[90m [limit=15, offset=25][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=15, offset=35][0m
+[0m$ [0msha256sum <<<'swal-input2'
+ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5  -
+[0m
+[0m$ [0msha256sum <<<'gemini_api_key'
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m
 ### Classification Tables
 
-#### REAL_SECRET — Hardcoded credentials with signs of life
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No hardcoded live secrets found |
+#### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| google/codeworld/web/js/utils/auth.js | 30 | `ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5` | `const PASSWORD = 'swal-input2';` — client-side hardcoded password |
 
-#### TEST_OR_EXAMPLE — Sample/test/fixture data, proper secret refs, placeholders
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/android-cuttlefish/.github/workflows/*.yml | 100,175,48,50,46 | `${{ secrets.GITHUB_TOKEN }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}`, `${{ secrets.artifact-registry-uploader-json-creds }}` | Proper GitHub Actions secret references |
-| google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access --secret="codecov-google-crosvm"` | Runtime Secret Manager fetch |
-| google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud secrets versions access --secret="github-crosvm-bot"` | Runtime Secret Manager fetch |
-| google/dotprompt/packages/monaco/src/*.ts | 67-69,181-183 | Monaco tokenizer `token: 'delimiter.handlebars'` etc. | Editor syntax highlighting config |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk` | MLIR codegen emitting Python variable assignment (sk = SSA value name) |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/tunix/tunix/cli/base_*_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/rl/agentic/parser/.../parser.py | 193-195 | `eot_token="<|endoftext|>"` etc. | Tokenizer special tokens |
-| google/nomulus/core/src/.../PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` | Test fixture |
-| google/nomulus/.../EppClient.java | 156 | `password = "abcde12345"` | Test fixture |
-| google/nomulus/.../XsrfTokenManager.java | 37,40 | `X_CSRF_TOKEN`, `xsrfToken` | Header name constants |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Proper GitHub Actions secret refs |
-| google/codeworld/web/js/utils/auth.js | 29-32 | `USER_ID='swal-input1'`, `PASSWORD='swal-input2'` | SweetAlert DOM element IDs (not credentials) |
-| google/magika/.github/workflows/*.yml | 407,437 | `https://test.pypi.org/legacy/` | Test PyPI endpoint |
-| google/agents-cli/src/.../auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Config key name constant |
-| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions token flow |
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Notes |
+|------|------|-------|
+| google/android-cuttlefish/.github/workflows/gemini-invoke.yml | 62 | `${{ secrets.GOOGLE_API_KEY }}` — proper secret ref, not hardcoded |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder value (sha `1a539ef3...`) |
+| microsoft/Ontology-Playground/src/lib/github.test.ts | 84, 98 | Test fixtures: `ghp_real_token`, `ghp_after_retry` |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | Test const: `ghp_ABCDEFGHIJKLMNOP` |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19, 20, 24 | Test vectors: `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R`, fake AWS key |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test word: `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Eval data: `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Eval data: `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` |
+| microsoft/winget-cli/src/AppInstallerCLIE2ETests/Helpers/TestIndex.cs | 143, 150, 157 | Test placeholders: `<EXEHASH>`, `<MSIHASH>`, `<MSIHASHV2>` |
+| microsoft/winget-cli/src/AppInstallerCLITests/RestInterface_1_7.cpp | 451, 477, 498 | Test token: `TestToken` |
 
-#### ENDPOINT_LEAK — Internal/dev/staging URLs
-| File | Line | Endpoint |
-|------|------|----------|
-| google/dotprompt/.github/workflows/*.yml | 33,34 | `https://test.pypi.org/legacy/` (×4) |
-| google/nomulus/core/src/.../default-config.yaml | 260 | `https://staging-www.sandbox.googleapis.com` |
-| google/magika/.github/workflows/*.yml | 407,437 | `https://test.pypi.org/legacy/` (×2) |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` (file reference) |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
-
-#### INTERESTING — Unusual patterns (secret file handling, debug flags)
-| File | Line | Pattern |
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Details |
 |------|------|---------|
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` — secret loaded from file at runtime |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` — secret file read pattern |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — same pattern |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — kubeconfig path handling |
+| google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp | 42 | `"http://metadata.google.internal/computeMetadata/v1/%s"` — GCE metadata endpoint |
+
+#### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Details |
+|------|------|---------|
+| google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp | 187 | OAuth client_secret handling at runtime: `exchange << "client_secret=" << request.client_secret` |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `.secret_key =` from variable `sk` — crypto key material handling |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches token from GCP Secret Manager at runtime — **proper secret management** |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches Codecov token from GCP Secret Manager — **proper secret management** |
+| microsoft/winget-cli/src/AppInstallerRepositoryCore/Rest/Schema/CommonRestConstants.h | 22 | `ContinuationToken` constant name — not a secret |
 
 ---
 
-### SHORT VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| android-cuttlefish workflow secrets | **no** | Proper `${{ secrets.* }}` references |
-| crosvm gcloud secret access | **no** | Runtime Secret Manager fetch (correct pattern) |
-| dotprompt test.pypi.org URLs | **no** | Public test endpoint, not sensitive |
-| heir JaxiteWordEmitter codegen | **no** | Emits variable name `sk` in generated Python, not a secret |
-| heir author_stats.py placeholder | **no** | Commented example |
-| tunix HF token placeholders | **no** | Commented examples |
-| tunix tokenizer special tokens | **no** | Standard tokenizer config (`<|endoftext|>` etc.) |
-| nomulus test DB passwords | **no** | Non-production test fixtures |
-| nomulus staging URL | **no** | Staging environment endpoint (known) |
-| langextract CI secret refs | **no** | Proper `${{ secrets.* }}` usage |
-| codeworld SweetAlert DOM IDs | **no** | Element IDs (`swal-input2`), not credentials |
-| magika test PyPI URLs | **no** | Public test endpoint |
-| capsem password.txt file pattern | **no** | Runtime secret file read (ops pattern, no secret in repo) |
-| capsem staging.pages.dev URL | **no** | Staging deployment endpoint |
-| agents-cli config key constant | **no** | String constant `"gemini_api_key"` is the config key name |
-| agents-cli scaffold token steps | **no** | Proper GitHub Actions token flow |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Hardcoded client-side password `swal-input2` | google/codeworld/web/js/utils/auth.js:30 | **yes** |
+| All other delta hits | — | no (TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING) |
+| GCP Secret Manager usage (crosvm) | — | no (proper pattern, not a leak) |
 
-**SUMMARY: 0 REAL_SECRET candidates. All hits are proper secret references, test fixtures, placeholders, code generation templates, or staging endpoints. No reportable findings.**
+**Only one reportable finding:** The hardcoded password `swal-input2` in `google/codeworld/web/js/utils/auth.js:30` (SHA256 `ffd0ae7d...`). This is a real credential in client-side JavaScript served to browsers.
