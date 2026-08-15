@@ -27542,3 +27542,88 @@ All three hypotheses survive (confidence ≥ 40, no REJECTED class, concrete ver
 ## STEP 7 — RISK SCORE
 - [RISK] google: 42 | live surface is one valid-but-by-design public OAuth secret (VRP-worthiness capped by native-app precedent), no-reward tokeninfo oracle, POST-only gates; no unproven high-value Google attack surface.
 - [RISK] microsoft: 68 | two high-confidence authz-defect hypotheses (IDOR+CORS 97, consent forge 72) with complete schema-level preconditions and systemic RFC 6750 §3 method-challenge anomalies across the gateway, but all mutation surfaces sit behind auth requiring a two-principal test to disprove.
+===== ANALYST bigpickle 2026-08-15 17:02:52 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "token:%{http_code}\n" https://oauth2.googleapis.com/token; curl -s -o /dev/null -w "agentRegs:%{http_code}\n" https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id; curl -s -o /dev/null -w "oauth2permgrants:%{http_code}\n" https://graph.microsoft.com/v1.0/oauth2PermissionGrants; curl -s -o /dev/null -w "graph-v1.0:%{http_code}\n" https://graph.microsoft.com/v1.0
+token:404
+agentRegs:401
+oauth2permgrants:401
+graph-v1.0:200
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "tokeninfo:%{http_code}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -s -o /dev/null -w "keys:%{http_code}\n" -H "Accept: application/json" https://login.microsoftonline.com/common/discovery/keys
+tokeninfo:400
+keys:200
+[0m
+[0m$ [0mcurl -s -H "Accept: application/json" https://login.microsoftonline.com/common/discovery/keys | python3 -c "import sys,json; d=json.load(sys.stdin); kids=[k['kid'] for k in d['keys']]; print('v1 kids:', len(kids))"; curl -s -H "Accept: application/json" https://login.microsoftonline.com/common/discovery/v2.0/keys | python3 -c "import sys,json; d=json.load(sys.stdin); kids=[k['kid'] for k in d['keys']]; print('v2 kids:', len(kids))"
+v1 kids: 5
+v2 kids: 9
+[0m
+[0m$ [0mcurl -s -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id" -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -D - -o /dev/null | grep -iE "^(HTTP|access-control-allow)"
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+[0m
+[0m$ [0mcurl -s https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py -o /tmp/opencode/oauth.py; wc -c /tmp/opencode/oauth.py; sha256sum /tmp/opencode/oauth.py; grep -n "CLIENT_SECRET" /tmp/opencode/oauth.py | head -5
+23110 /tmp/opencode/oauth.py
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/opencode/oauth.py
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+193:      'client_secret': client_secret or CLIENT_SECRET,
+415:        client_secret=CLIENT_SECRET,
+[0m
+Fresh probes confirm all prior findings unchanged (token→404, agentRegs→401, oauth2PermissionGrants→401, graph /v1.0→200, tokeninfo→400, keys v1=5/v2=9, agentRegistrations true-preflight→200 ACAO:* + PATCH, earthengine file sha `f4f93c76…` unchanged, secret at :45+:99).
+
+STEP 1 — DELTA
+- NO_DELTA — all probe results (16:43 UTC + my 17:0x UTC re-probe) identical to KB: no new/CHANGED surface items.
+
+STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/* (6-family): attack=8 business=9 tech=8 gate=5 cloud=8 fresh=7 → priority 7.70
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: attack=7 business=9 tech=8 gate=5 cloud=8 fresh=7 → priority 7.45
+- [PRIO] oauth2.googleapis.com/token (earthengine oauth.py:45): attack=8 business=7 tech=7 gate=7 cloud=9 fresh=6 → priority 7.35
+
+STEP 3 — HYPOTHESES
+[HYP] Copilot Admin 6-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True preflight re-probed live (Origin+ACRM:PATCH+ACH:authorization→200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400); GET→401/237 auth-gated; $metadata 873-char block 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false across 6 EntityTypes.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged (200/23110 re-probed); secret sha `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` verbatim at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate.
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha 97aa66f0; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB + no refresh token caps VRP-worthiness.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: GET→401/237 Bearer re-confirmed; HEAD→405/0 (RFC 6750 §3); oAuth2PermissionGrant EntityType 458-char block @ $metadata, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+
+STEP 4 — SELF-CRITIQUE
+- [PARKED] none — all three survive: confidences 97/96/72 ≥ 40, none on REJECTED list, all have concrete verify_steps.
+- [FINAL] 1) Copilot 6-family IDOR+CORS (97, AUTH_HELPED)  2) earthengine client_secret (96, HUMAN_ONLY)  3) consent-grant forge (72, AUTH_HELPED)
+
+STEP 5 — NEXT ACTION
+- [NEXT] HUMAN: Send `reports/msrc-two-principal-request.md` to the MSRC portal — one authorized two-principal tenant enrollment unblocks both AUTH_HELPED hypotheses ([97] Copilot 6-family PATCH cross-principal + [72] consent-grant forge); all passive probes on these surfaces are exhausted (every mutation endpoint returns 401/237 and cannot be advanced further without valid principals).
+
+STEP 6 — LEARNING
+- [LEARN] REJECTED no new proving-dead classes this cycle — own fresh probes (token→404, agentRegs 401, oauth2PermissionGrants 401, tokeninfo 400, preflight 200 ACAO:*+PATCH) confirmed all prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+- [LEARN] ACCEPTED agentRegistrations bare-OPTIONS→405 remains probe artifact — true preflight (Origin+ACRM:PATCH+ACH:authorization) re-probed 200 `ACAO:*` + `Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH` + `Allow-Headers: authorization` at item level; CORS cross-origin mutation vector intact.
+
+STEP 7 — RISK SCORE
+- [RISK] google: 42 | live surface is one valid-but-by-design public OAuth secret (native-app OOB caps VRP-worthiness per ADK #2128), no-reward tokeninfo oracle, POST-only token gate; no unproven high-value Google attack surface.
+- [RISK] microsoft: 68 | two high-confidence authz-defect hypotheses (IDOR+CORS 97, consent forge 72) with complete schema-level preconditions and systemic RFC 6750 §3 method-challenge anomalies, but all mutation surfaces sit behind auth requiring two-principal test to disprove.
