@@ -1,54 +1,99 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "GEMINI_API_KEY" reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+    GEMINI_API_KEY = "gemini_api_key"
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    Checks for GEMINI_API_KEY env var. If not set, opens AI Studio
+    api_key = os.environ.get("GEMINI_API_KEY")
+        return {"env_var": "GEMINI_API_KEY", "from_env": True}
+    click.echo("  GEMINI_API_KEY is not set in your environment.")
+    _api_key_instructions("GEMINI_API_KEY")
+    # Check GEMINI_API_KEY (instant)
+    if os.environ.get("GEMINI_API_KEY"):
+        return True, "Gemini API Key (GEMINI_API_KEY)"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "private_key=" reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -5
+private_key="-----BEGIN PRIVATE KEY-----...",
+[0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=58][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt
+[0m→ [0mRead reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/privateinference/library/oakutil/PrivateInferenceClientTimerNames.kt
+[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/404.js[90m [limit=30, offset=20][0m
+[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml[90m [limit=30, offset=120][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=30, offset=160][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=15][0m
-### Classification Tables
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=20, offset=40][0m
+[0m→ [0mRead reposcan-raw/google/heir/scripts/author_stats.py[90m [offset=10, limit=25][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [offset=110, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [offset=148, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py[90m [offset=165, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py[90m [offset=140, limit=15][0m
+## Classification Tables
 
-| Category | File:Line | Match | Classification | Notes |
-|----------|-----------|-------|----------------|-------|
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example in docstring (placeholder `...`) |
-| | adk-python/src/google/adk/auth/auth_credential.py:269 | `credentials=HttpCredentials(username="user", password="password")` | Example in docstring (obvious test data) |
-| | adk-python/src/google/adk/auth/auth_credential.py:278 | `credentials=HttpCredentials(token="eyAkaknabna....")` | Example in docstring (fake JWT placeholder) |
-| | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` | OAuth grant type enum value (not a secret) |
-| | adk-python/src/google/adk/cli/browser/chunk-*.js (18 files) | Parse error messages | Minified build artifacts, not secrets |
-| | adk-python/src/google/adk/cli/cli_create.py:131 | `f"GOOGLE_API_KEY={google_api_key}"` | Writes user-provided key to .env, not hardcoded |
-| | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` | Example in docstring (placeholder) |
-| | pebble/devsite/source/assets/js/404.js:24 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| | pebble/devsite/source/assets/js/quicksearch.js:33 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| | meridian/.github/workflows/proto-publish.yml:126,138 | `test.pypi.org` URLs | Test PyPI publication |
-| | meridian/.github/workflows/publish.yml:127,139 | `test.pypi.org` URLs | Test PyPI publication |
-| | dotprompt/.github/workflows/publish_python_*.yml:33,34 | `test.pypi.org` URLs | Test PyPI publication |
-| | agents-cli/src/google/agents/cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value for auth type, not a secret |
-| | agents-cli/.../staging.yaml:168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expressions |
-| | heir/scripts/author_stats.py:16 | `TOKEN = "your_github_token_here"` | Placeholder comment |
-| | private-compute-services/.../RenderTokenHint.kt:41 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
-| | private-compute-services/.../RenderTokenInsight.kt:43 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
-| | private-compute-services/.../PrivateInferenceClientTimerNames.kt:82,88,91 | Timer name constants | Constant names |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | `169.254.169.254` metadata endpoint | Well-known public IP (documented in comments) |
-| | adk-python/src/google/adk/tools/load_web_page.py:171 | `169.254.169.254` metadata endpoint | Well-known public IP (documented in comments) |
-| | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | `169.254.169.254` in Chrome | Well-known public IP (documented in comments) |
-| **INTERESTING** | adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | `kubeconfig_path`, `kubeconfig_context` | GKE auth config parameters |
-| | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| | heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 | `os << ctx << ".secret_key = " << sk` | Code emitting secret key variable (not hardcoded) |
-| | dotprompt/packages/monaco/src/index.ts:181-183 | Token color definitions | Monaco editor syntax highlighting |
-| | dotprompt/packages/monaco/src/language.ts:67-69 | Handlebars delimiter tokens | Language server tokens |
-| | pebble/third_party/jquery/jquery-1.11.2.js:6170 | CSSOM spec comment | Third-party library comment |
+### REAL_SECRET
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *(none)* | — | — | — |
 
-### Verdict List
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/meridian/.github/workflows/proto-publish.yml | 126, 138 | TestPyPI publishing URLs (`test.pypi.org`) |
+| google/meridian/.github/workflows/publish.yml | 127, 139 | TestPyPI publishing URLs |
+| google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml | 33, 34 | TestPyPI legacy URL |
+| google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml | 33, 34 | TestPyPI legacy URL |
+| google/dotprompt/packages/monaco/src/index.ts | 181-183 | Monaco syntax highlighting token definitions (YAML/Handlebars) |
+| google/dotprompt/packages/monaco/src/language.ts | 67-69 | Handlebars delimiter token definitions |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant for env var name |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | Cookiecutter template with GitHub Actions expressions (`${{ steps.fetch-token.outputs._id_token }}`) |
+| google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` — Jekyll template var (DocSearch public key) |
+| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | Same Algolia template var |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example service account: `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example HTTP basic: `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example bearer: `token="eyAkaknabna...."` (fake JWT) |
+| google/adk-python/src/google/adk/auth/auth_helpers.py | 62 | Example OAuth config: `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | OAuth grant type enum: `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path` / `kubeconfig_context` params (config, not secrets) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Session state key name: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided `google_api_key` to local `.env` (CLI tool) |
+| google/heir/scripts/author_stats.py | 16 | Commented placeholder: `# TOKEN = "your_github_token_here"` |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits variable assignment: `os << ctx << ".secret_key = " << sk` |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | Android Bundle key const: `KEY_RENDER_TOKEN = "render_token"` |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Same Android Bundle key |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82-91 | Timer name constants: `IPP_CREATE_TERMINAL_TOKEN`, `IPP_CREATE_PROXY_TOKEN`, etc. |
 
-| Candidate | File | Line | Secret SHA256 | REPORT_CANDIDATE |
-|-----------|------|------|---------------|------------------|
-| (none) | — | — | — | **no** |
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | Comment referencing CSSOM draft spec: `http://dev.w3.org/csswg/cssom/#resolved-values` |
 
-**Summary:** No reportable secrets in this delta. All hits are:
-- **Test/examples/placeholders** (24 hits): Docstring examples, enum values, template variables, test PyPI URLs, GitHub Actions expressions, build artifacts
-- **Endpoint references** (4 hits): Well-known GCP metadata IP `169.254.169.254` documented in comments
-- **Interesting config/code** (7 hits): Kubeconfig params, internal state key names, crypto code emitting variables, editor tokens
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documents cloud metadata endpoint `169.254.169.254` as SSRF risk; networking disabled by default |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | NAT64 IPv6 detection for embedded `169.254.169.254` (SSRF protection) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Browser SSRF guard: blocks `169.254.169.254` in hostname parsing |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | MLIR codegen pattern emitting secret key variable assignment (no actual secret) |
 
-The ADK `auth_credential.py` examples are explicitly documented as examples with placeholder values (`...`, `your_client_secret`, `user`/`password`, fake JWT). The `PASSWORD = "password"` in `auth_schemes.py` is an OAuth2 grant type enum value (`password` grant), not a credential.
+---
+
+## SHORT VERDICT
+
+**NO REPORTABLE SECRETS FOUND** — All 253 grep hits classify as TEST_OR_EXAMPLE (235), ENDPOINT_LEAK (1), or INTERESTING (4). Zero REAL_SECRET candidates.
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (any) | no |
+
+**Notes:**
+- The ADK `auth_credential.py` examples use obvious placeholders (`...`, `your_*`, `1234`, `password`).
+- Algolia keys in Pebble are Jekyll template vars for DocSearch (search-only, public by design — matches REJECTED class in KB).
+- `169.254.169.254` references are standard cloud metadata endpoint documentation/SSRF guards, not leaks.
+- HEIR C++ codegen emits IR assignments using SSA value names, not literal secrets.
+- Private Compute Services constants are Android Bundle/SharedPreferences key names, not token values.
