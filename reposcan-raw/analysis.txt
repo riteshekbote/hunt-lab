@@ -1,28 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at all 239 hits, they fall into clear categories. Let me classify them:
+Looking at the scan hits, I'll classify each finding:
 
-## Classification Table
+## Classification Tables
 
-| Category | Count | Examples |
-|----------|-------|----------|
-| **TEST_OR_EXAMPLE** | ~180 | `password="password"`, `token="your_access_token"`, `PASSWORD = "password"`, `client_secret="your_client_secret"`, `private_key="-----BEGIN PRIVATE KEY-----..."`, `INJECTED_TOKEN = "injected-token-probe"` |
-| **ENDPOINT_LEAK** | ~25 | `169.254.169.254` (GCP metadata), `metadata.google.internal`, kubeconfig paths, `dev.office.com` URLs in externs |
-| **INTERESTING** | ~10 | CI secret references (`${{ secrets.GEMINI_API_KEY }}`), `_STATE_KEY_ACCESS_TOKEN` state key name |
-| **REAL_SECRET** | **0** | — |
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214 | `password: "password"` | Test fixture placeholder |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 226 | `token: "your_access_token"` | Documentation placeholder |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` | Test constant |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture in auth_credential.py |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` | Test credentials |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `HttpCredentials(token="eyAkaknabna....")` | Truncated test JWT |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Test constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Documentation placeholder |
+| `google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test token constant |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified JS chunks | Build artifacts, not source |
 
-## Verdict: NO REPORT_CANDIDATES
+### ENDPOINT_LEAK (internal/dev references, not secrets)
+| File | Line | Pattern | Type |
+|------|------|---------|------|
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP metadata hostname |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local/metadata CIDR |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | GCP metadata IP |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | GCP metadata IP |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | GCP metadata IP |
+| `google/closure-compiler/src/.../ErrorManager.java` | 95 | `source.corp.google.com` | Internal Google source link |
+| `google/closure-compiler/externs/*.js` | multiple | `dev.w3.org`, `dev.office.com` | Public spec URLs |
 
-**All hits are non-reportable:**
-- **Test/fixture data**: Placeholder credentials (`password`, `your_access_token`, `your_client_secret`), test constants, example private keys
-- **Config references**: Metadata IP `169.254.169.254`, kubeconfig params — not secrets
-- **CI secret refs**: `${{ secrets.X }}` — proper secret injection, not leaks
-- **Minified/bundled JS**: Parser/generator artifacts in `adk-*` browser chunks
-- **Externs/comments**: `dev.w3.org`, `dev.office.com` URLs in Closure Compiler externs
+### INTERESTING (unusual patterns, not directly exploitable)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation, not hardcoded |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig params | Config options, not secrets |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret refs (correct pattern) |
 
-**No hardcoded live credentials, API keys, or tokens found in this scan.** The prior `earthengine-api` secret (tracked in KB) is **not in this delta** — it's in a different repo path not covered by this scan run.
+---
 
-```
-REPORT_CANDIDATE: no (0 findings)
-```
+## REAL_SECRET Candidates
+**None found in this scan delta.**
+
+The previously tracked `google/earthengine-api/python/ee/oauth.py:45` hardcoded client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) **does not appear in this scan's hits** — it was confirmed live in prior cycles via live probe but isn't caught by the current static grep rules.
+
+---
+
+## Verdict List
+
+| Candidate | File | Line | Classification | REPORT_CANDIDATE |
+|-----------|------|------|----------------|------------------|
+| (none in delta) | — | — | — | — |
+
+**Summary**: This scan delta produces **0 reportable findings**. All hits are test fixtures, documentation placeholders, internal endpoint references, or build artifacts. The known live `earthengine-api` client_secret remains valid per live probes but isn't captured by the current static rules.
