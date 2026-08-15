@@ -1071,3 +1071,8 @@
 
 ## 2026-08-15 21:33:31 UTC
 - NEW NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged (NO_DELTA @ 2026-08-15 21:03 UTC)
+
+## 2026-08-15 21:54:10 UTC
+- NEW graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+- NEW www.googleapis.com/storage/v1/b → HTTP 400 (new probe target, bucket listing requires auth)
+- CHANGED www.googleapis.com/storage/v1/b 400 resolved as missing-param artifact — with `?project=` (both earthengine number 517222506229 and ID) → 401 `storage.buckets.list` denied for anonymous caller; anonym

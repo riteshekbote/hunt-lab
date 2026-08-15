@@ -1,4 +1,7 @@
-## 2026-08-15 21:31:51 UTC [google] (model bigpickle)
+## 2026-08-15 21:52:49 UTC [google] (model bigpickle)
+[CHANGED] www.googleapis.com/storage/v1/b 400 resolved as missing-param artifact — with `?project=` (both earthengine number 517222506229 and ID) → 401 `storage.buckets.list` denied for anonymous caller; anonymous bucket enumeration class dead (no-reward inventory anyway)
+[LEARN] ACCEPTED anonymous GCS bucket-list denied @ www.googleapis.com/storage/v1/b: bare → 400 (Required parameter: project); with project → 401 permission-denied on both earthengine project IDs — devstorage scope does NOT unlock anonymous enumeration, no bypass
+[LEARN] ACCEPTED earthengine oauth.py source unchanged this probe — 200/23110, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` verbatim
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: score 7.00 | attack 8 business 9 tech 8 gate 1 cloud 9 fresh 5
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 6.55 | attack 6 business 9 tech 7 gate 1 cloud 9 fresh 7
 [PRIO] oauth2.googleapis.com/token (earthengine secret): score 6.25 | attack 7 business 8 tech 6 gate 2 cloud 10 fresh 3
@@ -6,7 +9,7 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
-reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + full mutation allowlist + Max-Age 86400 confirmed at collection+item across all 6 families; GET→401/237, HEAD→405/0 (RFC 6750 §3); $metadata 873-char block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false.
+reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + full mutation allowlist + Max-Age 86400 at collection+item across all 6 families; GET→401/237, HEAD→405/0 (RFC 6750 §3); $metadata 873-char block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false.
 evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
 verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
 impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
@@ -24,14 +27,14 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Whole-file sha `f4f93c76…b73040` unchanged (200/23110), secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate.
+reasoning: Whole-file sha `f4f93c76…b73040` unchanged (200/23110), secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate; anonymous storage.buckets.list denied (devstorage scope doesn't enable anonymous reads).
 evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
 verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha; request authorized redemption only.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
 testability: HUMAN_ONLY
-[PARKED] none — all three hypotheses survive: conf 97/74/96 ≥40, no REJECTED-list class, concrete verify_steps present
+[PARKED] none — all three hypotheses survive: conf 97/74/96 ≥40, no REJECTED-list class, concrete AUTH_HELPED/HUMAN_ONLY verify_steps present
 [FINAL] 1) Copilot Admin 6-family IDOR+CORS (97) 2) earthengine secret valid credential (96) 3) consent-grant forge (74)
 [NEXT] HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized tenant enrollment unblocks both the [97] 6-family PATCH/CORS cross-principal test and the [74] consent-forge POST test; parallel Google VRP draft (reports/google-vrp-earthengine-secret.md) ready for the [96] earthengine secret.
-[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (token→404, tokeninfo→400/113, agentRegs→401/237, oauth2PermissionGrants→401/237, earthengine file sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-15 21:1x UTC.
-[RISK] google: 42 — no unauthenticated exposure remains (token POST-only, tokeninfo no-reward, secret is by-design public-client OOB pattern); primary risk is the valid cloud-platform-scoped credential pending VRP determination.
+[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (storage/v1/b→401 denied, token→404, agentRegs→401/237, oauth2PermissionGrants→401/237, earthengine file sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-15 21:4x UTC.
+[RISK] google: 42 — no unauthenticated exposure remains (token POST-only, tokeninfo no-reward, storage.buckets.list anonymous-denied, secret is by-design public-client OOB pattern); primary risk is the valid cloud-platform-scoped credential pending VRP determination.
 [RISK] microsoft: 64 — three auth-gated but high-value cross-principal preconditions live (6-family CORS+PATCH IDOR 97, consent forge 74, production v1.0 auth-gate 401); systemic RFC 6750 §3 method-challenge inconsistency; exploitability gated entirely on authorized two-principal tenant.
