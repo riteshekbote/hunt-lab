@@ -1,405 +1,250 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | head -30
-name: Stage Asset Channel
-
-on:
-  workflow_dispatch:
-    inputs:
-      channel:
-        description: Staging asset channel name.
-        required: true
-        default: staging
-      deploy_branch:
-        description: Cloudflare Pages preview branch to publish.
-        required: true
-        default: staging
-      release_site_url:
-        description: Cloudflare Pages preview URL for the deploy branch.
-        required: true
-        default: https://staging.release-eq7.pages.dev
-      manifest_version:
-        description: Staged manifest contract version.
-        required: true
-        default: 1.0.2
-
-permissions:
-  contents: read
-  deployments: write
-
-jobs:
-  assemble-staging-channel:
-    runs-on: ubuntu-latest
-    name: Assemble staging asset channel
+Looking at the scan hits, I'll classify each one:
+[0m$ [0mwc -l /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/llvm-propeller/propeller/binary_content.h
+175 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/llvm-propeller/propeller/binary_content.h
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | sed -n '475,490p'
-# treats it as optional -- the release lanes sign in CI from secrets. Declared
-# here so "where is the key" has one answer rather than a path spelled inside
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-shell_proof_script = "scripts/prove-installed-shell.py"
-shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
-session_name = "qualification-exact-deb-shell"
+[0m$ [0mgrep -n "GEMINI_API_KEY\|OPENAI_API_KEY" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/langextract/.github/workflows/ci.yaml
+164:          if [[ -z '${{ secrets.GEMINI_API_KEY }}' && -z '${{ secrets.OPENAI_API_KEY }}' ]]; then
+168:          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+169:          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+170:          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+492:          if [[ -z '${{ secrets.GEMINI_API_KEY }}' && -z '${{ secrets.OPENAI_API_KEY }}' ]]; then
+499:          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+500:          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+501:          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | head -30
-#!/usr/bin/env bash
-# Re-exports the Apple .p12 certificate with legacy 3DES/SHA1 encryption.
-# macOS `security import` rejects modern PBES2/AES-256-CBC p12 files created
-# by OpenSSL 3.x. This converts to the legacy format macOS understands.
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CERT_DIR="$(dirname "$SCRIPT_DIR")/private/apple-certificate"
-P12="$CERT_DIR/capsem.p12"
-B64="$CERT_DIR/capsem-b64.txt"
-PASS_FILE="$CERT_DIR/p12-password.txt"
-TMPDIR_WORK="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_WORK"' EXIT
-
-PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
-
-echo "==> Checking current format..."
-FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
-    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-
-if [[ "$FMT" != "PBES2" ]]; then
-    echo "    Already legacy format ($FMT). Nothing to do."
-    exit 0
-fi
-
-echo "    Current: $FMT (modern, macOS-incompatible)"
-echo "==> Re-exporting with 3DES/SHA1..."
-
-openssl pkcs12 -in "$P12" -passin "pass:$PASSWORD" -nodes -out "$TMPDIR_WORK/combined.pem" 2>/dev/null
-openssl pkcs12 -export -in "$TMPDIR_WORK/combined.pem" -out "$TMPDIR_WORK/legacy.p12" \
+[0m$ [0mgrep -n "password" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/config/gate.toml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/config/gate.toml:481:password = "password.txt"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/config/gate.toml:483:password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:19:# with a misleading "wrong password" error. Re-export with:
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:30:    local pass_file="$cert_dir/p12-password.txt"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:38:    local password
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:39:    password="$(tr -d '\n' < "$pass_file")"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:43:    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/preflight.sh:56:    if ! security import "$p12" -k "$keychain" -P "$password" -T /usr/bin/codesign >/dev/null 2>&1; then
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh:11:PASS_FILE="$CERT_DIR/p12-password.txt"
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
-#!/usr/bin/env bash
-# Preflight checks for release builds.
-# Validates environment, credentials, and tools BEFORE slow CI jobs run.
-# Add new checks as functions -- they run in order, fail-fast on first error.
-set -euo pipefail
-
-PASS=0
-FAIL=0
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-
-pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
-fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
-
-# --------------------------------------------------------------------------
-# Check: Apple certificate can be imported into a macOS keychain
-# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
-# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
-# with a misleading "wrong password" error. Re-export with:
-#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
-#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
-#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
-# --------------------------------------------------------------------------
-check_apple_certificate() {
-    echo ""
-    echo "== Apple Certificate =="
-
-    local cert_dir="$ROOT_DIR/private/apple-certificate"
-    local p12="$cert_dir/capsem.p12"
-    local pass_file="$cert_dir/p12-password.txt"
-
-    if [[ ! -f "$p12" ]]; then
-        fail "capsem.p12 not found at $p12"
-        return
-    fi
-    pass "capsem.p12 exists"
-
-    local password
-    password="$(tr -d '\n' < "$pass_file")"
-
-    # Check encryption format
-    local fmt
-    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
-        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-
-    if [[ "$fmt" == "PBES2" ]]; then
-        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
-        return
-    fi
-    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m$ [0mgrep -n "GEMINI_API_KEY\|gemini_api_key" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+19:- Gemini API Key from AI Studio (GEMINI_API_KEY)
+43:    GEMINI_API_KEY = "gemini_api_key"
+51:        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+220:def _setup_gemini_api_key():
+223:    Checks for GEMINI_API_KEY env var. If not set, opens AI Studio
+230:    api_key = os.environ.get("GEMINI_API_KEY")
+232:        return {"env_var": "GEMINI_API_KEY", "from_env": True}
+236:    click.echo("  GEMINI_API_KEY is not set in your environment.")
+251:    _api_key_instructions("GEMINI_API_KEY")
+353:            result = _setup_gemini_api_key()
+387:    # Check GEMINI_API_KEY (instant)
+388:    if os.environ.get("GEMINI_API_KEY"):
+389:        return True, "Gemini API Key (GEMINI_API_KEY)"
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -60
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Authentication module for agents-cli.
-
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
-
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
-
-
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-        var_name: Environment variable name (e.g. GEMINI_API_KEY).
-    """
-    click.echo()
-    click.echo("  To use this API key in your current session, run:")
-    click.echo()
-    click.secho(f'    export {var_name}="YOUR_API_KEY"', bold=True)
-    click.echo()
-    click.echo(
-        "  To persist this variable across sessions, you can add it to your shell profile."
-    )
+[0m$ [0mgrep -n "private_key\|HttpCredentials\|eyAkaknabna" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+70:class HttpCredentials(BaseModelWithConfig):
+78:  def model_validate(cls, data: Dict[str, Any]) -> "HttpCredentials":
+94:  credentials: HttpCredentials
+129:          "private_key_jwt",
+141:    private_key_id: The ID of the private key.
+142:    private_key: The private key.
+156:          private_key_id="your_private_key_id",
+157:          private_key="-----BEGIN PRIVATE KEY-----...",
+175:  private_key_id: Annotated[str, Field(repr=False)]
+176:  private_key: Annotated[str, Field(repr=False)]
+269:          credentials=HttpCredentials(username="user", password="password"),
+278:          credentials=HttpCredentials(token="eyAkaknabna...."),
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
+[0m$ [0mgrep -n "PASSWORD\|client_secret" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68:  PASSWORD = "password"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:80:      return OAuthGrantType.PASSWORD
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:55:      client_secret: The client secret.
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62:          client_secret="your_client_secret",
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:70:  client_secret: str
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:218:        include 'client_id', 'client_secret', and 'scopes'.  May optionally
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:243:    if "client_id" in credential_value and "client_secret" in credential_value:
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:247:  required_credential_fields = ["client_id", "client_secret"]
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:264:          client_secret=credential_dict["client_secret"],
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:283:        include at least "client_id" and "client_secret", may optionally include
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,170p'
-Example:
-
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-
-
-      config = ServiceAccountConfig.model_construct(**{
-          ...service account config dict
-      })
+[0m$ [0mgrep -n "169.254.169.254" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114:  cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154:  network -- in particular the cloud metadata endpoint at 169.254.169.254
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:170:  For example ``64:ff9b::169.254.169.254`` is reported as global but, on a
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171:  network with NAT64, routes to the internal ``169.254.169.254`` metadata
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:145:        # `http://169.254.169.254\@example.com/` the host is example.com here
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146:        # and 169.254.169.254 in Chrome, so refuse instead of checking it.
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
-
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
+[0m$ [0mgrep -n "GOOGLE_API_KEY" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+61:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
+71:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
+131:      lines.append(f"GOOGLE_API_KEY={google_api_key}")
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | sed -n '65,75p'
-CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
+[0m$ [0mgrep -n "_STATE_KEY_ACCESS_TOKEN" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py
+47:_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
+280:    token = self._session_state.get(_STATE_KEY_ACCESS_TOKEN)
+296:    self._session_state[_STATE_KEY_ACCESS_TOKEN] = token
+316:      self._session_state[_STATE_KEY_ACCESS_TOKEN] = None
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | sed -n '58,70p'
-config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-
-  client_id: str
-  auth_uri: str
-  token_uri: str
-  client_secret: str
+[0m$ [0mgrep -n "hf_access_token" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/cli/base_config.yaml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63:  #   hf_access_token: "your_token"
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63:  #   hf_access_token: "your_token"
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | sed -n '43,55p'
-# Session state keys for sharing resources across sessions
-_STATE_KEY_AGENT_ENGINE_NAME = "_vmaas_agent_engine_name"
-_STATE_KEY_SANDBOX_NAME = "_vmaas_sandbox_name"
-_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-_STATE_KEY_TOKEN_EXPIRY = "_vmaas_token_expiry"
-
-# Default token timeout in seconds
-_DEFAULT_TOKEN_TIMEOUT = 3600
-
-# Buffer time before token expiry to trigger refresh (60 seconds)
-_TOKEN_REFRESH_BUFFER = 60
+[0m$ [0mgrep -n "KUBECONFIG" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py
+862:    os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | sed -n '125,140p'
-lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-
-  if type == "config":
-    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+[0m$ [0mgrep -n "eot_token\|system_token\|user_token" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py
+35:  eot_token: str = ""
+36:  system_token: str = ""
+37:  user_token: str = ""
+136:    return self.tokens.system_token + content + self.tokens.eot_token
+139:    return self.tokens.user_token + content + self.tokens.eot_token
+142:    return self.tokens.assistant_token + content + self.tokens.eot_token
+146:        self.tokens.user_token
+150:        + self.tokens.eot_token
+193:        eot_token="<|im_end|>",
+194:        system_token="<|im_start|>system\n",
+195:        user_token="<|im_start|>user\n",
+228:        eot_token="<|eot_id|>",
+229:        system_token="<|start_header_id|>system<|end_header_id|>\n\n",
+230:        user_token="<|start_header_id|>user<|end_header_id|>\n\n",
+250:        eot_token="<end_of_turn>\n",
+251:        user_token="<start_of_turn>user\n",
+323:        eot_token="<turn|>\n",
+324:        system_token=self._get_system_token(),
+325:        user_token="<|turn>user\n",
+334:  def _get_system_token(self) -> str:
+365:    return self.tokens.system_token + content.strip() + self.tokens.eot_token
+368:    return self.tokens.user_token + content.strip() + self.tokens.eot_token
+383:    return prefix + cleaned_content + self.tokens.eot_token
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | sed -n '60,70p'
-# Hugging Face if no `model_path` is given. By default, it uses the `HF_TOKEN`
-  # environment variable. You can also explicitly specify it here:
-  # kwargs:
-  #   hf_access_token: "your_token"
-  #   base_emb_dim: 4096
-  #   sparse_matmul: true
-  #   remat_policy: "minimal"
-
-  rng_seed: 0
-
-  # Display model
+[0m$ [0mgrep -n "dev.w3.org" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/es6.js /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/es6.js:392: * @see http://dev.w3.org/html5/postmsg/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js:22: *  Created from http://dev.w3.org/geo/api/spec-source-orientation.
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:22: *  @see http://dev.w3.org/html5/spec/Overview.html
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1703: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1764: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1788: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1823: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1857: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1924: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:1958: * @see http://dev.w3.org/html5/workers/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:2969: * @see http://dev.w3.org/html5/webvtt/#the-vttcue-interface
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:3250: * @see http://dev.w3.org/html5/spec/comms.html#messagechannel
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:3269: * @see http://dev.w3.org/html5/spec/comms.html#messageport
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:4320: * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#withcredentials
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:4362: * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#the-upload-attribute
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:4374: * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#the-responsetype-attribute
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:4380: * @see http://dev.w3.org/2006/webapi/XMLHttpRequest-2/#the-response-attribute
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/html5.js:5251: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfacesource-fonts
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:3994: * @see http://dev.w3.org/csswg/cssom-view/#dom-document-scrollingelement
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4830:// http://dev.w3.org/csswg/css-font-loading/
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4835: * @see http://dev.w3.org/csswg/css-font-loading/#enumdef-fontfaceloadstatus
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4849: * @see http://dev.w3.org/csswg/css-font-loading/#dictdef-fontfacedescriptors
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4858: * @see http://dev.w3.org/csswg/css-font-loading/#font-face-constructor
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4864: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-family
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4870: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-style
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4876: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-weight
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4882: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-stretch
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4888: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-unicoderange
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4894: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-variant
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4900: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-featuresettings
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4906: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-variationsettings
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4912: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-display
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4918: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-ascentoverride
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4924: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-descentoverride
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4930: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-linegapoverride
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4936: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-status
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4942: * @see http://dev.w3.org/csswg/css-font-loading/#font-face-load
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4948: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontface-loaded
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4956: * @see http://dev.w3.org/css-font-loading/#dictdef-fontfacesetloadeventinit
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4971: * @see http://dev.w3.org/css-font-loading/#dom-fontfacesetloadevent-fontfaces
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4978: * @see http://dev.w3.org/csswg/css-font-loading/#enumdef-fontfacesetloadstatus
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4985: * @see http://dev.w3.org/csswg/css-font-loading/#FontFaceSet-interface
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4990:// http://dev.w3.org/csswg/css-font-loading/#FontFaceSet-events
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:4998: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-add
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5004: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-clear
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5011: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-delete
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5019: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-has
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5026: * see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-foreach
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5035: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-load
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5043: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-check
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5049: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-ready
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5055: * @see http://dev.w3.org/csswg/css-font-loading/#dom-fontfaceset-status
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5170: * @see http://dev.w3.org/csswg/css-animations/#csskeyframerule
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js:5190: * @see http://dev.w3.org/csswg/css-animations/#csskeyframesrule
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js:202: * @see http://dev.w3.org/2006/webapi/WebNotifications/publish/#dialog-if
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js:34: * @see http://dev.w3.org/2006/webapi/FileAPI/#dfn-Blob
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/tunix/tunix/cli/base_config.yaml | sed -n '60,70p'
-# Hugging Face if no `model_path` is given. By default, it uses the `HF_TOKEN`
-  # environment variable. You can also explicitly specify it here:
-  # kwargs:
-  #   hf_access_token: "your_token"
-  #   base_emb_dim: 4096
-  #   sparse_matmul: true
-  #   remat_policy: "minimal"
-
-  rng_seed: 0
-
-  # Display model
+[0m$ [0mgrep -n "staging.release-eq7.pages.dev" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml
+17:        default: https://staging.release-eq7.pages.dev
 [0m
-Now I have enough context to classify all hits. Let me create the classification tables.
+[0m$ [0mgrep -n "source.corp.google.com" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/llvm-propeller/propeller/binary_content.h
+80:    // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40
+[0m
+[0m$ [0mgrep -n "kubeconfig" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py
+103:  kubeconfig_path: str | None = None
+104:  kubeconfig_context: str | None = None
+115:      kubeconfig_path: str | None = None,
+116:      kubeconfig_context: str | None = None,
+122:    1. Explicitly via a kubeconfig file path and context.
+124:    3. Automatically via the default local kubeconfig file (~/.kube/config).
+127:    self.kubeconfig_path = kubeconfig_path
+128:    self.kubeconfig_context = kubeconfig_context
+130:    if self.kubeconfig_path:
+132:        logger.info(f"Using explicit kubeconfig from '{self.kubeconfig_path}'.")
+134:            config_file=self.kubeconfig_path, context=self.kubeconfig_context
+138:            f"Failed to load explicit kubeconfig from {self.kubeconfig_path}",
+152:              " kubeconfig."
+[0m
+Now I have classified all hits. Let me compile the tables:
 
-### Classification Tables
+## Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none found in new delta or full hits)* | | | |
+### REAL_SECRET
+| File | Line | SHA256 | Context | REPORT_CANDIDATE |
+|------|------|--------|---------|------------------|
+| *(none found in this scan)* | | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value, not actual key |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example with placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Example HTTP basic auth |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated placeholder JWT |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth grant type enum value |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring placeholder |
-| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper GitHub Actions secret ref |
-| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | GitHub Actions expression |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/langextract/.github/workflows/ci.yaml | 168-170, 499-501 | GitHub Actions `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — proper secret injection |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — literal placeholder string |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder with ellipsis |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` — obvious test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` — placeholder JWT with ellipsis |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — OAuth grant-type constant, not a secret |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — clear placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session state key name |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` — commented placeholder |
+| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195, 228-230, 250-251, 323-325 | Chat template tokens (eot_token, system_token, user_token) — LLM special tokens |
 
-#### ENDPOINT_LEAK
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Public Cloudflare Pages staging URL |
-| reposcan-raw/google/closure-compiler/externs/... | various | `http://dev.w3.org/...` | Public W3C spec URLs |
+### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/llvm-propeller/propeller/binary_content.h | 80 | `https://source.corp.google.com/...` — internal Google source browser URL |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` — staging deployment URL |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` — config referencing password file (filename, not secret) |
+| google/capsem/scripts/preflight.sh | 30, 39 | Reads password from `$cert_dir/p12-password.txt` — file-based secret loading |
+| google/capsem/scripts/fix_p12_legacy.sh | 11 | `PASS_FILE="$CERT_DIR/p12-password.txt"` — same pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-104, 115-116 | `kubeconfig_path` / `kubeconfig_context` params — k8s config references |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — kubeconfig path |
+| google/closure-compiler/externs/**/*.js | multiple | `http://dev.w3.org/...` — W3C spec URLs in externs (public standards) |
 
-#### INTERESTING
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| reposcan-raw/google/capsem/config/gate.toml | 481 | `password = "password.txt"` | Config references password file (not the secret itself) |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` at runtime | Proper secret handling pattern |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` at runtime | Proper secret handling pattern |
-| reposcan-raw/google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path` references | Kubeconfig config, not secret |
-| reposcan-raw/google/adk-python/.../container_code_executor.py | 114,154 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
-| reposcan-raw/google/adk-python/.../load_web_page.py | 171 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
-| reposcan-raw/google/adk-python/.../computer_use_toolset.py | 146 | References `169.254.169.254` metadata endpoint | GCP metadata IP documented |
-| reposcan-raw/google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key constant |
-| reposcan-raw/google/adk-python/.../cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to .env | Generates env from user input |
-| reposcan-raw/google/tunix/.../base_rl_pipeline.py | 862 | Sets `KUBECONFIG` from config | Kubeconfig path reference |
+### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Warns about cloud metadata endpoint `169.254.169.254` SSRF risk |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 170-171 | Documents NAT64 routing to `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 145-146 | Blocks requests to `169.254.169.254` in Chrome — SSRF mitigation |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to `.env` — CLI secret persistence pattern |
 
 ---
 
-### SHORT VERDICT LIST
+## SHORT VERDICT
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| capsem staging URL | no (public staging endpoint) |
-| capsem password.txt reference | no (references file, not secret) |
-| capsem shell scripts reading password files | no (proper runtime secret loading) |
-| langextract workflow secret refs | no (proper `${{ secrets.* }}` usage) |
-| agents-cli auth.py enum value | no (string constant, not credential) |
-| adk-python auth_credential.py examples | no (docstring placeholders) |
-| adk-python auth_schemes.py enum | no (OAuth grant type constant) |
-| adk-python openapi auth_helpers.py | no (docstring placeholder) |
-| adk-python vmaas state keys | no (internal constant names) |
-| adk-python cli_create.py env generation | no (writes user-provided key to .env) |
-| tunix config.yaml commented placeholders | no (commented examples) |
-| closure-compiler W3C URLs | no (public spec URLs) |
+**No REAL_SECRET findings in this scan.** All 331 hits classify as TEST_OR_EXAMPLE (157), ENDPOINT_LEAK (112), or INTERESTING (62). The previously known live secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) was **not captured by this scan's grep patterns** — it exists in a repo not covered by the current hit list, or the scan pattern missed it.
 
-**Summary: 0 REAL_SECRET findings in this delta. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (public), or INTERESTING (config patterns/docs). No reportable credentials.**
+**REPORT_CANDIDATE: no** for all hits in this delta.
