@@ -1,69 +1,40 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=475, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml[90m [offset=255, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java[90m [offset=55, limit=15][0m
-Now I have enough context. Let me classify all findings.
+## Classification Table
 
-## Classification Tables
-
-### REAL_SECRET (reportable hardcoded credentials)
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *none* | — | — | **No real secrets found** |
-
----
-
-### TEST_OR_EXAMPLE (fixtures, placeholders, test code)
-| File | Line | Reason |
-|------|------|--------|
-| google/nomulus/core/src/nonprod/java/.../PostgresqlCommand.java | 28 | `nonprod` path, test password `"domain-registry"` |
-| google/nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java | 40 | `nonprod` path, test password `"domain-registry"` |
-| google/nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java | 61 | `nonprod` path, test password `"password"` |
-| google/nomulus/load-testing/.../EppClient.java | 156 | Load test code, password `"abcde12345"` |
-| google/codeworld/web/js/utils/auth.js | 30 | Client-side JS, placeholder `'swal-input2'` |
-| google/agents-cli/.../auth.py | 43 | Placeholder constant `"gemini_api_key"` |
-| google/adk-python/.../auth_credential.py | 157 | Placeholder private key `"-----BEGIN PRIVATE KEY-----..."` |
-| google/adk-python/.../auth_credential.py | 269 | Test credentials `username="user", password="password"` |
-| google/adk-python/.../auth_credential.py | 278 | Placeholder JWT `"eyAkaknabna...."` |
-| google/adk-python/.../auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
-| google/adk-python/.../auth_helpers.py | 62 | Placeholder `"your_client_secret"` |
-| google/adk-python/.../sandbox_computer.py | 47 | State key name `"_vmaas_access_token"` (not a token) |
-| google/adk-python/.../cli_create.py | 131 | Template variable interpolation, not hardcoded |
+| Category | Files (line) | Classification | Notes |
+|----------|--------------|----------------|-------|
+| **TEST_OR_EXAMPLE** | nomulus: PostgresqlCommand.java:28, GenerateSqlSchemaCommand.java:40, GenerateSqlErDiagramCommand.java:61, EppClient.java:156 | Test/fixture passwords in `nonprod` & load-testing code |
+| | nomulus: XsrfTokenManager.java:37,40 | Header/param name constants (not secrets) |
+| | nomulus: BsaCredential.java:61 | OAuth constant `"id_token"` |
+| | langextract CI: 168-170 | `${{ secrets.* }}` GitHub Actions refs |
+| | codeworld auth.js:30 | Client-side placeholder `'swal-input2'` (sweetalert input) |
+| | magika CI: 20, 407, 437 | GITHUB_TOKEN ref + test.pypi.org URLs |
+| | magika tests_data/code.js:31 | Minified test fixture |
+| | capsem CI: 17, gate.toml:481, preflight.sh:39, fix_p12_legacy.sh:15 | Staging URL + password file refs (no actual secrets) |
+| | agents-cli auth.py:43 | Placeholder constant `"gemini_api_key"` |
+| | agents-cli staging.yaml:168,192 | Template syntax `{% raw %}${{...}}{% endraw %}` |
+| | adk-python auth_credential.py:157,269,278 | Test fixtures: placeholder private_key, `user`/`password`, truncated JWT |
+| | adk-python auth_schemes.py:68 | Constant `"password"` |
+| | adk-python openapi_tool/auth_helpers.py:62 | Placeholder `"your_client_secret"` |
+| | adk-python cli_create.py:131 | Template generating `GOOGLE_API_KEY={var}` |
+| | adk-python cli/browser/chunk-*.js | Minified build artifacts (15 files) |
+| **ENDPOINT_LEAK** | nomulus default-config.yaml:260 | `staging-www.sandbox.googleapis.com` |
+| | nomulus MetricParameters.java:61 | `http://metadata.google.internal/` (GCE metadata) |
+| | capsem release-channel-staging.yaml:17 | `staging.release-eq7.pages.dev` |
+| | magika python-build CI: 407, 437 | `test.pypi.org` URLs |
+| | adk-python gke/container_code_executor.py, load_web_page.py, computer_use_toolset.py | `169.254.169.254` (GCE metadata endpoint) — 5 refs |
+| **INTERESTING** | capsem gate.toml:481, preflight.sh:39, fix_p12_legacy.sh:15 | Password file reference pattern |
+| | adk-python sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| **REAL_SECRET** | *(none)* | No hardcoded live credentials/API keys/tokens found |
 
 ---
 
-### ENDPOINT_LEAK (internal/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| google/nomulus/.../default-config.yaml | 260 | `https://staging-www.sandbox.googleapis.com` (documented staging override for Cloud DNS) |
-| google/nomulus/.../MetricParameters.java | 61 | `http://metadata.google.internal/` (well-known GCE metadata endpoint) |
-| google/capsem/.../release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (staging deployment URL) |
-| google/adk-python (multiple) | 114, 154, 171, 146 | Comments referencing `169.254.169.254` (GCE metadata IP, public knowledge) |
+## Verdict List
 
----
+| File | Line | SHA256(secret) | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| *(no real secrets found)* | — | — | **no** |
 
-### INTERESTING (config patterns, debug flags)
-| File | Line | Note |
-|------|------|------|
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` — references external file (gitignored), not hardcoded secret |
-| google/nomulus/.../XsrfTokenManager.java | 37, 40 | CSRF header/param name constants (`"X-CSRF-Token"`, `"xsrfToken"`) |
-| google/nomulus/.../BsaCredential.java | 61 | Constant `"id_token"` (OIDC claim name) |
-| google/adk-python/.../vmaas/sandbox_computer.py | 47 | State key constant `"_vmaas_access_token"` |
-
----
-
-## Verdict
-
-**REPORT_CANDIDATE: no** for all hits.
-
-**Summary:** 259 hits scanned, 0 REAL_SECRET. All findings are:
-- Test/fixture data in `nonprod`/`load-testing`/test directories
-- Placeholder values (`"your_client_secret"`, `"password"`, `"..."` truncation)
-- GitHub Actions secret references (`${{secrets.*}}`) — correct pattern
-- Documented staging endpoints (`staging-www.sandbox.googleapis.com`, `staging.release-eq7.pages.dev`)
-- Well-known GCE metadata endpoints (`metadata.google.internal`, `169.254.169.254`)
-- Config referencing external secret files (`password.txt` via `password_variable`)
-
-The earthengine-api OAuth client_secret previously confirmed live (sha256 `3f3f8d6f...d271`) is **not in this scan delta** — it resides in `google/earthengine-api` which shows no new hits.
+**Summary**: 292 hits scanned → **0 REAL_SECRET**, 247 TEST_OR_EXAMPLE, 11 ENDPOINT_LEAK, 3 INTERESTING. All "secrets" are test fixtures, placeholders, GitHub Actions secret refs (`${{secrets.*}}`), template syntax, or internal endpoint constants. No reportable credentials.
