@@ -1,64 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Static Scan Classification — 2026-08-15
+## Classification Tables
 
-## REAL_SECRET (hardcoded credentials with signs of life)
-*None found in this delta.*
+### REAL_SECRET
+| File | Line | Secret Material (sha256) | Notes |
+|------|------|--------------------------|-------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` → **needs verification** | Ellipsis `...` ambiguous: could be scanner truncation of real key OR literal placeholder. Repo has history of real secrets (ya29 token #5520, client_secret #2128). |
 
-## TEST_OR_EXAMPLE (sample/test/fixture/placeholder data)
+### TEST_OR_EXAMPLE
 | File | Line | Pattern | Reason |
 |------|------|---------|--------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Explicit placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `client = OpenAI(api_key="your-key")` | Explicit placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQL injection test payload with `password='newpass123'` | Red-team test fixture |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (correct pattern) |
-| microsoft/kiota/.github/workflows/auto-merge-dependabot.yml | 22 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref (correct pattern) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `username="user", password="password"` | Obvious test fixture |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` | Non-standard JWT prefix (`eyAk` vs `eyJ`), truncated → test token |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Hardcoded test constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not a token value |
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret reference |
+| `google/meridian/.github/workflows/proto-publish.yml` | 126,138 | `test.pypi.org` URLs | Test environment |
+| `google/meridian/.github/workflows/publish.yml` | 127,139 | `test.pypi.org` URLs | Test environment |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.*_API_KEY }}` | Secret references |
+| `google/capsem/config/gate.toml` | 481 | `password = "password.txt"` | File reference |
+| `google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Constant name |
 
-## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `sparse+https://pkgs.dev.azure.com/microsoft/Dart/_packaging/uutils-installer/Cargo/index/` | Azure DevOps internal package feed |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70 | `sparse+https://pkgs.dev.azure.com/microsoft/Dart/_packaging/uutils-installer/Cargo/index/` | Azure DevOps internal package feed |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 76 | `https://pkgs.dev.azure.com/microsoft/_packaging/RustTools/nuget/v3/index.json` | Azure DevOps internal NuGet feed |
-| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp) |
-| microsoft/kiota/.azure-pipelines/ci-build.yml | 409, 642 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp) |
-| google/meridian/.github/workflows/proto-publish.yml | 126, 138 | `https://test.pypi.org/...` | Public test PyPI (not sensitive) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| microsoft/agent-governance-toolkit/**/cedar.ts, opa.ts, OpaPolicyBackend.cs, http_client.py | various | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known cloud metadata IPs (AWS/Azure/GCP/Alibaba) — not leaks |
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Assessment |
+|------|------|----------|------------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` | Well-known cloud metadata IP (AWS/GCP/Azure) — not a leak |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Reference in comment — not a leak |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Reference in comment — not a leak |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | kubeconfig paths | Config parameters — not secrets |
 
-## INTERESTING (debug flags, keys, cloud configs, build artifacts)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference pattern (correct usage — references Secret Manager, not hardcoded) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | CLI flag *default name* (not a password value) |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (not the secret itself) |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads secret from file at runtime |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads secret from file at runtime |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Code *emits* a secret_key variable to output (not hardcoded) |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Parser error messages from minified JS build | Build artifacts (pegjs/bison-style parser tables) — not secrets |
-| google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified source map / bundle | Build artifact |
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| `google/adk-python/src/google/adk/cli/browser/*.js` (20 files) | various | Minified JS build chunks with parser error messages — build artifacts, not source |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference in deploy config |
+| `google/adk-go/cmd/launcher/web/webui/distr/*.js` (20 files) | various | Same minified chunks as adk-python (vendored) |
 
-## VERDICT LIST
+---
 
-| Candidate | Category | REPORT_CANDIDATE | Rationale |
-|-----------|----------|------------------|-----------|
-| google/adk-go cloudrun.go `--set-secrets` | INTERESTING | **no** | Correct Cloud Run secret-ref pattern; references Secret Manager, not hardcoded |
-| google/cadvisor StorageDriverPassword | INTERESTING | **no** | Flag default *name*, not a value |
-| google/capsem password file refs | INTERESTING | **no** | Reads from file at runtime; no secret in repo |
-| google/heir JaxiteWordEmitter secret_key emit | INTERESTING | **no** | Variable output at runtime; not hardcoded |
-| google/adk-go minified JS parser errors | INTERESTING | **no** | Build artifacts (pegjs parser tables) |
-| microsoft/coreutils Azure DevOps feeds | ENDPOINT_LEAK | **no** | Internal package feeds; no auth material |
-| microsoft/coreutils/kiota timestamp server | ENDPOINT_LEAK | **no** | Internal corp timestamp URL; no secret |
-| microsoft agent-governance IMDS IPs | ENDPOINT_LEAK | **no** | Well-known cloud metadata endpoints (publicly documented) |
-| google/meridian test.pypi.org | ENDPOINT_LEAK | **no** | Public test endpoint |
-| google/capsem staging URL | ENDPOINT_LEAK | **no** | Public staging deployment |
-| All TEST_OR_EXAMPLE entries | TEST_OR_EXAMPLE | **no** | Placeholders, fixtures, or correct secret-ref patterns |
+## Verdict List
 
-**SUMMARY: 0 reportable findings in this delta.** All hits are either correct secret-management patterns (GitHub Actions `${{ secrets.* }}`, Cloud Run `--set-secrets`), runtime file reads, placeholders, build artifacts, internal service URLs without credentials, or well-known metadata endpoints.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+| Candidate | File:Line | Classification | REPORT_CANDIDATE |
+|-----------|-----------|----------------|------------------|
+| Private key in auth_credential | `adk-python/src/google/adk/auth/auth_credential.py:157` | **NEEDS_VERIFICATION** (ambiguous `...`) | **no** (until verified real) |
+| Test credentials | `adk-python/src/google/adk/auth/auth_credential.py:269` | TEST_OR_EXAMPLE | no |
+| Test token | `adk-python/src/google/adk/auth/auth_credential.py:278` | TEST_OR_EXAMPLE | no |
+| Test password constant | `adk-python/src/google/adk/auth/auth_schemes.py:68` | TEST_OR_EXAMPLE | no |
+| Placeholder client_secret | `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | TEST_OR_EXAMPLE | no |
+| Template API key | `adk-python/src/google/adk/cli/cli_create.py:131` | TEST_OR_EXAMPLE | no |
+| State key name | `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | TEST_OR_EXAMPLE | no |
+| GitHub Actions secret ref | `skywater-pdk/.github/workflows/labeler.yml:11` | TEST_OR_EXAMPLE | no |
+| Cloud metadata IP refs | `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` | ENDPOINT_LEAK (benign) | no |
+| Minified JS chunks | `adk-python/src/google/adk/cli/browser/*.js` | INTERESTING (build artifacts) | no |
+
+**Action required**: Read `google/adk-python/src/google/adk/auth/auth_credential.py:157` to determine if the private key is a real credential or test fixture. All other hits are non-reportable.
