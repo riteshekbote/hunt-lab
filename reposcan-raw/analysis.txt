@@ -1,3 +1,165 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat << 'EOF'
+# CLASSIFICATION TABLES
+
+## REAL_SECRET
+# (none found in delta or full scan)
+
+## TEST_OR_EXAMPLE
+| File | Line | Match | Reason |
+|------|------|-------|--------|
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | api_key = "sk-REPLACE-WITH-YOUR-KEY" | Explicit placeholder |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
+| reposcan-raw/google/heir/scripts/author_stats.py | 16 | # TOKEN = "your_github_token_here" | Commented placeholder |
+| reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | 89 | const secret = "ghp_ABCDEFGHIJKLMNOP" | Test fixture (ghp_ prefix) |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180) | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-20 | ocr = "export GITHUB TOKEN=ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R" | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | "AWS _ACCESS KEY ID=AKIA5SXYO7WZ3PLMN8RTV" | Test fixture (AKIA prefix) |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8" | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ" | Test fixture |
+
+## ENDPOINT_LEAK
+| File | Line | Match | Type |
+|------|------|-------|------|
+| reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | 126,138 | test.pypi.org URLs | Public test registry (config, not leak) |
+| reposcan-raw/google/meridian/.github/workflows/publish.yml | 127,139 | test.pypi.org URLs | Public test registry (config, not leak) |
+| reposcan-raw/google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml | 33-34 | test.pypi.org/legacy/ | Public test registry |
+| reposcan-raw/google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml | 33-34 | test.pypi.org/legacy/ | Public test registry |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | Public test registry |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | 169.254.169.254 | AWS/Azure IMDS (public doc) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | metadata.google.internal | GCP IMDS (public doc) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11,13 | 169.254.169.254, metadata.google.internal, 100.100.100.200 | Cloud IMDS endpoints (public) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13-14 | 169.254.169.254, metadata.google.internal | Cloud IMDS endpoints (public) |
+| reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp | 42 | metadata.google.internal/computeMetadata/v1/%s | GCP IMDS (public doc) |
+| reposcan-raw/microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | pkgs.dev.azure.com/microsoft/Dart/... | Internal Azure DevOps feed |
+| reposcan-raw/microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70,76 | pkgs.dev.azure.com/microsoft/... feeds | Internal Azure DevOps feeds |
+| reposcan-raw/microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | rfc3161.gtm.corp.microsoft.com | Internal Microsoft timestamp server |
+| reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | gcloud secrets access github-crosvm-bot | Secret Manager ref (runtime fetch) |
+| reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | gcloud secrets access codecov-google-crosvm | Secret Manager ref (runtime fetch) |
+| reposcan-raw/google/android-cuttlefish/.github/workflows/*.yml | various | ${{ secrets.* }} refs | GitHub Actions secret refs (not hardcoded) |
+
+## INTERESTING
+| File | Line | Match | Note |
+|------|------|-------|------|
+| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | os << ctx << ".secret_key = " << sk << "\n" | Code emits secret_key variable (not hardcoded) |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | _ID_TOKEN, _AUTH_TOKEN from steps.fetch-token.outputs | OIDC token workflow (standard) |
+
+# VERDICT LIST
+
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|--------|------------------|
+| (none) | — | — | — | — |
+
+**Summary**: No REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE (placeholders/test fixtures), ENDPOINT_LEAK (public cloud metadata endpoints, public test.pypi.org, internal Azure DevOps feeds), or INTERESTING (code patterns). The internal Azure DevOps feed URLs and corp Microsoft timestamp server are the only non-public endpoints, but they're build-time configuration, not credentials.
+
+**NO_DELTA** on reportable findings vs prior scans.
+EOF
+# CLASSIFICATION TABLES
+
+## REAL_SECRET
+# (none found in delta or full scan)
+
+## TEST_OR_EXAMPLE
+| File | Line | Match | Reason |
+|------|------|-------|--------|
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | api_key = "sk-REPLACE-WITH-YOUR-KEY" | Explicit placeholder |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
+| reposcan-raw/google/heir/scripts/author_stats.py | 16 | # TOKEN = "your_github_token_here" | Commented placeholder |
+| reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | 89 | const secret = "ghp_ABCDEFGHIJKLMNOP" | Test fixture (ghp_ prefix) |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180) | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-20 | ocr = "export GITHUB TOKEN=ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R" | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | "AWS _ACCESS KEY ID=AKIA5SXYO7WZ3PLMN8RTV" | Test fixture (AKIA prefix) |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8" | Test fixture |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ" | Test fixture |
+
+## ENDPOINT_LEAK
+| File | Line | Match | Type |
+|------|------|-------|------|
+| reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | 126,138 | test.pypi.org URLs | Public test registry (config, not leak) |
+| reposcan-raw/google/meridian/.github/workflows/publish.yml | 127,139 | test.pypi.org URLs | Public test registry (config, not leak) |
+| reposcan-raw/google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml | 33-34 | test.pypi.org/legacy/ | Public test registry |
+| reposcan-raw/google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml | 33-34 | test.pypi.org/legacy/ | Public test registry |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | Public test registry |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | 169.254.169.254 | AWS/Azure IMDS (public doc) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | metadata.google.internal | GCP IMDS (public doc) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11,13 | 169.254.169.254, metadata.google.internal, 100.100.100.200 | Cloud IMDS endpoints (public) |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13-14 | 169.254.169.254, metadata.google.internal | Cloud IMDS endpoints (public) |
+| reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp | 42 | metadata.google.internal/computeMetadata/v1/%s | GCP IMDS (public doc) |
+| reposcan-raw/microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | pkgs.dev.azure.com/microsoft/Dart/... | Internal Azure DevOps feed |
+| reposcan-raw/microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70,76 | pkgs.dev.azure.com/microsoft/... feeds | Internal Azure DevOps feeds |
+| reposcan-raw/microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | rfc3161.gtm.corp.microsoft.com | Internal Microsoft timestamp server |
+| reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | gcloud secrets access github-crosvm-bot | Secret Manager ref (runtime fetch) |
+| reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | gcloud secrets access codecov-google-crosvm | Secret Manager ref (runtime fetch) |
+| reposcan-raw/google/android-cuttlefish/.github/workflows/*.yml | various | ${{ secrets.* }} refs | GitHub Actions secret refs (not hardcoded) |
+
+## INTERESTING
+| File | Line | Match | Note |
+|------|------|-------|------|
+| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | os << ctx << ".secret_key = " << sk << "\n" | Code emits secret_key variable (not hardcoded) |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | _ID_TOKEN, _AUTH_TOKEN from steps.fetch-token.outputs | OIDC token workflow (standard) |
+
+# VERDICT LIST
+
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|--------|------------------|
+| (none) | — | — | — | — |
+
+**Summary**: No REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE (placeholders/test fixtures), ENDPOINT_LEAK (public cloud metadata endpoints, public test.pypi.org, internal Azure DevOps feeds), or INTERESTING (code patterns). The internal Azure DevOps feed URLs and corp Microsoft timestamp server are the only non-public endpoints, but they're build-time configuration, not credentials.
+
+**NO_DELTA** on reportable findings vs prior scans.
+[0m
+**Classification complete. No REAL_SECRET candidates in this delta.**
+
+## Summary Tables
+
+### REAL_SECRET
+*(none)*
+
+### TEST_OR_EXAMPLE
+| File | Line | Match | Reason |
+|------|------|-------|--------|
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Explicit placeholder |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
+| `google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `ghp_ABCDEFGHIJKLMNOP` | Test fixture (ghp_ prefix) |
+| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test fixture |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19-20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Test fixture |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 24 | `AKIA5SXYO7WZ3PLMN8RTV` | Test fixture (AKIA prefix) |
+| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Test fixture |
+| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test fixture |
+
+### ENDPOINT_LEAK
+| File | Line | Match | Type |
+|------|------|-------|------|
+| `google/meridian/.github/workflows/proto-publish.yml` | 126,138 | `test.pypi.org` | Public test registry |
+| `google/meridian/.github/workflows/publish.yml` | 127,139 | `test.pypi.org` | Public test registry |
+| `google/dotprompt/.github/workflows/publish_python_*_package.yml` | 33-34 | `test.pypi.org/legacy/` | Public test registry |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | `test.pypi.org` | Public test registry |
+| `microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs` | 563,566 | `169.254.169.254`, `metadata.google.internal` | Cloud IMDS (public docs) |
+| `microsoft/agent-governance-toolkit/.../policy-backends/cedar.ts` | 8,11,13 | IMDS endpoints (AWS/Azure/GCP/Alibaba) | Public docs |
+| `microsoft/agent-governance-toolkit/.../policy-backends/opa.ts` | 13-14 | `169.254.169.254`, `metadata.google.internal` | Public docs |
+| `google/android-cuttlefish/.../defaults.cpp` | 42 | `metadata.google.internal/computeMetadata/v1/%s` | GCP IMDS (public) |
+| `microsoft/coreutils/.cargo/release-windows-ms.toml` | 11 | `pkgs.dev.azure.com/microsoft/Dart/...` | Internal Azure DevOps feed |
+| `microsoft/coreutils/.pipelines/templates/job-build-project.yml` | 70,76 | `pkgs.dev.azure.com/microsoft/...` | Internal Azure DevOps feeds |
+| `microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml` | 33 | `rfc3161.gtm.corp.microsoft.com` | Internal timestamp server |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets access github-crosvm-bot` | Secret Manager ref (runtime) |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets access codecov-google-crosvm` | Secret Manager ref (runtime) |
+| `google/android-cuttlefish/.github/workflows/*.yml` | various | `${{ secrets.* }}` | GitHub Actions secret refs |
+
+### INTERESTING
+| File | Line | Match | Note |
+|------|------|-------|------|
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `os << ctx << ".secret_key = " << sk << "\n"` | Emits variable, not hardcoded |
+| `google/agents-cli/.../staging.yaml` | 168,192 | `_ID_TOKEN`, `_AUTH_TOKEN` from `steps.fetch-token.outputs` | Standard OIDC workflow |
+
+---
+
+## VERDICT LIST
+
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|--------|------------------|
+| *(none)* | — | — | — | **no** |
+
+**NO_DELTA** on reportable findings. All 16 delta hits are TEST_OR_EXAMPLE or ENDPOINT_LEAK (public cloud metadata endpoints, public test.pypi.org, internal Azure DevOps package feeds, internal timestamp server). No hardcoded credentials with signs of life.
