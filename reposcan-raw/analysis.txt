@@ -1,4 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[91m[1mError: [0m{"message":"Streaming response failed: [502] Upstream error from Nvidia: Internal server error","type":"server_error"}
+# Classification Results
+
+## REAL_SECRET Candidates
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this scan)* | | | |
+
+---
+
+## TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` — GitHub Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — secret refs |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — test fixture (truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` — test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` — test token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — hardcoded example default |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` — commented placeholder |
+
+---
+
+## ENDPOINT_LEAK (internal/staging URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `http://dev.mysql.com` |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | `https://pantheon.corp.google.com/auth/clients` (comment) |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` |
+| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` (DELTA) |
+| google/osv.dev/external/pypi/pypi.go | 80 | `http://dev.mysql.com` (dup) |
+
+---
+
+## INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documents 169.254.169.254 metadata endpoint as SSRF surface |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Same — NAT64 route to metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Explicitly refuses 169.254.169.254 in Chrome |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = <sk>` — key material serialization pattern |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY=<var>` to file — key persistence pattern |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` — file-based secret reference |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file via `tr -d '\n'` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Same pattern |
+| google/ax/manifests/install-ax.sh | 239-286 | Generates random PG password or uses `POSTGRES_PASSWORD` env, writes to k8s secret |
+
+---
+
+## SHORT VERDICT
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (none — no REAL_SECRET found) | **no** |
+
+**Summary**: This scan delta contains only 1 new hit (`test.osv.dev` staging URL). All 424 total hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK**, or **INTERESTING** patterns — no hardcoded live credentials. The earthengine-api OAuth client_secret previously tracked (sha256 `3f3f8d6f...d271`) is **not in this scan's delta** (it's in a different repo: `google/earthengine-api`, not scanned here).
