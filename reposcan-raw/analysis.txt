@@ -1,71 +1,38 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/hits_classification.md << 'EOF'
-# Scan Hit Classification
+**Classification Table**
 
-## REAL_SECRET (hardcoded credential with signs of life)
-*None found in this scan delta.*
-
-## TEST_OR_EXAMPLE (sample/test/fixture data, not reportable)
-
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java | 501 | `storePassword = "password".toCharArray();` | Test file, literal "password" |
-| google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java | 504 | `keyPassword = "password".toCharArray();` | Test file, literal "password" |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` | Test fixture, truncated |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `credentials=HttpCredentials(username="user", password="password"),` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `credentials=HttpCredentials(token="eyAkaknabna...."),` | Test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret",` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Template variable |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168-192 | Template with `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` | CI template placeholders |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Code generation template |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` etc. | GitHub Actions secret refs |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
-| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `const secret = "ghp_ABCDEFGHIJKLMNOP";` | Test file, fake ghp_ pattern |
-| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `word("ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", 180)` | Test file, fake ghp_ pattern |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Fake ghp_/AKIA tokens in test assertions | Test file, fake patterns |
-| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `{ text: "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8", sensitive: true }` | Eval file, fake pattern |
-| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `{ text: "token ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ", sensitive: true }` | Eval file, fake pattern |
-| microsoft/kiota/.github/workflows/auto-merge-dependabot.yml | 22 | `github-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-
-| File | Line | Context | SHA256 |
-|------|------|---------|--------|
-| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | `https://yaqs.corp.google.com/eng/q/4487223501186400256` | `a1b2c3d4...` (internal Google QA URL) |
-| microsoft/kiota/.azure-pipelines/ci-build.yml | 409 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | `6f30afb131a7ab83` (internal Microsoft timestamp server) |
-
-## INTERESTING (debug flags, keys, cloud configs, metadata refs)
-
-| File | Line | Context |
-|------|------|---------|
-| google/ax/manifests/install-ax.sh | 239,241,286 | PG password from env var or generated via `openssl rand -hex 16` - secure pattern |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context params; references to 169.254.169.254 metadata endpoint |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint 169.254.169.254 escalation warnings |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to internal 169.254.169.254 metadata endpoint via NAT64 |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses 169.254.169.254 in Chrome (security control) |
-| microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go | 135 | `KDF_RAW_SECRET = "TRUNCATE"` - constant name, not a secret |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `microsoft/RD-Agent/.../start.sh:17` (placeholder `sk-1234`), `google/digitalbuildings/.../constants.py:106` (`'accessToken'` const), `google/skywater-pdk/.../labeler.yml:11` (`${{secrets.GITHUB_TOKEN}}`), `google/langextract/.../ci.yaml:168-170` (3× `${{secrets.*}}`), `google/flatbuffers/.../label.yml:24` (`${{secrets.GITHUB_TOKEN}}`), `google/adk-python/.../auth_credential.py:157,269,278` (test private_key/password/token), `google/adk-python/.../auth_schemes.py:68` (`PASSWORD="password"`), `google/heir/.../author_stats.py:16` (commented placeholder), `google/conscrypt/.../TestKeyStore.java:501,504` (test `"password"`), `microsoft/qlib/.../release.yml:63,107` (public `test.pypi.org`) |
+| **ENDPOINT_LEAK** | `microsoft/c9-python-getting-started/...` (6× Cognitive Services docs URLs — public docs, low risk), `microsoft/coreutils/.../release-windows-ms.toml:11` (internal `pkgs.dev.azure.com/microsoft/Dart/...` Cargo feed), `microsoft/coreutils/.../job-build-project.yml:70,76` (same internal feed + `RustTools` NuGet feed), `microsoft/coreutils/.../steps-esrp-sign-files-authenticode.yml:33` (internal `rfc3161.gtm.corp.microsoft.com` timestamp server) |
+| **INTERESTING** | `google/ax/.../install-ax.sh:239,241,286` (pg_password var + random gen + k8s secret), `google/heir/.../JaxiteWordEmitter.cpp:558` (codegen emits `.secret_key =`), `google/adk-python/.../gke_code_executor.py:103,104,115` + `container_code_executor.py:114,154` + `load_web_page.py:171` + `computer_use_toolset.py:146` (kubeconfig/metadata endpoint refs), `google/adk-python/.../cli/browser/chunk-*.js` (minified build artifacts) |
 
 ---
 
-## VERDICT LIST
+**Verdict List**
 
-| Candidate | File | Line | Type | REPORT_CANDIDATE |
-|-----------|------|------|------|------------------|
-| Internal Microsoft timestamp server URL | microsoft/kiota/.azure-pipelines/ci-build.yml | 409 | ENDPOINT_LEAK | **no** (corp infrastructure, not a secret) |
-| Internal Google QA URL | google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | ENDPOINT_LEAK | **no** (internal reference, no credential) |
-| Cloud metadata endpoint references (169.254.169.254) | google/adk-python (multiple files) | various | INTERESTING | **no** (documented security controls, not leaks) |
-| PG password generation pattern | google/ax/manifests/install-ax.sh | 239-286 | INTERESTING | **no** (secure: env var or `openssl rand`) |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| `microsoft/RD-Agent/rdagent/scenarios/rl/autorl_bench/agents/codex/start.sh` | 17 | TEST_OR_EXAMPLE | no |
+| `microsoft/c9-python-getting-started/...` (6 files) | 3,18 | ENDPOINT_LEAK (public docs) | no |
+| `microsoft/coreutils/.cargo/release-windows-ms.toml` | 11 | ENDPOINT_LEAK (internal feed) | no |
+| `microsoft/coreutils/.pipelines/templates/job-build-project.yml` | 70,76 | ENDPOINT_LEAK (internal feeds) | no |
+| `microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml` | 33 | ENDPOINT_LEAK (corp timestamp) | no |
+| `microsoft/qlib/.github/workflows/release.yml` | 63,107 | TEST_OR_EXAMPLE (public test.pypi) | no |
+| `google/digitalbuildings/.../constants.py` | 106 | TEST_OR_EXAMPLE | no |
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | TEST_OR_EXAMPLE | no |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | TEST_OR_EXAMPLE | no |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | TEST_OR_EXAMPLE | no |
+| `google/ax/manifests/install-ax.sh` | 239,241,286 | INTERESTING | no |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/code_executors/...` | multiple | INTERESTING | no |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | TEST_OR_EXAMPLE | no |
+| `google/heir/scripts/author_stats.py` | 16 | TEST_OR_EXAMPLE | no |
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | INTERESTING | no |
+| `google/conscrypt/testing/.../TestKeyStore.java` | 501,504 | TEST_OR_EXAMPLE | no |
 
-**SUMMARY: 0 REPORT_CANDIDATE=yes findings in this delta.**
-All hits are either test fixtures, placeholder patterns, GitHub Actions secret references, internal endpoint references, or secure coding patterns.
-EOF
-cat /tmp/hits_classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Summary**: No REAL_SECRET candidates in this delta. All hits are test fixtures, placeholder values, proper `${{secrets.*}}` references, public documentation URLs, or internal build-time endpoint references (Azure DevOps feeds, corp timestamp server) — none are live credentials reportable to VRP.
