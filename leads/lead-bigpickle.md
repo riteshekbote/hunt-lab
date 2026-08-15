@@ -7479,3 +7479,41 @@ testability: HUMAN_ONLY
 [LEARN] REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (storage/v1/b→401 denied, token→404, agentRegs→401/237, oauth2PermissionGrants→401/237, earthengine file sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-15 21:4x UTC.
 [RISK] google: 42 — no unauthenticated exposure remains (token POST-only, tokeninfo no-reward, storage.buckets.list anonymous-denied, secret is by-design public-client OOB pattern); primary risk is the valid cloud-platform-scoped credential pending VRP determination.
 [RISK] microsoft: 64 — three auth-gated but high-value cross-principal preconditions live (6-family CORS+PATCH IDOR 97, consent forge 74, production v1.0 auth-gate 401); systemic RFC 6750 §3 method-challenge inconsistency; exploitability gated entirely on authorized two-principal tenant.
+## 2026-08-15 22:14:11 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: score 7.00 | attack 8 business 9 tech 8 gate 1 cloud 9 fresh 5
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 6.55 | attack 6 business 9 tech 7 gate 1 cloud 9 fresh 7
+[PRIO] oauth2.googleapis.com/token (earthengine secret): score 6.25 | attack 7 business 8 tech 6 gate 2 cloud 10 fresh 3
+[HYP] Copilot Admin 6-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: Item-level true CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 `ACAO:*` + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age 86400 reconfirmed this probe; GET→401/237, HEAD→405/0 (RFC 6750 §3); $metadata 873-char agentRegistration block + 458-char oAuth2PermissionGrant block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Whole-file sha `f4f93c76…b73040` verbatim (200/23110), secret sha256 `3f3f8d6f…d271` at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate; storage.buckets.list anonymous-denied (devstorage scope unlocks nothing unauth).
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha 97aa66f0; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 74
+reasoning: GET→401/237 Bearer reconfirmed; HEAD→405/0 (RFC 6750 §3); oAuth2PermissionGrant EntityType 458-char block @ $metadata, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[PARKED] none — all three hypotheses survive: conf 97/96/74 ≥ 40, no class on REJECTED list, concrete AUTH_HELPED/HUMAN_ONLY verify_steps present.
+[FINAL] 1) Copilot Admin 6-family IDOR+CORS (97) 2) earthengine secret valid credential (96) 3) consent-grant forge (74)
+[NEXT] HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized tenant enrollment unblocks both the [97] 6-family PATCH/CORS cross-principal test and the [74] consent-forge POST test; parallel Google VRP draft (reports/google-vrp-earthengine-secret.md) ready for the [96] earthengine secret.
+[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (token→404, storage/v1/b→400/401-denied, agentRegs→401/237 + preflight→200, oauth2PermissionGrants→401/237, earthengine file sha unchanged, fake-secret A/B→401 invalid_client) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-15 21:5x UTC.
+[LEARN] ACCEPTED v1↔v2 JWKS rotation churn persists @ login.microsoftonline.com — this probe v1=6, v2=7, 5 shared, 1 transient v1-exclusive (`T5h40q7G0x49qn41lM9-kKjpD98`); same class as aFkmKVFc/kPNphcDT transients — v1 kid set never validated against v2 issuer, dual-JWKS rotation desync stays REJECTED.
+[RISK] google: 42 — no unauthenticated exposure remains (token POST-only, tokeninfo no-reward, storage.buckets.list anonymous-denied, secret is by-design public-client OOB pattern); primary risk is the valid cloud-platform-scoped credential pending VRP determination.
+[RISK] microsoft: 64 — three auth-gated but high-value cross-principal preconditions live (6-family CORS+PATCH IDOR 97, consent forge 74, production v1.0 auth-gate 401); systemic RFC 6750 §3 method-challenge inconsistency; exploitability gated entirely on authorized two-principal tenant.

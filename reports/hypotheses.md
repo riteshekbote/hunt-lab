@@ -3787,3 +3787,20 @@
 - LEARN: ACCEPTED anonymous GCS bucket-list denied @ www.googleapis.com/storage/v1/b: bare → 400 (Required parameter: project); with project → 401 permission-denied on b
 - LEARN: ACCEPTED earthengine oauth.py source unchanged this probe — 200/23110, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` verbati
 - LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (storage/v1/b→401 denied, token→404, agentRegs→401/237, oauth2Permiss
+
+## RANKED HYPOTHESES 2026-08-15 22:14:57 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit reports/google-vrp-earthengine-secret.md to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle — secret s
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized tenant enrollment unblocks both t
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST with leaked client_secret → 400 invalid_grant (not 401 invalid_client) remains conclusive per RFC 6749 §5.2 — valid Go
+- LEARN: ACCEPTED graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint fam
+- LEARN: ACCEPTED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed live — GET→401/237 Bearer on production v1.0; oAuth2PermissionGrant EntityType 458-
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- LEARN: REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4
+- LEARN: REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection witho
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh passive probes (token→404, storage/v1/b→400/401-denied, agentRegs→401/237 + prefligh
+- LEARN: ACCEPTED v1↔v2 JWKS rotation churn persists @ login.microsoftonline.com — this probe v1=6, v2=7, 5 shared, 1 transient v1-exclusive (`T5h40q7G0x49qn41lM9-kKjpD9
