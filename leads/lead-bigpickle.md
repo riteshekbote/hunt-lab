@@ -6920,3 +6920,38 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
+## 2026-08-15 14:40:04 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: priority 7.40 (attack 8, business 9, tech 8, gate 3, cloud 7, fresh 8)
+[PRIO] oauth2.googleapis.com/token (earthengine secret redemption): priority 7.20 (attack 5, business 10, tech 9, gate 2, cloud 10, fresh 8)
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: priority 6.65 (attack 6, business 9, tech 8, gate 2, cloud 7, fresh 7)
+[HYP] Copilot Admin 6-family cross-principal ownership bypass
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: GET→401/237 auth-gated re-confirmed this probe; item+collection true CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + PATCH allowlist + Max-Age 86400; $metadata 873-char agentRegistration block 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false across 6 EntityTypes.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: whole-file sha `f4f93c76…b73040` unchanged (200/23110); bare-secret sha `3f3f8d6f…d271` verbatim at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate re-confirmed.
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: VRP report drafted (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha 97aa66f0; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB + unsupported client_credentials cap VRP-worthiness.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 72
+reasoning: GET→401/237 Bearer re-confirmed this probe; HEAD→405/0 extends Graph 405 anomaly; oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[FINAL] 1. Copilot Admin 6-family IDOR+CORS (97, AUTH_HELPED) 2. Earth Engine client_secret (96, HUMAN_ONLY) 3. Consent-grant forge (72, AUTH_HELPED)
+[NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` to the MSRC portal — one authorized two-principal (App A + App B) tenant enrollment unblocks both AUTH_HELPED hypotheses (IDOR 97 + consent-forge 72) for the definitive 200-vs-403 / 201-vs-400 differential.
+[RISK] google: 62 — public introspection oracle (tokeninfo 400/113), POST-only token gate, and a live valid-credential secret (A/B invalid_grant proof) in earthengine source; native-app OOB by-design caps severity but source remains public and unchanged (sha `f4f93c76…`).
+[RISK] microsoft: 70 — Copilot Admin 6-family IDOR+CORS precondition (97) and consent-forge precondition (72) both fully mapped with schema-level zero OperationRestrictions on 6+1 EntityTypes and true CORS mutation preflight; auth-gates hold (401/237, 405/0) but every exploitable test remains blocked on AUTH_HELPED tenant enrollment.

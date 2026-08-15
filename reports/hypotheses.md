@@ -3485,3 +3485,20 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no c
 - LEARN: ACCEPTED: Source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
 - LEARN: REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4
+
+## RANKED HYPOTHESES 2026-08-15 14:41:55 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle (secret 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` to the MSRC portal — one authorized two-principal (App A + App B) tenant enrollment unblocks both AUTH_HEL
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-s
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET → 404 confirms POST-only alive gate; validates earthengine secret hypothesis
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: REJECTED: CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4
+- LEARN: REJECTED MISCONFIG @ google/codeworld/web/js/utils/auth.js:30: `PASSWORD='swal-input2'` confirmed as SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/
+- LEARN: REJECTED source maps @ identity SPAs: mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated.
+- LEARN: ACCEPTED Earth Engine OAuth client_secret A/B proof: leaked secret→400 `invalid_grant` (valid credential per RFC 6749 §5.2), fake secret→401 `invalid_client` — 
