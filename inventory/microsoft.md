@@ -966,3 +966,9 @@
 - CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html); cosmetic redirect, no auth-bypass surface
 
 ## 2026-08-15 08:58:22 UTC
+
+## 2026-08-15 09:18:09 UTC
+- NEW `google/codeworld/web/js/utils/auth.js:30` — hardcoded `PASSWORD = 'swal-input2'` (sha256 `ffd0ae7d...`) in production client-side JS
+- CHANGED agentRegistrations bare-OPTIONS→405 reclassified as probe artifact; true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 `ACAO:*` + PATCH allowlist + Max-Age 86400 confirmed at item level
+- CHANGED Earth Engine A/B proof refined — leaked secret→400 `invalid_grant`, fake secret→401 `invalid_client` (conclusive RFC 6749 §5.2 differential)
+- CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html); cosmetic redirect, no auth-bypass surface
