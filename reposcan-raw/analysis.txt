@@ -1,50 +1,117 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/llvm-propeller/propeller/binary_content.h | head -90 | tail -15
-// Ideally we shall read
-    // ".gnu.linkonce.this_module" section, which has a more thorough
-    // information for the module, however, that would need to build this tool
-    // again kernel headers.
-    // https://source.corp.google.com/h/prodkernel/kernel/release/11xx/+/next:include/linux/module.h;l=365;bpv=1;bpt=0;drc=f2a96a349893fdff944b710ee86d1106de088a40
-    absl::flat_hash_map<absl::string_view, absl::string_view> modinfo;
-  };
+[0m$ [0mcat << 'EOF'
+# Classification Results
 
-  std::string file_name;
-  // If not empty, it is the existing dwp file for the binary.
-  std::string dwp_file_name;
-  std::unique_ptr<llvm::MemoryBuffer> file_content = nullptr;
-  std::unique_ptr<llvm::object::ObjectFile> object_file = nullptr;
-  std::unique_ptr<llvm::DWARFContext> dwarf_context = nullptr;
-  bool is_pie = false;
+## REAL_SECRET (reportable)
+| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
+|------|------|----------------|------|------------------|
+| (none new) | - | - | - | - |
+
+> Note: `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) is **already ACCEPTED+LIVE** in KB — not a new finding.
+
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | JSDoc example: `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | JSDoc example: `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const `PASSWORD = 'password'` (test scheme) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test creds `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Const `GEMINI_API_KEY = "gemini_api_key"` (placeholder name) |
+| google/xrblocks/src/ai/AI.ts | 303 | Placeholder `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` |
+| google/xrblocks/src/ai/AI.ts | 304 | Placeholder `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` (correct usage) |
+| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` |
+| google/capsem/config/gate.toml | 481 | File reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
+
+## ENDPOINT_LEAK (internal/dev metadata refs)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata check) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` link-local (includes 169.254.169.254) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig params (not secrets) |
+
+## INTERESTING (unusual patterns)
+| File | Line | Note |
+|------|------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Actively checks for GCP metadata endpoint — could indicate SSRF surface if user-input flows into discovery |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB** (search-only key, public by design) |
+
+## KNOWN DUPLICATES (from KB, skip)
+- ADK `/run_sse` OAuth client_secret to untrusted clients → google/adk-python #2128 (closed)
+- ADK hardcoded ya29.* OAuth token in git history → google/adk-python #5520 (closed)
+
+## VERDICT
+No new REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (metadata refs), or previously REJECTED (Algolia key). The only live secret in scope (`earthengine-api` OAuth client_secret) is already tracked and confirmed live in KB — not in this scan's new hits.
+EOF
+# Classification Results
+
+## REAL_SECRET (reportable)
+| File | Line | SHA256(secret) | Type | REPORT_CANDIDATE |
+|------|------|----------------|------|------------------|
+| (none new) | - | - | - | - |
+
+> Note: `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) is **already ACCEPTED+LIVE** in KB — not a new finding.
+
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | JSDoc example: `password: "password"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | JSDoc example: `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const `PASSWORD = 'password'` (test scheme) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key `-----BEGIN PRIVATE KEY-----...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test creds `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Const `GEMINI_API_KEY = "gemini_api_key"` (placeholder name) |
+| google/xrblocks/src/ai/AI.ts | 303 | Placeholder `apiKey: 'YOUR_GEMINI_API_KEY_HERE'` |
+| google/xrblocks/src/ai/AI.ts | 304 | Placeholder `apiKey: 'YOUR_OPENAI_API_KEY_HERE'` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` (correct usage) |
+| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` |
+| google/capsem/config/gate.toml | 481 | File reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
+
+## ENDPOINT_LEAK (internal/dev metadata refs)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata check) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` link-local (includes 169.254.169.254) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig params (not secrets) |
+
+## INTERESTING (unusual patterns)
+| File | Line | Note |
+|------|------|------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Actively checks for GCP metadata endpoint — could indicate SSRF surface if user-input flows into discovery |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB** (search-only key, public by design) |
+
+## KNOWN DUPLICATES (from KB, skip)
+- ADK `/run_sse` OAuth client_secret to untrusted clients → google/adk-python #2128 (closed)
+- ADK hardcoded ya29.* OAuth token in git history → google/adk-python #5520 (closed)
+
+## VERDICT
+No new REAL_SECRET candidates in this delta. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (metadata refs), or previously REJECTED (Algolia key). The only live secret in scope (`earthengine-api` OAuth client_secret) is already tracked and confirmed live in KB — not in this scan's new hits.
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50 | tail -15
-from google.agents.cli._tools import ToolNotFoundError, require_tool
+**Delta scan verdict: NO NEW REPORTABLE SECRETS**
 
+All 8 new hits + full grep context classify as:
+- **TEST_OR_EXAMPLE** (16 items): placeholders, JSDoc examples, test constants, GitHub Actions secret refs (correct usage)
+- **ENDPOINT_LEAK** (6 items): GCP metadata endpoint refs (`169.254.169.254`, `metadata.google.internal`) — code references, not leaked credentials
+- **REJECTED per KB** (1 item): Algolia DocSearch key in xrblocks — search-only, public by design
+- **KNOWN DUPLICATES** (2): ADK `/run_sse` client_secret (#2128) and ya29 token (#5520) — both closed
 
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
+The only live secret in scope (`google/earthengine-api/python/ee/oauth.py:45` OAuth client_secret, sha256 `3f3f8d6f…d271`) is **already ACCEPTED+LIVE in KB** — confirmed via A/B proof (`invalid_grant` vs `invalid_client` per RFC 6749 §5.2) — but it's not in this scan's new hits.
