@@ -847,3 +847,6 @@ https://oauth2.googleapis.com/token -> HTTP 404
 https://graph.microsoft.com/v1.0 -> 200 len=? type=application/json;odata.metadata=minimal;
 https://graph.microsoft.com/beta/copilot/agentRegistrations/test-id -> HTTP 401
 https://graph.microsoft.com/v1.0/oauth2PermissionGrants -> HTTP 401
+
+## 2026-08-15 19:13:54 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
