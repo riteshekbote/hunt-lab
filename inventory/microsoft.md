@@ -948,3 +948,7 @@
 ## 2026-08-15 06:54:11 UTC
 - NEW `google/codeworld/web/js/utils/auth.js:30` — hardcoded password `swal-input2` (sha256 `ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5`) deployed to production client-side JS; verifie
 - CHANGED Re-classification: bare-OPTIONS→405 on agentRegistrations confirmed as probe artifact (true CORS preflight with Origin header → 200 ACAO:* + PATCH + Max-Age 86400, item-level verified)
+
+## 2026-08-15 07:26:24 UTC
+- NEW `google/codeworld/web/js/utils/auth.js:30` — hardcoded password `swal-input2` (sha256 `ffd0ae7de65bc67fe6698ae2ebaf08cb1250d4014944ac868ac7c6c66da893e5`) deployed to production client-side JS; verifie
+- CHANGED Re-classification: bare-OPTIONS→405 on agentRegistrations confirmed as probe artifact (true CORS preflight with Origin header → 200 ACAO:* + PATCH + Max-Age 86400, item-level verified)

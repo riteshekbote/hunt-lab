@@ -1,4 +1,4 @@
-## 2026-08-15 06:52:56 UTC [google] (model bigpickle)
+## 2026-08-15 07:25:58 UTC [google] (model bigpickle)
 [HYP] Copilot Admin 5-family cross-principal ownership bypass
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
@@ -12,9 +12,9 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Whole-file sha `f4f93c76…` unchanged; secret sha `3f3f8d6f…d271` at :45 + :99 fallback; A/B proof leaked→400 `invalid_grant` vs fake→401 `invalid_client` (RFC 6749 §5.2); token GET→404 POST-only gate; native-app OOB by-design caps VRP-worthiness.
+reasoning: Whole-file sha `f4f93c76…` unchanged; secret sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback; A/B proof leaked secret→400 `invalid_grant` vs fake→401 `invalid_client` (RFC 6749 §5.2); token GET→404 POST-only gate; native-app OOB (line 420) = public-client by-design per ADK #2128 precedent.
 evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
-verify_steps: HUMAN_ONLY: file drafted VRP report (reports/google-vrp-earthengine-secret.md); cite invalid_grant A/B + REVOKE-CHECK blob sha 97aa66f0; request authorized redemption.
+verify_steps: HUMAN_ONLY: file drafted VRP report (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha; request authorized redemption only.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness.
 testability: HUMAN_ONLY
 [HYP] Consent-grant forge via caller-chosen resourceId
