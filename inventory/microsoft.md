@@ -1028,3 +1028,11 @@
 
 ## 2026-08-15 15:55:32 UTC
 - NEW NO_DELTA — all surface items unchanged since last cycle; MSRC/Google VRP drafts prepared but not new attack surface
+
+## 2026-08-15 16:11:13 UTC
+- NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-supplied properties including caller-supplied resou
+- NEW oauth2.googleapis.com/token GET → 404 confirms POST-only alive gate; validates earthengine secret hypothesis (only grant_type=refresh_token is redemption path)
+- CHANGED agentRegistrations item-level true CORS preflight gap CLOSED — Origin+ACRM:PATCH+ACH:authorization → 200 ACAO:* + PATCH allowlist + Max-Age 86400 confirmed at both collection+item level across all 6 C
+- CHANGED CodeWorld `PASSWORD='swal-input2'` @ google/codeworld/web/js/utils/auth.js:30 — REJECTED false positive (SweetAlert2 DOM element ID pattern swal-input1/2/3/4, not a credential) — MISCONFIG class colla
+- CHANGED graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+- NEW None — all surface items confirmed unchanged since last cycle. Verified live: earthengine secret sha256 `3f3f8d6f…d271` verbatim at oauth.py:45 (file sha `f4f93c76…`), agentRegistrations HEAD→405/0 no
