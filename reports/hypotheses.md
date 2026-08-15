@@ -3410,3 +3410,20 @@
 - LEARN: REJECTED no new proving-dead classes this cycle — all fresh passive probes (token→404 POST-only gate, agentRegs 401/HEAD 405, oauth2PermissionGrants 401) confir
 - LEARN: ACCEPTED Copilot Admin 6-family IDOR+CORS precondition @ graph.microsoft.com/beta/copilot/* — true CORS preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO
 - LEARN: ACCEPTED Earth Engine client_secret credential validity @ oauth2.googleapis.com/token — sha256 `3f3f8d6f…d271` verbatim at :45+:99 fallback, whole-file sha `f4f
+
+## RANKED HYPOTHESES 2026-08-15 11:59:51 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (bughunters.google.com) with A/B invalid_grant-vs-invalid_client evidence bundle (secret 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to MSRC portal — one authorized-tenant enrollment unblocks BOTH [FINAL]
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata: 458-char block, 0 OperationRestrictions, 7 client-s
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET → 404 confirms POST-only alive gate; validates earthengine secret hypothesis
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com: v1(4 kids)⊂v2(6 kids) steady-state subset holds, v1 kid set never validated against v2 issuer →
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering @ login.microsoftonline.com/common/oauth2/v2.0/authorize: response_type=token → HTTP 200/23886 (RFC 6749 §3 vi
+- LEARN: ACCEPTED: Graph API 405 anomaly @ graph.microsoft.com: HEAD→405/0 (no WWW-Authenticate Bearer, RFC 6750 §3 violation) extends to /beta/copilot/agentRegistration
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED: agentRegistrations true CORS preflight with PATCH confirmed still live at 2026-08-15 — 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at both c
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret valid credential confirmed live — sha256 `3f3f8d6f…d271` verbatim at :45 + :99 fallback, raw GitHub 200/23110, A/B in
+- LEARN: ACCEPTED: oAuth2PermissionGrant EntityType zero ownership restrictions confirmed live — 458-char block, 0 OperationRestrictions, 7 client-supplied properties in
+- LEARN: REJECTED no new proving-dead classes this cycle — fresh probes (tokeninfo 400/113, token GET→404, agentRegs GET 401/237, oauth.py whole-file sha `f4f93c76…b7304

@@ -992,3 +992,6 @@
 ## 2026-08-15 11:42:45 UTC
 - NEW oAuth2PermissionGrant EntityType zero ownership restrictions @ graph.microsoft.com/beta/$metadata — 458-char block, 0 OperationRestrictions, 7 client-supplied properties including caller-supplied reso
 - NEW oauth2.googleapis.com/token GET → 404 confirms POST-only alive gate; validates earthengine secret hypothesis (only grant_type=refresh_token is redemption path)
+
+## 2026-08-15 11:59:51 UTC
+- NEW NO_DELTA
