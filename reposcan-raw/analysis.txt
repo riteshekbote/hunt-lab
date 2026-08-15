@@ -5,42 +5,55 @@
 a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
 [0m
 [0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [limit=30, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py[90m [limit=40, offset=20][0m
+[0m→ [0mRead reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py[90m [offset=20, limit=40][0m
 [0m
-[0m$ [0mecho -n "639403125587-ue3c18dalqidqehs1n1p5rjvgni5f7qu.apps.googleusercontent.com" | sha256sum
-2b31643354f823dd529645e5d4cac8e24d139d3de3f0d53ae28fbf3a99b20a7a  -
+[0m$ [0mecho -n "kuaqECaVXOKEJ2L6ifZu4Aqt" | sha256sum
+a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
 [0m
 ### Classification Tables
 
-| Category | File | Line | Match | Classification |
-|----------|------|------|-------|----------------|
-| **REAL_SECRET** | google/neuroglancer/python/neuroglancer/default_credentials_manager.py | 28 | `client_secret="kuaqECaVXOKEJ2L6ifZu4Aqt"` + client_id | **REAL_SECRET** — Hardcoded production OAuth 2.0 client_secret for project `639403125587` (google-brainmaps), scopes `brainmaps` |
-| **TEST_OR_EXAMPLE** | google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `AMAZON_TOKEN_URL = "http://169.254.169.254/latest/api/token"` | ENDPOINT_LEAK — AWS IMDS endpoint constant |
-| | google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `AMAZON_URL_BASE = "http://169.254.169.254/latest/meta-data"` | ENDPOINT_LEAK — AWS IMDS endpoint constant |
-| | google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 12 | Comment re metadata.google.internal | TEST_OR_EXAMPLE — Documentation comment |
-| | google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `GOOGLE_URL_BASE = "http://169.254.169.254/computeMetadata/v1"` | ENDPOINT_LEAK — GCP IMDS endpoint constant |
-| | google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `_HTTP_SERVICE_IP_ADDRESS = ipaddress.ip_address("169.254.169.254")` | ENDPOINT_LEAK — Cloud metadata IP constant |
-| | google/grr/grr/server/grr_response_server/databases/*.py | 648,667,225 | MySQL doc URL comments | TEST_OR_EXAMPLE — Documentation references |
-| | google/grr/grr/server/grr_response_server/gui/.../client_flows.ts | 232 | CSRF token extraction shell command | INTERESTING — Client-side CSRF token scraping pattern |
-| | google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | TEST_OR_EXAMPLE — Env var placeholders |
-| | google/grr/docker_config_files/server/grr.server.yaml | 25 | `%(/configs/private-key.pem\|file)` | INTERESTING — Private key file reference pattern |
-| | google/oss-fuzz/projects/* | various | Test/fixture keys, doc URLs | TEST_OR_EXAMPLE — Fuzz test fixtures & docs |
-| | google/adk-kotlin/... | various | Minified JS, test tokens | TEST_OR_EXAMPLE — Build artifacts & test constants |
-| | google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` | TEST_OR_EXAMPLE — Placeholder documentation |
-| | google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | TEST_OR_EXAMPLE — Commented placeholder |
-| | google/heir/lib/.../JaxiteWordEmitter.cpp | 558 | `.secret_key = ` << sk | INTERESTING — Secret key emission code pattern |
-| | google/private-compute-services/... | various | Constant key names (`KEY_RENDER_TOKEN`, `IPP_*_TOKEN`) | TEST_OR_EXAMPLE — Constant identifiers, not values |
-| | google/neuroglancer/.github/workflows/*.yml | various | `${{ secrets.GITHUB_TOKEN }}` | TEST_OR_EXAMPLE — GitHub Actions secret refs |
-| | microsoft/apm/src/.../*.py | various | `dev.azure.com` example URLs, doc comments | TEST_OR_EXAMPLE — Documentation & example URLs |
-| | microsoft/apm/src/apm_cli/core/script_executors.py | 711,841 | `metadata.google.internal`, `169.254.169.254` | ENDPOINT_LEAK — Cloud metadata endpoints |
-| | microsoft/apm/src/apm_cli/core/host_providers.py | 54 | `https://dev.azure.com` | ENDPOINT_LEAK — Azure DevOps base endpoint |
-| | microth/apm/src/apm_cli/core/auth.py | 898,904 | Token endpoint URLs | ENDPOINT_LEAK / TEST_OR_EXAMPLE — Auth endpoint patterns |
-| | microsoft/apm/src/apm_cli/install/mcp/warnings.py | 33,34 | `169.254.169.254`, `100.100.100.200` | ENDPOINT_LEAK — Cloud metadata IPs (AWS/Azure/GCP/Alibaba) |
-| | microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | 81-84 | `-----BEGIN RSA PRIVATE KEY-----` (synthetic) | TEST_OR_EXAMPLE — Explicitly labeled "Synthetic, non-functional PEM", truncated body |
-| | microsoft/apm/scripts/*.sh | various | `${GITHUB_TOKEN}`, `${GH_TOKEN}`, `${GITHUB_APM_PAT}` | TEST_OR_EXAMPLE — Env var references |
+#### REAL_SECRET
+| File | Line | SHA256 (secret) | Context |
+|------|------|-----------------|---------|
+| `reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py` | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | Hardcoded OAuth `client_secret` for `google-brainmaps` (client_id `639403125587-...`), scope `brainmaps` — used in `GoogleOAuth2FlowCredentialsProvider` |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test harness |
+| `reposcan-raw/google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` — integration test probe |
+| `reposcan-raw/google/go-github/github/github.go` | 1990 | `ClientSecret: "your app's client secret"` — documentation placeholder |
+| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` — commented placeholder |
+| `reposcan-raw/google/grr/docker/docker-entrypoint.sh` | 21, 26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` — env-var references |
+| `reposcan-raw/google/grr/docker_config_files/server/grr.server.yaml` | 25 | `%(/configs/private-key.pem\|file)` — file reference, not inline key |
+| `reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml` | 81 | `SYNTHETIC-TEST-KEY-DO-NOT-USE` — explicitly marked synthetic PEM |
+| `reposcan-raw/microsoft/apm/scripts/*.sh` | multiple | `GITHUB_TOKEN`, `GH_TOKEN` — env-var references |
+| `reposcan-raw/google/neuroglancer/.github/workflows/*.yml` | multiple | `${{ secrets.GITHUB_TOKEN }}` — proper GitHub Actions secret refs |
+
+#### ENDPOINT_LEAK (public/well-known, not sensitive)
+| File | Line | Endpoint |
+|------|------|----------|
+| `reposcan-raw/google/grr/.../cloud.py` | 41, 9, 14, 524 | `169.254.169.254` (AWS/GCP IMDS) — public metadata IP |
+| `reposcan-raw/microsoft/apm/.../script_executors.py` | 711, 841 | `metadata.google.internal`, `169.254.169.254` — public metadata |
+| `reposcan-raw/microsoft/apm/.../warnings.py` | 33, 34 | `169.254.169.254`, `100.100.100.200` — documented IMDS IPs |
+| `reposcan-raw/microsoft/apm/.../github_host.py` | 531, 817, 851 | `dev.azure.com` URL templates — documentation |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `reposcan-raw/google/grr/.../client_flows.ts` | 232 | CSRF token extraction via `curl` — runtime technique, not a secret |
+| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | Emits `.secret_key = <var>` — codegen, not hardcoded |
+| `reposcan-raw/google/private-compute-services/.../*.kt` | 41, 43, 82, 88, 91 | Constant *names* (`KEY_RENDER_TOKEN`, `IPP_*_TOKEN`) — not values |
+
+---
 
 ### Verdict List
 
-| File | Line | Secret SHA256 | REPORT_CANDIDATE | Notes |
-|------|------|---------------|------------------|-------|
-| google/neuroglancer/python/neuroglancer/default_credentials_manager.py | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` (client_secret) + `2b31643354f823dd529645e5d4cac8e24d139d3de3f0d53ae28fbf3a99b20a7a` (client_id) | **YES** | Hardcoded production OAuth 2.0 client credentials for Google Cloud project `639403125587` (google-brainmaps), scope `https://www.googleapis.com/auth/brainmaps`. Client is a public neuroglancer instance; secret enables token minting for brainmaps API. |
+| Candidate | File | REPORT_CANDIDATE | Rationale |
+|-----------|------|------------------|-----------|
+| Neuroglancer OAuth `client_secret` | `google/neuroglancer/python/neuroglancer/default_credentials_manager.py:28` | **YES** | Hardcoded Google OAuth client secret (`sha256: a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d`) for project `google-brainmaps` with `brainmaps` scope — live credential in public source |
+| Microsoft APM RSA PEM | `microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml:81` | **NO** | Explicitly labeled `SYNTHETIC-TEST-KEY-DO-NOT-USE`, registered via `::add-mask::` for CI masking tests |
+| All other hits | — | **NO** | Test fixtures, env-var refs, public metadata IPs, documentation, or constant names |
+
+**Only one reportable candidate:** the Neuroglancer OAuth client secret.
