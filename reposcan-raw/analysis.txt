@@ -1,59 +1,82 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=48, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=475, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py
+[0m→ [0mRead reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=475, limit=20][0m
 [0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [offset=35, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [offset=10, limit=25][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=25, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=265, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=63, limit=20][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=15, offset=42][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=15, offset=240][0m
+Now I have enough context to classify all hits. Let me produce the classification tables.
+
 ## Classification Tables
 
-### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Reason |
-|------|------|--------|
-| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | GitHub Actions secret ref `${{ secrets.GITHUB_TOKEN }}` |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Constant name `StorageDriverPassword = "storage_driver_password"` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Example placeholder `"-----BEGIN PRIVATE KEY-----..."` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Example placeholder `username="user", password="password"` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Example placeholder token `"eyAkaknabna...."` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | OAuth enum constant `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Example placeholder `"your_client_secret"` |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `google/adk-python/src/google/adk/cli/browser/*.js` | — | Minified build artifacts |
-| `google/adk-go/cmd/launcher/web/webui/distr/*.js` | — | Minified build artifacts |
+### REAL_SECRET
+| File | Line | SHA256 (secret material) | Verdict |
+|------|------|--------------------------|---------|
+| *(none found)* | | | |
 
-### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` (cloud metadata) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (cloud metadata) |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (cloud metadata) |
+### TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret reference, not hardcoded |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | CI secret references |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag name constant, not a value |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder in docstring |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `credentials=HttpCredentials(username="user", password="password")` | Example credentials |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `credentials=HttpCredentials(token="eyAkaknabna....")` | Fake JWT in example |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | OAuth grant type enum value |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name constant |
+| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Secret Manager reference |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | various | Minified JS bundles | Build artifacts, not source |
+| `google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | various | Minified JS bundles | Build artifacts, not source |
 
-### INTERESTING (config/debug references)
-| File | Line | Note |
-|------|------|------|
-| `google/capsem/config/gate.toml` | 481 | `password = "password.txt"` (file reference) |
-| `google/capsem/scripts/preflight.sh` | 39 | Reads password from `$pass_file` at runtime |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from `$PASS_FILE` at runtime |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig path/context params |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Generates `.env` with `GOOGLE_API_KEY=` from variable |
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret ref `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py` | 22 | `http://metadata.google.internal/computeMetadata/v1` | **NEW DELTA** — GCP metadata endpoint (well-known, documented) |
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | Cloudflare Pages staging URL (default workflow input) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig paths | Config references, not secrets |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | Cloud metadata IP (well-known) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Cloud metadata IP (well-known) |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Cloud metadata IP (well-known) |
+
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `google/capsem/config/gate.toml` | 481 | `password = "password.txt"` | References a password file path (file not in repo) |
+| `google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file at runtime |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file at runtime |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Writes user-provided API key to .env (legitimate CLI behavior) |
 
 ---
 
-## Verdict
+## SHORT VERDICT LIST
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| (none) | REAL_SECRET | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/orbax/checkpoint/.../environment.py:22` (metadata URL) | **no** | Well-known GCP metadata endpoint, documented public API |
+| `google/capsem/.github/workflows/...staging.yaml:17` (staging URL) | **no** | Default workflow input for Cloudflare Pages preview |
+| `google/cadvisor/.../flags.go:54` (StorageDriverPassword) | **no** | Flag name constant, not a credential value |
+| All `adk-python` auth_credential.py hits | **no** | Example placeholders in docstrings (`...`, `user`/`password`, fake JWT) |
+| `adk-python` auth_schemes.py:68 | **no** | OAuth grant type enum value `"password"` |
+| `adk-python` openapi_tool/auth_helpers.py:62 | **no** | Placeholder `"your_client_secret"` in example |
+| `adk-python` sandbox_computer.py:47 | **no** | Session state key name constant |
+| `adk-go` cloudrun.go:246 | **no** | Secret Manager reference syntax, not a secret |
+| All `chunk-*.js` files | **no** | Minified build artifacts (not source) |
+| `capsem` gate.toml:481 / scripts/*.sh | **no** | Password file references (files not committed) |
+| `adk-python` cli_create.py:131 | **no** | Legitimate CLI behavior writing user-provided key to .env |
 
-**Summary**: 0 real secrets found. All 194 hits are test fixtures, placeholder examples, GitHub Actions secret references, build artifacts, well-known cloud metadata endpoints (`169.254.169.254`), or runtime config references reading from external files. The previously accepted `earthengine-api` hardcoded secret (sha256 `3f3f8d6f…d271`) is **not in this scan delta** — it resides in a different repo (`google/earthengine-api`) not covered by these 23,774 scanned files.
+---
+
+## SUMMARY
+
+**No reportable findings in this delta.** The single new hit (`orbax/checkpoint/.../environment.py:22`) is a reference to the documented GCP metadata endpoint `metadata.google.internal`, which is a well-known platform API, not a secret or sensitive leak. All other hits are test fixtures, example placeholders, build artifacts, or legitimate code patterns referencing external secret stores.
