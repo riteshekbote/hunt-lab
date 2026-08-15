@@ -1,208 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-REAL_SECRET (reportable credentials):
-┌────────────────────────────────────────────────────────────────────┐
-│ (none found in this scan)                                          │
-└────────────────────────────────────────────────────────────────────┘
+## REAL_SECRET (reportable credentials with signs of life)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this delta)* | | | |
 
-TEST_OR_EXAMPLE (fixtures, placeholders, test data):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Type  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ google/meridian/.github/workflows/proto-publish.yml                         │ 126  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/proto-publish.yml                         │ 138  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/publish.yml                               │ 127  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/publish.yml                               │ 139  │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml   │ 33   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml   │ 34   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml    │ 33   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml    │ 34   │ test.pypi.org URL      │
-│ google/dotprompt/packages/monaco/src/index.ts                               │ 181  │ syntax highlight colors│
-│ google/dotprompt/packages/monaco/src/language.ts                            │ 67   │ handlebars delimiters  │
-│ google/magika/.github/workflows/github-issue-labeler.yml                    │ 20   │ ${{secrets.GITHUB_TOKEN}}│
-│ google/magika/.github/workflows/python-build-and-release-package.yml        │ 407  │ test.pypi.org URL      │
-│ google/magika/.github/workflows/python-build-and-release-package.yml        │ 437  │ test.pypi.org URL      │
-│ google/magika/tests_data/basic/javascript/code.js                           │ 31   │ minified test code     │
-│ google/agents-cli/src/google/agents/cli/auth.py                             │ 43   │ placeholder "gemini_api_key"│
-│ google/agents-cli/src/google/agents/cli/scaffold/base_templates/.../staging.yaml│ 168 │ ${{steps.fetch-token...}}│
-│ google/agents-cli/src/google/agents/cli/scaffold/base_templates/.../staging.yaml│ 192 │ ${{steps.fetch-token...}}│
-│ google/heir/scripts/author_stats.py                                         │ 16   │ commented placeholder  │
-│ google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp                     │ 558  │ codegen template (sk)  │
-│ microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml│ 33 │ internal timestamp URL │
-│ microsoft/skill-recorder/common/sensitive.test.ts                           │ 89   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts            │ 36   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts        │ 19   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts        │ 24   │ test fixture AKIA*     │
-│ microsoft/skill-recorder/evals/sensitive/frames.ts                          │ 31   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/evals/sensitive/ocr-images.ts                      │ 57   │ test fixture ghp_*     │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts│ 399 │ placeholder "sk-REPLACE..."│
-│ microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml│ 2 │ ConfigMap kind         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml│ 15 │ commented password     │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh│ 105 │ test.pypi.org URL      │
-│ microicrosoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py│ 306 │ SQLi test string       │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py│ 17 │ placeholder "your-key" │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml│ 2   │ ConfigMap kind         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js│ 76  │ test password string   │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml│ 2   │ ConfigMap kind         │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
+## TEST_OR_EXAMPLE (sample/test/fixture/placeholder data)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file, not actual secret |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file variable |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file variable |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | GitHub Actions secret references |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Literal placeholder value |
+| google/agents-cli/scaffold/.../staging.yaml | 168,192 | `{% raw %}${{ steps.fetch-token.outputs...` | Template syntax, not real token |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret reference |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret reference |
+| microsoft/autogen/.../_openai_assistant_agent.py | 145 | `api_key="your-api-key"` | Literal placeholder |
+| microsoft/autogen/.../_jupyter_server.py | 280 | `auth_token="${TOKEN}"` | Template variable |
+| microsoft/autogen/.../_text_canvas_memory.py | 62,128 | `# api_key = "your_openai_api_key"` | Commented placeholders |
+| microsoft/autogen/.../_anthropic_client.py | 1211 | `api_key="your-api-key"` | Literal placeholder |
+| microsoft/autogen/.../_anthropic_client.py | 1325-1326 | `aws_secret_key="<aws_secret_key>"` | Literal placeholders |
+| microsoft/kiota/.github/workflows/auto-merge-dependabot.yml | 22 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret reference |
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `test.pypi.org` URLs | Public test repository |
+| google/meridian/.github/workflows/publish.yml | 127,139 | `test.pypi.org` URLs | Public test repository |
+| microsoft/qlib/.github/workflows/release.yml | 63,107 | `test.pypi.org` URLs | Public test repository |
 
-ENDPOINT_LEAK (internal/dev/staging URLs, cloud metadata endpoints):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Type  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh      │ 10   │ gcloud secret ref      │
-│ google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh      │ 11   │ gcloud secret ref      │
-│ microsoft/coreutils/.cargo/release-windows-ms.toml                          │ 11   │ Azure DevOps feed      │
-│ microsoft/coreutils/.pipelines/templates/job-build-project.yml              │ 70   │ Azure DevOps feed      │
-│ microsoft/coreutils/.pipelines/templates/job-build-project.yml              │ 76   │ Azure DevOps NuGet feed│
-│ microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml│ 33 │ RFC3161 timestamp srv  │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 8  │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 11 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 13 │ 100.100.100.200 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts│ 13  │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts│ 14  │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 563 │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 566 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 568 │ 100.100.100.200 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py│ 102 │ 169.254.169.254 (AWS)  │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py│ 103 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 27 │ Azure IMDS token URL   │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 29 │ AWS metadata URL       │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 30 │ AWS token URL          │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py│ 24  │ Azure IMDS URL         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py│ 39  │ 169.254.169.254 (IMDS) │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server |
+| microsoft/kiota/.azure-pipelines/ci-build.yml | 409,642 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server |
 
-INTERESTING (unusual patterns, debug flags, cloud configs):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Note  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ microsoft/agent-governance-toolkit (multiple policy backends)               │ —    │ Hardcoded cloud IMDS IPs │
-│                                                                            │      │ in governance policies   │
-│                                                                            │      │ (cedar, opa, dotnet,    │
-│                                                                            │      │ python) — indicates    │
-│                                                                            │      │ toolkit knows metadata   │
-│                                                                            │      │ endpoints exist          │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| microsoft/agent-governance-toolkit/agent-governance-golang/.../policy_backends.go | 183-184 | `"169.254.169.254": true, "metadata.google.internal": true` | Cloud metadata endpoints (AWS/GCP IMDS) in allowlist |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts | 8,11,13 | `'169.254.169.254'`, `'metadata.google.internal'`, `'100.100.100.200'` | Cloud metadata endpoints (AWS/GCP/AliCloud IMDS) |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts | 13-14 | `'169.254.169.254'`, `'metadata.google.internal'` | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-dotnet/.../OpaPolicyBackend.cs | 563,566,568 | Same IMDS endpoints | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/.../advisory.py | 39-40 | `"169.254.169.254"`, `"metadata.google.internal"` | Cloud metadata endpoints |
+| microsoft/agent-governance-toolkit/agent-governance-python/.../managed_identity.py | 27-30 | IMDS URLs for AWS/Azure token acquisition | Legitimate cloud identity code |
+| microsoft/agent-governance-toolkit/agent-governance-python/.../entra_agent_id.py | 24 | `IMDS_URL = "http://169.254.169.254/metadata"` | Azure IMDS endpoint |
+| microsoft/agent-governance-toolkit/agent-governance-python/.../safe/http_client.py | 102-103 | AWS/GCP metadata endpoints in safe client | Legitimate cloud identity code |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Code generation emitting secret key variable (not hardcoded) |
+| microsoft/agent-governance-toolkit/.../red_team_dataset.py | 306 | SQL injection example with password update | Test fixture / red-team dataset |
+| microsoft/agent-governance-toolkit/.../adapter.py | 17 | `client = OpenAI(api_key="your-key")` | Placeholder in example code |
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
+---
 
-No REAL_SECRET findings in this scan. All hits are:
-- TEST_OR_EXAMPLE: test.pypi.org URLs, GitHub Actions secret refs (${{secrets.*}}), test fixtures (ghp_ABCD..., AKIA...), placeholder keys ("your-key", "sk-REPLACE...", "gemini_api_key"), commented secrets, ConfigMap boilerplate, red-team test strings
-- ENDPOINT_LEAK: Well-known cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200), Azure DevOps package feeds, internal RFC3161 timestamp server, gcloud secret-manager references (not the secrets themselves)
-- INTERESTING: Agent governance toolkit embedding cloud IMDS endpoints in policy backends (cedar, opa, dotnet, python) — shows awareness of metadata services but no exploitable secret material
+# SHORT VERDICT LIST
 
-The "delta" hits (16 new lines) are all IMDS/cloud metadata IP references in microsoft/agent-governance-toolkit — already classified above.
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| *(no REAL_SECRET candidates in this delta)* | | **no** |
+
+**Summary**: 0 REAL_SECRET findings in this delta. All 300 hits classify as TEST_OR_EXAMPLE (placeholder values, secret references, test fixtures), ENDPOINT_LEAK (staging/internal URLs), or INTERESTING (cloud metadata endpoint allowlists, legitimate identity code). The earthengine-api OAuth client_secret (sha256 `3f3f8d6f...d271`) from prior cycles is NOT in this scan delta (different repo).
 EOF
-=== CLASSIFICATION TABLES ===
-
-REAL_SECRET (reportable credentials):
-┌────────────────────────────────────────────────────────────────────┐
-│ (none found in this scan)                                          │
-└────────────────────────────────────────────────────────────────────┘
-
-TEST_OR_EXAMPLE (fixtures, placeholders, test data):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Type  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ google/meridian/.github/workflows/proto-publish.yml                         │ 126  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/proto-publish.yml                         │ 138  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/publish.yml                               │ 127  │ test.pypi.org URL      │
-│ google/meridian/.github/workflows/publish.yml                               │ 139  │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml   │ 33   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml   │ 34   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml    │ 33   │ test.pypi.org URL      │
-│ google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml    │ 34   │ test.pypi.org URL      │
-│ google/dotprompt/packages/monaco/src/index.ts                               │ 181  │ syntax highlight colors│
-│ google/dotprompt/packages/monaco/src/language.ts                            │ 67   │ handlebars delimiters  │
-│ google/magika/.github/workflows/github-issue-labeler.yml                    │ 20   │ ${{secrets.GITHUB_TOKEN}}│
-│ google/magika/.github/workflows/python-build-and-release-package.yml        │ 407  │ test.pypi.org URL      │
-│ google/magika/.github/workflows/python-build-and-release-package.yml        │ 437  │ test.pypi.org URL      │
-│ google/magika/tests_data/basic/javascript/code.js                           │ 31   │ minified test code     │
-│ google/agents-cli/src/google/agents/cli/auth.py                             │ 43   │ placeholder "gemini_api_key"│
-│ google/agents-cli/src/google/agents/cli/scaffold/base_templates/.../staging.yaml│ 168 │ ${{steps.fetch-token...}}│
-│ google/agents-cli/src/google/agents/cli/scaffold/base_templates/.../staging.yaml│ 192 │ ${{steps.fetch-token...}}│
-│ google/heir/scripts/author_stats.py                                         │ 16   │ commented placeholder  │
-│ google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp                     │ 558  │ codegen template (sk)  │
-│ microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml│ 33 │ internal timestamp URL │
-│ microsoft/skill-recorder/common/sensitive.test.ts                           │ 89   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts            │ 36   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts        │ 19   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts        │ 24   │ test fixture AKIA*     │
-│ microsoft/skill-recorder/evals/sensitive/frames.ts                          │ 31   │ test fixture ghp_*     │
-│ microsoft/skill-recorder/evals/sensitive/ocr-images.ts                      │ 57   │ test fixture ghp_*     │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts│ 399 │ placeholder "sk-REPLACE..."│
-│ microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml│ 2 │ ConfigMap kind         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml│ 15 │ commented password     │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh│ 105 │ test.pypi.org URL      │
-│ microicrosoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py│ 306 │ SQLi test string       │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py│ 17 │ placeholder "your-key" │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml│ 2   │ ConfigMap kind         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js│ 76  │ test password string   │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml│ 2   │ ConfigMap kind         │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
-
-ENDPOINT_LEAK (internal/dev/staging URLs, cloud metadata endpoints):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Type  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh      │ 10   │ gcloud secret ref      │
-│ google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh      │ 11   │ gcloud secret ref      │
-│ microsoft/coreutils/.cargo/release-windows-ms.toml                          │ 11   │ Azure DevOps feed      │
-│ microsoft/coreutils/.pipelines/templates/job-build-project.yml              │ 70   │ Azure DevOps feed      │
-│ microsoft/coreutils/.pipelines/templates/job-build-project.yml              │ 76   │ Azure DevOps NuGet feed│
-│ microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml│ 33 │ RFC3161 timestamp srv  │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 8  │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 11 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts│ 13 │ 100.100.100.200 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts│ 13  │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts│ 14  │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 563 │ 169.254.169.254 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 566 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs│ 568 │ 100.100.100.200 (IMDS) │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py│ 102 │ 169.254.169.254 (AWS)  │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py│ 103 │ metadata.google.internal│
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 27 │ Azure IMDS token URL   │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 29 │ AWS metadata URL       │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py│ 30 │ AWS token URL          │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py│ 24  │ Azure IMDS URL         │
-│ microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py│ 39  │ 169.254.169.254 (IMDS) │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
-
-INTERESTING (unusual patterns, debug flags, cloud configs):
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│ File                                                                       │ Line │ Note  │
-├──────────────────────────────────────────────────────────────────────────────────────────┤
-│ microsoft/agent-governance-toolkit (multiple policy backends)               │ —    │ Hardcoded cloud IMDS IPs │
-│                                                                            │      │ in governance policies   │
-│                                                                            │      │ (cedar, opa, dotnet,    │
-│                                                                            │      │ python) — indicates    │
-│                                                                            │      │ toolkit knows metadata   │
-│                                                                            │      │ endpoints exist          │
-└──────────────────────────────────────────────────────────────────────────────────────────┘
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-No REAL_SECRET findings in this scan. All hits are:
-- TEST_OR_EXAMPLE: test.pypi.org URLs, GitHub Actions secret refs (${{secrets.*}}), test fixtures (ghp_ABCD..., AKIA...), placeholder keys ("your-key", "sk-REPLACE...", "gemini_api_key"), commented secrets, ConfigMap boilerplate, red-team test strings
-- ENDPOINT_LEAK: Well-known cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200), Azure DevOps package feeds, internal RFC3161 timestamp server, gcloud secret-manager references (not the secrets themselves)
-- INTERESTING: Agent governance toolkit embedding cloud IMDS endpoints in policy backends (cedar, opa, dotnet, python) — shows awareness of metadata services but no exploitable secret material
-
-The "delta" hits (16 new lines) are all IMDS/cloud metadata IP references in microsoft/agent-governance-toolkit — already classified above.
-[0m
-**Summary:** No reportable secrets found in this scan.
-
-| Category | Count | Verdict |
-|----------|-------|---------|
-| REAL_SECRET | 0 | **REPORT_CANDIDATE: no** |
-| TEST_OR_EXAMPLE | ~35 | Fixtures, placeholders, test.pypi.org URLs, `${{secrets.*}}` refs, commented examples |
-| ENDPOINT_LEAK | ~21 | Well-known cloud metadata IPs (169.254.169.254, metadata.google.internal, 100.100.100.200), Azure DevOps feeds, internal timestamp server, gcloud secret-manager *references* (not secrets) |
-| INTERESTING | 1 | Agent governance toolkit hardcodes IMDS endpoints across 4 policy backends (cedar, opa, dotnet, python) — shows metadata-service awareness but no exploitable material |
-
-The 16 "new delta hits" are all IMDS/cloud metadata IP references in `microsoft/agent-governance-toolkit` — already classified as ENDPOINT_LEAK.
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
