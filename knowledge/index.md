@@ -1229,3 +1229,13 @@
 - 2026-08-16 REJECTED source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated.
 - 2026-08-16 REJECTED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface.
 - 2026-08-16 REJECTED www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass.
+- 2026-08-16 REJECTED graph.microsoft.com root → HTTP 301 redirect (cosmetic, no auth-bypass surface)
+- 2026-08-16 REJECTED www.googleapis.com/storage/v1/b → HTTP 400/401 (anonymous bucket enumeration requires auth, no bypass)
+- 2026-08-16 ACCEPTED oauth2.googleapis.com/token GET→404 (POST-only gate, RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only
+- 2026-08-16 ACCEPTED agentRegistrations 6-family CORS+PATCH vector remains LIVE at 09:56 UTC — true preflight 200 ACAO:* + full mutation allowlist + Max-Age 86400 at collection+item+agents+admin+policySettings levels
+- 2026-08-16 ACCEPTED oauth2PermissionGrants production v1.0 auth-gate confirmed live → 401/237 Bearer at 09:56 UTC
+- 2026-08-16 ACCEPTED earthengine-api oauth.py:45 secret remains verified LIVE — sha256(secret)=3f3f8d6f…d271, sha256(file)=f4f93c76… unchanged, A/B oracle conclusive
+- 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes (token→404, agentRegs→401/401, oauth2PermissionGrants→401) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 cycle.
+- 2026-08-16 ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 + GET 401/237 + HEAD 405/0 (RFC 6750 §3) — unchanged, precondition intact.
+- 2026-08-16 ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verbatim at :45), A/B invalid_grant-vs-invalid_client proof conclusive.
+- 2026-08-16 ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 — unchanged.

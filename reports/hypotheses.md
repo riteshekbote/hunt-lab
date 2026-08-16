@@ -4164,3 +4164,29 @@
 - LEARN: REJECTED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface.
 - LEARN: REJECTED www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass.
 - LEARN: ACCEPTED agentRegistrations
+
+## RANKED HYPOTHESES 2026-08-16 10:01:39 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine hardcoded OAuth client_secret — valid credential A/B oracle proof (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both [
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET→200/len=23110, secret sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, oAuth2PermissionGrant EntityType 4
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- LEARN: REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4),
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection with
+- LEARN: REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass
+- LEARN: REJECTED graph.microsoft.com root → HTTP 301 redirect (cosmetic, no auth-bypass surface)
+- LEARN: REJECTED www.googleapis.com/storage/v1/b → HTTP 400/401 (anonymous bucket enumeration requires auth, no bypass)
+- LEARN: ACCEPTED oauth2.googleapis.com/token GET→404 (POST-only gate, RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=r
+- LEARN: ACCEPTED agentRegistrations 6-family CORS+PATCH vector remains LIVE at 09:56 UTC — true preflight 200 ACAO:* + full mutation allowlist + Max-Age 86400 at collec
+- LEARN: ACCEPTED oauth2PermissionGrants production v1.0 auth-gate confirmed live → 401/237 Bearer at 09:56 UTC
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret remains verified LIVE — sha256(secret)=3f3f8d6f…d271, sha256(file)=f4f93c76… unchanged, A/B oracle conclusive
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes (token→404, agentRegs→401/401, oauth2PermissionGrants→401) confirmed prior AC
+- LEARN: ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 8640
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verb
+- LEARN: ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 — unchanged.
