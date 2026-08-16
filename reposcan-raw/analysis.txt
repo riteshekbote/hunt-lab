@@ -1,48 +1,49 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py[90m [offset=200, limit=20][0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | Pattern | SHA256 | Verdict |
-|------|------|---------|--------|---------|
-| *(none)* | | | | |
+#### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in delta)* | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | `MYSQL_PASSWORD="beeblebrox"` | Test DB reset script; "beeblebrox" = Hitchhiker's Guide ref |
-| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `POSTGRESQL_PASSWORD="beeblebrox"` | Same pattern, PostgreSQL variant |
-| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` | In `testonly/` directory — test fixture key |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit fuzz test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test constant |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder literal |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Canonical test creds |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Refers to file, not inline secret |
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context |
+|------|------|---------|
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` — placeholder comment |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
+| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` — testonly keys |
+| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `POSTGRESQL_PASSWORD="beeblebrox"` — test script default |
+| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | `MYSQL_PASSWORD="beeblebrox"` — test script default |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` — test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` — placeholder |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` — config file reference |
+| google/android-emulator-container-scripts/run*.sh | 22,28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` — runtime file read |
 
-#### ENDPOINT_LEAK
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` → `cs.corp.google.com` | Internal source URL rewrite |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal` | GCE metadata endpoint |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` | Metadata server constant |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata IP |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Cloud metadata IP |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Cloud metadata IP |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `cs.corp.google.com` | Internal code search URL |
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Context |
+|------|------|---------|
+| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | ADO URL pattern: `https://dev.azure.com/org/project/_git/repo` |
+| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481 | ADO URL example in docstring |
+| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1522 | ADO URL example in comment |
+| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | ADO URL example in comment |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 531 | ADO URL format documentation |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 817 | ADO API format documentation |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 851 | ADO URL format documentation |
 
-#### INTERESTING
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/android-emulator-container-scripts/run*.sh | 22,28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` | Token file read pattern |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` | Token state key name |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/*.py | 152,241,890 | `b.corp.google.com/issues/...` | Internal bug tracker refs |
-| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup | Test infra detail |
+#### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Context |
+|------|------|---------|
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = <var>` — MLIR code generation, not a literal secret |
+| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | Comment documents kubeconfig blob handling (embeds client cert/bearer token) |
 
 ---
 
@@ -50,9 +51,10 @@
 
 | Candidate | File | REPORT_CANDIDATE |
 |-----------|------|------------------|
-| MYSQL_PASSWORD="beeblebrox" | google/certificate-transparency-go/scripts/resetctdb.sh:37 | **no** (test fixture) |
-| POSTGRESQL_PASSWORD="beeblebrox" | google/certificate-transparency-go/scripts/resetpgctdb.sh:41 | **no** (test fixture) |
-| EC PRIVATE KEY in testonly/keys.go | google/certificate-transparency-go/trillian/ctfe/testonly/keys.go:24 | **no** (test fixture in `testonly/`) |
-| All other hits | (various) | **no** (placeholders, test data, config patterns, internal URLs) |
+| JaxiteWordEmitter secret_key emission | google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 | **no** — code generation logic, `sk` is an SSA variable |
+| author_stats.py placeholder token | google/heir/scripts/author_stats.py:16 | **no** — explicit placeholder `"your_github_token_here"` |
+| ADO URL documentation (7 hits) | microsoft/apm/src/apm_cli/* | **no** — public Azure DevOps URL patterns, not secrets |
+| kubeconfig handling comment | microsoft/apm/src/apm_cli/core/script_executors.py:208 | **no** — documentation of secret-handling logic |
+| All other hits | (full grep list) | **no** — test fixtures, placeholders, runtime file reads, config references |
 
-**Summary**: 0 reportable secrets in this delta. All 3 new hits are test fixtures (`testonly/`, `reset*db.sh`, "beeblebrox" placeholder). No LIVE credentials, API keys, or tokens found.
+**NO REPORTABLE FINDINGS IN THIS DELTA.** All hits are test fixtures, placeholders, documentation, or code-generation logic. No hardcoded live credentials detected.
