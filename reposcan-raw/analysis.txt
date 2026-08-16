@@ -1,73 +1,129 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp[90m [offset=180, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-Now I have sufficient context to classify all hits. Here's the triage:
+[0m$ [0mcat reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenHint.kt
+/*
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@file:Suppress("FlaggedApi", "NewApi")
+
+package com.android.personalcontext.ace.client.prototype.rendertoken
+
+import android.os.Bundle
+import android.service.personalcontext.RenderToken
+import androidx.core.os.BundleCompat
+import com.android.personalcontext.ace.client.prototype.PrototypeHint
+import com.android.personalcontext.ace.client.prototype.PrototypeHintId.RenderTokenHintId
+
+/**
+ * A hint that wraps a [RenderToken].
+ *
+ * This hint should be republished whenever the Renderer's [RenderToken] is updated.
+ *
+ * @property renderToken The [RenderToken] minted from a Renderer.
+ */
+data class RenderTokenHint(val renderToken: RenderToken) : PrototypeHint(RenderTokenHintId, this) {
+
+  override fun exportDataToBundle(bundle: Bundle) {
+    bundle.putParcelable(KEY_RENDER_TOKEN, renderToken)
+  }
+
+  companion object : Creator {
+    private const val KEY_RENDER_TOKEN = "render_token"
+
+    override fun create(bundle: Bundle): PrototypeHint =
+      RenderTokenHint(
+        renderToken =
+          BundleCompat.getParcelable(bundle, KEY_RENDER_TOKEN, RenderToken::class.java)
+            ?: error("RenderToken is null")
+      )
+  }
+}
+[0m
+[0m$ [0mcat reposcan-raw/google/private-compute-services/src/com/google/android/as/oss/ace/java/com/android/personalcontext/ace/client/prototype/rendertoken/RenderTokenInsight.kt
+/*
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+@file:Suppress("FlaggedApi", "NewApi")
+
+package com.android.personalcontext.ace.client.prototype.rendertoken
+
+import android.os.Bundle
+import android.service.personalcontext.RenderToken
+import android.service.personalcontext.hint.PublishedContextHint
+import androidx.core.os.BundleCompat
+import com.android.personalcontext.ace.client.prototype.PrototypeContextInsight
+import com.android.personalcontext.ace.client.prototype.PrototypeInsightId.RenderTokenInsightId
+
+/**
+ * An insight that wraps a [RenderToken].
+ *
+ * @param renderToken the render token to wrap.
+ */
+data class RenderTokenInsight(
+  val renderToken: RenderToken,
+  override val originHints: Collection<PublishedContextHint> = emptySet(),
+) : PrototypeContextInsight(RenderTokenInsightId, this) {
+
+  override fun exportDataToBundle(bundle: Bundle) {
+    bundle.putParcelable(KEY_RENDER_TOKEN, renderToken)
+  }
+
+  companion object : PrototypeContextInsightCreator() {
+    private const val KEY_RENDER_TOKEN = "render_token"
+
+    override fun create(bundle: Bundle, originHints: Set<PublishedContextHint>) =
+      RenderTokenInsight(
+        BundleCompat.getParcelable(bundle, KEY_RENDER_TOKEN, RenderToken::class.java)
+          ?: error("RenderToken is null"),
+        originHints = originHints,
+      )
+  }
+}
+[0m
+**Classification Table**
+
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml:168-170` (secret refs)<br>`google/agents-cli/src/google/agents/cli/auth.py:43` (placeholder "gemini_api_key")<br>`google/agents-cli/.../staging.yaml:168,192` (GH Actions expressions)<br>`google/pebble/devsite/.../404.js:24` & `quicksearch.js:33` (template `{{site.algolia_api_key}}`)<br>`google/adk-python/.../auth_credential.py:157,269,278` (placeholder key/creds/token)<br>`google/adk-python/.../auth_schemes.py:68` (placeholder "password")<br>`google/adk-python/.../auth_helpers.py:62` (placeholder "your_client_secret")<br>`google/android-cuttlefish/.github/workflows/*.yaml` (all `${{secrets.*}}` refs)<br>`google/private-compute-services/.../RenderTokenHint.kt:41` & `RenderTokenInsight.kt:43` (const key name `"render_token"`) |
+| **ENDPOINT_LEAK** | `google/adk-python/.../container_code_executor.py:114,154` (169.254.169.254 metadata)<br>`google/adk-python/.../load_web_page.py:171` (169.254.169.254)<br>`google/adk-python/.../computer_use_toolset.py:146` (169.254.169.254)<br>`google/android-cuttlefish/.../defaults.cpp:42` (metadata.google.internal) |
+| **INTERESTING** | `google/adk-python/.../gke_code_executor.py:103,104,115` (kubeconfig params)<br>`google/adk-python/.../sandbox_computer.py:47` (access token state key)<br>`google/adk-python/.../cli_create.py:131` (GOOGLE_API_KEY config generation)<br>`google/android-cuttlefish/.../oauth2_consent.cpp:187` (OAuth2 client_secret flow) |
 
 ---
 
-### **REAL_SECRET** (hardcoded credentials with signs of life)
-*None found in this scan.*
+**Verdict List**
 
----
+| File:Line | Classification | REPORT_CANDIDATE |
+|-----------|---------------|------------------|
+| `google/private-compute-services/.../RenderTokenHint.kt:41` | TEST_OR_EXAMPLE (const key name `"render_token"`) | **no** |
+| `google/private-compute-services/.../RenderTokenInsight.kt:43` | TEST_OR_EXAMPLE (const key name `"render_token"`) | **no** |
+| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** |
 
-### **TEST_OR_EXAMPLE** (sample/test/fixture data — not reportable)
-
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (runtime injection) |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder literal |
-| `google/agents-cli/.../staging.yaml` | 168, 192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | CI token references |
-| `google/pebble/devsite/source/assets/js/404.js` | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Template placeholder (Algolia DocSearch public key) |
-| `google/pebble/devsite/source/assets/js/quicksearch.js` | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Template placeholder |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 155-163 | `your_project_id`, `your_private_key_id`, `-----BEGIN PRIVATE KEY-----...` | Example config in docstring |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` | Example credentials in test/code |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `HttpCredentials(token="eyAkaknabna....")` | Fake JWT placeholder |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | OAuth grant type enum value (not a secret) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Placeholder in example |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
-| `google/adk-kotlin/.../McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` | Test constant |
-| `google/android-cuttlefish/.github/workflows/*.yaml` | multiple | `${{ secrets.artifact-registry-uploader-json-creds }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` | GitHub Actions secret references |
-
----
-
-### **ENDPOINT_LEAK** (internal/dev/staging URLs, API endpoints)
-
-| File | Line | Endpoint | Classification |
-|------|------|----------|----------------|
-| `google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp` | 42 | `http://metadata.google.internal/computeMetadata/v1/%s` | **Benign known endpoint** — Standard GCE metadata endpoint (publicly documented by Google). Not a secret. |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` | Config params, not endpoints |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` metadata | **Benign known endpoint** — Standard IMDS endpoint (documented) |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` in Chrome | **Benign known endpoint** — Documented IMDS |
-
----
-
-### **INTERESTING** (unusual patterns, debug flags, cloud configs)
-
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp` | 187 | `client_secret=` in OAuth token exchange | Legitimate OAuth2 client code — `request.client_secret` is a runtime parameter, not hardcoded. Normal auth flow implementation. |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key constant |
-| `google/pebble/third_party/jquery/jquery-1.11.2.js` | 6170 | CSSOM draft spec URL | Third-party library reference |
-
----
-
-### **VERDICT LIST** (REPORT_CANDIDATE per real candidate)
-
-| Candidate | File | Line | REPORT_CANDIDATE | Reason |
-|-----------|------|------|------------------|--------|
-| GCE metadata endpoint | android-cuttlefish/defaults.cpp | 42 | **NO** | Public documented endpoint (not a secret) |
-| OAuth client_secret usage | android-cuttlefish/oauth2_consent.cpp | 187 | **NO** | Runtime parameter in legit OAuth flow |
-| IMDS references (169.254.169.254) | adk-python (multiple) | various | **NO** | Public documented endpoints |
-| All other hits | various | various | **NO** | Placeholders, test fixtures, CI secret refs, third-party code |
-
----
-
-**SUMMARY:** No reportable findings in this delta. The 2 new hits are:
-1. Standard GCE metadata endpoint (benign, documented)
-2. Legitimate OAuth2 token exchange code using runtime `client_secret` parameter
-
-All other hits are test fixtures, placeholder examples, GitHub Actions secret references (properly using `${{ secrets.* }}`), or third-party library code.
+**Summary**: No reportable secrets. The two delta hits are Android `Bundle` parcelable key constants (`"render_token"`), not credentials. All other hits are secret references, placeholders, metadata endpoint references, or config parameters.
