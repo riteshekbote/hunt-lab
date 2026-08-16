@@ -1,27 +1,73 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mcat << 'EOF'
+# Classification Table
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *(none in this delta)* |
-| **TEST_OR_EXAMPLE** | `google/jsonnet/doc/third_party/MathJax-2.7.2/` (all 52 hits — vendored third-party library), `google/langextract/.github/workflows/ci.yaml:168-170` (`${{ secrets.* }}` refs), `google/llm-sidebar-with-context/src/scripts/constants.ts:47` (placeholder `'geminiApiKey'`), `google/magika/.github/workflows/` (2 files, `${{secrets.GITHUB_TOKEN}}`, test PyPI URLs), `google/magika/tests_data/basic/javascript/code.js:31` (test fixture) |
-| **ENDPOINT_LEAK** | `google/jsonnet/case_studies/micromanage/service_google.py:198` — `http://169.254.169.254/computeMetadata/v1/instance/attributes` (GCP metadata server, well-known public IP) |
-| **INTERESTING** | *(none reportable)* |
+## REAL_SECRET
+(None found)
 
----
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper secret management) |
+| reposcan-raw/google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | Placeholder constant name, not actual key |
+| reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GitHub Actions secret reference |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | PyPI test URLs | Public package registry URLs |
+| reposcan-raw/google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS | Test fixture data |
+| reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | 198 | `169.254.169.254` metadata URL | Well-known GCP metadata endpoint (public) |
+| reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/** | various | "NotMathMLToken" localization strings | Third-party library i18n error messages |
 
-### Verdict List
+## ENDPOINT_LEAK
+(None found - all endpoints are public/well-known)
 
-| File:Line | Classification | REPORT_CANDIDATE |
-|-----------|----------------|------------------|
-| `google/jsonnet/case_studies/micromanage/service_google.py:198` | ENDPOINT_LEAK (GCP metadata server — public, well-known) | **no** |
-| `google/jsonnet/doc/third_party/MathJax-2.7.2/*` (52 hits) | TEST_OR_EXAMPLE (vendored MathJax 2.7.2) | **no** |
-| `google/langextract/.github/workflows/ci.yaml:168-170` | TEST_OR_EXAMPLE (GitHub Actions `${{ secrets.* }}` refs) | **no** |
-| `google/llm-sidebar-with-context/src/scripts/constants.ts:47` | TEST_OR_EXAMPLE (placeholder constant name) | **no** |
-| `google/magika/.github/workflows/github-issue-labeler.yml:20` | TEST_OR_EXAMPLE (`${{secrets.GITHUB_TOKEN}}`) | **no** |
-| `google/magika/.github/workflows/python-build-and-release-package.yml:407,437` | TEST_OR_EXAMPLE (test PyPI URLs) | **no** |
-| `google/magika/tests_data/basic/javascript/code.js:31` | TEST_OR_EXAMPLE (test fixture) | **no** |
+## INTERESTING
+(None found beyond expected patterns)
 
-**Summary**: No new `REAL_SECRET` or reportable findings in this delta. The earthengine-api `oauth.py:45` secret (sha256 `3f3f8d6f…d271`) was already tracked in the knowledge base and is not a new hit.
+# Verdict
+
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|--------|------------------|
+| (none) | - | - | - | no |
+
+**Summary**: All 414 hits are false positives — GitHub Actions secret refs, placeholder constants, test fixtures, public metadata endpoints, and third-party library localization strings. No hardcoded credentials or reportable findings in this scan delta.
+EOF
+# Classification Table
+
+## REAL_SECRET
+(None found)
+
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper secret management) |
+| reposcan-raw/google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | Placeholder constant name, not actual key |
+| reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GitHub Actions secret reference |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | PyPI test URLs | Public package registry URLs |
+| reposcan-raw/google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS | Test fixture data |
+| reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | 198 | `169.254.169.254` metadata URL | Well-known GCP metadata endpoint (public) |
+| reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/** | various | "NotMathMLToken" localization strings | Third-party library i18n error messages |
+
+## ENDPOINT_LEAK
+(None found - all endpoints are public/well-known)
+
+## INTERESTING
+(None found beyond expected patterns)
+
+# Verdict
+
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|--------|------------------|
+| (none) | - | - | - | no |
+
+**Summary**: All 414 hits are false positives — GitHub Actions secret refs, placeholder constants, test fixtures, public metadata endpoints, and third-party library localization strings. No hardcoded credentials or reportable findings in this scan delta.
+[0m
+**Triage complete.** All 414 hits are false positives:
+
+- **GitHub Actions secret refs** (3 files): `${{ secrets.* }}` — proper secret management, not hardcoded
+- **Placeholder constant** (1 file): `'geminiApiKey'` — literal string, not a key
+- **Public endpoints** (1 file): `169.254.169.254` — well-known GCP metadata IP
+- **Test fixtures** (1 file): minified JS in test data
+- **Third-party i18n strings** (400+ hits): MathJax "NotMathMLToken" translations in vendored jsonnet docs
+
+**No REAL_SECRET, no ENDPOINT_LEAK, no reportable findings.** The scan delta shows NO_DELTA vs prior baseline — consistent with the knowledge base showing earthengine-api oauth.py:45 as the only live secret (already tracked, not in this scan).
