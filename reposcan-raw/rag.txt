@@ -1200,6 +1200,13 @@
 - 2026-08-16 ACCEPTED: v1↔v2 dual issuer namespaces intact @ login.microsoftonline.com — v1 issuer = sts.windows.net/{tid}/, v2 issuer = login.microsoftonline.com/{tid}/v2.0; Accept: application/json now required for v2.0 JSON (minor hardening, no security impact).
 - 2026-08-16 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint, no GET) — validates earthengine secret redemption path is grant_type=refresh_token only.
 - 2026-08-16 CHANGED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic redirect, no auth-bypass surface.
+- 2026-08-16 REJECTED graph.microsoft.com root → HTTP 301 redirect: cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface, no new attack vector.
+- 2026-08-16 REJECTED www.googleapis.com/storage/v1/b anonymous bucket enumeration: HTTP 400 missing project, then 401 storage.buckets.list denied for anonymous caller — no bypass, requires auth.
+- 2026-08-16 REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo: confirmed live (GET→400/113 invalid_token) but no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible for reward).
+- 2026-08-16 ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 re-verified live 08:02 UTC.
+- 2026-08-16 ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, secret sha `3f3f8d6f…d271` verbatim), A/B invalid_grant-vs-invalid_client proof conclusive.
+- 2026-08-16 ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 (RFC 6750 §3) re-verified.
+- 2026-08-16 REJECTED no new proving-dead classes this cycle — all fresh probes (08:02 UTC) confirmed prior findings unchanged, NO_DELTA.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 

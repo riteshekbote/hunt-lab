@@ -1,32 +1,114 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m$ [0mcat << 'EOF'
+# Classification Tables
 
-| Category | File | Line | Classification | Notes |
-|----------|------|------|----------------|-------|
-| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs (`${{ secrets.* }}`) | Standard CI pattern, not hardcoded |
-| **TEST_OR_EXAMPLE** | `google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholder keys (`YOUR_*_API_KEY_HERE`) | Obvious test fixtures |
-| **REJECTED (KNOWN DUP)** | `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey` | **KB: 2026-08-07 REJECTED** — search-only key, public by design |
-| **TEST_OR_EXAMPLE** | `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Default flag value `storage_driver_password` | Placeholder default, not a real secret |
-| **INTERESTING (code pattern)** | `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment re: 169.254.169.254 SSRF | Security comment, not a leak |
-| **INTERESTING (code pattern)** | `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments re: metadata endpoint SSRF | Security comments |
-| **INTERESTING (code pattern)** | `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment re: cloud metadata endpoints | Security comment |
-| **INTERESTING (code pattern)** | `google/jsonnet/case_studies/micromanage/service_google.py` | 198 | Code reading `169.254.169.254/computeMetadata` | SSRF-relevant code pattern, not a secret |
-| **TEST_OR_EXAMPLE (vendor)** | `google/jsonnet/doc/third_party/MathJax-2.7.2/**` | many | MathJax "token" = MathML token, not auth | Third-party vendor code, false positive |
+## REAL_SECRET (reportable candidates)
+| File | Line | Type | SHA256(secret) | REPORT_CANDIDATE |
+|------|------|------|----------------|------------------|
+| (none) | - | - | - | - |
 
----
+## TEST_OR_EXAMPLE (non-reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references (`${{ secrets.* }}`) — not hardcoded values |
+| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder API keys: `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default constant name `StorageDriverPassword = "storage_driver_password"` |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Case study example: metadata service URL `169.254.169.254` |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored third-party library (localization + config files) |
 
-### Verdict List
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| (none actionable) | - | All 169.254.169.254 references are in comments/docs, not live endpoint leaks |
 
-| File | REPORT_CANDIDATE | Reason |
-|------|------------------|--------|
-| `google/langextract/.github/workflows/ci.yaml` | **no** | Secret references, not hardcoded values |
-| `google/xrblocks/src/ai/AI.ts` | **no** | Placeholder/test fixtures |
-| `google/xrblocks/docs/docusaurus.config.ts` | **no** | **KNOWN DUP** — Algolia DocSearch key (KB REJECTED 2026-08-07) |
-| `google/cadvisor/lib/cadvisorflags/flags.go` | **no** | Default config placeholder |
-| `google/go-containerregistry/...` (4 files) | **no** | Security comments / SSRF code patterns, not secrets |
-| `google/jsonnet/case_studies/.../service_google.py` | **no** | Metadata endpoint usage code, not a leak |
-| `google/jsonnet/doc/third_party/MathJax-2.7.2/**` | **no** | Vendor code (MathML tokens), false positive |
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Note |
+|------|------|------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 redirect to cloud metadata service (SSRF consideration) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF protection logic |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: 169.254.169.254 / fd00:ec2::254, DNS-based SSRF noted out of scope |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
 
-**No REAL_SECRET candidates in this delta.** All hits are either test fixtures, secret references, known-rejected patterns, vendor code, or security-relevant code comments — none are reportable hardcoded credentials.
+## KNOWN DUPLICATE / REJECTED (per knowledge base)
+| File | Line | Class | Status |
+|------|------|-------|--------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey | REJECTED (search-only key, public by design) |
+
+# SHORT VERDICT
+REPORT_CANDIDATE: no — no live hardcoded secrets found in this scan delta. All hits are either secret references, placeholders, vendored third-party code, comments, or previously rejected classes (Algolia key).
+EOF
+# Classification Tables
+
+## REAL_SECRET (reportable candidates)
+| File | Line | Type | SHA256(secret) | REPORT_CANDIDATE |
+|------|------|------|----------------|------------------|
+| (none) | - | - | - | - |
+
+## TEST_OR_EXAMPLE (non-reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references (`${{ secrets.* }}`) — not hardcoded values |
+| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder API keys: `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default constant name `StorageDriverPassword = "storage_driver_password"` |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Case study example: metadata service URL `169.254.169.254` |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored third-party library (localization + config files) |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| (none actionable) | - | All 169.254.169.254 references are in comments/docs, not live endpoint leaks |
+
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Note |
+|------|------|------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 redirect to cloud metadata service (SSRF consideration) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF protection logic |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: 169.254.169.254 / fd00:ec2::254, DNS-based SSRF noted out of scope |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
+
+## KNOWN DUPLICATE / REJECTED (per knowledge base)
+| File | Line | Class | Status |
+|------|------|-------|--------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey | REJECTED (search-only key, public by design) |
+
+# SHORT VERDICT
+REPORT_CANDIDATE: no — no live hardcoded secrets found in this scan delta. All hits are either secret references, placeholders, vendored third-party code, comments, or previously rejected classes (Algolia key).
+[0m
+# Classification Tables
+
+## REAL_SECRET (reportable candidates)
+| File | Line | Type | SHA256(secret) | REPORT_CANDIDATE |
+|------|------|------|----------------|------------------|
+| (none) | - | - | - | - |
+
+## TEST_OR_EXAMPLE (non-reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references (`${{ secrets.* }}`) — not hardcoded values |
+| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder API keys: `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default constant name `StorageDriverPassword = "storage_driver_password"` |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Case study example: metadata service URL `169.254.169.254` |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored third-party library (localization + config files) |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| (none actionable) | - | All 169.254.169.254 references are in comments/docs, not live endpoint leaks |
+
+## INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Note |
+|------|------|------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 redirect to cloud metadata service (SSRF consideration) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF protection logic |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: 169.254.169.254 / fd00:ec2::254, DNS-based SSRF noted out of scope |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
+
+## KNOWN DUPLICATE / REJECTED (per knowledge base)
+| File | Line | Class | Status |
+|------|------|-------|--------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey | REJECTED (search-only key, public by design) |
+
+# SHORT VERDICT
+REPORT_CANDIDATE: no — no live hardcoded secrets found in this scan delta. All hits are either secret references, placeholders, vendored third-party code, comments, or previously rejected classes (Algolia key).
