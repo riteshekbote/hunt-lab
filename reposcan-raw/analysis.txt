@@ -1,60 +1,27 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+### Classification Table
 
-#### REAL_SECRET
-*None found in this delta scan*
-
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder (`...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated example token (`....`) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | GH Actions secret ref (proper usage) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | `test.pypi.org` URLs | Test PyPI endpoints |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS test fixture | Test data file |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GH Actions secret refs |
-| google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | Config key name, not value |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | `eot_token`, `system_token`, `user_token` | Chat template constants |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | (20 files) | Parse error messages | Minified build artifacts |
-| google/closure-compiler/externs/*.js | (multiple) | W3C spec URLs | Documentation references |
-
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Cloud metadata IP (well-known, documented) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Comment about blocking metadata access |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | NAT64 routing reference |
-| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com/piper///depot/google3/...` | Internal Google source link |
-
-#### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation pattern (not hardcoded) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | K8s config parameters |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Token state key naming |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = ...` | Kubeconfig env var assignment |
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *(none in this delta)* |
+| **TEST_OR_EXAMPLE** | `google/jsonnet/doc/third_party/MathJax-2.7.2/` (all 52 hits — vendored third-party library), `google/langextract/.github/workflows/ci.yaml:168-170` (`${{ secrets.* }}` refs), `google/llm-sidebar-with-context/src/scripts/constants.ts:47` (placeholder `'geminiApiKey'`), `google/magika/.github/workflows/` (2 files, `${{secrets.GITHUB_TOKEN}}`, test PyPI URLs), `google/magika/tests_data/basic/javascript/code.js:31` (test fixture) |
+| **ENDPOINT_LEAK** | `google/jsonnet/case_studies/micromanage/service_google.py:198` — `http://169.254.169.254/computeMetadata/v1/instance/attributes` (GCP metadata server, well-known public IP) |
+| **INTERESTING** | *(none reportable)* |
 
 ---
 
-### SHORT VERDICT
+### Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| (none) | REAL_SECRET | **no** |
+| File:Line | Classification | REPORT_CANDIDATE |
+|-----------|----------------|------------------|
+| `google/jsonnet/case_studies/micromanage/service_google.py:198` | ENDPOINT_LEAK (GCP metadata server — public, well-known) | **no** |
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/*` (52 hits) | TEST_OR_EXAMPLE (vendored MathJax 2.7.2) | **no** |
+| `google/langextract/.github/workflows/ci.yaml:168-170` | TEST_OR_EXAMPLE (GitHub Actions `${{ secrets.* }}` refs) | **no** |
+| `google/llm-sidebar-with-context/src/scripts/constants.ts:47` | TEST_OR_EXAMPLE (placeholder constant name) | **no** |
+| `google/magika/.github/workflows/github-issue-labeler.yml:20` | TEST_OR_EXAMPLE (`${{secrets.GITHUB_TOKEN}}`) | **no** |
+| `google/magika/.github/workflows/python-build-and-release-package.yml:407,437` | TEST_OR_EXAMPLE (test PyPI URLs) | **no** |
+| `google/magika/tests_data/basic/javascript/code.js:31` | TEST_OR_EXAMPLE (test fixture) | **no** |
 
-**Summary**: This delta scan produced **zero reportable secrets**. All hits are:
-- Test fixtures / placeholder values (`password`, `your_client_secret`, `user`/`password`)
-- GitHub Actions secret references (`${{secrets.*}}`) — correct pattern
-- Build artifacts (minified JS chunks)
-- Well-known cloud metadata IP (`169.254.169.254`) — documented public endpoint
-- Config parameter definitions (kubeconfig, token state keys)
-- Internal Google source link in externs (not a credential)
-
-The previously reported **earthengine-api OAuth client_secret** (`oauth.py:45`, sha256 `3f3f8d6f...d271`) does not appear in this delta — it was already tracked in prior cycles (ACCEPTED, valid credential per RFC 6749 §5.2 A/B proof). No new REAL_SECRET candidates in this scan.
+**Summary**: No new `REAL_SECRET` or reportable findings in this delta. The earthengine-api `oauth.py:45` secret (sha256 `3f3f8d6f…d271`) was already tracked in the knowledge base and is not a new hit.
