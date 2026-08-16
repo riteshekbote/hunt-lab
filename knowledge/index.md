@@ -1400,3 +1400,7 @@
 - 2026-08-16 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed 401 on production v1.0 — consent forge precondition intact (NO_DELTA)
 - 2026-08-16 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at collection+item+agents+admin+policySettings levels (200 ACAO:* + PATCH allowlist + Max-Age 86400); bare-OPTIONS→405 confirmed as probe artifact (no Origin header); 873-char+458-char metadata blocks, 0 OperationRestrictions across 6 EntityTypes
 - 2026-08-16 ACCEPTED: v1↔v2 JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED
+- 2026-08-16 ACCEPTED: No new classes proven dead or alive this cycle — all 3 active hypotheses remain stable per robot probe log (2026-08-16 ~22:33 UTC: agentRegistrations→401, oauth2PermissionGrants→401, token→404 POST-only gate); NO_DELTA.
+- 2026-08-16 REJECTED: Dual-JWKS rotation desync remains dead — v1⊂v2 steady-state subset invariant holds across all cycle rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-16 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- 2026-08-16 REJECTED: Source maps @ identity SPAs closed — mysignins (404) + api.myaccount (401); recon surface eliminated.
