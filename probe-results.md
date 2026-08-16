@@ -902,3 +902,9 @@ https://oauth2.googleapis.com/token -> HTTP 404
 
 ## 2026-08-16 03:12:57 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
+
+## 2026-08-16 04:05:49 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
+https://graph.microsoft.com/beta/copilot/agentRegistrations` -> HTTP 401
+https://graph.microsoft.com/beta/copilot/agentRegistrations/{id -> HTTP 401
+https://graph.microsoft.com/v1.0/oauth2PermissionGrants` -> HTTP 401
