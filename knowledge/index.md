@@ -1374,3 +1374,5 @@
 - 2026-08-16 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
 - 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires auth, no bypass
 - 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
+- 2026-08-16 REJECTED: No new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family CORS+PATCH vector remains LIVE at collection+item+agents+admin+policySettings levels

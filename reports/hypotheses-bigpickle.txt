@@ -1,4 +1,4 @@
-## 2026-08-16 20:12:27 UTC [google] (model bigpickle)
+## 2026-08-16 20:40:41 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/* (6-family IDOR+CORS) | 82 | attack=10 business=9 tech=8 gate=7 cloud=7 fresh=8
 [PRIO] earthengine-api oauth.py:45 (hardcoded secret) | 77 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (consent forge) | 68 | attack=8 business=9 tech=8 gate=6 cloud=5 fresh=7
@@ -30,9 +30,8 @@ verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-eartheng
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness (ADK #2128 precedent).
 testability: HUMAN_ONLY
 [FINAL]
-[NEXT] HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both the 6-family IDOR+CORS (confidence 97) and the oauth2PermissionGrants consent forge (confidence 74) hypotheses; both require two-authenticated-principal testing that cannot be performed passively.
-[LEARN] ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families
-[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+[LEARN] ACCEPTED: agentRegistrations 6-family CORS+PATCH vector remains LIVE at collection+item+agents+admin+policySettings levels
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
 [LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions)
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 [LEARN] REJECTED: Source maps @ identity SPAs closed — mysignins (404) + api.myaccount (401); recon surface eliminated
