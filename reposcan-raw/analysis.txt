@@ -1,236 +1,74 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
-# Copyright 2019 The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
+[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run.sh
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=70][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=50, offset=30][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=30][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/python/bot/startup/run_bot.py[90m [offset=260, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py[90m [offset=120, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py[90m [limit=20, offset=145][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py[90m [offset=235, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py[90m [offset=885, limit=30][0m
+[0m✗ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py failed[90m [offset=70, limit=20][0m
+[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py
+[0m✱ [0mGlob "**/googlefuzztest/engine.py"[90m in reposcan-raw/google/clusterfuzz · 1 match[0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py[90m [offset=165, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py[90m [limit=30][0m
+[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py[90m [limit=30, offset=70][0m
+Now I have a complete picture. Let me classify all hits:
 
-# This launcher will force the emulator to use hardware acceleration. In order to use this you will need to have
-# installed the nvida docker container drivers (https://github.com/NVIDIA/nvidia-docker)
-CONTAINER_ID=$1
-shift
-PARAMS="$@"
-# Allow display access from the container.
-xhost +si:localuser:root
-docker run --gpus all \
-   --device /dev/kvm \
-   --publish 8554:8554/tcp  \
-   --publish 5555:5555/tcp  \
-   -v /tmp/.X11-unix:/tmp/.X11-unix \
-   -e DISPLAY \
-   -e TOKEN="$(cat ~/.emulator_console_auth_token)" \
-   -e ADBKEY="$(cat ~/.android/adbkey)" \
-   -e EMULATOR_PARAMS="-gpu host ${PARAMS}" \
-   ${CONTAINER_ID}
-[0m
-[0m$ [0mcat reposcan-raw/google/android-emulator-container-scripts/run.sh
-# Copyright 2019 The Android Open Source Project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-CONTAINER_ID=$1
-shift
-PARAMS="$@"
-docker run \
- --device /dev/kvm \
- --publish 8554:8554/tcp \
- --publish 5554:5554/tcp \
- --publish 5555:5555/tcp \
- -e TOKEN="$(cat ~/.emulator_console_auth_token)" \
- -e ADBKEY="$(cat ~/.android/adbkey)" \
- -e TURN \
- -e EMULATOR_PARAMS="${PARAMS}"  \
- ${CONTAINER_ID}
-[0m
-[0m$ [0mhead -50 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+## Classification Table
 
-from __future__ import annotations
-
-from enum import Enum
-from typing import Annotated
-from typing import Any
-from typing import Dict
-from typing import Iterator
-from typing import List
-from typing import Literal
-
-from pydantic import alias_generators
-from pydantic import BaseModel
-from pydantic import ConfigDict
-from pydantic import Field
-from pydantic import model_validator
-
-_REDACTED = "<redacted>"
-
-
-# Pydantic echoes the rejected value into ValidationError messages
-# ("input_value=..."), which would put a malformed secret straight into logs and
-# into the error strings surfaced to the LLM. The field name and error type are
-# still reported. Passed as a class keyword rather than added to `model_config`
-# below: `model_config` states what these models accept, and rewriting that
-# declaration reads as an API change to the breaking-change detector even though
-# nothing about what they accept has changed.
-class BaseModelWithConfig(BaseModel, hide_input_in_errors=True):
-  """Base model for credential types, hardened against leaking secrets."""
-
-  model_config = ConfigDict(
-      extra="allow",
-      alias_generator=alias_generators.to_camel,
-      populate_by_name=True,
-  )
-  """The pydantic model config."""
-[0m
-[0m$ [0msed -n '150,170p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-Example:
-
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-
-
-      config = ServiceAccountConfig.model_construct(**{
-          ...service account config dict
-      })
-[0m
-[0m$ [0msed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
-
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
-[0m
-[0m$ [0msed -n '65,75p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
-CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
-[0m
-[0m$ [0msed -n '60,65p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
-auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-[0m
-### Classification Table
-
-| Category | File | Line | Pattern | Verdict |
-|----------|------|------|---------|---------|
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder with ellipsis in docstring example |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test fixture values in example |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder with ellipsis in example |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth grant type constant ("password" flow), not a secret |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder in docstring |
-| **TEST_OR_EXAMPLE** | google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture ("fuzz test key") |
-| **TEST_OR_EXAMPLE** | google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password constant |
-| **TEST_OR_EXAMPLE** | google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder string literal |
-| **TEST_OR_EXAMPLE** | google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Path to password file, not the secret |
-| **ENDPOINT_LEAK** | google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal` | Internal GCP metadata endpoint (known, non-secret) |
-| **ENDPOINT_LEAK** | google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `metadata.google.internal` | Internal metadata server hostname |
-| **ENDPOINT_LEAK** | google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` | Internal source URL pattern |
-| **ENDPOINT_LEAK** | google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `cs.corp.google.com` | Internal code search URL pattern |
-| **ENDPOINT_LEAK** | google/clusterfuzz (multiple) | various | `b.corp.google.com`, `buganizer.corp.google.com` | Internal issue tracker URLs |
-| **INTERESTING** | google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata IP references (documentation/warning) |
-| **INTERESTING** | google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference in comment |
-| **INTERESTING** | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference in comment |
-| **TEST_OR_EXAMPLE** | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper GitHub Actions secret reference |
-| **TEST_OR_EXAMPLE** | google/agents-cli (workflow templates) | various | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression, not a secret |
-| **RUNTIME_PATTERN** | google/android-emulator-container-scripts/run-with-gpu.sh | 28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` | Reads local file at runtime (NOT hardcoded) |
-| **RUNTIME_PATTERN** | google/android-emulator-container-scripts/run.sh | 22 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` | Reads local file at runtime (NOT hardcoded) |
-| **RUNTIME_PATTERN** | google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
-| **RUNTIME_PATTERN** | google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| Category | File:Line | Classification | Reason |
+|----------|-----------|----------------|--------|
+| **REAL_SECRET** | *(none)* | — | No live hardcoded credentials found in this scan |
+| **TEST_OR_EXAMPLE** | `google/android-emulator-container-scripts/run-with-gpu.sh:28` | TEST_OR_EXAMPLE | Reads token from local user file `~/.emulator_console_auth_token` at runtime |
+|  | `google/android-emulator-container-scripts/run.sh:22` | TEST_OR_EXAMPLE | Same — reads from local file at runtime |
+|  | `google/langextract/.github/workflows/ci.yaml:168-170` | TEST_OR_EXAMPLE | Uses GitHub Actions secrets (`${{ secrets.* }}`), proper secret management |
+|  | `google/oss-fuzz/projects/h2database/TestServer.java:13` | TEST_OR_EXAMPLE | Test fixture password `"ServerShutdownPassword"` in oss-fuzz test harness |
+|  | `google/oss-fuzz/projects/flask/fuzz_json.py:27` | TEST_OR_EXAMPLE | Fuzz test key `"fuzz test key"` |
+|  | `google/oss-fuzz/projects/mysql-connector-j/*` | TEST_OR_EXAMPLE | Documentation URLs, not secrets |
+|  | `google/capsem/config/gate.toml:584` | TEST_OR_EXAMPLE | References password file path `"password.txt"`, not the secret itself |
+|  | `google/capsem/scripts/preflight.sh:39` | TEST_OR_EXAMPLE | Reads password from file at runtime |
+|  | `google/capsem/scripts/fix_p12_legacy.sh:15` | TEST_OR_EXAMPLE | Reads password from file at runtime |
+|  | `google/agents-cli/src/google/agents/cli/auth.py:43` | TEST_OR_EXAMPLE | Enum constant name `"gemini_api_key"`, not an actual key |
+|  | `google/adk-python/src/google/adk/auth/auth_credential.py:157` | TEST_OR_EXAMPLE | Docstring placeholder `"-----BEGIN PRIVATE KEY-----..."` with ellipsis |
+|  | `google/adk-python/src/google/adk/auth/auth_credential.py:269` | TEST_OR_EXAMPLE | Example HTTP basic auth in documentation (`user`/`password`) |
+|  | `google/adk-python/src/google/adk/auth/auth_credential.py:278` | TEST_OR_EXAMPLE | Example JWT placeholder `"eyAkaknabna...."` with ellipsis |
+|  | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | TEST_OR_EXAMPLE | OAuth2 `PASSWORD` grant type enum value (string literal `"password"`), not a credential |
+|  | `google/adk-python/src/google/adk/cli/cli_create.py:131` | TEST_OR_EXAMPLE | Writes user-supplied `google_api_key` variable to `.env` at runtime |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py:152` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py:241` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py:890` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py:77` | TEST_OR_EXAMPLE | Comment referencing internal buganizer issue |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py:171` | TEST_OR_EXAMPLE | Comment about test kubeconfig |
+| **ENDPOINT_LEAK** | `google/clusterfuzz/src/python/bot/startup/run_bot.py:267` | ENDPOINT_LEAK | GCE metadata server URL `metadata.google.internal` (well-known, not sensitive) |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py:459-460` | ENDPOINT_LEAK | Internal corporate source URLs (`source.corp.google.com`) |
+|  | `google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py:23` | ENDPOINT_LEAK | GCE metadata server hostname (public knowledge) |
+| **INTERESTING** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` | INTERESTING | References to cloud metadata endpoint `169.254.169.254` — known IMDS IP |
+|  | `google/adk-python/src/google/adk/tools/load_web_page.py:171` | INTERESTING | Same IMDS IP reference in NAT64 context |
+|  | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` | INTERESTING | Explicit refusal to check `169.254.169.254` in Chrome |
+|  | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | INTERESTING | Example `client_secret="your_client_secret"` placeholder in auth helper |
+|  | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | INTERESTING | State key `_vmaas_access_token` for token storage |
+|  | `google/adk-python/src/google/adk/cli/browser/*.js` | INTERESTING | Minified JS source chunks (source maps), not secrets |
 
 ---
 
-### Verdict List
+## Verdict Summary
 
-| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
-|-----------|------|------|--------|------------------|
-| Android emulator token read | run-with-gpu.sh | 28 | 4300f4faea32eb7b | **no** (runtime file read, not hardcoded) |
-| Android emulator token read | run.sh | 22 | 4300f4faea32eb7b | **no** (runtime file read, not hardcoded) |
-| ADK private key example | auth_credential.py | 157 | N/A (placeholder) | **no** (TEST_OR_EXAMPLE) |
-| ADK basic auth example | auth_credential.py | 269 | N/A (test fixture) | **no** (TEST_OR_EXAMPLE) |
-| ADK bearer token example | auth_credential.py | 278 | N/A (placeholder) | **no** (TEST_OR_EXAMPLE) |
-| ADK OAuth PASSWORD constant | auth_schemes.py | 68 | N/A (grant type name) | **no** (TEST_OR_EXAMPLE) |
-| OpenAPI client_secret placeholder | auth_helpers.py | 62 | N/A (placeholder) | **no** (TEST_OR_EXAMPLE) |
-| Flask fuzz test key | fuzz_json.py | 27 | N/A ("fuzz test key") | **no** (TEST_OR_EXAMPLE) |
-| H2 test shutdown password | TestServer.java | 13 | N/A (test constant) | **no** (TEST_OR_EXAMPLE) |
-| Agents CLI placeholder | auth.py | 43 | N/A ("gemini_api_key") | **no** (TEST_OR_EXAMPLE) |
-| Capsem password file path | gate.toml | 584 | N/A (file path) | **no** (TEST_OR_EXAMPLE) |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| *(no REAL_SECRET findings in this scan)* | **no** |
 
----
+**All 245 hits are classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (known/public endpoints), or INTERESTING (reference patterns). No reportable hardcoded credentials found.**
 
-### Summary
-
-**No REPORT_CANDIDATE findings in this delta.**
-
-The 2 new hits (`android-emulator-container-scripts`) are **runtime patterns** reading auth tokens from local files (`~/.emulator_console_auth_token`, `~/.android/adbkey`) at container launch time — this is standard developer workflow, not a hardcoded secret. The tokens are generated locally by the Android emulator/ADB and never committed.
-
-All other hits are pre-existing: test fixtures, placeholders, documentation examples, internal endpoint references (metadata.google.internal, corp.google.com), or proper secret references (`${{ secrets.* }}`). None contain live credentials.
+The only prior REAL_SECRET in this org (the Earth Engine OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45`) was already ACCEPTED in the knowledge base and is **not** in this delta scan (no new files changed there).
