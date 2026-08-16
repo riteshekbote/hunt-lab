@@ -1,14 +1,166 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -300 | tail -150
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+  """
+
+  type_: str = Field("", alias="type")
+  project_id: str
+  private_key_id: Annotated[str, Field(repr=False)]
+  private_key: Annotated[str, Field(repr=False)]
+  client_email: str
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  auth_provider_x509_cert_url: str
+  client_x509_cert_url: str
+  universe_domain: str
+
+
+class ServiceAccount(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    service_account_credential: The service account credential (JSON key).
+    scopes: The OAuth2 scopes to request. Optional; when omitted with
+        ``use_default_credential=True``, defaults to the cloud-platform scope.
+    use_default_credential: Whether to use Application Default Credentials.
+    use_id_token: Whether to exchange for an ID token instead of an access
+        token. Required for service-to-service authentication with Cloud Run,
+        Cloud Functions, and other Google Cloud services that require identity
+        verification. When True, ``audience`` must also be set.
+    audience: The target audience for the ID token, typically the URL of the
+        receiving service (e.g. ``https://my-service-xyz.run.app``). Required
+        when ``use_id_token`` is True.
+  """
+
+  service_account_credential: ServiceAccountCredential | None = None
+  scopes: List[str] | None = None
+  use_default_credential: bool | None = False
+  use_id_token: bool | None = False
+  audience: str | None = None
+
+  @model_validator(mode="after")
+  def _validate_config(self) -> ServiceAccount:
+    if (
+        not self.use_default_credential
+        and self.service_account_credential is None
+    ):
+      raise ValueError(
+          "service_account_credential is required when"
+          " use_default_credential is False."
+      )
+    if self.use_id_token and not self.audience:
+      raise ValueError(
+          "audience is required when use_id_token is True. Set it to the"
+          " URL of the target service"
+          " (e.g. 'https://my-service.run.app')."
+      )
+    return self
+
+
+class AuthCredentialTypes(str, Enum):
+  """Represents the type of authentication credential."""
+
+  # API Key credential:
+  # https://swagger.io/docs/specification/v3_0/authentication/api-keys/
+  API_KEY = "apiKey"
+
+  # Credentials for HTTP Auth schemes:
+  # https://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+  HTTP = "http"
+
+  # OAuth2 credentials:
+  # https://swagger.io/docs/specification/v3_0/authentication/oauth2/
+  OAUTH2 = "oauth2"
+
+  # OpenID Connect credentials:
+  # https://swagger.io/docs/specification/v3_0/authentication/openid-connect-discovery/
+  OPEN_ID_CONNECT = "openIdConnect"
+
+  # Service Account credentials:
+  # https://cloud.google.com/iam/docs/service-account-creds
+  SERVICE_ACCOUNT = "serviceAccount"
+
+
+class AuthCredential(BaseModelWithConfig):
+  """Data class representing an authentication credential.
+
+  To exchange for the actual credential, please use
+  CredentialExchanger.exchange_credential().
+
+  Examples: API Key Auth
+  AuthCredential(
+      auth_type=AuthCredentialTypes.API_KEY,
+      api_key="1234",
+  )
+
+  Example: HTTP Auth
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+          client_id="1234",
+          client_secret="secret",
+      ),
+  )
+
+  Example: OpenID Connect Auth
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OPEN_ID_CONNECT,
+      oauth2=OAuth2Auth(
+          client_id="1234",
+          client_secret="secret",
+          redirect_uri="https://example.com",
+          scopes=["scope1", "scope2"],
+      ),
+  )
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | head -100
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #
-#     https://www.apache.org/licenses/LICENSE-2.0
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,44 +168,240 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Authentication module for agents-cli.
+from __future__ import annotations
 
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+from enum import Enum
+from typing import List
+from typing import Optional
+from typing import Union
 
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
+from fastapi.openapi.models import OAuth2
+from fastapi.openapi.models import OAuthFlows
+from fastapi.openapi.models import SecurityBase
+from fastapi.openapi.models import SecurityScheme
+from fastapi.openapi.models import SecuritySchemeType
+from pydantic import Field
 
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
+from ..utils.feature_decorator import experimental
+from .auth_credential import BaseModelWithConfig
 
 
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
+class OpenIdConnectWithConfig(SecurityBase):
+  type_: SecuritySchemeType = Field(
+      default=SecuritySchemeType.openIdConnect, alias="type"
+  )
+  authorization_endpoint: str
+  token_endpoint: str
+  userinfo_endpoint: Optional[str] = None
+  revocation_endpoint: Optional[str] = None
+  token_endpoint_auth_methods_supported: Optional[List[str]] = None
+  grant_types_supported: Optional[List[str]] = None
+  scopes: Optional[List[str]] = None
 
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
+
+class CustomAuthScheme(BaseModelWithConfig):
+  """A flexible model for custom authentication schemes.
+
+  The subclasses must define a `default` for the `type_` field, if using OAuth2
+  user consent flow, to ensure correct rehydration.
+  """
+
+  type_: str = Field(alias="type")
 
 
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
+# AuthSchemes contains SecuritySchemes from OpenAPI 3.0, an extra flattened
+# OpenIdConnectWithConfig, and supports external schemes
+# that subclass CustomAuthScheme.
+AuthScheme = Union[SecurityScheme, OpenIdConnectWithConfig, CustomAuthScheme]
 
-    Args:
+
+class OAuthGrantType(str, Enum):
+  """Represents the OAuth2 flow (or grant type)."""
+
+  CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+      return OAuthGrantType.AUTHORIZATION_CODE
+    if flow.implicit:
+      return OAuthGrantType.IMPLICIT
+    if flow.password:
+      return OAuthGrantType.PASSWORD
+    return None
+
+
+# AuthSchemeType re-exports SecuritySchemeType from OpenAPI 3.0.
+AuthSchemeType = SecuritySchemeType
+
+
+@experimental
+class ExtendedOAuth2(OAuth2):
+  """OAuth2 scheme that incorporates auto-discovery for endpoints."""
+
+  issuer_url: Optional[str] = None  # Used for endpoint-discovery
 [0m
-[0m$ [0mcat reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | head -40
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | head -100
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Literal
+from typing import Optional
+from typing import Tuple
+
+from fastapi.openapi.models import APIKey
+from fastapi.openapi.models import APIKeyIn
+from fastapi.openapi.models import HTTPBase
+from fastapi.openapi.models import HTTPBearer
+from fastapi.openapi.models import OAuth2
+from fastapi.openapi.models import OpenIdConnect
+from fastapi.openapi.models import Schema
+import httpx
+from pydantic import BaseModel
+from pydantic import ValidationError
+
+from ....auth.auth_credential import AuthCredential
+from ....auth.auth_credential import AuthCredentialTypes
+from ....auth.auth_credential import HttpAuth
+from ....auth.auth_credential import HttpCredentials
+from ....auth.auth_credential import OAuth2Auth
+from ....auth.auth_credential import ServiceAccount
+from ....auth.auth_credential import ServiceAccountCredential
+from ....auth.auth_schemes import AuthScheme
+from ....auth.auth_schemes import AuthSchemeType
+from ....auth.auth_schemes import OpenIdConnectWithConfig
+from ..common.common import ApiParameter
+
+
+class OpenIdConfig(BaseModel):
+  """Represents OpenID Connect configuration.
+
+  Attributes:
+      client_id: The client ID.
+      auth_uri: The authorization URI.
+      token_uri: The token URI.
+      client_secret: The client secret.
+
+  Example:
+      config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  client_secret: str
+  redirect_uri: Optional[str]
+
+
+def token_to_scheme_credential(
+    token_type: Literal["apikey", "oauth2Token"],
+    location: Optional[Literal["header", "query", "cookie"]] = None,
+    name: Optional[str] = None,
+    credential_value: Optional[str] = None,
+) -> Tuple[AuthScheme, AuthCredential]:
+  """Creates a AuthScheme and AuthCredential for API key or bearer token.
+
+  Examples:
+  ```
+  # API Key in header
+  auth_scheme, auth_credential = token_to_scheme_credential("apikey", "header",
+  "X-API-Key", "your_api_key_value")
+
+  # API Key in query parameter
+  auth_scheme, auth_credential = token_to_scheme_credential("apikey", "query",
+  "api_key", "your_api_key_value")
+
+  # OAuth2 Bearer Token in Authorization header
+  auth_scheme, auth_credential = token_to_scheme_credential("oauth2Token",
+  "header", "Authorization", "your_bearer_token_value")
+  ```
+
+  Args:
+      type: 'apikey' or 'oauth2Token'.
+      location: 'header', 'query', or 'cookie' (only 'header' for oauth2Token).
+      name: The name of the header, query parameter, or cookie.
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -150 | tail -50
+with open(gitignore_file_path, "a", encoding="utf-8") as f:
+    if content and not content.endswith("\n"):
+      f.write("\n")
+    f.write("".join(f"{entry}\n" for entry in missing_entries))
+
+
+def _generate_files(
+    agent_folder: str,
+    *,
+    google_api_key: Optional[str] = None,
+    google_cloud_project: Optional[str] = None,
+    google_cloud_region: Optional[str] = None,
+    model: Optional[str] = None,
+    type: str,
+) -> None:
+  """Generates a folder name for the agent."""
+  os.makedirs(agent_folder, exist_ok=True)
+
+  dotenv_file_path = os.path.join(agent_folder, ".env")
+  init_file_path = os.path.join(agent_folder, "__init__.py")
+  agent_py_file_path = os.path.join(agent_folder, "agent.py")
+  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+
+  with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+      f.write(_AGENT_CONFIG_TEMPLATE.format(model_name=model))
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write("")
+    click.secho(
+        _SUCCESS_MSG_CONFIG.format(agent_folder=agent_folder),
+        fg="green",
+    )
+  else:
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write(_INIT_PY_TEMPLATE)
+[0m
+[0m$ [0mcat reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | head -50
 // Copyright 2016 Google LLC. All Rights Reserved.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -93,134 +441,87 @@ const CTLogPublicKeyPEM string = `
 MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQczNovWyMB74+fAgPAiX60k0M4cO
 QYn3hIzwSTVAcrKhHDyT85t4BoXdgl6XzMAVHmF7b6GyKoyyya1hSW4lLg==
 -----END PUBLIC KEY-----`
+
+// CTLogIDBase64 is the log ID that corresponds to the test keys
+const CTLogIDBase64 string = "fMW69rPsQG6J9V1zJeIvei6q+GGYrNxe84y5e0/KaEw="
 [0m
-[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | head -600 | tail -30
-ort_lib_location = "/opt/capsem/onnxruntime"
-
-# Installing the exact package into a clean systemd container and proving it
-# works: every binary present and reporting the package's own version, the
-# service and gateway up, every profile ready, and a real guest shell.
-
-# Local signing material. Absent on a developer machine, which is why the rail
-# treats it as optional -- the release lanes sign in CI from secrets. Declared
-# here so "where is the key" has one answer rather than a path spelled inside
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-shell_proof_script = "scripts/prove-installed-shell.py"
-shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
-session_name = "qualification-exact-deb-shell"
-shell_timeout_seconds = 300
-
-# Every binary the package must install. Each reports the package version
-# except capsem-app, which is the Tauri bundle and has no --version.
-binaries = [
-    "capsem",
-    "capsem-admin",
+[0m$ [0msha256sum <<<'-----BEGIN PRIVATE KEY-----...'
+sha256sum <<<'password'
+sha256sum <<<'eyAkaknabna....'
+sha256sum <<<'your_client_secret'
+sha256sum <<<'gemini_api_key'
+sha256sum <<<'napkin'
+sha256sum <<<'beeblebrox'
+sha256sum <<<'refresh_token'
+sha256sum <<<'_vmaas_access_token'
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+4288cfcf2a226d88d70aba5ff8932e190afcd73b9341ce38dd3ab355745981a8  -
+d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651  -
+760146ec0d8c3db09a463087c65effdc349a9f993381232d0871a6df0b517ee0  -
+459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277  -
 [0m
-[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
-#!/usr/bin/env bash
-# Preflight checks for release builds.
-# Validates environment, credentials, and tools BEFORE slow CI jobs run.
-# Add new checks as functions -- they run in order, fail-fast on first error.
-set -euo pipefail
+### Classification Tables
 
-PASS=0
-FAIL=0
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+#### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *(none)* | | | No live hardcoded secrets found in this delta |
 
-pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
-fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582` | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | Docstring example: `password="password"` in HttpCredentials |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` | Docstring example: `token="eyAkaknabna...."` (placeholder JWT) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | OAuthGrantType enum value: `PASSWORD = "password"` (grant type string) |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `459528453b93cf3d79532eecbbf553e88883ff8e34b1e2f4a8cb863b6126d277` | State key constant: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | Docstring example: `client_secret="your_client_secret"` |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52` | Constant name: `GEMINI_API_KEY = "gemini_api_key"` |
+| reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | (EC key) | **Test-only package**, explicitly marked "KEYS IN THIS FILE ARE ONLY FOR TESTING" |
+| reposcan-raw/google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `d42e5907fe988f81b882cbc7ddfb985a393310334660505fd2983a3824849651` | Default test password: `POSTGRESQL_PASSWORD="beeblebrox"` |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | `760146ec0d8c3db09a463087c65effdc349a9f993381232d0871a6df0b517ee0` | Storage key name: `keyRefreshToken = "refresh_token"` |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | N/A | GitHub Actions secret refs: `${{ secrets.GOOGLE_CLIENT_SECRET }}` (correct pattern) |
+| reposcan-raw/google/sam/site/content/docs/manifests/*.yaml | — | N/A | Kubernetes `kind: ConfigMap` declarations (infrastructure as code) |
 
-# --------------------------------------------------------------------------
-# Check: Apple certificate can be imported into a macOS keychain
-# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
-# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
-# with a misleading "wrong password" error. Re-export with:
-#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
-#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
-#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
-# --------------------------------------------------------------------------
-check_apple_certificate() {
-    echo ""
-    echo "== Apple Certificate =="
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints written to files)
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided `GOOGLE_API_KEY` to generated `.env` file (key sourced from CLI arg, not hardcoded) |
 
-    local cert_dir="$ROOT_DIR/private/apple-certificate"
-    local p12="$cert_dir/capsem.p12"
-    local pass_file="$cert_dir/p12-password.txt"
-
-    if [[ ! -f "$p12" ]]; then
-        fail "capsem.p12 not found at $p12"
-        return
-    fi
-    pass "capsem.p12 exists"
-
-    local password
-    password="$(tr -d '\n' < "$pass_file")"
-
-    # Check encryption format
-    local fmt
-    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
-        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-
-    if [[ "$fmt" == "PBES2" ]]; then
-        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
-        return
-    fi
-    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
-[0m
-**CLASSIFICATION TABLES**
-
-| File | Line | Category | Rationale |
-|------|------|----------|-----------|
-| google/sam/.github/k8s/*.yaml | various | TEST_OR_EXAMPLE | `kind: ConfigMap` declarations in K8s templates — no secret material |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | TEST_OR_EXAMPLE | Uses `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` — GitHub Actions secret refs, not hardcoded |
-| google/sam/development/kind/run.sh | 139 | TEST_OR_EXAMPLE | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
-| google/sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE | `keyRefreshToken = "refresh_token"` — OAuth2 standard string constant |
-| google/sam/site/content/docs/manifests/*.yaml | various | TEST_OR_EXAMPLE | Mock/documentation ConfigMaps |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | TEST_OR_EXAMPLE | K8s template ConfigMap |
-| google/capsem/config/gate.toml | 584 | INTERESTING | `password = "password.txt"` — references external password file (proper secret handling) |
-| google/capsem/scripts/preflight.sh | 39 | INTERESTING | Reads password from file (`p12-password.txt`) — not hardcoded |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | INTERESTING | Same — reads from `$PASS_FILE` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | `GEMINI_API_KEY = "gemini_api_key"` — constant for env var name, not a key |
-| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions expressions (`${{ steps.fetch-token.outputs... }}`) |
-| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | TEST_OR_EXAMPLE | Explicit `testonly` package, comment: "KEYS IN THIS FILE ARE ONLY FOR TESTING" |
-| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | TEST_OR_EXAMPLE | Default dev password `"beeblebrox"` in DB reset script (Hitchhiker's ref) |
-| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | TEST_OR_EXAMPLE | Same |
-| google/heir/scripts/author_stats.py | 16 | TEST_OR_EXAMPLE | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| google/heir/.../JaxiteWordEmitter.cpp | 558 | TEST_OR_EXAMPLE | Codegen output with variable `sk`, not hardcoded |
-| google/android-emulator-container-scripts/*.sh | 22,28 | INTERESTING | Reads token from `~/.emulator_console_auth_token` file — not hardcoded |
-| microsoft/coreutils/* | various | ENDPOINT_LEAK | Azure DevOps feed URLs — internal package feeds, not secrets |
-| microsoft/skill-recorder/*/sensitive*.test.ts | various | TEST_OR_EXAMPLE | Test fixtures with fake `ghp_*` / `AKIA*` patterns |
-| microsoft/skill-recorder/evals/sensitive/*.ts | various | TEST_OR_EXAMPLE | Evaluation datasets with fake token patterns |
-| microsoft/agent-governance-toolkit/*/OpaPolicyBackend.cs | 563,566,568 | ENDPOINT_LEAK | Well-known IMDS endpoints (AWS/Azure/GCP/Alibaba) — public metadata IPs |
-| microsoft/agent-governance-toolkit/*/policy-backends/*.ts | 8,11,13,13,14 | ENDPOINT_LEAK | Same IMDS endpoints in TypeScript |
-| microsoft/agent-governance-toolkit/*/http_client.py | 102,103 | ENDPOINT_LEAK | Same IMDS endpoints in Python |
-| microsoft/agent-governance-toolkit/*/smoke-test.js | 76 | TEST_OR_EXAMPLE | Test audit with fake `'const password = "secret123";'` |
-| microsoft/agent-governance-toolkit/*/red_team_dataset.py | 306 | TEST_OR_EXAMPLE | Benchmark payload with fake SQL `password='newpass123'` |
-| microsoft/agent-governance-toolkit/*/build_and_publish.sh | 105 | TEST_OR_EXAMPLE | Pip install command to test.pypi.org |
-| microsoft/agent-governance-toolkit/*/adapter.py | 17 | TEST_OR_EXAMPLE | Placeholder `api_key="your-key"` |
-| microsoft/agent-governance-toolkit/*/alertmanager.yml | 15 | TEST_OR_EXAMPLE | Commented placeholder `# smtp_auth_password: 'password'` |
-| microsoft/agent-governance-toolkit/*/configmap.yaml | various | TEST_OR_EXAMPLE | Helm chart `kind: ConfigMap` templates |
-| microsoft/agent-governance-toolkit/*/acs-policy-configmap.yaml | 2 | TEST_OR_EXAMPLE | K8s ConfigMap template |
+#### INTERESTING (debug flags, cloud configs, security-relevant patterns)
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | (20 files) | Minified parser generator output (parse error messages) — not secrets |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Comments referencing `169.254.169.254` (GCP metadata endpoint) — security awareness docs |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path` / `kubeconfig_context` params — config options |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment blocking `169.254.169.254` in Chrome — security control |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment about NAT64 routing to `169.254.169.254` — security awareness |
+| reposcan-raw/google/android-emulator-container-scripts/run*.sh | 22, 28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads token from file (not hardcoded) |
+| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` — path to password file |
+| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` — reads password from file |
+| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads password from file |
 
 ---
 
-**VERDICT LIST**
+### SHORT VERDICT LIST
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| *(none found)* | REAL_SECRET | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py private_key example | **no** | Docstring placeholder (`...` suffix), not a real key |
+| adk-python auth_credential.py password/token examples | **no** | Docstring examples with obvious placeholders |
+| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth2 grant type string literal ("password" grant) |
+| adk-python cli_create.py GOOGLE_API_KEY write | **no** | Writes user-supplied key to .env; key not hardcoded in source |
+| adk-python 169.254.169.254 references | **no** | Security documentation/comments, not leaks |
+| adk-python browser chunk JS files | **no** | Minified parser generator artifacts |
+| adk-python vmaas state key | **no** | Internal state key name constant |
+| adk-python openapi_tool client_secret example | **no** | Docstring placeholder `"your_client_secret"` |
+| certificate-transparency-go testonly keys | **no** | Explicitly test-only package, encrypted test key |
+| sam workflows secret refs | **no** | Correct GitHub Actions `${{ secrets.* }}` pattern |
+| capsem password file reads | **no** | Reads from external file, not hardcoded |
+| android-emulator token file read | **no** | Reads from `~/.emulator_console_auth_token`, not hardcoded |
 
-**SUMMARY**: 0 REAL_SECRET findings in this delta scan. All 525 hits are TEST_OR_EXAMPLE (test fixtures, placeholders, mock data, ConfigMap declarations), ENDPOINT_LEAK (well-known public IMDS metadata endpoints), or INTERESTING (proper secret handling patterns referencing external files/env vars). No hardcoded credentials with signs of life detected.
-
-The Google SAM repo correctly uses GitHub Actions secret references (`${SECRET_NAME}`). The capsem project references external password files. The certificate-transparency-go keys are explicitly in a `testonly` package. All Microsoft skill-recorder/agent-governance hits are test fixtures with obviously fake patterns (`ghp_ABCDEFGHIJKLMNOP`, `secret123`, `beeblebrox`, `your-key`, etc.).
+**SUMMARY**: No reportable findings in this delta. All 33 new hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (user-input-to-file), or **INTERESTING** (security docs/config patterns). The prior ACCEPTED finding `earthengine-api oauth.py:45` (hardcoded OAuth client_secret) remains the only live REAL_SECRET in google/ org — already tracked and drafted for VRP submission.
