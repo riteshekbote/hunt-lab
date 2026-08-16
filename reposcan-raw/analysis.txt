@@ -1,38 +1,135 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[0m$ [0mcat << 'EOF'
+# TRIAGE RESULTS
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:157` (private key placeholder)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:269` (test credentials `user`/`password`)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:278` (test token placeholder)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` constant)<br>`google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` (`client_secret="your_client_secret"` placeholder) |
-| **ENDPOINT_LEAK** | *(none — 169.254.169.254 is the well-known link-local metadata service IP for AWS/GCP/Azure, not an internal leak)* |
-| **INTERESTING** | `google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts:232` — CSRF token extraction via shell command (client-side, not a secret)<br>`google/grr/docker_config_files/server/grr.server.yaml:25` — Private key file reference pattern `%(/configs/private-key.pem|file)`<br>`google/grr/docker/docker-entrypoint.sh:21,26` — Env var references (`${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}`)<br>`google/capsem/config/gate.toml:481` / `preflight.sh:39` / `fix_p12_legacy.sh:15` — Password file references (not hardcoded)<br>`google/skywater-pdk/.github/workflows/labeler.yml:11` — Standard `${{ secrets.GITHUB_TOKEN }}` usage<br>`google/langextract/.github/workflows/ci.yaml:168-170` — Standard `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` usage |
+## REAL_SECRET
+None found in this scan delta.
 
-## Verdict List
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
+| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
 
-| File:Line | Classification | REPORT_CANDIDATE |
-|-----------|----------------|------------------|
-| grr/docker/docker-entrypoint.sh:21 | TEST_OR_EXAMPLE (env var) | no |
-| grr/docker/docker-entrypoint.sh:26 | TEST_OR_EXAMPLE (env var) | no |
-| grr/docker_config_files/server/grr.server.yaml:25 | INTERESTING (file ref pattern) | no |
-| grr/.../cloud.py:41 | ENDPOINT_LEAK (public metadata IP) | no |
-| grr/.../cloud.py:12,14 | ENDPOINT_LEAK (public metadata IP) | no |
-| grr/.../db.py:667 | TEST_OR_EXAMPLE (doc URL comment) | no |
-| grr/.../mysql.py:648 | TEST_OR_EXAMPLE (doc URL comment) | no |
-| grr/.../mysql_pool.py:225 | TEST_OR_EXAMPLE (doc URL comment) | no |
-| grr/.../cloud.py:524 | ENDPOINT_LEAK (public metadata IP) | no |
-| grr/.../client_flows.ts:232 | INTERESTING (CSRF extraction cmd) | no |
-| skywater-pdk/.github/workflows/labeler.yml:11 | TEST_OR_EXAMPLE (standard GITHUB_TOKEN) | no |
-| langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE (standard secret refs) | no |
-| adk-python/.../auth_credential.py:157 | TEST_OR_EXAMPLE (placeholder) | no |
-| adk-python/.../auth_credential.py:269 | TEST_OR_EXAMPLE (test creds) | no |
-| adk-python/.../auth_credential.py:278 | TEST_OR_EXAMPLE (test token) | no |
-| adk-python/.../auth_schemes.py:68 | TEST_OR_EXAMPLE (test constant) | no |
-| adk-python/.../auth_helpers.py:62 | TEST_OR_EXAMPLE (placeholder) | no |
-| capsem/config/gate.toml:481 | INTERESTING (password file ref) | no |
-| capsem/scripts/preflight.sh:39 | INTERESTING (reads password file) | no |
-| capsem/scripts/fix_p12_legacy.sh:15 | INTERESTING (reads password file) | no |
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
 
-**Summary**: No REAL_SECRET findings in this delta. All hits are test fixtures, placeholder values, standard secret references (GitHub Actions `${{ secrets.* }}`), public cloud metadata endpoints (169.254.169.254), or config patterns referencing external files. No reportable credentials.
+## INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
+
+## VERDICT
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
+EOF
+# TRIAGE RESULTS
+
+## REAL_SECRET
+None found in this scan delta.
+
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
+| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
+
+## INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
+
+## VERDICT
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
+[0m
+## TRIAGE RESULTS
+
+### REAL_SECRET
+None found in this scan delta.
+
+### TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
+| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
+| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
+| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
+
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
+
+### VERDICT
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
