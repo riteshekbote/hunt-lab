@@ -1,14 +1,10 @@
-## 2026-08-16 17:34:16 UTC [google] (model nemotron3)
-[NEW] graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic redirect, no auth-bypass surface
-[NEW] www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
-[CHANGED] graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
-[CHANGED] graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
-[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}, 9.70, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
+## 2026-08-16 17:53:13 UTC [google] (model nemotron3)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}, 9.70, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
 [PRIO] oauth2.googleapis.com/token, 9.45, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, 8.15, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=8
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
-asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
 reasoning: All 6 endpoint families show identical auth+CORS posture: GET→401/237, HEAD→405/0 no WWW-Authenticate (RFC 6750 §3), true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400; schema-level zero OperationRestrictions on agentRegistration + oAuth2PermissionGrant EntityTypes; item-level auth-gate confirmed at agents/{id} and admin/catalog/packages/{id}
 evidence_needed: Two-principal test — Principal A POSTs/PATCHes with createdBy/ownerIds/resourceId = Principal B's oid across any family

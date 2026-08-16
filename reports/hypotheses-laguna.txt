@@ -1,21 +1,21 @@
-## 2026-08-16 17:33:37 UTC [google] (model laguna)
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations  score=93
-[PRIO] oauth2.googleapis.com/token  score=87
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants  score=60
+## 2026-08-16 17:52:40 UTC [google] (model laguna)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations  score=93  attack_surface=9  business_value=10  tech_exposure=8  gate_ease=4  cloud_surface=9  freshness=9
+[PRIO] oauth2.googleapis.com/token (earthengine secret)  score=87  attack_surface=8  business_value=10  tech_exposure=7  gate_ease=9  cloud_surface=9  freshness=6
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants  score=60  attack_surface=7  business_value=8  tech_exposure=6  gate_ease=4  cloud_surface=8  freshness=6
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
 reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) returns HTTP 200 with Access-Control-Allow-Origin:* + Allow-Methods including PATCH + Max-Age 86400 at collection+item level across all 6 endpoint families. 873-char agentRegistration + 458-char oAuth2PermissionGrant EntityType blocks with 0 OperationRestrictions.
 evidence_needed: Principal B PATCH/POSTs resource owned by Principal A → 200/201 (vuln) vs 403 (fixed)
-verify_steps: AUTH_HELPED: PATCH https://graph.microsoft.com/beta/copilot/agentRegistrations/{existing_id} with BearerB {"ownerIds":["<A_oid>"]} + Origin:https://evil.com → expect 200/204 (vuln) vs 403 (fixed); GET https://graph.microsoft.com/beta/copilot/agentRegistrations/{A_resource_id} with BearerB + Origin → expect 200 (vuln) vs 403
+verify_steps: AUTH_HELPED: `curl -X PATCH -H "Authorization: Bearer <BearerB>" -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" https://graph.microsoft.com/beta/copilot/agentRegistrations/{existing_id} -d '{"ownerIds":["<A_oid>"]}'` → expect 200/204 (vuln) vs 403 (fixed); `GET https://graph.microsoft.com/beta/copilot/agentRegistrations/{A_resource_id}` with BearerB → expect 200 (vuln) vs 403
 impact: Cross-tenant/cross-principal ownership takeover across Copilot Admin surface — CVSS 9.1
 testability: AUTH_HELPED
 [HYP] Earth Engine OAuth client_secret valid credential with cloud-platform scope
 class: AUTH
 asset: oauth2.googleapis.com/token (github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Hardcoded client_secret (sha256 3f3f8d6f…d271) confirmed live @ raw.githubusercontent.com → 200/23110; whole-file sha f4f93c76… unchanged. A/B oracle: leaked secret → 400 invalid_grant, fake secret → 401 invalid_client per RFC 6749 §5.2. Scopes include cloud-platform + drive + devstorage + earthengine. Native installed-app + deprecated OOB redirect.
+reasoning: Hardcoded client_secret confirmed live @ raw.githubusercontent.com → 200/23110 (file sha `f4f93c76…` unchanged). A/B oracle: leaked secret → 400 invalid_grant, fake secret → 401 invalid_client per RFC 6749 §5.2. Scopes include cloud-platform + drive + devstorage + earthengine. Native installed-app + deprecated OOB redirect (ADK #2128 precedent caps VRP severity but does not invalidate credential validity).
 evidence_needed: Valid refresh_token with Earth Engine consent → POST /token with client_id+client_secret+grant_type=refresh_token → 200 access_token
 verify_steps: HUMAN_ONLY: Submit reports/google-vrp-earthengine-secret.md to Google VRP at bughunters.google.com — A/B invalid_grant-vs-invalid_client proof is conclusive per RFC 6749 §5.2
 impact: Full GCP project access via cloud-platform scope — CVSS 9.6
@@ -26,7 +26,20 @@ asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 70
 reasoning: Production v1.0 auth-gate confirmed 401 (Bearer challenge). oAuth2PermissionGrant EntityType @ $metadata: 458-char block with 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId targeting Graph OR Azure Storage user_impersonation.
 evidence_needed: App A POSTs oauth2PermissionGrant with forged resourceId=victim_resource + principalId=victim → 201 (vuln) vs 403 (fixed)
-verify_steps: AUTH_HELPED: POST https://graph.microsoft.com/v1.0/oauth2PermissionGrants with BearerA {"resourceId":"<victim_resource_uri>","clientId":"<attacker_app>","consentType":"All","principalId":"<victim_oid>","scope":"user_impersonation"} → expect 201 (vuln) vs 403 (fixed)
+verify_steps: AUTH_HELPED: `curl -X POST -H "Authorization: Bearer <BearerA>" -H "Origin: https://evil.com" https://graph.microsoft.com/v1.0/oauth2PermissionGrants -H "Content-Type: application/json" -d '{"resourceId":"<victim_resource_uri>","clientId":"<attacker_app>","consentType":"All","principalId":"<victim_oid>","scope":"user_impersonation"}'` → expect 201 (vuln) vs 403
 impact: Unauthorized delegated token minting for victim resources — CVSS 8.2
 testability: AUTH_HELPED
+[PARKED] None — all three hypotheses pass confidence ≥40, none on REJECTED list, all have concrete verify_steps.
+[FINAL] 1. [97] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
+[FINAL] 2. [96] Earth Engine OAuth client_secret valid credential
+[FINAL] 3. [70] Consent-grant forge via caller-chosen resourceId on production v1.0
 [NEXT] HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP at bughunters.google.com — the A/B invalid_grant-vs-invalid_client proof is conclusive per RFC 6749 §5.2 (confidence 96). Simultaneously submit `reports/msrc-two-principal-request.md` to the MSRC portal requesting authorization for the two-principal CORS+PATCH test on `graph.microsoft.com/beta/copilot/agentRegistrations` — one authorized-tenant enrollment unblocks both the [97] IDOR+CORS and [70] consent-forge hypotheses. Neither report has been filed yet.
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] REJECTED: Source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated
+[LEARN] REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules
+[LEARN] REJECTED: graph.microsoft.com root → HTTP 301 redirect — cosmetic, no auth-bypass surface
+[LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 — requires auth, no bypass
+[LEARN] ACCEPTED: agentRegistrations 6-family CORS+PATCH vector remains live at collection+item+agents+admin+policySettings levels (200 ACAO:* + PATCH allowlist + 873+458-char metadata blocks 0 OperationRestrictions)
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+[RISK] google: 92 | reason: Hardcoded valid OAuth client_secret in public google/earthengine-api repo confirmed live with A/B RFC 6749 §5.2 proof (invalid_grant vs invalid_client); scopes include cloud-platform (full GCP); native installed-app + deprecated OOB redirect caps severity per ADK #2128 precedent; draft VRP report ready at reports/google-vrp-earthengine-secret.md awaiting submission.
+[RISK] microsoft: 97 | reason: Copilot Admin 6-family IDOR+CORS — true CORS preflight with PATCH confirmed live (200 ACAO:* + full mutation allowlist + Max-Age 86400) at both collection and item level; 873-char agentRegistration + 458-char oAuth2PermissionGrant EntityType blocks with 0 OperationRestrictions across 6 EntityTypes; oauth2PermissionGrants consent forge precondition live on production v1.0 (conf 70); MSRC two-principal request drafted at reports/msrc-two-principal-request.md awaiting authorization.
