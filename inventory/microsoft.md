@@ -1227,3 +1227,9 @@
 - NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
 - CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
+
+## 2026-08-16 21:01:08 UTC
+- NEW www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 (rejected: no bypass)
+- NEW graph.microsoft.com root → HTTP 301 redirect (rejected: cosmetic)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed 401
+- CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed 401
