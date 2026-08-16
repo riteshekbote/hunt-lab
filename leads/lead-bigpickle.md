@@ -9287,3 +9287,45 @@ testability: HUMAN_ONLY
 [LEARN] REJECTED: no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no data-plane access without authorized redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
+## 2026-08-16 23:56:09 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/* (6-family IDOR+CORS) | 87 | attack=10 business=9 tech=9 gate=7 cloud=7 fresh=8
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (consent forge) | 76 | attack=8 business=9 tech=8 gate=6 cloud=5 fresh=7
+[PRIO] earthengine-api oauth.py:45 (hardcoded secret) | 72 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
+[HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection+item; GET→401/237 proper Bearer; $metadata 873-char block, 0 OperationRestrictions, client-supplied createdBy/ownerIds Nullable=false.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 74
+reasoning: GET→401/237 Bearer re-verified; oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants shows forged grant.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: source live (raw 200/23110, whole-file sha f4f93c76…b73040 unchanged, secret sha 3f3f8d6f…d271 at :45, client_id at :43); A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2); token GET→404 POST-only gate.
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness (ADK #2128 precedent).
+testability: HUMAN_ONLY
+[PARKED] (none — all 3 survive: conf ≥ 40, none on REJECTED list, concrete verify_steps present)
+[FINAL]
+[NEXT] HUMAN: Send the drafted MSRC two-principal request (`reports/msrc-two-principal-request.md`) to the MSRC portal — one authorized-tenant enrollment unblocks both the 6-family IDOR+CORS (97) and the oauth2PermissionGrants consent forge (74); both are unconditionally blocked on two-authenticated-principal verification that no passive probe can reach, and passive re-verification has been NO_DELTA for 9+ consecutive cycles.
+[LEARN] ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+[LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions)
+[LEARN] ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
+[RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no data-plane access without authorized redemption; surface otherwise inert.
+[RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
