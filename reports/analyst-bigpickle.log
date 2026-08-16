@@ -30437,3 +30437,100 @@ STEP 6 — LEARNING
 STEP 7 — RISK SCORE
 [RISK] google: 55 — earthengine secret remains a valid Google OAuth credential with cloud-platform scope (high intrinsic value) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no exploitable data-plane access without authorized redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
+===== ANALYST bigpickle 2026-08-16 13:25:52 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "token GET -> HTTP %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/token"; curl -s -o /dev/null -w "tokeninfo GET -> HTTP %{http_code} len=%{size_download}\n" "https://oauth2.googleapis.com/tokeninfo"; curl -s -o /dev/null -w "agentRegs GET -> HTTP %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/beta/copilot/agentRegistrations"; curl -s -o /dev/null -w "agentRegs HEAD -> HTTP %{http_code} len=%{size_download}\n" -X HEAD "https://graph.microsoft.com/beta/copilot/agentRegistrations"
+token GET -> HTTP 404 len=0
+tokeninfo GET -> HTTP 400 len=113
+agentRegs GET -> HTTP 401 len=237
+agentRegs HEAD -> HTTP 405 len=0
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "oauth2PG GET -> HTTP %{http_code} len=%{size_download}\n" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants"; curl -s -o /dev/null -w "preflight -> HTTP %{http_code}\n" -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations" -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" -D - | grep -iE "HTTP/|access-control-allow-(origin|methods|headers)|max-age"
+oauth2PG GET -> HTTP 401 len=237
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "JWKS v1 -> HTTP %{http_code} len=%{size_download}\n" "https://login.microsoftonline.com/common/discovery/keys"; curl -s -o /dev/null -w "JWKS v2 -> HTTP %{http_code} len=%{size_download}\n" -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/v2.0/keys"; curl -s -o /dev/null -w "earthengine raw -> HTTP %{http_code} len=%{size_download}\n" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"
+JWKS v1 -> HTTP 200 len=7657
+JWKS v2 -> HTTP 200 len=12894
+earthengine raw -> HTTP 200 len=23110
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | sha256sum | cut -c1-16; curl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" | grep -n "CLIENT_SECRET" | head -3; v1=$(curl -s "https://login.microsoftonline.com/common/discovery/keys" | python3 -c "import sys,json;print(' '.join(sorted(k['kid'] for k in json.load(sys.stdin)['keys'])))"); v2=$(curl -s -H "Accept: application/json" "https://login.microsoftonline.com/common/discovery/v2.0/keys" | python3 -c "import sys,json;print(' '.join(sorted(k['kid'] for k in json.load(sys.stdin)['keys'])))"); echo "v1: $v1"; echo "v2: $v2"; for k in $v1; do echo "$v2" | grep -q "$k" && echo "$k in-v2" || echo "$k V1-ONLY"; done
+f4f93c76aebfe1c0
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+193:      'client_secret': client_secret or CLIENT_SECRET,
+v1: 6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY fEtqrhKT1bXAGafSdQoN1vXTRpI kPNphcDT-3CkaSpuFhApqNImFAs sa3RgZQ_nZNVheAokCVqxY_8Cr4
+v2: 6hXLaIYNSJ0o7zu09dMyI0ji3ug AahUf1bCXvx0JTRcXLrr0U4SluY N6SfdzXgL4EfRv0-MqEz1xZk6s4 NqEBZVuOpstZ__5iZuWH3HPswcI T5h40q7G0x49qn41lM9-kKjpD98 fEtqrhKT1bXAGafSdQoN1vXTRpI kPNphcDT-3CkaSpuFhApqNImFAs rRk1d-57BGZfsM4BUHrkx8cQbic sa3RgZQ_nZNVheAokCVqxY_8Cr4
+6hXLaIYNSJ0o7zu09dMyI0ji3ug in-v2
+AahUf1bCXvx0JTRcXLrr0U4SluY in-v2
+fEtqrhKT1bXAGafSdQoN1vXTRpI in-v2
+kPNphcDT-3CkaSpuFhApqNImFAs in-v2
+sa3RgZQ_nZNVheAokCVqxY_8Cr4 in-v2
+[0m
+## 2026-08-16 12:5x UTC cycle — ANALYST OUTPUT
+
+### STEP 1 — DELTA
+- [NEW] probe-log entries @ 11:59/12:52: `login.microsoftonline.com/<tenant>/oauth2/v2.0/token` → 400 (literal `<tenant>` placeholder = malformed probe URL; expected gate, not a finding) and `graph.microsoft.com/.default\`` → 400 (known backtick-in-URL probe artifact class, same as earthengine 404). No real surface change.
+- Fresh probes this cycle: token GET→404/0, tokeninfo→400/113, agentRegs GET→401/237 + HEAD→405/0, oauth2PermissionGrants→401/237, true CORS preflight→200 `ACAO:*`+`DELETE,GET,OPTIONS,POST,PUT,PATCH`+`Allow-Headers: authorization`+`Max-Age: 86400`, JWKS v1(5)⊂v2(9) 0 v1-exclusive, earthengine whole-file sha `f4f93c76…` verbatim + secret at :45.
+- **NO_DELTA** — no new or changed surface items.
+
+### STEP 2 — PRIORITIZE
+- [PRIO] graph.microsoft.com/beta/copilot/* (6-family IDOR+CORS) — score 7.95 — attack 9/business 9/tech 8/gate 5/cloud 8/fresh 7
+- [PRIO] earthengine token redemption (oauth2.googleapis.com/token) — score 7.55 — attack 7/business 9/tech 7/gate 6/cloud 10/fresh 6
+- [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (consent forge) — score 7.40 — attack 7/business 9/tech 7/gate 5/cloud 9/fresh 7
+
+### STEP 3 — HYPOTHESES
+[HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True preflight (Origin+ACRM:PATCH+ACH:authorization)→200 ACAO:* + PATCH allowlist + Max-Age 86400 re-verified this cycle; GET→401/237, HEAD→405/0 no WWW-Authenticate (RFC 6750 §3); $metadata 873-char block 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false.
+evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
+verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201 vs 400; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}. Log status+bodies.
+impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+
+[HYP] Earth Engine hardcoded client_secret redeemable for cloud-platform token
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source: earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Source 200/23110 re-verified this cycle; whole-file sha `f4f93c76…b73040` verbatim; secret sha `3f3f8d6f…d271` at :45 + :99 fallback; A/B leaked→400 invalid_grant vs fake→401 invalid_client (RFC 6749 §5.2) conclusive; token GET→404 POST-only gate.
+evidence_needed: authorized grant_type=refresh_token redemption→200 + signed cloud-platform access token.
+verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B + blob sha; request authorized redemption only.
+impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness (ADK #2128 precedent).
+testability: HUMAN_ONLY
+
+[HYP] Consent-grant forge via caller-chosen resourceId
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 74
+reasoning: GET→401/237 Bearer re-verified this cycle; oAuth2PermissionGrant EntityType 458-char block @ $metadata, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
+verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent. Log status+bodies.
+impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.
+testability: AUTH_HELPED
+
+### STEP 4 — SELF-CRITIQUE
+All three survive (≥40, none on REJECTED list, concrete verify_steps). No [PARKED].
+- [FINAL] 1) [97] Copilot Admin 6-family IDOR+CORS (AUTH_HELPED) — 2) [96] Earth Engine secret (HUMAN_ONLY) — 3) [74] Consent-grant forge (AUTH_HELPED). No reordering.
+
+### STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both [97] IDOR+CORS and [74] consent-forge (highest single-lever action; all passive probes NO_DELTA, surface saturated; backtick-`<tenant>`/`.default` 400 entries confirmed probe artifacts, not findings).
+
+### STEP 6 — LEARNING
+[LEARN] ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 re-verified this cycle; GET 401/237 + HEAD 405/0 (RFC 6750 §3) — precondition intact.
+[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (whole-file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verbatim at :45), A/B invalid_grant-vs-invalid_client proof conclusive.
+[LEARN] ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer — unchanged.
+[LEARN] ACCEPTED v1↔v2 JWKS subset invariant holds @ login.microsoftonline.com — v1(5)⊂v2(9), 0 v1-exclusive steady-state; rotation-desync class stays REJECTED (v1 kid set never validated against v2 issuer).
+[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token 404, tokeninfo 400/113, agentRegs 401/405, oauth2PermissionGrants 401, preflight 200 ACAO:*, earthengine sha unchanged) all NO_DELTA; `<tenant>`-placeholder and backtick-`.default` 400 entries are probe artifacts.
+
+### STEP 7 — RISK SCORE
+[RISK] google: 55 — earthengine secret remains a valid Google OAuth credential with cloud-platform scope (high intrinsic value) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no exploitable data-plane access without authorized redemption; surface otherwise inert.
+[RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
