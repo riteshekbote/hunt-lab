@@ -1,6 +1,6 @@
-## 2026-08-16 15:53:48 UTC [google] (model bigpickle)
-[PRIO] graph.microsoft.com/beta/copilot/* (6-family agentRegistrations/agentRegistry/agents/admin/catalog/packages/admin/policySettings): score 7.4 | attack 9, business 9, tech 8 (OAuth Bearer, PATCH mutations, CORS *), gate 2 (401-gated, AUTH_HELPED), cloud 9, fresh 5
-[PRIO] oauth2.googleapis.com/token + earthengine-api oauth.py:45: score 6.95 | attack 7, business 10 (cloud-platform scope), tech 7 (RFC 6749 client_secret), gate 1 (HUMAN_ONLY redemption), cloud 10, fresh 5
+## 2026-08-16 16:18:15 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: score 7.4 | attack 9, business 9, tech 8 (OAuth Bearer, PATCH mutations, CORS *), gate 2 (401-gated, AUTH_HELPED), cloud 9, fresh 5
+[PRIO] oauth2.googleapis.com/token + earthengine-api/python/ee/oauth.py:45: score 6.95 | attack 7, business 10 (cloud-platform scope), tech 7 (RFC 6749 client_secret), gate 1 (HUMAN_ONLY redemption), cloud 10, fresh 5
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 6.4 | attack 6, business 8 (consent grants → data-plane), tech 8 (consent forge, user_impersonation), gate 2 (401-gated, AUTH_HELPED), cloud 9, fresh 5
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
@@ -31,6 +31,6 @@ impact: cross-principal consent forgery → data-plane access to victim Azure St
 testability: AUTH_HELPED
 [FINAL] 1. Copilot Admin 6-family IDOR+CORS (97, AUTH_HELPED) 2. earthengine client_secret valid credential (96, HUMAN_ONLY) 3. oauth2PermissionGrants consent forge (74, AUTH_HELPED)
 [NEXT] HUMAN: Submit the drafted two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both the top hypothesis (Copilot Admin 6-family IDOR+CORS, 97) and consent-forge (74); no further passive probe value exists while all endpoints remain 401-gated.
-[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, tokeninfo→400/113, agentRegs→401/237 + preflight 200 ACAO:* + PATCH allowlist, oauth2PermissionGrants→401/237, agents→401/237, earthengine file sha `f4f93c76…b73040` unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 15:33+ UTC.
+[LEARN] REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, tokeninfo→400/113, agentRegs collection+item→401, oauth2PermissionGrants→401, earthengine file sha `f4f93c76…b73040` unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 15:54 UTC; graph root 301 / storage 400-401 / item-level 401 entries are delta-detector artifacts already in KB.
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no data-plane access without authorized redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.

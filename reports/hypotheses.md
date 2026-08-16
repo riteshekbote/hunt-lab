@@ -4498,3 +4498,23 @@
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration → 400/401 requires project+auth (no bypass).
 - LEARN: REJECTED: No new proving-dead classes this cycle — all fresh probes confirmed prior findings unchanged.
 - LEARN: REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, tokeninfo→400/113, agentRegs→401/237 + preflight 200 ACAO:* + PATCH a
+
+## RANKED HYPOTHESES 2026-08-16 16:19:47 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` (already drafted with full A/B invalid_grant-vs-invalid_client proof) to Google VRP at bughunters.googl
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit the drafted two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both the 
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET→200/len=23110, secret sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, oAuth2PermissionGrant EntityType 4
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- LEARN: REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4),
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection with
+- LEARN: REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass
+- LEARN: ACCEPTED: agentRegistrations 6-family CORS+PATCH vector re-verified live 2026-08-16 16:4x UTC — true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live @ 2026-08-16 16:4x UTC — file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — GET /v1.0/oauth2PermissionGrants → 401/237 Bearer on production v1.0; oA
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, tokeninfo→400/113, agentRegs collection+item→401, oauth2PermissionGra
