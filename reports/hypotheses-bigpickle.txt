@@ -1,9 +1,9 @@
-## 2026-08-16 19:35:30 UTC [google] (model bigpickle)
+## 2026-08-16 19:52:44 UTC [google] (model bigpickle)
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
-reasoning: item-level true preflight re-verified this cycle — 200 `ACAO:*` + Allow-Methods incl PATCH + Max-Age 86400 at collection+item; GET→401/237, HEAD→405/0 no Bearer (RFC 6750 §3); $metadata 873-char block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false across 6 EntityTypes.
+reasoning: item-level true preflight re-verified live this probe — 200 `ACAO:*` + Allow-Methods incl PATCH + Max-Age 86400; GET→401/237, HEAD→405/0 no Bearer (RFC 6750 §3); $metadata 873-char block, 0 OperationRestrictions, createdBy/ownerIds client-supplied Nullable=false across 6 EntityTypes.
 evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any family member.
 verify_steps: AUTH_HELPED: A POST agentRegistrations {displayName,createdBy:B-oid,ownerIds:[B],agentCard:{}}→201 vs 400; B GET collection→200 vs 403; B PATCH {A_id}→200/204 vs 403; repeat agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}; log status+bodies.
 impact: cross-principal agent/package/policy tamper → impersonation/instruction-injection/supply-chain; CVSS 7.5–9.0.
@@ -12,7 +12,7 @@ testability: AUTH_HELPED
 class: AUTH
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 74
-reasoning: GET→401/237 Bearer re-verified; oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
+reasoning: GET→401/237 Bearer re-verified this probe; oAuth2PermissionGrant EntityType 458-char block @ $metadata, 0 OperationRestrictions, 7 client-supplied properties incl caller-chosen resourceId (Graph OR Azure Storage user_impersonation).
 evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage appId>→201; B GET /me/oauth2PermissionGrants→forged grant present.
 verify_steps: AUTH_HELPED: A POST {clientId:<own>,consentType:"Principal",principalId:B-oid,resourceId:<storage appId>,scope:"user_impersonation"}→201 vs 400; B GET /v1.0/me/oauth2PermissionGrants present vs absent; log status+bodies.
 impact: cross-principal consent forgery → data-plane access to victim Azure Storage/Graph scopes; CVSS 7.0–9.0.

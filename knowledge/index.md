@@ -1361,3 +1361,5 @@
 - 2026-08-16 REJECTED JWKS v1-exclusive `T5h40q7…` @ login.microsoftonline.com: transient rotation churn (same class as aFkmKVFc/kPNphcDT), v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface; dual-JWKS desync stays dead.
 - 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, agentRegs→401, oauth2PermissionGrants→401, preflight→200 ACAO:* + PATCH, earthengine file sha unchanged) all NO_DELTA.
 - 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions)
+- 2026-08-16 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
