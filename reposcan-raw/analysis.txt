@@ -1,138 +1,35 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Classification Tables
+## Classification Table
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| (none) | - | - | No hardcoded live credentials found in this delta |
-
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/openhtf/.github/workflows/python_publish.yml | 91 | `url: https://test.pypi.org/p/openhtf` | Public PyPI URL |
-| google/openhtf/.github/workflows/python_publish.yml | 105 | `repository-url: https://test.pypi.org/legacy/` | Public PyPI URL |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Default/placeholder constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS parser chunks | Build artifacts |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parser chunks | Build artifacts |
-
-## ENDPOINT_LEAK
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params (not secrets) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref (deployment config) |
-
-## INTERESTING
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Runtime variable interpolation into config |
+| Category | File:Line | Evidence | Classification |
+|----------|-----------|----------|----------------|
+| **REAL_SECRET** | — | No hardcoded live credentials found | — |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated fixture) | TEST_OR_EXAMPLE |
+| | adk-python/src/google/adk/auth/auth_credential.py:269 | `HttpCredentials(username="user", password="password")` | TEST_OR_EXAMPLE |
+| | adk-python/src/google/adk/auth/auth_credential.py:278 | `HttpCredentials(token="eyAkaknabna....")` (placeholder JWT) | TEST_OR_EXAMPLE |
+| | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` (test constant) | TEST_OR_EXAMPLE |
+| | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` (placeholder) | TEST_OR_EXAMPLE |
+| | openhtf/.github/workflows/python_publish.yml:91,105 | `https://test.pypi.org/...` (test PyPI URLs) | TEST_OR_EXAMPLE |
+| | langextract/.github/workflows/ci.yaml:168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GH secret refs) | TEST_OR_EXAMPLE |
+| | cadvisor/lib/cadvisorflags/flags.go:54 | `StorageDriverPassword = "storage_driver_password"` (flag name, not value) | TEST_OR_EXAMPLE |
+| **ENDPOINT_LEAK** | go-containerregistry/pkg/v1/google/list.go:206 | Comment: `cloud metadata endpoints at 169.254.169.254` | ENDPOINT_LEAK (doc only) |
+| | go-containerregistry/pkg/v1/remote/fetcher.go:85 | Comment: `issuing a 302 to a cloud instance metadata service (e.g. 169.254.169.254)` | ENDPOINT_LEAK (doc only) |
+| | go-containerregistry/pkg/v1/remote/transport/bearer.go:91 | Comment: `metadata endpoint (e.g. 169.254.169.254), causing SSRF` | ENDPOINT_LEAK (doc only) |
+| | go-containerregistry/pkg/v1/remote/transport/bearer.go:151 | Comment: `(169.254.169.254 / fd00:ec2::254). DNS-based SSRF is out of scope` | ENDPOINT_LEAK (doc only) |
+| | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | Comments referencing 169.254.169.254 metadata endpoint | ENDPOINT_LEAK (doc only) |
+| | adk-python/src/google/adk/tools/load_web_page.py:171 | Comment: `routes to the internal 169.254.169.254 metadata` | ENDPOINT_LEAK (doc only) |
+| | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | Comment: `169.254.169.254 in Chrome, so refuse instead of checking` | ENDPOINT_LEAK (doc only) |
+| **INTERESTING** | adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref pattern) | INTERESTING |
+| | adk-python/src/google/adk/cli/cli_create.py:131 | `GOOGLE_API_KEY={google_api_key}` (template interpolation, not secret) | INTERESTING |
 
 ---
 
-# Verdict List
+## Verdict List
 
-| Candidate | File | Line | Category | REPORT_CANDIDATE |
-|-----------|------|------|----------|------------------|
-| heir TOKEN placeholder | google/heir/scripts/author_stats.py | 16 | TEST_OR_EXAMPLE | **no** |
-| openhtf test.pypi URLs | google/openhtf/.github/workflows/python_publish.yml | 91,105 | TEST_OR_EXAMPLE | **no** |
-| langextract secret refs | google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | **no** |
-| cadvisor default password | google/cadvisor/lib/cadvisorflags/flags.go | 54 | TEST_OR_EXAMPLE | **no** |
-| adk-python test fixtures | google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | TEST_OR_EXAMPLE | **no** |
-| adk-python test constants | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
-| adk-python openapi placeholder | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
-| adk-python state key | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | **no** |
-| adk-python minified JS chunks | google/adk-python/src/google/adk/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | **no** |
-| adk-go minified JS chunks | google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | TEST_OR_EXAMPLE | **no** |
-| adk-python cloud metadata refs | google/adk-python/src/google/adk/code_executors/*.py, tools/*.py | multiple | ENDPOINT_LEAK | **no** (public endpoint) |
-| adk-go Cloud Run secret ref | google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | ENDPOINT_LEAK | **no** (deployment config) |
-| adk-python CLI key interpolation | google/adk-python/src/google/adk/cli/cli_create.py | 131 | INTERESTING | **no** (runtime variable) |
+| Candidate | File | Line | Secret SHA256 | REPORT_CANDIDATE |
+|-----------|------|------|---------------|------------------|
+| (none) | — | — | — | **no** |
 
----
-
-**SUMMARY**: 0 REAL_SECRET candidates in this delta. All hits are placeholders, test fixtures, build artifacts, or public endpoint references. No reportable findings.
-EOF
-# Classification Tables
-
-## REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| (none) | - | - | No hardcoded live credentials found in this delta |
-
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/openhtf/.github/workflows/python_publish.yml | 91 | `url: https://test.pypi.org/p/openhtf` | Public PyPI URL |
-| google/openhtf/.github/workflows/python_publish.yml | 105 | `repository-url: https://test.pypi.org/legacy/` | Public PyPI URL |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Default/placeholder constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS parser chunks | Build artifacts |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parser chunks | Build artifacts |
-
-## ENDPOINT_LEAK
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params (not secrets) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Cloud metadata endpoint ref |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref (deployment config) |
-
-## INTERESTING
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Runtime variable interpolation into config |
-
----
-
-# Verdict List
-
-| Candidate | File | Line | Category | REPORT_CANDIDATE |
-|-----------|------|------|----------|------------------|
-| heir TOKEN placeholder | google/heir/scripts/author_stats.py | 16 | TEST_OR_EXAMPLE | **no** |
-| openhtf test.pypi URLs | google/openhtf/.github/workflows/python_publish.yml | 91,105 | TEST_OR_EXAMPLE | **no** |
-| langextract secret refs | google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | **no** |
-| cadvisor default password | google/cadvisor/lib/cadvisorflags/flags.go | 54 | TEST_OR_EXAMPLE | **no** |
-| adk-python test fixtures | google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | TEST_OR_EXAMPLE | **no** |
-| adk-python test constants | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | **no** |
-| adk-python openapi placeholder | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | TEST_OR_EXAMPLE | **no** |
-| adk-python state key | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | **no** |
-| adk-python minified JS chunks | google/adk-python/src/google/adk/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | **no** |
-| adk-go minified JS chunks | google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | TEST_OR_EXAMPLE | **no** |
-| adk-python cloud metadata refs | google/adk-python/src/google/adk/code_executors/*.py, tools/*.py | multiple | ENDPOINT_LEAK | **no** (public endpoint) |
-| adk-go Cloud Run secret ref | google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | ENDPOINT_LEAK | **no** (deployment config) |
-| adk-python CLI key interpolation | google/adk-python/src/google/adk/cli/cli_create.py | 131 | INTERESTING | **no** (runtime variable) |
-
----
-
-**SUMMARY**: 0 REAL_SECRET candidates in this delta. All hits are placeholders, test fixtures, build artifacts, or public endpoint references. No reportable findings.
-[0m
-**Classification complete. No reportable findings in this delta.**
-
-| Category | Count |
-|----------|-------|
-| REAL_SECRET | 0 |
-| TEST_OR_EXAMPLE | 13 groups (300+ lines, mostly minified JS build artifacts) |
-| ENDPOINT_LEAK | 5 (all public cloud metadata endpoint refs or deployment config) |
-| INTERESTING | 1 (runtime variable interpolation) |
-
-All hits are placeholders (`your_github_token_here`, `your_client_secret`), test fixtures (truncated keys, `password`/`user`), GitHub Actions secret references (`${{ secrets.* }}`), public PyPI URLs, or build artifacts (minified JS parser chunks). The cloud metadata endpoint `169.254.169.254` references are documented public endpoints, not leaks.
+**Summary**: All 4 delta hits are documentation comments about the GCP metadata endpoint (169.254.169.254) — not exploitable SSRF vectors, just threat-model notes. The adk-python hits are test fixtures/placeholders (`password="password"`, `"your_client_secret"`, truncated keys). The CI/CD hits use GitHub secret references (`${{ secrets.* }}`). No reportable secrets or new attack surface.
