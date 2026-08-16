@@ -1,63 +1,39 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/
-AM_CHTML-full.js
-AM_CHTML.js
-AM_HTMLorMML-full.js
-AM_HTMLorMML.js
-AM_SVG-full.js
-AM_SVG.js
-Accessible-full.js
-Accessible.js
-MML_CHTML-full.js
-MML_CHTML.js
-MML_HTMLorMML-full.js
-MML_HTMLorMML.js
-MML_SVG-full.js
-MML_SVG.js
-MMLorHTML.js
-Safe.js
-TeX-AMS-MML_HTMLorMML-full.js
-TeX-AMS-MML_HTMLorMML.js
-TeX-AMS-MML_SVG-full.js
-TeX-AMS-MML_SVG.js
-TeX-AMS_CHTML-full.js
-TeX-AMS_CHTML.js
-TeX-AMS_HTML-full.js
-TeX-AMS_HTML.js
-TeX-AMS_SVG-full.js
-TeX-AMS_SVG.js
-TeX-MML-AM_CHTML-full.js
-TeX-MML-AM_CHTML.js
-TeX-MML-AM_HTMLorMML-full.js
-TeX-MML-AM_HTMLorMML.js
-TeX-MML-AM_SVG-full.js
-TeX-MML-AM_SVG.js
-default.js
-local
-[0m
-[0m→ [0mRead reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-AMS-MML_HTMLorMML-full.js[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-AMS_CHTML.js[90m [offset=45, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=15, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py[90m [offset=193, limit=15][0m
-All 3 DELTA hits are in **vendored third-party MathJax 2.7.2 config files** (not Google code). The other hits are also non-secrets. Here's the classification:
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [offset=170, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/src/ai/AI.ts[90m [offset=298, limit=15][0m
+### Classification Tables
 
-| Category | Hits | Verdict |
-|----------|------|---------|
-| **REAL_SECRET** | 0 | — |
-| **TEST_OR_EXAMPLE** | 226 | All hits are: MathJax 3rd-party vendored code (`doc/third_party/`), GitHub Actions `${{secrets.GITHUB_TOKEN}}` refs, test fixtures, example code, config flag names |
-| **ENDPOINT_LEAK** | 1 | `jsonnet/case_studies/micromanage/service_google.py:198` — hardcoded `169.254.169.254` (well-known GCE metadata IP) in example code |
-| **INTERESTING** | 0 | — |
+| Category | File | Line | Match | Classification |
+|----------|------|------|-------|----------------|
+| **REAL_SECRET** | — | — | — | *(none)* |
+| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (runtime injection, not hardcoded) |
+| | `google/xrblocks/docs/docusaurus.config.ts` | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch **search-only key** (public by design, KB REJECTED) |
+| | `google/xrblocks/src/ai/AI.ts` | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Placeholder values in `createSampleKeysStructure()` |
+| | `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Default config constant name, not a real secret |
+| | `google/jsonnet/doc/third_party/MathJax-2.7.2/**` | many | `NotMathMLToken` localizations | Vendored third-party localization strings |
+| **ENDPOINT_LEAK** | `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | `169.254.169.254` metadata endpoint refs | Code comments about SSRF *mitigation* (defensive), not leaks |
+| | `google/go-containerregistry/pkg/v1/google/list.go` | 206 | `169.254.169.254` | Same — SSRF protection discussion |
+| | `google/jsonnet/case_studies/micromanage/service_google.py` | 198 | `http://169.254.169.254/...` | Sample/test metadata fetch code |
+| **INTERESTING** | `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | `// issuing a 302 to a cloud instance metadata service...` | SSRF mitigation comment (security-relevant context) |
 
-**SHORT VERDICT**
+---
 
-| File | Line | Classification | REPORT_CANDIDATE |
-|------|------|----------------|------------------|
-| `google/jsonnet/doc/third_party/MathJax-2.7.2/config/*.js` | 3 files | TEST_OR_EXAMPLE (vendored MathJax) | **no** |
-| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | TEST_OR_EXAMPLE (const flag name) | **no** |
-| `google/go-containerregistry/...` | multiple | TEST_OR_EXAMPLE (SSRF comments) | **no** |
-| `google/magika/.github/workflows/*.yml` | 3 files | TEST_OR_EXAMPLE (GH Actions secret refs) | **no** |
-| `google/jsonnet/case_studies/.../service_google.py` | 198 | ENDPOINT_LEAK (metadata IP in example) | **no** |
+### SHORT VERDICT
 
-**No reportable findings in this delta.** All hits are either third-party vendored code, test fixtures, example code, or well-known cloud metadata endpoints in documentation.
+| Candidate | File | Line | SHA256 (secret material) | REPORT_CANDIDATE |
+|-----------|------|------|---------------------------|------------------|
+| Algolia DocSearch apiKey | `google/xrblocks/docs/docusaurus.config.ts` | 175 | `cc8abb6104e21d49` | **no** (KB REJECTED: search-only key, public by design) |
+| CI secret refs | `google/langextract/.github/workflows/ci.yaml` | 168-170 | `30e9f95092c31a6e`, `ff5e9f8b68acd9c9` | **no** (GitHub Actions `${{ secrets.* }}` runtime injection) |
+| Placeholder keys | `google/xrblocks/src/ai/AI.ts` | 303-304 | `f0d3f10e6a2937cb`, `e5e317737dbc8952` | **no** (explicit `YOUR_*_HERE` placeholders in sample generator) |
+| cadvisor default password const | `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | *(constant name only)* | **no** (default flag identifier, not a credential) |
+| SSRF mitigation comments | `google/go-containerregistry/**` | — | — | **no** (defensive code comments, not vulnerabilities) |
+
+**No reportable findings in this delta.** All hits are either:
+- GitHub Actions secret references (proper CI pattern)
+- Known-rejected Algolia search-only key (public by design)
+- Explicit placeholder/sample values
+- Default config constant names
+- Defensive SSRF mitigation comments in library code
