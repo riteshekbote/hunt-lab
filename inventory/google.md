@@ -1128,3 +1128,5 @@
 ## 2026-08-16 07:43:26 UTC
 - NEW graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
 - NEW www.googleapis.com/storage/v1/b → HTTP 400/401 (requires project param, then 401 storage.buckets.list denied); no bypass
+
+## 2026-08-16 08:04:30 UTC
