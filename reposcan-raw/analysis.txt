@@ -1,70 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+**Classification of 7 new delta hits:**
 
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none) | - | - | No live hardcoded credentials found in this delta |
+| File | Line | Pattern | Category |
+|------|------|---------|----------|
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` (assert) | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | `AKIA5SXYO7WZ3PLMN8RTV` (assert) | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | TEST_OR_EXAMPLE |
+| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | TEST_OR_EXAMPLE |
 
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder (trailing `...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Fixture credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder token (trailing `....`) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GitHub Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | `test.pypi.org` URLs | Public test PyPI |
-| google/xrblocks/src/ai/AI.ts | 303,304 | `'YOUR_GEMINI_API_KEY_HERE'` | Placeholder |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **Algolia DocSearch key (public by design, REJECTED 2026-08-07)** |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Config default name |
-| microsoft/agent-governance-toolkit/.../extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Placeholder |
+**Verdict:**
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint (SSRF warning in comments) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | NAT64 route warning |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Chrome blocks this |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` | SSRF risk documentation |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Metadata endpoint reference |
-| microsoft/agent-governance-toolkit/.../cedar.ts | 8,11,13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Multi-cloud IMDS endpoints |
-| microsoft/agent-governance-toolkit/.../opa.ts | 13,14 | `169.254.169.254`, `metadata.google.internal` | IMDS endpoints |
-| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563 | `169.254.169.254` | AWS/Azure IMDS |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| All 7 delta hits | microsoft/skill-recorder/**/*.test.ts, evals/** | **no** — all are test/fixture data with fake placeholder patterns (`ghp_ABCDEF...`, `ghp_abcdefghij0123456789...`, `AKIA5SXY...`) in `*.test.ts` and `evals/sensitive/` directories |
 
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name (not a secret value) |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Codegen emits secret_key variable (not hardcoded) |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Parser error messages | Minified JS chunks — not secrets |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template generating config from variable |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example/helper |
-
----
-
-## SHORT VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/xrblocks Algolia apiKey | **no** | Already REJECTED 2026-08-07: search-only key, public by design |
-| google/adk-python auth_credential.py private_key | **no** | Placeholder (`...` suffix), test fixture |
-| google/adk-python auth_credential.py password | **no** | Fixture `user`/`password` |
-| google/adk-python auth_credential.py token | **no** | Placeholder (`....` suffix) |
-| google/adk-python auth_schemes.py PASSWORD | **no** | Test constant `password` |
-| google/agents-cli auth.py GEMINI_API_KEY | **no** | Placeholder value `gemini_api_key` |
-| google/heir JaxiteWordEmitter.cpp secret_key | **no** | Codegen pattern, emits variable not literal |
-| google/magika/langextract workflows | **no** | GitHub Actions `${{secrets.*}}` references |
-| All 169.254.169.254 / IMDS refs | **no** | Documented SSRF risk surfaces, not leaks |
-| microsoft/agent-governance-toolkit placeholders | **no** | `REPLACE-WITH-YOUR-KEY` pattern |
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**No REAL_SECRET findings in this delta.** All 7 new hits are test vectors for secret detection/redaction logic.
