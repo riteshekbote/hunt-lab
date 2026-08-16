@@ -1130,3 +1130,5 @@
 - NEW www.googleapis.com/storage/v1/b → HTTP 400/401 (requires project param, then 401 storage.buckets.list denied); no bypass
 
 ## 2026-08-16 08:04:30 UTC
+
+## 2026-08-16 08:44:04 UTC
