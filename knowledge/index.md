@@ -1363,3 +1363,14 @@
 - 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions)
 - 2026-08-16 REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED findings unchanged, NO_DELTA
 - 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family CORS+PATCH vector confirmed still live @ 2026-08-16 — true CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at both collection+item+agents+admin+policySettings levels; HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 violation); GET→401/237 auth-gated
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed still live — sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged, POST-with-leaked-secret → 400 invalid_grant (vs fake → 401 invalid_client) per RFC 6749 §5.2 — conclusive valid Google OAuth credential (confidence 96)
+- 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer (proper WWW-Authenticate challenge), 458-char oAuth2PermissionGrant EntityType block with 0 OperationRestrictions at $metadata; HEAD→405/0 extends Graph 405 anomaly (RFC 6750 §3) to consent grants
+- 2026-08-16 REJECTED: graph.microsoft.com root HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface, no new attack vector
+- 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; requires auth API key/OAuth, no bypass
+- 2026-08-16 REJECTED: No new proving-dead or proving-live classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- 2026-08-16 REJECTED: Source maps @ identity SPAs closed — mysignins (404) + api.myaccount (401); recon surface eliminated
+- 2026-08-16 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules
+- 2026-08-16 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires auth, no bypass
+- 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
