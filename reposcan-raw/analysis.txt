@@ -1,67 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+### Classification Tables
 
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | - | - | No hardcoded live credentials found |
+#### REAL_SECRET
+*None found in this delta scan*
 
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
 |------|------|---------|--------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper secret management) |
-| google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | Config key name placeholder, not actual key |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder (`...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated example token (`....`) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | GH Actions secret ref (proper usage) |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | `test.pypi.org` URLs | Test PyPI endpoints |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS test fixture | Test data file |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GH Actions secret refs |
+| google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | Config key name, not value |
 | google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
 | google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | `eot_token`, `system_token`, `user_token` | Tokenizer special tokens, not secrets |
-| google/closure-compiler/externs/*.js | multiple | `@see http://dev.w3.org/...` | W3C spec documentation URLs |
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| microsoft/agent-governance-toolkit/.../extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Explicit placeholder |
-| microsoft/agent-governance-toolkit/.../alertmanager.yml | 15 | `# smtp_auth_password: 'password'` | Commented placeholder |
-| microsoft/agent-governance-toolkit/.../build_and_publish.sh | 105 | `https://test.pypi.org/simple/` | Test PyPI URL |
-| microsoft/agent-governance-toolkit/.../red_team_dataset.py | 306 | `password='newpass123'` in SQLi test string | Red team benchmark test data |
-| microsoft/agent-governance-toolkit/.../adapter.py | 17 | `api_key="your-key"` | Explicit placeholder |
-| microsoft/agent-governance-toolkit/.../configmap.yaml | 2 | `kind: ConfigMap` | K8s resource type |
-| microsoft/agent-governance-toolkit/.../smoke-test.js | 76 | `const password = "secret123"` | Security audit test fixture |
+| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | `eot_token`, `system_token`, `user_token` | Chat template constants |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | (20 files) | Parse error messages | Minified build artifacts |
+| google/closure-compiler/externs/*.js | (multiple) | W3C spec URLs | Documentation references |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `developers.devsite.corp.google.com` | Internal Google devsite domain |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Context |
+|------|------|----------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Cloud metadata IP (well-known, documented) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Comment about blocking metadata access |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | NAT64 routing reference |
+| google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java | 95 | `source.corp.google.com/piper///depot/google3/...` | Internal Google source link |
 
-## INTERESTING
-| File | Line | Context | Notes |
+#### INTERESTING
+| File | Line | Finding | Notes |
 |------|------|---------|-------|
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (pattern: external secret file) |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `KUBECONFIG` = `~/.kube/config` | K8s config path reference |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk` | Crypto code emitting secret_key variable (not hardcoded) |
-| microsoft/agent-governance-toolkit/.../cedar.ts | 8,11,13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known cloud metadata IPs (AWS/Azure/GCP/Alibaba) |
-| microsoft/agent-governance-toolkit/.../opa.ts | 13,14 | Same cloud metadata IPs | Duplicate across policy backends |
-| microsoft/agent-governance-toolkit/.../OpaPolicyBackend.cs | 563,566,568 | Same cloud metadata IPs | .NET duplicate |
-| microsoft/agent-governance-toolkit/.../http_client.py | 102,103 | Same cloud metadata IPs | Python duplicate |
-| microsoft/agent-governance-toolkit/.../managed_identity.py | 27,29,30 | AWS/Azure metadata URLs | `http://169.254.169.254/metadata/identity/oauth2/token` etc. |
-| microsoft/agent-governance-toolkit/.../entra_agent_id.py | 24 | `IMDS_URL = "http://169.254.169.254/metadata"` | Azure IMDS endpoint |
-| microsoft/agent-governance-toolkit/.../advisory.py | 39 | Cloud metadata IPs | Governance advisory code |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation pattern (not hardcoded) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | K8s config parameters |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Token state key naming |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | `os.environ["KUBECONFIG"] = ...` | Kubeconfig env var assignment |
 
 ---
 
-# VERDICT
+### SHORT VERDICT
 
-**REPORT_CANDIDATE: no** for all findings.
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| (none) | REAL_SECRET | **no** |
 
-**Summary:** 138 hits scanned across google/ and microsoft/ repos. Zero (0) REAL_SECRET findings. All hits are:
-- **TEST_OR_EXAMPLE** (108): Placeholders, test fixtures, documentation URLs, proper secret references (`${{ secrets.* }}`)
-- **ENDPOINT_LEAK** (3): Staging URL + internal Google devsite domain references (non-sensitive)
-- **INTERESTING** (27): Well-known cloud metadata service IPs (169.254.169.254, metadata.google.internal, 100.100.100.200) and crypto code patterns — all documented public endpoints, not secrets
+**Summary**: This delta scan produced **zero reportable secrets**. All hits are:
+- Test fixtures / placeholder values (`password`, `your_client_secret`, `user`/`password`)
+- GitHub Actions secret references (`${{secrets.*}}`) — correct pattern
+- Build artifacts (minified JS chunks)
+- Well-known cloud metadata IP (`169.254.169.254`) — documented public endpoint
+- Config parameter definitions (kubeconfig, token state keys)
+- Internal Google source link in externs (not a credential)
 
-**No actionable VRP findings in this scan delta.**
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+The previously reported **earthengine-api OAuth client_secret** (`oauth.py:45`, sha256 `3f3f8d6f...d271`) does not appear in this delta — it was already tracked in prior cycles (ACCEPTED, valid credential per RFC 6749 §5.2 A/B proof). No new REAL_SECRET candidates in this scan.
