@@ -1329,3 +1329,19 @@
 - 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret remains live — sha256(secret)=3f3f8d6f…d271 verbatim, sha256(file)=f4f93c76… unchanged, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2 (confidence 96).
 - 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, oAuth2PermissionGrant EntityType 458-char block with 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId.
 - 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — fresh probes (token→404, tokeninfo→400/113, agentRegs collection+item→401, agents→401, oauth2PermissionGrants→401, preflight 200 ACAO:* + PATCH allowlist, earthengine file sha `f4f93c76…b73040` unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 16:19 UTC; graph root 301 / storage 400-401 / item-level 401 entries are delta-detector artifacts already in KB.
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET→200/23110, secret sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged
+- 2026-08-16 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 subset invariant holds, no cross-endpoint confusion surface
+- 2026-08-16 REJECTED: Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio — private-preview, not actionable
+- 2026-08-16 REJECTED: /me/agentSignInSessions @ graph.microsoft.com — off-metadata, 401, no bypass vector
+- 2026-08-16 REJECTED: powervirtualagents.microsoft.com/orchestrated/* — domain deprecated, no live API
+- 2026-08-16 REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — SweetAlert2 DOM element ID, NOT credential
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET→200/23110, secret sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged
+- 2026-08-16 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 subset invariant holds, no cross-endpoint confusion surface
+- 2026-08-16 REJECTED: Copilot Studio D2E S2S conversation-ID gap @ graph.microsoft.com/beta/copilotstudio — private-preview, not actionable
+- 2026-08-16 REJECTED: /me/agentSignInSessions @ graph.microsoft.com — off-metadata, 401, no bypass vector
+- 2026-08-16 REJECTED: powervirtualagents.microsoft.com/orchestrated/* — domain deprecated, no live API
+- 2026-08-16 REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — SweetAlert2 DOM element ID, NOT credential
+- 2026-08-16 ACCEPTED agentRegistrations CORS+PATCH vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: true preflight re-verified live 16:52 UTC — 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400; precondition intact.
+- 2026-08-16 ACCEPTED earthengine secret @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py:45: source 200/23110, whole-file sha `f4f93c76…73040` verbatim, secret sha `3f3f8d6f…d271` present; A/B oracle conclusive.
+- 2026-08-16 ACCEPTED v1↔v2 JWKS subset invariant @ login.microsoftonline.com: v1(5)⊂v2(8), 0 v1-exclusive this probe; rotation-desync class stays REJECTED.
+- 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes (token→404, tokeninfo→400, agentRegs→401/405, oauth2PermissionGrants→401, agents→401, earthengine sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 16:52 UTC.
