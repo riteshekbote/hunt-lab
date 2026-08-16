@@ -1,72 +1,904 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-258 reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+[0m$ [0mcat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -600 | tail -50
+return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
+
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
+
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
+  os << ")\n";
+
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::ExtractOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getTensor());
+
+  os << "[";
+  for (size_t i = 0; i < op.getIndices().size(); ++i) {
+    if (i > 0) os << ", ";
+    Value idx = op.getIndices()[i];
+    auto constStr = getConstantAsString(idx);
+    if (succeeded(constStr)) {
+      os << constStr.value();
+    } else {
+      os << variableNames->getNameForValue(idx);
+    }
+  }
+  os << "]\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(tensor::FromElementsOp op) {
+  if (op.getNumOperands() == 0) {
+    return success();
+  }
+  if (isa<jaxiteword::AddOp>(op->getOperands()[0].getDefiningOp())) {
+    return success();
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=120, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=20, offset=475][0m
-[0m→ [0mRead reposcan-raw/google/grr/docker/docker-entrypoint.sh[90m [limit=35][0m
-[0m→ [0mRead reposcan-raw/google/grr/docker_config_files/server/grr.server.yaml[90m [limit=40][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=50][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/llm-sidebar-with-context/src/scripts/constants.ts[90m [offset=40, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=40, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/heir/scripts/author_stats.py[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml[90m [limit=30, offset=58][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_config.yaml[90m [limit=30, offset=58][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py[90m [offset=185, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/client/grr_response_client/client_actions/cloud.py[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py[90m [limit=40][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/server/grr_response_server/flows/general/cloud.py[90m [offset=518, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/server/grr_response_server/databases/mysql.py[90m [limit=10, offset=644][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/server/grr_response_server/databases/db.py[90m [offset=663, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/server/grr_response_server/databases/mysql_pool.py[90m [limit=10, offset=220][0m
-[0m→ [0mRead reposcan-raw/google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts[90m [limit=20, offset=225][0m
-[0m→ [0mRead reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml[90m [offset=10, limit=30][0m
+[0m$ [0mgrep -n "secret_key" reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp
+478:  os << sk << " = key_pair[\"secret_key\"]\n";
+558:  os << ctx << ".secret_key = " << sk << "\n";
 [0m
-[0m$ [0mhead -5 reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js
-import{a as it}from"./chunk-APNCZOFE.js";import{a as rt}from"./chunk-XB6MIIOW.js";import{b as tt,c as st}from"./chunk-QL2SWWYM.js";import"./chunk-VZBWMYZM.js";import"./chunk-FDMPUWDP.js";import"./chunk-NRMNZ7EH.js";import"./chunk-VWUZC4UJ.js";import"./chunk-3TW5HJSC.js";import"./chunk-PRKFGJVH.js";import"./chunk-4V3PIBXT.js";import{D as et}from"./chunk-UKZIEWH5.js";import"./chunk-GP6TCC26.js";import{A as Ce,R as We,S as je,T as Ge,U as ze,V as Xe,W as Je,X as Ze,Y as ye}from"./chunk-37QI3DOO.js";import{g as h,h as Ke,i as ke}from"./chunk-JRNAXTJ7.js";import"./chunk-URMDZFG4.js";import{j as He}from"./chunk-RMXJBC7V.js";var Ae=(function(){var e=h(function($,r,a,c){for(a=a||{},c=$.length;c--;a[$[c]]=r);return a},"o"),u=[1,3],o=[1,4],n=[1,5],i=[1,6],f=[5,6,8,9,11,13,21,22,23,24,41,42,43,44,45,46,54,72,74,77,89,90],k=[1,22],E=[2,7],R=[1,26],_=[1,27],I=[1,28],q=[1,29],C=[1,33],A=[1,34],V=[1,35],v=[1,36],L=[1,37],x=[1,38],O=[1,24],w=[1,31],D=[1,32],M=[1,30],p=[1,39],b=[1,40],d=[5,8,9,11,13,21,22,23,24,41,42,43,44,45,46,54,72,74,77,89,90],P=[1,61],X=[89,90],Ve=[5,8,9,11,13,21,22,23,24,27,29,41,42,43,44,45,46,54,61,63,72,74,75,76,77,80,81,82,83,84,85,86,87,88,89,90],de=[27,29],ve=[1,70],Le=[1,71],xe=[1,72],Oe=[1,73],we=[1,74],De=[1,75],Me=[1,76],Z=[1,83],U=[1,80],ee=[1,84],te=[1,85],se=[1,86],ie=[1,87],re=[1,88],ne=[1,89],ae=[1,90],le=[1,91],ce=[1,92],Ee=[5,8,9,11,13,21,22,23,24,27,41,42,43,44,45,46,54,72,74,75,76,77,80,81,82,83,84,85,86,87,88,89,90],Y=[63,64],Fe=[1,101],$e=[5,8,9,11,13,21,22,23,24,41,42,43,44,45,46,54,72,74,76,77,89,90],T=[5,8,9,11,13,21,22,23,24,41,42,43,44,45,46,54,72,74,75,76,77,80,81,82,83,84,85,86,87,88,89,90],B=[1,110],Q=[1,106],H=[1,107],K=[1,108],W=[1,109],j=[1,111],oe=[1,116],he=[1,117],ue=[1,114],fe=[1,115],_e={trace:h(function(){},"trace"),yy:{},symbols_:{error:2,start:3,directive:4,NEWLINE:5,RD:6,diagram:7,EOF:8,acc_title:9,acc_title_value:10,acc_descr:11,acc_descr_value:12,acc_descr_multiline_value:13,requirementDef:14,elementDef:15,relationshipDef:16,direction:17,styleStatement:18,classDefStatement:19,classStatement:20,direction_tb:21,direction_bt:22,direction_rl:23,direction_lr:24,requirementType:25,requirementName:26,STRUCT_START:27,requirementBody:28,STYLE_SEPARATOR:29,idList:30,ID:31,COLONSEP:32,id:33,TEXT:34,text:35,RISK:36,riskLevel:37,VERIFYMTHD:38,verifyType:39,STRUCT_STOP:40,REQUIREMENT:41,FUNCTIONAL_REQUIREMENT:42,INTERFACE_REQUIREMENT:43,PERFORMANCE_REQUIREMENT:44,PHYSICAL_REQUIREMENT:45,DESIGN_CONSTRAINT:46,LOW_RISK:47,MED_RISK:48,HIGH_RISK:49,VERIFY_ANALYSIS:50,VERIFY_DEMONSTRATION:51,VERIFY_INSPECTION:52,VERIFY_TEST:53,ELEMENT:54,elementName:55,elementBody:56,TYPE:57,type:58,DOCREF:59,ref:60,END_ARROW_L:61,relationship:62,LINE:63,END_ARROW_R:64,CONTAINS:65,COPIES:66,DERIVES:67,SATISFIES:68,VERIFIES:69,REFINES:70,TRACES:71,CLASSDEF:72,stylesOpt:73,CLASS:74,ALPHA:75,COMMA:76,STYLE:77,style:78,styleComponent:79,NUM:80,COLON:81,UNIT:82,SPACE:83,BRKT:84,PCT:85,MINUS:86,LABEL:87,SEMICOLON:88,unqString:89,qString:90,$accept:0,$end:1},terminals_:{2:"error",5:"NEWLINE",6:"RD",8:"EOF",9:"acc_title",10:"acc_title_value",11:"acc_descr",12:"acc_descr_value",13:"acc_descr_multiline_value",21:"direction_tb",22:"direction_bt",23:"direction_rl",24:"direction_lr",27:"STRUCT_START",29:"STYLE_SEPARATOR",31:"ID",32:"COLONSEP",34:"TEXT",36:"RISK",38:"VERIFYMTHD",40:"STRUCT_STOP",41:"REQUIREMENT",42:"FUNCTIONAL_REQUIREMENT",43:"INTERFACE_REQUIREMENT",44:"PERFORMANCE_REQUIREMENT",45:"PHYSICAL_REQUIREMENT",46:"DESIGN_CONSTRAINT",47:"LOW_RISK",48:"MED_RISK",49:"HIGH_RISK",50:"VERIFY_ANALYSIS",51:"VERIFY_DEMONSTRATION",52:"VERIFY_INSPECTION",53:"VERIFY_TEST",54:"ELEMENT",57:"TYPE",59:"DOCREF",61:"END_ARROW_L",63:"LINE",64:"END_ARROW_R",65:"CONTAINS",66:"COPIES",67:"DERIVES",68:"SATISFIES",69:"VERIFIES",70:"REFINES",71:"TRACES",72:"CLASSDEF",74:"CLASS",75:"ALPHA",76:"COMMA",77:"STYLE",80:"NUM",81:"COLON",82:"UNIT",83:"SPACE",84:"BRKT",85:"PCT",86:"MINUS",87:"LABEL",88:"SEMICOLON",89:"unqString",90:"qString"},productions_:[0,[3,3],[3,2],[3,4],[4,2],[4,2],[4,1],[7,0],[7,2],[7,2],[7,2],[7,2],[7,2],[7,2],[7,2],[7,2],[7,2],[17,1],[17,1],[17,1],[17,1],[14,5],[14,7],[28,5],[28,5],[28,5],[28,5],[28,2],[28,1],[25,1],[25,1],[25,1],[25,1],[25,1],[25,1],[37,1],[37,1],[37,1],[39,1],[39,1],[39,1],[39,1],[15,5],[15,7],[56,5],[56,5],[56,2],[56,1],[16,5],[16,5],[62,1],[62,1],[62,1],[62,1],[62,1],[62,1],[62,1],[19,3],[20,3],[20,3],[30,1],[30,3],[30,1],[30,3],[18,3],[73,1],[73,3],[78,1],[78,2],[79,1],[79,1],[79,1],[79,1],[79,1],[79,1],[79,1],[79,1],[79,1],[79,1],[26,1],[26,1],[33,1],[33,1],[35,1],[35,1],[55,1],[55,1],[58,1],[58,1],[60,1],[60,1]],performAction:h(function(r,a,c,s,m,t,me){var l=t.length-1;switch(m){case 4:this.$=t[l].trim(),s.setAccTitle(this.$);break;case 5:case 6:this.$=t[l].trim(),s.setAccDescription(this.$);break;case 7:this.$=[];break;case 17:s.setDirection("TB");break;case 18:s.setDirection("BT");break;case 19:s.setDirection("RL");break;case 20:s.setDirection("LR");break;case 21:s.addRequirement(t[l-3],t[l-4]);break;case 22:s.addRequirement(t[l-5],t[l-6]),s.setClass([t[l-5]],t[l-3]);break;case 23:s.setNewReqId(t[l-2]);break;case 24:s.setNewReqText(t[l-2]);break;case 25:s.setNewReqRisk(t[l-2]);break;case 26:s.setNewReqVerifyMethod(t[l-2]);break;case 29:this.$=s.RequirementType.REQUIREMENT;break;case 30:this.$=s.RequirementType.FUNCTIONAL_REQUIREMENT;break;case 31:this.$=s.RequirementType.INTERFACE_REQUIREMENT;break;case 32:this.$=s.RequirementType.PERFORMANCE_REQUIREMENT;break;case 33:this.$=s.RequirementType.PHYSICAL_REQUIREMENT;break;case 34:this.$=s.RequirementType.DESIGN_CONSTRAINT;break;case 35:this.$=s.RiskLevel.LOW_RISK;break;case 36:this.$=s.RiskLevel.MED_RISK;break;case 37:this.$=s.RiskLevel.HIGH_RISK;break;case 38:this.$=s.VerifyType.VERIFY_ANALYSIS;break;case 39:this.$=s.VerifyType.VERIFY_DEMONSTRATION;break;case 40:this.$=s.VerifyType.VERIFY_INSPECTION;break;case 41:this.$=s.VerifyType.VERIFY_TEST;break;case 42:s.addElement(t[l-3]);break;case 43:s.addElement(t[l-5]),s.setClass([t[l-5]],t[l-3]);break;case 44:s.setNewElementType(t[l-2]);break;case 45:s.setNewElementDocRef(t[l-2]);break;case 48:s.addRelationship(t[l-2],t[l],t[l-4]);break;case 49:s.addRelationship(t[l-2],t[l-4],t[l]);break;case 50:this.$=s.Relationships.CONTAINS;break;case 51:this.$=s.Relationships.COPIES;break;case 52:this.$=s.Relationships.DERIVES;break;case 53:this.$=s.Relationships.SATISFIES;break;case 54:this.$=s.Relationships.VERIFIES;break;case 55:this.$=s.Relationships.REFINES;break;case 56:this.$=s.Relationships.TRACES;break;case 57:this.$=t[l-2],s.defineClass(t[l-1],t[l]);break;case 58:s.setClass(t[l-1],t[l]);break;case 59:s.setClass([t[l-2]],t[l]);break;case 60:case 62:this.$=[t[l]];break;case 61:case 63:this.$=t[l-2].concat([t[l]]);break;case 64:this.$=t[l-2],s.setCssStyle(t[l-1],t[l]);break;case 65:this.$=[t[l]];break;case 66:t[l-2].push(t[l]),this.$=t[l-2];break;case 68:this.$=t[l-1]+t[l];break}},"anonymous"),table:[{3:1,4:2,6:u,9:o,11:n,13:i},{1:[3]},{3:8,4:2,5:[1,7],6:u,9:o,11:n,13:i},{5:[1,9]},{10:[1,10]},{12:[1,11]},e(f,[2,6]),{3:12,4:2,6:u,9:o,11:n,13:i},{1:[2,2]},{4:17,5:k,7:13,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},e(f,[2,4]),e(f,[2,5]),{1:[2,1]},{8:[1,41]},{4:17,5:k,7:42,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:43,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:44,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:45,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:46,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:47,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:48,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:49,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{4:17,5:k,7:50,8:E,9:o,11:n,13:i,14:14,15:15,16:16,17:18,18:19,19:20,20:21,21:R,22:_,23:I,24:q,25:23,33:25,41:C,42:A,43:V,44:v,45:L,46:x,54:O,72:w,74:D,77:M,89:p,90:b},{26:51,89:[1,52],90:[1,53]},{55:54,89:[1,55],90:[1,56]},{29:[1,59],61:[1,57],63:[1,58]},e(d,[2,17]),e(d,[2,18]),e(d,[2,19]),e(d,[2,20]),{30:60,33:62,75:P,89:p,90:b},{30:63,33:62,75:P,89:p,90:b},{30:64,33:62,75:P,89:p,90:b},e(X,[2,29]),e(X,[2,30]),e(X,[2,31]),e(X,[2,32]),e(X,[2,33]),e(X,[2,34]),e(Ve,[2,81]),e(Ve,[2,82]),{1:[2,3]},{8:[2,8]},{8:[2,9]},{8:[2,10]},{8:[2,11]},{8:[2,12]},{8:[2,13]},{8:[2,14]},{8:[2,15]},{8:[2,16]},{27:[1,65],29:[1,66]},e(de,[2,79]),e(de,[2,80]),{27:[1,67],29:[1,68]},e(de,[2,85]),e(de,[2,86]),{62:69,65:ve,66:Le,67:xe,68:Oe,69:we,70:De,71:Me},{62:77,65:ve,66:Le,67:xe,68:Oe,69:we,70:De,71:Me},{30:78,33:62,75:P,89:p,90:b},{73:79,75:Z,76:U,78:81,79:82,80:ee,81:te,82:se,83:ie,84:re,85:ne,86:ae,87:le,88:ce},e(Ee,[2,60]),e(Ee,[2,62]),{73:93,75:Z,76:U,78:81,79:82,80:ee,81:te,82:se,83:ie,84:re,85:ne,86:ae,87:le,88:ce},{30:94,33:62,75:P,76:U,89:p,90:b},{5:[1,95]},{30:96,33:62,75:P,89:p,90:b},{5:[1,97]},{30:98,33:62,75:P,89:p,90:b},{63:[1,99]},e(Y,[2,50]),e(Y,[2,51]),e(Y,[2,52]),e(Y,[2,53]),e(Y,[2,54]),e(Y,[2,55]),e(Y,[2,56]),{64:[1,100]},e(d,[2,59],{76:U}),e(d,[2,64],{76:Fe}),{33:103,75:[1,102],89:p,90:b},e($e,[2,65],{79:104,75:Z,80:ee,81:te,82:se,83:ie,84:re,85:ne,86:ae,87:le,88:ce}),e(T,[2,67]),e(T,[2,69]),e(T,[2,70]),e(T,[2,71]),e(T,[2,72]),e(T,[2,73]),e(T,[2,74]),e(T,[2,75]),e(T,[2,76]),e(T,[2,77]),e(T,[2,78]),e(d,[2,57],{76:Fe}),e(d,[2,58],{76:U}),{5:B,28:105,31:Q,34:H,36:K,38:W,40:j},{27:[1,112],76:U},{5:oe,40:he,56:113,57:ue,59:fe},{27:[1,118],76:U},{33:119,89:p,90:b},{33:120,89:p,90:b},{75:Z,78:121,79:82,80:ee,81:te,82:se,83:ie,84:re,85:ne,86:ae,87:le,88:ce},e(Ee,[2,61]),e(Ee,[2,63]),e(T,[2,68]),e(d,[2,21]),{32:[1,122]},{32:[1,123]},{32:[1,124]},{32:[1,125]},{5:B,28:126,31:Q,34:H,36:K,38:W,40:j},e(d,[2,28]),{5:[1,127]},e(d,[2,42]),{32:[1,128]},{32:[1,129]},{5:oe,40:he,56:130,57:ue,59:fe},e(d,[2,47]),{5:[1,131]},e(d,[2,48]),e(d,[2,49]),e($e,[2,66],{79:104,75:Z,80:ee,81:te,82:se,83:ie,84:re,85:ne,86:ae,87:le,88:ce}),{33:132,89:p,90:b},{35:133,89:[1,134],90:[1,135]},{37:136,47:[1,137],48:[1,138],49:[1,139]},{39:140,50:[1,141],51:[1,142],52:[1,143],53:[1,144]},e(d,[2,27]),{5:B,28:145,31:Q,34:H,36:K,38:W,40:j},{58:146,89:[1,147],90:[1,148]},{60:149,89:[1,150],90:[1,151]},e(d,[2,46]),{5:oe,40:he,56:152,57:ue,59:fe},{5:[1,153]},{5:[1,154]},{5:[2,83]},{5:[2,84]},{5:[1,155]},{5:[2,35]},{5:[2,36]},{5:[2,37]},{5:[1,156]},{5:[2,38]},{5:[2,39]},{5:[2,40]},{5:[2,41]},e(d,[2,22]),{5:[1,157]},{5:[2,87]},{5:[2,88]},{5:[1,158]},{5:[2,89]},{5:[2,90]},e(d,[2,43]),{5:B,28:159,31:Q,34:H,36:K,38:W,40:j},{5:B,28:160,31:Q,34:H,36:K,38:W,40:j},{5:B,28:161,31:Q,34:H,36:K,38:W,40:j},{5:B,28:162,31:Q,34:H,36:K,38:W,40:j},{5:oe,40:he,56:163,57:ue,59:fe},{5:oe,40:he,56:164,57:ue,59:fe},e(d,[2,23]),e(d,[2,24]),e(d,[2,25]),e(d,[2,26]),e(d,[2,44]),e(d,[2,45])],defaultActions:{8:[2,2],12:[2,1],41:[2,3],42:[2,8],43:[2,9],44:[2,10],45:[2,11],46:[2,12],47:[2,13],48:[2,14],49:[2,15],50:[2,16],134:[2,83],135:[2,84],137:[2,35],138:[2,36],139:[2,37],141:[2,38],142:[2,39],143:[2,40],144:[2,41],147:[2,87],148:[2,88],150:[2,89],151:[2,90]},parseError:h(function(r,a){if(a.recoverable)this.trace(r);else{var c=new Error(r);throw c.hash=a,c}},"parseError"),parse:h(function(r){var a=this,c=[0],s=[],m=[null],t=[],me=this.table,l="",be=0,Pe=0,Ue=0,lt=2,Ye=1,ct=t.slice.call(arguments,1),g=Object.create(this.lexer),G={yy:{}};for(var Se in this.yy)Object.prototype.hasOwnProperty.call(this.yy,Se)&&(G.yy[Se]=this.yy[Se]);g.setInput(r,G.yy),G.yy.lexer=g,G.yy.parser=this,typeof g.yylloc>"u"&&(g.yylloc={});var Ie=g.yylloc;t.push(Ie);var ot=g.options&&g.options.ranges;typeof G.yy.parseError=="function"?this.parseError=G.yy.parseError:this.parseError=Object.getPrototypeOf(this).parseError;function ht(S){c.length=c.length-2*S,m.length=m.length-S,t.length=t.length-S}h(ht,"popStack");function Be(){var S;return S=s.pop()||g.lex()||Ye,typeof S!="number"&&(S instanceof Array&&(s=S,S=s.pop()),S=a.symbols_[S]||S),S}h(Be,"lex");for(var y,Te,z,N,bt,Ne,J={},Re,F,Qe,ge;;){if(z=c[c.length-1],this.defaultActions[z]?N=this.defaultActions[z]:((y===null||typeof y>"u")&&(y=Be()),N=me[z]&&me[z][y]),typeof N>"u"||!N.length||!N[0]){var qe="";ge=[];for(Re in me[z])this.terminals_[Re]&&Re>lt&&ge.push("'"+this.terminals_[Re]+"'");g.showPosition?qe="Parse error on line "+(be+1)+`:
-`+g.showPosition()+`
-Expecting `+ge.join(", ")+", got '"+(this.terminals_[y]||y)+"'":qe="Parse error on line "+(be+1)+": Unexpected "+(y==Ye?"end of input":"'"+(this.terminals_[y]||y)+"'"),this.parseError(qe,{text:g.match,token:this.terminals_[y]||y,line:g.yylineno,loc:Ie,expected:ge})}if(N[0]instanceof Array&&N.length>1)throw new Error("Parse Error: multiple actions possible at state: "+z+", token: "+y);switch(N[0]){case 1:c.push(y),m.push(g.yytext),t.push(g.yylloc),c.push(N[1]),y=null,Te?(y=Te,Te=null):(Pe=g.yyleng,l=g.yytext,be=g.yylineno,Ie=g.yylloc,Ue>0&&Ue--);break;case 2:if(F=this.productions_[N[1]][1],J.$=m[m.length-F],J._$={first_line:t[t.length-(F||1)].first_line,last_line:t[t.length-1].last_line,first_column:t[t.length-(F||1)].first_column,last_column:t[t.length-1].last_column},ot&&(J._$.range=[t[t.length-(F||1)].range[0],t[t.length-1].range[1]]),Ne=this.performAction.apply(J,[l,Pe,be,G.yy,N[1],m,t].concat(ct)),typeof Ne<"u")return Ne;F&&(c=c.slice(0,-1*F*2),m=m.slice(0,-1*F),t=t.slice(0,-1*F)),c.push(this.productions_[N[1]][0]),m.push(J.$),t.push(J._$),Qe=me[c[c.length-2]][c[c.length-1]],c.push(Qe);break;case 3:return!0}}return!0},"parse")},at=(function(){var $={EOF:1,parseError:h(function(a,c){if(this.yy.parser)this.yy.parser.parseError(a,c);else throw new Error(a)},"parseError"),setInput:h(function(r,a){return this.yy=a||this.yy||{},this._input=r,this._more=this._backtrack=this.done=!1,this.yylineno=this.yyleng=0,this.yytext=this.matched=this.match="",this.conditionStack=["INITIAL"],this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0},this.options.ranges&&(this.yylloc.range=[0,0]),this.offset=0,this},"setInput"),input:h(function(){var r=this._input[0];this.yytext+=r,this.yyleng++,this.offset++,this.match+=r,this.matched+=r;var a=r.match(/(?:\r\n?|\n).*/g);return a?(this.yylineno++,this.yylloc.last_line++):this.yylloc.last_column++,this.options.ranges&&this.yylloc.range[1]++,this._input=this._input.slice(1),r},"input"),unput:h(function(r){var a=r.length,c=r.split(/(?:\r\n?|\n)/g);this._input=r+this._input,this.yytext=this.yytext.substr(0,this.yytext.length-a),this.offset-=a;var s=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1),this.matched=this.matched.substr(0,this.matched.length-1),c.length-1&&(this.yylineno-=c.length-1);var m=this.yylloc.range;return this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:c?(c.length===s.length?this.yylloc.first_column:0)+s[s.length-c.length].length-c[0].length:this.yylloc.first_column-a},this.options.ranges&&(this.yylloc.range=[m[0],m[0]+this.yyleng-a]),this.yyleng=this.yytext.length,this},"unput"),more:h(function(){return this._more=!0,this},"more"),reject:h(function(){if(this.options.backtrack_lexer)this._backtrack=!0;else return this.parseError("Lexical error on line "+(this.yylineno+1)+`. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).
-`+this.showPosition(),{text:"",token:null,line:this.yylineno});return this},"reject"),less:h(function(r){this.unput(this.match.slice(r))},"less"),pastInput:h(function(){var r=this.matched.substr(0,this.matched.length-this.match.length);return(r.length>20?"...":"")+r.substr(-20).replace(/\n/g,"")},"pastInput"),upcomingInput:h(function(){var r=this.match;return r.length<20&&(r+=this._input.substr(0,20-r.length)),(r.substr(0,20)+(r.length>20?"...":"")).replace(/\n/g,"")},"upcomingInput"),showPosition:h(function(){var r=this.pastInput(),a=new Array(r.length+1).join("-");return r+this.upcomingInput()+`
-`+a+"^"},"showPosition"),test_match:h(function(r,a){var c,s,m;if(this.options.backtrack_lexer&&(m={yylineno:this.yylineno,yylloc:{first_line:this.yylloc.first_line,last_line:this.last_line,first_column:this.yylloc.first_column,last_column:this.yylloc.last_column},yytext:this.yytext,match:this.match,matches:this.matches,matched:this.matched,yyleng:this.yyleng,offset:this.offset,_more:this._more,_input:this._input,yy:this.yy,conditionStack:this.conditionStack.slice(0),done:this.done},this.options.ranges&&(m.yylloc.range=this.yylloc.range.slice(0))),s=r[0].match(/(?:\r\n?|\n).*/g),s&&(this.yylineno+=s.length),this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:s?s[s.length-1].length-s[s.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+r[0].length},this.yytext+=r[0],this.match+=r[0],this.matches=r,this.yyleng=this.yytext.length,this.options.ranges&&(this.yylloc.range=[this.offset,this.offset+=this.yyleng]),this._more=!1,this._backtrack=!1,this._input=this._input.slice(r[0].length),this.matched+=r[0],c=this.performAction.call(this,this.yy,this,a,this.conditionStack[this.conditionStack.length-1]),this.done&&this._input&&(this.done=!1),c)return c;if(this._backtrack){for(var t in m)this[t]=m[t];return!1}return!1},"test_match"),next:h(function(){if(this.done)return this.EOF;this._input||(this.done=!0);var r,a,c,s;this._more||(this.yytext="",this.match="");for(var m=this._currentRules(),t=0;t<m.length;t++)if(c=this._input.match(this.rules[m[t]]),c&&(!a||c[0].length>a[0].length)){if(a=c,s=t,this.options.backtrack_lexer){if(r=this.test_match(c,m[t]),r!==!1)return r;if(this._backtrack){a=!1;continue}else return!1}else if(!this.options.flex)break}return a?(r=this.test_match(a,m[s]),r!==!1?r:!1):this._input===""?this.EOF:this.parseError("Lexical error on line "+(this.yylineno+1)+`. Unrecognized text.
+[0m$ [0mcat reposcan-raw/google/heir/scripts/author_stats.py | head -30
+"""Compute statistics about (non-Googler, non-bot) authors of commits."""
+
+import collections
+import csv
+import datetime
+import sys
+import time
+import requests
+
+defaultdict = collections.defaultdict
+datetime = datetime.datetime
+
+# Constants
+GITHUB_API_URL = "https://api.github.com"
+REPO = "google/heir"  # replace with the desired repo
+# TOKEN = "your_github_token_here"
+
+# Define email patterns to exclude
+excluded_email_patterns = ["dependabot", "no-reply@google.com"]
+# use this for only non-Google-employed authors
+# excluded_patterns = ["google.com", "j2kun", "kun.jeremy", "dependabot"]
+
+# Define commit message patterns to exclude
+excluded_message_patterns = [
+    "Integrate LLVM at llvm/llvm-project@",
+    "dependabot",
+]
+
+
+def should_exclude(commit):
 [0m
-Now I have a complete picture. Let me create the classification tables and verdict.
+[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | head -50
+# The build and release gate's data, in one place.
+#
+# `src/capsem/gate/` holds the decisions; this holds the values those decisions
+# are made from -- container names, scratch paths, timeouts, the boundary/rail
+# pairs the storage policy accepts, the artifacts an asset build must produce.
+#
+# It exists because the same values were previously spelled inside whichever
+# module happened to need them, which is how the justfile ended up with eleven
+# hand-written copies of one storage command and four disagreeing `case` blocks
+# over architecture names. A value that lives in one file can be read by the
+# code, by the contract tests, and by a person deciding whether to change it.
+#
+# Loaded through `capsem.gate.config`, which validates it with Pydantic: a
+# missing key or a wrong type fails at load with the field named, not deep
+# inside a forty-minute run.
+version = 1
+
+# ---------------------------------------------------------------------------
+# Architectures
+# ---------------------------------------------------------------------------
+# One target under every name some tool insists on. `uname -m` says aarch64,
+# the assets tree says arm64, dpkg says arm64 for ARM but amd64 for Intel, and
+# rustc wants a full triple.
+
+# `/usr/lib/<gnu>/pkgconfig` is where every multiarch cross toolchain puts its
+# `.pc` files; the tuple is the only part that varies.
+pkg_config_template = "/usr/lib/{gnu}/pkgconfig:/usr/share/pkgconfig"
+
+[architectures.arm64]
+rust_target = "aarch64-unknown-linux-gnu"
+dpkg = "arm64"
+gnu = "aarch64-linux-gnu"
+apt_cross_compilers = ["gcc-aarch64-linux-gnu", "g++-aarch64-linux-gnu"]
+docker_platform = "linux/arm64"
+aliases = ["arm64", "aarch64"]
+
+[architectures.x86_64]
+rust_target = "x86_64-unknown-linux-gnu"
+dpkg = "amd64"
+gnu = "x86_64-linux-gnu"
+apt_cross_compilers = ["gcc-x86-64-linux-gnu", "g++-x86-64-linux-gnu"]
+docker_platform = "linux/amd64"
+aliases = ["x86_64", "amd64"]
+
+# ---------------------------------------------------------------------------
+# Docker storage
+# ---------------------------------------------------------------------------
+
+[storage]
+policy_script = "scripts/docker-storage-policy.py"
+[0m
+[0m$ [0mgrep -n "password" reposcan-raw/google/capsem/config/gate.toml
+481:password = "password.txt"
+483:password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
+#!/usr/bin/env bash
+# Preflight checks for release builds.
+# Validates environment, credentials, and tools BEFORE slow CI jobs run.
+# Add new checks as functions -- they run in order, fail-fast on first error.
+set -euo pipefail
+
+PASS=0
+FAIL=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+
+# --------------------------------------------------------------------------
+# Check: Apple certificate can be imported into a macOS keychain
+# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
+# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
+# with a misleading "wrong password" error. Re-export with:
+#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
+#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
+#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+# --------------------------------------------------------------------------
+check_apple_certificate() {
+    echo ""
+    echo "== Apple Certificate =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local pass_file="$cert_dir/p12-password.txt"
+
+    if [[ ! -f "$p12" ]]; then
+        fail "capsem.p12 not found at $p12"
+        return
+    fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m
+[0m$ [0mgrep -n "hf_access_token" reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml
+63:  #   hf_access_token: "your_token"
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+// Smoke tests for AgentOS Copilot Extension
+
+const { AgentGenerator } = require('./dist/agentGenerator.js');
+const { TemplateGallery } = require('./dist/templateGallery.js');
+const { PolicyLibrary } = require('./dist/policyLibrary.js');
+const { TestSimulator } = require('./dist/testSimulator.js');
+const { DebugHelper } = require('./dist/debugHelper.js');
+const { GitHubIntegration } = require('./dist/githubIntegration.js');
+
+console.log('');
+console.log('================================================');
+console.log('  AgentOS Copilot Extension - Smoke Tests');
+console.log('================================================');
+console.log('');
+
+let passed = 0;
+let failed = 0;
+
+function test(name, condition) {
+  if (condition) {
+    console.log('[PASS]', name);
+    passed++;
+  } else {
+    console.log('[FAIL]', name);
+    failed++;
+  }
+}
+
+// AgentGenerator Tests
+console.log('--- AgentGenerator ---');
+const generator = new AgentGenerator();
+const spec = generator.parseTaskDescription('Create an agent that monitors API endpoints');
+test('parseTaskDescription returns spec', spec && spec.tasks);
+test('parseTaskDescription extracts tasks', spec.tasks.length > 0);
+
+const genResult = generator.generateAgent(spec, 'python');
+test('generateAgent returns object', typeof genResult === 'object');
+
+const workflow = generator.generateGitHubActionsWorkflow(spec);
+test('generateGitHubActionsWorkflow returns YAML', workflow.includes('name:'));
+
+// TemplateGallery Tests
+console.log('');
+console.log('--- TemplateGallery ---');
+const gallery = new TemplateGallery();
+test('getById returns template', gallery.getById('uptime-monitor') !== undefined);
+test('getCategories returns 8 categories', gallery.getCategories().length === 8);
+test('recommend returns results', gallery.recommend('monitor api').length > 0);
+test('getByCategory returns devops templates', gallery.getByCategory('devops').length > 0);
+
+// PolicyLibrary Tests
+console.log('');
+console.log('--- PolicyLibrary ---');
+const policyLib = new PolicyLibrary();
+test('getPolicy returns GDPR', policyLib.getPolicy('gdpr-standard') !== undefined);
+test('getPolicy returns HIPAA', policyLib.getPolicy('hipaa-standard') !== undefined);
+test('getPolicy returns SOC2', policyLib.getPolicy('soc2-standard') !== undefined);
+test('getPolicy returns PCI-DSS', policyLib.getPolicy('pci-dss-standard') !== undefined);
+test('getFrameworks returns 6 frameworks', policyLib.getFrameworks().length >= 4);
+
+const validation = policyLib.validateAgainstPolicy('const email = user.email;', 'gdpr');
+test('validateAgainstPolicy returns score', typeof validation.score === 'number');
+
+const pii = policyLib.detectPII('Email: john@company.com Phone: (555) 123-4567 SSN: 123-45-6789');
+test('detectPII works', typeof pii === 'object');
+
+// TestSimulator Tests
+console.log('');
+console.log('--- TestSimulator ---');
+const simulator = new TestSimulator();
+const scenarios = simulator.generateTestScenarios('function test() { return 1; }', { dataSources: ['file'], outputs: ['log'] });
+test('generateTestScenarios returns scenarios', scenarios.length > 0);
+
+const audit = simulator.runSecurityAudit('const password = "secret123";');
+test('runSecurityAudit detects hardcoded credential', audit.vulnerabilities.length > 0);
+
+// DebugHelper Tests
+console.log('');
+console.log('--- DebugHelper ---');
+const debugHelper = new DebugHelper();
+const diagnosis = debugHelper.diagnoseError('TypeError: Cannot read property x of undefined', { code: 'const a = obj.x;' });
+test('diagnoseError returns analysis', diagnosis.rootCause !== undefined);
+
+const issues = debugHelper.detectPerformanceIssues('for(let i=0;i<1000;i++){arr.push(i)}', 'javascript');
+test('detectPerformanceIssues returns array', Array.isArray(issues));
+
+// GitHubIntegration Tests  
+console.log('');
+console.log('--- GitHubIntegration ---');
+const github = new GitHubIntegration();
+const workflowYaml = github.generateWorkflowYaml({ name: 'test-agent', schedule: '0 * * * *' }, { name: 'test-agent', language: 'python' });
+test('generateWorkflowYaml returns YAML', workflowYaml.includes('name:'));
+
+console.log('');
+console.log('================================================');
+console.log('  Results:', passed, 'passed,', failed, 'failed');
+console.log('================================================');
+console.log('');
+
+process.exit(failed > 0 ? 1 : 0);
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+"""
+OpenAI Client Adapter - Drop-In Middleware for Agent Control Plane
+
+This adapter wraps the OpenAI client to automatically intercept and govern
+tool calls made by LLMs. It provides "zero-friction" integration - developers
+can continue using the standard OpenAI SDK while benefiting from the control
+plane's governance and safety features.
+
+Usage:
+    from openai import OpenAI
+    from agent_control_plane import AgentControlPlane
+    from agent_control_plane.adapter import ControlPlaneAdapter
+    
+    # Standard setup
+    client = OpenAI(api_key="your-key")
+    control_plane = AgentControlPlane()
+    agent_context = control_plane.create_agent("my-agent", permissions)
+    
+    # Wrap with adapter
+    governed_client = ControlPlaneAdapter(
+        control_plane=control_plane,
+        agent_context=agent_context,
+        original_client=client
+    )
+    
+    # Use exactly as you would use OpenAI client
+    response = governed_client.chat.completions.create(
+        model="gpt-4",
+        messages=[...],
+        tools=[...]
+    )
+    # Tool calls are automatically governed by the control plane!
+"""
+
+from typing import Any, Dict, List, Optional, Callable
+import json
+import logging
+from datetime import datetime
+
+from .agent_kernel import ActionType, AgentContext
+from .control_plane import AgentControlPlane
+
+
+# Mapping from common OpenAI tool names to ActionType
+DEFAULT_TOOL_MAPPING = {
+    # File operations
+    "read_file": ActionType.FILE_READ,
+    "write_file": ActionType.FILE_WRITE,
+    "file_read": ActionType.FILE_READ,
+    "file_write": ActionType.FILE_WRITE,
+    
+    # Code execution
+    "execute_code": ActionType.CODE_EXECUTION,
+    "run_code": ActionType.CODE_EXECUTION,
+    "python": ActionType.CODE_EXECUTION,
+    "bash": ActionType.CODE_EXECUTION,
+    "code_interpreter": ActionType.CODE_EXECUTION,
+    
+    # Database operations
+    "database_query": ActionType.DATABASE_QUERY,
+    "sql_query": ActionType.DATABASE_QUERY,
+    "db_query": ActionType.DATABASE_QUERY,
+    "database_write": ActionType.DATABASE_WRITE,
+    "sql_write": ActionType.DATABASE_WRITE,
+    "db_write": ActionType.DATABASE_WRITE,
+    
+    # API calls
+    "api_call": ActionType.API_CALL,
+    "http_request": ActionType.API_CALL,
+    "make_request": ActionType.API_CALL,
+    
+    # Workflow operations
+    "trigger_workflow": ActionType.WORKFLOW_TRIGGER,
+    "start_workflow": ActionType.WORKFLOW_TRIGGER,
+}
+
+
+class ChatCompletionsWrapper:
+    """
+    Wrapper for chat.completions that intercepts tool calls.
+    
+    This class mimics the OpenAI client's chat.completions interface
+    while adding governance checks for tool calls.
+    """
+    
+    def __init__(
+        self,
+        original_completions: Any,
+        control_plane: AgentControlPlane,
+        agent_context: AgentContext,
+        tool_mapping: Dict[str, ActionType],
+        logger: logging.Logger,
+        on_block: Optional[Callable] = None
+    ):
+        self.original = original_completions
+        self.control_plane = control_plane
+        self.agent_context = agent_context
+        self.tool_mapping = tool_mapping
+        self.logger = logger
+        self.on_block = on_block
+    
+    def create(self, **kwargs) -> Any:
+        """
+        Create a chat completion with automatic tool call governance.
+        
+        This method:
+        1. Calls the OpenAI API to get the LLM's response
+        2. Intercepts any tool_calls in the response
+        3. Checks each tool call against the control plane
+        4. Blocks or modifies tool calls that violate policies
+        5. Returns the (possibly modified) response
+        
+        Args:
+            **kwargs: All standard OpenAI chat.completions.create parameters
+            
+        Returns:
+            The OpenAI ChatCompletion response, with tool calls governed
+        """
+        # 1. Let the LLM think - call the original OpenAI API
+        self.logger.debug(f"Agent {self.agent_context.agent_id}: Calling OpenAI API")
+        response = self.original.create(**kwargs)
+        
+        # 2. Check if there are tool calls to intercept
+        if not hasattr(response, 'choices') or not response.choices:
+            return response
+        
+        choice = response.choices[0]
+        if not hasattr(choice, 'message') or not hasattr(choice.message, 'tool_calls'):
+            return response
+        
+        if not choice.message.tool_calls:
+            return response
+        
+        # 3. Intercept and govern each tool call
+        self.logger.info(
+            f"Agent {self.agent_context.agent_id}: Intercepting {len(choice.message.tool_calls)} tool call(s)"
+        )
+        
+        for tool_call in choice.message.tool_calls:
+            if not hasattr(tool_call, 'function'):
+                continue
+            
+            tool_name = tool_call.function.name
+            
+            # Parse arguments (they come as JSON string from OpenAI)
+            try:
+                tool_args = json.loads(tool_call.function.arguments) if tool_call.function.arguments else {}
+            except json.JSONDecodeError as e:
+                self.logger.warning(
+                    f"Could not parse arguments for tool '{tool_name}': {tool_call.function.arguments}. "
+                    f"Error: {e}. Using empty dict."
+                )
+                tool_args = {}
+            
+            # Map tool name to ActionType
+            action_type = self._map_tool_to_action(tool_name)
+            
+            if action_type is None:
+                self.logger.warning(f"Unknown tool '{tool_name}', allowing by default")
+                continue
+            
+            # THE KERNEL CHECK - This is where governance happens
+            self.logger.debug(f"Checking permission for {tool_name} -> {action_type.value}")
+            
+            # Check permission through control plane
+            check_result = self.control_plane.execute_action(
+                self.agent_context,
+                action_type,
+                tool_args
+            )
+            
+            if not check_result['success']:
+                # Action is BLOCKED by the control plane
+                self.logger.warning(
+                    f"BLOCKED: Agent {self.agent_context.agent_id} attempted {tool_name} "
+                    f"but was denied: {check_result.get('error', 'Unknown reason')}"
+                )
+                
+                # Overwrite the tool call with a "blocked" indicator
+                # The Mute Agent pattern: return NULL/minimal response
+                tool_call.function.name = "blocked_action"
+                tool_call.function.arguments = json.dumps({
+                    "original_tool": tool_name,
+                    "reason": "Action blocked by Agent Control Plane",
+                    "error": check_result.get('error', 'Policy violation')
+                })
+                
+                # Call the optional callback
+                if self.on_block:
+                    self.on_block(tool_name, tool_args, check_result)
+            else:
+                self.logger.info(f"ALLOWED: {tool_name} for agent {self.agent_context.agent_id}")
+        
+        return response
+    
+    def _map_tool_to_action(self, tool_name: str) -> Optional[ActionType]:
+        """
+        Map an OpenAI tool name to an ActionType.
+        
+        This uses both the provided mapping and pattern matching
+        to handle various naming conventions.
+        
+        Args:
+            tool_name: The name of the tool from OpenAI
+            
+        Returns:
+            ActionType if mapped, None if unknown
+        """
+        # Check exact match first
+        tool_name_lower = tool_name.lower()
+        if tool_name_lower in self.tool_mapping:
+            return self.tool_mapping[tool_name_lower]
+        
+        # Pattern matching for common variations
+        if any(pattern in tool_name_lower for pattern in ['read', 'get', 'fetch', 'load']) and \
+           any(pattern in tool_name_lower for pattern in ['file', 'document']):
+            return ActionType.FILE_READ
+        
+        if any(pattern in tool_name_lower for pattern in ['write', 'save', 'create', 'update']) and \
+           any(pattern in tool_name_lower for pattern in ['file', 'document']):
+            return ActionType.FILE_WRITE
+        
+        if any(pattern in tool_name_lower for pattern in ['exec', 'run', 'execute', 'eval']) and \
+           any(pattern in tool_name_lower for pattern in ['code', 'python', 'script', 'command', 'bash']):
+            return ActionType.CODE_EXECUTION
+        
+        if any(pattern in tool_name_lower for pattern in ['select', 'query', 'search']) and \
+           any(pattern in tool_name_lower for pattern in ['database', 'db', 'sql', 'table']):
+            return ActionType.DATABASE_QUERY
+        
+        if any(pattern in tool_name_lower for pattern in ['insert', 'update', 'delete', 'drop', 'create', 'alter']) and \
+           any(pattern in tool_name_lower for pattern in ['database', 'db', 'sql', 'table']):
+            return ActionType.DATABASE_WRITE
+        
+        if any(pattern in tool_name_lower for pattern in ['api', 'http', 'request', 'call', 'post', 'get']):
+            return ActionType.API_CALL
+        
+        if any(pattern in tool_name_lower for pattern in ['workflow', 'trigger', 'pipeline']):
+            return ActionType.WORKFLOW_TRIGGER
+        
+        return None
+
+
+class ChatWrapper:
+    """Wrapper for chat namespace"""
+    
+    def __init__(
+        self,
+        original_chat: Any,
+        control_plane: AgentControlPlane,
+        agent_context: AgentContext,
+        tool_mapping: Dict[str, ActionType],
+        logger: logging.Logger,
+        on_block: Optional[Callable] = None
+    ):
+        self.original = original_chat
+        self.completions = ChatCompletionsWrapper(
+            original_chat.completions,
+            control_plane,
+            agent_context,
+            tool_mapping,
+            logger,
+            on_block
+        )
+
+
+class ControlPlaneAdapter:
+    """
+    OpenAI Client Adapter with Agent Control Plane Governance.
+    
+    This class wraps an OpenAI client to provide automatic governance
+    of tool calls. It's designed as a drop-in replacement that requires
+    minimal code changes.
+    
+    The adapter intercepts tool_calls in LLM responses and checks them
+    against the control plane's policies before allowing execution.
+    Blocked actions are replaced with error indicators following the
+    "Mute Agent" pattern.
+    
+    Example:
+        # Before (ungovened):
+        client = OpenAI()
+        response = client.chat.completions.create(...)
+        
+        # After (governed):
+        governed_client = ControlPlaneAdapter(control_plane, agent_context, client)
+        response = governed_client.chat.completions.create(...)
+        # Same API, but now with governance!
+    """
+    
+    def __init__(
+        self,
+        control_plane: AgentControlPlane,
+        agent_context: AgentContext,
+        original_client: Any,
+        tool_mapping: Optional[Dict[str, ActionType]] = None,
+        on_block: Optional[Callable[[str, Dict, Dict], None]] = None,
+        logger: Optional[logging.Logger] = None
+    ):
+        """
+        Initialize the adapter.
+        
+        Args:
+            control_plane: The AgentControlPlane instance for governance
+            agent_context: The AgentContext for the agent using this client
+            original_client: The original OpenAI client instance
+            tool_mapping: Optional custom mapping from tool names to ActionTypes
+            on_block: Optional callback called when an action is blocked
+                      Signature: on_block(tool_name: str, tool_args: dict, result: dict)
+            logger: Optional logger instance
+        """
+        self.control_plane = control_plane
+        self.agent_context = agent_context
+        self.client = original_client
+        self.logger = logger or logging.getLogger("ControlPlaneAdapter")
+        self.on_block = on_block
+        
+        # Merge default mapping with custom mapping
+        self.tool_mapping = DEFAULT_TOOL_MAPPING.copy()
+        if tool_mapping:
+            self.tool_mapping.update({k.lower(): v for k, v in tool_mapping.items()})
+        
+        self.logger.info(
+            f"Initialized ControlPlaneAdapter for agent {agent_context.agent_id}"
+        )
+    
+    @property
+    def chat(self) -> ChatWrapper:
+        """Access the wrapped chat API"""
+        return ChatWrapper(
+            self.client.chat,
+            self.control_plane,
+            self.agent_context,
+            self.tool_mapping,
+            self.logger,
+            self.on_block
+        )
+    
+    def add_tool_mapping(self, tool_name: str, action_type: ActionType):
+        """
+        Add a custom tool name to ActionType mapping.
+        
+        Args:
+            tool_name: The name of the tool as used in OpenAI
+            action_type: The ActionType it should map to
+        """
+        self.tool_mapping[tool_name.lower()] = action_type
+        self.logger.debug(f"Added tool mapping: {tool_name} -> {action_type.value}")
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """
+        Get statistics about the adapter's activity.
+        
+        Returns:
+            Dictionary with statistics from the control plane
+        """
+        return {
+            "agent_id": self.agent_context.agent_id,
+            "session_id": self.agent_context.session_id,
+            "control_plane_audit": self.control_plane.get_audit_log(limit=100),
+            "execution_history": self.control_plane.get_execution_history(
+                agent_id=self.agent_context.agent_id,
+                limit=100
+            )
+        }
+
+
+def create_governed_client(
+    control_plane: AgentControlPlane,
+    agent_id: str,
+    openai_client: Any,
+    permissions: Optional[Dict[ActionType, Any]] = None,
+    tool_mapping: Optional[Dict[str, ActionType]] = None
+) -> ControlPlaneAdapter:
+    """
+    Convenience function to create a governed OpenAI client.
+    
+    This creates both the agent in the control plane and the adapter,
+    providing a one-line setup for governed LLM interactions.
+    
+    Args:
+        control_plane: The AgentControlPlane instance
+        agent_id: ID for the agent
+        openai_client: The OpenAI client to wrap
+        permissions: Optional permissions for the agent
+        tool_mapping: Optional custom tool name mappings
+        
+    Returns:
+        A ControlPlaneAdapter ready to use
+        
+    Example:
+        control_plane = AgentControlPlane()
+        openai_client = OpenAI(api_key="...")
+        
+        governed = create_governed_client(
+            control_plane,
+            "my-agent",
+            openai_client,
+            permissions={
+                ActionType.FILE_READ: PermissionLevel.READ_ONLY,
+                ActionType.DATABASE_QUERY: PermissionLevel.READ_ONLY
+            }
+        )
+        
+        # Use like normal OpenAI client
+        response = governed.chat.completions.create(...)
+    """
+    agent_context = control_plane.create_agent(agent_id, permissions)
+    
+    return ControlPlaneAdapter(
+        control_plane=control_plane,
+        agent_context=agent_context,
+        original_client=openai_client,
+        tool_mapping=tool_mapping
+    )
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | head -420 | tail -30
+const runSafetyTestCmd = vscode.commands.registerCommand('agent-os.runSafetyTest', async () => {
+        const testCode = `# Agent OS Safety Test
+# This demonstrates how Agent OS blocks dangerous operations
+
+# Test 1: SQL Injection - WILL BE BLOCKED
+query = "SELECT * FROM users WHERE id = " + user_input
+
+# Test 2: Hardcoded Secret - WILL BE BLOCKED  
+api_key = "sk-REPLACE-WITH-YOUR-KEY"
+
+# Test 3: Destructive Command - WILL BE BLOCKED
+import os
+os.system("rm -rf /important")
+
+# Test 4: Safe Code - WILL BE ALLOWED
+safe_query = "SELECT * FROM users WHERE id = ?"
+`;
+        const doc = await vscode.workspace.openTextDocument({
+            language: 'python',
+            content: testCode
+        });
+        await vscode.window.showTextDocument(doc);
+        vscode.window.showInformationMessage(
+            'Safety test file created! Notice the diagnostics highlighting dangerous code.',
+            'View Diagnostics'
+        );
+    });
+
+    // Open Documentation
+    const openDocsCmd = vscode.commands.registerCommand('agent-os.openDocs', () => {
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | head -40
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+"""
+Managed Identity Adapters for Enterprise Identity Providers.
+
+Maps AGT agent DIDs to enterprise identity providers (Entra ID, AWS IAM,
+GCP Workload Identity) so that governed agents can acquire cloud tokens
+using their mesh identity.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import time
+from abc import ABC, abstractmethod
+from typing import Optional
+from urllib.request import Request, urlopen
+from urllib.error import URLError
+
+from agentmesh.exceptions import IdentityError
+
+logger = logging.getLogger(__name__)
+
+# Default IMDS / metadata endpoints (overridable for testing)
+_AZURE_IMDS_URL = (
+    "http://169.254.169.254/metadata/identity/oauth2/token"
+)
+_AWS_METADATA_URL = "http://169.254.169.254/latest/meta-data/iam"
+_AWS_TOKEN_URL = "http://169.254.169.254/latest/api/token"  # noqa: S105 — not a password, AWS metadata token endpoint URL constant
+_GCP_METADATA_URL = (
+    "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts"
+)
+
+
+class ManagedIdentityAdapter(ABC):
+    """Abstract adapter for enterprise identity providers.
+
+    Subclasses implement cloud-specific token acquisition and validation
+    while maintaining a mapping between the agent's DID and the cloud
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | head -30
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+"""
+Native Entra Agent ID integration for AgentMesh.
+
+Maps AGT agent identities (DIDs) to Microsoft Entra application
+registrations or managed identities, enabling token acquisition
+and validation using only the Python standard library.
+"""
+
+from __future__ import annotations
+
+import base64
+import json
+import os
+import time
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
+
+
+class EntraAgentID:
+    """Maps an AGT agent identity to a Microsoft Entra application/managed identity."""
+
+    IMDS_URL = "http://169.254.169.254/metadata"
+    IMDS_API_VERSION = "2021-02-01"
+    IMDS_IDENTITY_VERSION = "2018-02-01"
+
+    def __init__(self, agent_did: str, tenant_id: str, client_id: str) -> None:
+        if not agent_did:
+            raise ValueError("agent_did must not be empty")
+[0m
+Now I have all the context needed. Here's the triage classification:
 
 ---
 
-## Classification Tables
-
-### REAL_SECRET
-| File | Line | Secret (sha256) | Verdict |
-|------|------|-----------------|---------|
-| *none* | — | — | No hardcoded credentials with signs of life found |
+### REAL_SECRET — Hardcoded credentials with signs of life
+*None found in this delta scan*
 
 ---
 
-### TEST_OR_EXAMPLE
-| File | Line | Context | Why Not Reportable |
-|------|------|---------|-------------------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references, not hardcoded values |
-| google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` | localStorage key name, not an actual API key |
-| google/grr/grr/server/grr_response_server/databases/mysql.py | 648 | MySQL docs URL comment | Documentation reference |
-| google/grr/grr/server/grr_response_server/databases/db.py | 667 | MySQL docs URL comment | Documentation reference |
-| google/grr/grr/server/grr_response_server/databases/mysql_pool.py | 225 | MySQL docs URL comment | Documentation reference |
-| google/grr/docker/docker-entrypoint.sh | 21, 26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Environment variable references |
-| google/grr/docker_config_files/server/grr.server.yaml | 5, 15, 18, 25 | `random_passphrase____PLEASE_REPLACE...`, `fleetspeak-password`, `grrp`, file ref | Explicit placeholders / config file references |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | Path to external password file (not the secret itself) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring placeholder (`...` = truncated) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Docstring example credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Docstring example (truncated placeholder) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 287, 296 | `client_secret="secret"` | Docstring placeholder |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value for OAuth2 "password" grant type |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring placeholder |
+### TEST_OR_EXAMPLE — Sample/test/fixture data (not reportable)
+
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref syntax |
+| google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `'geminiApiKey'` | Variable name placeholder |
+| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | File reference, not the secret |
+| google/capsem/scripts/preflight.sh | 39 | Reads from `$pass_file` | Password loaded from external file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` | Password loaded from external file |
 | google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
 | google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-200 | `eot_token="
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/closure-compiler/externs/* | Various | `dev.w3.org`, `dev.office.com`, `devsite.corp.google.com` | Documentation URLs in externs |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `secret_key` variable | MLIR compiler codegen for FHE — `sk` is an SSA value, not a hardcoded secret |
+| microsoft/agent-governance-toolkit/.../red_team_dataset.py | 306 | `'newpass123'` in SQLi test payload | Test fixture |
+| microsoft/.../build_and_publish.sh | 105 | `test.pypi.org` | Test index URL |
+| microsoft/.../adapter.py | 17 | `api_key="your-key"` | Placeholder in docstring |
+| microsoft/.../alertmanager.yml | 15 | `# smtp_auth_password: 'password'` | Commented placeholder |
+| microsoft/.../extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | Placeholder in test code |
+| microsoft/.../smoke-test.js | 76 | `'const password = "secret123";'` | Test input for security audit detector |
+
+---
+
+### ENDPOINT_LEAK — Internal/dev/staging URLs, API endpoints
+
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/closure-compiler/externs/* | Various | `dev.w3.org`, `dev.office.com`, `source.corp.google.com` | Documentation references in externs |
+| microsoft/.../OpaPolicyBackend.cs | 563,566,568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Well-known cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) |
+| microsoft/.../cedar.ts | 8,11,13 | Same IMDS endpoints | TypeScript duplicate |
+| microsoft/.../opa.ts | 13,14 | `169.254.169.254`, `metadata.google.internal` | TypeScript duplicate |
+| microsoft/.../advisory.py | 39 | `169.254.169.254` | Cloud metadata reference |
+| microsoft/.../entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS — public documented endpoint |
+| microsoft/.../managed_identity.py | 27-30 | Azure/AWS/GCP IMDS URLs | Documented cloud metadata endpoints; comment `# noqa: S105 — not a password` |
+
+> **Note**: The IMDS endpoints (`169.254.169.254`, `metadata.google.internal`) are **well-known public cloud metadata service URLs**, not sensitive leaks. They appear in infrastructure-as-code for agent identity mapping.
+
+---
+
+### INTERESTING — Unusual patterns worth noting
+
+| File | Line | Pattern | Assessment |
+|------|------|---------|------------|
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 478, 558 | Emits `secret_key` from `key_pair["secret_key"]` | **Compiler codegen for FHE (Jaxite)** — `sk` is an MLIR SSA value representing a generated secret key in the emitted program. Not a leaked credential; this is the *intended output* of a homomorphic encryption key-generation compiler pass. |
+| microsoft/agent-governance-toolkit/** | Multiple | Extensive IMDS usage across .cs, .ts, .py | Shows agent-governance toolkit wiring for cloud identity federation (Entra, AWS IAM, GCP Workload Identity). Architecture pattern, not a vuln. |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/heir JaxiteWordEmitter `secret_key` emission | **no** | FHE compiler codegen — emits program variable, not hardcoded secret |
+| google/capsem password file references | **no** | Secrets externalized to `password.txt`/`p12-password.txt` (correct pattern) |
+| google/langextract/llm-sidebar CI secret refs | **no** | GitHub Actions `${{ secrets.* }}` syntax — runtime injection, not hardcoded |
+| google/tunix/heir commented placeholders | **no** | Explicitly commented `# your_token` |
+| Microsoft IMDS endpoints across 10+ files | **no** | Well-known public cloud metadata URLs (AWS/Azure/GCP/Alibaba) |
+| Microsoft test/placeholder strings (`your-key`, `secret123`, `sk-REPLACE-WITH-YOUR-KEY`) | **no** | Explicit test fixtures and documentation placeholders |
+| Microsoft red_team_dataset SQLi payload | **no** | Benchmark fixture for safety testing |
+| Closure compiler externs documentation URLs | **no** | Upstream spec references in type definitions |
+
+---
+
+**SUMMARY**: **0 reportable findings** in this delta. All hits are either test fixtures, documentation references, placeholder patterns, well-known cloud metadata endpoints, or compiler infrastructure codegen. No hardcoded live credentials, API keys, or tokens detected.
