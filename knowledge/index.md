@@ -1388,3 +1388,10 @@
 - 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…b73040` unchanged, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
 - 2026-08-16 ACCEPTED: v1↔v2 JWKS subset invariant holds this probe — v1(5)⊂v2(9), 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED
 - 2026-08-16 REJECTED: No new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA @ 2026-08-16 21:28 UTC
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item+agents+admin+policySettings levels across all 6 endpoint families (200 ACAO:* + PATCH allowlist + Max-Age 86400)
+- 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions, 7 client-supplied properties)
+- 2026-08-16 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level — re-verified this probe (200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at both collection+item endpoints; GET→401/237 with proper Bearer challenge)
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub 200/23110, secret at :45, client_id at :43, SCOPES incl cloud-platform (A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2 from prior cycles)
+- 2026-08-16 ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED
+- 2026-08-16 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(6)⊂v2(9) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
