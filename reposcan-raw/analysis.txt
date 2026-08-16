@@ -1,26 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the 189 hits, I'll classify each one. Let me analyze the patterns:
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-## Classification Tables
+## REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| (none) | - | - | No hardcoded live credentials found in delta |
 
-### REAL_SECRET (0 findings)
-*No hardcoded live credentials found in this scan.*
-
-### TEST_OR_EXAMPLE (142 findings)
-| File | Line | Pattern | Reason |
+## TEST_OR_EXAMPLE
+| File | Line | Context | Reason |
 |------|------|---------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Docs manifest, test fixture |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Docs manifest, test fixture |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant string literal, not a secret |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=...="${{ secrets.* }}"` | GH Actions secret refs (proper) |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates (11 files) |
-| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform var ref |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `"${{ secrets.*_API_KEY }}"` | GH Actions secret refs |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GH Actions secret ref |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | `private_key="-----BEGIN...`, `password="password"`, `token="eyAkaknabna..."` | Test fixtures/placeholders |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value "gemini_api_key" |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` template | Workflow template variable |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions `${{ steps.fetch-token.outputs._auth_token }}` template | Workflow template variable |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform variable reference |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` references | GitHub Actions secret references |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder private key in example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
+| microsoft/qdk/source/jupyterlab/src/index.ts | 68,73 | `token: "operatorKeyword"` | Tokenizer token type |
+| microsoft/qdk/source/playground/src/openqasm-language.ts | 152,157 | `token: "string.quote"` | Monarch tokenizer rules |
+| microsoft/vscode-cosmosdb/.azure-pipelines/compliance/compliance.yml | 28 | Azure DevOps task reference | Build task reference |
+| microsoft/vscode-cosmosdb/packages/nosql-language-service/src/errors/SqlError.ts | 44 | `UnexpectedToken = 'UNEXPECTED_TOKEN'` | Error code constant |
+| microsoft/vscode-cosmosdb/packages/nosql-language-service/src/providers/monaco/monarchTokenizer.ts | 51,52 | `token: 'delimiter.square/parenthesis'` | Tokenizer rules |
+
+## ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging Pages URL |
+| microsoft/cascadia-code/pipelines/release.yml | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server |
+| microsoft/qlib/.github/workflows/release.yml | 63,107 | `https://test.pypi.org/legacy/` | Test PyPI repository |
+| microsoft/vscode-cosmosdb/src/cosmosdb/utils/managedIdentityUtils.ts | 46 | `http://169.254.169.254/metadata/versions` | Azure IMDS endpoint (well-known) |
+
+## INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References external password file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n"` | C++ codegen emitting secret_key variable |
+
+## VERDICT SUMMARY
+- **REPORT_CANDIDATE: no** — No REAL_SECRET findings in this delta scan
+- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (staging/internal URLs), or INTERESTING (password file references, codegen patterns)
+- The google/earthengine-api hardcoded OAuth client_secret (from prior KB) remains the only live credential finding — already tracked and confirmed
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
