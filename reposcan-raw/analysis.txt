@@ -1,18 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
+[0m← [0mWrite triage-report.md
 Wrote file successfully.
 [0m
-**Triage Complete** — 15 delta hits analyzed, **0 REAL_SECRET** findings.
+**Triage Complete — No Reportable Findings**
 
-| Category | Count |
-|----------|-------|
-| REAL_SECRET | 0 |
-| TEST_OR_EXAMPLE | 22 |
-| ENDPOINT_LEAK | 5 |
-| INTERESTING | 0 |
+All 10 delta hits + 50+ full-scan hits classify as **TEST_OR_EXAMPLE** or **ENDPOINT_LEAK/INTERESTING** with no security impact:
 
-All hits are test fixtures, template placeholders (`{{ site.algolia_api_key }}`), GitHub Actions secret refs (`${{ secrets.* }}`), third-party library code, minified bundles, package-lock registry URLs, or public/internal endpoints — **no hardcoded credentials with signs of life**.
+| Category | Count | Key Findings |
+|----------|-------|--------------|
+| **REAL_SECRET** | 0 | — |
+| **TEST_OR_EXAMPLE** | 54 | All `${{ secrets.* }}` GitHub Actions refs, Jekyll `{{ site.* }}` template vars, test fixtures (`"password"`, `"your_client_secret"`, truncated keys), commented placeholders |
+| **ENDPOINT_LEAK** | 4 | Cloud metadata endpoint `169.254.169.254` in comments only |
+| **INTERESTING** | 2 | Algolia search-only keys in Jekyll templates (public-by-design, prior REJECTED); minified JS build artifacts |
 
-Full report written to `triage_report.md`.
+**Critical context from knowledge base:**
+- `google/adk-python` hardcoded secrets are **KNOWN DUPLICATES** (issues #2128, #5520 — both closed)
+- `google/earthengine-api` OAuth client_secret is **ACCEPTED** but separate repo (not in this scan)
+- Algolia DocSearch keys in Docusaurus config: **REJECTED** (public search-only keys)
+
+**Verdict:** `REPORT_CANDIDATE: NO` for all hits. Full report at `triage-report.md`.
