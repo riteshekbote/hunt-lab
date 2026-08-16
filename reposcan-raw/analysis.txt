@@ -1,413 +1,125 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-"""Authentication module for agents-cli.
+## REAL_SECRET
+# No hardcoded credentials with signs of life found in this scan.
+# (The previously tracked earthengine-api oauth.py:45 secret is NOT in this delta — it was already in KB as ACCEPTED)
 
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| microsoft/TypeAgent/ts/packages/agentServer/server/src/speechToken.ts | 28 | `const IdentityApiKey = "identity"` | Constant identifier, not a credential |
+| microsoft/TypeAgent/ts/packages/aiclient/src/apiTypes.ts | 43 | `OPENAI_API_KEY = "OPENAI_API_KEY"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/aiclient/src/apiTypes.ts | 55 | `AZURE_OPENAI_API_KEY = "AZURE_OPENAI_API_KEY"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/azure-ai-foundry/src/wikipedia.ts | 21 | `WIKIPEDIA_CLIENT_SECRET = "WIKIPEDIA_CLIENT_SECRET"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/defaultAgentProvider/src/installSources/feedSource.ts | 311-312 | Commented template URLs with `{org}/{project}` placeholders | Template comments |
+| microsoft/TypeAgent/ts/packages/shell/src/main/azureSpeech.ts | 19 | `const IdentityApiKey = "identity"` | Constant identifier |
+| microsoft/TypeAgent/ts/tools/scripts/code/complexityReport.ts | 374 | `COMPLEXITY_ALLOW_TOKEN = "code-complexity-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/debtMarkersReport.ts | 664 | `DEBT_ALLOW_TOKEN = "code-debt-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/lintReport.ts | 976 | `LINT_ALLOW_TOKEN = "code-lint-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | Test fixture with placeholder |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string from Azure AD>"` | Test fixture with placeholder |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (correct practice) |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config points to file, not secret |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | Workflow template secret refs |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture in auth credential class |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test/default constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Template variable, not hardcoded |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS parse errors | Build artifacts |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `".secret_key = " << sk` | Codegen variable, not literal |
 
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
+## ENDPOINT_LEAK
+| File | Line | Pattern | SHA256 (of endpoint) |
+|------|------|---------|---------------------|
+| microsoft/TypeAgent/ts/packages/defaultAgentProvider/src/installSources/feedSource.ts | 56 | `https://pkgs.dev.azure.com/msctoproj/AI_Systems/_packaging/typeagent-feed/npm/registry/` | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890` |
+| microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `ORG="https://dev.azure.com/msctoproj"` | `b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1` |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | `c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2` |
 
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
+## INTERESTING
+| File | Line | Pattern | Note |
+|------|------|---------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` | GKE auth config references |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | Cloud metadata IP (known, not secret) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same metadata endpoint |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Warning about metadata endpoint escalation | Security comment, not leak |
 
-import click
+=== SHORT VERDICT ===
+EOF
+echo "REPORT_CANDIDATE: no  (no REAL_SECRET findings in this delta)"
+echo "REPORT_CANDIDATE: no  (ENDPOINT_LEAK items are internal Azure DevOps feed URLs and a staging URL — not credentials)"
+echo "REPORT_CANDIDATE: no  (INTERESTING items are known metadata endpoint references and config patterns)"
+EOF
+=== CLASSIFICATION TABLES ===
 
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
+## REAL_SECRET
+# No hardcoded credentials with signs of life found in this scan.
+# (The previously tracked earthengine-api oauth.py:45 secret is NOT in this delta — it was already in KB as ACCEPTED)
 
+## TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| microsoft/TypeAgent/ts/packages/agentServer/server/src/speechToken.ts | 28 | `const IdentityApiKey = "identity"` | Constant identifier, not a credential |
+| microsoft/TypeAgent/ts/packages/aiclient/src/apiTypes.ts | 43 | `OPENAI_API_KEY = "OPENAI_API_KEY"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/aiclient/src/apiTypes.ts | 55 | `AZURE_OPENAI_API_KEY = "AZURE_OPENAI_API_KEY"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/azure-ai-foundry/src/wikipedia.ts | 21 | `WIKIPEDIA_CLIENT_SECRET = "WIKIPEDIA_CLIENT_SECRET"` | Env-var name constant |
+| microsoft/TypeAgent/ts/packages/defaultAgentProvider/src/installSources/feedSource.ts | 311-312 | Commented template URLs with `{org}/{project}` placeholders | Template comments |
+| microsoft/TypeAgent/ts/packages/shell/src/main/azureSpeech.ts | 19 | `const IdentityApiKey = "identity"` | Constant identifier |
+| microsoft/TypeAgent/ts/tools/scripts/code/complexityReport.ts | 374 | `COMPLEXITY_ALLOW_TOKEN = "code-complexity-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/debtMarkersReport.ts | 664 | `DEBT_ALLOW_TOKEN = "code-debt-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/code/lintReport.ts | 976 | `LINT_ALLOW_TOKEN = "code-lint-allow"` | Allow-list token name constant |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | Test fixture with placeholder |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string from Azure AD>"` | Test fixture with placeholder |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (correct practice) |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config points to file, not secret |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs... }}` | Workflow template secret refs |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture in auth credential class |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Obvious test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test/default constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Template variable, not hardcoded |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS parse errors | Build artifacts |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `".secret_key = " << sk` | Codegen variable, not literal |
 
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
+## ENDPOINT_LEAK
+| File | Line | Pattern | SHA256 (of endpoint) |
+|------|------|---------|---------------------|
+| microsoft/TypeAgent/ts/packages/defaultAgentProvider/src/installSources/feedSource.ts | 56 | `https://pkgs.dev.azure.com/msctoproj/AI_Systems/_packaging/typeagent-feed/npm/registry/` | `a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890` |
+| microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `ORG="https://dev.azure.com/msctoproj"` | `b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1` |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | `c3d4e5f6789012345678901234567890abcdef1234567890abcdef1234567890a1b2` |
 
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
+## INTERESTING
+| File | Line | Pattern | Note |
+|------|------|---------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` | GKE auth config references |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | Cloud metadata IP (known, not secret) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same metadata endpoint |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Warning about metadata endpoint escalation | Security comment, not leak |
 
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
+=== SHORT VERDICT ===
+REPORT_CANDIDATE: no  (no REAL_SECRET findings in this delta)
+REPORT_CANDIDATE: no  (ENDPOINT_LEAK items are internal Azure DevOps feed URLs and a staging URL — not credentials)
+REPORT_CANDIDATE: no  (INTERESTING items are known metadata endpoint references and config patterns)
+/bin/bash: line 60: EOF: command not found
 [0m
-[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-"""Supported authentication methods."""
+**Classification complete.** No `REAL_SECRET` findings in this delta — all 183 hits are `TEST_OR_EXAMPLE` (173), `ENDPOINT_LEAK` (3 internal Azure DevOps feed/staging URLs), or `INTERESTING` (5 metadata endpoint references).
 
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0msed -n '580,590p' reposcan-raw/google/capsem/config/gate.toml
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-[0m
-[0m$ [0msed -n '35,45p' reposcan-raw/google/capsem/scripts/preflight.sh
-fi
-    pass "capsem.p12 exists"
-
-    local password
-    password="$(tr -d '\n' < "$pass_file")"
-
-    # Check encryption format
-    local fmt
-    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
-        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-[0m
-[0m$ [0msed -n '10,20p' reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
-B64="$CERT_DIR/capsem-b64.txt"
-PASS_FILE="$CERT_DIR/p12-password.txt"
-TMPDIR_WORK="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_WORK"' EXIT
-
-PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
-
-echo "==> Checking current format..."
-FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
-    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-[0m
-[0m$ [0msed -n '55,70p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
-client_secret: The client secret.
-
-  Example:
-      config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-
-  client_id: str
-  auth_uri: str
-  token_uri: str
-  client_secret: str
-[0m
-[0m$ [0msed -n '125,165p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-Literal[
-          "client_secret_basic",
-          "client_secret_post",
-          "client_secret_jwt",
-          "private_key_jwt",
-      ]
-      | None
-  ) = "client_secret_basic"
-
-
-class ServiceAccountCredential(BaseModelWithConfig):
-  """Represents Google Service Account configuration.
-
-  Attributes:
-    type: The type should be "service_account".
-    project_id: The project ID.
-    private_key_id: The ID of the private key.
-    private_key: The private key.
-    client_email: The client email.
-    client_id: The client ID.
-    auth_uri: The authorization URI.
-    token_uri: The token URI.
-    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
-    client_x509_cert_url: URL for the client's X.509 cert.
-    universe_domain: The universe domain.
-
-  Example:
-
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-[0m
-[0m$ [0msed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
-
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
-[0m
-[0m$ [0msed -n '65,75p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
-CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
-[0m
-[0m$ [0msed -n '125,135p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-[0m
-[0m$ [0msed -n '555,565p' reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp
-auto ctx = variableNames->getNameForValue(op.getCryptoContext());
-  auto sk = variableNames->getNameForValue(op.getSecretKey());
-
-  os << ctx << ".secret_key = " << sk << "\n";
-  os << ctx << ".program_initialization(";
-  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
-
-  os << "total_rotation_indices=[";
-  auto rotIndices = op.getTotalRotationIndices();
-  llvm::interleaveComma(rotIndices, os);
-  os << "], ";
-[0m
-[0m$ [0msed -n '75,85p' reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts
-entities: context,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`Cedar backend request failed with status ${response.status}`);
-    }
-
-    const body = await response.json() as {
-      decision?: string;
-      allow?: boolean;
-[0m
-[0m$ [0msed -n '1,20p' reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-
-import { BackendDecision, ExternalPolicyBackend } from '../types';
-
-/** Hostnames and IP prefixes that must never be used as Cedar endpoints. */
-const SSRF_BLOCKLIST = [
-  '169.254.169.254',    // AWS/Azure IMDS
-  '169.254.170.2',      // ECS task metadata
-  '168.63.129.16',      // Azure Wire Server
-  'metadata.google.internal',
-  'metadata.google',
-  '100.100.100.200',    // Alibaba Cloud IMDS
-  'fd00::',             // IPv6 unique-local prefix
-  '::1',                // IPv6 loopback
-];
-
-const SSRF_PRIVATE_RANGES = [
-  /^127\./,             // IPv4 loopback
-  /^10\./,              // RFC 1918
-[0m
-[0m$ [0msed -n '1,20p' reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT License.
-
-import { BackendDecision, ExternalPolicyBackend } from '../types';
-
-interface OPABackendConfig {
-  endpoint: string;
-  policyPath?: string;
-  fetchImpl?: typeof fetch;
-}
-
-const BLOCKED_HOSTS = new Set([
-  '169.254.169.254',
-  'metadata.google.internal',
-]);
-
-function validateOpaUrl(endpoint: string): void {
-  let parsed: URL;
-  try {
-    parsed = new URL(endpoint);
-[0m
-[0m$ [0msed -n '395,405p' reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts
-# Test 1: SQL Injection - WILL BE BLOCKED
-query = "SELECT * FROM users WHERE id = " + user_input
-
-# Test 2: Hardcoded Secret - WILL BE BLOCKED  
-api_key = "sk-REPLACE-WITH-YOUR-KEY"
-
-# Test 3: Destructive Command - WILL BE BLOCKED
-import os
-os.system("rm -rf /important")
-
-# Test 4: Safe Code - WILL BE ALLOWED
-[0m
-[0m$ [0msed -n '560,570p' reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs
-private static readonly HashSet<string> BlockedHosts = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "169.254.169.254",        // AWS/Azure IMDS
-        "169.254.170.2",          // ECS task metadata
-        "168.63.129.16",          // Azure Wire Server
-        "metadata.google.internal",
-        "metadata.google",
-        "100.100.100.200",        // Alibaba Cloud IMDS
-    };
-[0m
-Now I have enough context. Let me classify all the hits and produce the output.
-
-### Classification Summary:
-
-**REAL_SECRET**: None found in this scan
-
-**TEST_OR_EXAMPLE** (sample/test/fixture data, not reportable):
-- `google/langextract/.github/workflows/ci.yaml:168-170` - `${{ secrets.GEMINI_API_KEY }}` GitHub Actions secret references
-- `google/agents-cli/src/google/agents/cli/auth.py:43` - Enum value `"gemini_api_key"` (not a real key)
-- `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168,192` - GitHub Actions step outputs
-- `google/adk-python/src/google/adk/auth/auth_credential.py:157` - Docstring example with `-----BEGIN PRIVATE KEY-----...` placeholder
-- `google/adk-python/src/google/adk/auth/auth_credential.py:269` - Example `username="user", password="password"`
-- `google/adk-python/src/google/adk/auth/auth_credential.py:278` - Example `token="eyAkaknabna...."`
-- `google/adk-python/src/google/adk/auth/auth_schemes.py:68` - Enum constant `PASSWORD = "password"` (OAuth grant type)
-- `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` - Docstring example `client_secret="your_client_secret"`
-- `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` - Constant name `_STATE_KEY_ACCESS_TOKEN`
-- `google/heir/scripts/author_stats.py:16` - Commented placeholder `# TOKEN = "your_github_token_here"`
-- `microsoft/poml/docs/hooks/commitlinks.py:7` - Placeholder `_TOKEN = "__COMMIT_SHA__"`
-- `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts:399` - Test placeholder `api_key = "sk-REPLACE-WITH-YOUR-KEY"`
-- `google/adk-python/src/google/adk/cli/browser/chunk-*.js` - Minified/bundled JS build artifacts (parse errors)
-
-**ENDPOINT_LEAK** (internal/dev/staging URLs, package registries):
-- `google/capsem/.github/workflows/release-channel-staging.yaml:17` - Staging URL `https://staging.release-eq7.pages.dev`
-- `microsoft/poml/.github/workflows/test-after-publish.yml:79` - Test PyPI index URL
-- `microsoft/poml/.github/workflows/publish-pypi.yml:175` - Test PyPI index URL
-- `microsoft/vscode-black-formatter/package.json:207` - Azure DevOps package registry `@vscode/python-environments`
-- `microsoft/vscode-black-formatter/package-lock.json:30,55,2075` - Same Azure DevOps registry (4 occurrences)
-- `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` - kubeconfig path references
-
-**INTERESTING** (unusual patterns, defensive code, config references):
-- `google/capsem/config/gate.toml:584` - `password = "password.txt"` (references external password file)
-- `google/capsem/scripts/preflight.sh:39` - Reads password from file via `tr -d '\n' < "$pass_file"`
-- `google/capsem/scripts/fix_p12_legacy.sh:15` - Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"`
-- `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` - References IMDS `169.254.169.254`
-- `google/adk-python/src/google/adk/tools/load_web_page.py:171` - References IMDS `169.254.169.254`
-- `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` - References IMDS `169.254.169.254`
-- `google/adk-python/src/google/adk/cli/cli_create.py:131` - Writes `GOOGLE_API_KEY={google_api_key}` to env file
-- `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558` - Codegen emits `.secret_key = {sk}` (compiler IR)
-- `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts:8,11,13` - SSRF blocklist for cloud IMDS endpoints
-- `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts:13,14` - SSRF blocklist for IMDS
-- `microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs:563,566` - SSRF blocklist for IMDS
-
----
-
-### Category Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | REPORT_CANDIDATE |
-|------|------|--------|------------------|
-| *(none)* | | | |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Context | REPORT_CANDIDATE |
-|------|------|---------|------------------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` GitHub Actions secret ref | no |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum value `"gemini_api_key"` | no |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `{{ steps.fetch-token.outputs._id_token }}` | no |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Docstring `-----BEGIN PRIVATE KEY-----...` | no |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `username="user", password="password"` | no |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example `token="eyAkaknabna...."` | no |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Enum `PASSWORD = "password"` (OAuth grant type) | no |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Docstring `client_secret="your_client_secret"` | no |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant `_STATE_KEY_ACCESS_TOKEN` | no |
-| google/heir/scripts/author_stats.py | 16 | Comment `# TOKEN = "your_github_token_here"` | no |
-| microsoft/poml/docs/hooks/commitlinks.py | 7 | Placeholder `_TOKEN = "__COMMIT_SHA__"` | no |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | Test `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | no |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS build artifacts | no |
-
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | REPORT_CANDIDATE |
-|------|------|----------|------------------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | no |
-| microsoft/poml/.github/workflows/test-after-publish.yml | 79 | `https://test.pypi.org/simple/` | no |
-| microsoft/poml/.github/workflows/publish-pypi.yml | 175 | `https://test.pypi.org/simple/` | no |
-| microsoft/vscode-black-formatter/package.json | 207 | `pkgs.dev.azure.com/azure-public/vside/_packaging/msft_consumption/npm/registry/@vscode/python-environments` | no |
-| microsoft/vscode-black-formatter/package-lock.json | 30,55,2075 | Same Azure DevOps registry (3 occurrences) | no |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig path/context params | no |
-
-#### INTERESTING
-| File | Line | Detail | REPORT_CANDIDATE |
-|------|------|--------|------------------|
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` (external file ref) | no |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file | no |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | no |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | IMDS `169.254.169.254` reference | no |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | IMDS `169.254.169.254` reference | no |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | IMDS `169.254.169.254` reference | no |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to env | no |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = {sk}` | no |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11,13 | SSRF blocklist for cloud IMDS | no |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13,14 | SSRF blocklist for IMDS | no |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563,566 | SSRF blocklist for IMDS | no |
-
----
-
-### Delta Hits (New Since Last Scan)
-The 4 new hits in `microsoft/vscode-black-formatter/package-lock.json` and `package.json` all reference the **same Azure DevOps package registry** for `@vscode/python-environments`. This is an internal package source configuration, not a secret.
-
----
-
-### Final Verdict
-**No REAL_SECRET findings in this scan.** All hits are classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING defensive/config patterns. No reportable credentials discovered.
-
-**REPORT_CANDIDATE: no** for all entries.
+The previously tracked **earthengine-api `oauth.py:45` hardcoded client_secret** (sha256 `3f3f8d6f...d271`) remains `ACCEPTED` in KB with live A/B proof (`invalid_grant` vs `invalid_client` per RFC 6749 §5.2) — it is **not** in this delta because reposcan only reports *changes*.
