@@ -1,60 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py[90m [offset=200, limit=20][0m
-### Classification Tables
+Looking at the 13 new delta hits and the full grep context, here's my classification:
 
-#### REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none found in delta)* | | | |
+### Classification Table
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context |
-|------|------|---------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` — placeholder comment |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
-| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` — testonly keys |
-| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `POSTGRESQL_PASSWORD="beeblebrox"` — test script default |
-| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | `MYSQL_PASSWORD="beeblebrox"` — test script default |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` — test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` — placeholder |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` — placeholder |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` — config file reference |
-| google/android-emulator-container-scripts/run*.sh | 22,28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` — runtime file read |
+| Category | Files |
+|----------|-------|
+| **TEST_OR_EXAMPLE** | `microsoft/agent-governance-toolkit/.../extension.ts:399` (`sk-REPLACE-WITH-YOUR-KEY` placeholder)<br>`microsoft/poml/docs/hooks/commitlinks.py:7` (`__COMMIT_SHA__` placeholder)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (test fixtures: private_key, "user"/"password", test token)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` test constant)<br>`google/agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"` placeholder)<br>`google/capsem/config/gate.toml:584` (`password = "password.txt"` file reference)<br>`google/capsem/scripts/preflight.sh:39`, `fix_p12_legacy.sh:15` (read from file)<br>`google/android-emulator-container-scripts/run*.sh:22,28` (read from `~/.emulator_console_auth_token`)<br>`google/certificate-transparency-go/scripts/reset*db.sh:37,41` (`beeblebrox` test password)<br>`google/heir/scripts/author_stats.py:16` (commented placeholder)<br>`google/heir/lib/.../JaxiteWordEmitter.cpp:558` (code emitting variable, not hardcoded)<br>`google/adk-python/src/google/adk/cli/cli_create.py:131` (template generating config) |
+| **ENDPOINT_LEAK** | `microsoft/agent-governance-toolkit/.../cedar.ts:8,11,13` (IMDS endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200`)<br>`microsoft/agent-governance-toolkit/.../opa.ts:13,14` (same IMDS endpoints)<br>`microsoft/coreutils/.cargo/release-windows-ms.toml:11` (Azure DevOps Cargo index)<br>`microsoft/coreutils/.pipelines/templates/job-build-project.yml:70,76` (Azure DevOps Cargo/NuGet feeds)<br>`microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml:33` (internal RFC3161 timestamp server `rfc3161.gtm.corp.microsoft.com`)<br>`microsoft/poml/.github/workflows/publish-pypi.yml:175`, `test-after-publish.yml:79` (public PyPI URLs - not sensitive) |
+| **INTERESTING** | None new beyond known IMDS endpoint references |
+| **REAL_SECRET** | **None** |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | ADO URL pattern: `https://dev.azure.com/org/project/_git/repo` |
-| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481 | ADO URL example in docstring |
-| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1522 | ADO URL example in comment |
-| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | ADO URL example in comment |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 531 | ADO URL format documentation |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 817 | ADO API format documentation |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 851 | ADO URL format documentation |
+### Verdict List
 
-#### INTERESTING (unusual patterns, debug flags, cloud configs)
-| File | Line | Context |
-|------|------|---------|
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = <var>` — MLIR code generation, not a literal secret |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | Comment documents kubeconfig blob handling (embeds client cert/bearer token) |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | TEST_OR_EXAMPLE (placeholder) | **no** |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts` | 8,11,13 | ENDPOINT_LEAK (IMDS endpoints) | **no** |
+| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts` | 13,14 | ENDPOINT_LEAK (IMDS endpoints) | **no** |
+| `microsoft/coreutils/.cargo/release-windows-ms.toml` | 11 | ENDPOINT_LEAK (Azure DevOps feed) | **no** |
+| `microsoft/coreutils/.pipelines/templates/job-build-project.yml` | 70,76 | ENDPOINT_LEAK (Azure DevOps feeds) | **no** |
+| `microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml` | 33 | ENDPOINT_LEAK (internal timestamp server) | **no** |
+| `microsoft/poml/.github/workflows/publish-pypi.yml` | 175 | TEST_OR_EXAMPLE (public PyPI) | **no** |
+| `microsoft/poml/.github/workflows/test-after-publish.yml` | 79 | TEST_OR_EXAMPLE (public PyPI) | **no** |
+| `microsoft/poml/docs/hooks/commitlinks.py` | 7 | TEST_OR_EXAMPLE (placeholder) | **no** |
+| All google/* hits in full grep | various | TEST_OR_EXAMPLE (fixtures/placeholders/templates) | **no** |
 
----
-
-### SHORT VERDICT LIST
-
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| JaxiteWordEmitter secret_key emission | google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 | **no** — code generation logic, `sk` is an SSA variable |
-| author_stats.py placeholder token | google/heir/scripts/author_stats.py:16 | **no** — explicit placeholder `"your_github_token_here"` |
-| ADO URL documentation (7 hits) | microsoft/apm/src/apm_cli/* | **no** — public Azure DevOps URL patterns, not secrets |
-| kubeconfig handling comment | microsoft/apm/src/apm_cli/core/script_executors.py:208 | **no** — documentation of secret-handling logic |
-| All other hits | (full grep list) | **no** — test fixtures, placeholders, runtime file reads, config references |
-
-**NO REPORTABLE FINDINGS IN THIS DELTA.** All hits are test fixtures, placeholders, documentation, or code-generation logic. No hardcoded live credentials detected.
+**Summary**: Zero REAL_SECRET candidates in this delta. All hits are either test fixtures, placeholder templates, public endpoints, or internal infrastructure URLs (ENDPOINT_LEAK) that don't constitute reportable secrets. The IMDS endpoint references (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`) are well-known cloud metadata IPs documented in the policy backends for credential detection/blocking — not leaks themselves.
