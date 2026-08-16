@@ -1,52 +1,18 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
-
-| Category | Count | Files |
-|----------|-------|-------|
-| REAL_SECRET | 0 | (none) |
-| TEST_OR_EXAMPLE | 1 | agent-governance-typescript/agent-os-vscode/src/extension.ts:399 (sk-REPLACE-WITH-YOUR-KEY) |
-| ENDPOINT_LEAK | 9 | All IMDS metadata endpoint references (169.254.169.254, metadata.google.internal, 100.100.100.200) in policy backends |
-| INTERESTING | 1 | acs-policy-configmap.yaml:2 (ConfigMap kind - K8s config, not a secret) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Rationale:
-- The 9 "endpoint leaks" are well-known public cloud metadata service IPs/hostnames (AWS/GCP/Azure/Alibaba IMDS) used in policy engine code to BLOCK/deny access to them — not leaks of internal infrastructure.
-- The API key is an obvious placeholder "sk-REPLACE-WITH-YOUR-KEY".
-- The ConfigMap is a Kubernetes resource definition, not a secret.
-- No hardcoded credentials, tokens, or live API keys found in this delta.
-EOF
-=== CLASSIFICATION TABLE ===
-
-| Category | Count | Files |
-|----------|-------|-------|
-| REAL_SECRET | 0 | (none) |
-| TEST_OR_EXAMPLE | 1 | agent-governance-typescript/agent-os-vscode/src/extension.ts:399 (sk-REPLACE-WITH-YOUR-KEY) |
-| ENDPOINT_LEAK | 9 | All IMDS metadata endpoint references (169.254.169.254, metadata.google.internal, 100.100.100.200) in policy backends |
-| INTERESTING | 1 | acs-policy-configmap.yaml:2 (ConfigMap kind - K8s config, not a secret) |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Rationale:
-- The 9 "endpoint leaks" are well-known public cloud metadata service IPs/hostnames (AWS/GCP/Azure/Alibaba IMDS) used in policy engine code to BLOCK/deny access to them — not leaks of internal infrastructure.
-- The API key is an obvious placeholder "sk-REPLACE-WITH-YOUR-KEY".
-- The ConfigMap is a Kubernetes resource definition, not a secret.
-- No hardcoded credentials, tokens, or live API keys found in this delta.
+[0m← [0mWrite triage_report.md
+Wrote file successfully.
 [0m
-**Classification complete. No reportable findings in this delta.**
+**Triage Complete** — 15 delta hits analyzed, **0 REAL_SECRET** findings.
 
-| Category | Count | Details |
-|----------|-------|---------|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | 1 | `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts:399` — `sk-REPLACE-WITH-YOUR-KEY` (obvious placeholder) |
-| ENDPOINT_LEAK | 9 | IMDS metadata endpoints (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`) in OPA/Cedar policy backends — **these are deny-list constants blocking access to cloud metadata, not leaked internal URLs** |
-| INTERESTING | 1 | `acs-policy-configmap.yaml:2` — `kind: ConfigMap` (K8s resource definition, not a secret) |
+| Category | Count |
+|----------|-------|
+| REAL_SECRET | 0 |
+| TEST_OR_EXAMPLE | 22 |
+| ENDPOINT_LEAK | 5 |
+| INTERESTING | 0 |
 
-**VERDICT: REPORT_CANDIDATE = no**
+All hits are test fixtures, template placeholders (`{{ site.algolia_api_key }}`), GitHub Actions secret refs (`${{ secrets.* }}`), third-party library code, minified bundles, package-lock registry URLs, or public/internal endpoints — **no hardcoded credentials with signs of life**.
 
-All 11 new hits are either placeholders, standard cloud metadata IPs used in security policy code (to block SSRF), or benign config. No live credentials, tokens, or keys.
+Full report written to `triage_report.md`.
