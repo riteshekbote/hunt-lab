@@ -1224,3 +1224,8 @@
 - 2026-08-16 ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 re-verified.
 - 2026-08-16 ACCEPTED v1(5)⊂v2(9) JWKS subset invariant holds this probe @ login.microsoftonline.com — 0 v1-exclusive; rotation-desync class stays REJECTED.
 - 2026-08-16 REJECTED no new proving-dead classes this cycle — all fresh probes (08:44 UTC) confirmed prior findings unchanged, NO_DELTA.
+- 2026-08-16 REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live (400/113) but no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible for reward).
+- 2026-08-16 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset invariant holds across all cycle rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-16 REJECTED source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated.
+- 2026-08-16 REJECTED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface.
+- 2026-08-16 REJECTED www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass.

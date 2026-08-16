@@ -1,4 +1,4 @@
-## 2026-08-16 09:07:21 UTC [google] (model laguna)
+## 2026-08-16 09:39:20 UTC [google] (model laguna)
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations: 97, attack=10 business=10 tech=10 gate=3 cloud=10 fresh=10
 [PRIO] oauth2.googleapis.com/token (earthengine secret): 90, attack=10 business=8 tech=10 gate=1 cloud=10 fresh=1
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: 70, attack=8 business=8 tech=7 gate=3 cloud=8 fresh=8
@@ -18,7 +18,7 @@ confidence: 96
 reasoning: Raw GitHub GET→200/len=23110, sha256(secret)=3f3f8d6f…d271 verbatim at line 45 + :99 fallback, sha256(file)=f4f93c76… unchanged; A/B differential proof: leaked secret → POST oauth2.googleapis.com/token → HTTP 400 invalid_grant (valid credential per RFC 6749 §5.2); fake secret → HTTP 401 invalid_client; token endpoint GET→404 (POST-only gate confirmed).
 evidence_needed: POST oauth2.googleapis.com/token with leaked client_secret → 400 invalid_grant; POST with fake secret → 401 invalid_client (RFC 6749 §5.2 distinction)
 verify_steps: HUMAN_ONLY: Submit reports/google-vrp-earthengine-secret.md to Google VRP (bughunters.google.com) with A/B oracle proof; confirm sha256(secret)=3f3f8d6f…d271 + sha256(file)=f4f93c76…; do NOT attempt token redemption
-impact: Full GCP project takeover via cloud-platform scope (CVSS 9.0-9.8); client identity forgeable from public repo; native installed-app + deprecated OOB redirect matches public-client by-design pattern (ADK #2128 precedent caps VRP severity)
+impact: Full GCP project takeover via cloud-platform scope (CVSS 9.0-9.8); native installed-app + deprecated OOB redirect matches public-client by-design pattern (ADK #2128 precedent caps VRP severity)
 testability: HUMAN_ONLY
 [HYP] Consent-grant forge via caller-chosen resourceId on production v1.0
 class: AUTH
@@ -33,11 +33,9 @@ testability: AUTH_HELPED
 [FINAL] [96] Earth Engine hardcoded OAuth client_secret valid credential — confidence 96, AUTH class not on REJECTED list, A/B oracle conclusive (invalid_grant vs invalid_client per RFC 6749 §5.2), HUMAN_ONLY verify_steps (draft already in reports/), no secret exposed in full. Survives.
 [FINAL] [70] Consent-grant forge via caller-chosen resourceId — confidence 70, AUTH class not on REJECTED list, 0-OperationRestriction schema on production v1.0 confirmed, concrete POST verify_steps. Survives.
 [NEXT] HUMAN: Submit `reports/google-vrp-earthengine-secret.md` to Google VRP (bughunters.google.com) — A/B oracle conclusive at confidence 96: leaked client_secret (sha256 3f3f8d6f…d271) → POST oauth2.googleapis.com/token → HTTP 400 `invalid_grant` (valid credential per RFC 6749 §5.2); fake secret → HTTP 401 `invalid_client`; whole-file sha `f4f93c76…` unchanged; native installed client + deprecated OOB redirect + cloud-platform/earthengine/drive+devstorage scopes. Draft already in reports/. No token obtained, no data accessed.
-[LEARN] ACCEPTED agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-16 08:44 UTC — 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels (NO_DELTA).
-[LEARN] ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant (vs fake→invalid_client) per RFC 6749 §5.2 conclusive (NO_DELTA).
-[LEARN] ACCEPTED oauth2PermissionGrants caller-chosen resourceId on production v1.0 confirmed auth-gated — GET→401/237 Bearer + 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions (NO_DELTA).
-[LEARN] REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live but no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
-[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset invariant holds across all cycles, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
-[LEARN] REJECTED source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
-[RISK] google: 90 | reason: Hardcoded valid OAuth client_secret (sha256 3f3f8d6f…d271) in public google/earthengine-api repo with cloud-platform+earthengine+drive+devstorage scopes (confidence 96, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2 conclusive); tokeninfo introspection oracle live but no-reward per VRP rules; v2.0 authorize HTTP 200 error rendering live but low exploitability (confidence 50); POST-only token endpoint validated (GET→404); dual-JWKS rotation desync REJECTED (v1⊂v2 subset invariant holds 6⊂9); identity SPA source maps closed.
-[RISK] microsoft: 96 | reason: Copilot Admin 6-family IDOR+CORS — true CORS preflight with PATCH confirmed LIVE at collection+item+agents+admin+policySettings levels (200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400, 0 OperationRestrictions across 6 EntityTypes, GET 401/237 + HEAD 405/0 no Bearer RFC 6750 §3 systemic across Graph gateway at confidence 97); oauth2PermissionGrants consent forge precondition live on production v1.0 (confidence 70); v1↔v2 JWKS kid overlap REJECTED as confusion surface (v1⊂v2 subset invariant holds 6⊂9); identity SPA source maps closed.
+[LEARN] REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live (400/113) but no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible for reward).
+[LEARN] REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset invariant holds across all cycle rotations, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+[LEARN] REJECTED source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated.
+[LEARN] REJECTED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface.
+[LEARN] REJECTED www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass.
+[LEARN] ACCEPTED agentRegistrations

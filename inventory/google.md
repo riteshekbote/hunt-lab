@@ -1138,3 +1138,9 @@
 - NEW www.googleapis.com/storage/v1/b → HTTP 400/401 (requires project param, then 401 storage.buckets.list denied); no bypass
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate → HTTP 401 confirmed (was previously inferred)
 - CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate → HTTP 401 confirmed (was previously inferred)
+
+## 2026-08-16 09:56:47 UTC
+- NEW graph.microsoft.com root → HTTP 301 (was 200 text/html signin page); cosmetic redirect, no auth-bypass surface
+- NEW www.googleapis.com/storage/v1/b → HTTP 400/401 (requires project param, then 401 storage.buckets.list denied); no bypass
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate → HTTP 401 confirmed (was previously inferred)
+- CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate → HTTP 401 confirmed (was previously inferred)
