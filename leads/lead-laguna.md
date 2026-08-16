@@ -10697,3 +10697,4 @@ testability: AUTH_HELPED
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId on production v1.0 (AUTH, 70, AUTH_HELPED)
 [NEXT] HUMAN: Submit drafted Google VRP report (reports/google-vrp-earthengine-secret.md) for Earth Engine hardcoded client_secret — A/B invalid_grant-vs-invalid_client proof is conclusive (RFC 6749 §5.2), source sha `f4f93c76…` confirmed live; this is the only hypothesis with a HUMAN_ONLY path ready and no AUTH_HELPED dependency.
 [RISK] google: 89 reason: Hardcoded valid OAuth client_secret with cloud-platform scope in public GitHub repo (confidence 96, A/B proof conclusive); tokeninfo public introspection oracle (no-reward per VRP rules); POST-only token endpoint confirmed; earthengine scope newly confirmed expands impact
+## 2026-08-16 19:11:54 UTC [google] (model laguna)
