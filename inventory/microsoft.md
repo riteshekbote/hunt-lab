@@ -1187,3 +1187,6 @@
 - CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
 
 ## 2026-08-16 15:03:39 UTC
+
+## 2026-08-16 15:33:08 UTC
+- NEW NO_DELTA — all fresh passive probes (token→404, agentRegs→401/405, oauth2PermissionGrants→401, earthengine file sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged
