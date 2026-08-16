@@ -1345,3 +1345,5 @@
 - 2026-08-16 ACCEPTED earthengine secret @ raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py:45: source 200/23110, whole-file sha `f4f93c76…73040` verbatim, secret sha `3f3f8d6f…d271` present; A/B oracle conclusive.
 - 2026-08-16 ACCEPTED v1↔v2 JWKS subset invariant @ login.microsoftonline.com: v1(5)⊂v2(8), 0 v1-exclusive this probe; rotation-desync class stays REJECTED.
 - 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes (token→404, tokeninfo→400, agentRegs→401/405, oauth2PermissionGrants→401, agents→401, earthengine sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA @ 2026-08-16 16:52 UTC.
+- 2026-08-16 REJECTED no new proving-dead or proving-live classes this cycle — 17:07 UTC probes (token→404, agentRegs collection+item→401, oauth2PermissionGrants→401) confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA.
+- 2026-08-16 ACCEPTED agentRegistrations CORS+PATCH vector @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 still live; precondition intact (17:07 UTC).

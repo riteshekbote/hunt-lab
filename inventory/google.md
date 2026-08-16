@@ -1198,3 +1198,9 @@
 - NEW NO_DELTA — all fresh passive probes (token→404, agentRegs→401/405, oauth2PermissionGrants→401, earthengine file sha unchanged) confirmed prior ACCEPTED/REJECTED findings unchanged
 
 ## 2026-08-16 17:07:27 UTC
+
+## 2026-08-16 17:34:26 UTC
+- NEW graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic redirect, no auth-bypass surface
+- NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
+- CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
