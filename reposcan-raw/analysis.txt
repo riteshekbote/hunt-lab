@@ -1,85 +1,86 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh reposcan-raw/google/android-emulator-container-scripts/run.sh
-31 reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
-  26 reposcan-raw/google/android-emulator-container-scripts/run.sh
-  57 total
+[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+[0m→ [0mRead reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go
 [0m
-[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go[90m [limit=30, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/certificate-transparency-go/scripts/resetpgctdb.sh[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=40, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=130, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=20, offset=10][0m
-Now I have full context on all hits. Here's the classification:
+[0m$ [0mgrep -n "password\|secret\|key\|token" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/capsem/config/gate.toml | head -30
+14:# missing key or a wrong type fails at load with the field named, not deep
+198:# only egress is the input-keyed helper materializer below.
+395:# were spelled here and again as dictionary keys in `assets`, `service` and
+518:# invalidates the layer on any source change, which is the correct cache key.
+578:# treats it as optional -- the release lanes sign in CI from secrets. Declared
+579:# here so "where is the key" has one answer rather than a path spelled inside
+583:key = "capsem.key"
+584:password = "password.txt"
+585:key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+586:password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+739:kind = "json_key"
+740:key = "version"
+744:kind = "toml_key"
+745:key = "version"
+1242:token_variable = "GITHUB_TOKEN"
+1590:# sentences, and picking the wrong skill costs far more than the tokens. The
+1829:    "tests/test_gate_secrets.py",
+2078:# gitignored (`.gitignore:47`) and holds the Tauri signing keys -- a prefix
+2674:subject = "security delete-keychain $keychain"
+2675:reason = "deleting a keychain that was never created is the desired end state"
+[0m
+Now I have all the context needed. Let me classify all hits.
 
 ---
 
-### **REAL_SECRET** (hardcoded credential with signs of life)
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| *None* | — | — | No live hardcoded credentials found |
+### Classification Tables
+
+#### REAL_SECRET (reportable hardcoded credentials)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| *none found in this scan* | | | |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | TEST_OR_EXAMPLE | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | TEST_OR_EXAMPLE | Docstring example: `password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | TEST_OR_EXAMPLE | Docstring example: `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | OAuth2 `PASSWORD` grant type enum value (literal string `"password"`), not a credential |
+| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | TEST_OR_EXAMPLE | Explicit `testonly` package, encrypted test key with password `"napkin"` |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | ENDPOINT_LEAK | Staging URL: `https://staging.release-eq7.pages.dev` |
+| google/sam/development/kind/run.sh | 139 | ENDPOINT_LEAK | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` - env var reference, not leak |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | ENDPOINT_LEAK | GitHub Actions secret refs (`${{ secrets.GOOGLE_CLIENT_SECRET }}`, etc.) - not hardcoded |
+
+#### INTERESTING (config patterns, debug flags, cloud configs)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| google/ax/manifests/install-ax.sh | 239, 241, 286 | INTERESTING | K8s deployment script: reads existing secret or generates random PG password via `openssl rand -hex 16`, creates secret via `--from-literal` |
+| google/sam/internal/node/store.go | 38 | INTERESTING | `keyRefreshToken = "refresh_token"` - constant key name for token storage |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | INTERESTING | ConfigMap kind reference |
+| google/sam/.github/k8s/*.yaml | various | INTERESTING | Multiple ConfigMap kind references (K8s templates) |
+| google/capsem/config/gate.toml | 584 | INTERESTING | `password = "password.txt"` - path to external password file (read at runtime) |
+| google/capsem/scripts/preflight.sh | 39 | INTERESTING | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | INTERESTING | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | INTERESTING | `GEMINI_API_KEY = "gemini_api_key"` - constant for config key name, not actual key |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | INTERESTING | GitHub Actions token references in template |
 
 ---
 
-### **TEST_OR_EXAMPLE** (sample/test/fixture data)
-| File | Line | Classification | Reason |
-|------|------|----------------|--------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | TEST | Example private_key `"-----BEGIN PRIVATE KEY-----..."` in docstring |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | TEST | Example `username="user", password="password"` in docstring |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | TEST | Example truncated JWT `"eyAkaknabna...."` in docstring |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | TEST | Enum value `PASSWORD = "password"` (OAuth grant type constant) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | TEST | Placeholder `client_secret="your_client_secret"` in example |
-| `google/certificate-transparency-go/trillian/ctfe/testonly/keys.go` | 24 | TEST | Test-only encrypted EC private key (password `"napkin"`) |
-| `google/certificate-transparency-go/scripts/resetpgctdb.sh` | 41 | TEST | Default test DB password `"beeblebrox"` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | TEST | Constant `GEMINI_API_KEY = "gemini_api_key"` (string literal, not a key) |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | TEST | Writes user-supplied `google_api_key` to .env (template) |
-| `google/sam/development/kind/run.sh` | 139 | TEST | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
-| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | TEST | References `${GOOGLE_CLIENT_SECRET}` etc. (GitHub Actions secrets, not hardcoded) |
+### SHORT VERDICT LIST
+
+| Candidate | File | Line | REPORT_CANDIDATE | Reason |
+|-----------|------|------|------------------|--------|
+| Delta hits (ax/install-ax.sh) | google/ax/manifests/install-ax.sh | 239, 241, 286 | **no** | Deployment script: generates random password or reads from existing K8s secret; no hardcoded credential |
+| ADK auth_credential.py examples | google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | **no** | Docstring examples with placeholder values (`...`, `password`, `eyAkaknabna....`) |
+| ADK auth_schemes.py PASSWORD enum | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | **no** | OAuth2 grant type enum value (literal `"password"`), not a credential |
+| Trillion testonly keys | google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | **no** | Explicit `testonly` package, encrypted test key, password `"napkin"` |
+| SAM/Capsem CI refs | google/sam/, google/capsem/ | various | **no** | GitHub Actions `${{ secrets.XXX }}` references or external file reads |
+| Agents CLI constants | google/agents-cli/... | 43, 168, 192 | **no** | Config key names / Actions token refs in templates |
 
 ---
 
-### **ENDPOINT_LEAK** (internal/dev/staging URLs)
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL (public) |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` | Well-known GCP metadata endpoint (not a leak) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Same metadata endpoint reference |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Same metadata endpoint reference |
-
----
-
-### **INTERESTING** (unusual patterns, debug flags, cloud configs)
-| File | Line | Finding |
-|------|------|---------|
-| `google/android-emulator-container-scripts/run-with-gpu.sh` | 28 | Runtime pattern: `-e TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads local file at container start |
-| `google/android-emulator-container-scripts/run.sh` | 22 | Same runtime token-read pattern |
-| `google/capsem/config/gate.toml` | 584 | `password = "password.txt"` — references external password file |
-| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Same file-based password read pattern |
-| `google/sam/*/templates/*.yaml` | multiple | Kubernetes `ConfigMap` manifests (config templates) |
-| `google/sam/.github/k8s/*.yaml` | multiple | Kubernetes template ConfigMaps |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key constant |
-
----
-
-### **SHORT VERDICT LIST**
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `google/adk-python` auth examples | **no** | All in docstrings/examples; placeholders like `"your_client_secret"`, `"password"`, truncated JWT |
-| `google/certificate-transparency-go` test keys | **no** | In `testonly/` directory; encrypted with known password `"napkin"`; test infrastructure |
-| `google/capsem` scripts | **no** | Reads passwords from external files at runtime; no secrets in repo |
-| `google/agents-cli` GEMINI_API_KEY | **no** | String constant `"gemini_api_key"` — not an actual API key |
-| `google/android-emulator-container-scripts` | **no** | Runtime pattern reading `~/.emulator_console_auth_token` from host |
-| `google/sam` workflows | **no** | Properly references GitHub Actions secrets (`${{ secrets.* }}`) |
-| `google/adk-python` metadata endpoint refs | **no** | `169.254.169.254` is well-known public GCP metadata IP |
-
-**SUMMARY**: 0 REAL_SECRET candidates. All 367 hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (benign), or INTERESTING (runtime patterns/config). No reportable findings in this scan.
+**SUMMARY**: No `REAL_SECRET` findings in this scan. All 3 delta hits are deployment-script password generation/rotation logic (not hardcoded secrets). The full grep corpus contains only test fixtures, docstring examples, enum constants, CI secret references, and config-file-path patterns — all correctly classified as non-reportable.
