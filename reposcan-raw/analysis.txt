@@ -1,121 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan hits, I'll classify each one:
-[0m$ [0mcat << 'EOF'
-# REAL_SECRET — hardcoded credential/API key/token with signs of life
-# NONE FOUND in this scan (all are test fixtures, placeholders, or secret references)
-# Note: The earthengine-api OAuth client_secret (sha256 3f3f8d6f…) was previously
-#       ACCEPTED via live probe on raw.githubusercontent.com, but does NOT appear
-#       in this static file scan (it's in google/earthengine-api which wasn't scanned here).
+Looking at the scan results, let me classify each hit:
 
-# TEST_OR_EXAMPLE — sample/test/fixture data (not reportable)
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (not hardcoded) |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture key |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password constant |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | `getConnection("PASSWORD=" + getDatabasePassword() + ";")` | Uses test password above |
-| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config points to password file (not secret) |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder/example value |
-| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions token refs |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test credentials |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not secret |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parse errors | Build artifacts |
+## Classification Table
 
-# ENDPOINT_LEAK — internal/dev/staging URLs, API endpoints
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` (x2) | Internal Google source hosting |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `cs.corp.google.com` | Internal code search |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 126 | `cs.corp.google.com` | Internal code search |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 131 | `source.corp.google.com/h/googleplex-android/` | Internal source hosting |
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Verdict |
+|------|------|-----------------|---------|
+| *(none found)* | - | - | No live hardcoded credentials detected |
 
-# INTERESTING — debug flags, keys, cloud configs, metadata refs
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` | Public doc URL |
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL Connector/J usage docs URL | Public doc URL |
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `default: https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params (not secrets) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | IMDS reference (SSRF surface) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | IMDS reference (SSRF surface) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome | IMDS reference (SSRF surface) |
-| reposcan-raw/google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal/computeMetadata/v1/` | GCP metadata server endpoint |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` | GCP metadata server constant |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup | Test infra comment |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs (`${{ secrets.* }}`) - proper CI usage |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` - test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` - test constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` - placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key placeholder (`-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` - test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` - placeholder |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template variable `GOOGLE_API_KEY={google_api_key}` |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` - config file reference |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
 
-# VERDICT LIST
-REPORT_CANDIDATE: no (no REAL_SECRET hits in this scan)
-EOF
-cat
-# REAL_SECRET — hardcoded credential/API key/token with signs of life
-# NONE FOUND in this scan (all are test fixtures, placeholders, or secret references)
-# Note: The earthengine-api OAuth client_secret (sha256 3f3f8d6f…) was previously
-#       ACCEPTED via live probe on raw.githubusercontent.com, but does NOT appear
-#       in this static file scan (it's in google/earthengine-api which wasn't scanned here).
+### ENDPOINT_LEAK (internal/dev URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal` (GCP metadata) |
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` (internal source) |
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124,126,131 | `cs.corp.google.com`, `source.corp.google.com` |
 
-# TEST_OR_EXAMPLE — sample/test/fixture data (not reportable)
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs (not hardcoded) |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Test fixture key |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password constant |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | `getConnection("PASSWORD=" + getDatabasePassword() + ";")` | Uses test password above |
-| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config points to password file (not secret) |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder/example value |
-| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions token refs |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test credentials |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated test token |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name, not secret |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parse errors | Build artifacts |
+### INTERESTING (cloud metadata references, debug flags)
+| File | Line | Detail |
+|------|------|--------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Checks `169.254.169.254` in Chrome |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` - state key |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig path/context parameters |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` |
 
-# ENDPOINT_LEAK — internal/dev/staging URLs, API endpoints
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` (x2) | Internal Google source hosting |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | `b.corp.google.com/issues/328691756` | Internal bug tracker |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `cs.corp.google.com` | Internal code search |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 126 | `cs.corp.google.com` | Internal code search |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 131 | `source.corp.google.com/h/googleplex-android/` | Internal source hosting |
+---
 
-# INTERESTING — debug flags, keys, cloud configs, metadata refs
-| File | Line | Match | Classification |
-|------|------|-------|----------------|
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` | Public doc URL |
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL Connector/J usage docs URL | Public doc URL |
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `default: https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params (not secrets) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | IMDS reference (SSRF surface) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | IMDS reference (SSRF surface) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome | IMDS reference (SSRF surface) |
-| reposcan-raw/google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal/computeMetadata/v1/` | GCP metadata server endpoint |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` | GCP metadata server constant |
-| reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup | Test infra comment |
+## SHORT VERDICT LIST
 
-# VERDICT LIST
-REPORT_CANDIDATE: no (no REAL_SECRET hits in this scan)
-[0m
-**Classification complete.** No `REAL_SECRET` hits in this scan — all 109 grep matches are test fixtures, placeholder values, secret references (`${{ secrets.* }}`), internal Google URLs, or metadata/IMDS endpoint references.
-
-The previously **ACCEPTED** earthengine-api OAuth client_secret (sha256 `3f3f8d6f…d271`) was found via **live probe** on `raw.githubusercontent.com`, not in this static file scan (that repo wasn't included in the 16,850 files scanned here).
-
-**Verdict:** `REPORT_CANDIDATE: no` for this scan batch.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| All hits | **no** | No live hardcoded secrets found. All hits are: test fixtures, placeholder values, GitHub Actions secret references (proper usage), internal endpoint references, or metadata endpoint documentation. The `earthengine-api` secret previously confirmed live (sha256 `3f3f8d6f…d271`) was **not detected in this scan** - it resides in `google/earthengine-api` which appears not in the scanned paths.
