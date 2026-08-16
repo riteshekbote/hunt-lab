@@ -1,52 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/certificate-transparency-go/scripts/resetpgctdb.sh[90m [limit=15, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live credentials found |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| reposcan-raw/google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `POSTGRESQL_PASSWORD="beeblebrox"` | Dev/test default fallback (Hitchhiker's Guide ref); only used when env var unset |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references — not actual secret values |
-| reposcan-raw/google/sam/... | multiple | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"`, `google-client-secret="${GOOGLE_CLIENT_SECRET}"` | K8s/Helm template secret references |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` | Test fixtures / example credentials |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder/example |
-| reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` | `testonly/` directory — test fixture |
-| reposcan-raw/google/ax/manifests/install-ax.sh | 239, 241 | `pg_password="${existing_pw}"`, `openssl rand -hex 16` | Generates random password at deploy time |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder literal |
-
-#### ENDPOINT_LEAK
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | Config params, not endpoints |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | Well-known cloud metadata IP (not a leak) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same — standard metadata endpoint |
-
-#### INTERESTING
-| File | Line | Pattern | Note |
-|------|------|---------|------|
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key naming |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template interpolation for user-provided key |
+[0m$ [0mwc -l reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+317 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/models/dependency/reference.py[90m [offset=1475, limit=20][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/models/dependency/reference.py[90m [offset=1515, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=135][0m
+Now I have full context. All hits are **TEST_OR_EXAMPLE** or **ENDPOINT_LEAK** (example URLs in comments) — no **REAL_SECRET** findings.
 
 ---
 
-### SHORT Verdict List
+### Classification Tables
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| certificate-transparency-go resetpgctdb.sh:41 (`beeblebrox`) | TEST_OR_EXAMPLE | **no** — dev default fallback only |
-| langextract CI workflow secret refs | TEST_OR_EXAMPLE | **no** — `${{ secrets.* }}` references, not values |
-| adk-python test fixtures (private_key, password, token) | TEST_OR_EXAMPLE | **no** — `testonly/`, example constants, placeholders |
-| sam/ K8s secret references | TEST_OR_EXAMPLE | **no** — template variable references |
-| ax/install-ax.sh generated password | TEST_OR_EXAMPLE | **no** — `openssl rand` at deploy time |
-| agents-cli placeholder `gemini_api_key` | TEST_OR_EXAMPLE | **no** — obvious placeholder |
+#### TEST_OR_EXAMPLE (176 hits)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/sam/**/*.yaml | multiple | `kind: ConfigMap` | K8s template files (13 files) |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant string literal |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${{ secrets.* }}` | GitHub Actions secret refs (proper) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | GitHub Actions secret refs (proper) |
+| google/agents-cli/.../auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value (auth type name) |
+| google/agents-cli/.../staging.yaml | 168,192 | `{% raw %}${{...}}{% endraw %}` | Template variables |
+| google/ax/manifests/install-ax.sh | 239,241,286 | `pg_password="${...}"` | Variable refs / generated default |
+| google/adk-python/.../auth_credential.py | 157,269,278,287 | `"-----BEGIN...---"`, `"user"/"password"`, `"eyAkaknabna...."`, `"secret"` | **Docstring examples** with placeholders |
+| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth2 grant-type enum value |
+| google/adk-python/.../auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example placeholder |
+| google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant key name |
+| google/adk-python/.../cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
+| google/adk-python/.../browser/chunk-*.js | multiple | Parse error strings | Minified JS source maps |
 
-**No REAL_SECRET findings in this delta.** All 4 new hits and all 229 total hits classify as TEST_OR_EXAMPLE or benign patterns.
+#### ENDPOINT_LEAK (19 hits)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/.../container_code_executor.py | 114,154 | `169.254.169.254` | IMDS endpoint in comments (public, documented) |
+| google/adk-python/.../load_web_page.py | 171 | `169.254.169.254` | IMDS endpoint in comment |
+| google/adk-python/.../computer_use_toolset.py | 146 | `169.254.169.254` | IMDS endpoint in comment |
+| microsoft/apm/.../reference.py | 1481,1522 | `https://dev.azure.com/org/proj/_git/repo/sub/path` | **Example URLs in docstrings/comments** |
+
+#### INTERESTING (2 hits)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/.../gke_code_executor.py | 103,104,115 | `kubeconfig_path: str \| None = None` | Type annotations (not secrets) |
+
+---
+
+### Verdict List
+
+| Candidate | File | Line | Category | REPORT_CANDIDATE |
+|-----------|------|------|----------|------------------|
+| (none) | — | — | — | **no** |
+
+**Summary:** 197 hits scanned, **0 REAL_SECRET** findings. All hits are test fixtures, docstring examples, enum constants, GitHub Actions secret references (correct pattern), or public endpoint references in comments. The ADK Python "private_key"/"password"/"client_secret" hits are explicitly documented as **Example:** blocks with placeholder values. The Microsoft APM hits are example Azure DevOps URLs in docstrings. No reportable secrets in this delta.
