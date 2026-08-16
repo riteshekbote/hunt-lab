@@ -1,56 +1,808 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+[0m$ [0mcat reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py | head -50
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 
-## REAL_SECRET
-| File | Line | Secret SHA256 | Verdict |
-|------|------|---------------|---------|
-| (none) | - | - | No hardcoded live credentials found in delta |
+import requests
+from bs4 import BeautifulSoup
+import logging
+from urllib.parse import urlparse
+import tempfile
+import os
+import socket
+import ipaddress
 
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value "gemini_api_key" |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | GitHub Actions `${{ steps.fetch-token.outputs._id_token }}` template | Workflow template variable |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | GitHub Actions `${{ steps.fetch-token.outputs._auth_token }}` template | Workflow template variable |
+logger = logging.getLogger(__name__)
+
+
+def _is_private_ip(ip_str: str) -> bool:
+    """
+    Check if an IP address is private, internal, or otherwise restricted.
+    
+    Args:
+        ip_str: IP address as a string
+        
+    Returns:
+        bool: True if IP is private/restricted, False if public
+    """
+    try:
+        ip_obj = ipaddress.ip_address(ip_str)
+        
+        # Check if IP is private, loopback, link-local, multicast, reserved, or unspecified
+        if (
+            ip_obj.is_private or
+            ip_obj.is_loopback or
+            ip_obj.is_link_local or
+            ip_obj.is_multicast or
+            ip_obj.is_reserved or
+            ip_obj.is_unspecified
+        ):
+            return True
+        
+        # Explicitly block cloud metadata endpoints
+        # AWS/Azure/GCP metadata endpoint
+        if ip_str == "169.254.169.254":
+            return True
+            
+        # AWS IPv6 metadata endpoint
+        if ip_str.startswith("fd00:ec2::"):
+            return True
+            
+        return False
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/ebpf-for-windows/netebpfext/net_ebpf_ext_sock_ops.c | head -320 | tail -20
+}
+        entry = RemoveHeadList(&local_filter_context->flow_context_list.list_head);
+        InitializeListHead(entry);
+        local_filter_context->flow_context_list.count--;
+
+        // Copy the parameters under the lock; the flow delete callback may free the flow context once it drops.
+        flow_parameters = CONTAINING_RECORD(entry, net_ebpf_extension_sock_ops_wfp_flow_context_t, link)->parameters;
+        KeReleaseSpinLock(&local_filter_context->lock, irql);
+
+        // https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/fwpsk/nf-fwpsk-fwpsflowremovecontext0
+        // This invokes net_ebpf_extension_sock_ops_flow_delete, which frees the flow context and releases its
+        // reference on the filter context: synchronously on STATUS_SUCCESS, asynchronously on STATUS_PENDING while
+        // a classify callback is still active. STATUS_UNSUCCESSFUL means the flow no longer has a context.
+        status = FwpsFlowRemoveContext(flow_parameters.flow_id, flow_parameters.layer_id, flow_parameters.callout_id);
+        if (!NT_SUCCESS(status)) {
+            EBPF_EXT_LOG_NTSTATUS_API_FAILURE(EBPF_EXT_TRACELOG_KEYWORD_SOCK_OPS, "FwpsFlowRemoveContext", status);
+        }
+
+        // Any other status leaves the association outstanding with the entry already removed from the list.
+        ASSERT((status == STATUS_SUCCESS) || (status == STATUS_PENDING) || (status == STATUS_UNSUCCESSFUL));
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/qdk/.ado/publish.yml
+name: qdk-publish-$(BuildId)
+
+# Run on merges to main to ensure that the latest code
+# is always able to be published.
+trigger:
+  branches:
+    include:
+      - main
+
+# Run the pipeline every day at 6:00 AM to ensure
+# codeql and other governance checks are up-to-date.
+schedules:
+  - cron: "0 6 * * *"
+    displayName: "Build for Component Governance"
+    branches:
+      include:
+        - main
+    always: true
+
+variables:
+  CARGO_TERM_COLOR: always
+  QDK_LIB_OVERRIDE_MICROSOFT_QDK: $(Build.SourcesDirectory)
+  RUST_TOOLCHAIN_VERSION: "1.95"
+  # CFS requires that we have a .npmrc next to each package.json.  If we set this variable, it will
+  # synthesize everything it requires during the pipeline run, leaving our external contributors
+  # free to continue using the default npmjs.org registry.
+  # (To learn more, search eng.ms for AZURE_ARTIFACTS_FEED.)
+  #
+  # Caveat: the synthesized .npmrc file doesn't seem to contain the necessary token, so we'll have to
+  # use the npmAuthenticate task explicitly.
+  AZURE_ARTIFACTS_FEED: https://pkgs.dev.azure.com/ms-azurequantum/AzureQuantum/_packaging/azure-quantum/npm/registry/
+
+resources:
+  repositories:
+    - repository: 1ESPipelineTemplates
+      type: git
+      name: 1ESPipelineTemplates/1ESPipelineTemplates
+      ref: refs/tags/release
+
+parameters:
+  - name: matrix
+    type: object
+    default:
+      - name: linux_x86_64
+        poolName: "Azure-Pipelines-DevTools-GPU"
+        imageName: "ubuntu-2204-qdk-gpu"
+        os: linux
+        arch: x86_64
+        envVars:
+          QDK_GPU_TESTS: "1"
+      - name: linux_aarch64
+        poolName: "Azure-Pipelines-DevTools-ARM64-EO"
+        imageName: "azurelinux-3.0-gen2-arm64"
+        os: linux
+        arch: aarch64
+      - name: mac_x86_64
+        poolName: "Azure Pipelines"
+        imageName: "macOS-latest" # MacOS-specific Py (Mac is usually quite limited).
+        os: macOS
+        arch: x86_64
+      - name: mac_aarch64
+        poolName: "AcesShared"
+        os: macOS
+        arch: aarch64
+        envVars:
+          QDK_GPU_TESTS: "1"
+      - name: windows_x86_64
+        poolName: "Azure-Pipelines-DevTools-GPU"
+        imageName: "1es-pt-dsvm-windows-2022" # Win-specific Py + Platform-independent Py.
+        os: windows
+        arch: x86_64
+        envVars:
+          QDK_GPU_TESTS: "1"
+      - name: windows_aarch64
+        poolName: "Azure-Pipelines-DevTools-ARM64-EO"
+        imageName: "windows-2025-gen2-arm64"
+        os: windows
+        arch: aarch64
+
+# variables set by pipeline
+# - BASE_IMAGE
+# - BUILD_NUMBER
+# - BUILD_TYPE
+# - cratesIoFeedOverride
+# - OwnerPersonalAlias
+# - toolchainFeed
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: "Azure-Pipelines-DevTools-EO"
+        image: windows-2025
+        os: windows
+      sbom:
+        continueOnError: false
+    stages:
+      - stage: build
+        displayName: Build
+        jobs:
+          - job: "Node"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            timeoutInMinutes: 90
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  displayName: "Upload NPM Package Artifact"
+                  targetPath: $(System.DefaultWorkingDirectory)/target/npm/qsharp
+                  artifactName: NPM
+                  condition: succeeded()
+            steps:
+              # common init steps
+              - task: RustInstaller@1
+                inputs:
+                  rustVersion: ms-prod-$(RUST_TOOLCHAIN_VERSION)
+                  additionalTargets: wasm32-unknown-unknown
+                  cratesIoFeedOverride: $(cratesIoFeedOverride)
+                  toolchainFeed: $(toolchainFeed)
+                displayName: Install Rust toolchain
+
+              - task: PipAuthenticate@1
+                displayName: Pip Authenticate
+                inputs:
+                  artifactFeeds: "AzureQuantum/azure-quantum"
+
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: "3.11"
+                  githubToken: "$(GH_PACKAGE_READ_TOKEN)"
+
+              - task: UseNode@1
+                inputs:
+                  version: "22.x"
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: .npmrc
+
+              - script: |
+                  python ./prereqs.py --install && python ./version.py
+                displayName: Install Prereqs and set version
+
+              # build steps
+
+              - script: |
+                  python build.py --npm --wasm --no-check-prereqs
+                displayName: Build npm package
+
+              - script: |
+                  mkdir -p $(System.DefaultWorkingDirectory)/target/npm/qsharp
+                  npm pack --pack-destination $(System.DefaultWorkingDirectory)/target/npm/qsharp
+                displayName: Pack NPM Package
+                workingDirectory: $(System.DefaultWorkingDirectory)/source/npm/qsharp
+
+          - job: "VSCode"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            timeoutInMinutes: 90
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  displayName: "Upload VSCode Extension Artifact"
+                  targetPath: $(System.DefaultWorkingDirectory)/target/vscode
+                  artifactName: VSIX
+                  condition: succeeded()
+            steps:
+              # common init steps
+              - task: RustInstaller@1
+                inputs:
+                  rustVersion: ms-prod-$(RUST_TOOLCHAIN_VERSION)
+                  additionalTargets: wasm32-unknown-unknown
+                  cratesIoFeedOverride: $(cratesIoFeedOverride)
+                  toolchainFeed: $(toolchainFeed)
+                displayName: Install Rust toolchain
+
+              - task: PipAuthenticate@1
+                displayName: Pip Authenticate
+                inputs:
+                  artifactFeeds: "AzureQuantum/azure-quantum"
+
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: "3.11"
+                  githubToken: "$(GH_PACKAGE_READ_TOKEN)"
+
+              - task: UseNode@1
+                inputs:
+                  version: "22.x"
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: .npmrc
+
+              - script: |
+                  python ./prereqs.py --install && python ./version.py
+                displayName: Install Prereqs and set version
+
+              # Below VS Code extension build only needs to run on one platform (Linux x86_64 for now)
+              - script: |
+                  npm install -g @vscode/vsce --userconfig=.npmrc
+                displayName: Install Prereqs for VSCode Extension
+
+              # build steps
+              # we use xvfb-run to provide a virtual framebuffer for the VS Code tester,
+              # which requires a display to run
+              - script: |
+                  xvfb-run -a python build.py --wasm --npm --vscode --integration-tests --no-check-prereqs
+                displayName: Build VSCode Extension
+
+              - script: |
+                  vsce package --pre-release
+                  mkdir -p $(System.DefaultWorkingDirectory)/target/vscode
+                  mv *.vsix $(System.DefaultWorkingDirectory)/target/vscode
+                condition: and(succeeded(), eq(variables['BUILD_TYPE'], 'dev'))
+                displayName: Pack pre-release VSCode Extension
+                workingDirectory: "$(System.DefaultWorkingDirectory)/source/vscode"
+
+              - script: |
+                  vsce package
+                  mkdir -p $(System.DefaultWorkingDirectory)/target/vscode
+                  mv *.vsix $(System.DefaultWorkingDirectory)/target/vscode
+                condition: and(succeeded(), ne(variables['BUILD_TYPE'], 'dev'))
+                displayName: Pack VSCode Extension
+                workingDirectory: "$(System.DefaultWorkingDirectory)/source/vscode"
+
+              - script: |
+                  VSIX_RPATH="$(System.DefaultWorkingDirectory)/target/vscode"
+                  VSIX_FNAME=`ls $VSIX_RPATH/*.vsix`
+                  echo "RPATH: $VSIX_RPATH"
+                  echo "FNAME: $VSIX_FNAME"
+
+                  VSIX_FNAME_NOEXT="${VSIX_FNAME%.vsix}"
+                  MANIFEST_FILE="${VSIX_FNAME_NOEXT}.manifest"
+                  SIGNATURE_FILE="${VSIX_FNAME_NOEXT}.signature.p7s"
+
+                  vsce generate-manifest -i $VSIX_FNAME -o $MANIFEST_FILE
+                  cp $MANIFEST_FILE $SIGNATURE_FILE
+
+                  echo "##vso[task.setvariable variable=VSIX_FNAME;]$VSIX_FNAME"
+                  echo "##vso[task.setvariable variable=MANIFEST_FILE;]$MANIFEST_FILE"
+                  echo "##vso[task.setvariable variable=SIGNATURE_FILE;]$SIGNATURE_FILE"
+                displayName: Prepare VSCode Extension Manifest and Signature for Signing
+
+              - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@6
+                displayName: "ESRP CodeSigning"
+                condition: succeeded()
+                inputs:
+                  ConnectedServiceName: "PME ESRP Azure Connection"
+                  AppRegistrationClientId: "ced85fbc-381c-467d-958e-ee86a128e63a"
+                  AppRegistrationTenantId: "975f013f-7f24-47e8-a7d3-abc4752bf346"
+                  EsrpClientId: "832c049d-cd07-4c1c-bfa5-c07250d190cb"
+                  UseMSIAuthentication: true
+                  AuthAKVName: "quantum-esrp-kv"
+                  AuthSignCertName: ESRPCert
+                  FolderPath: "target/vscode"
+                  Pattern: "*.signature.p7s"
+                  signConfigType: inlineSignParams
+                  inlineOperation: |
+                    [
+                      {
+                        "keyCode": "CP-401405",
+                        "operationSetCode": "VSCodePublisherSign",
+                        "parameters" : [],
+                        "toolName": "sign",
+                        "toolVersion": "1.0"
+                      }
+                    ]
+                  SessionTimeout: 90
+                  MaxConcurrency: 25
+                  MaxRetryAttempts: 5
+                  PendingAnalysisWaitTimeoutMinutes: 5
+
+              - script: |
+                  echo "Command: vsce verify-signature --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE"
+                  vsce verify-signature --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE
+                condition: succeeded()
+                displayName: Confirming signature verification before publishing
+
+          - job: "Platform_Agnostic_Python"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            timeoutInMinutes: 90
+            templateContext:
+              outputs:
+                - output: pipelineArtifact
+                  displayName: "Upload Platform-Agnostic Python Artifacts"
+                  targetPath: $(System.DefaultWorkingDirectory)/target/wheels/
+                  artifactName: Wheels.PlatformAgnostic
+                  condition: succeeded()
+            steps:
+              # common init steps
+              - task: RustInstaller@1
+                inputs:
+                  rustVersion: ms-prod-$(RUST_TOOLCHAIN_VERSION)
+                  cratesIoFeedOverride: $(cratesIoFeedOverride)
+                  toolchainFeed: $(toolchainFeed)
+                displayName: Install Rust toolchain
+
+              - task: PipAuthenticate@1
+                displayName: Pip Authenticate
+                inputs:
+                  artifactFeeds: "AzureQuantum/azure-quantum"
+
+              - task: UsePythonVersion@0
+                inputs:
+                  versionSpec: "3.11"
+                  githubToken: "$(GH_PACKAGE_READ_TOKEN)"
+
+              - task: UseNode@1
+                inputs:
+                  version: "22.x"
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: .npmrc
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: source/jupyterlab/.npmrc
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: source/widgets/.npmrc
+
+              - script: |
+                  python ./prereqs.py --skip-wasm && python ./version.py
+                displayName: Install Prereqs and set version
+
+              # Build platform-agnostic Python wheels: jupyterlab and widgets
+              # (pure Python). The qdk native wheel is built per-platform.
+              - script: |
+                  python ./build.py --jupyterlab --widgets --no-check --no-test --no-check-prereqs
+                displayName: Build Platform-Agnostic Packages
+
+              - script: |
+                  ls target/wheels/*
+
+          - ${{ each target in parameters.matrix }}:
+              - job: Python_${{ target.name }}_job
+                pool:
+                  name: ${{ target.poolName }}
+                  image: ${{ target.imageName }}
+                  os: ${{ target.os }}
+                  ${{ if and(eq(target.arch, 'aarch64'), eq(target.os, 'linux')) }}:
+                    hostArchitecture: Arm64
+                  ${{ if eq(target.poolName, 'AcesShared') }}:
+                    demands:
+                      - ImageOverride -equals ACES_VM_SharedPool_Sequoia
+                variables:
+                  arch: ${{ target.arch }}
+                  additionalRustTargets: ${{ target.additionalRustTargets }}
+                  ${{ if target.envVars }}:
+                    ${{ each envVar in target.envVars }}:
+                      ${{ envVar.key }}: ${{ envVar.value }}
+                timeoutInMinutes: 90
+                templateContext:
+                  outputs:
+                    - output: pipelineArtifact
+                      displayName: "Upload Python Artifacts Mac"
+                      condition: and(succeeded(), eq(variables['Agent.OS'], 'Darwin'))
+                      targetPath: $(System.DefaultWorkingDirectory)/target/wheels
+                      artifactName: Wheels.Mac.${{ target.arch }}
+                    - output: pipelineArtifact
+                      displayName: "Upload Python Artifacts Win"
+                      condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
+                      targetPath: $(System.DefaultWorkingDirectory)/target/wheels
+                      artifactName: Wheels.Win.${{ target.arch }}
+                    - output: pipelineArtifact
+                      displayName: "Upload Python Artifacts Linux"
+                      condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'))
+                      targetPath: $(System.DefaultWorkingDirectory)/target/wheels
+                      artifactName: Wheels.Linux.${{ target.arch }}
+                steps:
+                  # common init steps
+                  # if we have additional rust targets, we need to install them
+                  - task: RustInstaller@1
+                    inputs:
+                      rustVersion: ms-prod-$(RUST_TOOLCHAIN_VERSION)
+                      additionalTargets: wasm32-unknown-unknown
+                      cratesIoFeedOverride: $(cratesIoFeedOverride)
+                      toolchainFeed: $(toolchainFeed)
+                    displayName: Install Rust toolchain
+
+                  - script: |
+                      rustc --version
+                      rustc --print target-list
+                    displayName: View rust target info
+
+                  - task: PipAuthenticate@1
+                    displayName: Pip Authenticate
+                    inputs:
+                      artifactFeeds: "AzureQuantum/azure-quantum"
+
+                  - task: UsePythonVersion@0
+                    inputs:
+                      versionSpec: "3.11"
+                      githubToken: "$(GH_PACKAGE_READ_TOKEN)"
+                      ${{ if eq(target.arch, 'aarch64') }}:
+                        architecture: "arm64"
+                    condition: not(and(eq(variables['Agent.OS'], 'Linux'), eq(variables['arch'], 'aarch64')))
+
+                  # UsePythonVersion@0 does not support aarch64, so we install Python manually
+                  # using tdnf on Azure Linux 3.0 aarch64
+                  # We also need alias python3 as python
+                  - script: |
+                      sudo tdnf install python3-3.12.9 python3-pip-24.2 -y
+                      sudo alternatives --install /usr/bin/python python /usr/bin/python3 1
+                    displayName: Install Python on Azure Linux 3.0 aarch64
+                    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'), eq(variables['arch'], 'aarch64'))
+
+                  - task: UseNode@1
+                    inputs:
+                      version: "22.x"
+
+                  # See the note on AZURE_ARTIFACTS_FEED
+                  - task: npmAuthenticate@0
+                    inputs:
+                      workingFile: .npmrc
+
+                  - script: |
+                      sudo apt update
+                      sudo apt install -y patchelf
+                    displayName: Install Linux x86_64 prereqs
+                    condition: and(eq(variables['Agent.OS'], 'Linux'), eq(variables['arch'], 'x86_64'))
+
+                  # on Azure Linux 3.0 aarch64 we need to install:
+                  # ld with binutils
+                  # crt1.o and others with glibc-devel
+                  # std lib headers with kernel-headers
+                  # patchelf for modifying ELF files via auditwheel
+                  - script: |
+                      sudo tdnf install binutils glibc-devel kernel-headers patchelf gcc -y
+                    displayName: Install c++ build tools on Azure Linux 3.0 aarch64
+                    condition: and(succeeded(), eq(variables['Agent.OS'], 'Linux'), eq(variables['arch'], 'aarch64'))
+
+                  - script: |
+                      python ./prereqs.py --skip-wasm
+                    displayName: Install Prereqs
+                    condition: and(ne(variables['Agent.OS'], 'Linux'), ne(variables['arch'], 'aarch64'))
+
+                  - script: |
+                      python ./version.py
+                    displayName: Set version
+
+                  # Windows arm64
+                  # Skip checking because that would force npm install, which won't work properly until UseNode supports arm64
+                  # https://github.com/microsoft/azure-pipelines-tasks/issues/21743
+                  - script: |
+                      python build.py --qdk --no-check --no-check-prereqs --no-integration-tests --no-optional-dependencies
+                    displayName: Build Platform-Dependent Py Packages (Windows ARM64)
+                    condition: and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['arch'], 'aarch64'))
+
+                  # every other platform
+                  - script: |
+                      python build.py --qdk --no-check-prereqs --integration-tests
+                    displayName: Build Platform-Dependent Py Packages (Other)
+                    condition: not(and(eq(variables['Agent.OS'], 'Windows_NT'), eq(variables['arch'], 'aarch64')))
+
+                  - script: |
+                      dir target\wheels\*
+                    displayName: List Py Packages on Win
+                    condition: eq(variables['Agent.OS'], 'Windows_NT')
+
+                  - script: |
+                      ls target/wheels/*
+                    displayName: List Py Packages on non-Win
+                    condition: ne(variables['Agent.OS'], 'Windows_NT')
+
+      - stage: approval
+        displayName: Approval
+        dependsOn: build
+        condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
+        jobs:
+          - job: "Approval"
+            pool: server
+            timeoutInMinutes: 1440 # job times out in 1 day
+            steps:
+              - task: ManualValidation@0
+                timeoutInMinutes: 1440 # task times out in 1 day
+                inputs:
+                  notifyUsers: ""
+                  instructions: "Please verify artifacts and approve the release"
+                  onTimeout: "reject"
+
+      - stage: release
+        displayName: Release
+        dependsOn: approval
+        condition: and(succeeded(), eq(variables['Build.Reason'], 'Manual'))
+        jobs:
+          - job: "Publish_VSIX_Package"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs: # All input build artifacts must be declared here
+                - input: pipelineArtifact
+                  artifactName: VSIX
+                  targetPath: $(System.DefaultWorkingDirectory)/target/vscode
+            steps:
+              # We don't want to check this .npmrc in because it won't work for external contributors.
+              # Unlike in the build stage, there doesn't seem to be a task that consumes AZURE_ARTIFACTS_FEED
+              # and creates the compliant .npmrc files, so just make a simple one inline.
+              - script: |
+                  echo "registry=$(AZURE_ARTIFACTS_FEED)" > .npmrc
+                  echo "always-auth=true" >> .npmrc
+                displayName: Create .npmrc
+
+              # See the note on AZURE_ARTIFACTS_FEED
+              - task: npmAuthenticate@0
+                inputs:
+                  workingFile: .npmrc
+
+              - script: |
+                  npm install -g @vscode/vsce --userconfig=.npmrc
+                displayName: Install Prereqs for VSCode Ext Publishing
+
+              - script: |
+                  VSIX_RPATH="$(System.DefaultWorkingDirectory)/target/vscode"
+                  VSIX_FNAME=`ls $VSIX_RPATH/*.vsix`
+
+                  VSIX_FNAME_NOEXT="${VSIX_FNAME%.vsix}"
+                  MANIFEST_FILE="${VSIX_FNAME_NOEXT}.manifest"
+                  SIGNATURE_FILE="${VSIX_FNAME_NOEXT}.signature.p7s"
+
+                  echo "##vso[task.setvariable variable=VSIX_FNAME;]$VSIX_FNAME"
+                  echo "##vso[task.setvariable variable=MANIFEST_FILE;]$MANIFEST_FILE"
+                  echo "##vso[task.setvariable variable=SIGNATURE_FILE;]$SIGNATURE_FILE"
+                displayName: Get VSCode Extension, Manifest, and Signature files for Publishing
+
+              - script: |
+                  echo "Command: vsce verify-signature --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE"
+                  vsce verify-signature --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE
+                condition: succeeded()
+                displayName: Reconfirming signature verification before publishing
+
+              - task: AzureCLI@2
+                condition: and(succeeded(), eq(variables['BUILD_TYPE'], 'dev'))
+                displayName: Publish pre-release VSCode Extension
+                inputs:
+                  azureSubscription: QDK Publish Connection
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    echo "Command: vsce publish --pre-release --azure-credential --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE"
+                    vsce publish --pre-release --azure-credential --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE 2>&1 > pub.log
+
+              - task: AzureCLI@2
+                condition: and(succeeded(), ne(variables['BUILD_TYPE'], 'dev'))
+                displayName: Publish VSCode Extension
+                inputs:
+                  azureSubscription: QDK Publish Connection
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    echo "Command: vsce publish --azure-credential --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE"
+                    vsce publish --azure-credential --packagePath $VSIX_FNAME --manifestPath $MANIFEST_FILE --signaturePath $SIGNATURE_FILE 2>&1 > pub.log
+
+              - script: |
+                  dir
+                  cat pub.log
+                displayName: If failed, display VSCode Publishing Results
+                condition: failed()
+                workingDirectory: "$(System.DefaultWorkingDirectory)"
+
+          - job: "Publish_Python_Packages"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs: # All input build artifacts must be declared here
+                - input: pipelineArtifact
+                  artifactName: Wheels.Win.x86_64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/win-x86_64
+                - input: pipelineArtifact
+                  artifactName: Wheels.Win.aarch64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/win-aarch64
+                - input: pipelineArtifact
+                  artifactName: Wheels.Mac.x86_64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/mac-x86_64
+                - input: pipelineArtifact
+                  artifactName: Wheels.Mac.aarch64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/mac-aarch64
+                - input: pipelineArtifact
+                  artifactName: Wheels.Linux.x86_64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/linux-x86_64
+                - input: pipelineArtifact
+                  artifactName: Wheels.Linux.aarch64
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/linux-aarch64
+                - input: pipelineArtifact
+                  artifactName: Wheels.PlatformAgnostic
+                  targetPath: $(System.DefaultWorkingDirectory)/artifacts/platform-agnostic
+            steps:
+              - script: |
+                  mkdir -p $(System.DefaultWorkingDirectory)/target/wheels
+                  find $(System.DefaultWorkingDirectory)/artifacts -name "*.whl" -exec cp {} $(System.DefaultWorkingDirectory)/target/wheels/ \;
+                  ls $(System.DefaultWorkingDirectory)/target/wheels
+                displayName: Collect and Display Py Artifacts in Publishing Dir
+
+              - task: EsrpRelease@9
+                condition: succeeded()
+                displayName: Publish Py Packages
+                inputs:
+                  connectedservicename: "PME ESRP Azure Connection"
+                  usemanagedidentity: true
+                  keyvaultname: "quantum-esrp-kv"
+                  signcertname: ESRPCert
+                  clientid: "832c049d-cd07-4c1c-bfa5-c07250d190cb"
+                  contenttype: PyPi
+                  domaintenantid: "975f013f-7f24-47e8-a7d3-abc4752bf346"
+                  folderlocation: "$(System.DefaultWorkingDirectory)/target/wheels"
+                  waitforreleasecompletion: true
+                  owners: "billti@microsoft.com"
+                  approvers: "billti@microsoft.com"
+                  mainpublisher: ESRPRELPACMAN
+
+          - job: "Publish_NPM_Package"
+            pool:
+              name: "Azure-Pipelines-DevTools-EO"
+              image: "ubuntu-latest"
+              os: linux
+            templateContext:
+              type: releaseJob
+              isProduction: true
+              inputs: # All input build artifacts must be declared here
+                - input: pipelineArtifact
+                  artifactName: NPM
+                  targetPath: $(System.DefaultWorkingDirectory)/target/npm/qsharp
+            steps:
+              - script: |
+                  ls $(System.DefaultWorkingDirectory)/target/npm/qsharp/*
+                displayName: Display NPM Artifacts in Publishing Dir
+
+              - task: EsrpRelease@9
+                condition: succeeded()
+                displayName: Publish NPM Package
+                inputs:
+                  connectedservicename: "PME ESRP Azure Connection"
+                  usemanagedidentity: true
+                  keyvaultname: "quantum-esrp-kv"
+                  signcertname: ESRPCert
+                  clientid: "832c049d-cd07-4c1c-bfa5-c07250d190cb"
+                  contenttype: "NPM"
+                  domaintenantid: "975f013f-7f24-47e8-a7d3-abc4752bf346"
+                  folderlocation: "$(System.DefaultWorkingDirectory)/target/npm/qsharp"
+                  waitforreleasecompletion: true
+                  owners: "billti@microsoft.com"
+                  approvers: "billti@microsoft.com"
+                  mainpublisher: ESRPRELPACMAN
+[0m
+Now I have full context. Let me classify all hits.
+
+## Classification Tables
+
+### REAL_SECRET (reportable)
+*None found in this delta.*
+
+### TEST_OR_EXAMPLE (fixtures, placeholders, test data)
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| microsoft/ebpf-for-windows/netebpfext/net_ebpf_ext_sock_ops.c | 310 | `// https://docs.microsoft.com/...` | Doc URL in comment |
+| microsoft/qdk/.ado/publish.yml | 133 | `githubToken: "$(GH_PACKAGE_READ_TOKEN)"` | AzDO variable ref |
+| microsoft/qdk/.ado/publish.yml | 191 | `githubToken: "$(GH_PACKAGE_READ_TOKEN)"` | AzDO variable ref |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test fixture |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test fixture |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GH Actions secret ref |
 | google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform variable reference |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` references | GitHub Actions secret references |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder private key in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
-| microsoft/qdk/source/jupyterlab/src/index.ts | 68,73 | `token: "operatorKeyword"` | Tokenizer token type |
-| microsoft/qdk/source/playground/src/openqasm-language.ts | 152,157 | `token: "string.quote"` | Monarch tokenizer rules |
-| microsoft/vscode-cosmosdb/.azure-pipelines/compliance/compliance.yml | 28 | Azure DevOps task reference | Build task reference |
-| microsoft/vscode-cosmosdb/packages/nosql-language-service/src/errors/SqlError.ts | 44 | `UnexpectedToken = 'UNEXPECTED_TOKEN'` | Error code constant |
-| microsoft/vscode-cosmosdb/packages/nosql-language-service/src/providers/monaco/monarchTokenizer.ts | 51,52 | `token: 'delimiter.square/parenthesis'` | Tokenizer rules |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk` | Code emitting var, not hardcoded |
+| microsoft/vscode-cosmosdb/.azure-pipelines/.../compliance.yml | 28 | `PublishSecurityAnalysisLogs@2` | Task reference |
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging Pages URL |
-| microsoft/cascadia-code/pipelines/release.yml | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server |
-| microsoft/qlib/.github/workflows/release.yml | 63,107 | `https://test.pypi.org/legacy/` | Test PyPI repository |
-| microsoft/vscode-cosmosdb/src/cosmosdb/utils/managedIdentityUtils.ts | 46 | `http://169.254.169.254/metadata/versions` | Azure IMDS endpoint (well-known) |
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py | 42 | `if ip_str == "169.254.169.254"` | Cloud metadata IP (defensive block) |
+| microsoft/data-formulator/.../web_utils.py | 47 | `if ip_str.startswith("fd00:ec2::")` | AWS IPv6 metadata (defensive block) |
+| microsoft/vscode-cosmosdb/src/cosmosdb/utils/managedIdentityUtils.ts | 46 | `http://169.254.169.254/metadata/versions` | Metadata endpoint call |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint refs (defensive) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint ref (defensive) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint ref (defensive) |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | File reference, not secret |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file |
+| microsoft/qdk/.ado/publish.yml | 31 | `AZURE_ARTIFACTS_FEED: https://pkgs.dev.azure.com/...` | Public feed URL |
 
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References external password file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n"` | C++ codegen emitting secret_key variable |
+### INTERESTING (debug flags, cloud configs, defensive patterns)
+| File | Line | Pattern | Note |
+|------|------|---------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template var injection |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session key name |
+| microsoft/cascadia-code/pipelines/release.yml | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal timestamp server |
 
-## VERDICT SUMMARY
-- **REPORT_CANDIDATE: no** — No REAL_SECRET findings in this delta scan
-- All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (staging/internal URLs), or INTERESTING (password file references, codegen patterns)
-- The google/earthengine-api hardcoded OAuth client_secret (from prior KB) remains the only live credential finding — already tracked and confirmed
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+---
+
+## SHORT VERDICT LIST
+
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Cloud metadata IP block (defensive) | microsoft/data-formulator/.../web_utils.py:42 | **no** — defensive coding pattern |
+| Doc URL in C comment | microsoft/ebpf-for-windows/.../net_ebpf_ext_sock_ops.c:310 | **no** — documentation reference |
+| AzDO pipeline var `$(GH_PACKAGE_READ_TOKEN)` | microsoft/qdk/.ado/publish.yml:133,191 | **no** — variable reference, not secret |
+| Public Azure Artifacts feed URL | microsoft/qdk/.ado/publish.yml:31 | **no** — public endpoint |
+| All google/adk-python fixtures | multiple | **no** — test fixtures/placeholders (known DUP class) |
+| All google/langextract GH Actions refs | .github/workflows/ci.yaml | **no** — secret references, not hardcoded |
+| All google/capsem password file reads | config/scripts | **no** — reads from external file |
+| Metadata endpoint refs (defensive) | multiple adk-python files | **no** — defensive SSRF protection |
+| Internal timestamp server URL | microsoft/cascadia-code/pipelines/release.yml:89 | **no** — internal infra, no secret |
+
+**NO REPORTABLE FINDINGS IN THIS DELTA.** All hits are test fixtures, variable references, defensive coding patterns, or public endpoints.
