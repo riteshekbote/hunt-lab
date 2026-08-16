@@ -1031,3 +1031,9 @@ https://oauth2.googleapis.com/token -> HTTP 404
 https://graph.microsoft.com/beta/copilot/agentRegistrations/{existing_id -> HTTP 401
 https://graph.microsoft.com/beta/copilot/agentRegistrations/{A_resource_id -> HTTP 401
 https://graph.microsoft.com/v1.0/oauth2PermissionGrants -> HTTP 401
+
+## 2026-08-16 14:44:53 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
+https://graph.microsoft.com/beta/copilot/agentRegistrations/{existing_id -> HTTP 401
+https://graph.microsoft.com/beta/copilot/agentRegistrations/{A_resource_id -> HTTP 401
+https://graph.microsoft.com/v1.0/oauth2PermissionGrants -> HTTP 401
