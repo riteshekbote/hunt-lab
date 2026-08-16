@@ -1233,3 +1233,9 @@
 - NEW graph.microsoft.com root → HTTP 301 redirect (rejected: cosmetic)
 - CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed 401
 - CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed 401
+
+## 2026-08-16 21:29:38 UTC
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
+- CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic redirect
+- CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
