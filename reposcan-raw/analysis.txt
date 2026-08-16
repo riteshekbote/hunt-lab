@@ -1,74 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh
-[0m→ [0mRead reposcan-raw/google/android-emulator-container-scripts/run.sh
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=70][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=50, offset=30][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/python/bot/startup/run_bot.py[90m [offset=260, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py[90m [offset=120, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py[90m [limit=20, offset=145][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py[90m [offset=235, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py[90m [offset=885, limit=30][0m
-[0m✗ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py failed[90m [offset=70, limit=20][0m
-[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py
-[0m✱ [0mGlob "**/googlefuzztest/engine.py"[90m in reposcan-raw/google/clusterfuzz · 1 match[0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py[90m [offset=165, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py[90m [limit=30, offset=70][0m
-Now I have a complete picture. Let me classify all hits:
+### Classification Tables
 
-## Classification Table
+#### REAL_SECRET
+| File | Line | Pattern | SHA256 | Verdict |
+|------|------|---------|--------|---------|
+| *(none)* | | | | |
 
-| Category | File:Line | Classification | Reason |
-|----------|-----------|----------------|--------|
-| **REAL_SECRET** | *(none)* | — | No live hardcoded credentials found in this scan |
-| **TEST_OR_EXAMPLE** | `google/android-emulator-container-scripts/run-with-gpu.sh:28` | TEST_OR_EXAMPLE | Reads token from local user file `~/.emulator_console_auth_token` at runtime |
-|  | `google/android-emulator-container-scripts/run.sh:22` | TEST_OR_EXAMPLE | Same — reads from local file at runtime |
-|  | `google/langextract/.github/workflows/ci.yaml:168-170` | TEST_OR_EXAMPLE | Uses GitHub Actions secrets (`${{ secrets.* }}`), proper secret management |
-|  | `google/oss-fuzz/projects/h2database/TestServer.java:13` | TEST_OR_EXAMPLE | Test fixture password `"ServerShutdownPassword"` in oss-fuzz test harness |
-|  | `google/oss-fuzz/projects/flask/fuzz_json.py:27` | TEST_OR_EXAMPLE | Fuzz test key `"fuzz test key"` |
-|  | `google/oss-fuzz/projects/mysql-connector-j/*` | TEST_OR_EXAMPLE | Documentation URLs, not secrets |
-|  | `google/capsem/config/gate.toml:584` | TEST_OR_EXAMPLE | References password file path `"password.txt"`, not the secret itself |
-|  | `google/capsem/scripts/preflight.sh:39` | TEST_OR_EXAMPLE | Reads password from file at runtime |
-|  | `google/capsem/scripts/fix_p12_legacy.sh:15` | TEST_OR_EXAMPLE | Reads password from file at runtime |
-|  | `google/agents-cli/src/google/agents/cli/auth.py:43` | TEST_OR_EXAMPLE | Enum constant name `"gemini_api_key"`, not an actual key |
-|  | `google/adk-python/src/google/adk/auth/auth_credential.py:157` | TEST_OR_EXAMPLE | Docstring placeholder `"-----BEGIN PRIVATE KEY-----..."` with ellipsis |
-|  | `google/adk-python/src/google/adk/auth/auth_credential.py:269` | TEST_OR_EXAMPLE | Example HTTP basic auth in documentation (`user`/`password`) |
-|  | `google/adk-python/src/google/adk/auth/auth_credential.py:278` | TEST_OR_EXAMPLE | Example JWT placeholder `"eyAkaknabna...."` with ellipsis |
-|  | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | TEST_OR_EXAMPLE | OAuth2 `PASSWORD` grant type enum value (string literal `"password"`), not a credential |
-|  | `google/adk-python/src/google/adk/cli/cli_create.py:131` | TEST_OR_EXAMPLE | Writes user-supplied `google_api_key` variable to `.env` at runtime |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py:152` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py:241` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py:890` | TEST_OR_EXAMPLE | TODO comment referencing internal bug tracker |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/fuzzers/googlefuzztest/engine.py:77` | TEST_OR_EXAMPLE | Comment referencing internal buganizer issue |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py:171` | TEST_OR_EXAMPLE | Comment about test kubeconfig |
-| **ENDPOINT_LEAK** | `google/clusterfuzz/src/python/bot/startup/run_bot.py:267` | ENDPOINT_LEAK | GCE metadata server URL `metadata.google.internal` (well-known, not sensitive) |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py:459-460` | ENDPOINT_LEAK | Internal corporate source URLs (`source.corp.google.com`) |
-|  | `google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py:23` | ENDPOINT_LEAK | GCE metadata server hostname (public knowledge) |
-| **INTERESTING** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` | INTERESTING | References to cloud metadata endpoint `169.254.169.254` — known IMDS IP |
-|  | `google/adk-python/src/google/adk/tools/load_web_page.py:171` | INTERESTING | Same IMDS IP reference in NAT64 context |
-|  | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` | INTERESTING | Explicit refusal to check `169.254.169.254` in Chrome |
-|  | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | INTERESTING | Example `client_secret="your_client_secret"` placeholder in auth helper |
-|  | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | INTERESTING | State key `_vmaas_access_token` for token storage |
-|  | `google/adk-python/src/google/adk/cli/browser/*.js` | INTERESTING | Minified JS source chunks (source maps), not secrets |
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | `MYSQL_PASSWORD="beeblebrox"` | Test DB reset script; "beeblebrox" = Hitchhiker's Guide ref |
+| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | `POSTGRESQL_PASSWORD="beeblebrox"` | Same pattern, PostgreSQL variant |
+| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` | In `testonly/` directory — test fixture key |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit fuzz test key |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder literal |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Canonical test creds |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Refers to file, not inline secret |
+
+#### ENDPOINT_LEAK
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` → `cs.corp.google.com` | Internal source URL rewrite |
+| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | `metadata.google.internal` | GCE metadata endpoint |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `_METADATA_SERVER = 'metadata.google.internal'` | Metadata server constant |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata IP |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Cloud metadata IP |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Cloud metadata IP |
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124 | `cs.corp.google.com` | Internal code search URL |
+
+#### INTERESTING
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/android-emulator-container-scripts/run*.sh | 22,28 | `TOKEN="$(cat ~/.emulator_console_auth_token)"` | Token file read pattern |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | K8s config params |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` | Token state key name |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/*.py | 152,241,890 | `b.corp.google.com/issues/...` | Internal bug tracker refs |
+| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup | Test infra detail |
 
 ---
 
-## Verdict Summary
+### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| *(no REAL_SECRET findings in this scan)* | **no** |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| MYSQL_PASSWORD="beeblebrox" | google/certificate-transparency-go/scripts/resetctdb.sh:37 | **no** (test fixture) |
+| POSTGRESQL_PASSWORD="beeblebrox" | google/certificate-transparency-go/scripts/resetpgctdb.sh:41 | **no** (test fixture) |
+| EC PRIVATE KEY in testonly/keys.go | google/certificate-transparency-go/trillian/ctfe/testonly/keys.go:24 | **no** (test fixture in `testonly/`) |
+| All other hits | (various) | **no** (placeholders, test data, config patterns, internal URLs) |
 
-**All 245 hits are classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (known/public endpoints), or INTERESTING (reference patterns). No reportable hardcoded credentials found.**
-
-The only prior REAL_SECRET in this org (the Earth Engine OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45`) was already ACCEPTED in the knowledge base and is **not** in this delta scan (no new files changed there).
+**Summary**: 0 reportable secrets in this delta. All 3 new hits are test fixtures (`testonly/`, `reset*db.sh`, "beeblebrox" placeholder). No LIVE credentials, API keys, or tokens found.
