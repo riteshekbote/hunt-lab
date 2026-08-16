@@ -1,135 +1,22 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# TRIAGE RESULTS
+The user wants me to triage a static scan of public repos from Google and Microsoft GitHub orgs. They've provided a knowledge base (RAG) with REJECTED classes, KNOWN DUPLICATES, and ALIVE SURFACE FACTS. They also provided NEW HITS from a reposcan.
 
-## REAL_SECRET
-None found in this scan delta.
+I need to classify each hit as:
+- REAL_SECRET: hardcoded credential/API key/token with signs of life
+- TEST_OR_EXAMPLE: sample/test/fixture data (not reportable)
+- ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
+- INTERESTING: anything unusual (debug flags, keys, cloud configs)
 
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
+And output a table per category, then a SHORT verdict list with "REPORT_CANDIDATE: yes/no" per real candidate.
 
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
+Let me analyze the NEW HITS and the FULL GREP HITS to classify them.
 
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
-
-## VERDICT
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
-EOF
-# TRIAGE RESULTS
-
-## REAL_SECRET
-None found in this scan delta.
-
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
-
-## ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
-
-## INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
-
-## VERDICT
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
-[0m
-## TRIAGE RESULTS
-
-### REAL_SECRET
-None found in this scan delta.
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions secret ref |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/grr/docker/docker-entrypoint.sh | 21,26 | `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` | Env var refs, not hardcoded |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Placeholder constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not token |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file, not hardcoded |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file, not hardcoded |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9 | `http://169.254.169.254/latest/meta-data` | AWS metadata endpoint (public) |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 14 | `http://169.254.169.254/computeMetadata/v1` | GCP metadata endpoint (public) |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Metadata service IP (public) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Metadata endpoint references |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging URL |
-
-### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/grr/docker_config_files/server/grr.server.yaml | 25 | `PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"` | References mounted private key file at runtime |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writes API key to file (handles user-provided keys) |
-| google/capsem/config/gate.toml | 481 | `password = "password.txt"` | References password file (filename only) |
-
-### VERDICT
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| (none) | no | No hardcoded live credentials found in this scan delta. All hits are secret references, placeholders, public endpoints, or config templates. The earthengine-api secret (sha256 `3f3f8d6f...`) was already ACCEPTED in KB but not in this scan's file set. |
+NEW HITS (8 lines):
+1. reposcan-raw/google/heir/scripts/author_stats.py:16: # TOKEN = "your_github_token_here"
+2. reposcan-raw/google/llm-sidebar-with-context/src/scripts/constants.ts:47: API_KEY: 'geminiApiKey',
+3. reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"
+4. reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"
+5. reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")
+6. reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
