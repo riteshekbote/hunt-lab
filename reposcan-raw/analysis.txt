@@ -1,57 +1,26 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the 244 hits from the scan, let me classify each category:
+Looking at the 189 hits, I'll classify each one. Let me analyze the patterns:
 
-## Classification Table
+## Classification Tables
 
-### REAL_SECRET (0 candidates)
-*None found in this scan. The earthengine-api secret (KB ACCEPTED) is not in this delta.*
+### REAL_SECRET (0 findings)
+*No hardcoded live credentials found in this scan.*
 
-### TEST_OR_EXAMPLE (220+ hits)
-| File | Line | Reason |
-|------|------|--------|
-| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Mock OIDC ConfigMap (test fixture) |
-| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Doc example ConfigMap |
-| `google/sam/internal/node/store.go` | 38 | Constant `keyRefreshToken = "refresh_token"` (string literal, not secret) |
-| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm template ConfigMap |
-| `google/sam/development/kind/run.sh` | 139 | Shell var ref `${OIDC_CLIENT_SECRET:-}` (empty default) |
-| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | GH Actions secret refs `${{ secrets.* }}` |
-| `google/sam/.github/k8s/*.yaml` | various | K8s template ConfigMaps (10 files) |
-| `google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf` | 48 | Terraform var ref `${var.db_password}` |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GH Actions secret refs `${{ secrets.GEMINI_API_KEY }}` etc. |
-| `google/flatbuffers/.github/workflows/label.yml` | 24 | GH Actions `${{ secrets.GITHUB_TOKEN }}` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Test fixtures: truncated PEM `...`, `"user"/"password"`, JWT `eyAkaknabna....` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (test constant) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `"your_client_secret"` |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Variable interpolation `GOOGLE_API_KEY={google_api_key}` (not hardcoded) |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | various | Minified JS parser tables (build artifacts, 18 files) |
-| `google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | various | Minified JS parser tables (build artifacts, 4 files) |
-| `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret ref syntax `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
-
-### ENDPOINT_LEAK (2 hits)
-| File | Line | Detail |
-|------|------|--------|
-| `google/go-cloud/docstore/gcpfirestore/create_indexes.sh` | 20,33 | Internal Firebase console URL `firebase.corp.google.com` in comments |
-
-### INTERESTING (15 hits)
-| File | Line | Detail |
-|------|------|--------|
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Kubeconfig path/context params (could leak cluster access if misused) |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` referenced (SSRF surface doc) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Metadata endpoint `169.254.169.254` in NAT64 routing comment |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Metadata endpoint `169.254.169.254` blocked in Chrome |
-
----
-
-## SHORT VERDICT
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| (none) | REAL_SECRET | **no** — no live credentials in this delta |
-| All 220+ hits | TEST_OR_EXAMPLE | **no** — fixtures, placeholders, GH Actions refs, build artifacts |
-| 2 hits | ENDPOINT_LEAK | **no** — internal doc URLs only (`firebase.corp.google.com`) |
-| 15 hits | INTERESTING | **no** — metadata endpoint refs & kubeconfig params are documented SSRF guards, not exploitable leaks |
-
-**Overall: NO REPORTABLE FINDINGS in this scan delta.** The only live secret in KB (earthengine-api `oauth.py:45`) is not present in this repo set.
+### TEST_OR_EXAMPLE (142 findings)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Docs manifest, test fixture |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Docs manifest, test fixture |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant string literal, not a secret |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=...="${{ secrets.* }}"` | GH Actions secret refs (proper) |
+| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates (11 files) |
+| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform var ref |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `"${{ secrets.*_API_KEY }}"` | GH Actions secret refs |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GH Actions secret ref |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | `private_key="-----BEGIN...`, `password="password"`, `token="eyAkaknabna..."` | Test fixtures/placeholders |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115
