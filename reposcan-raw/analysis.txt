@@ -1,52 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/
+AM_CHTML-full.js
+AM_CHTML.js
+AM_HTMLorMML-full.js
+AM_HTMLorMML.js
+AM_SVG-full.js
+AM_SVG.js
+Accessible-full.js
+Accessible.js
+MML_CHTML-full.js
+MML_CHTML.js
+MML_HTMLorMML-full.js
+MML_HTMLorMML.js
+MML_SVG-full.js
+MML_SVG.js
+MMLorHTML.js
+Safe.js
+TeX-AMS-MML_HTMLorMML-full.js
+TeX-AMS-MML_HTMLorMML.js
+TeX-AMS-MML_SVG-full.js
+TeX-AMS-MML_SVG.js
+TeX-AMS_CHTML-full.js
+TeX-AMS_CHTML.js
+TeX-AMS_HTML-full.js
+TeX-AMS_HTML.js
+TeX-AMS_SVG-full.js
+TeX-AMS_SVG.js
+TeX-MML-AM_CHTML-full.js
+TeX-MML-AM_CHTML.js
+TeX-MML-AM_HTMLorMML-full.js
+TeX-MML-AM_HTMLorMML.js
+TeX-MML-AM_SVG-full.js
+TeX-MML-AM_SVG.js
+default.js
+local
+[0m
+[0m→ [0mRead reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-AMS-MML_HTMLorMML-full.js[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-AMS_CHTML.js[90m [offset=45, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=15, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py[90m [offset=193, limit=15][0m
+All 3 DELTA hits are in **vendored third-party MathJax 2.7.2 config files** (not Google code). The other hits are also non-secrets. Here's the classification:
 
-#### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none)* | — | — | — |
+| Category | Hits | Verdict |
+|----------|------|---------|
+| **REAL_SECRET** | 0 | — |
+| **TEST_OR_EXAMPLE** | 226 | All hits are: MathJax 3rd-party vendored code (`doc/third_party/`), GitHub Actions `${{secrets.GITHUB_TOKEN}}` refs, test fixtures, example code, config flag names |
+| **ENDPOINT_LEAK** | 1 | `jsonnet/case_studies/micromanage/service_google.py:198` — hardcoded `169.254.169.254` (well-known GCE metadata IP) in example code |
+| **INTERESTING** | 0 | — |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.* }}` references — not hardcoded values |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Placeholder constant `"storage_driver_password"` — default/config key name |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | Proper `${{secrets.GITHUB_TOKEN}}` reference |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified/obfuscated test fixture JS |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored 3rd-party library (MathJax) — localization strings & configs |
+**SHORT VERDICT**
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint / Note |
-|------|------|-----------------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: metadata service `169.254.169.254` (SSRF awareness) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF risk |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: `169.254.169.254 / fd00:ec2::254` DNS-based SSRF noted out-of-scope |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at `169.254.169.254` |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | GCP metadata URL `http://169.254.169.254/computeMetadata/...` in case study |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | Public test PyPI URLs (`test.pypi.org`) — not sensitive |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/config/*.js` | 3 files | TEST_OR_EXAMPLE (vendored MathJax) | **no** |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | TEST_OR_EXAMPLE (const flag name) | **no** |
+| `google/go-containerregistry/...` | multiple | TEST_OR_EXAMPLE (SSRF comments) | **no** |
+| `google/magika/.github/workflows/*.yml` | 3 files | TEST_OR_EXAMPLE (GH Actions secret refs) | **no** |
+| `google/jsonnet/case_studies/.../service_google.py` | 198 | ENDPOINT_LEAK (metadata IP in example) | **no** |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | Explicit SSRF risk comments around IMDS — shows threat-model awareness |
-
----
-
-### Verdict List (REPORT_CANDIDATE)
-
-| Candidate | File | Line | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| GEMINI_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 168 | **no** (proper secret ref) |
-| LANGEXTRACT_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 169 | **no** (proper secret ref) |
-| OPENAI_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 170 | **no** (proper secret ref) |
-| StorageDriverPassword constant | google/cadvisor/lib/cadvisorflags/flags.go | 54 | **no** (placeholder/default) |
-| GITHUB_TOKEN secret ref | google/magika/.github/workflows/github-issue-labeler.yml | 20 | **no** (proper secret ref) |
-| Test PyPI URLs | google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | **no** (public test endpoints) |
-| MathJax vendored files | google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | **no** (3rd-party code) |
-| IMDS/SSRF comments | google/go-containerregistry/** | 85, 91, 151, 206 | **no** (documentation, not leak) |
-| GCP metadata URL in case study | google/jsonnet/case_studies/micromanage/service_google.py | 198 | **no** (well-known public endpoint pattern) |
-| Minified test JS | google/magika/tests_data/basic/javascript/code.js | 31 | **no** (test fixture) |
-
-**Summary**: **0 reportable secrets** in this delta. All hits are either proper secret references, test fixtures, vendored third-party code, or documentation/comments referencing well-known metadata endpoints.
+**No reportable findings in this delta.** All hits are either third-party vendored code, test fixtures, example code, or well-known cloud metadata endpoints in documentation.
