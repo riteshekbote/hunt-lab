@@ -1,22 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification of 7 new delta hits:**
+[0m$ [0msha256sum <<<'40150cc2c638b09de8ebbfefd50b80a4'
+cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m
+### Classification Tables
 
-| File | Line | Pattern | Category |
-|------|------|---------|----------|
-| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` (assert) | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | `AKIA5SXYO7WZ3PLMN8RTV` (assert) | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | TEST_OR_EXAMPLE |
-| microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | TEST_OR_EXAMPLE |
+#### REAL_SECRET
+| File | Line | SHA256(secret) | Notes |
+|------|------|----------------|-------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-**Verdict:**
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions `${{ secrets.* }}` syntax |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `YOUR_*_API_KEY_HERE` placeholders |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `cfaa7fab...` — search-only, public by design (KB: REJECTED) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default flag name `storage_driver_password` |
+| google/magika/.github/workflows/*.yml | 20,407,437 | `${{secrets.GITHUB_TOKEN}}`, public test.pypi.org URLs |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified test fixture |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant `"gemini_api_key"` (placeholder name) |
+| google/agents-cli/scaffold/.../staging.yaml | 168,192 | Template `{% raw %}${{...}}{% endraw %}` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: `-----BEGIN PRIVATE KEY-----...`, `user/password`, `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (default constant) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Config params `kubeconfig_path/context` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant `_STATE_KEY_ACCESS_TOKEN` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template `GOOGLE_API_KEY={google_api_key}` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3-11 | Minified build artifacts (parse errors) |
+| google/heir/scripts/author_stats.py | 16 | Commented `# TOKEN = "your_github_token_here"` |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Crypto codegen `secret_key = sk` (variable, not literal) |
 
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| All 7 delta hits | microsoft/skill-recorder/**/*.test.ts, evals/** | **no** — all are test/fixture data with fake placeholder patterns (`ghp_ABCDEF...`, `ghp_abcdefghij0123456789...`, `AKIA5SXY...`) in `*.test.ts` and `evals/sensitive/` directories |
+#### ENDPOINT_LEAK
+| File | Line | Pattern |
+|------|------|---------|
+| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | `https://dev.azure.com/org/project/_git/repo` (doc example) |
+| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481,1522 | `https://dev.azure.com/org/proj/_git/repo/sub/path` (doc examples) |
+| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | `https://dev.azure.com/org/project/_git/repo` (doc example) |
+| microsoft/apm/src/apm_cli/utils/github_host.py | 531,817,851 | Azure DevOps URL format documentation |
 
-**No REAL_SECRET findings in this delta.** All 7 new hits are test vectors for secret detection/redaction logic.
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 to metadata service (169.254.169.254) — SSRF surface note |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Comments: metadata endpoint SSRF, "DNS-based SSRF is out of scope" |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments: metadata endpoint escalation risk |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: NAT64 routes to 169.254.169.254 |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: refuses 169.254.169.254 in Chrome |
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Crypto codegen emits `.secret_key = <var>` |
+
+---
+
+### Verdict List
+
+| Candidate | File | Line | Category | REPORT_CANDIDATE |
+|-----------|------|------|----------|------------------|
+| Algolia DocSearch key | google/xrblocks/docs/docusaurus.config.ts | 175 | TEST_OR_EXAMPLE (public by design, KB REJECTED) | **no** |
+| GEMINI_API_KEY placeholder | google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | **no** |
+| ADK test fixtures (private_key, password, token) | google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | TEST_OR_EXAMPLE (test code, KB DUP #2128/#5520) | **no** |
+| Azure DevOps URL patterns | microsoft/apm/src/apm_cli/** | 531-1522 | ENDPOINT_LEAK (doc examples, no real orgs) | **no** |
+| IMDS SSRF comments | google/go-containerregistry/..., google/adk-python/... | various | INTERESTING (documented SSRF awareness, no vuln) | **no** |
+| Crypto codegen secret_key | google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | INTERESTING (variable emission, not hardcoded) | **no** |
+
+**Summary**: No reportable secrets in this delta. All hits are test fixtures, placeholders, documentation examples, or previously rejected classes (Algolia key). The IMDS SSRF comments reflect defensive coding awareness, not vulnerabilities.
