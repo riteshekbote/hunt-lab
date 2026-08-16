@@ -1,30 +1,226 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the 13 new delta hits and the full grep context, here's my classification:
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-### Classification Table
+"""Authentication module for agents-cli.
 
-| Category | Files |
-|----------|-------|
-| **TEST_OR_EXAMPLE** | `microsoft/agent-governance-toolkit/.../extension.ts:399` (`sk-REPLACE-WITH-YOUR-KEY` placeholder)<br>`microsoft/poml/docs/hooks/commitlinks.py:7` (`__COMMIT_SHA__` placeholder)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (test fixtures: private_key, "user"/"password", test token)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` test constant)<br>`google/agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"` placeholder)<br>`google/capsem/config/gate.toml:584` (`password = "password.txt"` file reference)<br>`google/capsem/scripts/preflight.sh:39`, `fix_p12_legacy.sh:15` (read from file)<br>`google/android-emulator-container-scripts/run*.sh:22,28` (read from `~/.emulator_console_auth_token`)<br>`google/certificate-transparency-go/scripts/reset*db.sh:37,41` (`beeblebrox` test password)<br>`google/heir/scripts/author_stats.py:16` (commented placeholder)<br>`google/heir/lib/.../JaxiteWordEmitter.cpp:558` (code emitting variable, not hardcoded)<br>`google/adk-python/src/google/adk/cli/cli_create.py:131` (template generating config) |
-| **ENDPOINT_LEAK** | `microsoft/agent-governance-toolkit/.../cedar.ts:8,11,13` (IMDS endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200`)<br>`microsoft/agent-governance-toolkit/.../opa.ts:13,14` (same IMDS endpoints)<br>`microsoft/coreutils/.cargo/release-windows-ms.toml:11` (Azure DevOps Cargo index)<br>`microsoft/coreutils/.pipelines/templates/job-build-project.yml:70,76` (Azure DevOps Cargo/NuGet feeds)<br>`microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml:33` (internal RFC3161 timestamp server `rfc3161.gtm.corp.microsoft.com`)<br>`microsoft/poml/.github/workflows/publish-pypi.yml:175`, `test-after-publish.yml:79` (public PyPI URLs - not sensitive) |
-| **INTERESTING** | None new beyond known IMDS endpoint references |
-| **REAL_SECRET** | **None** |
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
 
-### Verdict List
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
 
-| File | Line | Classification | REPORT_CANDIDATE |
-|------|------|----------------|------------------|
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | TEST_OR_EXAMPLE (placeholder) | **no** |
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts` | 8,11,13 | ENDPOINT_LEAK (IMDS endpoints) | **no** |
-| `microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts` | 13,14 | ENDPOINT_LEAK (IMDS endpoints) | **no** |
-| `microsoft/coreutils/.cargo/release-windows-ms.toml` | 11 | ENDPOINT_LEAK (Azure DevOps feed) | **no** |
-| `microsoft/coreutils/.pipelines/templates/job-build-project.yml` | 70,76 | ENDPOINT_LEAK (Azure DevOps feeds) | **no** |
-| `microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml` | 33 | ENDPOINT_LEAK (internal timestamp server) | **no** |
-| `microsoft/poml/.github/workflows/publish-pypi.yml` | 175 | TEST_OR_EXAMPLE (public PyPI) | **no** |
-| `microsoft/poml/.github/workflows/test-after-publish.yml` | 79 | TEST_OR_EXAMPLE (public PyPI) | **no** |
-| `microsoft/poml/docs/hooks/commitlinks.py` | 7 | TEST_OR_EXAMPLE (placeholder) | **no** |
-| All google/* hits in full grep | various | TEST_OR_EXAMPLE (fixtures/placeholders/templates) | **no** |
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
 
-**Summary**: Zero REAL_SECRET candidates in this delta. All hits are either test fixtures, placeholder templates, public endpoints, or internal infrastructure URLs (ENDPOINT_LEAK) that don't constitute reportable secrets. The IMDS endpoint references (`169.254.169.254`, `metadata.google.internal`, `100.100.100.200`) are well-known cloud metadata IPs documented in the policy backends for credential detection/blocking — not leaks themselves.
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcat reposcan-raw/google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | head -40
+// Copyright 2016 Google LLC. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package testonly
+
+// KEYS IN THIS FILE ARE ONLY FOR TESTING. They must not be used by production code.
+
+// CTLogKeyPassword is the password for the test key
+const CTLogKeyPassword string = "napkin"
+
+// CTLogPrivateKeyPEM is an ECDSA private key for log tests
+const CTLogPrivateKeyPEM string = `
+-----BEGIN EC PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-CBC,CD876BDE00043553
+
+mvY+JQH/K5NeNba10dtLyvkmVrH+hS9kPkKSk/exHPezCyHF8FytpOMC5sKDj5S4
+180O3hcZytZMh3b7lvyimxZ5HmfTm+ZBxAEZCigmb+pBxSzTX7+MK7bew2XZeQdl
+p4G1u2PHCzVeyPnRd2XLQ0SBo0T7pKsGVLgae4N45UA=
+-----END EC PRIVATE KEY-----
+`
+
+// CTLogPublicKeyPEM is the corresponding public key
+const CTLogPublicKeyPEM string = `
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEQczNovWyMB74+fAgPAiX60k0M4cO
+QYn3hIzwSTVAcrKhHDyT85t4BoXdgl6XzMAVHmF7b6GyKoyyya1hSW4lLg==
+-----END PUBLIC KEY-----`
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | head -600 | tail -30
+ort_lib_location = "/opt/capsem/onnxruntime"
+
+# Installing the exact package into a clean systemd container and proving it
+# works: every binary present and reporting the package's own version, the
+# service and gateway up, every profile ready, and a real guest shell.
+
+# Local signing material. Absent on a developer machine, which is why the rail
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+shell_timeout_seconds = 300
+
+# Every binary the package must install. Each reports the package version
+# except capsem-app, which is the Tauri bundle and has no --version.
+binaries = [
+    "capsem",
+    "capsem-admin",
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
+#!/usr/bin/env bash
+# Preflight checks for release builds.
+# Validates environment, credentials, and tools BEFORE slow CI jobs run.
+# Add new checks as functions -- they run in order, fail-fast on first error.
+set -euo pipefail
+
+PASS=0
+FAIL=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+
+# --------------------------------------------------------------------------
+# Check: Apple certificate can be imported into a macOS keychain
+# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
+# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
+# with a misleading "wrong password" error. Re-export with:
+#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
+#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
+#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+# --------------------------------------------------------------------------
+check_apple_certificate() {
+    echo ""
+    echo "== Apple Certificate =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local pass_file="$cert_dir/p12-password.txt"
+
+    if [[ ! -f "$p12" ]]; then
+        fail "capsem.p12 not found at $p12"
+        return
+    fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m
+**CLASSIFICATION TABLES**
+
+| File | Line | Category | Rationale |
+|------|------|----------|-----------|
+| google/sam/.github/k8s/*.yaml | various | TEST_OR_EXAMPLE | `kind: ConfigMap` declarations in K8s templates — no secret material |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | TEST_OR_EXAMPLE | Uses `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` — GitHub Actions secret refs, not hardcoded |
+| google/sam/development/kind/run.sh | 139 | TEST_OR_EXAMPLE | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| google/sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE | `keyRefreshToken = "refresh_token"` — OAuth2 standard string constant |
+| google/sam/site/content/docs/manifests/*.yaml | various | TEST_OR_EXAMPLE | Mock/documentation ConfigMaps |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | TEST_OR_EXAMPLE | K8s template ConfigMap |
+| google/capsem/config/gate.toml | 584 | INTERESTING | `password = "password.txt"` — references external password file (proper secret handling) |
+| google/capsem/scripts/preflight.sh | 39 | INTERESTING | Reads password from file (`p12-password.txt`) — not hardcoded |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | INTERESTING | Same — reads from `$PASS_FILE` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | `GEMINI_API_KEY = "gemini_api_key"` — constant for env var name, not a key |
+| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE | GitHub Actions expressions (`${{ steps.fetch-token.outputs... }}`) |
+| google/certificate-transparency-go/trillian/ctfe/testonly/keys.go | 24 | TEST_OR_EXAMPLE | Explicit `testonly` package, comment: "KEYS IN THIS FILE ARE ONLY FOR TESTING" |
+| google/certificate-transparency-go/scripts/resetpgctdb.sh | 41 | TEST_OR_EXAMPLE | Default dev password `"beeblebrox"` in DB reset script (Hitchhiker's ref) |
+| google/certificate-transparency-go/scripts/resetctdb.sh | 37 | TEST_OR_EXAMPLE | Same |
+| google/heir/scripts/author_stats.py | 16 | TEST_OR_EXAMPLE | Commented placeholder `# TOKEN = "your_github_token_here"` |
+| google/heir/.../JaxiteWordEmitter.cpp | 558 | TEST_OR_EXAMPLE | Codegen output with variable `sk`, not hardcoded |
+| google/android-emulator-container-scripts/*.sh | 22,28 | INTERESTING | Reads token from `~/.emulator_console_auth_token` file — not hardcoded |
+| microsoft/coreutils/* | various | ENDPOINT_LEAK | Azure DevOps feed URLs — internal package feeds, not secrets |
+| microsoft/skill-recorder/*/sensitive*.test.ts | various | TEST_OR_EXAMPLE | Test fixtures with fake `ghp_*` / `AKIA*` patterns |
+| microsoft/skill-recorder/evals/sensitive/*.ts | various | TEST_OR_EXAMPLE | Evaluation datasets with fake token patterns |
+| microsoft/agent-governance-toolkit/*/OpaPolicyBackend.cs | 563,566,568 | ENDPOINT_LEAK | Well-known IMDS endpoints (AWS/Azure/GCP/Alibaba) — public metadata IPs |
+| microsoft/agent-governance-toolkit/*/policy-backends/*.ts | 8,11,13,13,14 | ENDPOINT_LEAK | Same IMDS endpoints in TypeScript |
+| microsoft/agent-governance-toolkit/*/http_client.py | 102,103 | ENDPOINT_LEAK | Same IMDS endpoints in Python |
+| microsoft/agent-governance-toolkit/*/smoke-test.js | 76 | TEST_OR_EXAMPLE | Test audit with fake `'const password = "secret123";'` |
+| microsoft/agent-governance-toolkit/*/red_team_dataset.py | 306 | TEST_OR_EXAMPLE | Benchmark payload with fake SQL `password='newpass123'` |
+| microsoft/agent-governance-toolkit/*/build_and_publish.sh | 105 | TEST_OR_EXAMPLE | Pip install command to test.pypi.org |
+| microsoft/agent-governance-toolkit/*/adapter.py | 17 | TEST_OR_EXAMPLE | Placeholder `api_key="your-key"` |
+| microsoft/agent-governance-toolkit/*/alertmanager.yml | 15 | TEST_OR_EXAMPLE | Commented placeholder `# smtp_auth_password: 'password'` |
+| microsoft/agent-governance-toolkit/*/configmap.yaml | various | TEST_OR_EXAMPLE | Helm chart `kind: ConfigMap` templates |
+| microsoft/agent-governance-toolkit/*/acs-policy-configmap.yaml | 2 | TEST_OR_EXAMPLE | K8s ConfigMap template |
+
+---
+
+**VERDICT LIST**
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| *(none found)* | REAL_SECRET | **no** |
+
+**SUMMARY**: 0 REAL_SECRET findings in this delta scan. All 525 hits are TEST_OR_EXAMPLE (test fixtures, placeholders, mock data, ConfigMap declarations), ENDPOINT_LEAK (well-known public IMDS metadata endpoints), or INTERESTING (proper secret handling patterns referencing external files/env vars). No hardcoded credentials with signs of life detected.
+
+The Google SAM repo correctly uses GitHub Actions secret references (`${SECRET_NAME}`). The capsem project references external password files. The certificate-transparency-go keys are explicitly in a `testonly` package. All Microsoft skill-recorder/agent-governance hits are test fixtures with obviously fake patterns (`ghp_ABCDEFGHIJKLMNOP`, `secret123`, `beeblebrox`, `your-key`, etc.).
