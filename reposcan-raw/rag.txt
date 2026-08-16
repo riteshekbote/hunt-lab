@@ -1240,6 +1240,11 @@
 - 2026-08-16 ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 + GET 401/237 + HEAD 405/0 (RFC 6750 §3) — unchanged, precondition intact.
 - 2026-08-16 ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verbatim at :45), A/B invalid_grant-vs-invalid_client proof conclusive.
 - 2026-08-16 ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 — unchanged.
+- 2026-08-16 REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect (was 200 text/html signin page), no auth-bypass surface; confirms gateway root-level reachability only.
+- 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing `project`, then 401 `storage.buckets.list` denied for anonymous caller; requires auth API key/OAuth, no bypass.
+- 2026-08-16 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live (400/113 invalid_token, accepts ?access_token=/ ?id_token= without Authorization header) but explicitly no-reward per Google VRP program rules; not a reportable finding.
+- 2026-08-16 ACCEPTED: dual-JWKS rotation desync @ login.microsoftonline.com/common/discovery/keys remains dead — v1⊂v2 steady-state subset invariant holds (v1=5 ⊂ v2=8 kids), 0 v1-exclusive; v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-16 ACCEPTED: Identity SPA source maps closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated, extracted endpoint inventory unchanged.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
