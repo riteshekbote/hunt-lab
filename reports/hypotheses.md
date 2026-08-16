@@ -4302,3 +4302,30 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verb
 - LEARN: ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 — unchanged.
 - LEARN: ACCEPTED v1(6)⊂v2(9) JWKS subset invariant holds this probe @ login.microsoftonline.com — 0 v1-exclusive; rotation-desync class stays REJECTED (v1 kid set never
+
+## RANKED HYPOTHESES 2026-08-16 12:52:45 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both M
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` (already drafted) to Google VRP at bughunters.google.com — this is a complete, human-exploitable creden
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both [
+- LEARN: REJECTED: No new proving-dead classes this cycle — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged, NO_DELTA
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — raw GitHub GET→200/len=23110, secret sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 (GET→401/237 Bearer, oAuth2PermissionGrant EntityType 4
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
+- LEARN: REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4),
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection with
+- LEARN: REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass
+- LEARN: ACCEPTED agentRegistrations 6-family CORS+PATCH vector remains LIVE @ 2026-08-16 — true preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agen
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, file sha f4f93c76… unchanged, A/B invalid_grant-vs-invalid
+- LEARN: ACCEPTED oauth2PermissionGrants production v1.0 auth-gate confirmed live — GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType with 0 OperationRestric
+- LEARN: REJECTED tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param inspection without Authorization header not eligible).
+- LEARN: REJECTED source maps @ identity SPAs closed — mysignins 404 + api.myaccount 401.
+- LEARN: REJECTED dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset, no cross-endpoint confusion surface.
+- LEARN: ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 8640
+- LEARN: ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, secret sha `3f3f8d6f…d271` verbatim 
+- LEARN: ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + item-level true CORS preflight 200 ACAO:* — unchanged.
+- LEARN: ACCEPTED v1↔v2 JWKS subset invariant holds @ login.microsoftonline.com — v1(4-6)⊂v2(6-9), 0 v1-exclusive steady-state; rotation-desync class stays REJECTED (v1 
+- LEARN: REJECTED no new proving-dead or proving-live classes this cycle — all fresh probes (tokeninfo 400/113, token GET 404, agentRegs/agents/oauth2PermissionGrants 40
