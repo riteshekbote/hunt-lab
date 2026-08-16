@@ -1,78 +1,52 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
+### Classification Tables
 
-| File | Line | Category | Reason |
-|------|------|----------|--------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references (`${{ secrets.* }}`), not actual secrets |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | TEST_OR_EXAMPLE | Default/placeholder constant `storage_driver_password` |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | INTERESTING | Comment documents SSRF risk via 302 to 169.254.169.254 (metadata service) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | INTERESTING | Comment documents SSRF via metadata endpoint (169.254.169.254) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | INTERESTING | Comment documents 169.254.169.254 / fd00:ec2::254 SSRF, notes DNS-based SSRF out of scope |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | INTERESTING | Comment references cloud metadata endpoints at 169.254.169.254 |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | TEST_OR_EXAMPLE | GitHub Actions secret reference (`${{secrets.GITHUB_TOKEN}}`) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | ENDPOINT_LEAK | Test PyPI endpoint (test.pypi.org) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | ENDPOINT_LEAK | Test PyPI legacy endpoint (test.pypi.org/legacy/) |
-| google/magika/tests_data/basic/javascript/code.js | 31 | TEST_OR_EXAMPLE | Minified test fixture JavaScript |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | INTERESTING | Hardcoded GCP metadata endpoint URL (169.254.169.254) in case study |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/** | 42-1180 | TEST_OR_EXAMPLE | Third-party MathJax library localization/config files (not project code) |
+#### REAL_SECRET
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *(none)* | — | — | — |
 
-=== VERDICT ===
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.* }}` references — not hardcoded values |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Placeholder constant `"storage_driver_password"` — default/config key name |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | Proper `${{secrets.GITHUB_TOKEN}}` reference |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified/obfuscated test fixture JS |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored 3rd-party library (MathJax) — localization strings & configs |
 
-REPORT_CANDIDATE: no (0 REAL_SECRET findings)
+#### ENDPOINT_LEAK
+| File | Line | Endpoint / Note |
+|------|------|-----------------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: metadata service `169.254.169.254` (SSRF awareness) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint SSRF risk |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: `169.254.169.254 / fd00:ec2::254` DNS-based SSRF noted out-of-scope |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at `169.254.169.254` |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | GCP metadata URL `http://169.254.169.254/computeMetadata/...` in case study |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | Public test PyPI URLs (`test.pypi.org`) — not sensitive |
 
-All hits are:
-- GitHub Actions secret references (ci.yaml, github-issue-labeler.yml)
-- Placeholder/default constants (cadvisor flags.go)
-- SSRF-related comments in go-containerregistry (documented risks, not vulnerabilities)
-- Test PyPI endpoints in workflow configs
-- Third-party MathJax library files (jsonnet/doc/third_party/)
-- Test fixture data (magika tests_data/)
-- Case study example with metadata URL (jsonnet case_studies/)
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | Explicit SSRF risk comments around IMDS — shows threat-model awareness |
 
-No hardcoded credentials, API keys, or live tokens found in this scan delta.
-EOF
-=== CLASSIFICATION TABLE ===
+---
 
-| File | Line | Category | Reason |
-|------|------|----------|--------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references (`${{ secrets.* }}`), not actual secrets |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | TEST_OR_EXAMPLE | Default/placeholder constant `storage_driver_password` |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | INTERESTING | Comment documents SSRF risk via 302 to 169.254.169.254 (metadata service) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | INTERESTING | Comment documents SSRF via metadata endpoint (169.254.169.254) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | INTERESTING | Comment documents 169.254.169.254 / fd00:ec2::254 SSRF, notes DNS-based SSRF out of scope |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | INTERESTING | Comment references cloud metadata endpoints at 169.254.169.254 |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | TEST_OR_EXAMPLE | GitHub Actions secret reference (`${{secrets.GITHUB_TOKEN}}`) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | ENDPOINT_LEAK | Test PyPI endpoint (test.pypi.org) |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | ENDPOINT_LEAK | Test PyPI legacy endpoint (test.pypi.org/legacy/) |
-| google/magika/tests_data/basic/javascript/code.js | 31 | TEST_OR_EXAMPLE | Minified test fixture JavaScript |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | INTERESTING | Hardcoded GCP metadata endpoint URL (169.254.169.254) in case study |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/** | 42-1180 | TEST_OR_EXAMPLE | Third-party MathJax library localization/config files (not project code) |
+### Verdict List (REPORT_CANDIDATE)
 
-=== VERDICT ===
+| Candidate | File | Line | REPORT_CANDIDATE |
+|-----------|------|------|------------------|
+| GEMINI_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 168 | **no** (proper secret ref) |
+| LANGEXTRACT_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 169 | **no** (proper secret ref) |
+| OPENAI_API_KEY secret ref | google/langextract/.github/workflows/ci.yaml | 170 | **no** (proper secret ref) |
+| StorageDriverPassword constant | google/cadvisor/lib/cadvisorflags/flags.go | 54 | **no** (placeholder/default) |
+| GITHUB_TOKEN secret ref | google/magika/.github/workflows/github-issue-labeler.yml | 20 | **no** (proper secret ref) |
+| Test PyPI URLs | google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | **no** (public test endpoints) |
+| MathJax vendored files | google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | **no** (3rd-party code) |
+| IMDS/SSRF comments | google/go-containerregistry/** | 85, 91, 151, 206 | **no** (documentation, not leak) |
+| GCP metadata URL in case study | google/jsonnet/case_studies/micromanage/service_google.py | 198 | **no** (well-known public endpoint pattern) |
+| Minified test JS | google/magika/tests_data/basic/javascript/code.js | 31 | **no** (test fixture) |
 
-REPORT_CANDIDATE: no (0 REAL_SECRET findings)
-
-All hits are:
-- GitHub Actions secret references (ci.yaml, github-issue-labeler.yml)
-- Placeholder/default constants (cadvisor flags.go)
-- SSRF-related comments in go-containerregistry (documented risks, not vulnerabilities)
-- Test PyPI endpoints in workflow configs
-- Third-party MathJax library files (jsonnet/doc/third_party/)
-- Test fixture data (magika tests_data/)
-- Case study example with metadata URL (jsonnet case_studies/)
-
-No hardcoded credentials, API keys, or live tokens found in this scan delta.
-[0m
-**Summary: 0 REAL_SECRET findings — no reportable candidates in this delta.**
-
-| Category | Count |
-|----------|-------|
-| TEST_OR_EXAMPLE | 7 (secret refs, placeholders, test fixtures, 3rd-party libs) |
-| ENDPOINT_LEAK | 2 (test.pypi.org URLs in workflows) |
-| INTERESTING | 5 (SSRF-related comments + metadata URL in case study) |
-| REAL_SECRET | 0 |
-
-The go-containerregistry SSRF comments are documented defensive notes, not vulnerabilities. The jsonnet case study metadata URL is example code. All secret references use `${{ secrets.* }}` GitHub Actions syntax.
+**Summary**: **0 reportable secrets** in this delta. All hits are either proper secret references, test fixtures, vendored third-party code, or documentation/comments referencing well-known metadata endpoints.
