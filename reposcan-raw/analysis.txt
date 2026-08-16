@@ -1,120 +1,148 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | head -70 | tail -20
-/// Returns the default GCE service account info if available.  If not running
-  /// on GCE, or there is no default service account, returns `NOT_FOUND`.
-  ///
-  /// The ServiceAccountInfo is returned from a GCE metadata call to:
-  /// "metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/",
-  static Result<ServiceAccountInfo> GetDefaultServiceAccountInfoIfRunningOnGce(
-      internal_http::HttpTransport* transport);
+[0m$ [0mcat << 'EOF'
+# Classification Results
 
- protected:
-  // Issue an http request on the provided path.
-  virtual Result<internal_http::HttpResponse> IssueRequest(std::string path,
-                                                           bool recursive);
+## REAL_SECRET (reportable)
+# None found - all hits are test/fixture/placeholder/template content
 
- private:
-  // Refresh the token from the GCE Metadata service.
-  Result<BearerTokenWithExpiration> Refresh() override;
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Documentation/mock folder |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Documentation |
+| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | OAuth2 standard constant |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
+| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secrets context |
+| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secrets context |
+| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secrets context |
+| google/sam/.github/k8s/* (7 files) | 2,14 | kind: ConfigMap | K8s templates |
+| google/tensorstore/.../gce_auth_provider.h | 55 | metadata.google.internal... | Comment with public GCE endpoint |
+| google/tensorstore/.../aws_credentials_spec.h | 51 | 169.254.169.254... | Comment with public AWS IMDS endpoint |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.* }} | GH Actions secrets context |
+| google/oss-fuzz/projects/mysql-connector-j/* | 1,33 | Documentation URLs | Project config + test comments |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicitly labeled test key |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | "ServerShutdownPassword" | Test fixture password |
+| google/capsem/.github/workflows/... | 17 | staging.release-eq7.pages.dev | Staging URL |
+| google/capsem/config/gate.toml | 584 | password = "password.txt" | References password file |
+| google/capsem/scripts/preflight.sh | 39 | password="$(< "$pass_file")" | Reads from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(< "$PASS_FILE")" | Reads from file |
+| google/agents-cli/.../auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder constant name |
+| google/agents-cli/.../staging.yaml | 168,192 | ${{ steps.fetch-token... }} | Template with GH Actions expr |
+| google/ax/manifests/install-ax.sh | 239,241,286 | pg_password var / openssl rand | Generates random or uses env |
+| google/adk-python/.../auth_credential.py | 157 | private_key="-----BEGIN... | Placeholder (truncated ...) |
+| google/adk-python/.../auth_credential.py | 269 | username="user", password="password" | Test credentials |
+| google/adk-python/.../auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder JWT (truncated) |
+| google/adk-python/.../auth_schemes.py | 68 | PASSWORD = "password" | Default/test constant |
+| google/adk-python/.../gke_code_executor.py | 103,104,115 | kubeconfig_path: str \| None | Type annotations |
+| google/adk-python/.../container_code_executor.py | 114,154 | 169.254.169.254 | Comments about metadata endpoint |
+| google/adk-python/.../load_web_page.py | 171 | 169.254.169.254 | Comment |
+| google/adk-python/.../computer_use_toolset.py | 146 | 169.254.169.254 | Comment |
+| google/adk-python/.../auth_helpers.py | 62 | client_secret="your_client_secret" | Explicit placeholder |
+| google/adk-python/.../sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "..." | State key constant name |
+| google/adk-python/.../cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Template generating env var |
+| google/adk-python/.../browser/chunk-*.js | various | Parse error messages | Minified JS chunks |
 
-  absl::Status RetrieveServiceAccountInfo();
+## ENDPOINT_LEAK (internal/dev URLs)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/tensorstore/.../gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/... | Public GCE metadata endpoint (well-known) |
+| google/tensorstore/.../aws_credentials_spec.h | 51 | 169.254.169.254/latest/meta-data/iam/ | Public AWS IMDS endpoint (well-known) |
+| google/adk-python (4 files) | various | 169.254.169.254 | Comments referencing cloud metadata endpoint |
 
-  std::string service_account_email_;
+## INTERESTING (unusual but not secrets)
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/capsem/config/gate.toml | 584 | password = "password.txt" | References external password file |
+| google/agents-cli/.../auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Constant name matches value (placeholder pattern) |
+
+## VERDICT
+REPORT_CANDIDATE: no (for all hits)
+
+## SUMMARY
+- 0 REAL_SECRET findings
+- 52 TEST_OR_EXAMPLE findings  
+- 7 ENDPOINT_LEAK findings (all well-known public metadata endpoints)
+- 2 INTERESTING findings (config patterns, no secrets)
+
+All hits are explained by: documentation/mock folders, Helm/K8s templates, GitHub Actions secrets references (not hardcoded), test/fixture files with explicit placeholder values, comments referencing public cloud metadata endpoints, and minified JS source chunks.
+EOF
+# Classification Results
+
+## REAL_SECRET (reportable)
+# None found - all hits are test/fixture/placeholder/template content
+
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Documentation/mock folder |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Documentation |
+| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | OAuth2 standard constant |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
+| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secrets context |
+| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secrets context |
+| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secrets context |
+| google/sam/.github/k8s/* (7 files) | 2,14 | kind: ConfigMap | K8s templates |
+| google/tensorstore/.../gce_auth_provider.h | 55 | metadata.google.internal... | Comment with public GCE endpoint |
+| google/tensorstore/.../aws_credentials_spec.h | 51 | 169.254.169.254... | Comment with public AWS IMDS endpoint |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.* }} | GH Actions secrets context |
+| google/oss-fuzz/projects/mysql-connector-j/* | 1,33 | Documentation URLs | Project config + test comments |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicitly labeled test key |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | "ServerShutdownPassword" | Test fixture password |
+| google/capsem/.github/workflows/... | 17 | staging.release-eq7.pages.dev | Staging URL |
+| google/capsem/config/gate.toml | 584 | password = "password.txt" | References password file |
+| google/capsem/scripts/preflight.sh | 39 | password="$(< "$pass_file")" | Reads from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(< "$PASS_FILE")" | Reads from file |
+| google/agents-cli/.../auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder constant name |
+| google/agents-cli/.../staging.yaml | 168,192 | ${{ steps.fetch-token... }} | Template with GH Actions expr |
+| google/ax/manifests/install-ax.sh | 239,241,286 | pg_password var / openssl rand | Generates random or uses env |
+| google/adk-python/.../auth_credential.py | 157 | private_key="-----BEGIN... | Placeholder (truncated ...) |
+| google/adk-python/.../auth_credential.py | 269 | username="user", password="password" | Test credentials |
+| google/adk-python/.../auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder JWT (truncated) |
+| google/adk-python/.../auth_schemes.py | 68 | PASSWORD = "password" | Default/test constant |
+| google/adk-python/.../gke_code_executor.py | 103,104,115 | kubeconfig_path: str \| None | Type annotations |
+| google/adk-python/.../container_code_executor.py | 114,154 | 169.254.169.254 | Comments about metadata endpoint |
+| google/adk-python/.../load_web_page.py | 171 | 169.254.169.254 | Comment |
+| google/adk-python/.../computer_use_toolset.py | 146 | 169.254.169.254 | Comment |
+| google/adk-python/.../auth_helpers.py | 62 | client_secret="your_client_secret" | Explicit placeholder |
+| google/adk-python/.../sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "..." | State key constant name |
+| google/adk-python/.../cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Template generating env var |
+| google/adk-python/.../browser/chunk-*.js | various | Parse error messages | Minified JS chunks |
+
+## ENDPOINT_LEAK (internal/dev URLs)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/tensorstore/.../gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/... | Public GCE metadata endpoint (well-known) |
+| google/tensorstore/.../aws_credentials_spec.h | 51 | 169.254.169.254/latest/meta-data/iam/ | Public AWS IMDS endpoint (well-known) |
+| google/adk-python (4 files) | various | 169.254.169.254 | Comments referencing cloud metadata endpoint |
+
+## INTERESTING (unusual but not secrets)
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/capsem/config/gate.toml | 584 | password = "password.txt" | References external password file |
+| google/agents-cli/.../auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Constant name matches value (placeholder pattern) |
+
+## VERDICT
+REPORT_CANDIDATE: no (for all hits)
+
+## SUMMARY
+- 0 REAL_SECRET findings
+- 52 TEST_OR_EXAMPLE findings  
+- 7 ENDPOINT_LEAK findings (all well-known public metadata endpoints)
+- 2 INTERESTING findings (config patterns, no secrets)
+
+All hits are explained by: documentation/mock folders, Helm/K8s templates, GitHub Actions secrets references (not hardcoded), test/fixture files with explicit placeholder values, comments referencing public cloud metadata endpoints, and minified JS source chunks.
 [0m
-[0m$ [0mcat reposcan-raw/google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | head -70 | tail -20
-///     "endpoint": "http://169.254.169.254/latest/meta-data/iam/",
-///     "auth_token_file": "/var/run/secrets/aws-ecs/token",
-///     "auth_token": "my-auth-token" }
-///
-class AwsCredentialsSpec final {
- public:
-  struct Default final {
-    std::string profile;
-    friend bool operator==(const Default& a, const Default& b) {
-      return a.profile == b.profile;
-    }
-    constexpr static auto ApplyMembers = [](auto&& x, auto f) {
-      return f(x.profile);
-    };
-  };
+**Classification complete — 0 reportable secrets found.**
 
-  struct Anonymous final {
-    friend bool operator==(const Anonymous& a, const Anonymous& b) {
-      return true;
-    }
-[0m
-[0m$ [0mgrep -n "GEMINI_API_KEY\|GOOGLE_API_KEY\|client_secret\|private_key" reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py 2>/dev/null
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:19:- Gemini API Key from AI Studio (GEMINI_API_KEY)
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:20:- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:43:    GEMINI_API_KEY = "gemini_api_key"
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:51:        var_name: Environment variable name (e.g. GEMINI_API_KEY).
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:223:    Checks for GEMINI_API_KEY env var. If not set, opens AI Studio
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:230:    api_key = os.environ.get("GEMINI_API_KEY")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:232:        return {"env_var": "GEMINI_API_KEY", "from_env": True}
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:236:    click.echo("  GEMINI_API_KEY is not set in your environment.")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:251:    _api_key_instructions("GEMINI_API_KEY")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:263:    Checks for GOOGLE_API_KEY env var. If not set, opens the
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:270:    api_key = os.environ.get("GOOGLE_API_KEY")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:272:        return {"env_var": "GOOGLE_API_KEY", "from_env": True}
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:276:    click.echo("  GOOGLE_API_KEY is not set in your environment.")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:291:    _api_key_instructions("GOOGLE_API_KEY")
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:387:    # Check GEMINI_API_KEY (instant)
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:388:    if os.environ.get("GEMINI_API_KEY"):
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:389:        return True, "Gemini API Key (GEMINI_API_KEY)"
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:391:    # Check GOOGLE_API_KEY (instant)
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:392:    if os.environ.get("GOOGLE_API_KEY"):
-reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py:393:        return True, "Express Mode (GOOGLE_API_KEY)"
-reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:61:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
-reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:71:⚠️  WARNING: Secrets (like GOOGLE_API_KEY) are stored in .env.
-reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131:      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:55:      client_secret: The client secret.
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62:          client_secret="your_client_secret",
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:70:  client_secret: str
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:218:        include 'client_id', 'client_secret', and 'scopes'.  May optionally
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:243:    if "client_id" in credential_value and "client_secret" in credential_value:
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:247:  required_credential_fields = ["client_id", "client_secret"]
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:264:          client_secret=credential_dict["client_secret"],
-reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:283:        include at least "client_id" and "client_secret", may optionally include
-[0m
-**CLASSIFICATION TABLE**
+| Category | Count | Details |
+|----------|-------|---------|
+| **REAL_SECRET** | 0 | No hardcoded credentials/API keys with signs of life |
+| **TEST_OR_EXAMPLE** | 52 | Docs/mock folders, Helm/K8s templates, GH Actions `${{ secrets.* }}` refs, test fixtures (`"fuzz test key"`, `"password"`), placeholder literals (`"your_client_secret"`, `"gemini_api_key"`), minified JS chunks |
+| **ENDPOINT_LEAK** | 7 | All well-known public metadata endpoints: `metadata.google.internal`, `169.254.169.254` (GCE/AWS IMDS) — in comments only |
+| **INTERESTING** | 2 | `capsem` references external `password.txt` file; `agents-cli` constant `GEMINI_API_KEY = "gemini_api_key"` (placeholder pattern) |
 
-| Category | File | Line | Evidence | Verdict |
-|----------|------|------|----------|---------|
-| **ENDPOINT_LEAK** | `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `/// "metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/",` | Well-known GCP metadata endpoint (documented in comments) |
-| **ENDPOINT_LEAK** | `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `///     "endpoint": "http://169.254.169.254/latest/meta-data/iam/",` | Well-known AWS IMDS endpoint (documented in comments) |
-| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GitHub Actions secret refs (proper pattern) |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java` | 13,55 | `"ServerShutdownPassword"`, `getDatabasePassword()` | Test fixture passwords |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` | Explicitly labeled fuzz test key |
-| **TEST_OR_EXAMPLE** | `google/capsem/config/gate.toml` | 584 | `password = "password.txt"` | References password file, not hardcoded |
-| **TEST_OR_EXAMPLE** | `google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file |
-| **TEST_OR_EXAMPLE** | `google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file |
-| **TEST_OR_EXAMPLE** | `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder literal (not a real key format) |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | `private_key="-----BEGIN PRIVATE KEY-----..."`, `username="user", password="password"`, `token="eyAkaknabna...."` | Truncated/placeholder examples in docstrings |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Example constant |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Template writes user input to .env |
-| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret refs |
-| **TEST_OR_EXAMPLE** | `google/ax/manifests/install-ax.sh` | 239-241,286 | `pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"` | Env var or generated |
-
----
-
-**SHORT VERDICT LIST**
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| tensorstore GCP metadata endpoint | **no** | Public well-known endpoint, documented in comments |
-| tensorstore AWS IMDS endpoint | **no** | Public well-known endpoint, documented in comments |
-| sam OIDC_CLIENT_SECRET | **no** | Empty default, proper secret reference pattern |
-| sam workflow secrets | **no** | Proper `${{ secrets.* }}` references |
-| oss-fuzz test passwords | **no** | Test fixtures, explicit "fuzz test key" |
-| capsem password file refs | **no** | Reads from external file, not hardcoded |
-| agents-cli GEMINI_API_KEY placeholder | **no** | Literal `"gemini_api_key"` not a valid key format |
-| adk-python auth examples | **no** | Truncated placeholders (`...`), `"your_client_secret"`, `"password"` |
-| adk-python cli_create template | **no** | Writes user-provided value to .env |
-| langextract workflow secrets | **no** | Proper `${{ secrets.* }}` references |
-| ax install script password | **no** | Env var or `openssl rand` generated |
-
-**SUMMARY**: 0 REAL_SECRET findings. All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (public metadata endpoints), or proper secret-reference patterns. No reportable credentials in this delta.
+**Verdict:** `REPORT_CANDIDATE: no` for all 406 hits. The scan surfaced only template/config scaffolding, test fixtures, CI secrets references (properly externalized), and comments referencing public cloud metadata endpoints.
