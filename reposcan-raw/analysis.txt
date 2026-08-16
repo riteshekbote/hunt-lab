@@ -1,102 +1,71 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Classification Results
-
-## REAL_SECRET
-| File | Line | SHA256 | REPORT_CANDIDATE |
-|------|------|--------|------------------|
-| (none found) | | | |
-
-## TEST_OR_EXAMPLE
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs, not hardcoded |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Default config placeholder |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | String literal placeholder |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions expressions |
-| google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Default constant placeholder |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref syntax |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | (multiple) | Parse error messages | Minified build artifacts |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | (multiple) | Parse error messages | Minified build artifacts |
-
-## ENDPOINT_LEAK
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Kubeconfig references (config, not secret) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-
-## INTERESTING
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | CLI writes user-provided API key to file |
-| google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | CSSOM draft spec comment | Third-party library, not project code |
-
-## VERDICT
-- **REAL_SECRET candidates: 0** — No hardcoded live credentials found in this scan
-- All hits are TEST_OR_EXAMPLE (placeholders, secret refs, build artifacts) or ENDPOINT_LEAK/INTERESTING (documented SSRF surfaces, config references)
-- The earthengine-api oauth.py:45 secret (from prior KB) was NOT in this scan's file set — different repo
-- No new reportable findings from this scan delta
-EOF
-# Classification Results
-
-## REAL_SECRET
-| File | Line | SHA256 | REPORT_CANDIDATE |
-|------|------|--------|------------------|
-| (none found) | | | |
-
-## TEST_OR_EXAMPLE
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs, not hardcoded |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Default config placeholder |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | String literal placeholder |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions expressions |
-| google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Default constant placeholder |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref syntax |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | (multiple) | Parse error messages | Minified build artifacts |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | (multiple) | Parse error messages | Minified build artifacts |
-
-## ENDPOINT_LEAK
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` | Kubeconfig references (config, not secret) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` metadata endpoint | SSRF surface documentation |
-
-## INTERESTING
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | CLI writes user-provided API key to file |
-| google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | CSSOM draft spec comment | Third-party library, not project code |
-
-## VERDICT
-- **REAL_SECRET candidates: 0** — No hardcoded live credentials found in this scan
-- All hits are TEST_OR_EXAMPLE (placeholders, secret refs, build artifacts) or ENDPOINT_LEAK/INTERESTING (documented SSRF surfaces, config references)
-- The earthengine-api oauth.py:45 secret (from prior KB) was NOT in this scan's file set — different repo
-- No new reportable findings from this scan delta
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+-rw-r--r-- 1 runner runner 11080 Aug 16 13:54 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
 [0m
-**Summary:** This scan delta produces **0 REAL_SECRET candidates**. All 455 hits classify as:
-- **TEST_OR_EXAMPLE** (GitHub Actions secret refs, placeholder literals, minified build artifacts, Jekyll template vars)
-- **ENDPOINT_LEAK** (documented IMDS `169.254.169.254` references in ADK code executors — SSRF surface docs, not leaks)
-- **INTERESTING** (CLI that writes user-supplied API key to file; third-party jQuery comment)
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=63, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=15, offset=57][0m
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [limit=20, offset=163][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=163, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js[90m [limit=20, offset=1][0m
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "169.254.169.254" reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114:  cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154:  network -- in particular the cloud metadata endpoint at 169.254.169.254
+reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:170:  For example ``64:ff9b::169.254.169.254`` is reported as global but, on a
+reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171:  network with NAT64, routes to the internal ``169.254.169.254`` metadata
+reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:145:        # `http://169.254.169.254\@example.com/` the host is example.com here
+reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146:        # and 169.254.169.254 in Chrome, so refuse instead of checking it.
+[0m
+All hits analyzed. Classification:
 
-The known `earthengine-api` hardcoded secret (KB: `oauth.py:45`, sha256 `3f3f8d6f…d271`) is **not in this scan's file set** — different repo. No new reportable findings.
+### REAL_SECRET (reportable hardcoded credentials)
+| File | Line | SHA256 | Context |
+|------|------|--------|---------|
+| *none found* | | | |
+
+### TEST_OR_EXAMPLE (test fixtures, placeholders, examples, generated parser code)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example ServiceAccountCredential with placeholder `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example HttpCredentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example HttpCredentials `token="eyAkaknabna...."` (placeholder JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | OAuth2 grant type enum constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Example OpenIdConfig `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template code `f"GOOGLE_API_KEY={google_api_key}"` (variable, not hardcoded) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Enum constant `GEMINI_API_KEY = "gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Cookiecutter template with GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name constant `StorageDriverPassword = "storage_driver_password"` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js (17 files) | various | Minified parser generator error templates ("Parse error on line...") |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (17 files) | various | Minified parser generator error templates (same as above, copied) |
+| google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified JSON/Markdown parser bundle (Angular/Prism/marked) |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path / kubeconfig_context parameters (config, not leak) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documentation warning about 169.254.169.254 metadata endpoint SSRF |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 170,171 | Documentation about NAT64 routing to 169.254.169.254 |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 145,146 | Comment about 169.254.169.254 in Chrome URL parsing |
+
+### INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref, not secret) |
+
+---
+
+**SHORT VERDICT LIST**
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (none) | **no** |
+
+**Summary**: 458 hits total, **0 REAL_SECRET**. All hits are test fixtures, placeholder examples, generated minified parser code (PEG.js/Prism/marked bundles), documentation references to the well-known cloud metadata endpoint (169.254.169.254), or Cloud Secret Manager reference syntax. No hardcoded live credentials found in this scan delta.
