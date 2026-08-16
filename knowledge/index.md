@@ -1409,3 +1409,6 @@
 - 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed LIVE on production v1.0 — GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions
 - 2026-08-16 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible for reward)
 - 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires auth, no bypass
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level — 200 ACAO:* + PATCH allowlist re-confirmed
+- 2026-08-16 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions
+- 2026-08-16 REJECTED: no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
