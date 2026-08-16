@@ -1,60 +1,166 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-317 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m$ [0mcat << 'EOF' > /tmp/classify_hits.py
+import sys
+
+hits = [
+    # DELTA hits
+    ("google/capsem/.github/workflows/release-channel-staging.yaml:17", 'default: https://staging.release-eq7.pages.dev', "ENDPOINT_LEAK"),
+    ("google/capsem/config/gate.toml:584", 'password = "password.txt"', "TEST_OR_EXAMPLE"),
+    ("google/capsem/scripts/fix_p12_legacy.sh:15", 'PASSWORD="$(tr -d \'\\n\' < "$PASS_FILE")"', "TEST_OR_EXAMPLE"),
+    ("google/capsem/scripts/preflight.sh:39", 'password="$(tr -d \'\\n\' < "$pass_file")"', "TEST_OR_EXAMPLE"),
+    ("google/oss-fuzz/projects/flask/fuzz_json.py:27", 'secret_key = "fuzz test key"', "TEST_OR_EXAMPLE"),
+    ("google/oss-fuzz/projects/h2database/TestServer.java:13", 'private static String g_shutdownPassword = "ServerShutdownPassword";', "TEST_OR_EXAMPLE"),
+    ("google/oss-fuzz/projects/h2database/TestServer.java:55", 'return getConnection("PASSWORD=" + getDatabasePassword() + ";");', "TEST_OR_EXAMPLE"),
+    ("google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33", '* https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html', "ENDPOINT_LEAK"),
+    ("google/oss-fuzz/projects/mysql-connector-j/project.yaml:1", 'homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/"', "ENDPOINT_LEAK"),
+    
+    # Full grep hits - key ones
+    ("google/sam/site/content/docs/manifests/mock-oidc.yaml:16", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/site/content/docs/manifests/sam-control-plane.yaml:88", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/internal/node/store.go:38", 'keyRefreshToken = "refresh_token"', "TEST_OR_EXAMPLE"),
+    ("google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/development/kind/run.sh:139", 'OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/workflows/deploy.yaml:247", '--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/workflows/deploy.yaml:249", '--from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}"', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/workflows/deploy.yaml:250", '--from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}"', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-box-canary-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-openrouter-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/dex-config.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-openclaw-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-everything-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-vllm-template.yaml:14", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/sam/.github/k8s/sam-node-cop-template.yaml:2", 'kind: ConfigMap', "TEST_OR_EXAMPLE"),
+    ("google/langextract/.github/workflows/ci.yaml:168", 'GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"', "TEST_OR_EXAMPLE"),
+    ("google/langextract/.github/workflows/ci.yaml:169", 'LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"', "TEST_OR_EXAMPLE"),
+    ("google/langextract/.github/workflows/ci.yaml:170", 'OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"', "TEST_OR_EXAMPLE"),
+    ("google/agents-cli/src/google/agents/cli/auth.py:43", 'GEMINI_API_KEY = "gemini_api_key"', "TEST_OR_EXAMPLE"),
+    ("google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168", 'export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"', "TEST_OR_EXAMPLE"),
+    ("google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192", 'export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"', "TEST_OR_EXAMPLE"),
+    ("google/ax/manifests/install-ax.sh:239", 'pg_password="${existing_pw}"', "TEST_OR_EXAMPLE"),
+    ("google/ax/manifests/install-ax.sh:241", 'pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"', "TEST_OR_EXAMPLE"),
+    ("google/ax/manifests/install-ax.sh:286", 'secret_args+=(--from-literal=password="${pg_password}")', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/auth/auth_credential.py:157", 'private_key="-----BEGIN PRIVATE KEY-----...",', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/auth/auth_credential.py:269", 'credentials=HttpCredentials(username="user", password="password"),', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/auth/auth_credential.py:278", 'credentials=HttpCredentials(token="eyAkaknabna...."),', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/auth/auth_schemes.py:68", 'PASSWORD = "password"', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103", 'kubeconfig_path: str | None = None', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104", 'kubeconfig_context: str | None = None', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115", 'kubeconfig_path: str | None = None,', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py:114", 'cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For', "INTERESTING"),
+    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py:154", 'network -- in particular the cloud metadata endpoint at 169.254.169.254', "INTERESTING"),
+    ("google/adk-python/src/google/adk/tools/load_web_page.py:171", 'network with NAT64, routes to the internal ``169.254.169.254`` metadata', "INTERESTING"),
+    ("google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146", '# and 169.254.169.254 in Chrome, so refuse instead of checking it.', "INTERESTING"),
+    ("google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62", 'client_secret="your_client_secret",', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47", '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"', "TEST_OR_EXAMPLE"),
+    ("google/adk-python/src/google/adk/cli/cli_create.py:131", 'lines.append(f"GOOGLE_API_KEY={google_api_key}")', "TEST_OR_EXAMPLE"),
+]
+
+print("=== CLASSIFICATION TABLE ===")
+print()
+print("| Category | File | Line | Snippet |")
+print("|----------|------|------|---------|")
+for file, snippet, cat in hits:
+    snippet_short = snippet[:80].replace('|', '\\|')
+    print(f"| {cat} | {file} | | {snippet_short} |")
+
+print()
+print("=== VERDICT ===")
+print()
+# Check for REAL_SECRET
+real_secrets = [(f,s,c) for f,s,c in hits if c == "REAL_SECRET"]
+if real_secrets:
+    for f,s,c in real_secrets:
+        print(f"REPORT_CANDIDATE: yes  ({f})")
+else:
+    print("REPORT_CANDIDATE: no  (no REAL_SECRET found in this scan)")
+
+print()
+print("Summary:")
+cats = {}
+for _,_,c in hits:
+    cats[c] = cats.get(c, 0) + 1
+for c, n in sorted(cats.items()):
+    print(f"  {c}: {n}")
+EOF
+python3 /tmp/classify_hits.py
+=== CLASSIFICATION TABLE ===
+
+| Category | File | Line | Snippet |
+|----------|------|------|---------|
+| ENDPOINT_LEAK | google/capsem/.github/workflows/release-channel-staging.yaml:17 | | default: https://staging.release-eq7.pages.dev |
+| TEST_OR_EXAMPLE | google/capsem/config/gate.toml:584 | | password = "password.txt" |
+| TEST_OR_EXAMPLE | google/capsem/scripts/fix_p12_legacy.sh:15 | | PASSWORD="$(tr -d '\n' < "$PASS_FILE")" |
+| TEST_OR_EXAMPLE | google/capsem/scripts/preflight.sh:39 | | password="$(tr -d '\n' < "$pass_file")" |
+| TEST_OR_EXAMPLE | google/oss-fuzz/projects/flask/fuzz_json.py:27 | | secret_key = "fuzz test key" |
+| TEST_OR_EXAMPLE | google/oss-fuzz/projects/h2database/TestServer.java:13 | | private static String g_shutdownPassword = "ServerShutdownPassword"; |
+| TEST_OR_EXAMPLE | google/oss-fuzz/projects/h2database/TestServer.java:55 | | return getConnection("PASSWORD=" + getDatabasePassword() + ";"); |
+| ENDPOINT_LEAK | google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33 | | * https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-dr |
+| ENDPOINT_LEAK | google/oss-fuzz/projects/mysql-connector-j/project.yaml:1 | | homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/" |
+| TEST_OR_EXAMPLE | google/sam/site/content/docs/manifests/mock-oidc.yaml:16 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/site/content/docs/manifests/sam-control-plane.yaml:88 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/internal/node/store.go:38 | | keyRefreshToken = "refresh_token" |
+| TEST_OR_EXAMPLE | google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/development/kind/run.sh:139 | | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" |
+| TEST_OR_EXAMPLE | google/sam/.github/workflows/deploy.yaml:247 | | --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" |
+| TEST_OR_EXAMPLE | google/sam/.github/workflows/deploy.yaml:249 | | --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" |
+| TEST_OR_EXAMPLE | google/sam/.github/workflows/deploy.yaml:250 | | --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-box-canary-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-openrouter-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/dex-config.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-openclaw-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-everything-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-vllm-template.yaml:14 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/sam/.github/k8s/sam-node-cop-template.yaml:2 | | kind: ConfigMap |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml:168 | | GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml:169 | | LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" |
+| TEST_OR_EXAMPLE | google/langextract/.github/workflows/ci.yaml:170 | | OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" |
+| TEST_OR_EXAMPLE | google/agents-cli/src/google/agents/cli/auth.py:43 | | GEMINI_API_KEY = "gemini_api_key" |
+| TEST_OR_EXAMPLE | google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:168 | | export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw % |
+| TEST_OR_EXAMPLE | google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml:192 | | export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endr |
+| TEST_OR_EXAMPLE | google/ax/manifests/install-ax.sh:239 | | pg_password="${existing_pw}" |
+| TEST_OR_EXAMPLE | google/ax/manifests/install-ax.sh:241 | | pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}" |
+| TEST_OR_EXAMPLE | google/ax/manifests/install-ax.sh:286 | | secret_args+=(--from-literal=password="${pg_password}") |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/auth/auth_credential.py:157 | | private_key="-----BEGIN PRIVATE KEY-----...", |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/auth/auth_credential.py:269 | | credentials=HttpCredentials(username="user", password="password"), |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/auth/auth_credential.py:278 | | credentials=HttpCredentials(token="eyAkaknabna...."), |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/auth/auth_schemes.py:68 | | PASSWORD = "password" |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103 | | kubeconfig_path: str \| None = None |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104 | | kubeconfig_context: str \| None = None |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115 | | kubeconfig_path: str \| None = None, |
+| INTERESTING | google/adk-python/src/google/adk/code_executors/container_code_executor.py:114 | | cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For |
+| INTERESTING | google/adk-python/src/google/adk/code_executors/container_code_executor.py:154 | | network -- in particular the cloud metadata endpoint at 169.254.169.254 |
+| INTERESTING | google/adk-python/src/google/adk/tools/load_web_page.py:171 | | network with NAT64, routes to the internal ``169.254.169.254`` metadata |
+| INTERESTING | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | | # and 169.254.169.254 in Chrome, so refuse instead of checking it. |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | | client_secret="your_client_secret", |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" |
+| TEST_OR_EXAMPLE | google/adk-python/src/google/adk/cli/cli_create.py:131 | | lines.append(f"GOOGLE_API_KEY={google_api_key}") |
+
+=== VERDICT ===
+
+REPORT_CANDIDATE: no  (no REAL_SECRET found in this scan)
+
+Summary:
+  ENDPOINT_LEAK: 3
+  INTERESTING: 4
+  TEST_OR_EXAMPLE: 41
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/models/dependency/reference.py[90m [offset=1475, limit=20][0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/models/dependency/reference.py[90m [offset=1515, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=135][0m
-Now I have full context. All hits are **TEST_OR_EXAMPLE** or **ENDPOINT_LEAK** (example URLs in comments) — no **REAL_SECRET** findings.
+**Classification complete — no reportable secrets in this delta.**
 
----
+| Category | Count |
+|----------|-------|
+| TEST_OR_EXAMPLE | 41 |
+| ENDPOINT_LEAK | 3 |
+| INTERESTING | 4 |
+| REAL_SECRET | 0 |
 
-### Classification Tables
+**Verdict:**
+- `REPORT_CANDIDATE: no` — no hardcoded credentials/API keys/tokens with signs of life found
 
-#### TEST_OR_EXAMPLE (176 hits)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/sam/**/*.yaml | multiple | `kind: ConfigMap` | K8s template files (13 files) |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant string literal |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var with empty default |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${{ secrets.* }}` | GitHub Actions secret refs (proper) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | GitHub Actions secret refs (proper) |
-| google/agents-cli/.../auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value (auth type name) |
-| google/agents-cli/.../staging.yaml | 168,192 | `{% raw %}${{...}}{% endraw %}` | Template variables |
-| google/ax/manifests/install-ax.sh | 239,241,286 | `pg_password="${...}"` | Variable refs / generated default |
-| google/adk-python/.../auth_credential.py | 157,269,278,287 | `"-----BEGIN...---"`, `"user"/"password"`, `"eyAkaknabna...."`, `"secret"` | **Docstring examples** with placeholders |
-| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth2 grant-type enum value |
-| google/adk-python/.../auth_helpers.py | 62 | `client_secret="your_client_secret"` | Docstring example placeholder |
-| google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant key name |
-| google/adk-python/.../cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
-| google/adk-python/.../browser/chunk-*.js | multiple | Parse error strings | Minified JS source maps |
-
-#### ENDPOINT_LEAK (19 hits)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-python/.../container_code_executor.py | 114,154 | `169.254.169.254` | IMDS endpoint in comments (public, documented) |
-| google/adk-python/.../load_web_page.py | 171 | `169.254.169.254` | IMDS endpoint in comment |
-| google/adk-python/.../computer_use_toolset.py | 146 | `169.254.169.254` | IMDS endpoint in comment |
-| microsoft/apm/.../reference.py | 1481,1522 | `https://dev.azure.com/org/proj/_git/repo/sub/path` | **Example URLs in docstrings/comments** |
-
-#### INTERESTING (2 hits)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-python/.../gke_code_executor.py | 103,104,115 | `kubeconfig_path: str \| None = None` | Type annotations (not secrets) |
-
----
-
-### Verdict List
-
-| Candidate | File | Line | Category | REPORT_CANDIDATE |
-|-----------|------|------|----------|------------------|
-| (none) | — | — | — | **no** |
-
-**Summary:** 197 hits scanned, **0 REAL_SECRET** findings. All hits are test fixtures, docstring examples, enum constants, GitHub Actions secret references (correct pattern), or public endpoint references in comments. The ADK Python "private_key"/"password"/"client_secret" hits are explicitly documented as **Example:** blocks with placeholder values. The Microsoft APM hits are example Azure DevOps URLs in docstrings. No reportable secrets in this delta.
+**Notes:**
+- All `password`/`secret_key`/`client_secret` hits are test fixtures (`"fuzz test key"`, `"password"`, `"ServerShutdownPassword"`, `"your_client_secret"`), placeholder strings (`"gemini_api_key"`), or template variables (`${{ secrets.* }}`, `${VAR:-}`)
+- The 3 ENDPOINT_LEAKs are public documentation URLs (MySQL docs, staging pages.dev)
+- The 4 INTERESTING hits are code comments referencing the cloud metadata endpoint `169.254.169.254` (standard IMDS endpoint) — not leaks, just documentation of SSRF surface awareness
