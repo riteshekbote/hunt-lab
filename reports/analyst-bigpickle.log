@@ -29456,3 +29456,30 @@ STEP 6 — LEARNING:
 STEP 7 — RISK SCORE:
 [RISK] google: 55 — earthengine secret is a valid credential with cloud-platform scope (high value) but native-app OOB public-client pattern caps VRP-worthiness; tokeninfo no-reward; storage list denied; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations, all blocked on authorized-token verification; exposure high if preconditions hold.
+===== ANALYST bigpickle 2026-08-16 06:18:59 UTC =====
+[0m
+> build · big-pickle
+[0m
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcurl -s -o /tmp/tokeninfo_probe -w "%{http_code} %{size_download}" "https://oauth2.googleapis.com/tokeninfo"; echo; cat /tmp/tokeninfo_probe; echo failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+[0m
+[0m$ [0mcurl -s -o /tmp/ee_oauth -w "%{http_code} %{size_download}" "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"; echo; sha256sum /tmp/ee_oauth; sed -n '45p' /tmp/ee_oauth | sha256sum
+200 23110
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  /tmp/ee_oauth
+d454b6f41fcba125b3e313e1f84cccfb0d8adba9b360d658e8ca01c36c6ba356  -
+[0m
+[0m$ [0mcurl -s -D - -o /dev/null -X OPTIONS "https://graph.microsoft.com/beta/copilot/agentRegistrations/{id}" -H "Origin: https://evil.example" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" | head -30
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 6663c493-caa0-4c48-a724-ce62cb827b5f
+client-request-id: 6663c493-caa0-4c48-a724-ce62cb827b5f
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"Central US","Slice":"E","Ring":"4","ScaleUnit":"004","RoleInstance":"DS2PEPF00004B4D"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Sun, 16 Aug 2026 06:15:40 GMT
+Content-Length: 0
+[0m

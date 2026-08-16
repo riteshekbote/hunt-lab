@@ -7856,3 +7856,4 @@ testability: HUMAN_ONLY
 [LEARN] REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 [RISK] google: 55 — earthengine secret is a valid credential with cloud-platform scope (high value) but native-app OOB public-client pattern caps VRP-worthiness; tokeninfo no-reward; storage list denied; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations, all blocked on authorized-token verification; exposure high if preconditions hold.
+## 2026-08-16 06:15:41 UTC [google] (model bigpickle)
