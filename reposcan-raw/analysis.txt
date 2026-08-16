@@ -1,81 +1,165 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-317 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/sam/internal/node/store.go | head -50
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package node
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/libp2p/go-libp2p/core/peer"
+	"go.etcd.io/bbolt"
+	bbolterrors "go.etcd.io/bbolt/errors"
+)
+
+const (
+	// StoreFile is the node database inside the data directory.
+	StoreFile = "agent.db"
+
+	bucketIdentity  = "identity"
+	keyBiscuit      = "identity_biscuit"
+	keyPrivKey      = "node_private_key"
+	keyIdentityExp  = "identity_expiration"
+	keyRefreshToken = "refresh_token"
+	keyOidcIssuer   = "oidc_issuer"
+	keyOidcClientID = "oidc_client_id"
+	keyOidcAudience = "oidc_audience"
+)
+
+type Store struct {
+	db *bbolt.DB
+}
+
+// ErrStoreLocked reports that another process already holds the data
+// directory, which for a node data directory means a node is running.
+var ErrStoreLocked = errors.New("another sam-node instance is using this data directory")
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=30, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=20][0m
-Based on my analysis of all 559 hits across 23713 files, here are the classifications:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | sed -n '580,590p'
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+Now I have enough context to classify all hits. Here's the triage:
 
 ---
 
 ### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| *(none in this scan)* | | | The known Earth Engine OAuth client_secret (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f...d271`) is **already ACCEPTED in KB** but not present in this grep output (different repo/scan batch) |
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *(none found)* | — | — | No hardcoded live credentials detected in this scan |
 
 ---
 
 ### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example/docstring values: `-----BEGIN PRIVATE KEY-----...`, `username="user", password="password"`, `token="eyAkaknabna...."` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | OAuth grant type enum constant: `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template generating `.env` from user input: `f"GOOGLE_API_KEY={google_api_key}"` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum member name: `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | Fuzz test fixture: `secret_key = "fuzz test key"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test constants: `g_shutdownPassword = "ServerShutdownPassword"` |
-| `google/sam/internal/node/store.go` | 38 | Constant string: `keyRefreshToken = "refresh_token"` |
-| `google/sam/development/kind/run.sh` | 139 | Shell param expansion with empty default: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs: `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. |
-| `google/sam/**/*.yaml` (ConfigMaps) | various | K8s ConfigMap kind declarations (no secret data) |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs: `${{ secrets.GEMINI_API_KEY }}` |
-| `google/capsem/config/gate.toml` | 584 | Config file reference: `password = "password.txt"` (path, not value) |
-| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Mock OIDC config in docs |
+| reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Docs manifest |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | DB key name constant (standard OAuth term) |
+| reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${{ secrets.* }}` | GitHub Actions secret refs (not hardcoded) |
+| reposcan-raw/google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | GitHub Actions secret refs |
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit fuzz test key |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test harness password |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Auth method enum constant (not a key) |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs.* }}` | GitHub Actions templating |
+| reposcan-raw/google/ax/manifests/install-ax.sh | 239,241,286 | Variable refs / `openssl rand` | Generated or env-driven |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Placeholder private_key/password/token | Example/fixture code with `your_*` placeholders |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS | Build artifacts, not source secrets |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path: str \| None = None` | Type annotations, not secrets |
 
 ---
 
 ### ENDPOINT_LEAK
-| File | Line | Note |
-|------|------|------|
-| `google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | Comment referencing well-known GCE metadata endpoint `metadata.google.internal` |
-| `google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | Comment referencing well-known AWS IMDS endpoint `169.254.169.254` |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments warning about metadata endpoint `169.254.169.254` |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about metadata endpoint |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment about metadata endpoint |
+| File | Line | Endpoint | Risk |
+|------|------|----------|------|
+| reposcan-raw/google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCE metadata endpoint (internal, well-known) |
+| reposcan-raw/google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | `http://169.254.169.254/latest/meta-data/iam/` | AWS IMDS endpoint (internal, well-known) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint references in comments |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same |
+| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+
+> **Note**: The `169.254.169.254` and `metadata.google.internal` endpoints are well-known cloud metadata service IPs (IMDS). Their presence in code/comments is not a vulnerability—it's expected for cloud-native libraries. The staging URL is a public pages.dev subdomain.
 
 ---
 
 ### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | Postgres password generation + K8s secret creation (operational script, generates random password) |
-| `google/oss-fuzz/projects/mysql-connector-j/*` | - | OSS-Fuzz test project definitions (not Google production code) |
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References a password file (likely gitignored); config pattern, not a leaked secret |
 
 ---
 
-### VERDICT
+### VERDICT SUMMARY
+| Category | Count | REPORT_CANDIDATE |
+|----------|-------|------------------|
+| REAL_SECRET | 0 | **no** |
+| TEST_OR_EXAMPLE | 35+ | no |
+| ENDPOINT_LEAK | 7 | no (well-known metadata IPs + public staging URL) |
+| INTERESTING | 1 | no (config references external password file) |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| Earth Engine OAuth client_secret (KB: `google/earthengine-api/python/ee/oauth.py:45`) | **yes** | Already ACCEPTED in KB (sha256 `3f3f8d6f...d271`, A/B proof: `invalid_grant` vs `invalid_client` per RFC 6749 §5.2). Not in this scan but live per KB. |
-| All ADK Python hits | no | Examples, docstrings, test fixtures, placeholder values (`your_client_secret`, `password`, `eyAkaknabna....`) |
-| All OSS-Fuzz hits | no | Test/fuzz projects, not Google production code |
-| SAM ConfigMaps / workflows | no | K8s manifests + GitHub Actions secret references (no hardcoded values) |
-| CapSem gate.toml / scripts | no | Config references file paths; passwords read from external files at runtime |
-| TensorStore / ADK metadata endpoint comments | no | Well-known cloud metadata IPs (169.254.169.254), not leaks |
-| Agents CLI enum | no | Enum member name string, not a credential |
-| AX install script | no | Generates random password at deploy time |
-
----
-
-**Summary**: This scan produced **0 new REAL_SECRET candidates**. The only live credential in scope (Earth Engine OAuth client_secret) is already tracked in KB as ACCEPTED with conclusive A/B proof. All other hits are test fixtures, examples, documentation placeholders, secret references, or well-known cloud metadata endpoints.
+**No reportable findings in this scan.** All hits are either test fixtures, placeholder values, GitHub Actions secret references (properly templated), well-known cloud metadata endpoints, or config patterns referencing external secret files.
