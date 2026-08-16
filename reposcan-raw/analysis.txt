@@ -1,35 +1,32 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
-
-| Category | File:Line | Evidence | Classification |
-|----------|-----------|----------|----------------|
-| **REAL_SECRET** | — | No hardcoded live credentials found | — |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated fixture) | TEST_OR_EXAMPLE |
-| | adk-python/src/google/adk/auth/auth_credential.py:269 | `HttpCredentials(username="user", password="password")` | TEST_OR_EXAMPLE |
-| | adk-python/src/google/adk/auth/auth_credential.py:278 | `HttpCredentials(token="eyAkaknabna....")` (placeholder JWT) | TEST_OR_EXAMPLE |
-| | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` (test constant) | TEST_OR_EXAMPLE |
-| | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62 | `client_secret="your_client_secret"` (placeholder) | TEST_OR_EXAMPLE |
-| | openhtf/.github/workflows/python_publish.yml:91,105 | `https://test.pypi.org/...` (test PyPI URLs) | TEST_OR_EXAMPLE |
-| | langextract/.github/workflows/ci.yaml:168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GH secret refs) | TEST_OR_EXAMPLE |
-| | cadvisor/lib/cadvisorflags/flags.go:54 | `StorageDriverPassword = "storage_driver_password"` (flag name, not value) | TEST_OR_EXAMPLE |
-| **ENDPOINT_LEAK** | go-containerregistry/pkg/v1/google/list.go:206 | Comment: `cloud metadata endpoints at 169.254.169.254` | ENDPOINT_LEAK (doc only) |
-| | go-containerregistry/pkg/v1/remote/fetcher.go:85 | Comment: `issuing a 302 to a cloud instance metadata service (e.g. 169.254.169.254)` | ENDPOINT_LEAK (doc only) |
-| | go-containerregistry/pkg/v1/remote/transport/bearer.go:91 | Comment: `metadata endpoint (e.g. 169.254.169.254), causing SSRF` | ENDPOINT_LEAK (doc only) |
-| | go-containerregistry/pkg/v1/remote/transport/bearer.go:151 | Comment: `(169.254.169.254 / fd00:ec2::254). DNS-based SSRF is out of scope` | ENDPOINT_LEAK (doc only) |
-| | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | Comments referencing 169.254.169.254 metadata endpoint | ENDPOINT_LEAK (doc only) |
-| | adk-python/src/google/adk/tools/load_web_page.py:171 | Comment: `routes to the internal 169.254.169.254 metadata` | ENDPOINT_LEAK (doc only) |
-| | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | Comment: `169.254.169.254 in Chrome, so refuse instead of checking` | ENDPOINT_LEAK (doc only) |
-| **INTERESTING** | adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref pattern) | INTERESTING |
-| | adk-python/src/google/adk/cli/cli_create.py:131 | `GOOGLE_API_KEY={google_api_key}` (template interpolation, not secret) | INTERESTING |
-
----
-
-## Verdict List
-
-| Candidate | File | Line | Secret SHA256 | REPORT_CANDIDATE |
-|-----------|------|------|---------------|------------------|
-| (none) | — | — | — | **no** |
-
-**Summary**: All 4 delta hits are documentation comments about the GCP metadata endpoint (169.254.169.254) — not exploitable SSRF vectors, just threat-model notes. The adk-python hits are test fixtures/placeholders (`password="password"`, `"your_client_secret"`, truncated keys). The CI/CD hits use GitHub secret references (`${{ secrets.* }}`). No reportable secrets or new attack surface.
+[0m→ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py
+[0m→ [0mRead reposcan-raw/google/flatbuffers/.github/workflows/label.yml
+[0m→ [0mRead reposcan-raw/google/go-cloud/docstore/gcpfirestore/create_indexes.sh
+[0m→ [0mRead reposcan-raw/google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf
+[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/heir/scripts/author_stats.py
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
+[0m
+[0m$ [0mgrep -n "kind: ConfigMap" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/*.yaml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/*.yaml 2>/dev/null | head -20
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/dex-config.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-box-canary-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-cop-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-everything-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-openclaw-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-openrouter-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-template.yaml:2:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/k8s/sam-node-vllm-template.yaml:14:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml:16:kind: ConfigMap
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml:88:kind: ConfigMap
+[0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/dex-config.yaml
+[0m
+[0m$ [0mgrep -rn "metadata.google.internal\|169.254.169.254" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py | head -10
+711:        "metadata.google.internal",
+841:    ``169.254.169.254`` to the socket. Here the SAME resolution that is
+1166:    folds it into the host -- so ``https://169.254.169.254\\.evil/`` can pass
+1168:    ``169.254.169.254``. Returning urllib3's host lets the caller validate the
+[0m
