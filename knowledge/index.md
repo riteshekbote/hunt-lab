@@ -1157,3 +1157,5 @@
 - 2026-08-16 REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401) both closed; recon surface eliminated
 - 2026-08-16 REJECTED: CodeWorld PASSWORD='swal-input2' @ google/codeworld/web/js/utils/auth.js:30 — confirmed SweetAlert2.prompt DOM element ID pattern (swal-input1/2/3/4), NOT a credential — MISCONFIG false-positive resolved
 - 2026-08-16 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param token introspection without Authorization header is not eligible for reward)
+- 2026-08-16 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live at both collection+item level across all 6 endpoint families
+- 2026-08-16 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, whole-file sha f4f93c76… unchanged, POST invalid_grant (not invalid_client) per RFC 6749 §5.2
