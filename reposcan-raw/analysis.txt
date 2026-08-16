@@ -1,124 +1,38 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Classification Results
+## Classification Table
 
-## REAL_SECRET (hardcoded credential with signs of life)
-# NONE in this delta scan
-# Note: earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...d271) is ALREADY ACCEPTED in KB, not new
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:157` (private key placeholder)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:269` (test credentials `user`/`password`)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:278` (test token placeholder)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` constant)<br>`google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` (`client_secret="your_client_secret"` placeholder) |
+| **ENDPOINT_LEAK** | *(none — 169.254.169.254 is the well-known link-local metadata service IP for AWS/GCP/Azure, not an internal leak)* |
+| **INTERESTING** | `google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts:232` — CSRF token extraction via shell command (client-side, not a secret)<br>`google/grr/docker_config_files/server/grr.server.yaml:25` — Private key file reference pattern `%(/configs/private-key.pem|file)`<br>`google/grr/docker/docker-entrypoint.sh:21,26` — Env var references (`${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}`)<br>`google/capsem/config/gate.toml:481` / `preflight.sh:39` / `fix_p12_legacy.sh:15` — Password file references (not hardcoded)<br>`google/skywater-pdk/.github/workflows/labeler.yml:11` — Standard `${{ secrets.GITHUB_TOKEN }}` usage<br>`google/langextract/.github/workflows/ci.yaml:168-170` — Standard `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` usage |
 
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | TEST_OR_EXAMPLE (placeholder with ellipsis) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | TEST_OR_EXAMPLE (obvious test creds) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | TEST_OR_EXAMPLE (fake JWT with ellipsis) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | TEST_OR_EXAMPLE (test constant) |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | password: "password" | TEST_OR_EXAMPLE (TS test fixture) |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | token: "your_access_token" | TEST_OR_EXAMPLE (placeholder) |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | PASSWORD = 'password' | TEST_OR_EXAMPLE (test constant) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | TEST_OR_EXAMPLE (placeholder) |
-| google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt | 49 | INJECTED_TOKEN = "injected-token-probe" | TEST_OR_EXAMPLE (test probe) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }} | TEST_OR_EXAMPLE (GitHub Actions secret ref, not hardcoded) |
+## Verdict List
 
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 (GCP metadata) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 (GCP metadata) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 (Chrome block) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 (NAT64 route) | ENDPOINT_LEAK (documented reference) |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | ENDPOINT_LEAK (GCP metadata hostname) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.0.0/16 (metadata CIDR) | ENDPOINT_LEAK (network config) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | staging.release-eq7.pages.dev | ENDPOINT_LEAK (staging URL) |
+| File:Line | Classification | REPORT_CANDIDATE |
+|-----------|----------------|------------------|
+| grr/docker/docker-entrypoint.sh:21 | TEST_OR_EXAMPLE (env var) | no |
+| grr/docker/docker-entrypoint.sh:26 | TEST_OR_EXAMPLE (env var) | no |
+| grr/docker_config_files/server/grr.server.yaml:25 | INTERESTING (file ref pattern) | no |
+| grr/.../cloud.py:41 | ENDPOINT_LEAK (public metadata IP) | no |
+| grr/.../cloud.py:12,14 | ENDPOINT_LEAK (public metadata IP) | no |
+| grr/.../db.py:667 | TEST_OR_EXAMPLE (doc URL comment) | no |
+| grr/.../mysql.py:648 | TEST_OR_EXAMPLE (doc URL comment) | no |
+| grr/.../mysql_pool.py:225 | TEST_OR_EXAMPLE (doc URL comment) | no |
+| grr/.../cloud.py:524 | ENDPOINT_LEAK (public metadata IP) | no |
+| grr/.../client_flows.ts:232 | INTERESTING (CSRF extraction cmd) | no |
+| skywater-pdk/.github/workflows/labeler.yml:11 | TEST_OR_EXAMPLE (standard GITHUB_TOKEN) | no |
+| langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE (standard secret refs) | no |
+| adk-python/.../auth_credential.py:157 | TEST_OR_EXAMPLE (placeholder) | no |
+| adk-python/.../auth_credential.py:269 | TEST_OR_EXAMPLE (test creds) | no |
+| adk-python/.../auth_credential.py:278 | TEST_OR_EXAMPLE (test token) | no |
+| adk-python/.../auth_schemes.py:68 | TEST_OR_EXAMPLE (test constant) | no |
+| adk-python/.../auth_helpers.py:62 | TEST_OR_EXAMPLE (placeholder) | no |
+| capsem/config/gate.toml:481 | INTERESTING (password file ref) | no |
+| capsem/scripts/preflight.sh:39 | INTERESTING (reads password file) | no |
+| capsem/scripts/fix_p12_legacy.sh:15 | INTERESTING (reads password file) | no |
 
-## INTERESTING (debug flags, keys, cloud configs, operational patterns)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | INTERESTING (CLI env var generation) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path, kubeconfig_context | INTERESTING (K8s config params) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | INTERESTING (token storage key name) |
-| google/capsem/config/gate.toml | 481 | password = "password.txt" | INTERESTING (password file reference) |
-| google/capsem/scripts/preflight.sh | 39 | password="$(tr -d '\n' < "$pass_file")" | INTERESTING (operational password read) |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(tr -d '\n' < "$PASS_FILE")" | INTERESTING (operational password read) |
-| google/adk-python/src/google/adk/cli/browser/*.js | (18 files) | Minified parser error messages | NOT_SENSITIVE (build artifacts) |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified parser | NOT_SENSITIVE (build artifact) |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified parser | NOT_SENSITIVE (build artifact) |
-| google/closure-compiler/externs/* | various | W3C spec references | NOT_SENSITIVE (externs) |
-
-# VERDICT
-REPORT_CANDIDATE: no (for all new delta hits)
-- No new REAL_SECRET found in delta
-- earthengine-api secret already ACCEPTED in KB (not new)
-- All delta hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (documented), or INTERESTING (config/operational)
-- 18 minified JS chunks are build artifacts, not source secrets
-
-# KNOWN LIVE FINDINGS (from KB, not in this delta)
-- google/earthengine-api/python/ee/oauth.py:45 — client_secret sha256 3f3f8d6f...d271 — ACCEPTED, REPORT_CANDIDATE=yes (pending VRP determination on native-app by-design)
-EOF
-# Classification Results
-
-## REAL_SECRET (hardcoded credential with signs of life)
-# NONE in this delta scan
-# Note: earthengine-api oauth.py:45 secret (sha256 3f3f8d6f...d271) is ALREADY ACCEPTED in KB, not new
-
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | TEST_OR_EXAMPLE (placeholder with ellipsis) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | TEST_OR_EXAMPLE (obvious test creds) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | TEST_OR_EXAMPLE (fake JWT with ellipsis) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | TEST_OR_EXAMPLE (test constant) |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | password: "password" | TEST_OR_EXAMPLE (TS test fixture) |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | token: "your_access_token" | TEST_OR_EXAMPLE (placeholder) |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | PASSWORD = 'password' | TEST_OR_EXAMPLE (test constant) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | TEST_OR_EXAMPLE (placeholder) |
-| google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt | 49 | INJECTED_TOKEN = "injected-token-probe" | TEST_OR_EXAMPLE (test probe) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }} | TEST_OR_EXAMPLE (GitHub Actions secret ref, not hardcoded) |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 (GCP metadata) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 (GCP metadata) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 (Chrome block) | ENDPOINT_LEAK (documented reference) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 (NAT64 route) | ENDPOINT_LEAK (documented reference) |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | ENDPOINT_LEAK (GCP metadata hostname) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.0.0/16 (metadata CIDR) | ENDPOINT_LEAK (network config) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | staging.release-eq7.pages.dev | ENDPOINT_LEAK (staging URL) |
-
-## INTERESTING (debug flags, keys, cloud configs, operational patterns)
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | INTERESTING (CLI env var generation) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path, kubeconfig_context | INTERESTING (K8s config params) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | INTERESTING (token storage key name) |
-| google/capsem/config/gate.toml | 481 | password = "password.txt" | INTERESTING (password file reference) |
-| google/capsem/scripts/preflight.sh | 39 | password="$(tr -d '\n' < "$pass_file")" | INTERESTING (operational password read) |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(tr -d '\n' < "$PASS_FILE")" | INTERESTING (operational password read) |
-| google/adk-python/src/google/adk/cli/browser/*.js | (18 files) | Minified parser error messages | NOT_SENSITIVE (build artifacts) |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified parser | NOT_SENSITIVE (build artifact) |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified parser | NOT_SENSITIVE (build artifact) |
-| google/closure-compiler/externs/* | various | W3C spec references | NOT_SENSITIVE (externs) |
-
-# VERDICT
-REPORT_CANDIDATE: no (for all new delta hits)
-- No new REAL_SECRET found in delta
-- earthengine-api secret already ACCEPTED in KB (not new)
-- All delta hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (documented), or INTERESTING (config/operational)
-- 18 minified JS chunks are build artifacts, not source secrets
-
-# KNOWN LIVE FINDINGS (from KB, not in this delta)
-- google/earthengine-api/python/ee/oauth.py:45 — client_secret sha256 3f3f8d6f...d271 — ACCEPTED, REPORT_CANDIDATE=yes (pending VRP determination on native-app by-design)
-[0m
-**Delta scan verdict: NO new reportable findings**
-
-All 33 new hits classify as:
-- **TEST_OR_EXAMPLE** (10): test fixtures, placeholders (`password`, `your_client_secret`, fake JWTs, GitHub Actions `${{secrets.*}}` refs)
-- **ENDPOINT_LEAK** (7): documented GCP metadata references (169.254.169.254, metadata.google.internal) + one staging URL
-- **INTERESTING** (6): config params (kubeconfig, token storage keys), operational password file reads
-- **NOT_SENSITIVE** (10): minified JS parser chunks + closure externs
-
-**Previously ACCEPTED live finding (not in delta):**
-- `google/earthengine-api/python/ee/oauth.py:45` — OAuth client_secret sha256 `3f3f8d6f...d271` — **REPORT_CANDIDATE=yes** (valid credential per RFC 6749 §5.2 A/B proof; native installed app + OOB redirect matches ADK #2128 by-design precedent — VRP severity capped but credential validity confirmed)
+**Summary**: No REAL_SECRET findings in this delta. All hits are test fixtures, placeholder values, standard secret references (GitHub Actions `${{ secrets.* }}`), public cloud metadata endpoints (169.254.169.254), or config patterns referencing external files. No reportable credentials.
