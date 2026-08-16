@@ -1212,3 +1212,15 @@
 - 2026-08-16 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live (400/113 invalid_token) but no-reward per Google VRP program rules (query-param token introspection without Authorization header not eligible for reward)
 - 2026-08-16 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 - 2026-08-16 REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic redirect, no auth-bypass surface
+- 2026-08-16 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — HTTP 400 missing project, then 401 storage.buckets.list denied; no bypass
+- 2026-08-16 ACCEPTED agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-16 08:44 UTC — 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels (NO_DELTA).
+- 2026-08-16 ACCEPTED earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, whole-file sha `f4f93c76…` unchanged, POST→invalid_grant (vs fake→invalid_client) per RFC 6749 §5.2 conclusive (NO_DELTA).
+- 2026-08-16 ACCEPTED oauth2PermissionGrants caller-chosen resourceId on production v1.0 confirmed auth-gated — GET→401/237 Bearer + 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions (NO_DELTA).
+- 2026-08-16 REJECTED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — confirmed live but no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- 2026-08-16 REJECTED dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset invariant holds across all cycles, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-16 REJECTED source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
+- 2026-08-16 ACCEPTED agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot: item-level true preflight 200 ACAO:* + PATCH allowlist + Max-Age 86400 re-verified live 08:44 UTC; GET 401/237, HEAD 405/0 (RFC 6750 §3).
+- 2026-08-16 ACCEPTED earthengine-api oauth.py:45 hardcoded secret @ raw.githubusercontent.com: source live (file sha `f4f93c76…b73040`, bare secret sha `3f3f8d6f…d271` verbatim at :45 via printf verify), A/B invalid_grant-vs-invalid_client proof conclusive.
+- 2026-08-16 ACCEPTED oauth2PermissionGrants auth-gate @ graph.microsoft.com/v1.0: GET→401/237 Bearer + HEAD→405/0 re-verified.
+- 2026-08-16 ACCEPTED v1(5)⊂v2(9) JWKS subset invariant holds this probe @ login.microsoftonline.com — 0 v1-exclusive; rotation-desync class stays REJECTED.
+- 2026-08-16 REJECTED no new proving-dead classes this cycle — all fresh probes (08:44 UTC) confirmed prior findings unchanged, NO_DELTA.
