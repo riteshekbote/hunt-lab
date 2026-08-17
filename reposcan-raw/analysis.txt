@@ -1,74 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-317 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m$ [0mecho -n "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | sha256sum
+4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=15, offset=35][0m
-Now I have all context. Let me produce the classification.
+[0m$ [0mecho -n '-----BEGIN PRIVATE KEY-----...' | sha256sum
+a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3  -
+[0m
+| Category | File | Line | Secret SHA256 | Verdict |
+|----------|------|------|---------------|---------|
+| **REAL_SECRET** | google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | Firebase API key in `debug/local` build variant — **public by design** (client-side config), not reportable |
+| **REAL_SECRET** | google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3` | Truncated test fixture private key (`...` ellipsis) — **test fixture**, not live |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 269 | N/A | `username="user", password="password"` — obvious test credentials |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 278 | N/A | Truncated test JWT `eyAkaknabna....` — test fixture |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | N/A | `PASSWORD = "password"` — test constant |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | N/A | `client_secret="your_client_secret"` — placeholder |
+| **TEST_OR_EXAMPLE** | google/heir/scripts/author_stats.py | 16 | N/A | Commented `# TOKEN = "your_github_token_here"` — placeholder |
+| **TEST_OR_EXAMPLE** | google/capsem/config/gate.toml | 584 | N/A | `password = "password.txt"` — references file, not secret |
+| **TEST_OR_EXAMPLE** | google/capsem/scripts/preflight.sh | 39 | N/A | Reads password from file — not hardcoded |
+| **TEST_OR_EXAMPLE** | google/capsem/scripts/fix_p12_legacy.sh | 15 | N/A | Reads password from file — not hardcoded |
+| **TEST_OR_EXAMPLE** | google/device-infra/src/java/.../DeviceAdminUtil.java | 49-50 | N/A | Android intent action constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
+| **TEST_OR_EXAMPLE** | google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | N/A | `PARAM_PASSWORD = "password"` — parameter name constant |
+| **ENDPOINT_LEAK** | google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39 | N/A | Fetches SA email from GCE metadata endpoint — **runtime behavior, not leak** |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | N/A | Documents `169.254.169.254` metadata endpoint — documentation |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/load_web_page.py | 171 | N/A | Documents metadata endpoint — documentation |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | N/A | Documents metadata endpoint — documentation |
+| **INTERESTING** | google/dotprompt/.github/workflows/*.yml | 33-34 | N/A | `test.pypi.org/legacy/` — test PyPI registry URLs |
+| **INTERESTING** | google/dotprompt/packages/monaco/src/*.ts | 67-183 | N/A | Monaco editor token definitions (Handlebars/YAML syntax highlighting) |
+| **INTERESTING** | google/langextract/.github/workflows/ci.yaml | 168-170 | N/A | GitHub Actions secret refs (`${{ secrets.GEMINI_API_KEY }}`) — proper secret usage |
+| **INTERESTING** | google/capsem/.github/workflows/release-channel-staging.yaml | 17 | N/A | Staging URL `https://staging.release-eq7.pages.dev` |
+| **INTERESTING** | google/gopacket/layers/radiotap.go | 552,554,556 | N/A | Radiotap protocol token constants (`80(20LL)`, etc.) — protocol specs |
+| **INTERESTING** | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | N/A | State key constant `_vmaas_access_token` — not a secret |
+| **INTERESTING** | google/adk-python/src/google/adk/cli/cli_create.py | 131 | N/A | Interpolates `GOOGLE_API_KEY={google_api_key}` from variable — not hardcoded |
+| **INTERESTING** | google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | N/A | Minified JS build artifacts — parse error messages, not secrets |
 
 ---
 
-## Classification Table
+**SHORT VERDICT LIST:**
 
-### REAL_SECRET (reportable)
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none found in this scan)* | | | |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key (public by design, debug build variant) | **no** |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Truncated test fixture private key | **no** |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `user`/`password` | **no** |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Truncated test JWT | **no** |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` | **no** |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` | **no** |
+| google/heir/scripts/author_stats.py | 16 | Commented placeholder | **no** |
+| google/capsem/config/gate.toml | 584 | References password file | **no** |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file | **no** |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | **no** |
+| google/device-infra/src/java/.../DeviceAdminUtil.java | 49-50 | Android intent action constants | **no** |
+| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | Parameter name constant | **no** |
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39 | GCE metadata fetch (runtime) | **no** |
+| All other hits | — | Test URLs, Monaco tokens, docs, build artifacts, secret refs | **no** |
 
-### TEST_OR_EXAMPLE (fixtures, placeholders, examples — NOT reportable)
-| File | Line | Pattern | Context |
-|------|------|---------|---------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc example comment |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc example comment |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | OAuth2 grant type enum value (`password` grant) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example docstring with placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test fixture in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated example JWT in test fixture |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth2 grant type enum (`password` grant) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Example docstring placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269,278 | HttpCredentials test fixtures | Unit test / example data |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret reference (safe) |
-
-### ENDPOINT_LEAK (internal/dev URLs — known public metadata endpoints)
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname (well-known) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local CIDR including metadata IP (comment) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | GCP metadata endpoint (comments) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | GCP metadata endpoint (comment) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | GCP metadata endpoint (comment) |
-
-### INTERESTING (config references, build-time secrets via files/env)
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References external password file; actual secret in `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` env var |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file arg at runtime |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Same — build-time cert tooling |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant, not a secret |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | CLI writes user-provided key to .env (not hardcoded) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret reference (safe) |
-| google/adk-*/cli/browser/chunk-*.js | many | Minified JS bundles | Build artifacts, not source secrets |
-
----
-
-## SHORT VERDICT
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/adk-js/auth_schemes.ts `PASSWORD` | **no** | OAuth2 `password` grant type enum value |
-| google/adk-python/auth_schemes.py `PASSWORD` | **no** | Same — OAuth2 grant type enum |
-| google/adk-python/auth_credential.py private_key | **no** | Docstring example with `...` placeholder |
-| google/adk-python/auth_credential.py test creds | **no** | Unit test fixtures (`user`/`password`, truncated JWT) |
-| google/adk-python/openapi_tool/auth_helpers.py | **no** | Example docstring `your_client_secret` |
-| google/capsem gate.toml / scripts | **no** | References external password file / env var (build-time signing) |
-| google/langextract CI secrets refs | **no** | GitHub Actions `${{ secrets.* }}` pattern — safe |
-| GCP metadata endpoint refs (169.254.169.254) | **no** | Well-known public metadata IP, documented in comments |
-| Minified JS chunks | **no** | Build artifacts |
-
-**NO REPORTABLE SECRETS IN THIS SCAN** — all hits are test fixtures, placeholders, enum values, docstring examples, build-time config referencing external secret stores, or comments referencing well-known metadata endpoints.
+**SUMMARY:** Zero reportable findings. All hits are test fixtures, placeholders, documentation, build artifacts, or proper secret references (`${{ secrets.* }}`). The Firebase API key in `debug/local/google-services.json` is client-side config (public by design per Firebase model). The adk-python test fixtures match known duplicates (REJECTED in KB).
