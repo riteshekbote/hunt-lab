@@ -1,65 +1,147 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key"
-1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m$ [0mecho -n 'iU5ohAF2qcqrujegE3hQ1cPt' | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "iU5ohAF2qcqrujegE3hQ1cPt"
-405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m$ [0mgrep -r "iU5ohAF2qcqrujegE3hQ1cPt" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/ 2>/dev/null | head -20
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password"
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+[0m$ [0mgrep -r "CLIENT_SECRET" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/ 2>/dev/null
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:                client_secret=CLIENT_SECRET,
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:                client_secret=CLIENT_SECRET,
 [0m
-### Classification Tables
+[0m$ [0mhead -80 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py
+# Contains code from https://github.com/ibis-project/ibis/blob/9.2.0/ibis/backends/bigquery/__init__.py
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Verdict |
+"""BigQuery public API."""
+
+from __future__ import annotations
+
+import concurrent.futures
+import contextlib
+import glob
+import os
+import re
+from typing import TYPE_CHECKING, Any, Optional
+
+import bigframes_vendored.ibis
+import bigframes_vendored.ibis.common.exceptions as com
+import bigframes_vendored.ibis.expr.datatypes as ibis_dtypes
+import bigframes_vendored.ibis.expr.operations as ops
+import bigframes_vendored.ibis.expr.schema as sch
+import bigframes_vendored.ibis.expr.types as ir
+import bigframes_vendored.sqlglot as sg
+import bigframes_vendored.sqlglot.expressions as sge
+import google.api_core.exceptions
+import google.auth.credentials
+import google.cloud.bigquery as bq
+import google.cloud.bigquery_storage_v1 as bqstorage
+import pydata_google_auth
+from bigframes_vendored.ibis import util
+from bigframes_vendored.ibis.backends import CanCreateDatabase, CanCreateSchema
+from bigframes_vendored.ibis.backends.bigquery.client import (
+    bigquery_param,
+    parse_project_and_dataset,
+    rename_partitioned_column,
+    schema_from_bigquery_table,
+)
+from bigframes_vendored.ibis.backends.bigquery.datatypes import BigQuerySchema
+from bigframes_vendored.ibis.backends.sql import SQLBackend
+from bigframes_vendored.ibis.backends.sql.compilers import BigQueryCompiler
+from bigframes_vendored.ibis.backends.sql.datatypes import BigQueryType
+from pydata_google_auth import cache
+
+if TYPE_CHECKING:
+    from collections.abc import Iterable, Mapping
+    from pathlib import Path
+    from urllib.parse import ParseResult
+
+    import pandas as pd
+    import polars as pl
+    import pyarrow as pa
+
+
+SCOPES = ["https://www.googleapis.com/auth/bigquery"]
+EXTERNAL_DATA_SCOPES = [
+    "https://www.googleapis.com/auth/bigquery",
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/drive",
+]
+CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+
+
+def _create_user_agent(application_name: str) -> str:
+    user_agent = []
+
+    if application_name:
+        user_agent.append(application_name)
+
+    user_agent_default_template = f"ibis/{bigframes_vendored.ibis.__version__}"
+    user_agent.append(user_agent_default_template)
+
+    return " ".join(user_agent)
+
+
+def _create_client_info(application_name):
+    from google.api_core.client_info import ClientInfo
+
+    return ClientInfo(user_agent=_create_user_agent(application_name))
+
+
+def _create_client_info_gapic(application_name):
+    from google.api_core.gapic_v1.client_info import ClientInfo
+[0m
+Based on my analysis, here's the classification:
+
+## Classification Table
+
+### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
 |------|------|---------------|---------|
-| *(none)* | | | No live credentials found in delta |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (with CLIENT_ID) |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret, duplicated |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Secret SHA256 | Notes |
-|------|------|---------|---------------|-------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | `1a539ef3ab3bfd31…` | Placeholder value in scaffold template |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` | `405bc76ccb59146a…` | Vendored 3rd-party (ibis), `# noqa: S105` test secret |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` | `405bc76ccb59146a…` | Duplicate of above in vendored code |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | `6b3a55e0261b0304…` | Fixture test data |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | — | Truncated fake JWT in test |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `6b3a55e0261b0304…` | Test constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | — | Placeholder PEM in test |
-| google/agents-cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs.* }}` | — | GitHub Actions templating, not secrets |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | — | Proper secrets reference syntax |
-| google/sam/... | multiple | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | — | K8s ConfigMap/env var references |
-| google/adk-web/.../*.spec.ts | multiple | `'initial-token'`, `'nextPage'` | — | Test pagination tokens |
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant `keyRefreshToken = "refresh_token"` (literal string, not a token) |
+| `reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 413, 459 | Test fixtures: `'initial-token'`, `'updated-token-123'` |
+| `reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 221, 240, 461 | Test fixtures: `'nextPage'` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder: `GEMINI_API_KEY = "gemini_api_key"` (literal placeholder string) |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Shell var ref: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (default empty) |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | GitHub Actions secret refs: `${{ secrets.* }}` |
+| `reposcan-raw/google/dotprompt/.github/workflows/*.yml` | 33-34 | PyPI test URLs (`test.pypi.org`) |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 54-55 | Commented MySQL doc URLs |
+| `reposcan-raw/google/bigframes/scripts/run_doctest.sh` | 38-39 | Service account file ref (not embedded) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` | Staging/autopush API endpoints for Confidential Computing |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | `pantheon.corp.google.com/compute/images...` | Internal Corp URL in comment |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `metadata.google.internal/computeMetadata/v1/...` | Standard GCP metadata server (not a leak) |
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| `reposcan-raw/google/go-tpm-tools/run_cloudbuild.sh` | 16 | `pantheon.corp.google.com` (internal, in comment) |
+| `reposcan-raw/google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh` | 70 | `metadata.google.internal` (GCE metadata, normal) |
+| `reposcan-raw/google/go-tpm-tools/launcher/spec/launch_spec.go` | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
 
-#### INTERESTING
-| File | Line | Observation |
-|------|------|-------------|
-| google/bigframes/third_party/.../ibis/backends/bigquery/__init__.py & backend.py | 58,59 | Duplicate CLIENT_SECRET in vendored ibis — vendoring sync artifact |
-| google/dotprompt/.github/workflows/*.yml | 33-34 | `test.pypi.org/legacy/` publish targets — expected for pre-release |
-| google/dotprompt/packages/monaco/src/*.ts | 67-183 | Monaco editor token definitions for Handlebars/YAML — syntax highlighting config |
+### INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 56-58 | **Vendored upstream OAuth client**: `CLIENT_ID=546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com`, `CLIENT_SECRET=iU5ohAF2qcqrujegE3hQ1cPt` — from ibis-project/ibis v9.2.0, public OAuth client for BigQuery auth flow (not a Google internal secret) |
+| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret reference pattern: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (secret manager ref, not a secret) |
+| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | 3 | Minified parser error messages (bundled JS, not secrets) |
 
 ---
 
-### Verdict List
+## SHORT VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| google/agents-cli `GEMINI_API_KEY = "gemini_api_key"` | **no** | Placeholder in scaffold template |
-| google/bigframes vendored ibis `CLIENT_SECRET` | **no** | Third-party test secret (`# noqa: S105`), not Google credential |
-| google/adk-python test fixtures (password, fake JWT, placeholder PEM) | **no** | Test/fixture data in auth credential tests |
-| google/agents-cli workflow templating | **no** | GitHub Actions `${{ steps... }}` syntax |
-| google/langextract workflow secrets refs | **no** | Proper `${{ secrets.* }}` usage |
-| google/sam OIDC_CLIENT_SECRET env var | **no** | K8s ConfigMap reference, not hardcoded |
-| google/go-tpm-tools staging endpoints | **no** | Public sandbox API endpoints, not secrets |
-| google/go-tpm-tools corp URL in comment | **no** | Internal docs link, no credential |
-| google/adk-web test tokens | **no** | Fixture pagination tokens |
+| ibis BigQuery CLIENT_SECRET (2 files) | **no** | Vendored from upstream ibis-project/ibis v9.2.0; public OAuth client for BigQuery auth (client_id `546535678771-...`), not a Google internal credential. `# noqa: S105` suppresses bandit for known upstream pattern. |
+| All TEST_OR_EXAMPLE hits | **no** | Test fixtures, placeholders, secret references, doc URLs |
+| All ENDPOINT_LEAK hits | **no** | Internal URLs in comments, GCE metadata (normal), sandbox endpoints |
+| INTERESTING items | **no** | Vendored dependency config, secret manager ref pattern, minified JS |
 
-**Summary**: **0 REAL_SECRET** candidates in this delta. All hits are test fixtures, template placeholders, third-party vendored test secrets, proper secrets references, or benign endpoint references. No reportable findings.
+**No reportable findings in this scan delta.** The only hardcoded credential-like material is the ibis OAuth client/secret pair, which is a known public client from an upstream open-source dependency (ibis-project/ibis) vendored into google/bigframes.
