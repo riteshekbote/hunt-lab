@@ -1,88 +1,76 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | head -170 | tail -20
-// Handle the initial sign-in state.
-      this.updateSigninStatus(isSignedIn.get());
-    };
-
-    window.gapi.client
-      .init({
-        // eslint-disable-next-line no-useless-concat
-        apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
-        clientId: '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        scope:
-          'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.install',
-      })
-      .then(postInit);
-  }
-
-  // updateSigninStatus is called when the signed in status changes.
-  updateSigninStatus(isSignedIn: boolean): void {
-    if (!isSignedIn) {
-      window.gapi.auth2.getAuthInstance().signIn();
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "AIzaSyD2US0bcYT2Vh" --include="*.ts" --include="*.js" 2>/dev/null | head -5
+reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:        apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
 [0m
-[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
-d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "not-a-valid-client-secret" --include="*.go" 2>/dev/null
+reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go:		ClientSecret: "not-a-valid-client-secret",
+reposcan-raw/google/skia-buildbot/go/login/login.go:	oauthConfig = configConstructor("not-a-valid-client-id", "not-a-valid-client-secret", "http://localhost:8000/oauth2callback/")
+[0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts[90m [offset=150, limit=20][0m
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
+44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
 [0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | Secret Type | SHA256 | Notes |
-|------|------|-------------|--------|-------|
-| reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | Google API Key | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` | `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` — domain-locked to `skottie.skia.org` per comment |
+#### REAL_SECRET (hardcoded credentials with signs of life)
 
-#### TEST_OR_EXAMPLE
+| File | Line | Type | SHA256 (secret material) | Context |
+|------|------|------|--------------------------|---------|
+| `reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | Google API Key | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Split string `'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg'` used in `gapi.client.init()`, comment claims "locked to https://skottie.skia.org" |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data, not reportable)
+
 | File | Line | Reason |
 |------|------|--------|
-| reposcan-raw/google/sam/internal/node/store.go | 38 | Constant name `keyRefreshToken = "refresh_token"` |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | Variable refs `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` |
-| reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Template vars `{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`, `{{ .Env.ES_PWD }}` |
-| reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | Explicitly fake: `ClientSecret: "not-a-valid-client-secret"` |
-| reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go | 16 | Filename constant `OUTPUT_FILENAME = "service-account.json"` |
-| reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | Secret name ref `secretAPIKey = "perf-issue-tracker-apikey"` |
-| reposcan-raw/google/skia-buildbot/go/metadata/metadata.go | 23,27,30 | Constant names `CLIENT_SECRET`, `GMAIL_CACHED_TOKEN`, `GMAIL_CLIENT_SECRET` |
-| All `kind: ConfigMap` hits | — | K8s config templates |
+| `reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Documentation fixture (`mock-oidc.yaml`) |
+| `reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Documentation manifest |
+| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant `"refresh_token"` (string literal, not a secret) |
+| `reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm chart template |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Env var reference with empty default `${OIDC_CLIENT_SECRET:-}` |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247,249,250 | GitHub Actions secret refs (`${GOOGLE_CLIENT_SECRET}`, etc.) |
+| `reposcan-raw/google/sam/.github/k8s/*.yaml` (9 files) | 2,14 | K8s template ConfigMaps |
+| `reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | Template vars (`{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`) |
+| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Explicitly fake `"not-a-valid-client-secret"` |
+| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Internal service account email (not a secret) |
+| `reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | Comments/constants about service account file |
+| `reposcan-raw/google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh` | 21 | Comment |
+| `reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Secret **name** `"perf-issue-tracker-apikey"` (comment: "Not a credential") |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/**/*.yml` (4 files) | 12,4,110,30 | Ansible vault refs `{{ secrets.skolo_password }}` |
+| `reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go` | 96 | Error message template |
+| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant strings `"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"` |
 
-#### ENDPOINT_LEAK
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+
 | File | Line | Endpoint |
 |------|------|----------|
-| reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `https://source.corp.google.com/h/chrome-internal/` |
-| reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` |
-| reposcan-raw/google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68,75,82 | `https://rotations.corp.google.com/rotation/...` |
-| reposcan-raw/google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | `https://pantheon.corp.google.com/storage/browser/skia-cdn/...` |
-| reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `https://pantheon.corp.google.com/logs/query...` |
-| reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
-| reposcan-raw/google/skia-buildbot/kube/corp-config.sh | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml | 143 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| reposcan-raw/google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | `https://b.corp.google.com/issues/new...` |
-| reposcan-raw/google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | `https://b.corp.google.com/issues/492077374` (multi-file) |
-| reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: `169.254.169.254` cloud metadata |
-| reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: `169.254.169.254` 302 redirect |
-| reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Comments: `169.254.169.254` SSRF risk docs |
+| `reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `https://source.corp.google.com/h/chrome-internal/` |
+| `reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | `https://android-build.corp.google.com/range_search/...` |
+| `reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `https://pantheon.corp.google.com/logs/query...` |
+| `reposcan-raw/google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts` | 68,75,82 | `https://rotations.corp.google.com/rotation/...` |
+| `reposcan-raw/google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `https://b.corp.google.com/issues/new...` |
+| `reposcan-raw/google/skia-buildbot/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
+| `reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` (standard GCE metadata) |
+| `reposcan-raw/google/skia-buildbot/perf/go/*/schema/schema.go` (7 files) | various | `https://b.corp.google.com/issues/492077374` (internal issue tracker) |
 
-#### INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| reposcan-raw/google/skia-buildbot/go/auth/auth.go | 30 | `defaultJwtFilename = "service-account.json"` (default filename constant) |
-| reposcan-raw/google/skia-buildbot/go/revportforward/revportforward.go | 56 | Reverse port forward infra function |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/win_autologon.yml | 12 | `password: "{{ secrets.skolo_password }}"` (Ansible vault ref) |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/gce.yml | 4 | `password: "{{ secrets.skolo_password }}"` |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/skolo.yml | 110 | `password: "{{ secrets.skolo_password }}"` |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/roles/set_root_password/tasks/main.yml | 7 | `password: "{{ secrets.skolo_password | password_hash('sha256') }}"` |
-| reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/roles/create_chrome_bot_user/tasks/linux.yml | 30 | `password: "{{ secrets.skolo_password | password_hash('sha256') }}"` |
-| reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go | 96 | Kubeconfig path handling |
+#### INTERESTING (unusual patterns, debug flags, security comments)
+
+| File | Line | Note |
+|------|------|------|
+| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to cloud metadata service (169.254.169.254) |
+| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91,151 | Comments: metadata endpoint SSRF risk, DNS-based SSRF "out of scope" |
+| `reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
+| `reposcan-raw/google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | Internal storage browser URL `pantheon.corp.google.com/storage/browser/...` |
 
 ---
 
 ### Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158 | REAL_SECRET | **yes** — Hardcoded Google API key (domain-locked but real credential in source) |
-| All other hits | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** — Config templates, variable refs, internal URLs, infra constants, Ansible vault refs |
+| Candidate | File | REPORT_CANDIDATE | Rationale |
+|-----------|------|------------------|-----------|
+| Google API Key (AIzaSy...) | `skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | **yes** | Real Google API key (AIzaSy* format, 39-char payload) hardcoded in client-side TypeScript. Domain restriction claim does not negate credential-in-source finding. |
+| All other hits | (various) | **no** | Test fixtures, template variables, env var references, explicitly fake placeholders, internal URLs only, or secret names (not values). |
 
-**Note on the API key:** The key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` is explicitly documented as "locked to https://skottie.skia.org". This is a real credential in source code. Per Google VRP, domain-restricted API keys in client-side code are often considered low-risk but still reportable as hardcoded credentials.
-
-**Delta note:** The 6 new hits since last scan are all comments in `go-containerregistry` documenting SSRF risk around `169.254.169.254` — threat-model documentation, not vulnerabilities.
+**Summary:** 1 reportable candidate (the skottie API key). All other 370 hits are non-reportable.
