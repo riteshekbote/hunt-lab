@@ -4,129 +4,84 @@
 [0m$ [0mecho -n "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | sha256sum
 4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
 [0m
-[0m$ [0mecho -n "oAf1MTownkbSkMuCQVUIrNbS4GxKlBsDAQVKEihfajMoPiWreyhmtmVRVPVGOmJUJJAsfrYVtfVqBpGbX3BaZw==" | sha256sum
-8c5919ebf17742d3759f2988d16efbf395b3686c6a2c899d1f2afceeffa31ec1  -
+[0m$ [0mecho -n "-----BEGIN PRIVATE KEY-----..." | sha256sum
+a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3  -
 [0m
-[0m$ [0mcat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json 2>/dev/null | head -30
-{
-  "project_info": {
-    "project_number": "334087903719",
-    "project_id": "local",
-    "storage_bucket": "local.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
-        "android_client_info": {
-          "package_name": "org.groundplatform.android"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "local.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
+[0m$ [0mecho -n 'eyAkaknabna....' | sha256sum
+6c90d62b4dd549d621bd810f0a27c4bad9a044934e410669476140b9efdfd3a2  -
 [0m
-[0m$ [0mcat reposcan-raw/google/ent/ent-server.toml 2>/dev/null | head -30
-listenAddress = ":27333"
-domainName = "localhost:27333"
-
-bigqueryEnabled = false
-bigqueryDataset = "access_logs"
-
-redisEnabled = false
-redisEndpoint = "10.51.202.235:6379"
-
-cloudStorageEnabled = true
-cloudStorageBucket = "ent-objects-1"
-
-projectID = "oak-ci"
-
-ginMode = "debug"
-logLevel = "debug"
-
-[[users]]
-ID = 1
-Name = "user"
-APIKey = "oAf1MTownkbSkMuCQVUIrNbS4GxKlBsDAQVKEihfajMoPiWreyhmtmVRVPVGOmJUJJAsfrYVtfVqBpGbX3BaZw=="
-CanRead = true
-CanWrite = true
-
-[[users]]
-ID = 2
-Name = "public"
-APIKey = ""
-CanRead = true
-CanWrite = false
-[0m
-### Classification Tables
+### CLASSIFICATION TABLES
 
 #### REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| *(none)* | — | — | No hardcoded production credentials found |
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *(none)* | | | No live hardcoded credentials found in delta |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/android-cuttlefish/.github/workflows/gemini-dispatch.yml | 100, 175 | `${{ secrets.GITHUB_TOKEN }}` reference |
-| google/android-cuttlefish/.github/workflows/gemini-invoke.yml | 48, 58, 62 | `${{ secrets.GITHUB_TOKEN }}`, `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` |
-| google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml | 50, 60, 64 | Secret references |
-| google/android-cuttlefish/.github/workflows/gemini-review.yml | 46, 52, 58 | Secret references |
-| google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | 195, 222, 245 | `${{ secrets.artifact-registry-uploader-json-creds }}` |
-| google/conscrypt/testing/src/main/java/.../TestKeyStore.java | 501, 504 | Test fixture: `"password"`, `"testpassword"` |
-| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | `${{ GOOGLE_CLIENT_SECRET }}`, `${{ GITHUB_CLIENT_SECRET }}`, `${{ CLI_OAUTH_SECRET }}` env refs |
-| google/sam/development/kind/run.sh | 139 | `${OIDC_CLIENT_SECRET:-}` env ref with default |
-| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `${{ secrets.GITHUB_TOKEN }}` |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` |
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | Test fixtures: `"testpassword"`, `"test-token-123"` |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | Test fixture: `"testpassword"` |
-| google/heir/scripts/author_stats.py | 16 | Comment placeholder: `# TOKEN = "your_github_token_here"` |
-| google/ground-android/app/src/debug/local/google-services.json | 23 | **Firebase API key for `project_id: "local"`** — client-public key in debug variant |
-| google/ent/ent-server.toml | 21 | **Dev config** (`localhost:27333`, `ginMode=debug`, `projectID=oak-ci`) with local test API key |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default config placeholder: `"storage_driver_password"` |
-| microsoft/apm/src/apm_cli/.../reference.py | 1481, 1522 | Documentation comments with Azure DevOps URL templates |
-| microsoft/apm/src/apm_cli/.../download_strategies.py | 230 | Comment: ADO URL example |
-| microsoft/apm/src/apm_cli/.../discovery.py | 1010 | Comment: ADO URL example |
-| microsoft/apm/src/apm_cli/.../github_host.py | 531, 817, 851 | Documentation: Azure DevOps URL formats |
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder (truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Fixture credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder JWT (truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder |
+| google/ads_oneshop/setup_local.sh | 29-31 | Reads from local files | Setup script, secrets not in repo |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Empty default, expects env |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` refs | GH Actions secret refs |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified parser code | Build artifacts |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key `AIzaSyBK...` | **REJECTED CLASS** - Firebase keys public-by-design (KB 2026-08-07) |
 
 #### ENDPOINT_LEAK
-| File | Line | Detail |
-|------|------|--------|
-| google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp | 42 | Internal metadata endpoint: `http://metadata.google.internal/computeMetadata/v1/%s` |
-| google/yggdrasil-decision-forests/.../export_docker.py | 68 | Comment: internal Google Cloud Run URL (`pantheon.corp.google.com`) |
-| google/copybara/cloudbuild.yaml | 27 | Comment: internal Artifact Registry URL (`pantheon.corp.google.com`) |
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | GCP metadata endpoint (well-known, SSRF protection context) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Chrome metadata endpoint block |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | NAT64 route documentation |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` | 302 redirect warning |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | `169.254.169.254` / `fd00:ec2::254` | SSRF context comments |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Service discovery comment |
+| google/yggdrasil-decision-forests/.../export_docker.py | 68 | `pantheon.corp.google.com` | Internal corp URL in comment |
+| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` | K8s manifests |
 
 #### INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp | 187 | OAuth2 client_secret handling in C++ code (variable use, not hardcoded) |
-| google/sam/internal/node/store.go | 38 | Constant `keyRefreshToken = "refresh_token"` (storage key name) |
-| google/sam/.github/k8s/*.yaml | various | ConfigMap kind declarations (k8s manifests) |
-| google/sam/site/content/docs/manifests/*.yaml | 16, 88 | Documentation ConfigMap examples |
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params | GKE auth config pattern |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal token state key name |
+| google/ads_oneshop/acit/bq.sh | 31 | `curl metadata.google.internal/.../token` | Runtime GCP token fetch pattern |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GH Actions → K8s secret injection pattern |
 
 ---
 
-### SHORT VERDICT LIST
+### VERDICT LIST
 
-| Candidate | File | Line | REPORT_CANDIDATE | Reason |
-|-----------|------|------|------------------|--------|
-| Firebase API key (AIzaSy...) | google/ground-android/app/src/debug/local/google-services.json | 23 | **no** | Debug/local variant, `project_id: "local"`, client-public key by design |
-| ent-server.toml APIKey | google/ent/ent-server.toml | 21 | **no** | Dev config (`localhost`, `debug` mode, `oak-ci` project), local test key |
-| GitHub Actions secret refs | google/android-cuttlefish/.github/workflows/*.yml | multiple | **no** | Proper `${{ secrets.X }}` usage, not hardcoded |
-| Test fixtures (password, test-token) | google/conscrypt, google/copybara | multiple | **no** | Test code, obvious fixtures |
-| Internal metadata endpoint | google/android-cuttlefish/.../defaults.cpp | 42 | **no** | Internal GCP metadata URL, documented surface |
-| OAuth2 client_secret variable | google/android-cuttlefish/.../oauth2_consent.cpp | 187 | **no** | Code handling variable, not hardcoded value |
-| Azure DevOps URL docs | microsoft/apm/src/apm_cli/... | multiple | **no** | Documentation/comments only |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/ground-android Firebase API key | **no** | REJECTED CLASS - Firebase config public-by-design (KB 2026-08-07) |
+| ADK auth_credential.py placeholders | **no** | TEST_OR_EXAMPLE - truncated/fixture values |
+| ADK auth_schemes.py PASSWORD | **no** | TEST_OR_EXAMPLE - test constant |
+| ADK openapi auth_helpers.py client_secret | **no** | TEST_OR_EXAMPLE - placeholder |
+| Agents CLI GEMINI_API_KEY | **no** | TEST_OR_EXAMPLE - placeholder |
+| Ads OneShop setup_local.sh | **no** | TEST_OR_EXAMPLE - reads from local files not in repo |
+| SAM OIDC_CLIENT_SECRET / workflow secrets | **no** | TEST_OR_EXAMPLE - env var refs / GH Actions secrets |
+| ADK cli_create.py API key write | **no** | TEST_OR_EXAMPLE - variable interpolation |
+| ADK browser JS chunks | **no** | TEST_OR_EXAMPLE - build artifacts |
+| 169.254.169.254 metadata refs | **no** | ENDPOINT_LEAK - well-known public endpoint, SSRF protection context |
+| pantheon.corp.google.com | **no** | ENDPOINT_LEAK - internal URL in comment only |
+| GKE kubeconfig params | **no** | INTERESTING - config pattern, no secret |
+| VMAAS state key name | **no** | INTERESTING - internal key name only |
+| Ads OneShop runtime token fetch | **no** | INTERESTING - runtime pattern, no hardcoded secret |
+| SAM GH Actions → K8s secret injection | **no** | INTERESTING - deployment pattern, secrets from GH Actions |
+
+---
+
+### SUMMARY
+**No new reportable findings in this delta.** All hits are either:
+- **TEST_OR_EXAMPLE** (placeholders, fixtures, build artifacts, GH Actions secret refs)
+- **ENDPOINT_LEAK** (well-known metadata endpoint `169.254.169.254` in SSRF-protection code, internal corp URL in comment)
+- **INTERESTING** (config patterns, deployment patterns)
+- **REJECTED CLASS** (Firebase API key - public by design per KB)
+
+The ADK findings align with **KNOWN DUPLICATES** (issues #2128, #5520). No `REAL_SECRET` with signs of life detected.
