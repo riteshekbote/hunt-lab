@@ -1445,3 +1445,5 @@
 - 2026-08-17 ACCEPTED: Earth Engine OAuth client_secret @ oauth.py:45 confirmed live — sha256 3f3f8d6f…d271 verbatim, file sha f4f93c76… unchanged, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2 (confidence 96)
 - 2026-08-17 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char oAuth2PermissionGrant EntityType 0 OperationRestrictions
 - 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds across all cycles, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-17 NO_DELTA — all fresh passive probes (2026-08-17 05:10:14 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
