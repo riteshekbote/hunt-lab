@@ -5589,3 +5589,13 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+
+## RANKED HYPOTHESES 2026-08-17 19:26:22 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` via bughunters.google.com — the A/B invalid_grant-vs-invalid_client proof (RFC 6749 §5.2) is conclusive
+- LEARN: ACCEPTED: agentRegistrations item-level auth-gate confirmed live — GET /beta/copilot/agentRegistrations/{id} → 401/237 Bearer confirms schema-level zero-restric
+- LEARN: ACCEPTED: oauth2PermissionGrants auth-gate confirmed live on production v1.0 — GET→401/237 Bearer + HEAD→405/0 (RFC 6750 §3) confirms both auth and systemic met
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles,
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; no bypass
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
