@@ -1,59 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+## Classification Results
 
 ### REAL_SECRET
-| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
-|------|------|---------------|---------|------------------|
-| *(none new — earthengine-api secret at `google/earthengine-api/python/ee/oauth.py:45` already ACCEPTED in KB, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`)* | | | | |
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *none* | — | — | No hardcoded live credentials found |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | ConfigMap in mock OIDC manifest |
-| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | ConfigMap in control plane manifest |
-| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm template ConfigMap |
-| `google/sam/.github/k8s/*.yaml` | 2,14 | 7× K8s template ConfigMaps |
-| `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Constant `"PASSWORD_HASH_LM_FORMAT"` (format identifier) |
-| `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32,40 | Documentation comments |
-| `google/magika/tests_data/basic/javascript/code.js` | 31 | Test data file |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml` | 168,192 | GitHub Actions template expressions |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Placeholder private key, `"user"/"password"`, `"eyAkaknabna...."` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Placeholder `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template `GOOGLE_API_KEY={google_api_key}` |
-| `google/adk-python/src/google/adk/cli/browser/*.js` | 3,5,11 | 15× minified JS parser-error chunks (incl. 2 delta) |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key constant name `_vmaas_access_token` |
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not a token |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` | GitHub Actions secret refs (standard CI) |
+| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` | Vuln reference format constant |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture key |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test JWT-like token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder value |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GitHub Actions secret ref |
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | `169.254.169.254` (cloud metadata) |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91 | `169.254.169.254` (SSRF risk noted) |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 151 | `169.254.169.254`, `fd00:ec2::254` |
-| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | `169.254.169.254` |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` |
-| `google/ads_oneshop/acit/bq.sh` | 31 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
+| File | Line | Endpoint | Context |
+|------|------|----------|---------|
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` | Comment: 302 to metadata service |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` | Comment: SSRF via metadata endpoint |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Comment: cloud metadata endpoints |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Comment: metadata endpoint escalation |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Comment: NAT64 routes to metadata |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Comment: Chrome blocks metadata |
+| google/ads_oneshop/acit/bq.sh | 31 | `metadata.google.internal` | Runtime token fetch from metadata svc |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | `dev.chromium.org/spdy/...` | Historical spec URL in comment |
 
 ### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — empty default, expects env |
-| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | Proper `${{secrets.*}}` references for google-client-secret, github-client-secret, cli-oauth-secret |
-| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{secrets.GITHUB_TOKEN}}` reference |
-| `google/ads_oneshop/setup_local.sh` | 29-31 | Reads secrets from local files (`client_secrets.json`, `google_ads_developer_token.txt`, `refresh_token.txt`) |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | kubeconfig path/type annotations (no values) |
+| File | Line | Finding |
+|------|------|---------|
+| google/ads_oneshop/setup_local.sh | 29-31 | Reads `client_secret`, `developer_token`, `refresh_token` from local files (expected secret mgmt pattern) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | CLI writes `GOOGLE_API_KEY={var}` to config — variable-sourced, not hardcoded |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Explicit SSRF discussion via metadata endpoint (169.254.169.254) |
 
 ---
 
-## SHORT VERDICT
+## VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| earthengine-api `oauth.py:45` (pre-existing) | **yes** | Already ACCEPTED in KB: hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), A/B proof `invalid_grant` vs `invalid_client` per RFC 6749 §5.2, confidence 96. Native installed app + OOB redirect — VRP severity capped per ADK #2128 precedent but credential is valid. |
-| *All new scan hits* | **no** | 100% TEST_OR_EXAMPLE, ENDPOINT_LEAK (documented metadata endpoints), or INTERESTING (proper secret references / local file patterns). No new REAL_SECRET. |
-| Delta minified JS chunks (`chunk-JUE6OUNA.js`, `chunk-OCQO4LX3.js`) | **no** | Parser error messages in minified browser bundle — not secrets. |
+| langextract CI workflow secret refs | **no** | Standard `${{ secrets.* }}` GitHub Actions pattern — not hardcoded |
+| quiche SPDY/SSL comments | **no** | Historical spec URLs and legacy format comments |
+| sam OIDC/client secret refs | **no** | Env var defaults + GitHub Actions secret refs |
+| osv-scalibr weakcred constants | **no** | Vulnerability reference format strings |
+| adk-python test fixtures (private_key, password, token) | **no** | Test/example data in auth_credential.py — fixture patterns |
+| adk-python auth_schemes PASSWORD constant | **no** | Test constant `"password"` |
+| adk-python openapi_tool `your_client_secret` | **no** | Explicit placeholder |
+| adk-python vmaas state key name | **no** | Internal constant name |
+| go-containerregistry metadata endpoint comments | **no** | Well-known cloud metadata IP (169.254.169.254) documented in comments |
+| adk-python metadata endpoint comments | **no** | Same — standard cloud knowledge, not a leak |
+| ads_oneshop setup_local.sh secret file reads | **no** | Reads from local files at runtime — proper secret management |
+| ads_oneshop acit/bq.sh metadata token fetch | **no** | Standard GCP workload identity pattern |
+| adk-python cli_create.py API key write | **no** | Variable-sourced at runtime, not hardcoded |
+| magika test.pypi.org URLs | **no** | Public test registry endpoints |
+| magika test JS fixture | **no** | Obfuscated test data |
+
+**SUMMARY: 0 reportable findings.** All hits are either test fixtures, placeholder values, GitHub Actions secret references (correct pattern), documented cloud metadata endpoints, or runtime secret-loading patterns. No hardcoded live credentials detected.
