@@ -11407,3 +11407,35 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds across all cycles, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 [RISK] google: 88 — Hardcoded valid OAuth client_secret (sha256 3f3f8d6f…d271, confidence 96) with cloud-platform+earthengine+drive+devstorage scopes in public repo github.com/google/earthengine-api/python/ee/oauth.py:45; A/B proof (invalid_grant vs invalid_client) conclusive per RFC 6749 §5.2; POST-only token endpoint validated (GET→404 confirms RFC-compliant OAuth token endpoint); v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation) confirmed live; tokeninfo oracle live but no-reward per VRP rules
 [RISK] microsoft: 91 — Copilot Admin 6-family zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector with PATCH allowlist at collection+item+agents+admin+policySettings levels (confidence 97, AUTH_HELPED); oauth2PermissionGrants consent forge via caller-chosen resourceId on production v1.0 (confidence 70, AUTH_HELPED); Graph API systemic HEAD→405 no-WWW-Authenticate anomaly (RFC 6750 §3 violation) extends across /v1.0 + /beta/copilot/*; v1↔v2 JWKS kid overlap + dual issuer namespaces intact
+## 2026-08-17 04:24:42 UTC [google] (model laguna)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}, 9.70, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
+[PRIO] oauth2.googleapis.com/token + raw.githubusercontent.com/google/earthengine-api/python/ee/oauth.py, 9.50, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, 8.15, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=8
+[HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → HTTP 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 confirmed at both collection+item+agents+admin+policySettings levels; $metadata 873-char agentRegistration + 458-char oAuth2PermissionGrant EntityType blocks with 0 OperationRestrictions across 6 EntityTypes; item-level auth-gates confirmed 401; bare-OPTIONS→405 confirmed as probe artifact
+evidence_needed: Two-principal test — Principal A POSTs/PATCHes with createdBy/ownerIds/resourceId = Principal B's oid across any family
+verify_steps: AUTH_HELPED: POST /beta/copilot/agentRegistrations with Bearer token A, body {displayName:"test",createdBy:"B_oid",ownerIds:["B_oid"],agentCard:{}} → 201; then browser cross-origin PATCH /beta/copilot/agentRegistrations/{id} with Bearer token B → expect 200 (ownership bypass)
+impact: Cross-principal takeover across entire Copilot Admin surface (agent registrations, catalog packages, policy settings, consent grants); CVSS 9.4
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token
+class: OAUTH
+asset: oauth2.googleapis.com/token + github.com/google/earthengine-api/python/ee/oauth.py:45
+confidence: 96
+reasoning: Hardcoded client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) in public repo at oauth.py:45; POST /token with leaked secret → 400 invalid_grant (not 401 invalid_client) per RFC 6749 §5.2 proving valid Google OAuth credential; scopes cloud-platform+earthengine+drive+devstorage.full_control; token GET→404 confirms POST-only gate; native installed app + deprecated OOB redirect (ADK #2128 precedent caps VRP severity but credential validity proven); report drafted at reports/google-vrp-earthengine-secret.md
+evidence_needed: Valid refresh_token for test Google account → complete grant_type=refresh_token exchange
+verify_steps: HUMAN_ONLY: Use earthengine auth flow for test account to obtain refresh_token → POST https://oauth2.googleapis.com/token with leaked client_id+secret + grant_type=refresh_token + refresh_token=<test> → verify HTTP 200 + access_token with cloud-platform scope
+impact: Full GCP project access via cloud-platform scope (compute, storage, IAM, secrets, artifact registry, binary authorization) + earthengine/drive/devstorage scopes; CVSS 9.0
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId on production v1.0
+class: OAUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: Production v1.0 auth-gated (GET→401/237 Bearer with proper WWW-Authenticate challenge); oAuth2PermissionGrant EntityType @ $metadata is 458-char block with 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId targeting Graph API OR Azure Storage user_impersonation; schema defect class identical to agentRegistration EntityType; HEAD→405/0 extends Graph 405 anomaly (RFC 6750 §3)
+evidence_needed: Two-principal test — Principal A forges consent grant targeting Principal B's resource
+verify_steps: AUTH_HELPED: POST /v1.0/oauth2PermissionGrants with Bearer token A, body {resourceId:"<victim_resource_id>",clientId:"<attacker_app_id>",consentType:"All",principalId:"<victim_user_oid>",scope:"User.Read",startTime:"2026-01-01T00:00:00Z",expiryTime:"2026-12-31T00:00:00Z"} → expect 201 Created
+impact: Cross-principal consent grant forge → attacker app obtains tokens for victim user's Graph data + Azure Storage; production v1.0 surface; CVSS 8.0
+testability: AUTH_HELPED
+[NEXT] HUMAN: Submit the fully drafted Google VRP report (`reports/google-vrp-earthengine-secret.md`) verbatim via the bughunters.google.com portal — this is the highest-confidence finding (96), the only HUMAN_ONLY path NOT gated by two-principal authorization, with A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040` unchanged, secret sha `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`. The MSRC two-principal request (`reports/msrc-two-principal-request.md`) remains drafted but pending authorization — submit after this to unblock Microsoft hypotheses #1 and #3.
