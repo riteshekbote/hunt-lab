@@ -1,30 +1,57 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan results, none of these hits are real secrets. They're all test fixtures, placeholders, secret-manager references, or minified JS bundles. Let me classify them:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
+./reposcan-raw
+[0m
+[0m→ [0mRead reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts[90m [limit=20, offset=80][0m
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-6HSYUS5O.js[90m [limit=30][0m
+**Classification Tables**
 
-## Classification Table
+| Category | File | Line | Evidence | Classification |
+|----------|------|------|----------|----------------|
+| **TEST_OR_EXAMPLE** | google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | 3,9,11 | Minified PEG.js parser error messages ("Expecting..., got...") — build artifacts | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/osv.dev/deployment/clouddeploy/*/skaffold.yaml | 2,16,23 | `kind: Config`, test URLs (`test.osv.dev`), comment referencing internal pantheon.corp.google.com | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/osv.dev/external/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` — fixture domain in vuln feed parser | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/osv.dev/gcp/website/frontend3/src/*.js | 94,129,351,486 | Test API endpoints `https://api.test.osv.dev` | ENDPOINT_LEAK |
+| **TEST_OR_EXAMPLE** | google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | Returns `https://test.osv.dev/` — test environment helper | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/osv.dev/docs/_config.yml | 78 | `url: https://test.osv.dev/linter/` — test site config | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `repo_token: "${{secrets.GITHUB_TOKEN}}"` — GitHub Actions secret ref | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/sam/.github/workflows/deploy.yaml | 247-250 | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` — env var refs | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell param expansion | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — GH Actions secret refs | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` — Secret Manager access | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` — Secret Manager access | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret ref syntax | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment: `// supports legacy OpenSSL RSA key format` — documentation | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment: `// http://dev.chromium.org/spdy/...` — documentation | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` — K8s config resources | TEST_OR_EXAMPLE |
+| **TEST_OR_EXAMPLE** | microsoft/skill-recorder/common/sensitive.test.ts | 89 | `const secret = "ghp_ABCDEFGHIJKLMNOP"` — test fixture (fake PAT pattern) | TEST_OR_EXAMPLE |
 
-| Category | Count | Files |
-|----------|-------|-------|
-| **TEST_OR_EXAMPLE** | 37 | Mock OIDC configs, test credentials ("user"/"password", "your_client_secret"), placeholder private keys, minified JS chunks, auth_schemes.py PASSWORD constant |
-| **ENDPOINT_LEAK** | 6 | Comments referencing 169.254.169.254 (well-known IMDS endpoint, not a leak) |
-| **INTERESTING** | 11 | K8s ConfigMap templates, GitHub Actions secret references (`${{ secrets.* }}`), gcloud Secret Manager fetches, Cloud Run secret refs |
-| **REAL_SECRET** | 0 | — |
+---
 
-## Verdict List
+**Verdict List**
 
-All hits are **REPORT_CANDIDATE: no**
+| File | REPORT_CANDIDATE | Reason |
+|------|------------------|--------|
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | **no** | Minified parser generator output (PEG.js), not secrets |
+| google/osv.dev/deployment/clouddeploy/* | **no** | Test/staging deployment configs, no live credentials |
+| google/osv.dev/external/pypi/pypi.go | **no** | Fixture domain in test code |
+| google/osv.dev/gcp/website/frontend3/src/*.js | **no** | Test environment API endpoints (`test.osv.dev`) |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | **no** | Test helper returning test URL |
+| google/osv.dev/docs/_config.yml | **no** | Test site configuration |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | **no** | GitHub Actions secret reference pattern |
+| google/sam/.github/workflows/deploy.yaml | **no** | Environment variable references populated from GH secrets |
+| google/sam/development/kind/run.sh | **no** | Shell parameter expansion with empty default |
+| google/langextract/.github/workflows/ci.yaml | **no** | GitHub Actions secret references |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | **no** | Secret Manager access pattern, no hardcoded secret |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | **no** | Secret Manager access pattern |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | **no** | Cloud Run secret reference syntax |
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | **no** | Documentation comment |
+| google/quiche/quiche/http2/core/spdy_protocol.h | **no** | Documentation comment |
+| google/sam/.github/k8s/*.yaml | **no** | Kubernetes ConfigMap resources |
+| microsoft/skill-recorder/common/sensitive.test.ts | **no** | Test fixture with obviously fake token (`ghp_ABCDEFGHIJKLMNOP`) |
 
-**Key reasons:**
-- `auth_credential.py:157/269/278` — test fixtures (truncated key, "user"/"password", placeholder JWT)
-- `auth_schemes.py:68` — constant `"password"` in test/default scheme
-- `auth_helpers.py:62` — placeholder `"your_client_secret"`
-- `.github/workflows/*.yaml` — all reference `${{ secrets.* }}` (GitHub Secrets, not hardcoded)
-- `run.sh:139`, `push_to_github.sh:10`, `codecov_wrapper.sh:11` — fetch from secret managers at runtime
-- `cloudrun.go:246` — Cloud Run secret reference syntax
-- Minified `.js` chunks — build artifacts, parse-error strings
-- K8s `ConfigMap` entries — infrastructure templates, no secret values
-- `169.254.169.254` references — public IMDS endpoint documentation
+---
 
-**Note:** The previously accepted `earthengine-api` OAuth client_secret (`oauth.py:45`, sha256 `3f3f8d6f...d271`) is **not in this scan's hit list** — it's in a different repo (`google/earthengine-api`) not covered by these grep hits.
+**Summary: 0 REAL_SECRET candidates. All 468 hits are TEST_OR_EXAMPLE (build artifacts, test fixtures, secret references, config) or ENDPOINT_LEAK (test/staging URLs). No reportable findings.**
