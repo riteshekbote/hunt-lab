@@ -1,59 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mls -la reposcan-raw/google/adk-python/src/google/adk/cli/browser/ | head -20
-total 8424
-drwxr-xr-x 3 runner runner    4096 Aug 17 14:08 .
-drwxr-xr-x 8 runner runner    4096 Aug 17 14:08 ..
--rw-r--r-- 1 runner runner    3132 Aug 17 14:08 adk_favicon.svg
-drwxr-xr-x 3 runner runner    4096 Aug 17 14:08 assets
--rw-r--r-- 1 runner runner  265040 Aug 17 14:08 chunk-27SWUPRL.js
--rw-r--r-- 1 runner runner     224 Aug 17 14:08 chunk-2RGIIJSP.js
--rw-r--r-- 1 runner runner  447715 Aug 17 14:08 chunk-2SRK2U7X.js
--rw-r--r-- 1 runner runner  150545 Aug 17 14:08 chunk-2UTQOSKI.js
--rw-r--r-- 1 runner runner  216974 Aug 17 14:08 chunk-37QI3DOO.js
--rw-r--r-- 1 runner runner    1061 Aug 17 14:08 chunk-3BJ4SYVH.js
--rw-r--r-- 1 runner runner   24454 Aug 17 14:08 chunk-3BYZYP23.js
--rw-r--r-- 1 runner runner   11363 Aug 17 14:08 chunk-3M7KSSAK.js
--rw-r--r-- 1 runner runner    1012 Aug 17 14:08 chunk-3TW5HJSC.js
--rw-r--r-- 1 runner runner    6245 Aug 17 14:08 chunk-47TAWZZ5.js
--rw-r--r-- 1 runner runner     967 Aug 17 14:08 chunk-4LH47YYI.js
--rw-r--r-- 1 runner runner     188 Aug 17 14:08 chunk-4R6SYGKS.js
--rw-r--r-- 1 runner runner   53338 Aug 17 14:08 chunk-4V3PIBXT.js
--rw-r--r-- 1 runner runner    1620 Aug 17 14:08 chunk-4VDZU6IO.js
--rw-r--r-- 1 runner runner     751 Aug 17 14:08 chunk-4WEIDHEA.js
-[0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
-Now I have enough context. All hits are **TEST_OR_EXAMPLE** or **INTERESTING** (proper secret management patterns). No **REAL_SECRET** findings.
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this scan)* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` (docs/mock) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` (docs) |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` (helm template) |
+| google/sam/.github/k8s/*.yaml | 2,14 | `kind: ConfigMap` (k8s templates, 7 files) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env placeholder) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` (GH Actions secret ref) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GH Actions secret refs) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` (fetches from Secret Manager) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` (fetches from Secret Manager) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: placeholder private_key, `username="user", password="password"`, truncated token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (test constant) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` (placeholder) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` (code generating config, not hardcoded) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (constant key name) |
+| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` (reference string) |
+| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go | 32,40 | Documentation comments with URLs |
+
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params (config, not internal URL) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint (documented public IP) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint (documented) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` in Chrome (documented) |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS parser error messages (build artifacts, 20+ files) |
+| google/adk-python/src/google/adk/cli/browser/main-*.js | 5 | Minified JS source map chunks (build artifacts, 2 files) |
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment: legacy OpenSSL RSA key format |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment: SPDY protocol draft URL |
 
 ---
 
-### Classification Tables
+### SHORT VERDICT LIST
 
-| Category | File | Line | Reason |
-|----------|------|------|--------|
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/browser/chunk-*.js` (8 delta + 12 grep) | various | Minified JS build artifacts — parse error strings in source maps |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example/docstring placeholders: `"-----BEGIN PRIVATE KEY-----..."`, `"user"/"password"`, `"eyAkaknabna...."` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — OAuth grant type enum value, not a credential |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes user-provided `google_api_key` variable to `.env` — template generation |
-| **TEST_OR_EXAMPLE** | `google/sam/**/*.yaml` (11 files) | various | `kind: ConfigMap` — Kubernetes config templates |
-| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | GitHub Actions secret refs: `${{secrets.GOOGLE_CLIENT_SECRET}}` etc. |
-| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs: `${{secrets.GEMINI_API_KEY}}`, `${{secrets.OPENAI_API_KEY}}` |
-| **TEST_OR_EXAMPLE** | `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — standard GITHUB_TOKEN |
-| **TEST_OR_EXAMPLE** | `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Test PyPI URLs (`test.pypi.org`) |
-| **TEST_OR_EXAMPLE** | `google/magika/tests_data/basic/javascript/code.js` | 31 | Test data file — minified JS fixture |
-| **TEST_OR_EXAMPLE** | `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Constant `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` — reference string |
-| **TEST_OR_EXAMPLE** | `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32, 40 | Comments/documentation about MySQL MyLogin |
-| **TEST_OR_EXAMPLE** | `google/quiche/quiche/quic/core/crypto/certificate_view.h` | 126 | Comment: `// supports legacy OpenSSL RSA key format` |
-| **TEST_OR_EXAMPLE** | `google/quiche/quiche/http2/core/spdy_protocol.h` | 7 | Comment with documentation URL |
-| **TEST
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| (none) | REAL_SECRET | **no** |
+
+**Summary**: This scan produced **zero reportable secrets**. All hits are:
+- Test fixtures / placeholders / documentation (TEST_OR_EXAMPLE)
+- GitHub Actions `${{ secrets.X }}` references or `gcloud secret-manager` fetches (proper secret handling)
+- Well-known metadata endpoint `169.254.169.254` references (documented, not sensitive)
+- Minified JS build artifacts (parser error strings in chunk files)
+
+The previously tracked `earthengine-api` OAuth client_secret (`oauth.py:45`) **does not appear in this scan's grep hits** — it was found in a prior reposcan cycle and remains in the knowledge base as ACCEPTED (live, valid credential per RFC 6749 §5.2 A/B proof). No new REAL_SECRET candidates in this delta.
