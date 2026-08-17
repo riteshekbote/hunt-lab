@@ -1,4 +1,4 @@
-## 2026-08-17 08:22:57 UTC [google] (model bigpickle)
+## 2026-08-17 09:06:29 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings} | 97 | attack=10 business=9 tech=9 gate=7 cloud=7 fresh=8
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | 76 | attack=8 business=9 tech=8 gate=6 cloud=5 fresh=7
 [PRIO] earthengine-api oauth.py:45 (hardcoded secret) | 72 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
@@ -6,7 +6,7 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
 confidence: 97
-reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels; GET→401/237 proper Bearer challenge; HEAD→405/0 no WWW-Authenticate (RFC 6750 §3 violation extends across gateway); $metadata 873-char agentRegistration + 458-char oAuth2PermissionGrant blocks, 0 OperationRestrictions, client-supplied createdBy/ownerIds Nullable=false across 6 EntityTypes.
+reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels; GET→401/237 proper Bearer challenge; HEAD→405/0 no WWW-Authenticate (RFC 6750 §3 violation); $metadata 873-char agentRegistration + 458-char oAuth2PermissionGrant blocks, 0 OperationRestrictions, client-supplied createdBy/ownerIds Nullable=false across 6 EntityTypes.
 evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any of the 6 family members.
 verify_steps: AUTH_HELPED: (1) A POST agentRegistrations {displayName:"test",createdBy:B-oid,ownerIds:[B-oid],agentCard:{}} → 201; (2) B GET collection → 200 vs 403; (3) B PATCH {A-created-id} with benign change → 200/204 vs 403; (4) repeat for agents/{id}, admin/catalog/packages/{id}, admin/policySettings/{id}; (5) record all status codes and CORS response headers on cross-principal mutations.
 impact: cross-principal agent/package/policy tamper → impersonation of any Copilot agent, instruction injection into agent card manifests, supply-chain via catalog packages, policy setting overwrite; CVSS 7.5–9.0 depending on downstream agent consumption.
@@ -31,7 +31,7 @@ impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app 
 testability: HUMAN_ONLY
 [PARKED] (none — all 3 survive: conf ≥ 40, none on REJECTED list, concrete verify_steps present)
 [FINAL] (re-ranked, same as prior cycle):
-[NEXT] HUMAN: Send the drafted MSRC two-principal request (reports/msrc-two-principal-request.md) to the MSRC portal — one authorized-tenant enrollment unblocks both the 6-family IDOR+CORS (97) and the oauth2PermissionGrants consent forge (76); both are unconditionally blocked on two-authenticated-principal verification that no passive probe can reach, and passive re-verification has been NO_DELTA for 12+ consecutive cycles. Simultaneously, submit the drafted Google VRP report (reports/google-vrp-earthengine-secret.md) to Google's bug bounty portal — the earthengine secret A/B proof (invalid_grant vs invalid_client per RFC 6749 §5.2) is conclusive and the file remains on master HEAD.
+[NEXT] HUMAN: Send the drafted MSRC two-principal request (`reports/msrc-two-principal-request.md`) to the MSRC portal — one authorized-tenant enrollment unblocks both the 6-family IDOR+CORS (97) and the oauth2PermissionGrants consent forge (76); both are unconditionally blocked on two-authenticated-principal verification that no passive probe can reach, and passive re-verification has been NO_DELTA for 12+ consecutive cycles. Simultaneously, submit the drafted Google VRP report (`reports/google-vrp-earthengine-secret.md`) to Google's bug bounty portal — the earthengine secret A/B proof (invalid_grant vs invalid_client per RFC 6749 §5.2) is conclusive and the file remains on master HEAD.
 [LEARN] ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this cycle.
 [LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
 [LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions.
