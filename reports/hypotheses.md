@@ -5692,3 +5692,27 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+
+## RANKED HYPOTHESES 2026-08-17 22:37:15 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/google-vrp-earthengine-secret.md` via bughunters.google.com — the A/B invalid_grant-vs-invalid_client proof (leaked secret→400 `invalid_g
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — this single request unblocks AUTH_HELPED testing for BOTH hypothesis 
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400 missing project then 401 storage.buckets.list denied
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — 200 ACAO:* + PA
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret valid credential — A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2 conclusive (leaked secret→400 invalid_
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, HEAD→405/0 (RFC 6750 §3), 458-cha
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param introspection without Au
+- LEARN: REJECTED: dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds across all cycles, v1 kid set never valid
+- LEARN: REJECTED: source maps @ identity SPAs closed — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); recon surface eliminated.
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this 
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per 
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRe
+- LEARN: ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
