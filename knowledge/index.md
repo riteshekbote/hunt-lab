@@ -1481,3 +1481,5 @@
 - 2026-08-17 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect, no auth-bypass surface
 - 2026-08-17 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires project+auth, no bypass
 - 2026-08-17 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels (fresh probe 15:58 UTC)
+- 2026-08-17 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only
