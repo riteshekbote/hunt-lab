@@ -1,69 +1,33 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
-### Classification Tables
+Let me analyze the scan results and classify each hit according to the categories. I need to look at each hit and determine if it's a REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none* | — | — | No live credentials found in delta or full scan |
+First, let me review the REJECTED classes and KNOWN DUPLICATES from the knowledge base to avoid false positives.
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example section, placeholder with `...`, `your_project_id`, `your_private_key_id` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `username="user", password="password"` | "Example: HTTP Auth" section, obvious test values |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` | "Example: OAuth2 Bearer Token" section, truncated placeholder |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | OAuthGrantType enum value for "password" grant type |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Example section, placeholder |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation for user input, not hardcoded |
-| `google/nomulus/core/src/nonprod/java/.../PostgresqlCommand.java` | 28 | `DB_PASSWORD = "domain-registry"` | Nonprod/test fixture |
-| `google/nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java` | 40 | `DB_PASSWORD = "domain-registry"` | Nonprod/test fixture |
-| `google/nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java` | 61 | `DB_PASSWORD = "password"` | Nonprod/test fixture |
-| `google/nomulus/load-testing/.../EppClient.java` | 156 | `password = "abcde12345"` | Load-testing test fixture |
+From the knowledge base:
+- REJECTED: Firebase config reads, delegatedProjectNumber, AAD deferred redirect_uri validation, legacy ACS, internal backend URL leaks, /health metadata leaks, email/phone enumeration, endpoint maps with all-401, implicit-flow/client-registration hygiene, Algolia DocSearch apiKey
+- KNOWN DUPLICATES: ADK /run_sse OAuth client_secret (issue #2128), ADK hardcoded ya29 token (issue #5520), CVE-2026-47391, Benchikh OAuth, Tenable SSRF
+- ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271)
 
-#### ENDPOINT_LEAK
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` in comments | Documentation warning about SSRF risk, not a leak |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` in comment | Refusal logic comment, not a leak |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` in docstring | NAT64/SSRF documentation |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Metadata endpoint SSRF comments | Security documentation |
-| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | 302 to metadata service comment | Security documentation |
-| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Cloud metadata endpoints comment | Security documentation |
-| `google/nomulus/util/.../MetricParameters.java` | 61 | `GCE_METADATA_URL_BASE` constant | Config constant, not a leak |
-| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` | Config key name, not a secret |
+Now let me analyze each hit from the delta and full grep hits:
 
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` references |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Proper `${{ secrets.GOOGLE_CLIENT_SECRET }}` / `${{ secrets.GITHUB_CLIENT_SECRET }}` references |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` env var reference |
-| `google/ax/manifests/install-ax.sh` | 239-241, 286 | Password generated via `openssl rand -hex 16`, not hardcoded |
-| `google/nomulus/core/src/main/java/.../XsrfTokenManager.java` | 37, 40 | CSRF token header/parameter *names* (constants) |
+**Delta hits (new since last scan):**
 
----
+1. `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` - These are all JavaScript parser error messages, not secrets. They're minified/bundled JS files with parse error handling code. These are TEST_OR_EXAMPLE or just build artifacts.
 
-### Verdict List
+2. `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml:17: default: https://staging.release-eq7.pages.dev` - This is a staging URL, not a secret. ENDPOINT_LEAK (staging environment URL)
 
-| Candidate | File | Line | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| ADK auth_credential private_key example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | **no** (test fixture) |
-| ADK auth_credential HTTP basic example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | **no** (test fixture) |
-| ADK auth_credential bearer token example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | **no** (test fixture) |
-| ADK auth_schemes PASSWORD enum | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | **no** (enum constant) |
-| ADK openapi_tool client_secret example | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | **no** (test fixture) |
-| ADK cli_create GOOGLE_API_KEY interpolation | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | **no** (user input template) |
-| Nomulus nonprod DB passwords | `google/nomulus/core/src/nonprod/...` | 28,40,61 | **no** (test fixtures) |
-| Nomulus EppClient test password | `google/nomulus/load-testing/.../EppClient.java` | 156 | **no** (test fixture) |
-| Cloud metadata endpoint refs | Multiple ADK/go-containerregistry files | — | **no** (SSRF docs/warnings) |
-| GitHub Actions secret refs | `google/langextract`, `google/sam` workflows | — | **no** (proper secret pattern) |
-| ax install generated password | `google/ax/manifests/install-ax.sh` | 239-286 | **no** (runtime generation) |
+3. `reposcan-raw/google/capsem/config/gate.toml:584: password = "password.txt"` - This references a password file, not an actual password. The value is "password.txt" which is a filename. This could be INTERESTING but likely TEST_OR_EXAMPLE since it's a config file referencing a file.
 
-**Summary**: 0 REAL_SECRET candidates. All 25 delta hits + 389 prior hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (documentation), or INTERESTING (proper secret management patterns). The ADK findings match previously rejected/known-duplicate classes (issues #2128, #5520). No new reportable findings.
+4. `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh:15: PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` - This reads a password from a file, not hardcoded. The password comes from an external file. This is a script pattern, not a hardcoded secret.
+
+5. `reposcan-raw/google/capsem/scripts/preflight.sh:39: password="$(tr -d '\n' < "$pass_file")"` - Same as above, reads from file.
+
+6. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - This is commented out with placeholder "your_token". TEST_OR_EXAMPLE.
+
+7. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Same, commented placeholder.
+
+8. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - This sets KUBECONFIG from config, default path. Not a secret.
+
+9. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
