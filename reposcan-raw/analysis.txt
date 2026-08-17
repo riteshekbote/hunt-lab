@@ -1,53 +1,16 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
-d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
-[0m
-### Classification Tables
-
-| Category | File:Line | Evidence | SHA256 (secret material) |
-|---|---|---|---|
-| **REAL_SECRET** | `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (AIzaSy* prefix), comment claims domain-locked to `skottie.skia.org` | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` |
-| **TEST_OR_EXAMPLE** | `google/capsem/config/gate.toml:584` | `password = "password.txt"` — references a file, not a secret | — |
-| **TEST_OR_EXAMPLE** | `google/capsem/scripts/fix_p12_legacy.sh:15` | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads from file | — |
-| **TEST_OR_EXAMPLE** | `google/capsem/scripts/preflight.sh:39` | `password="$(tr -d '\n' < "$pass_file")"` — reads from file | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/autoroll/go/autoroll-fe/main.go:98` | `ClientSecret: "not-a-valid-client-secret"` — explicit placeholder | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/get_service_account/go/get_service_account/main.go:16` | `OUTPUT_FILENAME = "service-account.json"` — filename constant | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/pinpoint/go/backends/issuetracker.go:28` | `secretAPIKey = "perf-issue-tracker-apikey"` — comment: "Not a credential, it is a secret name" | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/roles/create_chrome_bot_user/tasks/linux.yml:30` | `password: "{{ secrets.skolo_password | password_hash('sha256') }}"` — Ansible vault ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/roles/set_root_password/tasks/main.yml:7` | `password: "{{ secrets.skolo_password | password_hash('sha256') }}"` — Ansible vault ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/gce.yml:4` | `password: "{{ secrets.skolo_password }}"` — Ansible vault ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/roles/set_win_settings/tasks/skolo.yml:110` | `password: "{{ secrets.skolo_password }}"` — Ansible vault ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/skolo/ansible/switchboard/win_autologon.yml:12` | `password: "{{ secrets.skolo_password }}"` — Ansible vault ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/temporal/docker/config_template.yaml:25` | `password: "{{ default .Env.POSTGRES_PWD "" }}"` — template var | — |
-| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh:139` | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var ref | — |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml:247-250` | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` — GH Actions secret ref | — |
-| **TEST_OR_EXAMPLE** | `google/skia-buildbot/go/metadata/metadata.go:23,27,30` | `CLIENT_SECRET = "client_secret"` etc. — constant *names*, not values | — |
-| **ENDPOINT_LEAK** | `google/capsem/.github/workflows/release-channel-staging.yaml:17` | `https://staging.release-eq7.pages.dev` — staging URL | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/autoroll/go/autoroll-fe/main.go:76` | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` — internal SA email | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts:75` | `https://pantheon.corp.google.com/logs/query...` — corp logging UI | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/kube/corp-config.sh:9` | `PROJECT_SUBDOMAIN=skia-corp.google.com` — corp domain | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh:21` | Comment references `skia-corp.google.com` | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/perf/go/notify/android_notification_provider.go:223` | `https://android-build.corp.google.com/...` — corp build API | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts:207` | `https://source.corp.google.com/h/chrome-internal/` — corp source | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/pinpoint/webui/app/header/header.component.ts:15` | `https://b.corp.google.com/issues/new...` — corp issue tracker | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/skolo/ansible/hosts.yml:143` | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` — GCP metadata endpoint (public but internal) | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/skottie/modules/helpers/availableFonts.ts:2` | `https://pantheon.corp.google.com/storage/browser/...` — corp storage | — |
-| **ENDPOINT_LEAK** | `google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts:68,75,82` | `https://rotations.corp.google.com/rotation/...` — corp rotation URLs | — |
-| **INTERESTING** | `google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go:96` | Error msg references kubeconfig path — may leak cluster config location | — |
-| **INTERESTING** | `google/skia-buildbot/go/revportforward/revportforward.go:50-51` | Comments describe kubeconfig + podName params — operational detail | — |
-| **INTERESTING** | `google/quiche/quiche/quic/core/crypto/certificate_view.h:126` | Comment: "legacy OpenSSL RSA key format (BEGIN RSA PRIVATE KEY)" — crypto context | — |
-
----
-
-### Verdict List
-
-| File:Line | REPORT_CANDIDATE | Reason |
-|---|---|---|
-| `google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts:158` | **yes** | Live Google API key (`AIzaSy*`) in source; domain-restriction claim needs verification — if restriction fails or is misconfigured, key is exploitable. |
-| All `TEST_OR_EXAMPLE` entries | no | Placeholders, file refs, env vars, Ansible vault refs, constant names — no secret material. |
-| All `ENDPOINT_LEAK` entries | no | Internal corp URLs / service accounts — info only, no credential. |
-| All `INTERESTING` entries | no | Operational details / comments — no direct exploit path. |
-
-**Only one reportable candidate:** the hardcoded Google API key in `skottie-drive-sk.ts`. The domain-lock claim (`referer: skottie.skia.org`) should be validated by attempting use from an unauthorized origin; if the restriction holds, VRP may classify as "wontfix" (by-design), but the presence of a live `AIzaSy*` key in a public repo is a valid initial report.
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=50, offset=30][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/go/metadata/metadata.go[90m [limit=50][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts[90m [limit=20, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go[90m [limit=30, offset=90][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/win_autologon.yml
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go[90m [limit=20, offset=90][0m
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/go/revportforward/revportforward.go[90m [limit=50, offset=45][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=30, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=30][0m
