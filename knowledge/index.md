@@ -1463,3 +1463,6 @@
 - 2026-08-17 REJECTED source maps @ identity SPAs — mysignins (404) + api.myaccount (401) both closed; recon surface eliminated
 - 2026-08-17 REJECTED www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; no bypass
 - 2026-08-17 REJECTED graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- 2026-08-17 ACCEPTED: oauth2PermissionGrants auth-gate confirmed live on production v1.0 — GET→401/237 Bearer + HEAD→405/0 (RFC 6750 §3) confirms both auth and systemic method-handling deviation; 458-char oAuth2PermissionGrant EntityType zero-restriction schema precondition unchanged
+- 2026-08-17 ACCEPTED: agentRegistrations item-level auth-gate confirmed live — GET /beta/copilot/agentRegistrations/{id} → 401/237 Bearer confirms schema-level zero-restriction precondition extends to item level; 5-family IDOR+CORS vector now fully confirmed at collection+item+agents+admin+policySettings levels
+- 2026-08-17 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles, no new attack vector
