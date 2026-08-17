@@ -1,45 +1,316 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat > /dev/null << 'EOF'
-# Classification complete - no new REAL_SECRET in delta
-EOF
-(no output)
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -200
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Annotated
+from typing import Any
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Literal
+
+from pydantic import alias_generators
+from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
+from pydantic import model_validator
+
+_REDACTED = "<redacted>"
+
+
+# Pydantic echoes the rejected value into ValidationError messages
+# ("input_value=..."), which would put a malformed secret straight into logs and
+# into the error strings surfaced to the LLM. The field name and error type are
+# still reported. Passed as a class keyword rather than added to `model_config`
+# below: `model_config` states what these models accept, and rewriting that
+# declaration reads as an API change to the breaking-change detector even though
+# nothing about what they accept has changed.
+class BaseModelWithConfig(BaseModel, hide_input_in_errors=True):
+  """Base model for credential types, hardened against leaking secrets."""
+
+  model_config = ConfigDict(
+      extra="allow",
+      alias_generator=alias_generators.to_camel,
+      populate_by_name=True,
+  )
+  """The pydantic model config."""
+
+  def __repr_args__(self) -> Iterator[tuple[str | None, Any]]:
+    """Redacts the values of extra (unmodeled) fields from repr and str.
+
+    `extra="allow"` lets callers attach arbitrary keys to these credential
+    models, and pydantic renders extras in repr unconditionally: marking a
+    declared field `repr=False` does nothing for a secret that arrives under an
+    unexpected key (e.g. a non-standard field in an OAuth2 token response).
+    Redacting the values keeps them out of logs and out of error strings that
+    reach the LLM, while still showing which keys were set.
+
+    Yields:
+      `(name, value)` pairs to render, with the values of extra fields replaced
+      by a redaction placeholder.
+    """
+    extra = self.__pydantic_extra__ or {}
+    for key, value in super().__repr_args__():
+      yield key, _REDACTED if key in extra else value
+
+
+class HttpCredentials(BaseModelWithConfig):
+  """Represents the secret token value for HTTP authentication, like user name, password, oauth token, etc."""
+
+  username: str | None = None
+  password: Annotated[str | None, Field(repr=False)] = None
+  token: Annotated[str | None, Field(repr=False)] = None
+
+  @classmethod
+  def model_validate(cls, data: Dict[str, Any]) -> "HttpCredentials":
+    return cls(
+        username=data.get("username"),
+        password=data.get("password"),
+        token=data.get("token"),
+    )
+
+
+class HttpAuth(BaseModelWithConfig):
+  """The credentials and metadata for HTTP authentication."""
+
+  # The name of the HTTP Authorization scheme to be used in the Authorization
+  # header as defined in RFC7235. The values used SHOULD be registered in the
+  # IANA Authentication Scheme registry.
+  # Examples: 'basic', 'bearer'
+  scheme: str
+  credentials: HttpCredentials
+  additional_headers: Annotated[dict[str, str] | None, Field(repr=False)] = None
+
+
+class OAuth2Auth(BaseModelWithConfig):
+  """Represents credential value and its metadata for a OAuth2 credential."""
+
+  client_id: str | None = None
+  client_secret: Annotated[str | None, Field(repr=False)] = None
+  # tool or adk can generate the auth_uri with the state info thus client
+  # can verify the state
+  auth_uri: str | None = None
+  # A unique value generated at the start of the OAuth flow to bind the user's
+  # session to the authorization request. This value is typically stored with
+  # user session and passed to backend for validation.
+  nonce: str | None = None
+  state: str | None = None
+  # tool or adk can decide the redirect_uri if they don't want client to decide
+  redirect_uri: str | None = None
+  auth_response_uri: Annotated[str | None, Field(repr=False)] = None
+  auth_code: Annotated[str | None, Field(repr=False)] = None
+  access_token: Annotated[str | None, Field(repr=False)] = None
+  refresh_token: Annotated[str | None, Field(repr=False)] = None
+  id_token: Annotated[str | None, Field(repr=False)] = None
+  expires_at: int | None = None
+  expires_in: int | None = None
+  audience: str | None = None
+  prompt: str | None = None
+  code_verifier: Annotated[str | None, Field(repr=False)] = None
+  code_challenge_method: str | None = None
+  token_endpoint_auth_method: (
+      Literal[
+          "client_secret_basic",
+          "client_secret_post",
+          "client_secret_jwt",
+          "private_key_jwt",
+      ]
+      | None
+  ) = "client_secret_basic"
+
+
+class ServiceAccountCredential(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    type: The type should be "service_account".
+    project_id: The project ID.
+    private_key_id: The ID of the private key.
+    private_key: The private key.
+    client_email: The client email.
+    client_id: The client ID.
+    auth_uri: The authorization URI.
+    token_uri: The token URI.
+    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
+    client_x509_cert_url: URL for the client's X.509 cert.
+    universe_domain: The universe domain.
+
+  Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+  """
+
+  type_: str = Field("", alias="type")
+  project_id: str
+  private_key_id: Annotated[str, Field(repr=False)]
+  private_key: Annotated[str, Field(repr=False)]
+  client_email: str
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  auth_provider_x509_cert_url: str
+  client_x509_cert_url: str
+  universe_domain: str
+
+
+class ServiceAccount(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    service_account_credential: The service account credential (JSON key).
+    scopes: The OAuth2 scopes to request. Optional; when omitted with
+        ``use_default_credential=True``, defaults to the cloud-platform scope.
+    use_default_credential: Whether to use Application Default Credentials.
+    use_id_token: Whether to exchange for an ID token instead of an access
+        token. Required for service-to-service authentication with Cloud Run,
+        Cloud Functions, and other Google Cloud services that require identity
+        verification. When True, ``audience`` must also be set.
+    audience: The target audience for the ID token, typically the URL of the
+        receiving service (e.g. ``https://my-service-xyz.run.app``). Required
+        when ``use_id_token`` is True.
 [0m
-**Classification Table**
+[0m$ [0mgrep -n "private_key=" reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+157:          private_key="-----BEGIN PRIVATE KEY-----...",
+[0m
+[0m$ [0msed -n '125,140p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
 
-| Category | Files/Lines | Count |
-|----------|-------------|-------|
-| **REAL_SECRET** | *(none in delta)* | 0 |
-| **TEST_OR_EXAMPLE** | flatbuffers label.yml:24 (GITHUB_TOKEN ref), langextract ci.yaml:168-170 (3× secret refs), dagger latest-dagger-version.sh:9 (env var ref), skywater-pdk labeler.yml:11 (GITHUB_TOKEN ref), adk-python auth_credential.py:157 (fixture private_key), :269 (user/password), :278 (placeholder JWT), auth_schemes.py:68 ("password" const), openapi_tool/auth/auth_helpers.py:62 ("your_client_secret"), cli/browser/chunk-*.js (minified build artifacts), heir author_stats.py:16 (commented placeholder), device-infra GoogleAccountDecoratorSpec.java:44 (PARAM_PASSWORD const) | 19 |
-| **ENDPOINT_LEAK** | osv.dev vulnfeeds/pypi/pypi.go:80 (dev.mysql.com), deployment/clouddeploy/osv-website/run-staging.yaml:23 (pantheon.corp.google.com), deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml:16 (test.osv.dev), gcp/website/frontend3/src/linter.js:129,351,486 (api.test.osv.dev), gcp/website/frontend3/src/triage.js:94 (api.test.osv.dev), tools/datafix/reimport_gcs_record.py:86 (test.osv.dev), docs/_config.yml:78 (test.osv.dev) | 10 |
-| **INTERESTING** | adk-python gke_code_executor.py:103,104,115 (kubeconfig), container_code_executor.py:114,154 (169.254.169.254), load_web_page.py:171 (169.254.169.254), computer_use_toolset.py:146 (169.254.169.254), vmaas/sandbox_computer.py:47 (access token state key), cli/cli_create.py:131 (GOOGLE_API_KEY generation), heir JaxiteWordEmitter.cpp:558 (secret_key output), device-infra DeviceAdminUtil.java:49,50 (Android password actions), adc_credentials.sh:39 (GCP metadata SA email fetch) | 11 |
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+[0m
+[0m$ [0msed -n '550,570p' reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp
+os << ctx << " = ckks.CKKSContext(params)\n";
+  return success();
+}
 
-**Verdict List**
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
 
-| File:Line | Classification | REPORT_CANDIDATE |
-|-----------|----------------|------------------|
-| flatbuffers/.github/workflows/label.yml:24 | TEST_OR_EXAMPLE | no |
-| langextract/.github/workflows/ci.yaml:168 | TEST_OR_EXAMPLE | no |
-| langextract/.github/workflows/ci.yaml:169 | TEST_OR_EXAMPLE | no |
-| langextract/.github/workflows/ci.yaml:170 | TEST_OR_EXAMPLE | no |
-| adk-python/auth_credential.py:157 | TEST_OR_EXAMPLE | no |
-| adk-python/auth_credential.py:269 | TEST_OR_EXAMPLE | no |
-| adk-python/auth_credential.py:278 | TEST_OR_EXAMPLE | no |
-| adk-python/auth_schemes.py:68 | TEST_OR_EXAMPLE | no |
-| adk-python/openapi_tool/auth/auth_helpers.py:62 | TEST_OR_EXAMPLE | no |
-| adk-python/cli/browser/chunk-*.js | TEST_OR_EXAMPLE | no |
-| heir/scripts/author_stats.py:16 | TEST_OR_EXAMPLE | no |
-| device-infra/GoogleAccountDecoratorSpec.java:44 | TEST_OR_EXAMPLE | no |
-| osv.dev/vulnfeeds/pypi/pypi.go:80 | ENDPOINT_LEAK | no |
-| osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml:23 | ENDPOINT_LEAK | no |
-| osv.dev/deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml:16 | ENDPOINT_LEAK | no |
-| osv.dev/gcp/website/frontend3/src/linter.js:129 | ENDPOINT_LEAK | no |
-| osv.dev/gcp/website/frontend3/src/linter.js:351 | ENDPOINT_LEAK | no |
-| osv.dev/gcp/website/frontend3/src/linter.js:486 | ENDPOINT_LEAK | no |
-| osv.dev/gcp/website/frontend3/src/triage.js:94 | ENDPOINT_LEAK | no |
-| osv.dev/external/pypi/pypi.go:80 | ENDPOINT_LEAK | no |
-| osv.dev/tools/datafix/reimport_gcs_record.py:86 | ENDPOINT_LEAK | no |
-| osv.dev/docs/_config.yml:78 | ENDPOINT_LEAK | no |
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
 
-**Summary**: **0 new REAL_SECRET candidates** in this delta. All 4 new hits are GitHub Actions `${{ secrets.* }}` references (correct secret handling). The previously known Earth Engine OAuth client_secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`) remains the only live credential in the codebase per KB.
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
+
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
+[0m
+Now I have enough context. Let me classify all hits and produce the required output.
+
+### Classification Tables
+
+#### REAL_SECRET (hardcoded credential/API key/token with signs of life)
+| File | Line | SHA256 | Type | Notes |
+|------|------|--------|------|-------|
+| *none found* | | | | All apparent secrets are placeholders, examples, or secret references |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | SHA256 | Context |
+|------|------|--------|---------|
+| reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml | 11 | e4d0cb7b8cbf46fe | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | — | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — secret refs |
+| reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | 20 | e4d0cb7b8cbf46fe | `${{secrets.GITHUB_TOKEN}}` — secret ref |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407 | 9d22642d36b1e7d5 | `https://test.pypi.org/p/magika` — test PyPI URL |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 437 | 9d22642d36b1e7d5 | `https://test.pypi.org/legacy/` — test PyPI URL |
+| reposcan-raw/google/magika/tests_data/basic/javascript/code.js | 31 | — | Minified JS test fixture |
+| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | e4d0cb7b8cbf46fe | `${{ secrets.GITHUB_TOKEN }}` — secret ref |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | — | `private_key="-----BEGIN PRIVATE KEY-----..."` — docstring placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | — | `username="user", password="password"` — example creds |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | — | `token="eyAkaknabna...."` — example JWT (truncated) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | — | `PASSWORD = "password"` — example constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | — | `client_secret="your_client_secret"` — placeholder |
+| reposcan-raw/google/heir/scripts/author_stats.py | 16 | — | `# TOKEN = "your_github_token_here"` — commented placeholder |
+| reposcan-raw/google/device-infra/.../DeviceAdminUtil.java | 49 | — | `ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"` — constant string |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | SHA256 | Endpoint |
+|------|------|--------|----------|
+| reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | — | `http://dev.mysql.com` (hardcoded allowlist entry) |
+| reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | — | Comment ref: `pantheon.corp.google.com/auth/clients` |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | — | `https://api.test.osv.dev/v1...` — test API |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | — | `https://api.test.osv.dev/v1/vulns/{id}` — test API |
+| reposcan-raw/google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | — | `https://test.osv.dev/` — test endpoint |
+| reposcan-raw/google/osv.dev/docs/_config.yml | 78 | — | `https://test.osv.dev/linter/` — test endpoint |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | 9d22642d36b1e7d5 | `https://test.pypi.org/...` — test PyPI |
+
+#### INTERESTING (debug flags, keys, cloud configs, crypto)
+| File | Line | Note |
+|------|------|------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path, kubeconfig_context params |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documents 169.254.169.254 metadata endpoint access |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | NAT64 route to 169.254.169.254 metadata endpoint |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses 169.254.169.254 in Chrome |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={user_input}` to .env (runtime value) |
+| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | CKKS codegen: emits `secret_key = {var}` — variable, not value |
+| reposcan-raw/google/osv.dev/deployment/clouddeploy/*.yaml | various | Skaffold/clouddeploy staging configs |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified build artifacts (source maps not present) |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| google/adk-python auth_credential.py:157 | TEST_OR_EXAMPLE | **no** | Docstring placeholder `-----BEGIN PRIVATE KEY-----...` with ellipsis |
+| google/adk-python cli_create.py:131 | INTERESTING | **no** | Writes user-supplied `google_api_key` to .env at runtime; not a hardcoded secret |
+| google/heir JaxiteWordEmitter.cpp:558 | INTERESTING | **no** | CKKS codegen emits variable name `sk`, not secret material |
+| google/osv.dev test API URLs | ENDPOINT_LEAK | **no** | Staging/test endpoints (`test.osv.dev`, `test.pypi.org`, `dev.mysql.com` allowlist) — no prod creds |
+| google/magika workflow URLs | ENDPOINT_LEAK | **no** | Test PyPI publish URLs — expected in release workflow |
+| All `${{ secrets.* }}` refs | TEST_OR_EXAMPLE | **no** | GitHub Actions secret references — correct pattern, not leaked values |
+| All adk-python example creds | TEST_OR_EXAMPLE | **no** | `password="password"`, `token="eyAkaknabna..."`, `your_client_secret` — clearly fixtures |
+| 169.254.169.254 refs | INTERESTING | **no** | Standard cloud metadata IP documented in code comments — not a leak |
+
+**No REPORT_CANDIDATE=yes findings in this delta.** All hits are secret references, test fixtures, placeholders, or documented cloud metadata endpoints. The ADK private_key at line 157 is a docstring example (`...` ellipsis), not a real key — consistent with the codebase's `hide_input_in_errors=True` and `repr=False` secret-hardening patterns seen in the same file.
