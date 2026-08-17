@@ -4,42 +4,51 @@
 [0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
 e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [offset=50, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=20, offset=50][0m
-Now I have enough context. Let me classify all findings.
+| Category | File | Line | Secret SHA256 | Notes |
+|----------|------|------|---------------|-------|
+| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Hardcoded `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in vendored ibis BigQuery backend; `# noqa: S105` suppresses linter |
+| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret duplicated in backend module |
 
-### Classification Table
+| Category | File | Line | Notes |
+|----------|------|------|-------|
+| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Mock OIDC ConfigMap for documentation |
+| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Documentation manifest |
+| **TEST_OR_EXAMPLE** | `google/sam/internal/node/store.go` | 38 | Constant `keyRefreshToken = "refresh_token"` (literal string, not a secret) |
+| **TEST_OR_EXAMPLE** | `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | K8s ConfigMap template |
+| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh` | 139 | Shell var reference `${OIDC_CLIENT_SECRET:-}` (empty default) |
+| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | GitHub Actions secret refs `${{ secrets.* }}` |
+| **TEST_OR_EXAMPLE** | `google/sam/.github/k8s/*.yaml` | 2,14 | Multiple ConfigMap templates |
+| **TEST_OR_EXAMPLE** | `google/dotprompt/.github/workflows/publish_python_*_package.yml` | 33-34 | PyPI test repository URLs |
+| **TEST_OR_EXAMPLE** | `google/dotprompt/packages/monaco/src/*.ts` | 67-183 | Monaco editor token definitions (syntax highlighting) |
+| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` etc. |
+| **TEST_OR_EXAMPLE** | `google/bigframes/third_party/bigframes_vendored/sqlglot/**/*.py` | various | MySQL documentation reference comments |
+| **TEST_OR_EXAMPLE** | `google/bigframes/scripts/run_doctest.sh` | 38-39 | Service account file path reference (not a secret) |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Placeholder private key (`...`), `password="password"`, token placeholder `eyAkaknabna....` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` (test value) |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Variable interpolation `GOOGLE_API_KEY={google_api_key}` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | 3 | Minified JS build artifacts |
 
-| Category | File:Line | Detail | SHA256 (secret material) |
-|----------|-----------|--------|--------------------------|
-| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` | Hardcoded OAuth `CLIENT_SECRET` in vendored ibis code (duplicated in backend.py:59) | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:157` | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder with `...`) | — |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:269` | Docstring example: `HttpCredentials(username="user", password="password")` | — |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:278` | Docstring example: `HttpCredentials(token="eyAkaknabna....")` (truncated fake JWT) | — |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | Enum value: `PASSWORD = "password"` (OAuth2 grant type literal, not a credential) | — |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | Docstring example: `client_secret="your_client_secret"` (placeholder) | — |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml:247-250` | GitHub Actions secret refs: `${{ secrets.GOOGLE_CLIENT_SECRET }}`, etc. | — |
-| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml:168-170` | GitHub Actions secret refs: `${{ secrets.GEMINI_API_KEY }}`, etc. | — |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` | Documentation references to `169.254.169.254` (GCP metadata endpoint) | — |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` | Comment about `169.254.169.254` metadata endpoint | — |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/load_web_page.py:171` | Comment about `169.254.169.254` metadata endpoint | — |
-| **INTERESTING** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | State key name: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (not a secret) | — |
-| **INTERESTING** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` | Kubeconfig path/context params (config options, not secrets) | — |
-| **INTERESTING** | `google/adk-python/src/google/adk/cli/cli_create.py:131` | Generates `GOOGLE_API_KEY={google_api_key}` from variable (not hardcoded) | — |
-| **INTERESTING** | `google/adk-python/src/google/adk/cli/browser/chunk-*.js:3` | Bundled parser error messages (minified JS, not secrets) | — |
-| **INTERESTING** | `google/dotprompt/.github/workflows/*.yml` | PyPI publish URLs (`test.pypi.org`) | — |
+| Category | File | Line | Notes |
+|----------|------|------|-------|
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Kubeconfig path/context params (internal config) |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Metadata endpoint `169.254.169.254` reference |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Metadata endpoint `169.254.169.254` reference |
+
+| Category | File | Line | Notes |
+|----------|------|------|-------|
+| **INTERESTING** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `# noqa: S105` intentional linter suppression on hardcoded secret |
+| **INTERESTING** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same suppression, suggests awareness |
 
 ---
 
-### Verdict List
+### VERDICT
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` + `backend.py:59` | **yes** | Hardcoded OAuth `CLIENT_SECRET` (`iU5ohAF2qcqrujegE3hQ1cPt`, sha256 `e69cc771...`) in vendored third-party code shipped in Google's bigframes repo. Paired with real-looking `CLIENT_ID`. `# noqa: S105` acknowledges the hardcoded-secret lint. Supply-chain risk: if valid, any user of bigframes/ibis gets the secret. Needs upstream (ibis) + downstream (bigframes) coordination. |
-| All adk-python hits (auth_credential.py, auth_schemes.py, auth_helpers.py, cli_create.py, code_executors, tools, integrations, cli/browser) | **no** | All are docstring examples, placeholders (`your_client_secret`, `password`, `...`), enum literals, comments about metadata endpoint, or generated-from-variable config. No live credentials. |
-| sam/langextract workflow secret refs | **no** | Proper GitHub Actions `${{ secrets.* }}` references — not hardcoded. |
-| dotprompt PyPI URLs | **no** | Public package registry URLs. |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` | **yes** | Hardcoded client secret in vendored third-party code (ibis BigQuery backend); same secret appears in two files; `# noqa: S105` indicates intentional suppression; secret format resembles base64-encoded credential; **not in REJECTED/KNOWN-DUP lists**; requires upstream check (ibis project) and Google VRP triage |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59` | **yes** | Duplicate of above; same assessment |
+
+All other hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata endpoint references are well-known), or **INTERESTING** (linter suppression) — not reportable as secrets.
