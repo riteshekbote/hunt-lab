@@ -1,26 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results. I need to classify each hit into one of the categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+## Classification Results
 
-Looking at the delta hits first (44 new lines):
+### REAL_SECRET (reportable)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none new)* | | | The earthengine-api secret (`3f3f8d6f...d271`) is **already tracked** in KB as ACCEPTED — not a new finding |
 
-1. `reposcan-raw/google/dagger/util/latest-dagger-version.sh:9: local GITHUB_TOKEN="${GH_TOKEN:-}"` - This is using an environment variable with a default, not a hardcoded secret. TEST_OR_EXAMPLE or just env var usage.
+---
 
-2. `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:39: SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" -s -m 1)` - This is fetching from GCP metadata server, not a hardcoded secret. ENDPOINT_LEAK (internal metadata endpoint)
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| `adk-python/src/google/adk/auth/auth_credential.py` | 157 | Private key placeholder (`-----BEGIN PRIVATE KEY-----...`) |
+| `adk-python/src/google/adk/auth/auth_credential.py` | 269 | Fixture credentials `username="user", password="password"` |
+| `adk-python/src/google/adk/auth/auth_credential.py` | 278 | Fixture token `eyAkaknabna....` (obviously fake JWT) |
+| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
+| `adk-python/src/google/adk/cli/cli_create.py` | 131 | Code writing variable `GOOGLE_API_KEY={google_api_key}` — not hardcoded |
+| `langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` etc. |
+| `sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=` with secret refs — CI injection, not hardcoded |
+| `sam/development/kind/run.sh` | 139 | Shell var `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — default empty |
+| All `chunk-*.js` files (adk-go & adk-python) | — | PEG.js parser error messages (`Expecting...`, `Parse error...`) — generated parser tables |
 
-3. `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:44: curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes" -s -m 1` - Same, GCP metadata endpoint. ENDPOINT_LEAK
+---
 
-4. `reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:49: private static final String ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN";` - This is a constant string for an Android action, not a secret. TEST_OR_EXAMPLE
+### ENDPOINT_LEAK (informational only)
+| File | Line | Note |
+|------|------|------|
+| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` — well-known GCP metadata IP (public) |
+| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Same metadata IP in comment |
+| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | Same metadata IP in comment |
+| `tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal` — well-known GCP metadata hostname |
+| `tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `169.254.169.254` — AWS IMDS endpoint (public) |
+| `quiche/quiche/http2/core/spdy_protocol.h` | 7 | `dev.chromium.org/spdy/...` — public doc URL in comment |
 
-5. `reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:50: private static final String ACTION_RESET_PASSWORD = "RESET_PASSWORD";` - Same, Android action constant. TEST_OR_EXAMPLE
+---
 
-6. `reposcan-raw/google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java:44: String PARAM_PASSWORD = "password";` - Parameter name constant, not a secret. TEST_OR_EXAMPLE
+### INTERESTING (unusual patterns, no direct exploit)
+| File | Line | Note |
+|------|------|------|
+| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret mount syntax (secret value NOT in code) |
+| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session storage key naming |
+| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path/context` params — config surface for GKE auth |
 
-7. `reposcan-raw/google/flatbuffers/.github/workflows/label.yml:24: repo-token: "${{ secrets.GITHUB_TOKEN }}"` - GitHub Actions secret reference, not a hardcoded secret. TEST_OR_EXAMPLE
+---
 
-8. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder. TEST_OR_EXAMPLE
+## SHORT VERDICT
 
-9. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder. TEST_OR_EXAMPLE
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| earthengine-api oauth.py:45 (known) | **no** — already ACCEPTED in KB, draft submitted |
+| adk-python auth_credential fixtures | **no** — TEST_OR_EXAMPLE |
+| adk-python auth_schemes PASSWORD | **no** — TEST_OR_EXAMPLE |
+| adk-python auth_helpers placeholder | **no** — TEST_OR_EXAMPLE |
+| langextract/sam CI secret refs | **no** — GitHub Actions `${{ secrets.* }}` pattern |
+| chunk-*.js parser tables | **no** — generated PEG.js error messages |
+| Cloud Run `--set-secrets` syntax | **no** — references secret, doesn't contain it |
+| Metadata endpoint refs (169.254.169.254) | **no** — public well-known IPs |
+| VMaaS session key constant | **no** — internal naming, no secret value |
 
-10. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+**NO NEW REPORTABLE FINDINGS** in this delta scan. All hits are test fixtures, CI secret references, generated parser code, or public endpoint references. The only live credential (earthengine-api) was already triaged and drafted.
