@@ -9497,3 +9497,4 @@ testability: HUMAN_ONLY
 [LEARN] REJECTED: no new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no data-plane access without authorized redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
+## 2026-08-17 05:07:56 UTC [google] (model bigpickle)

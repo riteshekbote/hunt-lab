@@ -32964,3 +32964,87 @@ testability: HUMAN_ONLY
 
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward; storage list denied; no data-plane access without authorized redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 74) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold.
+===== ANALYST bigpickle 2026-08-17 05:10:14 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m→ [0mRead .
+I'll start by exploring the repository structure to understand what we're working with.
+[0m✱ [0mGlob "**/*.{js,ts,py,rb,go,java,php,env,config,json,yaml,yml}"[90m in . · 7 matches[0m
+[0m→ [0mRead README.md
+[0m→ [0mRead scope.yml
+[0m→ [0mRead reports
+[0m→ [0mRead reports/valid-bugs.md
+[0m→ [0mRead reports/hypotheses-bigpickle.txt
+[0m→ [0mRead probe-results.md
+[0m→ [0mRead reports/google-vrp-earthengine-secret.md
+[0m→ [0mRead reports/msrc-two-principal-request.md
+[0m→ [0mRead inventory
+## Objective
+- Produce a structured 8-step analyst output (DELTA, PRIORITIZE, HYPOTHESES, SELF-CRITIQUE, NEXT ACTION, LEARNING, RISK SCORE) for ongoing automated bug bounty hunting across Google VRP and MSRC programs, using a massive accumulated knowledge base of verified findings.
+
+## Important Details
+- Knowledge base contains ~200+ ACCEPTED/REJECTED/CHANGED entries accumulated from 2026-08-07 through 2026-08-17
+- Rules: passive-only testing (GET/HEAD, ≤1 rps), no account creation, no data modification, secrets committed only as hashes
+- 5 models hunt in parallel: Big Pickle, Nemotron 3 Ultra, Longcat, Ling 3.0, Laguna
+- Programs: Google VRP (`google.com`, `*.google.com`, `google` GitHub org) and MSRC (`microsoft.com`, `*.microsoft.com`, `*.azure.com`, etc., `microsoft` GitHub org)
+- 3 active hypotheses at confidence ≥40 with concrete verify_steps; none on REJECTED list
+- 2 drafted reports awaiting human submission: `reports/google-vrp-earthengine-secret.md` and `reports/msrc-two-principal-request.md`
+
+## Work State
+### Completed
+- Massive knowledge base built with verified findings across Google and Microsoft targets
+- 3 active hypotheses identified and tracked:
+  1. **Copilot Admin 6-family IDOR+CORS** (conf 97): graph.microsoft.com/beta/copilot/* — true CORS preflight with PATCH (200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400) at collection+item level across 6 endpoint families; $metadata 873-char+458-char blocks with 0 OperationRestrictions across 6 EntityTypes; HEAD→405/0 no WWW-Authenticate (RFC 6750 §3); AUTH_HELPED two-principal test needed
+  2. **Earth Engine hardcoded client_secret** (conf 96): `github.com/google/earthengine-api/python/ee/oauth.py:45` — secret sha256 `3f3f8d6f…d271`, whole-file sha `f4f93c76…b73040` unchanged; A/B proof: leaked→400 invalid_grant, fake→401 invalid_client per RFC 6749 §5.2; native-app OOB by-design (ADK #2128 precedent); HUMAN_ONLY for submission
+  3. **oauth2PermissionGrants consent forge** (conf 74): graph.microsoft.com/v1.0 — oAuth2PermissionGrant EntityType 458-char block, 0 OperationRestrictions, 7 client-supplied properties incl caller-supplied resourceId targeting Graph OR Azure Storage; GET→401/237 Bearer; AUTH_HELPED needed
+- MSRC two-principal request drafted at `reports/msrc-two-principal-request.md`
+- Google VRP report drafted at `reports/google-vrp-earthengine-secret.md`
+- Source maps at both identity SPAs confirmed closed (mysignins 404, api.myaccount 401)
+- Graph API 405 anomaly documented as systemic gateway-level behavior (RFC 6750 §3 violation)
+- tokeninfo oracle confirmed live but no-reward per Google VRP rules
+- Dual-JWKS rotation desync class REJECTED (v1⊂v2 subset invariant, v1 kid set never validated against v2 issuer)
+
+### Active
+- Continuous passive monitoring of 3 hypotheses via robot probes every ~10 minutes
+- NO_DELTA state for 11+ consecutive cycles — all passive probes confirm prior ACCEPTED/REJECTED findings unchanged
+- Cycle state: `phase: POC`, `status: HIGH_POTENTIAL`
+
+### Blocked
+- **MSRC two-principal test**: requires human to submit `reports/msrc-two-principal-request.md` to MSRC portal — unblocks both hypothesis #1 (IDOR+CORS, conf 97) and #3 (consent forge, conf 74)
+- **Google VRP earthengine secret**: requires human to submit `reports/google-vrp-earthengine-secret.md` via bughunters.google.com — HUMAN_ONLY, authorized grant_type=refresh_token redemption needed
+- Both Microsoft hypotheses are unconditionally blocked on two-authenticated-principal verification that no passive probe can reach
+
+## Next Move
+1. HUMAN: Send drafted MSRC two-principal request (`reports/msrc-two-principal-request.md`) to MSRC portal — one authorized-tenant enrollment unblocks both 6-family IDOR+CORS and oauth2PermissionGrants consent forge
+2. HUMAN: Submit drafted Google VRP report (`reports/google-vrp-earthengine-secret.md`) via bughunters.google.com portal — cites invalid_grant A/B proof + blob sha
+
+## Relevant Files
+- `reports/google-vrp-earthengine-secret.md`: Drafted Google VRP report for earthengine hardcoded secret
+- `reports/msrc-two-principal-request.md`: Drafted MSRC two-principal request for Microsoft IDOR+CORS + consent forge
+- `reports/valid-bugs.md`: Running count of validated findings (counter fixed 2026-08-07)
+- `reports/hypotheses-bigpickle.txt`: Current Big Pickle hypotheses output
+- `reports/hypotheses-nemotron3.txt`: Nemotron 3 hypotheses
+- `reports/hypotheses-laguna.txt`: Laguna hypotheses
+- `scope.yml`: Program scope (Google VRP + MSRC), rules, model roster
+- `README.md`: Project overview (5 models, 10-min cycles, passive-only)
+- `probe-results.md`: Accumulated robot probe results (token GET 404, agentRegs 401, oauth2PermissionGrants 401)
+- `state_bigpickle.json`, `state_laguna.json`, `state_nemotron3.json`, `state_longcat.json`, `state_ling3.json`: Per-model state files
+- `analyst-out.txt`, `analyst-prompt.txt`: Analyst configuration
+- `knowledge/`, `leads/`, `triage/`, `inventory/`, `reposcan-raw/`: Working directories for the hunt pipeline
+Continue if you have next steps, or stop and ask for clarification if you are unsure how to proceed.
+We've completed two drafted reports for submission:
+
+1. **Google VRP report** (`reports/google-vrp-earthengine-secret.md`):
+   - Documents a live hardcoded OAuth client_secret in `google/earthengine-api` repository
+   - Includes A/B proof showing the secret is valid (invalid_grant vs invalid_client responses)
+   - Ready for submission via bughunters.google.com
+
+2. **MSRC two-principal request** (`reports/msrc-two-principal-request.md`):
+   - Formal request to MSRC for authorization to test cross-principal ownership bypass on Microsoft Graph Copilot API
+   - Documents passive observations: CORS with PATCH allowed, oAuth2PermissionGrant EntityType with 0 OperationRestrictions
+   - Proposes minimal test procedure with two app principals in test tenants
+
+Both reports are awaiting human submission to their respective bounty portals. The next action depends on:
+- Whether you want to submit these reports now
+- Or continue with additional testing/analysis
