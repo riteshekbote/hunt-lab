@@ -1,28 +1,21 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+**Classification Table**
 
-| Category | Count | Files |
-|----------|-------|-------|
-| **REAL_SECRET** | 0 | *(none)* |
-| **TEST_OR_EXAMPLE** | 42 | `sam/site/content/docs/manifests/*.yaml` (2), `sam/charts/.../dex-deployment.yaml`, `sam/.github/k8s/*.yaml` (7), `adk-python/src/google/adk/auth/auth_credential.py` (3), `adk-python/src/google/adk/auth/auth_schemes.py:68`, `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62`, `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47`, `adk-python/src/google/adk/cli/browser/chunk-*.js` (20), `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` (4), `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` |
-| **ENDPOINT_LEAK** | 6 | `tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h:55`, `tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h:51`, `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154`, `adk-python/src/google/adk/tools/load_web_page.py:171`, `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` |
-| **INTERESTING** | 4 | `sam/development/kind/run.sh:139` (dev script with empty default), `adk-python/src/google/adk/cli/cli_create.py:131` (writes GOOGLE_API_KEY from var), `sam/.github/workflows/deploy.yaml:247,249,250` (proper secret refs — reveals workflow uses `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET`) |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `copybara/javatests/.../AuthTest.java:75,102,129` (testpassword, test-token-123)<br>`copybara/javatests/.../HttpEndpointTest.java:136,159,189` (testpassword)<br>`adk-python/.../auth_credential.py:157,269,278` (placeholder private_key, test creds)<br>`adk-python/.../auth_schemes.py:68` (PASSWORD="password")<br>`adk-python/.../auth_helpers.py:62` (client_secret="your_client_secret")<br>`flatbuffers/.github/workflows/label.yml:24` (`${{ secrets.GITHUB_TOKEN }}` ref)<br>`sam/.../run.sh:139` (OIDC_CLIENT_SECRET var ref)<br>`sam/.../deploy.yaml:247-250` (secrets.* refs) |
+| **ENDPOINT_LEAK** | `copybara/cloudbuild.yaml:27` — internal `pantheon.corp.google.com` artifact URL in comment |
+| **INTERESTING** | `ground-android/app/src/debug/local/google-services.json:23` — Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in debug/local config (public by design, same class as rejected Algolia key) |
 
----
+**Verdict**
 
-### Verdict List
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| Firebase API key in `ground-android/app/src/debug/local/google-services.json:23` | **no** — debug/local folder, Firebase keys are public-by-design (client-embedded); KB precedent: rejected Algolia DocSearch key as public-by-design |
+| Internal URL in `copybara/cloudbuild.yaml:27` | **no** — comment-only, no credential material |
+| All test/fixture/placeholder values | **no** — clearly test data (`testpassword`, `test-token-123`, `your_client_secret`, `password`, `${{ secrets.* }}` refs) |
 
-| File | Line | Classification | REPORT_CANDIDATE |
-|------|------|----------------|------------------|
-| `sam/development/kind/run.sh` | 139 | INTERESTING | **no** (dev-only, empty default) |
-| `adk-python/src/google/adk/cli/cli_create.py` | 131 | INTERESTING | **no** (writes from variable, not hardcoded) |
-| `sam/.github/workflows/deploy.yaml` | 247,249,250 | INTERESTING | **no** (proper `${{ secrets.* }}` references) |
-| `tensorstore/.../gce_auth_provider.h` | 55 | ENDPOINT_LEAK | **no** (public metadata endpoint in comment) |
-| `tensorstore/.../aws_credentials_spec.h` | 51 | ENDPOINT_LEAK | **no** (public metadata endpoint in comment) |
-| `adk-python/.../container_code_executor.py` | 114,154 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
-| `adk-python/.../load_web_page.py` | 171 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
-| `adk-python/.../computer_use_toolset.py` | 146 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
-
-**No REAL_SECRET candidates found in this delta.** All hits are test fixtures, documentation, build artifacts, or proper secret references.
+**No reportable findings in this delta.** All hits are test data, placeholder patterns, proper secret references, or public-by-design keys in debug configs.
