@@ -1,7 +1,7 @@
-## 2026-08-17 18:02:06 UTC [google] (model bigpickle)
+## 2026-08-17 18:54:20 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings} | 9.35 | attack=10 business=9 tech=9 gate=7 cloud=7 fresh=8
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | 7.15 | attack=7 business=9 tech=8 gate=5 cloud=6 fresh=6
-[PRIO] oauth2.googleapis.com/token (source earthengine-api/python/ee/oauth.py:45) | 7.60 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
+[PRIO] oauth2.googleapis.com/token (earthengine-api python/ee/oauth.py:45) | 7.60 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}
@@ -29,8 +29,8 @@ evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed
 verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B proof + blob sha; request authorized redemption test only.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness per ADK #2128 precedent.
 testability: HUMAN_ONLY
-[PARKED] (none — all 3 survive: confidence ≥ 40, none on REJECTED list, concrete verify_steps present)
-[FINAL] (re-ranked, same as prior 15+ cycles):
+[PARKED] (none)
+[FINAL] (re-ranked by confidence, same as prior 15+ cycles):
 [NEXT] HUMAN: Submit both drafted reports — (1) MSRC two-principal request (`reports/msrc-two-principal-request.md`) via msrc.microsoft.com/bounty portal to unblock Microsoft IDOR+CORS (97) + consent forge (76); (2) Google VRP report (`reports/google-vrp-earthengine-secret.md`) via bughunters.google.com for earthengine secret (96). All 3 hypotheses have been NO_DELTA for 15+ consecutive cycles; passive probe ceiling is reached; the only remaining evidence step requires human-authorized two-principal testing (Microsoft) or human-authorized token redemption (Google).
 [LEARN] ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this cycle.
 [LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
