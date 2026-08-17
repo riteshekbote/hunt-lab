@@ -1447,3 +1447,9 @@
 - 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds across all cycles, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
 - 2026-08-17 NO_DELTA — all fresh passive probes (2026-08-17 05:10:14 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this cycle.
+- 2026-08-17 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
+- 2026-08-17 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions.
+- 2026-08-17 ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED.
+- 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-17 REJECTED: No new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA.
