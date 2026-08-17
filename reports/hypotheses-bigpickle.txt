@@ -1,4 +1,4 @@
-## 2026-08-17 22:36:23 UTC [google] (model bigpickle)
+## 2026-08-17 23:00:14 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings} | 9.35 | attack=10 business=9 tech=9 gate=7 cloud=7 fresh=8
 [PRIO] oauth2.googleapis.com/token (earthengine-api python/ee/oauth.py:45) | 7.60 | attack=7 business=8 tech=9 gate=3 cloud=9 fresh=7
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | 7.15 | attack=7 business=9 tech=8 gate=5 cloud=6 fresh=6
@@ -30,13 +30,10 @@ verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-eartheng
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness per ADK #2128 precedent.
 testability: HUMAN_ONLY
 [FINAL] (re-ranked by confidence):
-[NEXT] HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — this single request unblocks AUTH_HELPED testing for BOTH hypothesis #1 (6-family IDOR+CORS at 97) and hypothesis #3 (consent-forge at 76), which together cover 7 endpoint families across beta and v1.0 with systemic RFC 6750 §3 deviations. The report requests a two-principal test tenant to verify cross-principal read/mutate (200/204 vs 403).
+[NEXT] HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — this single request unblocks AUTH_HELPED testing for BOTH hypothesis #1 (6-family IDOR+CORS at 97) and hypothesis #3 (consent-forge at 76), which together cover 7 endpoint families across beta and v1.0 with systemic RFC 6750 §3 deviations.
+[LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 [LEARN] ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this cycle.
 [LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
 [LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions.
-[LEARN] ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED.
-[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
-[LEARN] REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
-[LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward per Google VRP rules; storage bucket-list anonymous enumeration blocked (401); no data-plane access without authorized token redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 76) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in $metadata schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold; 15+ consecutive NO_DELTA cycles confirm passive probe ceiling reached.
