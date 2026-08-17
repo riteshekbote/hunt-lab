@@ -1,64 +1,28 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
+### Classification Table
 
-### REAL_SECRET (reportable)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none new)* | | | The earthengine-api secret (`3f3f8d6f...d271`) is **already tracked** in KB as ACCEPTED — not a new finding |
-
----
-
-### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Reason |
-|------|------|--------|
-| `adk-python/src/google/adk/auth/auth_credential.py` | 157 | Private key placeholder (`-----BEGIN PRIVATE KEY-----...`) |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 269 | Fixture credentials `username="user", password="password"` |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 278 | Fixture token `eyAkaknabna....` (obviously fake JWT) |
-| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
-| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
-| `adk-python/src/google/adk/cli/cli_create.py` | 131 | Code writing variable `GOOGLE_API_KEY={google_api_key}` — not hardcoded |
-| `langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` etc. |
-| `sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=` with secret refs — CI injection, not hardcoded |
-| `sam/development/kind/run.sh` | 139 | Shell var `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — default empty |
-| All `chunk-*.js` files (adk-go & adk-python) | — | PEG.js parser error messages (`Expecting...`, `Parse error...`) — generated parser tables |
+| Category | Count | Files |
+|----------|-------|-------|
+| **REAL_SECRET** | 0 | *(none)* |
+| **TEST_OR_EXAMPLE** | 42 | `sam/site/content/docs/manifests/*.yaml` (2), `sam/charts/.../dex-deployment.yaml`, `sam/.github/k8s/*.yaml` (7), `adk-python/src/google/adk/auth/auth_credential.py` (3), `adk-python/src/google/adk/auth/auth_schemes.py:68`, `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62`, `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47`, `adk-python/src/google/adk/cli/browser/chunk-*.js` (20), `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` (4), `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` |
+| **ENDPOINT_LEAK** | 6 | `tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h:55`, `tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h:51`, `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154`, `adk-python/src/google/adk/tools/load_web_page.py:171`, `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` |
+| **INTERESTING** | 4 | `sam/development/kind/run.sh:139` (dev script with empty default), `adk-python/src/google/adk/cli/cli_create.py:131` (writes GOOGLE_API_KEY from var), `sam/.github/workflows/deploy.yaml:247,249,250` (proper secret refs — reveals workflow uses `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET`) |
 
 ---
 
-### ENDPOINT_LEAK (informational only)
-| File | Line | Note |
-|------|------|------|
-| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` — well-known GCP metadata IP (public) |
-| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Same metadata IP in comment |
-| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | Same metadata IP in comment |
-| `tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h` | 55 | `metadata.google.internal` — well-known GCP metadata hostname |
-| `tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h` | 51 | `169.254.169.254` — AWS IMDS endpoint (public) |
-| `quiche/quiche/http2/core/spdy_protocol.h` | 7 | `dev.chromium.org/spdy/...` — public doc URL in comment |
+### Verdict List
 
----
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| `sam/development/kind/run.sh` | 139 | INTERESTING | **no** (dev-only, empty default) |
+| `adk-python/src/google/adk/cli/cli_create.py` | 131 | INTERESTING | **no** (writes from variable, not hardcoded) |
+| `sam/.github/workflows/deploy.yaml` | 247,249,250 | INTERESTING | **no** (proper `${{ secrets.* }}` references) |
+| `tensorstore/.../gce_auth_provider.h` | 55 | ENDPOINT_LEAK | **no** (public metadata endpoint in comment) |
+| `tensorstore/.../aws_credentials_spec.h` | 51 | ENDPOINT_LEAK | **no** (public metadata endpoint in comment) |
+| `adk-python/.../container_code_executor.py` | 114,154 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
+| `adk-python/.../load_web_page.py` | 171 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
+| `adk-python/.../computer_use_toolset.py` | 146 | ENDPOINT_LEAK | **no** (documentation of metadata endpoint risk) |
 
-### INTERESTING (unusual patterns, no direct exploit)
-| File | Line | Note |
-|------|------|------|
-| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret mount syntax (secret value NOT in code) |
-| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session storage key naming |
-| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path/context` params — config surface for GKE auth |
-
----
-
-## SHORT VERDICT
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| earthengine-api oauth.py:45 (known) | **no** — already ACCEPTED in KB, draft submitted |
-| adk-python auth_credential fixtures | **no** — TEST_OR_EXAMPLE |
-| adk-python auth_schemes PASSWORD | **no** — TEST_OR_EXAMPLE |
-| adk-python auth_helpers placeholder | **no** — TEST_OR_EXAMPLE |
-| langextract/sam CI secret refs | **no** — GitHub Actions `${{ secrets.* }}` pattern |
-| chunk-*.js parser tables | **no** — generated PEG.js error messages |
-| Cloud Run `--set-secrets` syntax | **no** — references secret, doesn't contain it |
-| Metadata endpoint refs (169.254.169.254) | **no** — public well-known IPs |
-| VMaaS session key constant | **no** — internal naming, no secret value |
-
-**NO NEW REPORTABLE FINDINGS** in this delta scan. All hits are test fixtures, CI secret references, generated parser code, or public endpoint references. The only live credential (earthengine-api) was already triaged and drafted.
+**No REAL_SECRET candidates found in this delta.** All hits are test fixtures, documentation, build artifacts, or proper secret references.
