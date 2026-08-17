@@ -11478,3 +11478,4 @@ testability: AUTH_HELPED
 [RISK] microsoft: 91 — Copilot Admin 6-family zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector with PATCH allowlist at collection+item+agents+admin+policySettings levels (confidence 97, AUTH_HELPED); oauth2PermissionGrants consent forge via caller-chosen resourceId on production v1.0 (confidence 70, AUTH_HELPED); Graph API systemic HEAD→405 no-WWW-Authenticate anomaly (RFC 6750 §3 violation) extends across /v1.0 + /beta/copilot/*; v1↔v2 JWKS kid overlap + dual issuer namespaces intact
 ## 2026-08-17 05:49:52 UTC [google] (model laguna)
 ## 2026-08-17 06:27:47 UTC [google] (model laguna)
+## 2026-08-17 07:33:16 UTC [google] (model laguna)
