@@ -1,58 +1,26 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg" | sha256sum
-d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484  -
-[0m
-### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| `reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts` | 158 | `d41c9be1cfdeb20c618caa67dac5f2f8e516938530096113aeee95a4ccf5b484` | Google API key `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (referrer-locked to skottie.skia.org per comment) |
+Let me analyze the scan results. I need to classify each hit into one of the categories: REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant `"refresh_token"` — not a secret |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Shell var ref `${OIDC_CLIENT_SECRET:-}` — empty default |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247,249,250 | GH Actions secret refs `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` |
-| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Placeholder `"storage_driver_password"` |
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 98 | Explicitly `"not-a-valid-client-secret"` |
-| `reposcan-raw/google/skia-buildbot/pinpoint/go/backends/issuetracker.go` | 28 | Secret *name* `"perf-issue-tracker-apikey"`, not value |
-| `reposcan-raw/google/skia-buildbot/go/metadata/metadata.go` | 23,27,30 | Constant strings `"client_secret"`, `"gmail_cached_token"`, `"gmail_clientsecret"` |
+Looking at the delta hits first (44 new lines):
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `https://source.corp.google.com/h/chrome-internal/` |
-| `reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | `https://android-build.corp.google.com/range_search/...` |
-| `reposcan-raw/google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts` | 75 | `https://pantheon.corp.google.com/logs/query...` |
-| `reposcan-raw/google/skia-buildbot/autoroll/go/autoroll-fe/main.go` | 76 | Service account `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
-| `reposcan-raw/google/skia-buildbot/kube/corp-config.sh` | 9 | `PROJECT_SUBDOMAIN=skia-corp.google.com` |
-| `reposcan-raw/google/skia-buildbot/skolo/ansible/hosts.yml` | 143 | GCE metadata `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| `reposcan-raw/google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts` | 68,75,82 | `https://rotations.corp.google.com/rotation/...` |
-| `reposcan-raw/google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go` | 12 | `https://b.corp.google.com/issues/492077374` (×7 more in same dir) |
-| `reposcan-raw/google/skia-buildbot/skottie/modules/helpers/availableFonts.ts` | 2 | `https://pantheon.corp.google.com/storage/browser/skia-cdn/google-web-fonts` |
-| `reposcan-raw/google/skia-buildbot/pinpoint/webui/app/header/header.component.ts` | 15 | `https://b.corp.google.com/issues/new...` |
+1. `reposcan-raw/google/dagger/util/latest-dagger-version.sh:9: local GITHUB_TOKEN="${GH_TOKEN:-}"` - This is using an environment variable with a default, not a hardcoded secret. TEST_OR_EXAMPLE or just env var usage.
 
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service (169.254.169.254) — SSRF awareness |
-| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91,151 | Comments: metadata endpoint SSRF risk, DNS-based SSRF noted out of scope |
-| `reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
-| `reposcan-raw/google/skia-buildbot/temporal/docker/config_template.yaml` | 25,51,70 | Template password refs to `.Env.POSTGRES_PWD`, `$visibility_pwd`, `.Env.ES_PWD` |
-| `reposcan-raw/google/skia-buildbot/skolo/ansible/switchboard/**` | 12,4,110,30 | Ansible vault refs `{{ secrets.skolo_password }}` |
-| `reposcan-raw/google/skia-buildbot/scripts/is_my_commit_live/is_my_commit_live.go` | 96 | kubeconfig path error handling |
-| `reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go` | 2,16 | Service account JSON output handling |
-| `reposcan-raw/google/skia-buildbot/go/revportforward/revportforward.go` | 50,51,56 | kubeconfig byte-slice handling |
+2. `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:39: SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" -s -m 1)` - This is fetching from GCP metadata server, not a hardcoded secret. ENDPOINT_LEAK (internal metadata endpoint)
 
----
+3. `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:44: curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes" -s -m 1` - Same, GCP metadata endpoint. ENDPOINT_LEAK
 
-### VERDICT
+4. `reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:49: private static final String ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN";` - This is a constant string for an Android action, not a secret. TEST_OR_EXAMPLE
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| skottie-drive-sk.ts:158 (Google API key) | **no** | Referrer-locked to `skottie.skia.org` per source comment; Google VRP treats properly restricted API keys as non-vulnerable (cf. REJECTED Algolia key in KB). No evidence restriction is misconfigured. |
-| All TEST_OR_EXAMPLE | no | Fixtures, placeholders, secret refs, or explicitly fake values |
-| All ENDPOINT_LEAK | no | Internal corp URLs / service accounts / metadata endpoints — no auth bypass, no secret material |
-| All INTERESTING | no | Comments, template vars, vault refs, error handling — no actionable finding |
+5. `reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:50: private static final String ACTION_RESET_PASSWORD = "RESET_PASSWORD";` - Same, Android action constant. TEST_OR_EXAMPLE
+
+6. `reposcan-raw/google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java:44: String PARAM_PASSWORD = "password";` - Parameter name constant, not a secret. TEST_OR_EXAMPLE
+
+7. `reposcan-raw/google/flatbuffers/.github/workflows/label.yml:24: repo-token: "${{ secrets.GITHUB_TOKEN }}"` - GitHub Actions secret reference, not a hardcoded secret. TEST_OR_EXAMPLE
+
+8. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder. TEST_OR_EXAMPLE
+
+9. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder. TEST_OR_EXAMPLE
+
+10. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
