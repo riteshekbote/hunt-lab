@@ -1460,3 +1460,6 @@
 - 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels
 - 2026-08-17 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration → requires project parameter + auth; HTTP 400 missing project then 401 storage.buckets.list denied; no bypass, no new surface.
 - 2026-08-17 REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 signin page) — cosmetic redirect, no auth-bypass surface.
+- 2026-08-17 REJECTED source maps @ identity SPAs — mysignins (404) + api.myaccount (401) both closed; recon surface eliminated
+- 2026-08-17 REJECTED www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; no bypass
+- 2026-08-17 REJECTED graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
