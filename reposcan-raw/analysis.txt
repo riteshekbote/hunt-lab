@@ -1,47 +1,372 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json | head -30
+{
+  "project_info": {
+    "project_number": "334087903719",
+    "project_id": "local",
+    "storage_bucket": "local.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
+        "android_client_info": {
+          "package_name": "org.groundplatform.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "local.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -200 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,170p'
+Example:
 
-### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| *none* | — | — | No hardcoded live credentials found in this scan |
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
 
-### TEST_OR_EXAMPLE
-| File | Line | Classification Reason |
-|------|------|----------------------|
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | Test file, `testpassword` / `test-token-123` literals |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | Test file, `testpassword` literals |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures: truncated private key, `user`/`password`, truncated JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
-| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key (public by design per REJECTED class) |
-| google/sam/development/kind/run.sh | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` |
-| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | GitHub Actions secret references `${{ secrets.* }}` |
-| google/sam/**/*.yaml | various | ConfigMap kind declarations (mock configs) |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS build artifacts |
-| google/flatbuffers/.github/workflows/label.yml | 24 | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` reference |
 
-### ENDPOINT_LEAK
-| File | Line | Leak Type |
-|------|------|-----------|
-| google/copybara/cloudbuild.yaml | 27 | Internal Google Artifacts URL (`pantheon.corp.google.com`) in comment |
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
 
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Code pattern writes `GOOGLE_API_KEY=<var>` to generated files |
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '65,75p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '58,68p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '125,135p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '135,155p' reposcan-raw/google/sam/development/kind/run.sh
+[[ -n "$ISSUER" ]] || { echo "could not determine cluster OIDC issuer" >&2; exit 1; }
+
+OIDC_ISSUER="${OIDC_ISSUER:-http://sam-mesh-dex:5556/dex}"
+OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-sam-console}"
+OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"
+OIDC_REDIRECT_URL="${OIDC_REDIRECT_URL:-}"
+
+CONTROL_PLANE_ISSUERS="${ISSUER}"
+if [[ -n "${OIDC_ISSUER}" ]]; then
+  CONTROL_PLANE_ISSUERS="${OIDC_ISSUER},${ISSUER}"
+fi
+
+ALLOWED_AUDIENCES="sam-mesh-audience,sam-control-plane-audience"
+if [[ -n "${OIDC_CLIENT_ID}" ]]; then
+  ALLOWED_AUDIENCES="${OIDC_CLIENT_ID},${ALLOWED_AUDIENCES}"
+fi
+
+export NAMESPACE ISSUER IMAGE_TAG OIDC_ISSUER OIDC_CLIENT_ID OIDC_CLIENT_SECRET OIDC_REDIRECT_URL CONTROL_PLANE_ISSUERS ALLOWED_AUDIENCES
+
+echo "== Applying namespace and RBAC cluster rules =="
+envsubst '${NAMESPACE}' < "${SCRIPT_DIR}/00-namespace-rbac.yaml" | kubectl --context "${KCTX}" apply -f -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '245,255p' reposcan-raw/google/sam/.github/workflows/deploy.yaml
+--namespace=dex \
+            --from-literal=google-client-id="${GOOGLE_CLIENT_ID}" \
+            --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" \
+            --from-literal=github-client-id="${GITHUB_CLIENT_ID}" \
+            --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" \
+            --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy Dex Resources
+        run: |
+          print_rollout_diagnostics() {
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '40,48p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "169.254.169.254" reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114:  cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
+reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:154:  network -- in particular the cloud metadata endpoint at 169.254.169.254
+reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:170:  For example ``64:ff9b::169.254.169.254`` is reported as global but, on a
+reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171:  network with NAT64, routes to the internal ``169.254.169.254`` metadata
+reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:145:        # `http://169.254.169.254\@example.com/` the host is example.com here
+reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146:        # and 169.254.169.254 in Chrome, so refuse instead of checking it.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '100,120p' reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py
+cpu_limit: str = "500m"
+  mem_limit: str = "512Mi"
+
+  kubeconfig_path: str | None = None
+  kubeconfig_context: str | None = None
+
+  # Sandbox constants
+  sandbox_gateway_name: str | None = None
+  sandbox_template: str | None = "python-sandbox-template"
+
+  _batch_v1: k8s.client.BatchV1Api
+  _core_v1: k8s.client.CoreV1Api
+
+  def __init__(
+      self,
+      kubeconfig_path: str | None = None,
+      kubeconfig_context: str | None = None,
+      **data: object,
+  ) -> None:
+    """Initializes the executor and the Kubernetes API clients.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '45,50p' reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py
+_STATE_KEY_AGENT_ENGINE_NAME = "_vmaas_agent_engine_name"
+_STATE_KEY_SANDBOX_NAME = "_vmaas_sandbox_name"
+_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
+_STATE_KEY_TOKEN_EXPIRY = "_vmaas_token_expiry"
+
+# Default token timeout in seconds
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '70,80p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java
+}
+
+  @Test
+  public void testBasicAuth() throws ValidationException {
+    String username = "testuser";
+    String password = "testpassword";
+
+    String expectedAuthString = basicAuth(username, password);
+    http.mockHttp(
+        (method, url, req, resp) -> {
+          assertThat(req.getHeaders().get("authorization")).containsExactly(expectedAuthString);
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '100,110p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java
+@Test
+  public void testBearerAuth() throws ValidationException {
+    String token = "test-token-123";
+
+    String expectedAuthString = String.format("Bearer %s", token);
+    http.mockHttp(
+        (method, url, req, resp) ->
+            assertThat(req.getHeaders().get("authorization")).containsExactly(expectedAuthString));
+    starlark.eval(
+        "resp",
+        String.format(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '125,135p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java
+@Test
+  public void testTomlDataSource() throws ValidationException, IOException {
+    String username = "testuser";
+    String password = "testpassword";
+
+    Path configPath = tempFolder.getRoot().toPath().resolve("credentials.toml");
+    credentialOptions.credentialFile = configPath;
+
+    MoreFiles.asByteSink(configPath)
+        .asCharSink(UTF_8)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '130,145p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java
+}
+
+  @Test
+  public void testGet_auth() throws ValidationException {
+
+    String username = "testuser";
+    String password = "testpassword";
+    http.mockHttp(
+        (method, url, req, resp) -> assertThat(req.getHeaders().get("authorization")).isNotEmpty());
+      starlark.eval(
+          "resp",
+          String.format("""
+              endpoint = testing.get_endpoint(
+                http.endpoint(hosts = [
+                  http.host(host='foo.com',
+                    auth=credentials.username_password(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '155,165p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java
+@Test
+  public void testDescribe() throws ValidationException {
+
+    String username = "testuser";
+    String password = "testpassword";
+    http.mockHttp(
+        (method, url, req, resp) -> assertThat(req.getHeaders().get("authorization")).isNotEmpty());
+    HttpEndpoint endpoint = starlark.eval(
+        "endpoint",
+        String.format("""
+endpoint = testing.get_endpoint(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '185,195p' reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java
+}
+
+  @Test
+  public void testDescribeCredentials_withIssuers() throws ValidationException {
+    String password = "testpassword";
+    http.mockHttp(
+        (method, url, req, resp) -> assertThat(req.getHeaders().get("authorization")).isNotEmpty());
+    HttpEndpoint endpoint =
+        starlark.eval(
+            "endpoint",
+            String.format(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25  -
+[0m
+Now I have enough context to classify all the hits. Let me compile the results.
+
+**REAL_SECRET**: None found. The only candidate was the Firebase API key in `google/ground-android/app/src/debug/local/google-services.json`, but:
+- It's in a `debug/local` directory (local development only)
+- Project ID is "local" 
+- Client ID is "local.apps.googleusercontent.com"
+- Firebase API keys are public by design (meant to be embedded in client apps)
+
+**TEST_OR_EXAMPLE**: Most hits
+- All test files with "testpassword", "test-token-123", "testuser"
+- ConfigMap yaml files (kind: ConfigMap)
+- Workflow files with `${{ secrets.* }}` GitHub Actions secret references
+- Placeholder values: "your_client_secret", "gemini_api_key" (as enum constant), "password" (as OAuth grant type constant), "eyAkaknabna...." (fake truncated JWT)
+- Private key example in docs with "-----BEGIN PRIVATE KEY-----..."
+- Shell variable defaults: `${OIDC_CLIENT_SECRET:-}`
+- Template code writing variable `google_api_key`
+- State key constants like `_STATE_KEY_ACCESS_TOKEN`
+
+**ENDPOINT_LEAK**: None - the 169.254.169.254 references are documented public metadata endpoints with security warnings
+
+**INTERESTING**: 
+- Cloud metadata endpoint references with security warnings in ADK code (documenting SSRF risks)
+- kubeconfig_path configuration options
+- Source map files (minified JS bundles) - but these are build artifacts, not source
+
+Let me output the classification table.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && for s in "testpassword" "test-token-123" "your_client_secret" "gemini_api_key" "password" "eyAkaknabna...." "-----BEGIN PRIVATE KEY-----..." "_vmaas_access_token"; do echo -n "$s" | sha256sum; done
+9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05  -
+19b6b086eebb807f54e6327309dec0ff347a6c3c30bf3bb396f167513eba3475  -
+7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f  -
+d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e  -
+5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8  -
+6c90d62b4dd549d621bd810f0a27c4bad9a044934e410669476140b9efdfd3a2  -
+a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3  -
+fe1c603c080d2df46f1fe027f98de04a4519af25be509b5307523bb6021eb808  -
+[0m
+### Classification Table
+
+| Category | File | Line | Pattern | SHA256 (secret material) | Verdict |
+|----------|------|------|---------|--------------------------|---------|
+| **TEST_OR_EXAMPLE** | google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key (debug/local, project_id="local") | `a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25` | Local dev config; Firebase keys public by design |
+| **TEST_OR_EXAMPLE** | google/sam/site/content/docs/manifests/*.yaml | 16,88 | `kind: ConfigMap` | — | K8s ConfigMap manifests (not secrets) |
+| **TEST_OR_EXAMPLE** | google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | — | Constant string literal |
+| **TEST_OR_EXAMPLE** | google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | — | Shell var with empty default |
+| **TEST_OR_EXAMPLE** | google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | — | GitHub Actions secret refs (proper pattern) |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | `a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3` | Doc example with truncated placeholder |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` | Example basic auth credentials |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | `6c90d62b4dd549d621bd810f0a27c4bad9a044934e410669476140b9efdfd3a2` | Fake truncated JWT in example |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | `5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8` | OAuth grant type enum constant |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-104,115 | `kubeconfig_path: str \| None = None` | — | Config field, not a secret |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | `7a412f5e0b1cb5ad969e38675b2f33507bc3c79016a954fa32f9ebf606d0de0f` | Placeholder in example config |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | — | Template writing user-supplied var |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | `fe1c603c080d2df46f1fe027f98de04a4519af25be509b5307523bb6021eb808` | Session state key constant |
+| **TEST_OR_EXAMPLE** | google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | `d1a5d4cc0ff5a195bd8fe8a9b4b122e6ad608f9e709c9548ae89f2b7e3f3a31e` | Auth method enum constant |
+| **TEST_OR_EXAMPLE** | google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` | `9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05`, `19b6b086eebb807f54e6327309dec0ff347a6c3c30bf3bb396f167513eba3475` | Test fixture values |
+| **TEST_OR_EXAMPLE** | google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` | `9f735e0df9a1ddc702bf0a1a7b83033f9f7153a00c29de82cedadc9957289b05` | Test fixture values |
+| **TEST_OR_EXAMPLE** | google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | — | GitHub Actions secret ref |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/cli/browser/*.js | 3,5,11 | Minified JS source maps | — | Build artifacts (not secrets) |
+| **INTERESTING** | google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` warnings | — | SSRF risk documentation (not a leak) |
+| **INTERESTING** | google/adk-python/src/google/adk/tools/load_web_page.py | 170-171 | NAT64 metadata endpoint routing | — | Security-relevant network behavior doc |
+| **INTERESTING** | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 145-146 | Metadata endpoint blocking logic | — | Defensive code against SSRF |
 
 ---
 
-## Verdict List
+### SHORT Verdict List
 
-| Candidate | File | Line | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| Firebase API key in debug config | google/ground-android/app/src/debug/local/google-services.json | 23 | **no** (public by design, REJECTED class) |
-| Internal Artifacts URL in comment | google/copybara/cloudbuild.yaml | 27 | **no** (comment-only, no credential) |
-| API key write pattern | google/adk-python/src/google/adk/cli/cli_create.py | 131 | **no** (variable interpolation, not hardcoded secret) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/ground-android `current_key` | **no** | Debug/local config, project_id="local", Firebase keys public by design |
+| google/sam OIDC_CLIENT_SECRET | **no** | Shell variable with empty default, not hardcoded |
+| google/sam workflow secrets | **no** | Proper `${{ secrets.* }}` GitHub Actions references |
+| google/adk-python auth_credential.py examples | **no** | Placeholder/truncated values in documentation examples |
+| google/adk-python auth_schemes.py PASSWORD | **no** | OAuth grant type enum constant |
+| google/adk-python openapi_tool client_secret | **no** | `"your_client_secret"` placeholder |
+| google/adk-python cli_create.py GOOGLE_API_KEY | **no** | Template writing user-supplied variable |
+| google/adk-python vmaas state keys | **no** | Session storage key constants |
+| google/agents-cli GEMINI_API_KEY | **no** | Auth method enum constant |
+| google/copybara test fixtures | **no** | `testpassword`, `test-token-123` in test code |
+| google/flatbuffers GITHUB_TOKEN | **no** | GitHub Actions secret reference |
+| google/adk-python browser source maps | **no** | Minified JS build artifacts |
+| Cloud metadata endpoint refs | **no** | Public documented endpoint (169.254.169.254); code documents SSRF risk, doesn't leak |
 
-**Summary**: 0 reportable findings in this delta. All hits are test fixtures, placeholders, build artifacts, or public-by-design keys. The earthengine-api OAuth client_secret (tracked separately in KB as ACCEPTED) does not appear in this scan output.
+**No REAL_SECRET candidates found in this scan.** All hits are TEST_OR_EXAMPLE, configuration patterns, or security documentation.
