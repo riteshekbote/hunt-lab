@@ -1,182 +1,179 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (reportable hardcoded credentials with signs of life)
-# NONE FOUND in this scan delta
-
-## TEST_OR_EXAMPLE (sample/test/fixture data, placeholders, secret refs)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Docs manifest template |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Docs manifest template |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant string literal, not a secret |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | K8s template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell param expansion with default |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secret ref |
-| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates (10 files) |
-| google/eclipsa-audio-plugin/scripts/package_ci.sh | 51 | APPLE_APP_SPECIFIC_PASSWORD="${APPLE_APP_SPECIFIC_PASSWORD:?...}" | Shell param expansion (requires env) |
-| google/eclipsa-audio-plugin/scripts/package_ci.sh | 53 | KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD}" | Shell param expansion |
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal... (comment) | See ENDPOINT_LEAK |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.* }} | GH Actions secret refs (3 lines) |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | homepage URL | Documentation URL |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | documentation URL | Documentation URL |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD="...) | Test code |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GH Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | url: https://test.pypi.org/p/magika | Test PyPI URL |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | repository-url: https://test.pypi.org/legacy/ | Test PyPI URL |
-| google/magika/tests_data/basic/javascript/code.js | 31 | minified JS | Test data |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | default: https://staging.release-eq7.pages.dev | See ENDPOINT_LEAK |
-| google/capsem/config/gate.toml | 584 | password = "password.txt" | Refers to password file |
-| google/capsem/scripts/preflight.sh | 39 | password="$(tr -d '\n' < "$pass_file")" | Reads from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(tr -d '\n' < "$PASS_FILE")" | Reads from file |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs.* }} | GH Actions template |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Placeholder with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Placeholder |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path: str \| None = None | Type annotations |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Constant key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3 | minified JS chunks | Build artifacts |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Comment in header |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Comment in header |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 | Comment: 302 to metadata service |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | 169.254.169.254 | Comment: SSRF via metadata endpoint |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | 169.254.169.254 / fd00:ec2::254 | Comment: DNS-based SSRF |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 | Comment: cloud metadata endpoints |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 | Docstring: metadata endpoint |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 | Docstring: metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | Docstring: internal metadata |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Comment: Chrome blocks it |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | https://staging.release-eq7.pages.dev | Staging deployment URL |
-
-## INTERESTING (unusual patterns, debug flags, SSRF discussion)
-| File | Line | Pattern | Note |
-|------|------|---------|------|
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | "causing SSRF when the client" | Explicit SSRF discussion in comment |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | "DNS-based SSRF is out of scope" | Explicit SSRF scope comment |
-
-EOF
-# CLASSIFICATION TABLES
-
-## REAL_SECRET (reportable hardcoded credentials with signs of life)
-# NONE FOUND in this scan delta
-
-## TEST_OR_EXAMPLE (sample/test/fixture data, placeholders, secret refs)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Docs manifest template |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Docs manifest template |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant string literal, not a secret |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | K8s template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell param expansion with default |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secret ref |
-| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates (10 files) |
-| google/eclipsa-audio-plugin/scripts/package_ci.sh | 51 | APPLE_APP_SPECIFIC_PASSWORD="${APPLE_APP_SPECIFIC_PASSWORD:?...}" | Shell param expansion (requires env) |
-| google/eclipsa-audio-plugin/scripts/package_ci.sh | 53 | KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD}" | Shell param expansion |
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal... (comment) | See ENDPOINT_LEAK |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.* }} | GH Actions secret refs (3 lines) |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | homepage URL | Documentation URL |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | documentation URL | Documentation URL |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | Explicit test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | getConnection("PASSWORD="...) | Test code |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | repo-token: "${{secrets.GITHUB_TOKEN}}" | GH Actions secret ref |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407 | url: https://test.pypi.org/p/magika | Test PyPI URL |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 437 | repository-url: https://test.pypi.org/legacy/ | Test PyPI URL |
-| google/magika/tests_data/basic/javascript/code.js | 31 | minified JS | Test data |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | default: https://staging.release-eq7.pages.dev | See ENDPOINT_LEAK |
-| google/capsem/config/gate.toml | 584 | password = "password.txt" | Refers to password file |
-| google/capsem/scripts/preflight.sh | 39 | password="$(tr -d '\n' < "$pass_file")" | Reads from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | PASSWORD="$(tr -d '\n' < "$PASS_FILE")" | Reads from file |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs.* }} | GH Actions template |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Placeholder with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Placeholder credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Placeholder |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path: str \| None = None | Type annotations |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | Constant key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3 | minified JS chunks | Build artifacts |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Comment in header |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Comment in header |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 | Comment: 302 to metadata service |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | 169.254.169.254 | Comment: SSRF via metadata endpoint |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | 169.254.169.254 / fd00:ec2::254 | Comment: DNS-based SSRF |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 | Comment: cloud metadata endpoints |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 | Docstring: metadata endpoint |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 | Docstring: metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | Docstring: internal metadata |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Comment: Chrome blocks it |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | https://staging.release-eq7.pages.dev | Staging deployment URL |
-
-## INTERESTING (unusual patterns, debug flags, SSRF discussion)
-| File | Line | Pattern | Note |
-|------|------|---------|------|
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | "causing SSRF when the client" | Explicit SSRF discussion in comment |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | "DNS-based SSRF is out of scope" | Explicit SSRF scope comment |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "GEMINI_API_KEY" reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+19:- Gemini API Key from AI Studio (GEMINI_API_KEY)
+43:    GEMINI_API_KEY = "gemini_api_key"
+51:        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+223:    Checks for GEMINI_API_KEY env var. If not set, opens AI Studio
+230:    api_key = os.environ.get("GEMINI_API_KEY")
+232:        return {"env_var": "GEMINI_API_KEY", "from_env": True}
+236:    click.echo("  GEMINI_API_KEY is not set in your environment.")
+251:    _api_key_instructions("GEMINI_API_KEY")
+387:    # Check GEMINI_API_KEY (instant)
+388:    if os.environ.get("GEMINI_API_KEY"):
+389:        return True, "Gemini API Key (GEMINI_API_KEY)"
 [0m
-[0m$ [0mcat << 'EOF'
-# VERDICT LIST
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '150,165p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+Example:
 
-REPORT_CANDIDATE: no  (for all entries above)
-
-## Summary
-- REAL_SECRET: 0 candidates
-- TEST_OR_EXAMPLE: 52 entries (all placeholders, test fixtures, GH Actions secret refs, templates)
-- ENDPOINT_LEAK: 11 entries (cloud metadata endpoint URLs in comments/docstrings, 1 staging URL)
-- INTERESTING: 2 entries (explicit SSRF discussion in go-containerregistry comments)
-
-## Notes
-- The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) from prior ACCEPTED findings is NOT in this scan delta — it remains a live ACCEPTED finding tracked separately (reports/google-vrp-earthengine-secret.md).
-- All 10 "NEW HITS SINCE LAST SCAN" (DELTA) classify as TEST_OR_EXAMPLE (4) or ENDPOINT_LEAK (6).
-- No new reportable secrets discovered in this scan cycle.
-EOF
-# VERDICT LIST
-
-REPORT_CANDIDATE: no  (for all entries above)
-
-## Summary
-- REAL_SECRET: 0 candidates
-- TEST_OR_EXAMPLE: 52 entries (all placeholders, test fixtures, GH Actions secret refs, templates)
-- ENDPOINT_LEAK: 11 entries (cloud metadata endpoint URLs in comments/docstrings, 1 staging URL)
-- INTERESTING: 2 entries (explicit SSRF discussion in go-containerregistry comments)
-
-## Notes
-- The earthengine-api oauth.py:45 hardcoded secret (sha256 3f3f8d6f...d271) from prior ACCEPTED findings is NOT in this scan delta — it remains a live ACCEPTED finding tracked separately (reports/google-vrp-earthengine-secret.md).
-- All 10 "NEW HITS SINCE LAST SCAN" (DELTA) classify as TEST_OR_EXAMPLE (4) or ENDPOINT_LEAK (6).
-- No new reportable secrets discovered in this scan cycle.
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
 [0m
-**Classification complete. No new REAL_SECRET candidates in this scan delta.**
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '270,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+),
+  )
 
-| Category | Count | Notes |
-|----------|-------|-------|
-| **REAL_SECRET** | 0 | No hardcoded live credentials found |
-| **TEST_OR_EXAMPLE** | 52 | Placeholders, test fixtures, `${{secrets.*}}` refs, K8s/templates, minified JS |
-| **ENDPOINT_LEAK** | 11 | `169.254.169.254` metadata URLs in comments/docstrings (go-containerregistry, tensorstore, adk-python), 1 staging URL |
-| **INTERESTING** | 2 | Explicit SSRF discussion in `go-containerregistry/pkg/v1/remote/transport/bearer.go:91,151` |
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
 
-**All 10 DELTA hits** classify as TEST_OR_EXAMPLE (4) or ENDPOINT_LEAK (6).
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '60,70p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
 
-The previously ACCEPTED earthengine-api `oauth.py:45` secret (sha256 `3f3f8d6f...d271`) is **not in this scan delta** — it remains a live finding tracked at `reports/google-vrp-earthengine-secret.md` with A/B proof (`invalid_grant` vs `invalid_client` per RFC 6749 §5.2).
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  client_secret: str
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '65,75p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '580,590p' reposcan-raw/google/capsem/config/gate.toml
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '35,45p' reposcan-raw/google/capsem/scripts/preflight.sh
+fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '10,20p' reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
+
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
+
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+[0m
+All hits have been analyzed. Here's the classification:
+
+---
+
+### **REAL_SECRET** (reportable candidates)
+*None found in this delta.*
+
+---
+
+### **TEST_OR_EXAMPLE** (sample/test/fixture data — not reportable)
+
+| File | Line | Context |
+|------|------|---------|
+| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | `String password = "testpassword";`, `String token = "test-token-123";` |
+| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | `String password = "testpassword";` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (example config) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `credentials=HttpCredentials(username="user", password="password")` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `credentials=HttpCredentials(token="eyAkaknabna....")` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (OAuth grant type constant) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` (example) |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (placeholder default) |
+
+---
+
+### **ENDPOINT_LEAK** (internal/dev/staging URLs)
+
+| File | Line | Context |
+|------|------|---------|
+| `google/copybara/cloudbuild.yaml` | 27 | `# https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` |
+| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | `# Get this Client ID from https://pantheon.corp.google.com/auth/clients` |
+| `google/quiche/quiche/http2/core/spdy_protocol.h` | 7 | `// http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3` |
+
+---
+
+### **INTERESTING** (unusual patterns, debug flags, cloud configs)
+
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` parameters |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | References to `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Routes to internal `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Refuses `169.254.169.254` in Chrome |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template: `GOOGLE_API_KEY={google_api_key}` |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` |
+| `google/dagger/util/latest-dagger-version.sh` | 9 | `local GITHUB_TOKEN="${GH_TOKEN:-}"` |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
+| `google/nsscache/.github/workflows/automerge.yml` | 33, 59 | `github-token: "${{ secrets.GITHUB_TOKEN }}"` |
+| `google/eclipsa-audio-plugin/scripts/package_ci.sh` | 51, 53 | `APPLE_APP_SPECIFIC_PASSWORD`, `KEYCHAIN_PASSWORD` env var refs |
+| `google/capsem/config/gate.toml` | 584 | `password = "password.txt"` (file reference) |
+| `google/capsem/scripts/preflight.sh` | 39 | Reads password from `$pass_file` |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from `$PASS_FILE` |
+| `google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml` | 168, 192 | GitHub Actions `_ID_TOKEN`, `_AUTH_TOKEN` refs |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | multiple | Minified parser error messages (14 chunks) |
+
+---
+
+### **VERDICT**
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| *(none)* | **no** | No hardcoded live credentials/API keys/tokens found. All hits are test fixtures, placeholders, secret-manager references, or internal URLs in comments. |
+
+**Note:** The `adk-python` browser chunks (14 files) are minified parser generator output — parser error strings, not secrets. The `capsem` password references read from files at runtime. The `crosvm`/`dagger`/`flatbuffers`/`nsscache` hits reference GitHub Actions secrets or `gcloud` secret manager — no secret material in repo.
