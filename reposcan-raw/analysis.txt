@@ -1,18 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_results.md
-Wrote file successfully.
-[0m
-Done. **No reportable secrets in this delta.**
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
+### Classification Tables
 
-**Summary:**
-- **330 hits scanned** across google/ repos (no microsoft/ hits in delta)
-- **0 REAL_SECRET** — all "secret-like" hits are:
-  - GitHub Actions `${{ secrets.* }}` references (standard CI, not hardcoded values)
-  - Test fixtures in `nonprod/`, `load-testing/`, `javatests/` (`password`, `testpassword`, `abcde12345`, `domain-registry`)
-  - OAuth/CSRF parameter name constants (`id_token`, `X-CSRF-Token`)
-- **4 ENDPOINT_LEAK** — staging/test URLs (`staging-www.sandbox.googleapis.com`, `test.pypi.org`, `metadata.google.internal`) — low risk, documented
-- **0 INTERESTING** requiring action
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none* | — | — | No live credentials found in delta or full scan |
 
-Full classification tables written to `triage_results.md`.
+#### TEST_OR_EXAMPLE
+| File | Line | Context | Why |
+|------|------|---------|-----|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example section, placeholder with `...`, `your_project_id`, `your_private_key_id` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `username="user", password="password"` | "Example: HTTP Auth" section, obvious test values |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` | "Example: OAuth2 Bearer Token" section, truncated placeholder |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | OAuthGrantType enum value for "password" grant type |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Example section, placeholder |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation for user input, not hardcoded |
+| `google/nomulus/core/src/nonprod/java/.../PostgresqlCommand.java` | 28 | `DB_PASSWORD = "domain-registry"` | Nonprod/test fixture |
+| `google/nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java` | 40 | `DB_PASSWORD = "domain-registry"` | Nonprod/test fixture |
+| `google/nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java` | 61 | `DB_PASSWORD = "password"` | Nonprod/test fixture |
+| `google/nomulus/load-testing/.../EppClient.java` | 156 | `password = "abcde12345"` | Load-testing test fixture |
+
+#### ENDPOINT_LEAK
+| File | Line | Context | Why |
+|------|------|---------|-----|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` in comments | Documentation warning about SSRF risk, not a leak |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` in comment | Refusal logic comment, not a leak |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` in docstring | NAT64/SSRF documentation |
+| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Metadata endpoint SSRF comments | Security documentation |
+| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | 302 to metadata service comment | Security documentation |
+| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Cloud metadata endpoints comment | Security documentation |
+| `google/nomulus/util/.../MetricParameters.java` | 61 | `GCE_METADATA_URL_BASE` constant | Config constant, not a leak |
+| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` | Config key name, not a secret |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` references |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Proper `${{ secrets.GOOGLE_CLIENT_SECRET }}` / `${{ secrets.GITHUB_CLIENT_SECRET }}` references |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` env var reference |
+| `google/ax/manifests/install-ax.sh` | 239-241, 286 | Password generated via `openssl rand -hex 16`, not hardcoded |
+| `google/nomulus/core/src/main/java/.../XsrfTokenManager.java` | 37, 40 | CSRF token header/parameter *names* (constants) |
+
+---
+
+### Verdict List
+
+| Candidate | File | Line | REPORT_CANDIDATE |
+|-----------|------|------|------------------|
+| ADK auth_credential private_key example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | **no** (test fixture) |
+| ADK auth_credential HTTP basic example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | **no** (test fixture) |
+| ADK auth_credential bearer token example | `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | **no** (test fixture) |
+| ADK auth_schemes PASSWORD enum | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | **no** (enum constant) |
+| ADK openapi_tool client_secret example | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | **no** (test fixture) |
+| ADK cli_create GOOGLE_API_KEY interpolation | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | **no** (user input template) |
+| Nomulus nonprod DB passwords | `google/nomulus/core/src/nonprod/...` | 28,40,61 | **no** (test fixtures) |
+| Nomulus EppClient test password | `google/nomulus/load-testing/.../EppClient.java` | 156 | **no** (test fixture) |
+| Cloud metadata endpoint refs | Multiple ADK/go-containerregistry files | — | **no** (SSRF docs/warnings) |
+| GitHub Actions secret refs | `google/langextract`, `google/sam` workflows | — | **no** (proper secret pattern) |
+| ax install generated password | `google/ax/manifests/install-ax.sh` | 239-286 | **no** (runtime generation) |
+
+**Summary**: 0 REAL_SECRET candidates. All 25 delta hits + 389 prior hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (documentation), or INTERESTING (proper secret management patterns). The ADK findings match previously rejected/known-duplicate classes (issues #2128, #5520). No new reportable findings.
