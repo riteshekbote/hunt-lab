@@ -1,633 +1,164 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | head -60 | tail -20
-// The remainder are vestigial cAdvisor flags the kubelet exposes only as
-	// deprecated, for backwards compatibility with existing command lines.
-	ApplicationMetricsCountLimit = "application_metrics_count_limit"
-	BootIDFile                   = "boot_id_file"
-	ContainerHints               = "container_hints"
-	Containerd                   = "containerd"
-	EnableLoadReader             = "enable_load_reader"
-	EventStorageAgeLimit         = "event_storage_age_limit"
-	EventStorageEventLimit       = "event_storage_event_limit"
-	GlobalHousekeepingInterval   = "global_housekeeping_interval"
-	LogCadvisorUsage             = "log_cadvisor_usage"
-	MachineIDFile                = "machine_id_file"
-	StorageDriverUser            = "storage_driver_user"
-	StorageDriverPassword        = "storage_driver_password"
-	StorageDriverHost            = "storage_driver_host"
-	StorageDriverDB              = "storage_driver_db"
-	StorageDriverTable           = "storage_driver_table"
-	StorageDriverSecure          = "storage_driver_secure"
-	StorageDriverBufferDuration  = "storage_driver_buffer_duration"
-	ContainerdNamespace          = "containerd-namespace"
-[0m
-[0m$ [0mcat reposcan-raw/google/go-jsonnet/.github/workflows/publish-python.yml | head -130 | tail -30
-name: "Upload packages to PyPI"
-    needs: [build_sdist, build_wheels]
-    runs-on: ubuntu-24.04
-    if: "${{ inputs.upload_to_pypi }}"
-    permissions:
-      contents: read
-      id-token: write # Needed for PyPI Trusted Publishing
-    environment:
-      name: "${{ inputs.pypi_environment }}"
-      url: "${{ inputs.pypi_environment == 'pypi' && 'https://pypi.org/p/gosonnet' || 'https://test.pypi.org/p/gosonnet' }}"
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          path: cibw-wheels
-          pattern: cibw-wheels-*
-      - uses: actions/download-artifact@v8
-        with:
-          path: sdist
-          name: sdist
-      - name: Flatten wheels to one directory
-        run: |
-          mkdir dist
-          find cibw-wheels/ -type f -name '*.whl' -exec mv '{}' ./dist/ ';'
-          find sdist/ -type f -name '*.gz' -exec mv '{}' ./dist/ ';'
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@ed0c53931b1dc9bd32cbe73a98c7f6766f8a527e # v1.13.0
-        with:
-          verbose: true
-          print-hash: true
-          repository-url: "${{ inputs.pypi_environment == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}"
-[0m
-[0m$ [0mcat reposcan-raw/google/go-jsonnet/.github/workflows/release.yml | head -50
-# build binaries and add to release - see
-# https://github.com/goreleaser/goreleaser-action
+[0m$ [0mcat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -600 | tail -100
+auto sk = variableNames->getNameForValue(op.getSecretKey());
 
-name: goreleaser
+  rotKeysDictVarName_ = rk + "_dict";
+  std::string indicesStr;
+  llvm::raw_string_ostream indicesOs(indicesStr);
+  llvm::interleaveComma(op.getIndices(), indicesOs);
 
-on:
-  workflow_dispatch:
+  os << llvm::formatv(kGenRotKeyTemplate.data(), rotKeysDictVarName_,
+                      indicesStr, sk, ctx, heRotVarName_, rk);
 
-jobs:
-  release:
-    permissions:
-      # Create a draft GitHub release and attach the built artifacts.
-      contents: write
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-        with:
-          # Needed otherwise we get a shallow checkout by default.
-          # We need more so that goreleaser can find the previous version.
-          fetch-depth: 0
-      - name: Set up Go
-        uses: actions/setup-go@v6
-        with:
-          go-version: "1.24"
-      - name: Extract version
-        id: extract_version
-        run: |
-          CMD_VERSION="$(go run ./cmd/jsonnet --version | grep -oe 'v[0-9][0-9a-z.-]*$')" &&
-          printf "Extracted jsonnet version: %s\n" "${CMD_VERSION}" &&
-          git tag "${CMD_VERSION}" &&
-          printf "jsonnet_version='%s'\n" "${CMD_VERSION}" >> "${GITHUB_OUTPUT}"
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@ec59f474b9834571250b370d4735c50f8e2d1e29 # v7.0.0
-        env:
-          FROM_COMMITISH: "${{ github.ref_name }}"
-          GITHUB_TOKEN: "${{ github.token }}"
-        with:
-          version: latest
-          args: release --clean --draft
-
-  create_source_archive:
-    needs:
-      # Need to wait for goreleaser to create the draft release otherwise we end up with _two_ draft releases!
-      - release
-    permissions:
-      contents: write
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-[0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Authentication module for agents-cli.
-
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
-
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
-
-
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | head -600 | tail -30
-ort_lib_location = "/opt/capsem/onnxruntime"
-
-# Installing the exact package into a clean systemd container and proving it
-# works: every binary present and reporting the package's own version, the
-# service and gateway up, every profile ready, and a real guest shell.
-
-# Local signing material. Absent on a developer machine, which is why the rail
-# treats it as optional -- the release lanes sign in CI from secrets. Declared
-# here so "where is the key" has one answer rather than a path spelled inside
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-shell_proof_script = "scripts/prove-installed-shell.py"
-shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
-session_name = "qualification-exact-deb-shell"
-shell_timeout_seconds = 300
-
-# Every binary the package must install. Each reports the package version
-# except capsem-app, which is the Tauri bundle and has no --version.
-binaries = [
-    "capsem",
-    "capsem-admin",
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
-#!/usr/bin/env bash
-# Preflight checks for release builds.
-# Validates environment, credentials, and tools BEFORE slow CI jobs run.
-# Add new checks as functions -- they run in order, fail-fast on first error.
-set -euo pipefail
-
-PASS=0
-FAIL=0
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-
-pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
-fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
-
-# --------------------------------------------------------------------------
-# Check: Apple certificate can be imported into a macOS keychain
-# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
-# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
-# with a misleading "wrong password" error. Re-export with:
-#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
-#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
-#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
-# --------------------------------------------------------------------------
-check_apple_certificate() {
-    echo ""
-    echo "== Apple Certificate =="
-
-    local cert_dir="$ROOT_DIR/private/apple-certificate"
-    local p12="$cert_dir/capsem.p12"
-    local pass_file="$cert_dir/p12-password.txt"
-
-    if [[ ! -f "$p12" ]]; then
-        fail "capsem.p12 not found at $p12"
-        return
-    fi
-    pass "capsem.p12 exists"
-
-    local password
-    password="$(tr -d '\n' < "$pass_file")"
-
-    # Check encryption format
-    local fmt
-    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
-        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-
-    if [[ "$fmt" == "PBES2" ]]; then
-        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
-        return
-    fi
-    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | head -30
-#!/usr/bin/env bash
-# Re-exports the Apple .p12 certificate with legacy 3DES/SHA1 encryption.
-# macOS `security import` rejects modern PBES2/AES-256-CBC p12 files created
-# by OpenSSL 3.x. This converts to the legacy format macOS understands.
-set -euo pipefail
-
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-CERT_DIR="$(dirname "$SCRIPT_DIR")/private/apple-certificate"
-P12="$CERT_DIR/capsem.p12"
-B64="$CERT_DIR/capsem-b64.txt"
-PASS_FILE="$CERT_DIR/p12-password.txt"
-TMPDIR_WORK="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_WORK"' EXIT
-
-PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
-
-echo "==> Checking current format..."
-FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
-    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-
-if [[ "$FMT" != "PBES2" ]]; then
-    echo "    Already legacy format ($FMT). Nothing to do."
-    exit 0
-fi
-
-echo "    Current: $FMT (modern, macOS-incompatible)"
-echo "==> Re-exporting with 3DES/SHA1..."
-
-openssl pkcs12 -in "$P12" -passin "pass:$PASSWORD" -nodes -out "$TMPDIR_WORK/combined.pem" 2>/dev/null
-openssl pkcs12 -export -in "$TMPDIR_WORK/combined.pem" -out "$TMPDIR_WORK/legacy.p12" \
-[0m
-[0m$ [0mcat reposcan-raw/google/dagger/util/latest-dagger-version.sh
-#!/bin/bash
-
-set -eu
-
-function github-rest-api {
-  local GITHUB_REST_API=$1
-  local GITHUB_API_HEADER_ACCEPT="Accept: application/vnd.github.v3+json"
-  # Grab the GH_TOKEN or else default to an empty string.
-  local GITHUB_TOKEN="${GH_TOKEN:-}"
-
-  if [ -z "$GITHUB_TOKEN" ]; then
-    curl -s $GITHUB_REST_API -H $GITHUB_API_HEADER_ACCEPT
-  else
-    curl -s $GITHUB_REST_API \
-      -H $GITHUB_API_HEADER_ACCEPT \
-      -H "authorization: Bearer $GITHUB_TOKEN"
-  fi
+  return success();
 }
 
-function github-latest-release-tag {
-  local REPO_NAME=$1
+LogicalResult JaxiteWordEmitter::printOperation(GenParamsOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  cryptoContextVarName_ = ctx;
 
-  # Grab the last two latest releases:
-  # (We skip the latest release if we haven't set release notes yet).
-  local RELEASE_API="https://api.github.com/repos/$REPO_NAME/releases?per_page=2"
+  os << "params = {\n";
+  os.indent();
+  auto qTowers = op.getQTowers();
+  auto pTowers = op.getPTowers();
+  int32_t compDeg = op.getCompositeDegree();
 
-  # This gets the latest release info (as json) from github.
-  local RELEASE_JSON=$(github-rest-api $RELEASE_API)
+  os << "\"degree\": " << op.getDegree() << ",\n";
+  os << "\"num_slots\": " << op.getNumSlots() << ",\n";
+  os << "\"batch\": " << op.getBatch() << ",\n";
+  os << "\"r\": " << op.getR() << ",\n";
+  os << "\"c\": " << op.getC() << ",\n";
+  os << "\"dnum\": " << op.getDnum() << ",\n";
+  os << "\"numEvalMult\": " << op.getNumEvalMult() << ",\n";
+  os << "\"scaling_factor\": " << op.getScalingFactor() << ",\n";
 
-  # This pulls out the "body" from the json (i.e. the release notes)
-  local RELEASE_NOTES=$(echo $RELEASE_JSON | jq '.[0].body')
+  os << "\"q_towers\": [";
+  llvm::interleaveComma(qTowers, os);
+  os << "],\n";
 
-  if [ "$RELEASE_NOTES" ]
-  then
-    # Return the latest release tag
-    echo $RELEASE_JSON | jq '.[0].tag_name'
-  else
-    # If there are no release notes in the latest release then we use the
-    # 2nd most latest version since we don't want to update the version until
-    # the release notes are set.
-    echo "Ignoring the latest release since the release notes have not been set."
-    echo "Using the previous release's version as latest."
+  os << "\"p_towers\": [";
+  llvm::interleaveComma(pTowers, os);
+  os << "],\n";
 
-    # Return the 2nd most recent release tag
-    echo $RELEASE_JSON | jq '.[1].tag_name'
-  fi
+  os << "\"composite_degree\": " << compDeg << ",\n";
+  os << "\"p\": 30,\n";
+  os << "\"max_bits_in_word\": 61,\n";
+  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
+  os << "\"noise_scale_degree\": 1,\n";
+  os << "\"CKKS_M_FACTOR\": 1\n";
+  os.unindent();
+  os << "}\n";
+
+  os << ctx << " = ckks.CKKSContext(params)\n";
+  return success();
 }
 
-function dagger-latest-release {
-  # Get the latest Dagger release tag, e.g. "dagger-2.31.2" or "dagger-2.32"
-  local DAGGER_RELEASE_TAG=$(github-latest-release-tag "google/dagger")
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
 
-  # Converts the "tag_name" to a version, e.g. "dagger-2.32" => "2.32"
-  echo $DAGGER_RELEASE_TAG | grep -oP "(?<=dagger-)\d+\.\d+(\.\d+)?"
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
+
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
+
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
+  os << ")\n";
+
+  return success();
 }
 
-type jq >/dev/null 2>&1 || {
-  echo >&2 "jq is not installed.  Try 'sudo apt-get install jq'.";
-  exit 1;
+LogicalResult JaxiteWordEmitter::printOperation(tensor::ExtractOp op) {
+  emitAssignPrefix(op.getResult());
+  os << variableNames->getNameForValue(op.getTensor());
+
+  os << "[";
+  for (size_t i = 0; i < op.getIndices().size(); ++i) {
+    if (i > 0) os << ", ";
+    Value idx = op.getIndices()[i];
+    auto constStr = getConstantAsString(idx);
+    if (succeeded(constStr)) {
+      os << constStr.value();
+    } else {
+      os << variableNames->getNameForValue(idx);
+    }
+  }
+  os << "]\n";
+  return success();
 }
 
-dagger-latest-release
+LogicalResult JaxiteWordEmitter::printOperation(tensor::FromElementsOp op) {
+  if (op.getNumOperands() == 0) {
+    return success();
+  }
+  if (isa<jaxiteword::AddOp>(op->getOperands()[0].getDefiningOp())) {
+    return success();
 [0m
-[0m$ [0mcat reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-# Copyright 2022 The ChromiumOS Authors
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
+## Classification Tables
 
-# Pushes the current repo to github using the secret provided by Secret Manager.
-# See: https://console.cloud.google.com/security/secret-manager
-#
-# This script will only work if you have access to the above service via gcloud.
-set -e
-TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")
-git push --force "https://crosvm-bot:${TOKEN}@github.com/google/crosvm.git" HEAD:main
-[0m
-[0m$ [0mcat reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-# Copyright 2022 The ChromiumOS Authors
-# Use of this source code is governed by a BSD-style license that can be
-# found in the LICENSE file.
-
-# Calls the provided command with CODECOV_TOKEN set. The token is obtained via the gcloud Secret
-# Manager.
-# See: https://console.cloud.google.com/security/secret-manager
-#
-# This script will only work if you have access to the above service via gcloud.
-set -e
-CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm") $@
-[0m
-[0m$ [0mcat reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | head -30
-name: New issue labeler
-on:
-  # Runs on newly opened issues
-  issues:
-    types: [opened]
-
-# Sets permissions of the GITHUB_TOKEN
-permissions:
-  issues: write
-  contents: read
-
-jobs:
-  triage:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: github/issue-labeler@c1b0f9f52a63158c4adc09425e858e87b32e9685 # pin@v3.4
-        with:
-          configuration-path: .github/labeler.yml
-          enable-versioned-regex: 0
-          repo-token: "${{secrets.GITHUB_TOKEN}}"
-[0m
-[0m$ [0mcat reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | head -450 | tail -50
-# Check structure after flattening
-          ls -alR artifacts/
-
-      - name: Publish distribution to PyPI
-        if: github.event_name == 'push' && github.ref_type == 'tag' && startsWith(github.ref_name, env.RELEASE_TAG_PREFIX)
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: artifacts/
-
-  # Note: The publishing is only done with pushes of test release tags.
-  publish-to-testpypi:
-    name: Publish to TestPyPI
-    if: github.event_name == 'push' && github.ref_type == 'tag' && contains(github.ref_name, 'python')
-    needs: [test-wheels, test-pure-python-wheel, test-sdist]
-    runs-on: ubuntu-latest
-
-    environment:
-      name: testpypi
-      url: https://test.pypi.org/p/magika
-
-    permissions:
-      id-token: write  # IMPORTANT: mandatory for trusted publishing
-
-    steps:
-      - name: Download all the artifacts (binary wheels, pure python wheel, sdist)
-        uses: actions/download-artifact@v8
-        with:
-          path: artifacts/
-
-      - name: Flatten artifacts structure
-        run: |
-          # List all files for debugging
-          ls -alR artifacts/
-
-          # Find all files inside the subdirectories and move them up
-          find artifacts/ -mindepth 2 -type f -exec mv -t artifacts/ {} +
-
-          # Remove the now-empty subdirectories
-          find artifacts/ -mindepth 1 -type d -empty -delete
-
-          # Check structure after flattening
-          ls -alR artifacts/
-
-      - name: Publish distribution to TestPyPI
-        if: github.event_name == 'push' && github.ref_type == 'tag' && startsWith(github.ref_name, env.TEST_RELEASE_TAG_PREFIX)
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: artifacts/
-          repository-url: https://test.pypi.org/legacy/
-[0m
-[0m$ [0mcat reposcan-raw/google/flatbuffers/.github/workflows/label.yml | head -30
-# This workflow will triage pull requests and apply a label based on the
-# paths that are modified in the pull request.
-#
-# To use this workflow, you will need to set up a .github/labeler.yml
-# file with configuration.  For more information, see:
-# https://github.com/actions/labeler
-
-name: Labeler
-permissions: read-all
-
-on: [pull_request_target]
-
-jobs:
-  label:
-    permissions:
-      contents: read
-      pull-requests: write
-      
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/labeler@v6
-      with:
-        repo-token: "${{ secrets.GITHUB_TOKEN }}"
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -170 | tail -30
-private_key_id: The ID of the private key.
-    private_key: The private key.
-    client_email: The client email.
-    client_id: The client ID.
-    auth_uri: The authorization URI.
-    token_uri: The token URI.
-    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
-    client_x509_cert_url: URL for the client's X.509 cert.
-    universe_domain: The universe domain.
-
-  Example:
-
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
-
-
-      config = ServiceAccountConfig.model_construct(**{
-          ...service account config dict
-      })
-[0m
-[0m$ [0msed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="basic",
-          credentials=HttpCredentials(username="user", password="password"),
-      ),
-  )
-
-  Example: OAuth2 Bearer Token in HTTP Header
-  AuthCredential(
-      auth_type=AuthCredentialTypes.HTTP,
-      http=HttpAuth(
-          scheme="bearer",
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-      ),
-  )
-
-  Example: OAuth2 Auth with Authorization Code Flow
-  AuthCredential(
-      auth_type=AuthCredentialTypes.OAUTH2,
-      oauth2=OAuth2Auth(
-[0m
-[0m$ [0msed -n '65,75p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
-CLIENT_CREDENTIALS = "client_credentials"
-  AUTHORIZATION_CODE = "authorization_code"
-  IMPLICIT = "implicit"
-  PASSWORD = "password"
-
-  @staticmethod
-  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
-    """Converts an OAuthFlows object to a OAuthGrantType."""
-    if flow.clientCredentials:
-      return OAuthGrantType.CLIENT_CREDENTIALS
-    if flow.authorizationCode:
-[0m
-[0m$ [0msed -n '58,68p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
-config = OpenIdConfig(
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          client_secret="your_client_secret",
-          redirect
-      )
-  """
-
-  client_id: str
-  auth_uri: str
-[0m
-[0m$ [0msed -n '125,140p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-lines = []
-    if google_cloud_project and google_cloud_region:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
-    elif google_api_key:
-      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
-    if google_api_key:
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-    if google_cloud_project:
-      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
-    if google_cloud_region:
-      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
-    f.write("\n".join(lines))
-  _ensure_dotenv_gitignored(agent_folder)
-
-  if type == "config":
-    with open(agent_config_file_path, "w", encoding="utf-8") as f:
-[0m
-Now I have enough context. Let me create the classification tables.
-
-## Classification Results
-
-### REAL_SECRET: 0 candidates
+### REAL_SECRET
+| File | Line | SHA256 | Classification |
+|------|------|--------|----------------|
+| *(none)* | | | No live hardcoded credentials found |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder in docstring |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Example test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated example token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum constant for OAuth grant type name |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example config |
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum constant (auth type name) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation (user-provided) |
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| reposcan-raw/google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture placeholder |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test token |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
+| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config file reference |
+| reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` | Fake ghp_ token in test |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Fake tokens in test assertions |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test data |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Eval test data |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Eval test data |
 
-### ENDPOINT_LEAK / CONFIG
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag name constant (CLI flag identifier) |
-| google/go-jsonnet/.github/workflows/publish-python.yml | 106, 126 | PyPI URLs in `${{ inputs... }}` | Public PyPI endpoints in CI config |
-| google/go-jsonnet/.github/workflows/release.yml | 37 | `GITHUB_TOKEN: "${{ github.token }}"` | GitHub Actions built-in token ref |
-| google/magika/.github/workflows/*.yml | 20, 407, 437 | `${{secrets.GITHUB_TOKEN}}`, PyPI URLs | Standard CI secret refs + public URLs |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | GitHub Actions built-in token ref |
-| google/dagger/util/latest-dagger-version.sh | 9 | `${GH_TOKEN:-}` | Env var reference with default |
-| google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud secrets versions access` | Fetches from Secret Manager at runtime |
-| google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access` | Fetches from Secret Manager at runtime |
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Path to password file (not the secret) |
-| google/capsem/scripts/preflight.sh | 39 | `$(tr -d '\n' < "$pass_file")` | Reads from external file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `$(tr -d '\n' < "$PASS_FILE")` | Reads from external file |
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCP metadata server (standard ADC pattern) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint references |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
+| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11 | `169.254.169.254`, `metadata.google.internal` | IMDS/metadata endpoint references |
 
-### INTERESTING (debug flags, cloud configs)
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment about legacy OpenSSL RSA key format | Documentation only |
-| google/adk-python/src/google/adk/code_executors/*.py | 103-154 | Cloud metadata endpoint 169.254.169.254 references | SSRF surface documentation |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key constant |
+### INTERESTING
+| File | Line | Finding | Assessment |
+|------|------|---------|------------|
+| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | **Code generation for FHE** - emits runtime-generated secret key variable (`sk` from MLIR SSA value), not a hardcoded credential. Part of HEIR compiler for Jaxite FHE scheme. |
+| reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN`, `ACTION_RESET_PASSWORD` | Android DeviceAdmin action constants, not secrets |
+| reposcan-raw/google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Parameter name constant |
+| reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Config flag default name |
+| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file at runtime |
+| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file at runtime |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Writes API key from variable (not hardcoded) |
 
 ---
 
-## VERDICT
+## Verdict List
 
-**NO REPORT_CANDIDATE findings in this delta.**
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| JaxiteWordEmitter secret_key emission | `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558` | **no** | Compiler codegen for FHE runtime key, not hardcoded secret |
+| GCP metadata server calls | `google/device-infra/.../adc_credentials.sh` | **no** | Standard Application Default Credentials pattern |
+| IMDS/metadata endpoint refs | Multiple files | **no** | Well-known cloud metadata endpoints (169.254.169.254, metadata.google.internal) |
+| All ghp_* tokens | `microsoft/skill-recorder/**/*.test.ts` | **no** | Fake test tokens in test/eval files (`ABCDEFGHIJKLMNOP` pattern) |
+| All placeholder credentials | `google/adk-python/**/auth_*.py` | **no** | Explicit test fixtures (`your_client_secret`, `password`, `...`) |
+| GitHub Actions secret refs | `google/**/*.yml`, `google/**/*.yaml` | **no** | `${{ secrets.GITHUB_TOKEN }}` / `${{ github.token }}` - secret references, not hardcoded |
+| Config file password refs | `google/capsem/**` | **no** | Reads from external files at runtime |
 
-All 4 new hits since last scan are **TEST_OR_EXAMPLE** or **CONFIG/ENDPOINT_LEAK** (public endpoints, CI secret references, flag name constants). No hardcoded live credentials, API keys, or tokens detected.
-
-The full grep hits confirm this pattern - all hits are either:
-- Test fixtures / example code with placeholder values
-- GitHub Actions `${{ secrets.X }}` or `${{ github.token }}` references (proper secret handling)
-- Runtime secret fetching from Google Cloud Secret Manager (good practice)
-- Config constants naming flag/env var names (not values)
-- Documentation/comments about key formats
+**Summary: 0 REPORT_CANDIDATE=yes** — All 221 hits across 20755 files are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING (compiler internals / config patterns). No live hardcoded secrets detected in this delta.
