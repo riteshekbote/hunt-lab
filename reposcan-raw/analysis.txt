@@ -1,53 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | sha256sum
-4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'injected-token-probe'
+ed37fcd603a8d8169c112325d45462c50e4c4997d85c61d86f66a05cc03898d6  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q'
+a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'ghp_ABCDEFGHIJKLMNOP'
+b969f447e55d8535622c6578e6d8fdafc1228ff5f93c0c2fd09f7bcadc797aae  -
 [0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| `reposcan-raw/google/ground-android/app/src/debug/local/google-services.json` | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | Firebase/Android API key (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) in committed `debug/local/` config |
+| File | Line | Material (sha256) | Verdict |
+|------|------|-------------------|---------|
+| *(none)* | | | No hardcoded live credentials found |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` (19 files) | 3, 9, 11 | Minified JS parser error templates (build artifacts) |
-| `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh` | 39, 44 | GCE metadata server ADC fetch (legitimate pattern) |
-| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py` | 42 | Metadata IP check (`169.254.169.254`) |
-| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py` | 54 | Redaction placeholder `"[REDACTED]"` |
-| `reposcan-raw/microsoft/microsoft-ui-reactor/src/Reactor.Cli/Docs/DocAssembler.cs` | 28 | Version template `"{{reactorVersion}}"` |
-| `reposcan-raw/microsoft/poml/.github/workflows/*.yml` | 79, 175 | Test PyPI workflow URLs |
-| `reposcan-raw/microsoft/poml/docs/hooks/commitlinks.py` | 7 | Commit SHA placeholder `"__COMMIT_SHA__"` |
-| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63, 107 | Test PyPI upload (no credentials) |
-| `reposcan-raw/microsoft/skill-recorder/**/*.test.ts` (7 files) | various | Test fixtures with fake `ghp_*`, `AKIA*` tokens |
-| `reposcan-raw/microsoft/vcpkg/scripts/azure-pipelines/osx/*.sh` | 17, 40 | Azure agent download URL / SSH with `$1` token param |
-| `reposcan-raw/microsoft/vstest/azure-pipelines-insertion.yml` | 16 | Azure DevOps org URL |
-| `reposcan-raw/google/dotprompt/.github/workflows/*.yml` (4 files) | 33-34 | Test PyPI workflow URLs |
-| `reposcan-raw/google/dotprompt/packages/monaco/src/*.ts` (4 files) | 67-183 | Monaco editor syntax token definitions |
-| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions `secrets.*` references (proper usage) |
-| `reposcan-raw/google/gopacket/layers/radiotap.go` | 552, 554, 556 | RadioTap protocol constants (`80(20LL)` etc.) |
-| `reposcan-raw/google/device-infra/src/java/**/*.java` (2 files) | 44, 49-50 | Android param names / action constants |
+| File | Line | Material (sha256) | Reason |
+|------|------|-------------------|--------|
+| google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | 49 | `ed37fcd603a8d8169c112325d45462c50e4c4997d85c61d86f66a05cc03898d6` | Test fixture `"injected-token-probe"` |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | `a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25` | Firebase API key (public by design, debug/local config) |
+| microsoft/kiota-java/.github/workflows/auto-merge-dependabot.yml | 24 | *(secret ref)* | `${{ secrets.GITHUB_TOKEN }}` — GitHub Actions secret reference |
+| microsoft/kiota-java/.github/workflows/conflicting-pr-label.yml | 33 | *(secret ref)* | `${{ secrets.GITHUB_TOKEN }}` — GitHub Actions secret reference |
+| microsoft/terraform-provider-power-platform/internal/constants/constants.go | 153,160,167 | *(env var names)* | `ENV_VAR_*_SECRET` = `"ENV_VAR_NAME"` — constant holds env var NAME, not value |
+| microsoft/skill-recorder/**/*.test.ts | multiple | `b969f447e55d8535622c6578e6d8fdafc1228ff5f93c0c2fd09f7bcadc797aae` | Test fixtures `ghp_ABCDEFGHIJKLMNOP`, `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` |
+| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | *(minified)* | Build artifact (minified JS bundle) |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | *(minified)* | Build artifacts (minified JS chunks) |
 
 #### ENDPOINT_LEAK
-| File | Line | Reason |
+| File | Line | Detail |
 |------|------|--------|
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref, not leak) |
-| `reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh` | 39, 44 | `metadata.google.internal` (well-known GCE metadata endpoint) |
+| *(none)* | | No internal/dev/staging endpoint leaks in new hits |
 
 #### INTERESTING
-| File | Line | Reason |
+| File | Line | Detail |
 |------|------|--------|
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run secret injection pattern (shows Secret Manager integration) |
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | Metadata server ADC credential fetch (standard GCE pattern, not a leak) |
+| microsoft/vcpkg/scripts/azure-pipelines/osx/host-register-guest.sh | 40 | SSH with `$1` PAT parameter (runtime secret, not hardcoded) |
 
 ---
 
-### Verdict List
+### SHORT VERDICT
 
-| Candidate | File | Line | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| Firebase API key in `google-services.json` | `google/ground-android/app/src/debug/local/google-services.json` | 23 | **yes** — hardcoded `AIzaSy...` key in public repo (path suggests `debug/local/` but committed); valid key format, scopes unknown; report via Google VRP |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| google/adk-kotlin `injected-token-probe` | **no** (test fixture) |
+| google/ground-android Firebase API key | **no** (public by design, debug/local) |
+| GitHub Actions `${{ secrets.GITHUB_TOKEN }}` refs | **no** (secret reference pattern) |
+| terraform-provider-power-platform `ENV_VAR_*` constants | **no** (env var names, not values) |
+| skill-recorder test `ghp_*` tokens | **no** (test fixtures) |
+| Minified JS bundles | **no** (build artifacts) |
 
-**All other hits:** `REPORT_CANDIDATE: no` — test fixtures, placeholders, legitimate metadata-server patterns, or build artifacts.
+**No reportable findings in this delta.** All 7 new hits are TEST_OR_EXAMPLE or build artifacts. The Firebase key in `google-services.json` is explicitly a debug/local config and Firebase API keys are public-by-design per KB (REJECTED 2026-08-07). The terraform-provider constants are environment variable *names*, not secret values.
