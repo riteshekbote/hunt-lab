@@ -5277,3 +5277,8 @@
 - LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires auth, no bypass
 - LEARN: NO_DELTA — all fresh passive probes (last cycle 09:08:11 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new provi
+
+## RANKED HYPOTHESES 2026-08-17 10:35:05 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged
