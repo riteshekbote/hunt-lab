@@ -1260,3 +1260,5 @@
 - CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
 
 ## 2026-08-17 01:26:25 UTC
+
+## 2026-08-17 02:40:35 UTC
