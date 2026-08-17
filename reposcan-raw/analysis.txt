@@ -3,49 +3,48 @@
 [0m
 [0m→ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py[90m [offset=40, limit=20][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=20, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=10, offset=135][0m
-Now I have enough information to classify all the hits. Let me create the classification table.
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=10][0m
+### Classification Tables
 
-## Classification Table
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth `CLIENT_SECRET` for Earth Engine native app (installed client, OOB redirect). **CONFIRMED LIVE** in KB — A/B proof: leaked secret → `invalid_grant` (valid cred), fake → `invalid_client` (RFC 6749 §5.2). Scopes: `cloud-platform`, `drive`, `devstorage.full_control`, `earthengine`. |
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **REAL_SECRET** | `reposcan-raw/google/earthengine-api/python/ee/oauth.py:45` | `CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'` — hardcoded OAuth client secret, **confirmed LIVE** per KB (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, whole-file sha `f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040`), A/B proof: leaked secret→`invalid_grant` (valid credential per RFC 6749 §5.2), fake secret→`invalid_client` | **REPORT_CANDIDATE: yes** (already ACCEPTED in KB, pending VRP determination on native-app by-design) |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml:16` | `kind: ConfigMap` in docs/examples | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml:88` | `kind: ConfigMap` in docs/examples | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/internal/node/store.go:38` | `keyRefreshToken = "refresh_token"` — constant string literal for OAuth param name | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3` | `kind: ConfigMap` Helm template | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/development/kind/run.sh:139` | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell var with empty default, expects env injection | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/.github/workflows/deploy.yaml:247,249,250` | `--from-literal=...="${SECRET_NAME}"` — GitHub Actions secret references, not hardcoded | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/sam/.github/k8s/*.yaml:2` | `kind: ConfigMap` k8s templates (canary, openrouter, openclaw, everything, node, vllm, cop, node-vllm) | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/j2objc/translator/.../LiteralGenerator.java:115,119,138` | Integer constant tokens `-0x7fffffffffffffffLL - 1`, `(int64_t)`, `-0x7fffffff - 1` — code gen for MIN_INT64/INT32 | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/j2objc/xalan/.../XSLTErrorResources.java:389` | `public static final String INVALID_NMTOKEN = "INVALID_NMTOKEN"` — error constant | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157` | `private_key="-----BEGIN PRIVATE KEY-----..."` — **docstring example** with placeholder `...` | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:269` | `username="user", password="password"` — **example** HTTP basic creds | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:278` | `token="eyAkaknabna...."` — **example** truncated fake JWT | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py:68` | `PASSWORD = "password"` — enum value for OAuth `password` grant type | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` | `kubeconfig_path: str \| None = None` — config field, not secret | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` | References to `169.254.169.254` metadata endpoint — well-known cloud IP, not secret | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:171` | `169.254.169.254` metadata endpoint reference | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` | `169.254.169.254` metadata endpoint reference | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` | `client_secret="your_client_secret"` — **docstring example** placeholder | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key constant | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py:131` | `f"GOOGLE_API_KEY={google_api_key}"` — writes var, not hardcoded | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` | Minified JS build artifacts — parse error strings, not secrets | no |
-| **TEST_OR_EXAMPLE** | `reposcan-raw/google/closure-compiler/externs/*.js` | `@see http://dev.w3.org/...` — reference URLs in externs | no |
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Example service account `private_key="-----BEGIN PRIVATE KEY-----..."` placeholder in docstring |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Example HTTP basic auth `username="user", password="password"` in docstring |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Example OAuth2 bearer token `token="eyAkaknabna...."` in docstring |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` (grant type name, not a credential) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Example `client_secret="your_client_secret"` placeholder in docstring |
+| `google/sam/development/kind/run.sh` | 139 | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
+| `google/sam/.github/workflows/deploy.yaml` | 247–250 | GitHub Actions `--from-literal=...="${SECRET_NAME}"` (references GH secrets, not hardcoded) |
+| `google/j2objc/.../LiteralGenerator.java` | 115,119,138 | Compiler integer literal token manipulation (`-0x7fffffffffffffffLL - 1`) |
+| `google/j2objc/.../XSLTErrorResources.java` | 389 | Error constant `INVALID_NMTOKEN` |
+| `google/closure-compiler/externs/*.js` | multiple | W3C spec `@see` URL references |
+| `google/sam/**/*.yaml` (ConfigMap kinds) | multiple | Kubernetes `kind: ConfigMap` resource definitions |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Minified JS parser error messages |
 
----
-
-## SHORT VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE | Notes |
-|-----------|------------------|-------|
-| `google/earthengine-api/python/ee/oauth.py:45` CLIENT_SECRET | **yes** | **ACCEPTED in KB** — hardcoded valid Google OAuth client secret (native installed app + deprecated OOB redirect). A/B proof conclusive per RFC 6749 §5.2 (`invalid_grant` vs `invalid_client`). VRP-worthiness capped by ADK #2128 precedent (public-client by-design). |
-| All other 294 hits | **no** | TEST_OR_EXAMPLE (docstrings, examples, templates, constants, build artifacts, placeholder patterns, well-known IPs) |
+#### ENDPOINT_LEAK / INTERESTING
+| File | Line | Type | Note |
+|------|------|------|------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | INTERESTING | Warns about `169.254.169.254` metadata endpoint access / privilege escalation |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | INTERESTING | Mentions `169.254.169.254` metadata endpoint in NAT64 context |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | INTERESTING | Refuses to check `169.254.169.254` in Chrome |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | INTERESTING | `kubeconfig_path` / `kubeconfig_context` config fields |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | INTERESTING | Generates `GOOGLE_API_KEY={google_api_key}` in output config |
 
 ---
 
-**No new REAL_SECRET findings this scan.** The only live credential is the previously-accepted earthengine-api OAuth client_secret.
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/earthengine-api/python/ee/oauth.py:45` | **yes** | Hardcoded OAuth client_secret for installed app (OOB redirect). Valid credential proven via A/B token exchange (RFC 6749 §5.2). KB: ACCEPTED, confidence 96. Native-app by-design pattern (ADK #2128 precedent) caps VRP severity but credential is live and valid. |
+| All TEST_OR_EXAMPLE entries | **no** | Placeholders, docstring examples, enum constants, CI secret refs, compiler internals, spec URLs — no live secrets. |
+| All ENDPOINT_LEAK/INTERESTING entries | **no** | Metadata endpoint warnings (defensive), kubeconfig config fields, API key generation template — no credential leak or exploitable surface. |
