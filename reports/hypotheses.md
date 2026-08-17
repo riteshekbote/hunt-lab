@@ -5546,3 +5546,28 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+
+## RANKED HYPOTHESES 2026-08-17 18:05:53 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (`reports/msrc-two-principal-request.md`) via msrc.microsoft.com/bounty portal to unblock Mi
+- LEARN: ACCEPTED: agentRegistrations item-level auth-gate confirmed live — GET /beta/copilot/agentRegistrations/{id} → 401/237 Bearer confirms schema-level zero-restric
+- LEARN: ACCEPTED: oauth2PermissionGrants auth-gate confirmed live on production v1.0 — GET→401/237 Bearer + HEAD→405/0 (RFC 6750 §3) confirms both auth and systemic met
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles,
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; no bypass
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+- LEARN: ACCEPTED: Earth Engine OAuth client_secret @ oauth.py:45 — live verified @ 2026-08-17 cycle, secret sha 3f3f8d6f…d271 verbatim, file sha f4f93c76…b73040 unchang
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item+agents+admin+policySettings levels — 200 ACAO:* + full
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRe
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+- LEARN: REJECTED: dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no c
+- LEARN: REJECTED: source maps @ identity SPAs closed — mysignins (404) + api.myaccount (401); recon surface eliminated
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this 
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per 
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRe
+- LEARN: ACCEPTED: v1(6)⊂v2(9) JWKS subset invariant holds this probe — 0 v1-exclusive; dual-JWKS rotation desync stays REJECTED.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl

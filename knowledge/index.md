@@ -1483,3 +1483,7 @@
 - 2026-08-17 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels (fresh probe 15:58 UTC)
 - 2026-08-17 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only
+- 2026-08-17 ACCEPTED: Earth Engine OAuth client_secret @ oauth.py:45 — live verified @ 2026-08-17 cycle, secret sha 3f3f8d6f…d271 verbatim, file sha f4f93c76…b73040 unchanged, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+- 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item+agents+admin+policySettings levels — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400
+- 2026-08-17 REJECTED: dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset invariant holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-17 REJECTED: source maps @ identity SPAs closed — mysignins (404) + api.myaccount (401); recon surface eliminated
