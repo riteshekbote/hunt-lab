@@ -1,54 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "RUP0RZ6e0pPhDzsqIJ7KlNd1" --include="*.py" 2>/dev/null | head -5
+(no output)
 [0m
-| Category | File | Line | Secret SHA256 | Notes |
-|----------|------|------|---------------|-------|
-| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Hardcoded `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in vendored ibis BigQuery backend; `# noqa: S105` suppresses linter |
-| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret duplicated in backend module |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271" --include="*.py" 2>/dev/null | head -5
+(no output)
+[0m
+### Classification Tables
 
-| Category | File | Line | Notes |
-|----------|------|------|-------|
-| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Mock OIDC ConfigMap for documentation |
-| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Documentation manifest |
-| **TEST_OR_EXAMPLE** | `google/sam/internal/node/store.go` | 38 | Constant `keyRefreshToken = "refresh_token"` (literal string, not a secret) |
-| **TEST_OR_EXAMPLE** | `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | K8s ConfigMap template |
-| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh` | 139 | Shell var reference `${OIDC_CLIENT_SECRET:-}` (empty default) |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | GitHub Actions secret refs `${{ secrets.* }}` |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/k8s/*.yaml` | 2,14 | Multiple ConfigMap templates |
-| **TEST_OR_EXAMPLE** | `google/dotprompt/.github/workflows/publish_python_*_package.yml` | 33-34 | PyPI test repository URLs |
-| **TEST_OR_EXAMPLE** | `google/dotprompt/packages/monaco/src/*.ts` | 67-183 | Monaco editor token definitions (syntax highlighting) |
-| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}` etc. |
-| **TEST_OR_EXAMPLE** | `google/bigframes/third_party/bigframes_vendored/sqlglot/**/*.py` | various | MySQL documentation reference comments |
-| **TEST_OR_EXAMPLE** | `google/bigframes/scripts/run_doctest.sh` | 38-39 | Service account file path reference (not a secret) |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Placeholder private key (`...`), `password="password"`, token placeholder `eyAkaknabna....` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` (test value) |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Placeholder `client_secret="your_client_secret"` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Variable interpolation `GOOGLE_API_KEY={google_api_key}` |
-| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | 3 | Minified JS build artifacts |
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none in delta)* | — | — | No new hardcoded credentials in this scan delta. The known `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`) remains live per KB but was not re-detected in this static scan (already tracked). |
 
-| Category | File | Line | Notes |
-|----------|------|------|-------|
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Kubeconfig path/context params (internal config) |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Cloud metadata endpoint `169.254.169.254` references |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Metadata endpoint `169.254.169.254` reference |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Metadata endpoint `169.254.169.254` reference |
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | 3, 11 | Minified PEG.js parser error strings | 8 files — build artifacts, parser generator output |
+| `google/j2objc/translator/.../JavadocGenerator.java` | 48 | `http://dev.w3.org/html5/html-author/charref` | Documentation comment |
+| `google/j2objc/translator/.../LiteralGenerator.java` | 115, 119, 138 | Integer literals `-0x7fffffffffffffffLL - 1`, `-0x7fffffff - 1` | Test constants for INT64_MIN edge cases |
+| `google/j2objc/xalan/.../XSLTErrorResources.java` | 389 | `INVALID_NMTOKEN` | Error code constant |
+| `google/sam/**/*.yaml`, `*.sh` | various | `kind: ConfigMap`, `${{ secrets.* }}` refs | K8s ConfigMap kinds + GitHub Actions secret refs (placeholders) |
+| `google/dotprompt/**/*.ts` | 67–183 | Monaco token definitions (`delimiter.handlebars`, `keyword.yaml`, etc.) | Syntax highlighter token types |
+| `google/langextract/.github/workflows/ci.yaml` | 168–170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Truncated placeholder in example/test code |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `username="user", password="password"` | Obvious test credentials |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` | Fake JWT placeholder (`eyA` = `{"` base64) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Test constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` | Documentation placeholder |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable, not a secret |
 
-| Category | File | Line | Notes |
-|----------|------|------|-------|
-| **INTERESTING** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `# noqa: S105` intentional linter suppression on hardcoded secret |
-| **INTERESTING** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same suppression, suggests awareness |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | Cloud metadata endpoint (well-known public IP, documented) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Same metadata endpoint reference |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Same metadata endpoint reference |
+
+#### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Session state key name for token storage (not a secret) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` params | Config options for GKE auth (no secret values) |
 
 ---
 
-### VERDICT
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` | **yes** | Hardcoded client secret in vendored third-party code (ibis BigQuery backend); same secret appears in two files; `# noqa: S105` indicates intentional suppression; secret format resembles base64-encoded credential; **not in REJECTED/KNOWN-DUP lists**; requires upstream check (ibis project) and Google VRP triage |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59` | **yes** | Duplicate of above; same assessment |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| earthengine-api oauth.py:45 (known from KB) | REAL_SECRET (pre-existing) | **yes** — already tracked, A/B proof conclusive (RFC 6749 §5.2), native-app OOB by-design caps severity |
+| adk-python browser chunk JS files | TEST_OR_EXAMPLE | no — build artifacts |
+| j2objc LiteralGenerator test constants | TEST_OR_EXAMPLE | no — test edge-case values |
+| sam/ workflow `${{ secrets.* }}` refs | TEST_OR_EXAMPLE | no — GitHub Actions secret injection pattern |
+| dotprompt Monaco token defs | TEST_OR_EXAMPLE | no — syntax highlighter tokens |
+| langextract workflow secret refs | TEST_OR_EXAMPLE | no — GitHub Actions secret injection |
+| adk-python auth_credential.py placeholders | TEST_OR_EXAMPLE | no — truncated/fake test values |
+| adk-python auth_schemes.py `PASSWORD="password"` | TEST_OR_EXAMPLE | no — test constant |
+| adk-python openapi_tool `your_client_secret` | TEST_OR_EXAMPLE | no — documentation placeholder |
+| adk-python cli_create.py template var | TEST_OR_EXAMPLE | no — template variable |
+| Cloud metadata endpoint `169.254.169.254` refs | ENDPOINT_LEAK | no — well-known documented public endpoint |
+| vmaas `_STATE_KEY_ACCESS_TOKEN` | INTERESTING | no — state key name only |
+| GKE kubeconfig params | INTERESTING | no — config options only |
 
-All other hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata endpoint references are well-known), or **INTERESTING** (linter suppression) — not reportable as secrets.
+**Summary:** No **new** reportable secrets in this delta. The only live credential remains the pre-existing `google/earthengine-api` OAuth client_secret (already in KB, draft submission prepared). All 14 new hit lines are test fixtures, build artifacts, placeholders, or documented public endpoints.
