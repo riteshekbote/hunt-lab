@@ -1396,3 +1396,9 @@
 - NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was inferred)
 - CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (cosmetic)
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 (requires project+auth)
+
+## 2026-08-17 23:53:20 UTC
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate confirmed HTTP 401 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
+- CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic, no auth-bypass surface
+- CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 (requires project+auth, no bypass)
