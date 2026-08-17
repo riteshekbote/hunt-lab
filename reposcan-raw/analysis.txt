@@ -1,63 +1,860 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -570 | tail -30
+os << "\"composite_degree\": " << compDeg << ",\n";
+  os << "\"p\": 30,\n";
+  os << "\"max_bits_in_word\": 61,\n";
+  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
+  os << "\"noise_scale_degree\": 1,\n";
+  os << "\"CKKS_M_FACTOR\": 1\n";
+  os.unindent();
+  os << "}\n";
+
+  os << ctx << " = ckks.CKKSContext(params)\n";
+  return success();
+}
+
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
+
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
+
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
+
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts | head -60
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+import {OpenAPIV3} from 'openapi-types';
+
+type Oauth2Flow = OpenAPIV3.OAuth2SecurityScheme['flows'];
+
+/**
+ * OpenIdConnectWithConfig extends OpenIdSecurityScheme with additional
+ * configuration options.
+ */
+export interface OpenIdConnectWithConfig
+  extends OpenAPIV3.OpenIdSecurityScheme {
+  authorizationEndpoint: string;
+  tokenEndpoint: string;
+  userinfoEndpoint?: string;
+  revocationEndpoint?: string;
+  tokenEndpointAuthMethodsSupported?: string[];
+  grantTypesSupported?: string[];
+  scopes?: string[];
+}
+
+/**
+ * AuthSchemes contains SecuritySchemes from OpenAPI 3.0 and an extra flattened
+ * OpenIdConnectWithConfig.
+ */
+export type AuthScheme =
+  | OpenAPIV3.SecuritySchemeObject
+  | OpenIdConnectWithConfig;
+
+/**
+ * Represents the OAuth2 flow (or grant type).
+ */
+export enum OAuthGrantType {
+  CLIENT_CREDENTIALS = 'client_credentials',
+  AUTHORIZATION_CODE = 'authorization_code',
+  IMPLICIT = 'implicit',
+  PASSWORD = 'password',
+}
+
+/**
+ * Converts an OAuthFlows object to a OAuthGrantType.
+ */
+export function getOAuthGrantTypeFromFlow(
+  flow: Oauth2Flow,
+): OAuthGrantType | undefined {
+  if (flow.clientCredentials) {
+    return OAuthGrantType.CLIENT_CREDENTIALS;
+  }
+
+  if (flow.authorizationCode) {
+    return OAuthGrantType.AUTHORIZATION_CODE;
+  }
+
+  if (flow.implicit) {
+    return OAuthGrantType.IMPLICIT;
+  }
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | head -240 | tail -50
+}
+
+/**
+ * Data class representing an authentication credential.
+ *
+ * To exchange for the actual credential, please use
+ * CredentialExchanger.exchangeCredential().
+ *
+ * @example
+ * // API Key Auth
+ * const authCredential: AuthCredential = {
+ *   authType: AuthCredentialTypes.API_KEY,
+ *   apiKey: "your_api_key",
+ * };
+ *
+ * @example
+ * // HTTP Auth
+ * const authCredential: AuthCredential = {
+ *   authType: AuthCredentialTypes.HTTP,
+ *   http: {
+ *     scheme: "basic",
+ *     credentials: {
+ *       username: "user",
+ *       password: "password",
+ *     },
+ *   }
+ * }
+ *
+ * @example
+ * // OAuth2 Bearer Token in HTTP Header
+ * const authCredential: AuthCredential = {
+ *   authType: AuthCredentialTypes.HTTP,
+ *   http: {
+ *     scheme: "bearer",
+ *     credentials: {
+ *       token: "your_access_token",
+ *     },
+ *   }
+ * }
+ *
+ * @example
+ * // OAuth2 Auth with Authorization Code Flow
+ * const authCredential: AuthCredential = {
+ *   authType: AuthCredentialTypes.OAUTH2,
+ *   oauth2: {
+ *     clientId: "your_client_id",
+ *     clientSecret: "your_client_secret",
+ *   }
+ * }
+ *
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | head -590 | tail -20
+ort_lib_location = "/opt/capsem/onnxruntime"
+
+# Installing the exact package into a clean systemd container and proving it
+# works: every binary present and reporting the package's own version, the
+# service and gateway up, every profile ready, and a real guest shell.
+
+# Local signing material. Absent on a developer machine, which is why the rail
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
+#!/usr/bin/env bash
+# Re-exports the Apple .p12 certificate with legacy 3DES/SHA1 encryption.
+# macOS `security import` rejects modern PBES2/AES-256-CBC p12 files created
+# by OpenSSL 3.x. This converts to the legacy format macOS understands.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+CERT_DIR="$(dirname "$SCRIPT_DIR")/private/apple-certificate"
+P12="$CERT_DIR/capsem.p12"
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
+
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
+
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+if [[ "$FMT" != "PBES2" ]]; then
+    echo "    Already legacy format ($FMT). Nothing to do."
+    exit 0
+fi
+
+echo "    Current: $FMT (modern, macOS-incompatible)"
+echo "==> Re-exporting with 3DES/SHA1..."
+
+openssl pkcs12 -in "$P12" -passin "pass:$PASSWORD" -nodes -out "$TMPDIR_WORK/combined.pem" 2>/dev/null
+openssl pkcs12 -export -in "$TMPDIR_WORK/combined.pem" -out "$TMPDIR_WORK/legacy.p12" \
+    -passout "pass:$PASSWORD" -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+
+cp "$TMPDIR_WORK/legacy.p12" "$P12"
+base64 -i "$P12" -o "$B64"
+
+echo "    Updated: $P12"
+echo "    Updated: $B64"
+echo ""
+echo "==> Verify with: scripts/preflight.sh"
+echo "==> Upload with: gh secret set APPLE_CERTIFICATE < $B64"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/scripts/preflight.sh | head -50
+#!/usr/bin/env bash
+# Preflight checks for release builds.
+# Validates environment, credentials, and tools BEFORE slow CI jobs run.
+# Add new checks as functions -- they run in order, fail-fast on first error.
+set -euo pipefail
+
+PASS=0
+FAIL=0
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
+
+pass() { echo "  [PASS] $1"; PASS=$((PASS + 1)); }
+fail() { echo "  [FAIL] $1"; FAIL=$((FAIL + 1)); }
+
+# --------------------------------------------------------------------------
+# Check: Apple certificate can be imported into a macOS keychain
+# macOS `security import` only supports legacy PKCS12 (3DES/SHA1).
+# OpenSSL 3.x creates PBES2/AES-256-CBC by default, which Keychain rejects
+# with a misleading "wrong password" error. Re-export with:
+#   openssl pkcs12 -in cert.p12 -passin pass:PWD -nodes -out combined.pem
+#   openssl pkcs12 -export -in combined.pem -out cert.p12 -passout pass:PWD \
+#     -certpbe PBE-SHA1-3DES -keypbe PBE-SHA1-3DES -macalg sha1
+# --------------------------------------------------------------------------
+check_apple_certificate() {
+    echo ""
+    echo "== Apple Certificate =="
+
+    local cert_dir="$ROOT_DIR/private/apple-certificate"
+    local p12="$cert_dir/capsem.p12"
+    local pass_file="$cert_dir/p12-password.txt"
+
+    if [[ ! -f "$p12" ]]; then
+        fail "capsem.p12 not found at $p12"
+        return
+    fi
+    pass "capsem.p12 exists"
+
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
+
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+
+    if [[ "$fmt" == "PBES2" ]]; then
+        fail "p12 uses modern PBES2/AES encryption (macOS incompatible) -- run: scripts/fix_p12_legacy.sh"
+        return
+    fi
+    pass "p12 uses legacy 3DES encryption (macOS-compatible)"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -5 reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-6HSYUS5O.js
+import{G as re,N as se,R as oe,S as le,T as he,U as ce,V as de,W as ue,X as Dt,Y as qt,p as ne,r as L}from"./chunk-37QI3DOO.js";import{a as mt,g as s,i as dt,t as zt}from"./chunk-JRNAXTJ7.js";import{a as Q}from"./chunk-RMXJBC7V.js";var Vt=(function(){var t=s(function(Y,r,l,u){for(l=l||{},u=Y.length;u--;l[Y[u]]=r);return l},"o"),a=[1,3],p=[1,4],f=[1,5],o=[1,6],x=[1,7],_=[1,4,5,10,12,13,14,18,25,35,37,39,41,42,48,50,51,52,53,54,55,56,57,60,61,63,64,65,66,67],h=[1,4,5,10,12,13,14,18,25,28,35,37,39,41,42,48,50,51,52,53,54,55,56,57,60,61,63,64,65,66,67],c=[55,56,57],k=[2,36],m=[1,37],q=[1,36],y=[1,38],b=[1,35],T=[1,43],g=[1,41],ot=[1,14],ut=[1,23],xt=[1,18],ft=[1,19],gt=[1,20],lt=[1,21],_t=[1,22],ht=[1,24],i=[1,25],wt=[1,26],Bt=[1,27],Rt=[1,28],Nt=[1,29],W=[1,32],U=[1,33],A=[1,34],F=[1,39],P=[1,40],v=[1,42],C=[1,44],H=[1,62],X=[1,61],E=[4,5,8,10,12,13,14,18,44,47,49,55,56,57,63,64,65,66,67],Wt=[1,65],Ut=[1,66],Qt=[1,67],Ot=[1,68],Ht=[1,69],Xt=[1,70],Mt=[1,71],Yt=[1,72],jt=[1,73],Gt=[1,74],Kt=[1,75],Zt=[1,76],w=[4,5,6,7,8,9,10,11,12,13,14,15,18],K=[1,90],Z=[1,91],J=[1,92],$=[1,99],tt=[1,93],et=[1,96],it=[1,94],at=[1,95],nt=[1,97],rt=[1,98],At=[1,102],Jt=[10,55,56,57],R=[4,5,6,8,10,11,13,17,18,19,20,55,56,57],Ft={trace:s(function(){},"trace"),yy:{},symbols_:{error:2,idStringToken:3,ALPHA:4,NUM:5,NODE_STRING:6,DOWN:7,MINUS:8,DEFAULT:9,COMMA:10,COLON:11,AMP:12,BRKT:13,MULT:14,UNICODE_TEXT:15,styleComponent:16,UNIT:17,SPACE:18,STYLE:19,PCT:20,idString:21,style:22,stylesOpt:23,classDefStatement:24,CLASSDEF:25,start:26,eol:27,QUADRANT:28,document:29,line:30,statement:31,axisDetails:32,quadrantDetails:33,points:34,title:35,title_value:36,acc_title:37,acc_title_value:38,acc_descr:39,acc_descr_value:40,acc_descr_multiline_value:41,section:42,text:43,point_start:44,point_x:45,point_y:46,class_name:47,"X-AXIS":48,"AXIS-TEXT-DELIMITER":49,"Y-AXIS":50,QUADRANT_1:51,QUADRANT_2:52,QUADRANT_3:53,QUADRANT_4:54,NEWLINE:55,SEMI:56,EOF:57,alphaNumToken:58,textNoTagsToken:59,STR:60,MD_STR:61,alphaNum:62,PUNCTUATION:63,PLUS:64,EQUALS:65,DOT:66,UNDERSCORE:67,$accept:0,$end:1},terminals_:{2:"error",4:"ALPHA",5:"NUM",6:"NODE_STRING",7:"DOWN",8:"MINUS",9:"DEFAULT",10:"COMMA",11:"COLON",12:"AMP",13:"BRKT",14:"MULT",15:"UNICODE_TEXT",17:"UNIT",18:"SPACE",19:"STYLE",20:"PCT",25:"CLASSDEF",28:"QUADRANT",35:"title",36:"title_value",37:"acc_title",38:"acc_title_value",39:"acc_descr",40:"acc_descr_value",41:"acc_descr_multiline_value",42:"section",44:"point_start",45:"point_x",46:"point_y",47:"class_name",48:"X-AXIS",49:"AXIS-TEXT-DELIMITER",50:"Y-AXIS",51:"QUADRANT_1",52:"QUADRANT_2",53:"QUADRANT_3",54:"QUADRANT_4",55:"NEWLINE",56:"SEMI",57:"EOF",60:"STR",61:"MD_STR",63:"PUNCTUATION",64:"PLUS",65:"EQUALS",66:"DOT",67:"UNDERSCORE"},productions_:[0,[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[3,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[16,1],[21,1],[21,2],[22,1],[22,2],[23,1],[23,3],[24,5],[26,2],[26,2],[26,2],[29,0],[29,2],[30,2],[31,0],[31,1],[31,2],[31,1],[31,1],[31,1],[31,2],[31,2],[31,2],[31,1],[31,1],[34,4],[34,5],[34,5],[34,6],[32,4],[32,3],[32,2],[32,4],[32,3],[32,2],[33,2],[33,2],[33,2],[33,2],[27,1],[27,1],[27,1],[43,1],[43,2],[43,1],[43,1],[62,1],[62,2],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[58,1],[59,1],[59,1],[59,1]],performAction:s(function(r,l,u,d,S,e,ct){var n=e.length-1;switch(S){case 23:this.$=e[n];break;case 24:this.$=e[n-1]+""+e[n];break;case 26:this.$=e[n-1]+e[n];break;case 27:this.$=[e[n].trim()];break;case 28:e[n-2].push(e[n].trim()),this.$=e[n-2];break;case 29:this.$=e[n-4],d.addClass(e[n-2],e[n]);break;case 37:this.$=[];break;case 42:this.$=e[n].trim(),d.setDiagramTitle(this.$);break;case 43:this.$=e[n].trim(),d.setAccTitle(this.$);break;case 44:case 45:this.$=e[n].trim(),d.setAccDescription(this.$);break;case 46:d.addSection(e[n].substr(8)),this.$=e[n].substr(8);break;case 47:d.addPoint(e[n-3],"",e[n-1],e[n],[]);break;case 48:d.addPoint(e[n-4],e[n-3],e[n-1],e[n],[]);break;case 49:d.addPoint(e[n-4],"",e[n-2],e[n-1],e[n]);break;case 50:d.addPoint(e[n-5],e[n-4],e[n-2],e[n-1],e[n]);break;case 51:d.setXAxisLeftText(e[n-2]),d.setXAxisRightText(e[n]);break;case 52:e[n-1].text+=" \u27F6 ",d.setXAxisLeftText(e[n-1]);break;case 53:d.setXAxisLeftText(e[n]);break;case 54:d.setYAxisBottomText(e[n-2]),d.setYAxisTopText(e[n]);break;case 55:e[n-1].text+=" \u27F6 ",d.setYAxisBottomText(e[n-1]);break;case 56:d.setYAxisBottomText(e[n]);break;case 57:d.setQuadrant1Text(e[n]);break;case 58:d.setQuadrant2Text(e[n]);break;case 59:d.setQuadrant3Text(e[n]);break;case 60:d.setQuadrant4Text(e[n]);break;case 64:this.$={text:e[n],type:"text"};break;case 65:this.$={text:e[n-1].text+""+e[n],type:e[n-1].type};break;case 66:this.$={text:e[n],type:"text"};break;case 67:this.$={text:e[n],type:"markdown"};break;case 68:this.$=e[n];break;case 69:this.$=e[n-1]+""+e[n];break}},"anonymous"),table:[{18:a,26:1,27:2,28:p,55:f,56:o,57:x},{1:[3]},{18:a,26:8,27:2,28:p,55:f,56:o,57:x},{18:a,26:9,27:2,28:p,55:f,56:o,57:x},t(_,[2,33],{29:10}),t(h,[2,61]),t(h,[2,62]),t(h,[2,63]),{1:[2,30]},{1:[2,31]},t(c,k,{30:11,31:12,24:13,32:15,33:16,34:17,43:30,58:31,1:[2,32],4:m,5:q,10:y,12:b,13:T,14:g,18:ot,25:ut,35:xt,37:ft,39:gt,41:lt,42:_t,48:ht,50:i,51:wt,52:Bt,53:Rt,54:Nt,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(_,[2,34]),{27:45,55:f,56:o,57:x},t(c,[2,37]),t(c,k,{24:13,32:15,33:16,34:17,43:30,58:31,31:46,4:m,5:q,10:y,12:b,13:T,14:g,18:ot,25:ut,35:xt,37:ft,39:gt,41:lt,42:_t,48:ht,50:i,51:wt,52:Bt,53:Rt,54:Nt,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(c,[2,39]),t(c,[2,40]),t(c,[2,41]),{36:[1,47]},{38:[1,48]},{40:[1,49]},t(c,[2,45]),t(c,[2,46]),{18:[1,50]},{4:m,5:q,10:y,12:b,13:T,14:g,43:51,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:52,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:53,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:54,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:55,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,10:y,12:b,13:T,14:g,43:56,58:31,60:W,61:U,63:A,64:F,65:P,66:v,67:C},{4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,44:[1,57],47:[1,58],58:60,59:59,63:A,64:F,65:P,66:v,67:C},t(E,[2,64]),t(E,[2,66]),t(E,[2,67]),t(E,[2,70]),t(E,[2,71]),t(E,[2,72]),t(E,[2,73]),t(E,[2,74]),t(E,[2,75]),t(E,[2,76]),t(E,[2,77]),t(E,[2,78]),t(E,[2,79]),t(E,[2,80]),t(_,[2,35]),t(c,[2,38]),t(c,[2,42]),t(c,[2,43]),t(c,[2,44]),{3:64,4:Wt,5:Ut,6:Qt,7:Ot,8:Ht,9:Xt,10:Mt,11:Yt,12:jt,13:Gt,14:Kt,15:Zt,21:63},t(c,[2,53],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,49:[1,77],63:A,64:F,65:P,66:v,67:C}),t(c,[2,56],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,49:[1,78],63:A,64:F,65:P,66:v,67:C}),t(c,[2,57],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,58],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,59],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,60],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),{45:[1,79]},{44:[1,80]},t(E,[2,65]),t(E,[2,81]),t(E,[2,82]),t(E,[2,83]),{3:82,4:Wt,5:Ut,6:Qt,7:Ot,8:Ht,9:Xt,10:Mt,11:Yt,12:jt,13:Gt,14:Kt,15:Zt,18:[1,81]},t(w,[2,23]),t(w,[2,1]),t(w,[2,2]),t(w,[2,3]),t(w,[2,4]),t(w,[2,5]),t(w,[2,6]),t(w,[2,7]),t(w,[2,8]),t(w,[2,9]),t(w,[2,10]),t(w,[2,11]),t(w,[2,12]),t(c,[2,52],{58:31,43:83,4:m,5:q,10:y,12:b,13:T,14:g,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),t(c,[2,55],{58:31,43:84,4:m,5:q,10:y,12:b,13:T,14:g,60:W,61:U,63:A,64:F,65:P,66:v,67:C}),{46:[1,85]},{45:[1,86]},{4:K,5:Z,6:J,8:$,11:tt,13:et,16:89,17:it,18:at,19:nt,20:rt,22:88,23:87},t(w,[2,24]),t(c,[2,51],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,54],{59:59,58:60,4:m,5:q,8:H,10:y,12:b,13:T,14:g,18:X,63:A,64:F,65:P,66:v,67:C}),t(c,[2,47],{22:88,16:89,23:100,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),{46:[1,101]},t(c,[2,29],{10:At}),t(Jt,[2,27],{16:103,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),t(R,[2,25]),t(R,[2,13]),t(R,[2,14]),t(R,[2,15]),t(R,[2,16]),t(R,[2,17]),t(R,[2,18]),t(R,[2,19]),t(R,[2,20]),t(R,[2,21]),t(R,[2,22]),t(c,[2,49],{10:At}),t(c,[2,48],{22:88,16:89,23:104,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt}),{4:K,5:Z,6:J,8:$,11:tt,13:et,16:89,17:it,18:at,19:nt,20:rt,22:105},t(R,[2,26]),t(c,[2,50],{10:At}),t(Jt,[2,28],{16:103,4:K,5:Z,6:J,8:$,11:tt,13:et,17:it,18:at,19:nt,20:rt})],defaultActions:{8:[2,30],9:[2,31]},parseError:s(function(r,l){if(l.recoverable)this.trace(r);else{var u=new Error(r);throw u.hash=l,u}},"parseError"),parse:s(function(r){var l=this,u=[0],d=[],S=[null],e=[],ct=this.table,n="",yt=0,$t=0,te=0,Ce=2,ee=1,Le=e.slice.call(arguments,1),D=Object.create(this.lexer),j={yy:{}};for(var Pt in this.yy)Object.prototype.hasOwnProperty.call(this.yy,Pt)&&(j.yy[Pt]=this.yy[Pt]);D.setInput(r,j.yy),j.yy.lexer=D,j.yy.parser=this,typeof D.yylloc>"u"&&(D.yylloc={});var vt=D.yylloc;e.push(vt);var Ee=D.options&&D.options.ranges;typeof j.yy.parseError=="function"?this.parseError=j.yy.parseError:this.parseError=Object.getPrototypeOf(this).parseError;function De(B){u.length=u.length-2*B,S.length=S.length-B,e.length=e.length-B}s(De,"popStack");function ie(){var B;return B=d.pop()||D.lex()||ee,typeof B!="number"&&(B instanceof Array&&(d=B,B=d.pop()),B=l.symbols_[B]||B),B}s(ie,"lex");for(var V,Ct,G,N,We,Lt,st={},bt,M,ae,Tt;;){if(G=u[u.length-1],this.defaultActions[G]?N=this.defaultActions[G]:((V===null||typeof V>"u")&&(V=ie()),N=ct[G]&&ct[G][V]),typeof N>"u"||!N.length||!N[0]){var Et="";Tt=[];for(bt in ct[G])this.terminals_[bt]&&bt>Ce&&Tt.push("'"+this.terminals_[bt]+"'");D.showPosition?Et="Parse error on line "+(yt+1)+`:
+`+D.showPosition()+`
+Expecting `+Tt.join(", ")+", got '"+(this.terminals_[V]||V)+"'":Et="Parse error on line "+(yt+1)+": Unexpected "+(V==ee?"end of input":"'"+(this.terminals_[V]||V)+"'"),this.parseError(Et,{text:D.match,token:this.terminals_[V]||V,line:D.yylineno,loc:vt,expected:Tt})}if(N[0]instanceof Array&&N.length>1)throw new Error("Parse Error: multiple actions possible at state: "+G+", token: "+V);switch(N[0]){case 1:u.push(V),S.push(D.yytext),e.push(D.yylloc),u.push(N[1]),V=null,Ct?(V=Ct,Ct=null):($t=D.yyleng,n=D.yytext,yt=D.yylineno,vt=D.yylloc,te>0&&te--);break;case 2:if(M=this.productions_[N[1]][1],st.$=S[S.length-M],st._$={first_line:e[e.length-(M||1)].first_line,last_line:e[e.length-1].last_line,first_column:e[e.length-(M||1)].first_column,last_column:e[e.length-1].last_column},Ee&&(st._$.range=[e[e.length-(M||1)].range[0],e[e.length-1].range[1]]),Lt=this.performAction.apply(st,[n,$t,yt,j.yy,N[1],S,e].concat(Le)),typeof Lt<"u")return Lt;M&&(u=u.slice(0,-1*M*2),S=S.slice(0,-1*M),e=e.slice(0,-1*M)),u.push(this.productions_[N[1]][0]),S.push(st.$),e.push(st._$),ae=ct[u[u.length-2]][u[u.length-1]],u.push(ae);break;case 3:return!0}}return!0},"parse")},ve=(function(){var Y={EOF:1,parseError:s(function(l,u){if(this.yy.parser)this.yy.parser.parseError(l,u);else throw new Error(l)},"parseError"),setInput:s(function(r,l){return this.yy=l||this.yy||{},this._input=r,this._more=this._backtrack=this.done=!1,this.yylineno=this.yyleng=0,this.yytext=this.matched=this.match="",this.conditionStack=["INITIAL"],this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0},this.options.ranges&&(this.yylloc.range=[0,0]),this.offset=0,this},"setInput"),input:s(function(){var r=this._input[0];this.yytext+=r,this.yyleng++,this.offset++,this.match+=r,this.matched+=r;var l=r.match(/(?:\r\n?|\n).*/g);return l?(this.yylineno++,this.yylloc.last_line++):this.yylloc.last_column++,this.options.ranges&&this.yylloc.range[1]++,this._input=this._input.slice(1),r},"input"),unput:s(function(r){var l=r.length,u=r.split(/(?:\r\n?|\n)/g);this._input=r+this._input,this.yytext=this.yytext.substr(0,this.yytext.length-l),this.offset-=l;var d=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1),this.matched=this.matched.substr(0,this.matched.length-1),u.length-1&&(this.yylineno-=u.length-1);var S=this.yylloc.range;return this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:u?(u.length===d.length?this.yylloc.first_column:0)+d[d.length-u.length].length-u[0].length:this.yylloc.first_column-l},this.options.ranges&&(this.yylloc.range=[S[0],S[0]+this.yyleng-l]),this.yyleng=this.yytext.length,this},"unput"),more:s(function(){return this._more=!0,this},"more"),reject:s(function(){if(this.options.backtrack_lexer)this._backtrack=!0;else return this.parseError("Lexical error on line "+(this.yylineno+1)+`. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).
+`+this.showPosition(),{text:"",token:null,line:this.yylineno});return this},"reject"),less:s(function(r){this.unput(this.match.slice(r))},"less"),pastInput:s(function(){var r=this.matched.substr(0,this.matched.length-this.match.length);return(r.length>20?"...":"")+r.substr(-20).replace(/\n/g,"")},"pastInput"),upcomingInput:s(function(){var r=this.match;return r.length<20&&(r+=this._input.substr(0,20-r.length)),(r.substr(0,20)+(r.length>20?"...":"")).replace(/\n/g,"")},"upcomingInput"),showPosition:s(function(){var r=this.pastInput(),l=new Array(r.length+1).join("-");return r+this.upcomingInput()+`
+`+l+"^"},"showPosition"),test_match:s(function(r,l){var u,d,S;if(this.options.backtrack_lexer&&(S={yylineno:this.yylineno,yylloc:{first_line:this.yylloc.first_line,last_line:this.last_line,first_column:this.yylloc.first_column,last_column:this.yylloc.last_column},yytext:this.yytext,match:this.match,matches:this.matches,matched:this.matched,yyleng:this.yyleng,offset:this.offset,_more:this._more,_input:this._input,yy:this.yy,conditionStack:this.conditionStack.slice(0),done:this.done},this.options.ranges&&(S.yylloc.range=this.yylloc.range.slice(0))),d=r[0].match(/(?:\r\n?|\n).*/g),d&&(this.yylineno+=d.length),this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:d?d[d.length-1].length-d[d.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+r[0].length},this.yytext+=r[0],this.match+=r[0],this.matches=r,this.yyleng=this.yytext.length,this.options.ranges&&(this.yylloc.range=[this.offset,this.offset+=this.yyleng]),this._more=!1,this._backtrack=!1,this._input=this._input.slice(r[0].length),this.matched+=r[0],u=this.performAction.call(this,this.yy,this,l,this.conditionStack[this.conditionStack.length-1]),this.done&&this._input&&(this.done=!1),u)return u;if(this._backtrack){for(var e in S)this[e]=S[e];return!1}return!1},"test_match"),next:s(function(){if(this.done)return this.EOF;this._input||(this.done=!0);var r,l,u,d;this._more||(this.yytext="",this.match="");for(var S=this._currentRules(),e=0;e<S.length;e++)if(u=this._input.match(this.rules[S[e]]),u&&(!l||u[0].length>l[0].length)){if(l=u,d=e,this.options.backtrack_lexer){if(r=this.test_match(u,S[e]),r!==!1)return r;if(this._backtrack){l=!1;continue}else return!1}else if(!this.options.flex)break}return l?(r=this.test_match(l,S[d]),r!==!1?r:!1):this._input===""?this.EOF:this.parseError("Lexical error on line "+(this.yylineno+1)+`. Unrecognized text.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/microsoft/vscode-java-pack/.github/workflows/issueLens-run.yml | head -110
+name: Run IssueLens Agent
+
+on:
+  issues:
+    types: [opened]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'Issue number to triage'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  issues: write
+  copilot-requests: write
+
+concurrency:
+  group: issue-lens-${{ github.event.issue.number || inputs.issue_number }}
+  cancel-in-progress: false
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+
+      - name: Install tools
+        run: |
+          npm install -g @github/copilot@1.0.71-2
+          python -m pip install --disable-pip-version-check mcp==1.28.1
+
+      - name: Determine issue number
+        id: issue
+        env:
+          EVENT_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          INPUT_ISSUE_NUMBER: ${{ inputs.issue_number }}
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_EVENT_NAME" = "issues" ]; then
+            issue_number="$EVENT_ISSUE_NUMBER"
+          else
+            issue_number="$INPUT_ISSUE_NUMBER"
+          fi
+          if [[ ! "$issue_number" =~ ^[1-9][0-9]*$ ]]; then
+            echo "Invalid issue number." >&2
+            exit 1
+          fi
+          echo "number=$issue_number" >> "$GITHUB_OUTPUT"
+
+      - name: Run IssueLens with constrained MCP tools
+        env:
+          COPILOT_GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_MCP_TOKEN: ${{ github.token }}
+          JAVATOOLING_INDEX_URL: ${{ secrets.JAVATOOLING_INDEX_URL }}
+          MAILING_URL: ${{ secrets.MAILING_URL }}
+          REPORT_RECIPIENTS: ${{ secrets.REPORT_RECIPIENTS }}
+          WORKFLOW_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ISSUE_NUMBER: ${{ steps.issue.outputs.number }}
+        run: |
+          set -euo pipefail
+          mcp_config="$RUNNER_TEMP/mcp-config.json"
+          jq -n --arg javatooling_url "$JAVATOOLING_INDEX_URL" '
+            {
+              mcpServers: {
+                github_mcp: {
+                  type: "stdio",
+                  command: "docker",
+                  args: [
+                    "run",
+                    "-i",
+                    "--rm",
+                    "-e",
+                    "GITHUB_PERSONAL_ACCESS_TOKEN",
+                    "-e",
+                    "GITHUB_TOOLS",
+                    "-e",
+                    "GITHUB_FEATURES",
+                    "ghcr.io/github/github-mcp-server@sha256:c491ffdf6f4c85cb5397021bc655edb8ab825c6f5f568e7597d77a1bd7c4d308"
+                  ],
+                  env: {
+                    GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_MCP_TOKEN}",
+                    GITHUB_TOOLS: "issue_read,search_issues,add_issue_comment,update_issue_labels",
+                    GITHUB_FEATURES: "issues_granular"
+                  },
+                  tools: ["issue_read", "search_issues", "add_issue_comment", "update_issue_labels"],
+                  deferTools: "never"
+                },
+                mailing_mcp: {
+                  type: "stdio",
+                  command: "python",
+                  args: [".github/scripts/mailing_mcp.py"],
+                  env: {
+                    MAILING_URL: "${MAILING_URL}",
+                    REPORT_RECIPIENTS: "${REPORT_RECIPIENTS}",
+                    WORKFLOW_RUN_URL: "${WORKFLOW_RUN_URL}"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/microsoft/vscode-java-pack/.azure-pipelines/npm-cfs-variables.yml
+# Variables required to route npm package restore through the Central Feed Service
+# (CFS). Consumed by every pipeline in this directory alongside the npm-cfs.yml steps
+# template, which is where these values are actually applied.
+#
+# Both are declared here rather than in each pipeline so the feed URL exists in
+# exactly one place.
+#
+# npm_config_registry is not redundant with the registry written into the generated
+# .npmrc. npm resolves configuration in the order cli > environment > project .npmrc
+# > user .npmrc, so a registry supplied only through the user config is outranked by
+# anything the agent image already configures -- Microsoft hosted images ship a user
+# level .npmrc pointing at an internal proxy, and a pool that exports
+# npm_config_registry would win outright. Restore would then quietly resolve from
+# somewhere other than CFS while the build still reported success. Declaring the
+# variable here puts the redirect at environment precedence, where only an explicit
+# command line flag can override it.
+#
+# npm matches npm_config_* environment variables case insensitively, so the
+# uppercased form that Azure Pipelines exports applies to every step on every OS.
+# That matters because package restore here is not driven by a single task: `npm
+# install`, `npx json`, `npx @vscode/vsce` and the vsce invocation inside AzureCLI@2
+# all inherit the agent environment rather than reading a task input.
+
+variables:
+  - name: npm_config_registry
+    value: https://pkgs.dev.azure.com/mseng/VSJava/_packaging/vscjava/npm/registry/
+  - name: npm_config_userconfig
+    value: $(Agent.TempDirectory)/.npmrc
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/microsoft/qlib/.github/workflows/release.yml | head -130
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.release_please.outputs.release_created }}
+
+    steps:
+      - name: Release please
+        id: release_please
+        uses: googleapis/release-please-action@v4
+        with:
+          token: ${{ secrets.PAT }}
+          release-type: simple
+
+  deploy_with_manylinux:
+    needs: release
+    permissions:
+      contents: write
+      pull-requests: read
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        if: needs.release.outputs.release_created == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        if: needs.release.outputs.release_created == 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Build wheel on Linux
+        if: needs.release.outputs.release_created == 'true'
+        uses: RalfG/python-wheels-manylinux-build@v0.7.1-manylinux2014_x86_64
+        with:
+          python-versions: 'cp38-cp38 cp39-cp39 cp310-cp310 cp311-cp311 cp312-cp312'
+          build-requirements: 'numpy cython'
+
+      - name: Install dependencies
+        if: needs.release.outputs.release_created == 'true'
+        run: |
+          python -m pip install twine
+
+      - name: Upload to PyPi
+        if: needs.release.outputs.release_created == 'true'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI }}
+        run: |
+          twine check dist/pyqlib-*-manylinux*.whl
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/pyqlib-*-manylinux*.whl --verbose
+
+  deploy_with_bdist_wheel:
+    needs: release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        # After testing, the whl files of pyqlib built by macos-14 and macos-15 in python environments of 3.8, 3.9, 3.10, 3.11, 3.12,
+        # the filenames are exactly duplicated, which will result in the duplicated whl files not being able to be uploaded to pypi,
+        # so we chose to just keep the latest macos-latest. macos-latest currently points to macos-15.
+        # Also, macos-13 will stop being supported on 2025-11-14.
+        # Refs: https://github.blog/changelog/2025-07-11-upcoming-changes-to-macos-hosted-runners-macos-latest-migration-and-xcode-support-policy-updates/
+        os: [windows-latest, macos-latest]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+        if: needs.release.outputs.release_created == 'true'
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        if: needs.release.outputs.release_created == 'true'
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        if: needs.release.outputs.release_created == 'true'
+        run: |
+          make dev
+
+      - name: Build wheel on ${{ matrix.os }}
+        if: needs.release.outputs.release_created == 'true'
+        run: |
+          make build
+
+      - name: Upload to PyPi
+        if: needs.release.outputs.release_created == 'true'
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TESTPYPI }}
+        run: |
+          twine check dist/*.whl
+          twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl --verbose
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/android-emulator-container-scripts/run-with-gpu.sh | head -40
+# Copyright 2019 The Android Open Source Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This launcher will force the emulator to use hardware acceleration. In order to use this you will need to have
+# installed the nvida docker container drivers (https://github.com/NVIDIA/nvidia-docker)
+CONTAINER_ID=$1
+shift
+PARAMS="$@"
+# Allow display access from the container.
+xhost +si:localuser:root
+docker run --gpus all \
+   --device /dev/kvm \
+   --publish 8554:8554/tcp  \
+   --publish 5555:5555/tcp  \
+   -v /tmp/.X11-unix:/tmp/.X11-unix \
+   -e DISPLAY \
+   -e TOKEN="$(cat ~/.emulator_console_auth_token)" \
+   -e ADBKEY="$(cat ~/.android/adbkey)" \
+   -e EMULATOR_PARAMS="-gpu host ${PARAMS}" \
+   ${CONTAINER_ID}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/ax/manifests/install-ax.sh | head -300 | tail -80
+echo "Using GCS Bucket: ${AX_SNAPSHOTS_BUCKET}"
+
+  # Build and push the images, capturing their digest-pinned references.
+  local ax_image ax_antigravity_image ateom_image
+  ax_image=$(build_ax_image)
+  ax_antigravity_image=$(build_ax_antigravity_image)
+  ateom_image=$(build_ateom_image)
+
+  # Resolve the event-log Postgres DSN. By default ax-server connects to an
+  # existing Postgres via AX_EVENTLOG_DSN; --deploy-postgres creates a bundled
+  # Postgres in-cluster (for testing) and derives the DSN from it.
+  local pg_dsn pg_password=""
+  if [[ "${DEPLOY_POSTGRES}" == "true" ]]; then
+    # Reuse the existing bundled-Postgres password if present, else POSTGRES_PASSWORD,
+    # else generate one.
+    local existing_pw
+    existing_pw="$(run_kubectl -n ax get secret ax-eventlog-postgres -o go-template='{{.data.password | base64decode}}' 2>/dev/null || true)"
+    if [[ -n "${existing_pw}" ]]; then
+      pg_password="${existing_pw}"
+    else
+      pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"
+    fi
+    pg_dsn="postgres://axuser:${pg_password}@ax-eventlog-postgres.ax.svc:5432/axeventlog?sslmode=disable"
+  else
+    pg_dsn="${AX_EVENTLOG_DSN}"
+    echo "Using existing Postgres via AX_EVENTLOG_DSN." >&2
+  fi
+
+  # Base64 of the single-source config file (manifests/ax.yaml), injected into
+  # each ActorTemplate's AX_CONFIG_CONTENT env so substrate actors read their config
+  # without a mounted ConfigMap.
+  local ax_config_content
+  ax_config_content="$(base64 < manifests/ax.yaml | tr -d '\n')"
+
+  # Common substitutions applied to every rendered manifest.
+  local render_sed=(
+    -e "s|\${GEMINI_API_KEY}|${GEMINI_API_KEY}|g"
+    -e "s|\${AX_SNAPSHOTS_BUCKET}|${AX_SNAPSHOTS_BUCKET}|g"
+    -e "s|\${AX_IMAGE}|${ax_image}|g"
+    -e "s|\${AX_ANTIGRAVITY_IMAGE}|${ax_antigravity_image}|g"
+    -e "s|\${ATEOM_IMAGE}|${ateom_image}|g"
+    -e "s|\${GOOGLE_CLOUD_PROJECT}|${GOOGLE_CLOUD_PROJECT:-}|g"
+    -e "s|\${AX_CONFIG_CONTENT}|${ax_config_content}|g"
+  )
+
+  # Render and apply the core manifest (namespace, harnesses, ax-server).
+  if ! sed "${render_sed[@]}" manifests/ax-deployment.yaml | run_kubectl apply -f -; then
+    echo >&2
+    echo "Error: cluster rejected the manifest. An \"unknown field\" error usually means the" >&2
+    echo "cluster's substrate is incompatible with AX's go.mod pin — see" >&2
+    echo "manifests/README.md (\"Substrate compatibility\")." >&2
+    exit 1
+  fi
+
+  # Create/update the controller ConfigMap from the single-source config file
+  # (manifests/ax.yaml) -- the same file that seeds the actors' AX_CONFIG_CONTENT.
+  # ax-server mounts it at /etc/ax/ax.yaml.
+  run_kubectl -n ax create configmap ax-server-config \
+    --from-file=ax.yaml=manifests/ax.yaml \
+    --dry-run=client -o yaml | run_kubectl apply -f -
+
+  # Create/update the event-log Secret with the DSN (and, for the bundled Postgres,
+  # its password). ax-server reads AX_EVENTLOG_DSN from this Secret's dsn key.
+  local secret_args=(--from-literal=dsn="${pg_dsn}")
+  if [[ "${DEPLOY_POSTGRES}" == "true" ]]; then
+    secret_args+=(--from-literal=password="${pg_password}")
+  fi
+  run_kubectl -n ax create secret generic ax-eventlog-postgres "${secret_args[@]}" \
+    --dry-run=client -o yaml | run_kubectl apply -f -
+
+  # With --deploy-postgres, create the bundled Postgres and wait for it to be
+  # ready before ax-server relies on it.
+  if [[ "${DEPLOY_POSTGRES}" == "true" ]]; then
+    run_kubectl apply -f manifests/ax-postgres.yaml
+    log_step "wait for statefulset/ax-eventlog-postgres to be ready"
+    wait_with_spinner "waiting for postgres (timeout ${AX_WAIT_TIMEOUT:-5m})" \
+      run_kubectl -n ax rollout status statefulset/ax-eventlog-postgres \
+      --timeout="${AX_WAIT_TIMEOUT:-5m}"
+  fi
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+"""GCE metadata."""
+
+import socket
+
+import requests
+
+from clusterfuzz._internal.base import retry
+from clusterfuzz._internal.system import environment
+
+_METADATA_SERVER = 'metadata.google.internal'
+_METADATA_URL = 'http://{}/computeMetadata/v1/'.format(_METADATA_SERVER)
+
+_RETRIES = 3
+_DELAY = 1
+
+
+def _get_raw(path, timeout=None):
+  """Internal helper to get metadata without retries."""
+  attribute_url = _METADATA_URL + path
+  headers = {'Metadata-Flavor': 'Google'}
+  if timeout is None:
+    timeout = environment.get_value('URL_BLOCKING_OPERATIONS_TIMEOUT')
+
+  response = requests.get(attribute_url, headers=headers, timeout=timeout)
+  response.raise_for_status()
+  return response.text
+
+
+@retry.wrap(
+    retries=_RETRIES,
+    delay=_DELAY,
+    function='python.google_cloud_utils.compute_metadata.get')
+def get(path):
+  """Get GCE metadata value."""
+  return _get_raw(path)
+
+
+def is_gce():
+  """Return whether or not we're on GCE."""
+  try:
+    sock = socket.create_connection((_METADATA_SERVER, 80))
+    sock.close()
+  except Exception:
+    return False
+
+  return True
+
+
+def get_preempted_status():
+  """Gets the preemption status of the instance."""
+  # We use a short timeout and no retries because this is called frequently
+  # in a background loop and should fail fast.
+  return _get_raw('instance/preempted', timeout=5)
+
+
+def is_preemptible():
+  """Returns True if the instance is preemptible (or Spot)."""
+  # Skip metadata queries on App Engine or K8s. These environments emulate or
+  # proxy the metadata server but lack standard GCE scheduling keys, returning
+  # 404 and causing unnecessary latency or errors if queried.
+  if environment.is_running_on_app_engine() or environment.is_running_on_k8s():
+    return bool(environment.get_value('PREEMPTIBLE'))
+
+  if is_gce():
+    # We ignore exceptions (mainly HTTPError if a key doesn't exist) to avoid
+    # log noise for standard VMs where these keys might not be present.
+    for path in [
+        'instance/scheduling/preemptible',
+        'instance/scheduling/provisioning-model'
+    ]:
+      try:
+        value = _get_raw(path, timeout=2).strip().upper()
+        if value in ['TRUE', 'SPOT']:
+          return True
+      except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 404:
+          continue
+      except Exception:
+        pass
+
+  return bool(environment.get_value('PREEMPTIBLE'))
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh
+#!/bin/bash -ex
+# Copyright 2019 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Set up mock metadata server.
+if [[ -n "$LOCAL_METADATA_SERVER" ]]; then
+  ip addr add 169.254.169.254/32 dev lo
+  socat TCP-LISTEN:80,fork,reuseaddr TCP:$LOCAL_METADATA_SERVER:$LOCAL_METADATA_PORT &
+  echo "127.0.0.1 metadata metadata.google.internal" >> /etc/hosts
+fi
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | head -260 | tail -30
+fmt.Fprintf(&b, `, "--trigger_max_delay", "%s"`, flags.cloudRun.eventarcTrigger.maxDelay.String())
+				fmt.Fprintf(&b, `, "--trigger_max_concurrent_runs", "%d"`, flags.cloudRun.eventarcTrigger.maxRuns)
+			}
+			b.WriteString(`]`)
+			return os.WriteFile(f.build.dockerfileBuildPath, []byte(b.String()), 0o600)
+		})
+}
+
+// gcloudDeployToCloudRun invokes gcloud to deploy source on CloudRun
+func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
+	return util.LogStartStop("Deploying to Cloud Run",
+		func(p util.Printer) error {
+			params := []string{
+				"run", "deploy", f.cloudRun.serviceName,
+				"--source", ".",
+				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
+				"--region", f.gcloud.region,
+				"--project", f.gcloud.projectName,
+				"--ingress", "all",
+				"--no-allow-unauthenticated",
+			}
+
+			cmd := exec.Command("gcloud", params...)
+
+			cmd.Dir = f.build.tempDir
+			return util.LogCommand(cmd, p)
+		})
+}
+
+// runGcloudProxy invokes gcloud to create a proxy which will add authentication headers to requests
+[0m
+## Classification Tables
 
 ### REAL_SECRET
+*No hardcoded live credentials found in this scan delta.*
+
 | File | Line | SHA256 | REPORT_CANDIDATE |
 |------|------|--------|------------------|
-| *(none)* | | | |
-
-### TEST_OR_EXAMPLE
-| File | Line | Notes |
-|------|------|-------|
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test connection logic |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS test data in `tests_data/` |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | 3,11 | 9× minified build artifacts (parser error messages) |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified build artifact (hash in filename) |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test infra: mock metadata server setup |
-| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | e2e test comment |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` — doc example |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` — doc example |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` — Helm template |
-| google/sam/.github/k8s/*.yaml | 2,14 | 8× `kind: ConfigMap` — K8s manifests |
-
-### ENDPOINT_LEAK
-| File | Line | Notes |
-|------|------|-------|
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124,126,131 | Internal `cs.corp.google.com` / `source.corp.google.com` URL patterns |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459,460 | Internal source URL rewrite rules |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | Metadata server constant (`metadata.google.internal`) |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | Metadata server URL construction |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | Metadata server fetches for deployment config |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | Metadata server fetch for hostname |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — secret manager ref (not a leak) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` — secret manager ref |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | Internal buganizer URL (comment) |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | Internal bug URL (TODO comment) |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | Internal bug URL (TODO comment) |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | Internal bug URL (TODO comment) |
-
-### INTERESTING
-| File | Line | Notes |
-|------|------|-------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret wiring pattern |
-| google/ax/manifests/install-ax.sh | 239,241,286 | PG password: env var → generated fallback → K8s secret literal |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | 3× `--from-literal=...="${SECRET}"` — proper GH Actions secret refs |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — standard GH token |
-| google/android-emulator-container-scripts/run*.sh | 22,28 | `-e TOKEN="$(cat ~/.emulator_console_auth_token)"` — runtime file read pattern |
+| — | — | — | — |
 
 ---
 
-## Verdict
+### TEST_OR_EXAMPLE
 
-**No REPORT_CANDIDATE findings.** All 536 hits classify as:
-- **TEST_OR_EXAMPLE** (fixtures, build artifacts, test infra, ConfigMap manifests)
-- **ENDPOINT_LEAK** (well-known Google internal URLs: `metadata.google.internal`, `cs.corp.google.com`, `source.corp.google.com`, `b.corp.google.com`, `buganizer.corp.google.com` — none are sensitive)
-- **INTERESTING** (secret-management patterns, deployment wiring — no hardcoded values)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | JSDoc `@example` placeholder |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | JSDoc `@example` placeholder |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | OAuth2 `OAuthGrantType.PASSWORD` enum value (grant type string) |
+| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented-out placeholder |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References external file (not hardcoded) |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Parser error strings | Minified build artifacts (PEG.js parser tables) |
 
-The earthengine-api OAuth client_secret previously tracked (`python/ee/oauth.py:45`, sha256 `3f3f8d6f...d271`) **does not appear in this delta** — it was in prior scans and remains live per KB, but no new occurrence here.
+---
 
-**Recommendation:** No new disclosures needed from this scan delta.
+### ENDPOINT_LEAK
+
+| File | Line | Endpoint / Reference | Notes |
+|------|------|----------------------|-------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata server (documented public API) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local range (includes GCP metadata 169.254.169.254) |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | `metadata.google.internal` | GCP metadata client library |
+| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18-20 | `169.254.169.254`, `metadata.google.internal` | Test mock metadata server setup |
+| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | `metadata.google.internal` | Metadata queries for deployment config |
+| google/clusterfuzz/docker/base/setup_common.sh | 28 | `metadata.google.internal` | Metadata query for hostname |
+| google/ax/manifests/install-ax.sh | 239 | `${GEMINI_API_KEY}` substitution | Env-var injection (secret not in repo) |
+| microsoft/vscode-java-pack/.azure-pipelines/npm-cfs-variables.yml | 26 | `pkgs.dev.azure.com/mseng/VSJava/...` | Azure DevOps internal package registry URL |
+
+---
+
+### INTERESTING
+
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | Code that **serializes/emits** a secret key variable (`sk`) to output — not a hardcoded secret, but crypto key material handling |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret injection pattern (references Secret Manager, proper secret handling) |
+
+---
+
+## Verdict List
+
+| Candidate | File | Category | REPORT_CANDIDATE |
+|-----------|------|----------|------------------|
+| earthengine-api oauth.py:45 (from KB) | *not in this scan* | REAL_SECRET (KNOWN) | **no** (already tracked, pending VRP determination on native-app by-design) |
+| adk-js auth_credential.ts examples | auth_credential.ts:214,226 | TEST_OR_EXAMPLE | **no** |
+| adk-js auth_schemes.ts PASSWORD enum | auth_schemes.ts:41 | TEST_OR_EXAMPLE | **no** |
+| heir author_stats.py commented token | author_stats.py:16 | TEST_OR_EXAMPLE | **no** |
+| capsem password file references | gate.toml:584, fix_p12_legacy.sh:15, preflight.sh:39 | TEST_OR_EXAMPLE (proper pattern) | **no** |
+| adk-go minified parser chunks | chunk-*.js | TEST_OR_EXAMPLE (build artifacts) | **no** |
+| GCP metadata endpoint refs | oauth2_discovery.ts, load_web_page.ts, compute_metadata.py, docker/* | ENDPOINT_LEAK (documented public API) | **no** |
+| Azure DevOps registry URL | npm-cfs-variables.yml:26 | ENDPOINT_LEAK (internal URL, no auth) | **no** |
+| HEIR JaxiteWordEmitter secret_key emission | JaxiteWordEmitter.cpp:558 | INTERESTING (crypto serialization) | **no** (not a secret leak) |
+| Cloud Run secret injection | cloudrun.go:246 | INTERESTING (proper secret mgmt) | **no** |
+| Android emulator token file reads | run*.sh | Proper secret handling | **no** |
+| AX manifests password generation | install-ax.sh | Proper secret handling | **no** |
+| ClusterFuzz metadata mock setup | setup_mock_metadata.sh | Test infrastructure | **no** |
+| Microsoft workflows secret refs | issueLens-run.yml, release.yml | Proper secret handling (`${{ secrets.* }}`) | **no** |
+
+---
+
+**Summary**: This scan delta contains **zero reportable findings**. All hits are either test/examples, documented public endpoints, build artifacts, or proper secret-handling patterns (file reads, env vars, secret managers, GitHub Actions secrets). No hardcoded live credentials, API keys, or tokens were detected in the 26 new hit lines.
