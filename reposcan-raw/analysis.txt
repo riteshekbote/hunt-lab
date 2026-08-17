@@ -1,21 +1,3 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-**Classification Table**
-
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `copybara/javatests/.../AuthTest.java:75,102,129` (testpassword, test-token-123)<br>`copybara/javatests/.../HttpEndpointTest.java:136,159,189` (testpassword)<br>`adk-python/.../auth_credential.py:157,269,278` (placeholder private_key, test creds)<br>`adk-python/.../auth_schemes.py:68` (PASSWORD="password")<br>`adk-python/.../auth_helpers.py:62` (client_secret="your_client_secret")<br>`flatbuffers/.github/workflows/label.yml:24` (`${{ secrets.GITHUB_TOKEN }}` ref)<br>`sam/.../run.sh:139` (OIDC_CLIENT_SECRET var ref)<br>`sam/.../deploy.yaml:247-250` (secrets.* refs) |
-| **ENDPOINT_LEAK** | `copybara/cloudbuild.yaml:27` — internal `pantheon.corp.google.com` artifact URL in comment |
-| **INTERESTING** | `ground-android/app/src/debug/local/google-services.json:23` — Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in debug/local config (public by design, same class as rejected Algolia key) |
-
-**Verdict**
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Firebase API key in `ground-android/app/src/debug/local/google-services.json:23` | **no** — debug/local folder, Firebase keys are public-by-design (client-embedded); KB precedent: rejected Algolia DocSearch key as public-by-design |
-| Internal URL in `copybara/cloudbuild.yaml:27` | **no** — comment-only, no credential material |
-| All test/fixture/placeholder values | **no** — clearly test data (`testpassword`, `test-token-123`, `your_client_secret`, `password`, `${{ secrets.* }}` refs) |
-
-**No reportable findings in this delta.** All hits are test data, placeholder patterns, proper secret references, or public-by-design keys in debug configs.
