@@ -1283,3 +1283,8 @@
 - NEW No fresh probe cycle since 09:08:11 UTC — robot probe log last entry 09:08:11. All inventory items unchanged from prior cycle. NO_DELTA.
 
 ## 2026-08-17 10:35:05 UTC
+
+## 2026-08-17 11:02:15 UTC
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
+- CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic redirect
+- CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400 missing project, then 401 storage.buckets.list denied — requires auth, no bypass
