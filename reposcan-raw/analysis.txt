@@ -1,3 +1,110 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat << 'EOF'
+# CLASSIFICATION TABLES
+
+## REAL_SECRET (hardcoded credential/API key/token with signs of life)
+# NONE FOUND IN THIS SCAN
+
+## TEST_OR_EXAMPLE (sample/test/fixture data, placeholders, template vars, secret refs)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | "PASSWORD=" + getDatabasePassword() | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HttpCredentials(username="user", password="password") | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | HttpCredentials(token="eyAkaknabna....") | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} template | TEST_OR_EXAMPLE |
+| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | # hf_access_token: "your_token" (commented) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | # hf_access_token: "your_token" (commented) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }} etc. | TEST_OR_EXAMPLE (GH Actions secret ref) |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | ${GOOGLE_CLIENT_SECRET} etc. | TEST_OR_EXAMPLE (GH Actions secret ref) |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | TEST_OR_EXAMPLE (shell var ref) |
+| reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifest) |
+| reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifest) |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | TEST_OR_EXAMPLE (const string) |
+| reposcan-raw/google/sam/.github/k8s/*.yaml | 2 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifests) |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | homepage URL | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | URL in comment | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3/9 | Minified JS parse errors (9 files) | TEST_OR_EXAMPLE (build artifacts) |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path configuration refs | ENDPOINT_LEAK (config pattern, no live endpoint) |
+
+## INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | INTERESTING (internal state key name) |
+| reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py | 862 | os.environ["KUBECONFIG"] = k8s_cfg.get(...) | INTERESTING (KUBECONFIG handling) |
+
+
+# VERDICT LIST (REPORT_CANDIDATE per real candidate)
+
+REPORT_CANDIDATE: no — No REAL_SECRET findings in this scan. All hits are TEST_OR_EXAMPLE (fixtures, placeholders, GH Actions secret refs, build artifacts), ENDPOINT_LEAK (public metadata IP 169.254.169.254 documented in code comments), or INTERESTING (internal config patterns). The hashed entry b0032b5012b0eea2 is a commented placeholder "# hf_access_token: \"your_token\"".
+EOF
+# CLASSIFICATION TABLES
+
+## REAL_SECRET (hardcoded credential/API key/token with signs of life)
+# NONE FOUND IN THIS SCAN
+
+## TEST_OR_EXAMPLE (sample/test/fixture data, placeholders, template vars, secret refs)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | secret_key = "fuzz test key" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | g_shutdownPassword = "ServerShutdownPassword" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | "PASSWORD=" + getDatabasePassword() | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HttpCredentials(username="user", password="password") | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | HttpCredentials(token="eyAkaknabna....") | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} template | TEST_OR_EXAMPLE |
+| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | # hf_access_token: "your_token" (commented) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | # hf_access_token: "your_token" (commented) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }} etc. | TEST_OR_EXAMPLE (GH Actions secret ref) |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | ${GOOGLE_CLIENT_SECRET} etc. | TEST_OR_EXAMPLE (GH Actions secret ref) |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | TEST_OR_EXAMPLE (shell var ref) |
+| reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifest) |
+| reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifest) |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | TEST_OR_EXAMPLE (const string) |
+| reposcan-raw/google/sam/.github/k8s/*.yaml | 2 | kind: ConfigMap | TEST_OR_EXAMPLE (K8s manifests) |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | homepage URL | TEST_OR_EXAMPLE |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | URL in comment | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3/9 | Minified JS parse errors (9 files) | TEST_OR_EXAMPLE (build artifacts) |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint (doc) | ENDPOINT_LEAK (public metadata IP, documented) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path configuration refs | ENDPOINT_LEAK (config pattern, no live endpoint) |
+
+## INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | INTERESTING (internal state key name) |
+| reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py | 862 | os.environ["KUBECONFIG"] = k8s_cfg.get(...) | INTERESTING (KUBECONFIG handling) |
+
+
+# VERDICT LIST (REPORT_CANDIDATE per real candidate)
+
+REPORT_CANDIDATE: no — No REAL_SECRET findings in this scan. All hits are TEST_OR_EXAMPLE (fixtures, placeholders, GH Actions secret refs, build artifacts), ENDPOINT_LEAK (public metadata IP 169.254.169.254 documented in code comments), or INTERESTING (internal config patterns). The hashed entry b0032b5012b0eea2 is a commented placeholder "# hf_access_token: \"your_token\"".
+[0m
+**Summary**: No reportable secrets in this scan. All 380 hits across 30,571 files are benign:
+- **TEST_OR_EXAMPLE**: 26 entries (fixtures, placeholders, GH Actions `${{ secrets.* }}` refs, minified JS build artifacts)
+- **ENDPOINT_LEAK**: 5 entries (public GCP metadata IP `169.254.169.254` documented in code comments, kubeconfig config patterns)
+- **INTERESTING**: 2 entries (internal state key name, KUBECONFIG handling)
+
+The hashed entry `b0032b5012b0eea2` is a commented placeholder `# hf_access_token: "your_token"`.
