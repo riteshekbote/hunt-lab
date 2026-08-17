@@ -1,4 +1,4 @@
-## 2026-08-17 16:34:45 UTC [google] (model nemotron3)
+## 2026-08-17 17:01:16 UTC [google] (model nemotron3)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}, 9.10, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
 [PRIO] oauth2.googleapis.com/token, 9.15, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants, 8.15, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=8
@@ -33,5 +33,9 @@ testability: AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (AUTH, 96, AUTH_HELPED)
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId on production v1.0 (AUTH, 70, AUTH_HELPED)
 [NEXT] HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Microsoft hypotheses #1 and #3; (2) Google VRP report (reports/google-vrp-earthengine-secret.md) via bughunters.google.com for hypothesis #2
+[LEARN] ACCEPTED: agentRegistrations item-level auth-gate confirmed live — GET /beta/copilot/agentRegistrations/{id} → 401/237 Bearer confirms schema-level zero-restriction precondition extends to item level
+[LEARN] ACCEPTED: oauth2PermissionGrants auth-gate confirmed live on production v1.0 — GET→401/237 Bearer + HEAD→405/0 (RFC 6750 §3) confirms both auth and systemic method-handling deviation
+[LEARN] REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles, no new attack vector
+[LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; no bypass
 [LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle
 [RISK] google: 88 reason: Hardcoded valid OAuth client_secret with cloud-platform+earthengine+drive+devstorage scopes in public repo (confidence 96), tokeninfo public introspection oracle, v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation), POST-only token endpoint validated; earthengine scope newly confirmed expands impact | microsoft: 89 reason: Agent Registration zero-ownership-restrictions IDOR + LIVE CORS cross-origin mutation vector (confidence 94), oauth2PermissionGrants consent forge on production v1.0 (confidence 70), Copilot Admin 6-family uniform IDOR surface (confidence 97), Graph 405 anomaly RFC 6750 §3 violation extends to Agent Registration, v1v2 JWKS kid overlap with dual issuer namespaces intact, Verified ID minting cross-tenant risk

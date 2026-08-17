@@ -1328,3 +1328,5 @@
 - CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 (requires project+auth, no bypass)
 
 ## 2026-08-17 16:34:56 UTC
+
+## 2026-08-17 17:01:31 UTC
