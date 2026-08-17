@@ -1,164 +1,83 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -600 | tail -100
-auto sk = variableNames->getNameForValue(op.getSecretKey());
-
-  rotKeysDictVarName_ = rk + "_dict";
-  std::string indicesStr;
-  llvm::raw_string_ostream indicesOs(indicesStr);
-  llvm::interleaveComma(op.getIndices(), indicesOs);
-
-  os << llvm::formatv(kGenRotKeyTemplate.data(), rotKeysDictVarName_,
-                      indicesStr, sk, ctx, heRotVarName_, rk);
-
-  return success();
-}
-
-LogicalResult JaxiteWordEmitter::printOperation(GenParamsOp op) {
-  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
-  cryptoContextVarName_ = ctx;
-
-  os << "params = {\n";
-  os.indent();
-  auto qTowers = op.getQTowers();
-  auto pTowers = op.getPTowers();
-  int32_t compDeg = op.getCompositeDegree();
-
-  os << "\"degree\": " << op.getDegree() << ",\n";
-  os << "\"num_slots\": " << op.getNumSlots() << ",\n";
-  os << "\"batch\": " << op.getBatch() << ",\n";
-  os << "\"r\": " << op.getR() << ",\n";
-  os << "\"c\": " << op.getC() << ",\n";
-  os << "\"dnum\": " << op.getDnum() << ",\n";
-  os << "\"numEvalMult\": " << op.getNumEvalMult() << ",\n";
-  os << "\"scaling_factor\": " << op.getScalingFactor() << ",\n";
-
-  os << "\"q_towers\": [";
-  llvm::interleaveComma(qTowers, os);
-  os << "],\n";
-
-  os << "\"p_towers\": [";
-  llvm::interleaveComma(pTowers, os);
-  os << "],\n";
-
-  os << "\"composite_degree\": " << compDeg << ",\n";
-  os << "\"p\": 30,\n";
-  os << "\"max_bits_in_word\": 61,\n";
-  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
-  os << "\"noise_scale_degree\": 1,\n";
-  os << "\"CKKS_M_FACTOR\": 1\n";
-  os.unindent();
-  os << "}\n";
-
-  os << ctx << " = ckks.CKKSContext(params)\n";
-  return success();
-}
-
-LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
-  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
-  auto sk = variableNames->getNameForValue(op.getSecretKey());
-
-  os << ctx << ".secret_key = " << sk << "\n";
-  os << ctx << ".program_initialization(";
-  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
-
-  os << "total_rotation_indices=[";
-  auto rotIndices = op.getTotalRotationIndices();
-  llvm::interleaveComma(rotIndices, os);
-  os << "], ";
-
-  os << "dnum=" << op.getDnum() << ", ";
-  os << "r=" << op.getR() << ", ";
-  os << "c=" << op.getC() << ", ";
-  os << "batch=" << op.getBatch();
-  os << ")\n";
-
-  return success();
-}
-
-LogicalResult JaxiteWordEmitter::printOperation(tensor::ExtractOp op) {
-  emitAssignPrefix(op.getResult());
-  os << variableNames->getNameForValue(op.getTensor());
-
-  os << "[";
-  for (size_t i = 0; i < op.getIndices().size(); ++i) {
-    if (i > 0) os << ", ";
-    Value idx = op.getIndices()[i];
-    auto constStr = getConstantAsString(idx);
-    if (succeeded(constStr)) {
-      os << constStr.value();
-    } else {
-      os << variableNames->getNameForValue(idx);
-    }
-  }
-  os << "]\n";
-  return success();
-}
-
-LogicalResult JaxiteWordEmitter::printOperation(tensor::FromElementsOp op) {
-  if (op.getNumOperands() == 0) {
-    return success();
-  }
-  if (isa<jaxiteword::AddOp>(op->getOperands()[0].getDefiningOp())) {
-    return success();
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/osv.deployment/clouddeploy/osv-website/run-staging.yaml 2>/dev/null || find reposcan-raw -name "run-staging.yaml" 2>/dev/null
+reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml
+reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-api/run-staging.yaml
 [0m
+[0m→ [0mRead reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/osv.dev/external/pypi/pypi.go[90m [offset=75, limit=20][0m
+Now I have all the context needed. Let me classify each hit.
+
 ## Classification Tables
 
-### REAL_SECRET
-| File | Line | SHA256 | Classification |
-|------|------|--------|----------------|
-| *(none)* | | | No live hardcoded credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test token |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder |
-| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | Config file reference |
-| reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` | Fake ghp_ token in test |
-| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Fake tokens in test assertions |
-| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test data |
-| reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Eval test data |
-| reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Eval test data |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCP metadata server (standard ADC pattern) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint references |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Metadata endpoint reference |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Metadata endpoint reference |
-| reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11 | `169.254.169.254`, `metadata.google.internal` | IMDS/metadata endpoint references |
-
-### INTERESTING
-| File | Line | Finding | Assessment |
-|------|------|---------|------------|
-| reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `os << ctx << ".secret_key = " << sk << "\n";` | **Code generation for FHE** - emits runtime-generated secret key variable (`sk` from MLIR SSA value), not a hardcoded credential. Part of HEIR compiler for Jaxite FHE scheme. |
-| reposcan-raw/google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN`, `ACTION_RESET_PASSWORD` | Android DeviceAdmin action constants, not secrets |
-| reposcan-raw/google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Parameter name constant |
-| reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Config flag default name |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file at runtime |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads password from file at runtime |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Writes API key from variable (not hardcoded) |
+### REAL_SECRET (hardcoded credential/API key/token with signs of life)
+| File | Line | Secret SHA256 | Classification | REPORT_CANDIDATE |
+|------|------|---------------|----------------|------------------|
+| *none* | — | — | No live hardcoded secrets found in this scan | — |
 
 ---
 
-## Verdict List
+### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
+| File | Line | Context | Notes |
+|------|------|---------|-------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` in docstring example | Truncated placeholder in ServiceAccountCredential example |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `password="password"` in HttpCredentials example | Literal string "password" as example value |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` in HttpCredentials example | Truncated fake JWT in example |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 287 | `client_secret="secret"` in OAuth2Auth example | Literal string "secret" as placeholder |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` enum value | OAuth2 grant type enum (RFC 6749), not a credential |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` in docstring | Explicit placeholder |
+| `google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` | Commented-out placeholder |
+| `google/device-infra/.../DeviceAdminUtil.java` | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"` | Action name constants, not secrets |
+| `google/device-infra/.../GoogleAccountDecoratorSpec.java` | 44 | `PARAM_PASSWORD = "password"` | Parameter name constant |
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| JaxiteWordEmitter secret_key emission | `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558` | **no** | Compiler codegen for FHE runtime key, not hardcoded secret |
-| GCP metadata server calls | `google/device-infra/.../adc_credentials.sh` | **no** | Standard Application Default Credentials pattern |
-| IMDS/metadata endpoint refs | Multiple files | **no** | Well-known cloud metadata endpoints (169.254.169.254, metadata.google.internal) |
-| All ghp_* tokens | `microsoft/skill-recorder/**/*.test.ts` | **no** | Fake test tokens in test/eval files (`ABCDEFGHIJKLMNOP` pattern) |
-| All placeholder credentials | `google/adk-python/**/auth_*.py` | **no** | Explicit test fixtures (`your_client_secret`, `password`, `...`) |
-| GitHub Actions secret refs | `google/**/*.yml`, `google/**/*.yaml` | **no** | `${{ secrets.GITHUB_TOKEN }}` / `${{ github.token }}` - secret references, not hardcoded |
-| Config file password refs | `google/capsem/**` | **no** | Reads from external files at runtime |
+---
 
-**Summary: 0 REPORT_CANDIDATE=yes** — All 221 hits across 20755 files are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING (compiler internals / config patterns). No live hardcoded secrets detected in this delta.
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | `https://pantheon.corp.google.com/auth/clients` (comment) | Internal Google auth console URL in comment |
+| `google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 25 | `175272184261-plkdbn2vea10d769llle6e965u8hupat.apps.googleusercontent.com` | **OAuth Client ID** (public by design, not a secret) |
+| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 129 | `https://api.test.osv.dev/v1experimental/importfindings/...` | Staging API endpoint |
+| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 351 | `https://api.test.osv.dev/v1/vulns/...` | Staging API endpoint |
+| `google/osv.dev/gcp/website/frontend3/src/linter.js` | 486 | `https://api.test.osv.dev/v1/vulns/...` | Staging API endpoint |
+| `google/osv.dev/gcp/website/frontend3/src/triage.js` | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Staging API endpoint |
+| `google/osv.dev/tools/datafix/reimport_gcs_record.py` | 86 | `https://test.osv.dev/` | Staging frontend URL |
+| `google/osv.dev/docs/_config.yml` | 78 | `https://test.osv.dev/linter/` | Staging frontend URL |
+| `google/osv.dev/deployment/clouddeploy/gke-workers/.../generate-sitemap.yaml` | 16 | `https://test.osv.dev` | Staging frontend URL |
+
+---
+
+### INTERESTING (debug flags, keys, cloud configs, metadata refs)
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` metadata endpoint warnings | Code warns about metadata endpoint access in containers |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` metadata endpoint reference | NAT64 route warning |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` metadata endpoint reference | Chrome blocks this IP |
+| `google/device-infra/.../adc_credentials.sh` | 39 | Fetches SA email from GCP metadata | Standard ADC bootstrap, not a leak |
+| `google/go-jsonnet/.github/workflows/*.yml` | 37, 106, 126 | `${{ github.token }}`, `${{ secrets.GITHUB_TOKEN }}` | Standard GitHub Actions patterns |
+| `google/dagger/util/latest-dagger-version.sh` | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Shell reads from env var |
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | Standard GitHub Actions |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag *name* default, not a real password |
+| `google/osv.dev/external/pypi/pypi.go` | 80 | `"http://dev.mysql.com": true` | Domain allowlist entry |
+| `google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `os << ctx << ".secret_key = " << sk` | Code *emits* a secret_key variable (not hardcoded) |
+
+---
+
+## Short Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/osv.dev` OAuth Client ID in `run-staging.yaml:25` | **no** | OAuth Client IDs are public by design (sent in auth requests); secret properly stored in K8s secret (`valueFrom.secretKeyRef`) |
+| All `google/adk-python` auth examples | **no** | Docstring/fixture examples with placeholder values (`"password"`, `"secret"`, truncated keys) |
+| `google/osv.dev` staging URLs (`test.osv.dev`, `api.test.osv.dev`) | **no** | Public staging environment endpoints, not internal secrets |
+| `google/osv.dev` pantheon.corp.google.com comment | **no** | Internal URL reference in comment only, no credential |
+| GCP metadata endpoint refs (`169.254.169.254`) | **no** | Well-known documented metadata IP; code warns about it |
+| GitHub Actions `${{ secrets.GITHUB_TOKEN }}` patterns | **no** | Standard CI secret injection, not hardcoded |
+| `google/cadvisor` `StorageDriverPassword` flag default | **no** | Flag *name* default value, not an actual deployed password |
+| `google/heir` secret_key emission code | **no** | Code *outputs* a variable at runtime, not a static secret |
+
+**Overall: NO REPORTABLE FINDINGS in this delta.** All hits are test fixtures, placeholders, public staging endpoints, OAuth Client IDs (public by design), or standard CI patterns. The only previously reported REAL_SECRET in this org (`google/earthengine-api` client_secret) was already accepted and tracked in the knowledge base — no new secrets detected.
