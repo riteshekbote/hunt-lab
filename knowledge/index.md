@@ -1454,3 +1454,4 @@
 - 2026-08-17 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 - 2026-08-17 REJECTED: No new proving-dead or proving-live classes this cycle — all fresh probes confirmed prior findings, NO_DELTA.
 - 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 08:23 UTC — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin level
+- 2026-08-17 NO_DELTA — all fresh passive probes (last cycle 09:08:11 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
