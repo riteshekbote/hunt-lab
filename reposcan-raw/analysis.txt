@@ -1,107 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ reposcan-raw/microsoft/ 2>/dev/null | head -20
-reposcan-raw/google/:
-Accessibility-Test-Framework-for-Android
-CFU-Playground
-CausalImpact
-ChromeBrowserEnterprise
-CodeCity
-EarlGrey
-GoogleAppMeasurement
-GoogleDataTransport
-GoogleSignIn-iOS
-OpenSK
-XNNPACK
-Xee
-aarch64-esr-decoder
-aarch64-paging
-acai
-accompanist
-addlicense
-adk-docs
-adk-go
-[0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=20, offset=10][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key"
-1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
-[0m
-Now I have enough context to classify all hits. Here are the results:
+## Classification Table
+
+### REAL_SECRET
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *(none)* | | | |
+
+### TEST_OR_EXAMPLE
+| File | Line | Notes |
+|------|------|-------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test connection logic |
+| google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS test data in `tests_data/` |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | 3,11 | 9× minified build artifacts (parser error messages) |
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified build artifact (hash in filename) |
+| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test infra: mock metadata server setup |
+| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | e2e test comment |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` — doc example |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` — doc example |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` — Helm template |
+| google/sam/.github/k8s/*.yaml | 2,14 | 8× `kind: ConfigMap` — K8s manifests |
+
+### ENDPOINT_LEAK
+| File | Line | Notes |
+|------|------|-------|
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124,126,131 | Internal `cs.corp.google.com` / `source.corp.google.com` URL patterns |
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459,460 | Internal source URL rewrite rules |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | Metadata server constant (`metadata.google.internal`) |
+| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | Metadata server URL construction |
+| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | Metadata server fetches for deployment config |
+| google/clusterfuzz/docker/base/setup_common.sh | 28 | Metadata server fetch for hostname |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — secret manager ref (not a leak) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` — secret manager ref |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | Internal buganizer URL (comment) |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | Internal bug URL (TODO comment) |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | Internal bug URL (TODO comment) |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | Internal bug URL (TODO comment) |
+
+### INTERESTING
+| File | Line | Notes |
+|------|------|-------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret wiring pattern |
+| google/ax/manifests/install-ax.sh | 239,241,286 | PG password: env var → generated fallback → K8s secret literal |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | 3× `--from-literal=...="${SECRET}"` — proper GH Actions secret refs |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — standard GH token |
+| google/android-emulator-container-scripts/run*.sh | 22,28 | `-e TOKEN="$(cat ~/.emulator_console_auth_token)"` — runtime file read pattern |
 
 ---
 
-### 📋 REAL_SECRET
-| File | Line | Secret SHA256 (truncated) | Context | REPORT_CANDIDATE |
-|------|------|---------------------------|---------|------------------|
-| *(none found in this delta)* | | | | |
+## Verdict
 
-**No new hardcoded credentials with signs of life in this scan delta.** The previously confirmed `earthengine-api` OAuth client_secret (`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the only live REAL_SECRET in KB (ACCEPTED 2026-08-07).
+**No REPORT_CANDIDATE findings.** All 536 hits classify as:
+- **TEST_OR_EXAMPLE** (fixtures, build artifacts, test infra, ConfigMap manifests)
+- **ENDPOINT_LEAK** (well-known Google internal URLs: `metadata.google.internal`, `cs.corp.google.com`, `source.corp.google.com`, `b.corp.google.com`, `buganizer.corp.google.com` — none are sensitive)
+- **INTERESTING** (secret-management patterns, deployment wiring — no hardcoded values)
 
----
+The earthengine-api OAuth client_secret previously tracked (`python/ee/oauth.py:45`, sha256 `3f3f8d6f...d271`) **does not appear in this delta** — it was in prior scans and remains live per KB, but no new occurrence here.
 
-### 📋 TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | `gemini_api_key` | Enum value / placeholder, not a real key |
-| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `sk` variable | Code-gen for CKKS crypto context, variable not literal |
-| `reposcan-raw/google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` | Proper GitHub Actions secret reference |
-| `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml` | 126,138 | `test.pypi.org` | Test PyPI endpoint |
-| `reposcan-raw/google/meridian/.github/workflows/publish.yml` | 127,139 | `test.pypi.org` | Test PyPI endpoint |
-| `reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `ghp_ABCDEFGHIJKLMNOP` | Test fixture, fake token pattern |
-| `reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test fixture |
-| `reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19-20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Test fixture + assertion |
-| `reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Test eval data |
-| `reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test eval data |
-| `reposcan-raw/microsoft/Ontology-Playground/src/lib/github.test.ts` | 84,98 | `ghp_real_token`, `ghp_after_retry` | Test mocks |
-| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63,107 | `test.pypi.org/legacy/` | Test PyPI endpoint |
-| `reposcan-raw/microsoft/semantic-kernel/.github/workflows/label-pr.yml` | 21 | `${{ secrets.GH_ACTIONS_PR_WRITE }}` | Proper GitHub Actions secret reference |
-| `reposcan-raw/microsoft/semantic-kernel/python/.../open_ai_text_to_image_base.py` | 103,180 | `your-api-key` | Placeholder default |
-| `reposcan-raw/microsoft/semantic-kernel/dotnet/.../OpenAI*UnitTests/...Tests.cs` | 20,21,42,43,80 | `test_api_key` | Unit test literal |
-| `reposcan-raw/google/closure-compiler/externs/*.js` | multiple | `dev.w3.org`, `http://dev.w3.org` | W3C spec documentation URLs in comments |
-| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
-
----
-
-### 📋 ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
-| `reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | ~4638 | `https://developers.devsite.corp.google.com/...` | Internal Google devsite (corp-only) documentation links |
-| `reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Google source browser (corp-only) |
-| `reposcan-raw/microsoft/vscode-java-debug/.azure-pipelines/npm-cfs-variables.yml` | 26 | `https://pkgs.dev.azure.com/mseng/VSJava/_packaging/vscjava/npm/registry/` | Internal Azure DevOps package registry |
-| `reposcan-raw/microsoft/vscode-java-debug/.azure-pipelines/npm-cfs.yml` | 57 | `https://pkgs.dev.azure.com/` | Internal Azure DevOps registry check |
-| `reposcan-raw/microsoft/cascadia-code/pipelines/release.yml` | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp-only) |
-
----
-
-### 📋 INTERESTING
-| File | Line | Observation |
-|------|------|-------------|
-| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` — Secret fetched from GCP Secret Manager at runtime (proper pattern) |
-| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` — GitHub bot token from GCP Secret Manager |
-| `reposcan-raw/google/capsem/config/gate.toml` | 584 | `password = "password.txt"` — Config references external password file (not hardcoded) |
-| `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — Reads p12 password from file at runtime |
-| `reposcan-raw/google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` — Same pattern, reads from file |
-
----
-
-### ✅ SHORT VERDICT
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/capsem staging URL | **no** | Public staging deployment, not a secret |
-| google/closure-compiler corp URLs | **no** | Internal documentation links (corp-only, no auth bypass) |
-| google/crosvm gcloud secret access | **no** | Proper secret management pattern (runtime fetch) |
-| google/capsem password file refs | **no** | References external file, no hardcoded secret |
-| microsoft/vscode-java-debug Azure registry | **no** | Internal package registry URL, no credentials |
-| microsoft/cascadia-code timestamp server | **no** | Internal corp timestamp service URL |
-| All test/fixture tokens | **no** | Explicitly test files with fake/placeholder values |
-| google/heir crypto code-gen | **no** | Variable assignment in generated code, not a literal secret |
-| google/agents-cli auth.py enum | **no** | String literal `"gemini_api_key"` is an enum identifier, not a key |
-
-**NO NEW REPORTABLE FINDINGS in this delta.** All hits are either test fixtures, proper secret-management patterns, internal documentation URLs, or configuration referencing external secret files. The only live REAL_SECRET remains the previously accepted `google/earthengine-api` OAuth client_secret (KB: ACCEPTED 2026-08-07, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`).
+**Recommendation:** No new disclosures needed from this scan delta.
