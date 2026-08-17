@@ -1457,3 +1457,6 @@
 - 2026-08-17 NO_DELTA — all fresh passive probes (last cycle 09:08:11 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin level; $metadata 0 OperationRestrictions across 6 EntityTypes
 - 2026-08-17 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-17 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live @ 2026-08-17 — 200 ACAO:* + full mutation allowlist incl PATCH + Max-Age 86400 at collection+item+agents+admin+policySettings levels
+- 2026-08-17 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration → requires project parameter + auth; HTTP 400 missing project then 401 storage.buckets.list denied; no bypass, no new surface.
+- 2026-08-17 REJECTED: graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 signin page) — cosmetic redirect, no auth-bypass surface.
