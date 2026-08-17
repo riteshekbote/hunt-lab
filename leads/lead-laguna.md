@@ -11789,3 +11789,4 @@ testability: AUTH_HELPED
 [FINAL] 2) oauth2.googleapis.com/token + oauth.py:45: Earth Engine OAuth client_secret redeemable for cloud-platform-scoped access token (confidence 96, HUMAN_ONLY)
 [FINAL] 3) graph.microsoft.com/v1.0/oauth2PermissionGrants: Consent-grant forge via caller-chosen resourceId (confidence 70, AUTH_HELPED)
 [NEXT] HUMAN: Submit the fully drafted report `reports/google-vrp-earthengine-secret.md` (57 lines, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, file sha f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040, secret sha 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 all verified live) verbatim via bughunters.google.com portal — this is the single highest-confidence finding (96), the only HUMAN_ONLY path not gated by two-principal authorization, ready to ship as-is.
+## 2026-08-17 13:34:44 UTC [google] (model laguna)

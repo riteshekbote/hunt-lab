@@ -1306,3 +1306,5 @@
 - NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate confirmed HTTP 401 (was previously inferred)
 - CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — cosmetic, no auth-bypass surface
 - CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 (requires project+auth, no bypass)
+
+## 2026-08-17 13:34:57 UTC
