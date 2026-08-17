@@ -1,68 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Results
-
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *none* | — | — | No hardcoded live credentials found |
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not a token |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var with empty default |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` | GitHub Actions secret refs (standard CI) |
-| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` | Vuln reference format constant |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture key |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test JWT-like token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder value |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret refs |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | GitHub Actions secret ref |
-
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Context |
-|------|------|----------|---------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` | Comment: 302 to metadata service |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | `169.254.169.254` | Comment: SSRF via metadata endpoint |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` | Comment: cloud metadata endpoints |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Comment: metadata endpoint escalation |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Comment: NAT64 routes to metadata |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Comment: Chrome blocks metadata |
-| google/ads_oneshop/acit/bq.sh | 31 | `metadata.google.internal` | Runtime token fetch from metadata svc |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | `dev.chromium.org/spdy/...` | Historical spec URL in comment |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/ads_oneshop/setup_local.sh | 29-31 | Reads `client_secret`, `developer_token`, `refresh_token` from local files (expected secret mgmt pattern) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | CLI writes `GOOGLE_API_KEY={var}` to config — variable-sourced, not hardcoded |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Explicit SSRF discussion via metadata endpoint (169.254.169.254) |
+[0m$ [0mls -la reposcan-raw/google/adk-python/src/google/adk/cli/browser/ | head -20
+total 8424
+drwxr-xr-x 3 runner runner    4096 Aug 17 14:08 .
+drwxr-xr-x 8 runner runner    4096 Aug 17 14:08 ..
+-rw-r--r-- 1 runner runner    3132 Aug 17 14:08 adk_favicon.svg
+drwxr-xr-x 3 runner runner    4096 Aug 17 14:08 assets
+-rw-r--r-- 1 runner runner  265040 Aug 17 14:08 chunk-27SWUPRL.js
+-rw-r--r-- 1 runner runner     224 Aug 17 14:08 chunk-2RGIIJSP.js
+-rw-r--r-- 1 runner runner  447715 Aug 17 14:08 chunk-2SRK2U7X.js
+-rw-r--r-- 1 runner runner  150545 Aug 17 14:08 chunk-2UTQOSKI.js
+-rw-r--r-- 1 runner runner  216974 Aug 17 14:08 chunk-37QI3DOO.js
+-rw-r--r-- 1 runner runner    1061 Aug 17 14:08 chunk-3BJ4SYVH.js
+-rw-r--r-- 1 runner runner   24454 Aug 17 14:08 chunk-3BYZYP23.js
+-rw-r--r-- 1 runner runner   11363 Aug 17 14:08 chunk-3M7KSSAK.js
+-rw-r--r-- 1 runner runner    1012 Aug 17 14:08 chunk-3TW5HJSC.js
+-rw-r--r-- 1 runner runner    6245 Aug 17 14:08 chunk-47TAWZZ5.js
+-rw-r--r-- 1 runner runner     967 Aug 17 14:08 chunk-4LH47YYI.js
+-rw-r--r-- 1 runner runner     188 Aug 17 14:08 chunk-4R6SYGKS.js
+-rw-r--r-- 1 runner runner   53338 Aug 17 14:08 chunk-4V3PIBXT.js
+-rw-r--r-- 1 runner runner    1620 Aug 17 14:08 chunk-4VDZU6IO.js
+-rw-r--r-- 1 runner runner     751 Aug 17 14:08 chunk-4WEIDHEA.js
+[0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [offset=40, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
+Now I have enough context. All hits are **TEST_OR_EXAMPLE** or **INTERESTING** (proper secret management patterns). No **REAL_SECRET** findings.
 
 ---
 
-## VERDICT LIST
+### Classification Tables
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| langextract CI workflow secret refs | **no** | Standard `${{ secrets.* }}` GitHub Actions pattern — not hardcoded |
-| quiche SPDY/SSL comments | **no** | Historical spec URLs and legacy format comments |
-| sam OIDC/client secret refs | **no** | Env var defaults + GitHub Actions secret refs |
-| osv-scalibr weakcred constants | **no** | Vulnerability reference format strings |
-| adk-python test fixtures (private_key, password, token) | **no** | Test/example data in auth_credential.py — fixture patterns |
-| adk-python auth_schemes PASSWORD constant | **no** | Test constant `"password"` |
-| adk-python openapi_tool `your_client_secret` | **no** | Explicit placeholder |
-| adk-python vmaas state key name | **no** | Internal constant name |
-| go-containerregistry metadata endpoint comments | **no** | Well-known cloud metadata IP (169.254.169.254) documented in comments |
-| adk-python metadata endpoint comments | **no** | Same — standard cloud knowledge, not a leak |
-| ads_oneshop setup_local.sh secret file reads | **no** | Reads from local files at runtime — proper secret management |
-| ads_oneshop acit/bq.sh metadata token fetch | **no** | Standard GCP workload identity pattern |
-| adk-python cli_create.py API key write | **no** | Variable-sourced at runtime, not hardcoded |
-| magika test.pypi.org URLs | **no** | Public test registry endpoints |
-| magika test JS fixture | **no** | Obfuscated test data |
-
-**SUMMARY: 0 reportable findings.** All hits are either test fixtures, placeholder values, GitHub Actions secret references (correct pattern), documented cloud metadata endpoints, or runtime secret-loading patterns. No hardcoded live credentials detected.
+| Category | File | Line | Reason |
+|----------|------|------|--------|
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/browser/chunk-*.js` (8 delta + 12 grep) | various | Minified JS build artifacts — parse error strings in source maps |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example/docstring placeholders: `"-----BEGIN PRIVATE KEY-----..."`, `"user"/"password"`, `"eyAkaknabna...."` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — OAuth grant type enum value, not a credential |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | Docstring example: `client_secret="your_client_secret"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes user-provided `google_api_key` variable to `.env` — template generation |
+| **TEST_OR_EXAMPLE** | `google/sam/**/*.yaml` (11 files) | various | `kind: ConfigMap` — Kubernetes config templates |
+| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | GitHub Actions secret refs: `${{secrets.GOOGLE_CLIENT_SECRET}}` etc. |
+| **TEST_OR_EXAMPLE** | `google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs: `${{secrets.GEMINI_API_KEY}}`, `${{secrets.OPENAI_API_KEY}}` |
+| **TEST_OR_EXAMPLE** | `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — standard GITHUB_TOKEN |
+| **TEST_OR_EXAMPLE** | `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Test PyPI URLs (`test.pypi.org`) |
+| **TEST_OR_EXAMPLE** | `google/magika/tests_data/basic/javascript/code.js` | 31 | Test data file — minified JS fixture |
+| **TEST_OR_EXAMPLE** | `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Constant `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` — reference string |
+| **TEST_OR_EXAMPLE** | `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32, 40 | Comments/documentation about MySQL MyLogin |
+| **TEST_OR_EXAMPLE** | `google/quiche/quiche/quic/core/crypto/certificate_view.h` | 126 | Comment: `// supports legacy OpenSSL RSA key format` |
+| **TEST_OR_EXAMPLE** | `google/quiche/quiche/http2/core/spdy_protocol.h` | 7 | Comment with documentation URL |
+| **TEST
