@@ -1,130 +1,47 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Classification Results
+## Classification Tables
 
-## REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| (none) | - | - | No hardcoded live credentials found |
+### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *none* | — | — | No hardcoded live credentials found in this scan |
 
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Mock/test manifest |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Example manifest |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant name, not a secret |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell var with empty default |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secret ref |
-| google/sam/.github/k8s/*.yaml | 2,14 | kind: ConfigMap | K8s templates (10 files) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs... }} | GH Actions template syntax |
-| google/flatbuffers/.github/workflows/label.yml | 24 | repo-token: "${{ secrets.GITHUB_TOKEN }}" | GH Actions secret ref |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Placeholder in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Test constant |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context | Config options |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | State key constant |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation |
-| google/adk-python/src/google/adk/cli/browser/*.js | 3,5,9,11 | Minified parser code | 19 files, generated JS |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified parser code | Generated JS |
-| google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt | 49 | INJECTED_TOKEN = "injected-token-probe" | Test constant in test file |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest | Cloud Run secret ref |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | 3 | Minified parser code | 2 files, generated JS |
+### TEST_OR_EXAMPLE
+| File | Line | Classification Reason |
+|------|------|----------------------|
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75, 102, 129 | Test file, `testpassword` / `test-token-123` literals |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136, 159, 189 | Test file, `testpassword` literals |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures: truncated private key, `user`/`password`, truncated JWT |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `client_secret="your_client_secret"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key (public by design per REJECTED class) |
+| google/sam/development/kind/run.sh | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` |
+| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | GitHub Actions secret references `${{ secrets.* }}` |
+| google/sam/**/*.yaml | various | ConfigMap kind declarations (mock configs) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS build artifacts |
+| google/flatbuffers/.github/workflows/label.yml | 24 | GitHub Actions `${{ secrets.GITHUB_TOKEN }}` reference |
 
-## ENDPOINT_LEAK
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
+### ENDPOINT_LEAK
+| File | Line | Leak Type |
+|------|------|-----------|
+| google/copybara/cloudbuild.yaml | 27 | Internal Google Artifacts URL (`pantheon.corp.google.com`) in comment |
 
-## INTERESTING
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | Firebase API key in debug/local config — public by design (Firebase keys are project identifiers, not secrets); path indicates local debug build only |
+### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Code pattern writes `GOOGLE_API_KEY=<var>` to generated files |
 
 ---
 
-# VERDICT LIST
+## Verdict List
 
 | Candidate | File | Line | REPORT_CANDIDATE |
 |-----------|------|------|------------------|
-| Firebase API key in debug config | google/ground-android/app/src/debug/local/google-services.json | 23 | **no** — Firebase API keys are public by design (project identifiers), debug/local path, no server-side access granted |
-| (all other hits) | — | — | **no** — test fixtures, placeholders, templates, secret references, or well-known public endpoints |
+| Firebase API key in debug config | google/ground-android/app/src/debug/local/google-services.json | 23 | **no** (public by design, REJECTED class) |
+| Internal Artifacts URL in comment | google/copybara/cloudbuild.yaml | 27 | **no** (comment-only, no credential) |
+| API key write pattern | google/adk-python/src/google/adk/cli/cli_create.py | 131 | **no** (variable interpolation, not hardcoded secret) |
 
-**Summary**: 0 reportable findings. All 289 hits are TEST_OR_EXAMPLE (266), ENDPOINT_LEAK (3, well-known IMDS), or INTERESTING (1, Firebase key public-by-design). No REAL_SECRET with signs of life.
-EOF
-# Classification Results
-
-## REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| (none) | - | - | No hardcoded live credentials found |
-
-## TEST_OR_EXAMPLE
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Mock/test manifest |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Example manifest |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant name, not a secret |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell var with empty default |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GH Actions secret ref |
-| google/sam/.github/k8s/*.yaml | 2,14 | kind: ConfigMap | K8s templates (10 files) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY = "gemini_api_key" | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | ${{ steps.fetch-token.outputs... }} | GH Actions template syntax |
-| google/flatbuffers/.github/workflows/label.yml | 24 | repo-token: "${{ secrets.GITHUB_TOKEN }}" | GH Actions secret ref |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key="-----BEGIN PRIVATE KEY-----..." | Placeholder in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | username="user", password="password" | Test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | token="eyAkaknabna...." | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD = "password" | Test constant |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context | Config options |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | client_secret="your_client_secret" | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" | State key constant |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY={google_api_key} | Variable interpolation |
-| google/adk-python/src/google/adk/cli/browser/*.js | 3,5,9,11 | Minified parser code | 19 files, generated JS |
-| google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js | 5 | Minified parser code | Generated JS |
-| google/adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt | 49 | INJECTED_TOKEN = "injected-token-probe" | Test constant in test file |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest | Cloud Run secret ref |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | 3 | Minified parser code | 2 files, generated JS |
-
-## ENDPOINT_LEAK
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint | Well-known public IMDS endpoint |
-
-## INTERESTING
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | Firebase API key in debug/local config — public by design (Firebase keys are project identifiers, not secrets); path indicates local debug build only |
-
----
-
-# VERDICT LIST
-
-| Candidate | File | Line | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| Firebase API key in debug config | google/ground-android/app/src/debug/local/google-services.json | 23 | **no** — Firebase API keys are public by design (project identifiers), debug/local path, no server-side access granted |
-| (all other hits) | — | — | **no** — test fixtures, placeholders, templates, secret references, or well-known public endpoints |
-
-**Summary**: 0 reportable findings. All 289 hits are TEST_OR_EXAMPLE (266), ENDPOINT_LEAK (3, well-known IMDS), or INTERESTING (1, Firebase key public-by-design). No REAL_SECRET with signs of life.
-[0m
-Done. **0 reportable findings** across 289 hits:
-
-- **REAL_SECRET**: 0 — no hardcoded live credentials
-- **TEST_OR_EXAMPLE**: 266 — fixtures, placeholders, templates, GH Actions secret refs, generated JS, test constants
-- **ENDPOINT_LEAK**: 3 — references to `169.254.169.254` (well-known public IMDS endpoint)
-- **INTERESTING**: 1 — Firebase API key in `ground-android/app/src/debug/local/google-services.json:23` (public by design; debug-only path)
-
-The Firebase key (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) is a project identifier, not a secret — consistent with KB: "Firebase config reads... config public-by-design anyway" and "Algolia DocSearch apiKey... public by design."
+**Summary**: 0 reportable findings in this delta. All hits are test fixtures, placeholders, build artifacts, or public-by-design keys. The earthengine-api OAuth client_secret (tracked separately in KB as ACCEPTED) does not appear in this scan output.
