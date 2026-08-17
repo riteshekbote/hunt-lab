@@ -1,109 +1,107 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [limit=20, offset=75][0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ reposcan-raw/microsoft/ 2>/dev/null | head -20
+reposcan-raw/google/:
+Accessibility-Test-Framework-for-Android
+CFU-Playground
+CausalImpact
+ChromeBrowserEnterprise
+CodeCity
+EarlGrey
+GoogleAppMeasurement
+GoogleDataTransport
+GoogleSignIn-iOS
+OpenSK
+XNNPACK
+Xee
+aarch64-esr-decoder
+aarch64-paging
+acai
+accompanist
+addlicense
+adk-docs
+adk-go
+[0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=20, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
 [0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go[90m [offset=35, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go[90m [limit=15, offset=27][0m
-Now I have enough context to classify all hits. Let me create the classification tables.
-
-**Classification Summary:**
-
-| Category | Count |
-|----------|-------|
-| REAL_SECRET | 0 |
-| TEST_OR_EXAMPLE | 17 |
-| ENDPOINT_LEAK | 19 |
-| INTERESTING | 2 |
-
-**Detailed Classification:**
-
-### REAL_SECRET (reportable candidates)
-*None found in this scan delta.*
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Hash | Reason |
-|------|------|------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | - | Enum value `"gemini_api_key"` = auth type name, not a key |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | b635ce16065ab9f4 | GH Actions templated var `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | c17000a4bb00e42b | GH Actions templated var `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | 6aab10651402fc1b | Codegen emitting FHE secret key variable `sk`, not a literal |
-| google/heir/scripts/author_stats.py | 16 | a427bc6b187488ae | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| google/meridian/.github/workflows/proto-publish.yml | 126 | dcf006f73ae3d849 | GH Actions templated URL `${{ env.PYPI_PACKAGE_NAME }}` |
-| google/meridian/.github/workflows/proto-publish.yml | 138 | dcf006f73ae3d849 | Static test.pypi.org URL (public endpoint) |
-| google/meridian/.github/workflows/publish.yml | 127 | dcf006f73ae3d849 | GH Actions templated URL `${{ env.PYPI_PACKAGE_NAME }}` |
-| google/meridian/.github/workflows/publish.yml | 139 | dcf006f73ae3d849 | Static test.pypi.org URL (public endpoint) |
-| google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go | 56 | 4178653d041853cd | Const `"PASSWORD_HASH_LM_FORMAT"` = vuln ref format string |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go | 40 | 4445946f9a157121 | Comment with public MySQL docs URL |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | c9788da9d3bf3a9d | Comment with public MySQL docs URL |
-| microsoft/BIPIA/bipia/model/llm_worker.py | 217 | c9788da9d3bf3a9d | Tokenizer pad token `"<|padding|>"` (special token, not secret) |
-| microsoft/BIPIA/bipia/model/llm_worker.py | 274 | c9788da9d3bf3a9d | Same |
-| microsoft/BIPIA/bipia/model/vllm_worker.py | 113 | c9788da9d3bf3a9d | Same |
-| microsoft/BIPIA/bipia/model/vllm_worker.py | 130 | c9788da9d3bf3a9d | Same |
-| microsoft/BIPIA/bipia/model/vllm_worker.py | 147 | c9788da9d3bf3a9d | Same |
-| microsoft/BIPIA/config/gpt35.yaml | 1 | - | Placeholder `"[YOUR API KEY]"` |
-| microsoft/BIPIA/config/gpt35_wosys.yaml | 1 | - | Placeholder `"[YOUR API KEY]"` |
-| microsoft/BIPIA/config/gpt4.yaml | 1 | - | Placeholder `"[YOUR API KEY]"` |
-| microsoft/BIPIA/config/gpt4_wosys.yaml | 1 | - | Placeholder `"[YOUR API KEY]"` |
-| microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | 81 | 2be722019f1078a1 | **Explicitly synthetic/test PEM** (commented "Synthetic, non-functional", "Truncated key body") |
-| microsoft/apm/scripts/github-token-helper.sh | 31 | 8a8adbe22c9c1434 | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/apm/scripts/github-token-helper.sh | 52 | - | Shell var using `$GITHUB_APM_PAT` env |
-| microsoft/apm/scripts/github-token-helper.sh | 58 | - | Shell var using `$preserve_github_token` |
-| microsoft/apm/scripts/runtime/setup-codex.sh | 95 | - | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/apm/scripts/runtime/setup-codex.sh | 97 | - | Shell var using `$GITHUB_APM_PAT` env |
-| microsoft/apm/scripts/runtime/setup-codex.sh | 99 | - | Shell var using `$GH_TOKEN` env |
-| microsoft/apm/scripts/runtime/setup-copilot.sh | 103 | - | Shell var using `$GITHUB_COPILOT_PAT` env |
-| microsoft/apm/scripts/runtime/setup-copilot.sh | 105 | - | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/apm/scripts/runtime/setup-copilot.sh | 107 | - | Shell var using `$GITHUB_APM_PAT` env |
-| microsoft/apm/scripts/test-auth-acceptance.sh | 88 | - | Commented example `gh auth token` |
-| microsoft/apm/scripts/test-auth-acceptance.sh | 166 | - | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/apm/scripts/test-auth-acceptance.sh | 167 | - | Shell var using `$GH_TOKEN` env |
-| microsoft/apm/scripts/test-integration.sh | 80 | - | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/apm/scripts/test-integration.sh | 324 | - | Shell var using `$GITHUB_TOKEN` env |
-| microsoft/mssql-jdbc/src/main/java/com/microsoft/sqlserver/jdbc/SQLServerCertificateUtils.java | 324 | - | Constant PEM header string `"-----BEGIN RSA PRIVATE KEY-----"` |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Hash | Endpoint |
-|------|------|------|----------|
-| google/meridian/.github/workflows/proto-publish.yml | 138 | dcf006f73ae3d849 | `https://test.pypi.org/legacy/` |
-| google/meridian/.github/workflows/publish.yml | 139 | dcf006f73ae3d849 | `https://test.pypi.org/legacy/` |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go | 40 | 4445946f9a157121 | `https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` |
-| google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go | 32 | c9788da9d3bf3a9d | `https://dev.mysql.com/doc/refman/8.4/en/option-files.html` |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | 0d9ad11331195b03 | `169.254.169.254` (AWS/Azure IMDS) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 11 | 0d9ad11331195b03 | `metadata.google.internal` (GCP IMDS) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 13 | 0d9ad11331195b03 | `100.100.100.200` (Alibaba Cloud IMDS) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13 | 0d9ad11331195b03 | `169.254.169.254` (AWS/Azure IMDS) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 14 | 0d9ad11331195b03 | `metadata.google.internal` (GCP IMDS) |
-| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1481 | - | `https://dev.azure.com/org/proj/_git/repo/sub/path` (example) |
-| microsoft/apm/src/apm_cli/models/dependency/reference.py | 1522 | - | `https://dev.azure.com/org/proj/_git/repo/sub/path` (example) |
-| microsoft/apm/src/apm_cli/deps/download_strategies.py | 230 | - | `https://dev.azure.com/org/project/_git/repo` (example) |
-| microsoft/apm/src/apm_cli/policy/discovery.py | 1010 | - | `https://dev.azure.com/org/project/_git/repo` (example) |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 531 | - | `https://dev.azure.com/{org}/{project}/_git/{repo}` (format doc) |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 817 | - | `https://dev.azure.com/{org}/{project}/_apis/git/repositories/{repo}/items` (API format) |
-| microsoft/apm/src/apm_cli/utils/github_host.py | 851 | - | `https://dev.azure.com/{org}/{project}/_git/{repo}` (format doc) |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 711 | - | `metadata.google.internal` (GCP IMDS) |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 841 | - | `169.254.169.254` (IMDS) |
-| microsoft/apm/src/apm_cli/core/host_providers.py | 54 | - | `https://dev.azure.com` (base URL) |
-| microsoft/apm/src/apm_cli/core/auth.py | 898 | - | `https://dev.azure.com/{org_part}/_usersSettings/tokens` (API endpoint) |
-| microsoft/apm/src/apm_cli/core/auth.py | 904 | - | `https://dev.azure.com/<org>/_usersSettings/tokens` (API endpoint) |
-| microsoft/apm/src/apm_cli/commands/marketplace/__init__.py | 495 | - | `https://dev.azure.com/org/proj/_git/repo` (example) |
-| microsoft/apm/src/apm_cli/install/mcp/registry.py | 200 | - | `169.254.169.254` (link-local/cloud metadata) |
-| microsoft/apm/src/apm_cli/install/mcp/warnings.py | 33 | - | `169.254.169.254` (AWS/Azure/GCP IMDS) |
-| microsoft/apm/src/apm_cli/install/mcp/warnings.py | 34 | - | `100.100.100.200` (Alibaba Cloud IMDS) |
-| microsoft/mssql-jdbc/src/main/java/com/microsoft/sqlserver/jdbc/SQLServerConnection.java | 750 | - | `http://169.254.169.254/metadata/identity/oauth2/token?api-version=2018-02-01` (Azure IMDS) |
-
-### INTERESTING (unusual patterns, debug flags, cloud configs)
-| File | Line | Hash | Note |
-|------|------|------|------|
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | 6aab10651402fc1b | FHE codegen emits secret key variable assignment — cryptographic code generation surface |
-| microsoft/apm/src/apm_cli/core/script_executors.py | 208 | - | Comment: "kubeconfig content secret -- it embeds a client cert / bearer token" — documents secret handling |
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key"
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m
+Now I have enough context to classify all hits. Here are the results:
 
 ---
 
-### VERDICT: REPORT_CANDIDATE
+### 📋 REAL_SECRET
+| File | Line | Secret SHA256 (truncated) | Context | REPORT_CANDIDATE |
+|------|------|---------------------------|---------|------------------|
+| *(none found in this delta)* | | | | |
 
+**No new hardcoded credentials with signs of life in this scan delta.** The previously confirmed `earthengine-api` OAuth client_secret (`3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the only live REAL_SECRET in KB (ACCEPTED 2026-08-07).
+
+---
+
+### 📋 TEST_OR_EXAMPLE
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | `gemini_api_key` | Enum value / placeholder, not a real key |
+| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | `sk` variable | Code-gen for CKKS crypto context, variable not literal |
+| `reposcan-raw/google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` | Proper GitHub Actions secret reference |
+| `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml` | 126,138 | `test.pypi.org` | Test PyPI endpoint |
+| `reposcan-raw/google/meridian/.github/workflows/publish.yml` | 127,139 | `test.pypi.org` | Test PyPI endpoint |
+| `reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts` | 89 | `ghp_ABCDEFGHIJKLMNOP` | Test fixture, fake token pattern |
+| `reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test fixture |
+| `reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19-20 | `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` | Test fixture + assertion |
+| `reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Test eval data |
+| `reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test eval data |
+| `reposcan-raw/microsoft/Ontology-Playground/src/lib/github.test.ts` | 84,98 | `ghp_real_token`, `ghp_after_retry` | Test mocks |
+| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63,107 | `test.pypi.org/legacy/` | Test PyPI endpoint |
+| `reposcan-raw/microsoft/semantic-kernel/.github/workflows/label-pr.yml` | 21 | `${{ secrets.GH_ACTIONS_PR_WRITE }}` | Proper GitHub Actions secret reference |
+| `reposcan-raw/microsoft/semantic-kernel/python/.../open_ai_text_to_image_base.py` | 103,180 | `your-api-key` | Placeholder default |
+| `reposcan-raw/microsoft/semantic-kernel/dotnet/.../OpenAI*UnitTests/...Tests.cs` | 20,21,42,43,80 | `test_api_key` | Unit test literal |
+| `reposcan-raw/google/closure-compiler/externs/*.js` | multiple | `dev.w3.org`, `http://dev.w3.org` | W3C spec documentation URLs in comments |
+| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+
+---
+
+### 📋 ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+| `reposcan-raw/google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js` | ~4638 | `https://developers.devsite.corp.google.com/...` | Internal Google devsite (corp-only) documentation links |
+| `reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Google source browser (corp-only) |
+| `reposcan-raw/microsoft/vscode-java-debug/.azure-pipelines/npm-cfs-variables.yml` | 26 | `https://pkgs.dev.azure.com/mseng/VSJava/_packaging/vscjava/npm/registry/` | Internal Azure DevOps package registry |
+| `reposcan-raw/microsoft/vscode-java-debug/.azure-pipelines/npm-cfs.yml` | 57 | `https://pkgs.dev.azure.com/` | Internal Azure DevOps registry check |
+| `reposcan-raw/microsoft/cascadia-code/pipelines/release.yml` | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal Microsoft timestamp server (corp-only) |
+
+---
+
+### 📋 INTERESTING
+| File | Line | Observation |
+|------|------|-------------|
+| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` — Secret fetched from GCP Secret Manager at runtime (proper pattern) |
+| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` — GitHub bot token from GCP Secret Manager |
+| `reposcan-raw/google/capsem/config/gate.toml` | 584 | `password = "password.txt"` — Config references external password file (not hardcoded) |
+| `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — Reads p12 password from file at runtime |
+| `reposcan-raw/google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` — Same pattern, reads from file |
+
+---
+
+### ✅ SHORT VERDICT
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| (none) | **no** | No REAL_SECRET findings in this delta. All hits are TEST_OR_EXAMPLE (placeholders, templated vars, synthetic test data, codegen), ENDPOINT_LEAK (public docs, IMDS endpoints, Azure DevOps URL patterns), or INTERESTING (crypto codegen, secret-handling comments). The RSA PEM in `verify-shared-apm-matrix.yml:81` is explicitly documented as synthetic/truncated test fixture.
+| google/capsem staging URL | **no** | Public staging deployment, not a secret |
+| google/closure-compiler corp URLs | **no** | Internal documentation links (corp-only, no auth bypass) |
+| google/crosvm gcloud secret access | **no** | Proper secret management pattern (runtime fetch) |
+| google/capsem password file refs | **no** | References external file, no hardcoded secret |
+| microsoft/vscode-java-debug Azure registry | **no** | Internal package registry URL, no credentials |
+| microsoft/cascadia-code timestamp server | **no** | Internal corp timestamp service URL |
+| All test/fixture tokens | **no** | Explicitly test files with fake/placeholder values |
+| google/heir crypto code-gen | **no** | Variable assignment in generated code, not a literal secret |
+| google/agents-cli auth.py enum | **no** | String literal `"gemini_api_key"` is an enum identifier, not a key |
+
+**NO NEW REPORTABLE FINDINGS in this delta.** All hits are either test fixtures, proper secret-management patterns, internal documentation URLs, or configuration referencing external secret files. The only live REAL_SECRET remains the previously accepted `google/earthengine-api` OAuth client_secret (KB: ACCEPTED 2026-08-07, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`).
