@@ -1,58 +1,210 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q" | sha256sum
-4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
+[0m$ [0mcat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json
+{
+  "project_info": {
+    "project_number": "334087903719",
+    "project_id": "local",
+    "storage_bucket": "local.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
+        "android_client_info": {
+          "package_name": "org.groundplatform.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "local.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
 [0m
-[0m$ [0mecho -n '-----BEGIN PRIVATE KEY-----...' | sha256sum
-a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3  -
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -200 | tail -60
+private_key_id: The ID of the private key.
+    private_key: The private key.
+    client_email: The client email.
+    client_id: The client ID.
+    auth_uri: The authorization URI.
+    token_uri: The token URI.
+    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
+    client_x509_cert_url: URL for the client's X.509 cert.
+    universe_domain: The universe domain.
+
+  Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+  """
+
+  type_: str = Field("", alias="type")
+  project_id: str
+  private_key_id: Annotated[str, Field(repr=False)]
+  private_key: Annotated[str, Field(repr=False)]
+  client_email: str
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  auth_provider_x509_cert_url: str
+  client_x509_cert_url: str
+  universe_domain: str
+
+
+class ServiceAccount(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    service_account_credential: The service account credential (JSON key).
+    scopes: The OAuth2 scopes to request. Optional; when omitted with
+        ``use_default_credential=True``, defaults to the cloud-platform scope.
+    use_default_credential: Whether to use Application Default Credentials.
+    use_id_token: Whether to exchange for an ID token instead of an access
+        token. Required for service-to-service authentication with Cloud Run,
+        Cloud Functions, and other Google Cloud services that require identity
+        verification. When True, ``audience`` must also be set.
+    audience: The target audience for the ID token, typically the URL of the
+        receiving service (e.g. ``https://my-service-xyz.run.app``). Required
+        when ``use_id_token`` is True.
 [0m
-| Category | File | Line | Secret SHA256 | Verdict |
-|----------|------|------|---------------|---------|
-| **REAL_SECRET** | google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | Firebase API key in `debug/local` build variant — **public by design** (client-side config), not reportable |
-| **REAL_SECRET** | google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `a88f242b294dc39839f4323f53be2d1f6bcd92d9906904c2f95f3cb3030e04f3` | Truncated test fixture private key (`...` ellipsis) — **test fixture**, not live |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 269 | N/A | `username="user", password="password"` — obvious test credentials |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 278 | N/A | Truncated test JWT `eyAkaknabna....` — test fixture |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | N/A | `PASSWORD = "password"` — test constant |
-| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | N/A | `client_secret="your_client_secret"` — placeholder |
-| **TEST_OR_EXAMPLE** | google/heir/scripts/author_stats.py | 16 | N/A | Commented `# TOKEN = "your_github_token_here"` — placeholder |
-| **TEST_OR_EXAMPLE** | google/capsem/config/gate.toml | 584 | N/A | `password = "password.txt"` — references file, not secret |
-| **TEST_OR_EXAMPLE** | google/capsem/scripts/preflight.sh | 39 | N/A | Reads password from file — not hardcoded |
-| **TEST_OR_EXAMPLE** | google/capsem/scripts/fix_p12_legacy.sh | 15 | N/A | Reads password from file — not hardcoded |
-| **TEST_OR_EXAMPLE** | google/device-infra/src/java/.../DeviceAdminUtil.java | 49-50 | N/A | Android intent action constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
-| **TEST_OR_EXAMPLE** | google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | N/A | `PARAM_PASSWORD = "password"` — parameter name constant |
-| **ENDPOINT_LEAK** | google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39 | N/A | Fetches SA email from GCE metadata endpoint — **runtime behavior, not leak** |
-| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | N/A | Documents `169.254.169.254` metadata endpoint — documentation |
-| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/load_web_page.py | 171 | N/A | Documents metadata endpoint — documentation |
-| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | N/A | Documents metadata endpoint — documentation |
-| **INTERESTING** | google/dotprompt/.github/workflows/*.yml | 33-34 | N/A | `test.pypi.org/legacy/` — test PyPI registry URLs |
-| **INTERESTING** | google/dotprompt/packages/monaco/src/*.ts | 67-183 | N/A | Monaco editor token definitions (Handlebars/YAML syntax highlighting) |
-| **INTERESTING** | google/langextract/.github/workflows/ci.yaml | 168-170 | N/A | GitHub Actions secret refs (`${{ secrets.GEMINI_API_KEY }}`) — proper secret usage |
-| **INTERESTING** | google/capsem/.github/workflows/release-channel-staging.yaml | 17 | N/A | Staging URL `https://staging.release-eq7.pages.dev` |
-| **INTERESTING** | google/gopacket/layers/radiotap.go | 552,554,556 | N/A | Radiotap protocol token constants (`80(20LL)`, etc.) — protocol specs |
-| **INTERESTING** | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | N/A | State key constant `_vmaas_access_token` — not a secret |
-| **INTERESTING** | google/adk-python/src/google/adk/cli/cli_create.py | 131 | N/A | Interpolates `GOOGLE_API_KEY={google_api_key}` from variable — not hardcoded |
-| **INTERESTING** | google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | N/A | Minified JS build artifacts — parse error messages, not secrets |
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -150 | tail -40
+google_cloud_project: Optional[str] = None,
+    google_cloud_region: Optional[str] = None,
+    model: Optional[str] = None,
+    type: str,
+) -> None:
+  """Generates a folder name for the agent."""
+  os.makedirs(agent_folder, exist_ok=True)
+
+  dotenv_file_path = os.path.join(agent_folder, ".env")
+  init_file_path = os.path.join(agent_folder, "__init__.py")
+  agent_py_file_path = os.path.join(agent_folder, "agent.py")
+  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+
+  with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+      f.write(_AGENT_CONFIG_TEMPLATE.format(model_name=model))
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write("")
+    click.secho(
+        _SUCCESS_MSG_CONFIG.format(agent_folder=agent_folder),
+        fg="green",
+    )
+  else:
+    with open(init_file_path, "w", encoding="utf-8") as f:
+      f.write(_INIT_PY_TEMPLATE)
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | head -600 | tail -20
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+shell_timeout_seconds = 300
+
+# Every binary the package must install. Each reports the package version
+# except capsem-app, which is the Tauri bundle and has no --version.
+binaries = [
+    "capsem",
+    "capsem-admin",
+[0m
+**Classification Table**
+
+| Category | File | Line | Match | Verdict |
+|----------|------|------|-------|---------|
+| **TEST_OR_EXAMPLE** | google/ground-android/app/src/debug/local/google-services.json | 23 | `"current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"` | Firebase **local/debug** config — `project_id: "local"`, `client_id: "local.apps.googleusercontent.com"` — not a production secret |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example placeholder in docstring (`...` truncation) |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Literal test fixture |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Truncated JWT placeholder (`....`) |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
+| **TEST_OR_EXAMPLE** | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Explicit placeholder |
+| **TEST_OR_EXAMPLE** | google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` | Commented placeholder |
+| **TEST_OR_EXAMPLE** | google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | `".secret_key = " << sk` | Code-gen variable output, not a literal secret |
+| **TEST_OR_EXAMPLE** | google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Constant *name*, not a value |
+| **TEST_OR_EXAMPLE** | google/dotprompt/.github/workflows/*.yml | 33-34 | `test.pypi.org/legacy/` | Public test registry URL |
+| **TEST_OR_EXAMPLE** | google/dotprompt/packages/monaco/src/*.ts | 67-183 | Token/color definitions | Monaco editor syntax config |
+| **TEST_OR_EXAMPLE** | google/gopacket/layers/radiotap.go | 552-556 | `token = "80(20LL)"` | Radiotap protocol constants |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` metadata endpoint | Documented SSRF surface (cloud metadata) — **known class** |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same SSRF surface |
+| **ENDPOINT_LEAK** | google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same SSRF surface |
+| **ENDPOINT_LEAK** | google/device-infra/.../adc_credentials.sh | 39 | `metadata.google.internal/.../service-accounts/default/email` | ADC bootstrap — expected pattern |
+| **INTERESTING** | google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References external password file (build-time secret injection) |
+| **INTERESTING** | google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads password from file at runtime |
+| **INTERESTING** | google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Same pattern |
+| **INTERESTING** | google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | **User-provided** value written to `.env` (gitignored) — not hardcoded |
 
 ---
 
-**SHORT VERDICT LIST:**
+**SHORT VERDICT LIST**
 
-| File | Line | Classification | REPORT_CANDIDATE |
-|------|------|----------------|------------------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key (public by design, debug build variant) | **no** |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Truncated test fixture private key | **no** |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `user`/`password` | **no** |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Truncated test JWT | **no** |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` | **no** |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | Placeholder `your_client_secret` | **no** |
-| google/heir/scripts/author_stats.py | 16 | Commented placeholder | **no** |
-| google/capsem/config/gate.toml | 584 | References password file | **no** |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file | **no** |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | **no** |
-| google/device-infra/src/java/.../DeviceAdminUtil.java | 49-50 | Android intent action constants | **no** |
-| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | Parameter name constant | **no** |
-| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39 | GCE metadata fetch (runtime) | **no** |
-| All other hits | — | Test URLs, Monaco tokens, docs, build artifacts, secret refs | **no** |
+| Candidate | File | Classification | REPORT_CANDIDATE |
+|-----------|------|----------------|------------------|
+| Firebase API key | ground-android/.../google-services.json | TEST_OR_EXAMPLE (local/debug config) | **no** |
+| Private key placeholder | adk-python/.../auth_credential.py:157 | TEST_OR_EXAMPLE (docstring example) | **no** |
+| Test HTTP credentials | adk-python/.../auth_credential.py:269 | TEST_OR_EXAMPLE (fixture) | **no** |
+| Truncated JWT | adk-python/.../auth_credential.py:278 | TEST_OR_EXAMPLE (placeholder) | **no** |
+| `PASSWORD = "password"` | adk-python/.../auth_schemes.py:68 | TEST_OR_EXAMPLE (test const) | **no** |
+| `client_secret="your_client_secret"` | adk-python/.../auth_helpers.py:62 | TEST_OR_EXAMPLE (explicit placeholder) | **no** |
+| Cloud metadata endpoint refs | adk-python/... (3 files) | ENDPOINT_LEAK (known SSRF surface, **already tracked in KB**) | **no** |
+| ADC credentials script | device-infra/.../adc_credentials.sh | ENDPOINT_LEAK (expected metadata fetch) | **no** |
+| Tauri signing password file ref | capsem/config/gate.toml:584 | INTERESTING (build-time secret injection, not a leak) | **no** |
+| CLI writes user API key to .env | adk-python/.../cli_create.py:131 | INTERESTING (user input → gitignored file) | **no** |
 
-**SUMMARY:** Zero reportable findings. All hits are test fixtures, placeholders, documentation, build artifacts, or proper secret references (`${{ secrets.* }}`). The Firebase API key in `debug/local/google-services.json` is client-side config (public by design per Firebase model). The adk-python test fixtures match known duplicates (REJECTED in KB).
+---
+
+**SUMMARY**: **0 REAL_SECRET candidates**. All hits are test fixtures, placeholders, documented endpoint references, or build-time secret injection patterns. No reportable hardcoded credentials found in this scan delta.
