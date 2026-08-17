@@ -1,165 +1,175 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/sam/internal/node/store.go | head -50
-// Copyright 2026 Google LLC
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-package node
-
-import (
-	"encoding/json"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
-	"time"
-
-	"github.com/libp2p/go-libp2p/core/peer"
-	"go.etcd.io/bbolt"
-	bbolterrors "go.etcd.io/bbolt/errors"
-)
-
-const (
-	// StoreFile is the node database inside the data directory.
-	StoreFile = "agent.db"
-
-	bucketIdentity  = "identity"
-	keyBiscuit      = "identity_biscuit"
-	keyPrivKey      = "node_private_key"
-	keyIdentityExp  = "identity_expiration"
-	keyRefreshToken = "refresh_token"
-	keyOidcIssuer   = "oidc_issuer"
-	keyOidcClientID = "oidc_client_id"
-	keyOidcAudience = "oidc_audience"
-)
-
-type Store struct {
-	db *bbolt.DB
-}
-
-// ErrStoreLocked reports that another process already holds the data
-// directory, which for a node data directory means a node is running.
-var ErrStoreLocked = errors.New("another sam-node instance is using this data directory")
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && wc -l reposcan-raw/google/* 2>/dev/null | tail -1
+0 total
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
-Example:
-
-      config = ServiceAccountCredential(
-          type_="service_account",
-          project_id="your_project_id",
-          private_key_id="your_private_key_id",
-          private_key="-----BEGIN PRIVATE KEY-----...",
-          client_email="...@....iam.gserviceaccount.com",
-          client_id="your_client_id",
-          auth_uri="https://accounts.google.com/o/oauth2/auth",
-          token_uri="https://oauth2.googleapis.com/token",
-          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
-          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
-          universe_domain="googleapis.com"
-      )
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw -type f -name "*.go" -o -name "*.py" -o -name "*.yaml" -o -name "*.yml" -o -name "*.sh" -o -name "*.toml" -o -name "*.js" -o -name "*.java" 2>/dev/null | head -50
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/tarpc/rustfmt.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/tarpc/Cargo.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/tarpc/clippy.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/Cargo.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/plugins/rustfmt.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/plugins/Cargo.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/.github/workflows/main.yml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/.github/workflows/pr_review.yml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/.github/dependabot.yml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/tarpc/example-service/Cargo.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/snippets/banana_bot_playground.py
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/snippets/agent_demo.py
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/sam-router.yaml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/hugo.toml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/static/install.sh
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/agents/skills/sam-mesh/embed.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.goreleaser.yaml
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/console/server.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/console/server_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/router/router_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/router/config.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/router/router.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/identity/oidc_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/identity/oidc.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/identity/biscuit.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/identity/biscuit_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/sambox/gateway_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/sambox/gateway.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/server.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/config.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/policy_scale_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/server_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/mesh_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/mesh.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/controlplane/ui.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/gate.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/discovery/announcer.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/discovery/view.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/discovery/discovery.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/discovery/discovery_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/discovery/topics.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/mcp_service.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/rate_limiter_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/connection_monitor_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/oidc_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/controlplane.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/bridge_transport_test.go
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/log_buffer.go
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/capsem/config/gate.toml | sed -n '580,590p'
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-Now I have enough context to classify all hits. Here's the triage:
-
----
-
-### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none found)* | — | — | No hardcoded live credentials detected in this scan |
-
----
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Mock OIDC config in docs |
-| reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Docs manifest |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | DB key name constant (standard OAuth term) |
-| reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${{ secrets.* }}` | GitHub Actions secret refs (not hardcoded) |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | GitHub Actions secret refs |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit fuzz test key |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test harness password |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Auth method enum constant (not a key) |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs.* }}` | GitHub Actions templating |
-| reposcan-raw/google/ax/manifests/install-ax.sh | 239,241,286 | Variable refs / `openssl rand` | Generated or env-driven |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Placeholder private_key/password/token | Example/fixture code with `your_*` placeholders |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 62 | `client_secret="your_client_secret"` | Placeholder in example |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS | Build artifacts, not source secrets |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path: str \| None = None` | Type annotations, not secrets |
+[0m→ [0mRead reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml
+[0m→ [0mRead reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/dex-config.yaml
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/sam-node-template.yaml
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/sam-node-openrouter-template.yaml
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/sam-node-everything-template.yaml
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/sam-node-vllm-template.yaml
+[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/sam-node-cop-template.yaml
+[0m→ [0mRead reposcan-raw/google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h
+[0m→ [0mRead reposcan-raw/google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [offset=35, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [offset=160, limit=40][0m
+[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [offset=230, limit=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py[90m [limit=30, offset=100][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=30, offset=110][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py[90m [limit=30, offset=165][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py[90m [offset=140, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+Now I have a comprehensive view of all hits. Let me classify them.
 
 ---
 
-### ENDPOINT_LEAK
-| File | Line | Endpoint | Risk |
-|------|------|----------|------|
-| reposcan-raw/google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/` | GCE metadata endpoint (internal, well-known) |
-| reposcan-raw/google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | `http://169.254.169.254/latest/meta-data/iam/` | AWS IMDS endpoint (internal, well-known) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Cloud metadata endpoint references in comments |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same |
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging deployment URL |
+## Classification Tables
 
-> **Note**: The `169.254.169.254` and `metadata.google.internal` endpoints are well-known cloud metadata service IPs (IMDS). Their presence in code/comments is not a vulnerability—it's expected for cloud-native libraries. The staging URL is a public pages.dev subdomain.
+### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | Secret Type | SHA256 | REPORT_CANDIDATE |
+|------|------|-------------|--------|------------------|
+| *none* | - | - | - | - |
+
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 26-53 | RSA private key in mock OIDC server for docs/examples | TEST_OR_EXAMPLE |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 55-66 | JWKS with test key | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` (test server) | TEST_OR_EXAMPLE |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Uses test password | TEST_OR_EXAMPLE |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example private key in docstring (`-----BEGIN PRIVATE KEY-----...`) | TEST_OR_EXAMPLE |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example: `HttpCredentials(username="user", password="password")` | TEST_OR_EXAMPLE |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example: `HttpCredentials(token="eyAkaknabna....")` (truncated fake) | TEST_OR_EXAMPLE |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 70 | Example: `client_secret="your_client_secret"` in docstring | TEST_OR_EXAMPLE |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | Comment: GCE metadata endpoint `metadata.google.internal/...` | ENDPOINT_LEAK (doc) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | Example: AWS IMDS endpoint `http://169.254.169.254/latest/meta-data/iam/` | ENDPOINT_LEAK (doc) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | Comment: cloud metadata endpoint at `169.254.169.254` | ENDPOINT_LEAK (doc) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Comment: routes to internal `169.254.169.254` metadata | ENDPOINT_LEAK (doc) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: NAT64 routes to `169.254.169.254` metadata | ENDPOINT_LEAK (doc) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: Chrome behavior with `169.254.169.254` | ENDPOINT_LEAK (doc) |
+
+### INTERESTING (debug flags, keys, cloud configs, K8s resources)
+| File | Line | Context | Classification |
+|------|------|---------|----------------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` (K8s resource) | INTERESTING (K8s) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` (K8s resource) | INTERESTING (K8s) |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` (DB key name constant) | INTERESTING (config) |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` (Helm template) | INTERESTING (K8s) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (reads from env, default empty) | INTERESTING (config) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper secret injection from `${{ secrets.* }}` | INTERESTING (secret mgmt) |
+| google/sam/.github/k8s/dex-config.yaml | 2 | `kind: ConfigMap` with `$GOOGLE_CLIENT_SECRET` placeholder | INTERESTING (K8s/template) |
+| google/sam/.github/k8s/sam-node-*.yaml | various | `kind: ConfigMap` templates with `SAM_API_TOKEN=secret-token` (dev placeholder) | INTERESTING (K8s/dev) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | References `${{ secrets.GEMINI_API_KEY }}` etc. (proper secret mgmt) | INTERESTING (secret mgmt) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | URL in comment (documentation) | INTERESTING (doc) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Default staging URL | INTERESTING (config) |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` (path to password file, not secret) | INTERESTING (config) |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file at runtime | INTERESTING (ops) |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file at runtime | INTERESTING (ops) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (env var name constant, not a key) | INTERESTING (constant) |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | Template placeholders `{% raw %}${{...}}{% endraw %}` | INTERESTING (template) |
+| google/ax/manifests/install-ax.sh | 239,241,286 | Generates/reads Postgres password from K8s secret/env | INTERESTING (secret mgmt) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (OAuth2 grant type enum value) | INTERESTING (constant) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig path/context config fields | INTERESTING (config) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (session state key) | INTERESTING (config) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided `GOOGLE_API_KEY` to .env (user input) | INTERESTING (user input) |
 
 ---
 
-### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/capsem/config/gate.toml | 584 | `password = "password.txt"` | References a password file (likely gitignored); config pattern, not a leaked secret |
+## SHORT VERDICT LIST
+
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| mock-oidc.yaml RSA key | google/sam/site/content/docs/manifests/mock-oidc.yaml:26 | **NO** | Test fixture in documentation/examples directory; explicitly a mock OIDC server for development |
+| flask fuzz secret_key | google/oss-fuzz/projects/flask/fuzz_json.py:27 | **NO** | Literal `"fuzz test key"` in fuzz test |
+| h2database shutdown password | google/oss-fuzz/projects/h2database/TestServer.java:13 | **NO** | Test server shutdown password, local test only |
+| adk-python auth_credential examples | google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278 | **NO** | Documentation examples with obviously fake/truncated values |
+| adk-python auth_helpers example | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:70 | **NO** | Docstring example `"your_client_secret"` |
+| GCE/AWS metadata endpoint refs | Multiple files | **NO** | Well-known public metadata endpoints (169.254.169.254), documented in code comments |
+| K8s ConfigMap `kind` declarations | Multiple files | **NO** | Standard Kubernetes resource type declarations |
+| GitHub Actions `${{ secrets.* }}` references | Multiple workflows | **NO** | Proper secret management pattern (not hardcoded) |
+| capsem password.txt reference | google/capsem/config/gate.toml:584 | **NO** | Path to external password file, not the secret itself |
+| SAM_API_TOKEN="secret-token" | sam-node templates | **NO** | Dev/canary placeholder value in template, not production |
+| OIDC_CLIENT_SECRET default empty | sam/development/kind/run.sh:139 | **NO** | Reads from environment, defaults to empty string |
+| ax install-ax.sh password generation | google/ax/manifests/install-ax.sh:239-286 | **NO** | Generates random password or reads from K8s secret |
+| agents-cli GEMINI_API_KEY constant | google/agents-cli/src/google/agents/cli/auth.py:43 | **NO** | Environment variable name string, not an API key |
+| adk-python PASSWORD enum | google/adk-python/src/google/adk/auth/auth_schemes.py:68 | **NO** | OAuth2 grant type enum value (`"password"`), not a secret |
+| adk-python session state keys | google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | **NO** | Session state key names, not secrets |
+| sam-node store.go key constants | google/sam/internal/node/store.go:38 | **NO** | Database key name constants |
 
 ---
 
-### VERDICT SUMMARY
-| Category | Count | REPORT_CANDIDATE |
-|----------|-------|------------------|
-| REAL_SECRET | 0 | **no** |
-| TEST_OR_EXAMPLE | 35+ | no |
-| ENDPOINT_LEAK | 7 | no (well-known metadata IPs + public staging URL) |
-| INTERESTING | 1 | no (config references external password file) |
-
-**No reportable findings in this scan.** All hits are either test fixtures, placeholder values, GitHub Actions secret references (properly templated), well-known cloud metadata endpoints, or config patterns referencing external secret files.
+**SUMMARY**: **0 REAL_SECRET candidates** requiring reporting. All 341 grep hits are accounted for as test fixtures, documentation examples, configuration constants, Kubernetes resource declarations, proper secret management patterns (GitHub `${{ secrets.* }}`), or well-known public metadata endpoint references. No hardcoded production credentials or live API keys found.
