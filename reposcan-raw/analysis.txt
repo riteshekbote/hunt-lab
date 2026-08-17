@@ -1,70 +1,30 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -n 1 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py:157 2>/dev/null || sed -n '157p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-private_key="-----BEGIN PRIVATE KEY-----...",
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '269p;278p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py && sed -n '68p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py && sed -n '62p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py && sed -n '131p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
-credentials=HttpCredentials(username="user", password="password"),
-          credentials=HttpCredentials(token="eyAkaknabna...."),
-  PASSWORD = "password"
-          client_secret="your_client_secret",
-      lines.append(f"GOOGLE_API_KEY={google_api_key}")
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '247,250p' reposcan-raw/google/sam/.github/workflows/deploy.yaml
---from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" \
-            --from-literal=github-client-id="${GITHUB_CLIENT_ID}" \
-            --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" \
-            --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" \
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '240,250p' reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go
-func (f *deployCloudRunFlags) gcloudDeployToCloudRun() error {
-	return util.LogStartStop("Deploying to Cloud Run",
-		func(p util.Printer) error {
-			params := []string{
-				"run", "deploy", f.cloudRun.serviceName,
-				"--source", ".",
-				"--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest",
-				"--region", f.gcloud.region,
-				"--project", f.gcloud.projectName,
-				"--ingress", "all",
-				"--no-allow-unauthenticated",
-[0m
-### Classification Table
+Looking at the scan results, none of these hits are real secrets. They're all test fixtures, placeholders, secret-manager references, or minified JS bundles. Let me classify them:
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `adk-python/src/google/adk/auth/auth_credential.py:157` (placeholder `-----BEGIN PRIVATE KEY-----...`)<br>`adk-python/src/google/adk/auth/auth_credential.py:269` (`username="user", password="password"`)<br>`adk-python/src/google/adk/auth/auth_credential.py:278` (fake token `eyAkaknabna....`)<br>`adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"`)<br>`adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:62` (`client_secret="your_client_secret"`)<br>`adk-python/src/google/adk/cli/cli_create.py:131` (variable interpolation `f"GOOGLE_API_KEY={google_api_key}"`)<br>`sam/site/content/docs/manifests/*.yaml` (ConfigMap manifests)<br>`sam/internal/node/store.go:38` (const `keyRefreshToken = "refresh_token"`)<br>`sam/.github/workflows/deploy.yaml:247-250` (proper `${{ secrets.* }}` refs)<br>`sam/.github/k8s/*.yaml` (K8s templates)<br>`langextract/.github/workflows/ci.yaml:168-170` (proper `${{ secrets.* }}` refs)<br>`crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10` (gcloud secret manager access)<br>`crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11` (gcloud secret manager access)<br>`quiche/quiche/quic/core/crypto/certificate_view.h:126` (comment)<br>`quiche/quiche/http2/core/spdy_protocol.h:7` (comment)<br>`adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` (const `_STATE_KEY_ACCESS_TOKEN`)<br>All `adk-python/src/google/adk/cli/browser/chunk-*.js` (minified JS)<br>All `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` (minified JS) |
-| **ENDPOINT_LEAK** | `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (doc: `169.254.169.254` metadata endpoint)<br>`adk-python/src/google/adk/tools/load_web_page.py:171` (doc: `169.254.169.254`)<br>`adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (doc: `169.254.169.254`) |
-| **INTERESTING** | `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` (Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — proper secret ref syntax)<br>`adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` (kubeconfig params, None defaults) |
+## Classification Table
 
----
+| Category | Count | Files |
+|----------|-------|-------|
+| **TEST_OR_EXAMPLE** | 37 | Mock OIDC configs, test credentials ("user"/"password", "your_client_secret"), placeholder private keys, minified JS chunks, auth_schemes.py PASSWORD constant |
+| **ENDPOINT_LEAK** | 6 | Comments referencing 169.254.169.254 (well-known IMDS endpoint, not a leak) |
+| **INTERESTING** | 11 | K8s ConfigMap templates, GitHub Actions secret references (`${{ secrets.* }}`), gcloud Secret Manager fetches, Cloud Run secret refs |
+| **REAL_SECRET** | 0 | — |
 
-### Verdict List
+## Verdict List
 
-| File:Line | Classification | REPORT_CANDIDATE |
-|-----------|----------------|------------------|
-| adk-python/.../auth_credential.py:157 | TEST_OR_EXAMPLE | no |
-| adk-python/.../auth_credential.py:269 | TEST_OR_EXAMPLE | no |
-| adk-python/.../auth_credential.py:278 | TEST_OR_EXAMPLE | no |
-| adk-python/.../auth_schemes.py:68 | TEST_OR_EXAMPLE | no |
-| adk-python/.../auth_helpers.py:62 | TEST_OR_EXAMPLE | no |
-| adk-python/.../cli_create.py:131 | TEST_OR_EXAMPLE | no |
-| sam/.../deploy.yaml:247-250 | TEST_OR_EXAMPLE (proper secret refs) | no |
-| sam/.../*.yaml (ConfigMap/templates) | TEST_OR_EXAMPLE | no |
-| langextract/.../ci.yaml:168-170 | TEST_OR_EXAMPLE (proper secret refs) | no |
-| crosvm/.../push_to_github.sh:10 | TEST_OR_EXAMPLE (secret mgr access) | no |
-| crosvm/.../codecov_wrapper.sh:11 | TEST_OR_EXAMPLE (secret mgr access) | no |
-| quiche/.../certificate_view.h:126 | TEST_OR_EXAMPLE (comment) | no |
-| quiche/.../spdy_protocol.h:7 | TEST_OR_EXAMPLE (comment) | no |
-| adk-python/.../sandbox_computer.py:47 | TEST_OR_EXAMPLE (const name) | no |
-| adk-python/.../chunk-*.js (all) | TEST_OR_EXAMPLE (minified JS) | no |
-| adk-go/.../chunk-*.js (all) | TEST_OR_EXAMPLE (minified JS) | no |
-| adk-python/.../container_code_executor.py:114,154 | ENDPOINT_LEAK (public metadata IP) | no |
-| adk-python/.../load_web_page.py:171 | ENDPOINT_LEAK (public metadata IP) | no |
-| adk-python/.../computer_use_toolset.py:146 | ENDPOINT_LEAK (public metadata IP) | no |
-| adk-go/.../cloudrun.go:246 | INTERESTING (Cloud Run secret ref) | no |
-| adk-python/.../gke_code_executor.py:103-115 | INTERESTING (kubeconfig params) | no |
+All hits are **REPORT_CANDIDATE: no**
 
-**Summary: 0 REAL_SECRET findings this scan. All hits are test fixtures, placeholder values, proper secret references, documentation, or minified JS artifacts. The prior ACCEPTED finding (earthengine-api `oauth.py:45` hardcoded client_secret, sha256 `3f3f8d6f...d271`) is NOT in this delta — it was confirmed live in earlier cycles and remains under VRP review.**
+**Key reasons:**
+- `auth_credential.py:157/269/278` — test fixtures (truncated key, "user"/"password", placeholder JWT)
+- `auth_schemes.py:68` — constant `"password"` in test/default scheme
+- `auth_helpers.py:62` — placeholder `"your_client_secret"`
+- `.github/workflows/*.yaml` — all reference `${{ secrets.* }}` (GitHub Secrets, not hardcoded)
+- `run.sh:139`, `push_to_github.sh:10`, `codecov_wrapper.sh:11` — fetch from secret managers at runtime
+- `cloudrun.go:246` — Cloud Run secret reference syntax
+- Minified `.js` chunks — build artifacts, parse-error strings
+- K8s `ConfigMap` entries — infrastructure templates, no secret values
+- `169.254.169.254` references — public IMDS endpoint documentation
+
+**Note:** The previously accepted `earthengine-api` OAuth client_secret (`oauth.py:45`, sha256 `3f3f8d6f...d271`) is **not in this scan's hit list** — it's in a different repo (`google/earthengine-api`) not covered by these grep hits.
