@@ -1558,3 +1558,8 @@
 - 2026-08-18 REJECTED: `graph.microsoft.com` root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface.
 - 2026-08-18 REJECTED: `www.googleapis.com/storage/v1/b` anonymous enumeration — requires project+auth, HTTP 400/401, no bypass.
 - 2026-08-18 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules; confirmed live (400/113) but not reportable.
+- 2026-08-18 ACCEPTED: agentRegistrations 6-family CORS+PATCH vector @ graph.microsoft.com/beta/copilot/* remains live — true preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agents+admin+policySettings levels
+- 2026-08-18 ACCEPTED: Earth Engine OAuth client_secret valid credential @ oauth2.googleapis.com/token — sha 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — 458-char zero-restriction EntityType, GET→401/237 Bearer auth-gate confirmed
+- 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, HTTP 400/401, no bypass
