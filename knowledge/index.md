@@ -336,3 +336,10 @@
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 21st consecutive 2-hourly probe since 10:15 UTC).
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
 - 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 20:50 UTC — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (was API-callable only prior)
+- 2026-08-18 ACCEPTED: Graph API systemic RFC 6750 §3 deviation (HEAD→405/0 no WWW-Authenticate Bearer) confirmed across additional endpoint families — /beta/copilot/admin, /v1.0/organization, /v1.0/servicePrincipals, /v1.0/users, /v1.0/me/messages, /v1.0/subscriptions, /identity/conditionalAccess/policies, /identity/roleDefinitions, /privilegedAccess/aadRoles/* — unchanged surface, broader blast radius
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — 26th consecutive 2-hourly probe return HTTP 404 on GET (RFC 6749 §3.2.1 compliant)
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible)
+- 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-18 NO_DELTA — all fresh passive probes (robot 21:17 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 27th consecutive 2-hourly probe since 2026-08-17).
