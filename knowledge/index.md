@@ -343,3 +343,5 @@
 - 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous bucket enumeration — requires project param + auth; HTTP 400/401, no bypass
 - 2026-08-18 NO_DELTA — all fresh passive probes (robot 21:17 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 27th consecutive 2-hourly probe since 2026-08-17).
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 27 consecutive probes)
+- 2026-08-18 NO_DELTA — all fresh passive probes (robot 21:40 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
