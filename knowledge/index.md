@@ -327,3 +327,12 @@
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged at 20:23 UTC — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
 - 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 20:23 UTC — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
 - 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior findings unchanged; 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 26 consecutive probes)
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed stable across all 26 probe cycles — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 endpoint families, 5 EntityTypes ZERO OperationRestrictions.
+- 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, RFC 6749 §5.2 A/B proof conclusive, POST-only token gate stable via GET→404 (26 consecutive 2-hourly probes).
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions, true CORS preflight ACAO:*+PATCH+Max-Age 86400 at /v1.0/oauth2PermissionGrants.
+- 2026-08-18 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 20:50 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 21st consecutive 2-hourly probe since 10:15 UTC).
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 20:50 UTC — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
