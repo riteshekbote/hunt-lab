@@ -1,55 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<< "RUP0RZ6e0pPhDzsqIJ7KlNd1"
-036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
-[0m
-[0m$ [0mprintf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
-3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
-[0m
-### Classification Tables
+## Classification Tables
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` — **confirmed LIVE on master** per knowledge base (ACCEPTED 2026-08-07/08/18), scopes include `cloud-platform`+`drive`+`devstorage.full_control`, used as default fallback at oauth.py:99, OOB redirect URI. Reposcan classified `REAL_SECRET (REPORT_CANDIDATE=yes)`. |
+### REAL_SECRET
+| File | Line | Material (sha256) | Context |
+|------|------|-------------------|---------|
+| *none found in delta* | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder value `"gemini_api_key"` |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions templated variables `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247–250 | Secret references `${{ GOOGLE_CLIENT_SECRET }}`, `${{ GITHUB_CLIENT_SECRET }}`, `${{ CLI_OAUTH_SECRET }}` |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Env var with default empty `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Key name `"refresh_token"`, not a secret value |
-| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | Explicit placeholder `"sk-REPLACE-WITH-YOUR-KEY"` |
-| `reposcan-raw/microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml` | 2 | Kubernetes `kind: ConfigMap` declaration only |
+### TEST_OR_EXAMPLE
+| File | Line | Classification |
+|------|------|----------------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key test fixture (`-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HttpCredentials test fixture (username="user", password="password") |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | HttpCredentials test fixture (token="eyAkaknabna....") |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` (scheme definition) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template generation: `GOOGLE_API_KEY={google_api_key}` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| `reposcan-raw/google/atheris/deployment/deploy_pypi.sh` | 26 | `https://test.pypi.org/simple/` | Public test PyPI index |
-| `reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh` | 49 | `http://metadata.google.internal/...` | GCP IMDS metadata endpoint |
-| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/.../OpaPolicyBackend.cs` | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | AWS/Azure/GCP/Alibaba IMDS |
-| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/.../http_client.py` | 102 | `169.254.169.254` | AWS metadata |
-| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts` | 8, 11, 13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | IMDS endpoints |
-| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts` | 13, 14 | `169.254.169.254`, `metadata.google.internal` | IMDS endpoints |
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | `https://bcid.corp.google.com/build-content-restrictions/v0.1` (internal corp) |
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | `https://artifact-registry.git.corp.google.com/github.com/google/go-containerregistry` (internal corp) |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: metadata service `169.254.169.254` (well-known) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Comments: metadata endpoint `169.254.169.254` / `fd00:ec2::254` (well-known) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints `169.254.169.254` (well-known) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments: cloud metadata endpoint `169.254.169.254` (well-known) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: metadata endpoint `169.254.169.254` (well-known) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: metadata endpoint `169.254.169.254` (well-known) |
 
-#### INTERESTING
-| File | Line | Observation |
-|------|------|-------------|
-| `reposcan-raw/google/yggdrasil-decision-forests/.../export_docker.py` | 68 | Comment references internal `pantheon.corp.google.com` (corp-only Cloud Run console) |
-| `reposcan-raw/google/closure-compiler/.../google_maps_api_v3*.js` | 4638–4639 | References `developers.devsite.corp.google.com` (internal docs) |
-| `reposcan-raw/google/fuzzbench/common/utils.py` | 50 | Fetches `http://metadata.google.internal` (GCP IMDS) at runtime |
-| `reposcan-raw/google/sam/.github/k8s/*.yaml` | multiple | Many `kind: ConfigMap` templates (infrastructure configs, no secrets) |
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path` / `kubeconfig_context` params (config surface) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key) |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | CI token export patterns (`_ID_TOKEN`, `_AUTH_TOKEN` from steps) |
+| google/oss-rebuild/deployments/scratch_startup.sh | 49 | Metadata token fetch `http://metadata.google.internal/.../token` (standard GCE pattern) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, not value) |
 
 ---
 
-### Verdict List
+## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| `google/earthengine-api` oauth.py:45 hardcoded client_secret | **yes** | **ACCEPTED** in knowledge base (2026-08-07/08/18): LIVE on master, `REAL_SECRET` per reposcan, A/B `invalid_grant` vs `invalid_client` proof conclusive per RFC 6749 §5.2, scopes include `cloud-platform` (full GCP). Pending VRP determination on native-app by-design status. |
-| All `TEST_OR_EXAMPLE` hits | no | Placeholders, templated CI variables, or explicit `REPLACE-WITH-YOUR-KEY` |
-| All `ENDPOINT_LEAK` hits | no | Well-known cloud metadata endpoints (IMDS), public test PyPI, or internal doc references — no credentials |
-| All `INTERESTING` hits | no | Internal corpus URLs in comments, runtime IMDS fetches, ConfigMap templates — no secret material |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py test fixtures | **no** | Test/example data, truncated/placeholder values |
+| adk-python cli_create.py API key template | **no** | Generates user-supplied key at runtime, not hardcoded |
+| adk-python openapi_tool client_secret placeholder | **no** | Literal string `"your_client_secret"` — documentation placeholder |
+| go-containerregistry corp.google.com URLs | **no** | Internal build config, not accessible externally; no credentials |
+| Metadata endpoint references (169.254.169.254) | **no** | Well-known cloud metadata IP, documented in code as SSRF surface to avoid |
+| gke_code_executor kubeconfig params | **no** | Configuration API, no defaults/leaks |
+| vmaas state key constant | **no** | Internal naming, no secret material |
+| agents-cli workflow token patterns | **no** | Standard CI/CD OIDC token exchange, no hardcoded secrets |
+
+**Summary: 0 reportable findings in this delta.** All hits are test fixtures, placeholders, documentation comments referencing well-known endpoints, or internal build configuration.
