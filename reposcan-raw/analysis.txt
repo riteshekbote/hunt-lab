@@ -1,3 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+### Classification Tables
+
+#### REAL_SECRET
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *none found in this scan* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `String password = "testpassword";` |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `String token = "test-token-123";` |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 129 | `String password = "testpassword";` |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136 | `String password = "testpassword";` |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 159 | `String password = "testpassword";` |
+| reposcan-raw/google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 189 | `String password = "testpassword";` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` (placeholder) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `credentials=HttpCredentials(username="user", password="password"),` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `credentials=HttpCredentials(token="eyAkaknabna...."),` (placeholder) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret",` |
+
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | Cloud metadata endpoint `169.254.169.254` reference |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | Cloud metadata endpoint `169.254.169.254` reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Cloud metadata endpoint `169.254.169.254` reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Cloud metadata endpoint `169.254.169.254` reference |
+
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
+| reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | gcloud Secret Manager access for `github-crosvm-bot` |
+| reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | gcloud Secret Manager access for `codecov-google-crosvm` |
+| reposcan-raw/google/ax/manifests/install-ax.sh | 241 | `pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"` (auto-gen) |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context parameter definitions |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (storage key constant) |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secret refs (GOOGLE_CLIENT_SECRET, etc.) |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | Proper GitHub Actions secret refs (GEMINI_API_KEY, OPENAI_API_KEY) |
+| *10× ConfigMap kind declarations* | various | Kubernetes ConfigMap template files (no secrets) |
+| *18× JS parser chunk files* | various | Minified JS parser error messages (no secrets) |
+
+---
+
+### SHORT VERDICT
+
+**REPORT_CANDIDATE: no** for all findings in this scan.
+
+**Summary**: This scan covers 17,713 files with 328 grep hits. Zero hardcoded live secrets found. All credential-like patterns are either:
+- Test fixtures (`testpassword`, `test-token-123`)
+- Documentation placeholders (`your_client_secret`, `password`, truncated PEM/JWT)
+- Proper secret references (`${{ secrets.X }}`, gcloud Secret Manager)
+- Infrastructure-as-code templates (ConfigMap kinds, kubeconfig params)
+- Minified JS parser error messages (delta hits)
+
+The previously confirmed finding (earthengine-api `oauth.py:45` client_secret `sha256:3f3f8d6f...`) is **not in this scan corpus** — it was found in the 2026-08-07/08 org audit (full clone of that repo). This current scan appears to be a different repository set.
