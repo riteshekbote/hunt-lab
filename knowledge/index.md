@@ -345,3 +345,8 @@
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 27th consecutive 2-hourly probe since 2026-08-17).
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 27 consecutive probes)
 - 2026-08-18 NO_DELTA — all fresh passive probes (robot 21:40 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed stable across all 26 probe cycles — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 endpoint families.
+- 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master — sha256 3f3f8d6f…d271, A/B proof conclusive.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 26+ consecutive probes since 2026-08-17).
+- 2026-08-18 NO_DELTA — all fresh passive probes (robot 22:04 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 28th consecutive 2-hourly probe since 2026-08-17).

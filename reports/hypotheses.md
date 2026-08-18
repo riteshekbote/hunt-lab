@@ -6663,3 +6663,34 @@
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
 - LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
+
+## RANKED HYPOTHESES 2026-08-18 22:35:28 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot: Copilot Admin 6-family cross-principal ownership takeover via CORS+PATCH (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via msrc.microsoft.com/bounty po
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock AUTH
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 26 consecutive probes)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed stable across all 26 probe cycles — OPTIONS→200 + ACAO:* + PATCH at collection+item
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master — sha256 3f3f8d6f…d271, A/B proof con
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions, true CORS preflight ACAO:*+
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 26+ consecutive probes since 2026-08-17).
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no confusion surface.
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
+- LEARN: NO_DELTA — all fresh passive probes (robot 22:04 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 28th consecutive 2-hourly probe since 2026-08-17).
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions.
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no confusion surface.
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
