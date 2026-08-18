@@ -191,3 +191,5 @@
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 - 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (expected for token endpoints per RFC 6749)
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface

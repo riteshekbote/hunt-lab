@@ -36106,3 +36106,222 @@ All three hypotheses survive: confidence ≥ 40, no class on REJECTED list, conc
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward per Google VRP rules; storage bucket-list anonymous enumeration blocked (401); no data-plane access without authorized token redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 76) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in $metadata schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold; 15+ consecutive NO_DELTA cycles confirm passive probe ceiling reached.
 ```
+===== ANALYST bigpickle 2026-08-18 07:57:15 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reports/ 2>/dev/null || echo "No reports dir"
+total 12784
+drwxr-xr-x  2 runner runner    4096 Aug 18 07:54 .
+drwxr-xr-x 13 runner runner    4096 Aug 18 07:54 ..
+-rw-r--r--  1 runner runner 3239896 Aug 18 07:54 analyst-bigpickle.log
+-rw-r--r--  1 runner runner 5627240 Aug 18 07:54 analyst-laguna.log
+-rw-r--r--  1 runner runner   81376 Aug 18 07:54 analyst-ling3.log
+-rw-r--r--  1 runner runner  413088 Aug 18 07:54 analyst-longcat.log
+-rw-r--r--  1 runner runner 2753675 Aug 18 07:54 analyst-nemotron3.log
+-rw-r--r--  1 runner runner    3011 Aug 18 07:54 google-vrp-earthengine-secret.md
+-rw-r--r--  1 runner runner    6223 Aug 18 07:54 hypotheses-bigpickle.txt
+-rw-r--r--  1 runner runner   13764 Aug 18 07:54 hypotheses-laguna.txt
+-rw-r--r--  1 runner runner      50 Aug 18 07:54 hypotheses-ling3.txt
+-rw-r--r--  1 runner runner      52 Aug 18 07:54 hypotheses-longcat.txt
+-rw-r--r--  1 runner runner    7232 Aug 18 07:54 hypotheses-nemotron3.txt
+-rw-r--r--  1 runner runner  933509 Aug 18 07:54 hypotheses.md
+-rw-r--r--  1 runner runner    3261 Aug 18 07:54 msrc-two-principal-request.md
+-rw-r--r--  1 runner runner    6557 Aug 18 07:54 sammo-prt-rce.md
+-rw-r--r--  1 runner runner    2156 Aug 18 07:54 valid-bugs.md
+[0m
+[0m$ [0mgit log --oneline -5 2>/dev/null
+c9465ff triage 2026-08-18-07-28
+[0m
+[0m$ [0mcurl -s -o /dev/null -w "%{http_code}" https://oauth2.googleapis.com/token 2>/dev/null; echo
+404
+[0m
+[0m→ [0mRead reports/hypotheses-bigpickle.txt[90m [limit=50][0m
+[0m→ [0mRead reports/valid-bugs.md
+[0m
+[0m$ [0mcurl -s -I https://graph.microsoft.com/beta/copilot/agentRegistrations 2>/dev/null | head -20
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 5309fd61-4544-4656-bbed-fb6260598aee
+client-request-id: 5309fd61-4544-4656-bbed-fb6260598aee
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"CY4PEPF00013271"}}
+Date: Tue, 18 Aug 2026 07:55:04 GMT
+[0m
+[0m$ [0mcurl -s -I -X OPTIONS -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" https://graph.microsoft.com/beta/copilot/agentRegistrations 2>/dev/null | head -20
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 998703d4-5ed7-430b-ad18-eee7986e3b3e
+client-request-id: 998703d4-5ed7-430b-ad18-eee7986e3b3e
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"CY4PEPF000373FC"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 18 Aug 2026 07:55:09 GMT
+Content-Length: 0
+[0m
+[0m$ [0mcurl -s -I https://graph.microsoft.com/v1.0/oauth2PermissionGrants 2>/dev/null | head -15
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: 5b17c5ce-a9dc-4c9f-ae16-f76da7db3cb5
+client-request-id: 5b17c5ce-a9dc-4c9f-ae16-f76da7db3cb5
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"CY4PEPF00013270"}}
+Date: Tue, 18 Aug 2026 07:55:09 GMT
+[0m
+[0m$ [0mcurl -s -I https://login.microsoftonline.com/common/discovery/v2.0/keys 2>/dev/null | head -5
+HTTP/1.1 200 OK
+Cache-Control: max-age=86400, private
+Content-Length: 23878
+Content-Type: text/html; charset=utf-8
+Strict-Transport-Security: max-age=31536000; includeSubDomains
+[0m
+[0m$ [0mcurl -s -d "client_id=721404403393-7b4h1n34s3cpjajqo67b0ch9tgp6q3sq.apps.googleusercontent.com&client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1&grant_type=refresh_token&refresh_token=fake" https://oauth2.googleapis.com/token 2>/dev/null | head -100
+{
+  "error": "invalid_client",
+  "error_description": "The OAuth client was not found."
+}
+[0m
+[0m$ [0mcurl -s -d "client_id=721404403393-7b4h1n34s3cpjajqo67b0ch9tgp6q3sq.apps.googleusercontent.com&client_secret=FAKESECRET&grant_type=refresh_token&refresh_token=fake" https://oauth2.googleapis.com/token 2>/dev/null | head -100
+{
+  "error": "invalid_client",
+  "error_description": "The OAuth client was not found."
+}
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | head -110 | tail -70
+pass
+
+CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+             'apps.googleusercontent.com')
+CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+SCOPES = [
+    'https://www.googleapis.com/auth/earthengine',
+    'https://www.googleapis.com/auth/cloud-platform',
+    'https://www.googleapis.com/auth/drive',
+    'https://www.googleapis.com/auth/devstorage.full_control'
+]
+REDIRECT_URI = 'urn:ietf:wg:oauth:2.0:oob'  # Prompts user to copy-paste code
+TOKEN_URI = 'https://oauth2.googleapis.com/token'
+AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+
+AUTH_PAGE_URL = 'https://code.earthengine.google.com/client-auth'
+MODE_URL = AUTH_PAGE_URL + '/mode'
+FETCH_URL = AUTH_PAGE_URL + '/fetch'
+AUTH_URL_TEMPLATE = AUTH_PAGE_URL + '?scopes={scopes}' + (
+    '&request_id={request_id}&tc={token_challenge}&cc={client_challenge}')
+
+# Command to execute in gcloud mode
+GCLOUD_COMMAND = 'gcloud auth application-default login'
+
+DEFAULT_LOCAL_PORT = 8085
+WAITING_CODA = 'Waiting for successful authorization from web browser ...'
+PASTE_CODA = ('The authorization workflow will generate a code, which you'
+              ' should paste in the box below.')
+
+# Command-line browsers cannot handle the auth pages.
+TEXT_BROWSERS = ['elinks', 'links', 'lynx', 'w3m', 'www-browser']
+# Environment variables indicating valid compositors on Linux.
+DISPLAY_VARIABLES = ['DISPLAY', 'WAYLAND_DISPLAY', 'MIR_SOCKET']
+# Projects owned by Google SDKs, which do not have the EE API enabled.
+SDK_PROJECTS = [
+    '764086051850',
+    '618104708054',
+    '32555940559',
+    '522309567947',
+    '1014160490159',
+    '1057398310658',
+]
+
+
+def get_credentials_path() -> str:
+  cred_path = os.path.expanduser(
+      '~/.config/earthengine/credentials',
+  )
+  return cred_path
+
+
+def get_credentials_arguments() -> dict[str, Any]:
+  with open(get_credentials_path()) as creds:
+    stored = json.load(creds)
+    args = {}
+    args['token_uri'] = TOKEN_URI  # Not overridable in file
+    args['refresh_token'] = stored.get('refresh_token')
+    args['client_id'] = stored.get('client_id', CLIENT_ID)
+    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+    args['scopes'] = stored.get('scopes', SCOPES)
+    args['quota_project_id'] = stored.get('project')
+    return args
+
+
+def is_sdk_credentials(credentials: Any | None) -> bool:
+  return is_sdk_project(project_number_from_credentials(credentials))  # pyrefly: ignore[bad-argument-type]
+
+
+def project_number_from_credentials(
+    credentials: Any | None,
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | sha256sum
+f4f93c76aebfe1c0bfb41c169e689c0b0c0bc5439cf800ed6e1f314587b73040  -
+[0m
+[0m$ [0mcurl -s -d "client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1&grant_type=refresh_token&refresh_token=fake" https://oauth2.googleapis.com/token 2>/dev/null
+{
+  "error": "invalid_grant",
+  "error_description": "Bad Request"
+}
+[0m
+The client_id changed from `721404403393-…` to `517222506229-…`. Let me re-verify with the correct client_id.
+[0m$ [0mcurl -s -d "client_id=517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com&client_secret=FAKESECRET&grant_type=refresh_token&refresh_token=fake" https://oauth2.googleapis.com/token 2>/dev/null
+{
+  "error": "invalid_client",
+  "error_description": "The provided client secret is invalid."
+}
+[0m
+[0m$ [0mcurl -s "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py" 2>/dev/null | grep -n "CLIENT_ID\|CLIENT_SECRET\|721404403393"
+43:CLIENT_ID = ('517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.'
+45:CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+98:    args['client_id'] = stored.get('client_id', CLIENT_ID)
+99:    args['client_secret'] = stored.get('client_secret', CLIENT_SECRET)
+172:      'client_id': CLIENT_ID,
+192:      'client_id': client_id or CLIENT_ID,
+193:      'client_secret': client_secret or CLIENT_SECRET,
+414:        client_id=CLIENT_ID,
+415:        client_secret=CLIENT_SECRET,
+[0m
+[0m$ [0mcurl -s -I -X OPTIONS -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" https://graph.microsoft.com/v1.0/oauth2PermissionGrants 2>/dev/null | head -15
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 71ca9c69-08b2-44e9-b359-af9c8c95aa46
+client-request-id: 71ca9c69-08b2-44e9-b359-af9c8c95aa46
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"000","RoleInstance":"CY4PEPF0001326A"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 18 Aug 2026 07:55:44 GMT
+Content-Length: 0
+[0m
+Significant CHANGE: the client_id rotated! `721404403393-…` → `517222506229-…` but same secret. A/B proof still holds with new client_id.
+[0m$ [0mcurl -s -I -X OPTIONS -H "Origin: https://evil.com" -H "Access-Control-Request-Method: PATCH" -H "Access-Control-Request-Headers: authorization" https://graph.microsoft.com/beta/copilot/agents 2>/dev/null | head -15
+HTTP/1.1 200 OK
+Strict-Transport-Security: max-age=31536000
+request-id: 3bff9c9a-6f6e-4b6b-ac83-a94a7009f355
+client-request-id: 3bff9c9a-6f6e-4b6b-ac83-a94a7009f355
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West Central US","Slice":"E","Ring":"2","ScaleUnit":"001","RoleInstance":"CY4PEPF00013270"}}
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+Access-Control-Allow-Headers: authorization
+Access-Control-Max-Age: 86400
+Date: Tue, 18 Aug 2026 07:55:45 GMT
+Content-Length: 0
+[0m
+All fresh probes complete. Now the structured analysis:
+
+---
+
+## STEP 1 — DELTA
+
+- **[CHANGED]** earthengine-api oauth.py:43 CLIENT_ID rotated from `721404403393-…` to `517222506229-
