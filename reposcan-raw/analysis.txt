@@ -1,54 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k" | sha256sum
+[0m$ [0mecho -n 'AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k' | sha256sum
 b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896  -
+[0m
+[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
 [0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | Secret SHA256 (truncated) | Notes |
-|------|------|---------------------------|-------|
-| reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts | 23 | b3f0f75fb14ee327... | Google API key (AIzaSy* prefix, 39 chars), hardcoded in staging env file |
+| File | Line | Secret SHA256 | Type | Notes |
+|------|------|---------------|------|-------|
+| `reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts` | 23 | `b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896` | Google API Key (AIzaSy...) | Hardcoded in staging env file; **NEW** vs prior scans |
+| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | OAuth client_secret | **KNOWN** (ACCEPTED 2026-08-07, pending VRP determination on native-app by-design) |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| reposcan-raw/google/ground-platform/web/src/environments/environment.test.ts | 33 | `mock-api-key` literal |
-| reposcan-raw/google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py | 57 | `YOUR_KEY` placeholder |
-| reposcan-raw/google/garf/libs/community/common_apis/garf/community/common_apis/currencyapi/report_fetcher.py | 64 | `YOUR_KEY` placeholder |
-| reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | 214 | Example `password: "password"` in JSDoc |
-| reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | 226 | Example `token: "your_access_token"` in JSDoc |
-| reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example private key in docstring |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `HttpCredentials(username="user", password="password")` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example token `eyAkaknabna....` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Example `client_secret="your_client_secret"` |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Code generating config, not hardcoded secret |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | Constant name `keyRefreshToken = "refresh_token"` |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret refs (`${{ secrets.* }}`) |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs |
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/garf/.../openweather/report_fetcher.py` | 57 | `api_key='YOUR_KEY'` | Explicit placeholder |
+| `google/garf/.../currencyapi/report_fetcher.py` | 64 | `api_key='YOUR_KEY'` | Explicit placeholder |
+| `google/adk-js/.../auth_credential.ts` | 214, 226 | `password: "password"`, `token: "your_access_token"` | JSDoc examples |
+| `google/adk-js/.../auth_schemes.ts` | 41 | `PASSWORD = 'password'` | Scheme constant |
+| `google/adk-python/.../auth_credential.py` | 157, 269, 278 | `private_key="-----BEGIN..."`, `password="password"`, `token="eyAk..."` | Example literals in source |
+| `google/adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` | Scheme constant |
+| `google/adk-python/.../auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Placeholder |
+| `google/langextract/.../ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | GitHub Actions secret ref |
+| `google/sam/.../deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | GitHub Actions secret ref |
+| `google/ground-platform/.../environment.test.ts` | 33 | `apiKey: 'mock-api-key'` | Explicit mock |
+| `google/sam/.../run.sh` | 139 | `${OIDC_CLIENT_SECRET:-}` | Shell var reference |
+| `google/adk-python/.../cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
+| `google/adk-python/.../sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name, not secret |
 
 #### ENDPOINT_LEAK
-| File | Line | Details |
-|------|------|---------|
-| reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` reference |
-| reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (GCP metadata CIDR) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path params |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` reference |
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/adk-js/.../oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP metadata endpoint (well-known) |
+| `google/adk-js/.../load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local / metadata IP range (documented) |
+| `google/adk-python/.../gke_code_executor.py` | 103-115 | kubeconfig params | Config options, not leaks |
+| `google/adk-python/.../container_code_executor.py` | 114, 154 | `169.254.169.254` | Metadata endpoint warning in docstring |
+| `google/adk-python/.../load_web_page.py` | 171 | `169.254.169.254` | Metadata endpoint warning in docstring |
+| `google/adk-python/.../computer_use_toolset.py` | 146 | `169.254.169.254` | Metadata endpoint warning in docstring |
 
 #### INTERESTING
-| File | Line | Details |
+| File | Line | Finding |
 |------|------|---------|
-| reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Legacy OpenSSL RSA key format comment |
-| reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h | 7 | SPDY protocol reference comment |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key `_vmaas_access_token` |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | multiple | ConfigMap kind definitions (K8s configs) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified source map parser chunks (not secrets) |
+| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` — constant key name for token storage |
+| `google/sam/.../*.yaml` (multiple) | — | `kind: ConfigMap` — K8s ConfigMap manifests (no secret data) |
+| `google/adk-python/.../cli/browser/chunk-*.js` | — | 20+ minified JS parser error messages (source map artifacts, not secrets) |
 
 ---
 
@@ -56,8 +55,8 @@ b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896  -
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `ground-platform/web/src/environments/environment.staging.ts:23` (AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k) | **yes** | Live Google API key hardcoded in public repo staging config; key format valid (AIzaSy*, 39 chars); not a test placeholder; no evidence of referer/IP restriction in code |
-| All TEST_OR_EXAMPLE entries | no | Placeholders, examples, docstrings, or secret references |
-| All ENDPOINT_LEAK entries | no | Internal endpoint references, not credentials |
-| All INTERESTING entries | no | Comments, config kinds, source map artifacts |
-| ADK browser chunk JS files (delta) | no | Minified parser error messages from published source maps |
+| `ground-platform` staging API key (`AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k`) | **YES** | Hardcoded Google API key in committed source (staging env file); not a test placeholder; sha256 `b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896` |
+| `earthengine-api` OAuth client_secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`) | **PENDING** | **KNOWN** (ACCEPTED 2026-08-07); classified REAL_SECRET by reposcan; pending VRP determination on "native app by-design" — do NOT re-report until determination |
+| All other hits | **NO** | Placeholders, examples, secret refs, docstrings, or minified parser artifacts |
+
+**Action**: Submit `ground-platform` staging API key as new candidate. Hold `earthengine-api` pending VRP triage outcome.

@@ -171,6 +171,27 @@
   - chrome-enterprise-premium-mcp: 4 hits, all false positives (Jest test stub PEM "-----BEGIN PRIVATE KEY-----\nstub", ya29.SYNTHETIC_TEST_TOKEN, CLIENT_SECRET 'custom-secret' test fixture, + the known by-design GOCSPX at HEAD).
   - perfetto: 1 hit — CSE API key AIzaSyBTD2XJkQkkuvDn76LSftsgWOkdBz9Gfwo (infra/perfetto.dev search). REMOVED from HEAD (#6565 replaced site search with local full-text index). LIVE-PROBED: 403 "Requests from referer <empty> are blocked" = referer-restricted to perfetto.dev. DEAD for attackers; NOT reportable (Google restricted-key posture). Scan thread CLOSED.
  origin/main
+- 2026-08-18 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-18 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles
+- 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400 missing project then 401 storage.buckets.list denied
+- 2026-08-18 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 (was previously inferred)
+- 2026-08-18 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 (was previously inferred)
+- 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles
+- 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400 missing project then 401 storage.buckets.list denied
+- 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle
+- 2026-08-18 ACCEPTED: All 3 hypothesis preconditions confirmed live via latest passive probes (2026-08-18 06:20 UTC) — agentRegistration 6-family CORS+PATCH + 0 OperationRestrictions on 5 EntityTypes; Earth Engine client_secret A/B proof; oauth2PermissionGrants zero-restriction EntityType with caller-chosen resourceId
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (not a finding invalidation — expected for token endpoints per RFC 6749)
+- 2026-08-18 ACCEPTED: graph.microsoft.com 405 anomaly (RFC 6750 §3 violation) remains live — HEAD returns 405 with Content-Length: 0, no WWW-Authenticate Bearer
+- 2026-08-18 REJECTED: No new proving-dead classes — all passive probes confirm prior findings unchanged
+- 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules
+- 2026-08-18 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH remains LIVE at both collection+item level across all 6 endpoint families — unchanged this cycle.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions.
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+- 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
