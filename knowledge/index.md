@@ -242,3 +242,4 @@
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, all kty=RSA, no confusion surface.
 - 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
 - 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate stable (RFC 6749 §3.2.1 compliant)
