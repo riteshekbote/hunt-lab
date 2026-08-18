@@ -1,58 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+Looking at the scan hits, I'll classify each category. The output is truncated but covers key repos.
+
 ## Classification Tables
 
 ### REAL_SECRET
-| File | Line | Material (sha256) | Context |
+| File | Line | SHA256 (truncated) | Verdict |
 |------|------|-------------------|---------|
-| *none found in delta* | | | |
+| *none found in this scan output* | | | |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Classification |
-|------|------|----------------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Private key test fixture (`-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HttpCredentials test fixture (username="user", password="password") |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | HttpCredentials test fixture (token="eyAkaknabna....") |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` (scheme definition) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template generation: `GOOGLE_API_KEY={google_api_key}` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified parser error messages (build artifacts) |
+| File | Line | Context |
+|------|------|---------|
+| `adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder `...`) |
+| `adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` (literal test values) |
+| `adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` (fake JWT prefix) |
+| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (constant name) |
+| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` (placeholder) |
+| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (var name) |
+| `adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` (template var) |
+| `agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (placeholder string) |
+| `agents-cli/.../staging.yaml` | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` (GH Actions template syntax) |
+| `adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Minified JS parse-error strings (bundled output) |
+| `closure-compiler/contrib/externs/ms-office-1.3.js` | 27,166,205 | `dev.office.com` reference URLs (public docs) |
+| `closure-compiler/externs/browser/*.js` | multiple | `dev.w3.org` spec URLs (public standards) |
 
 ### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | `https://bcid.corp.google.com/build-content-restrictions/v0.1` (internal corp) |
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | `https://artifact-registry.git.corp.google.com/github.com/google/go-containerregistry` (internal corp) |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: metadata service `169.254.169.254` (well-known) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Comments: metadata endpoint `169.254.169.254` / `fd00:ec2::254` (well-known) |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints `169.254.169.254` (well-known) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments: cloud metadata endpoint `169.254.169.254` (well-known) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: metadata endpoint `169.254.169.254` (well-known) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: metadata endpoint `169.254.169.254` (well-known) |
+| File | Line | Context |
+|------|------|---------|
+| `go-containerregistry/cloudbuild-golang-build.yml` | 102 | `artifact-registry.git.corp.google.com` (internal corp hostname) |
+| `go-containerregistry/cloudbuild-docker-build.yml` | 14 | `bcid.corp.google.com` (internal corp hostname) |
+| `go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: `169.254.169.254` metadata SSRF risk |
+| `go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91,151 | Comments: metadata endpoint SSRF, DNS SSRF |
+| `go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: cloud metadata endpoints |
+| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path` params (config, not secret) |
+| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments: `169.254.169.254` metadata endpoint |
+| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: NAT64 routes to metadata endpoint |
+| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment: `169.254.169.254` in Chrome |
+| `oss-rebuild/deployments/scratch_startup.sh` | 49 | `metadata.google.internal/computeMetadata/v1/...` (GCP metadata URL) |
+| `closure-compiler/src/.../ErrorManager.java` | 95 | `source.corp.google.com` (internal source link) |
 
 ### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path` / `kubeconfig_context` params (config surface) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key) |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | CI token export patterns (`_ID_TOKEN`, `_AUTH_TOKEN` from steps) |
-| google/oss-rebuild/deployments/scratch_startup.sh | 49 | Metadata token fetch `http://metadata.google.internal/.../token` (standard GCE pattern) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (constant name, not value) |
+| File | Line | Context |
+|------|------|---------|
+| `atheris/deployment/deploy_pypi.sh` | 26 | `pip download --index-url test.pypi.org` (public test index, not secret) |
 
 ---
 
-## Verdict List
+## SHORT VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| adk-python auth_credential.py test fixtures | **no** | Test/example data, truncated/placeholder values |
-| adk-python cli_create.py API key template | **no** | Generates user-supplied key at runtime, not hardcoded |
-| adk-python openapi_tool client_secret placeholder | **no** | Literal string `"your_client_secret"` — documentation placeholder |
-| go-containerregistry corp.google.com URLs | **no** | Internal build config, not accessible externally; no credentials |
-| Metadata endpoint references (169.254.169.254) | **no** | Well-known cloud metadata IP, documented in code as SSRF surface to avoid |
-| gke_code_executor kubeconfig params | **no** | Configuration API, no defaults/leaks |
-| vmaas state key constant | **no** | Internal naming, no secret material |
-| agents-cli workflow token patterns | **no** | Standard CI/CD OIDC token exchange, no hardcoded secrets |
+| adk-python test fixtures (auth_credential.py, auth_schemes.py, auth_helpers.py) | **no** | Placeholder/literal test values (`password`, `your_client_secret`, `...`) |
+| adk-python CLI template (`cli_create.py`) | **no** | Template variable `{google_api_key}`, not a secret |
+| agents-cli `auth.py` GEMINI_API_KEY | **no** | Placeholder string `"gemini_api_key"` |
+| agents-cli staging.yaml token refs | **no** | GitHub Actions template syntax (`${{ steps... }}`), not hardcoded |
+| go-containerregistry corp URLs (`.git.corp.google.com`, `.corp.google.com`) | **no** | Build-time internal hostnames in Cloud Build config; not runtime secrets |
+| Metadata endpoint comments (169.254.169.254, metadata.google.internal) | **no** | Code comments documenting SSRF risks, not leaks |
+| GKE kubeconfig params | **no** | Configuration parameters, not credentials |
+| Closure compiler externs / minified JS | **no** | Public spec URLs / build artifacts |
+| atheris test.pypi.org deploy | **no** | Public test PyPI index |
 
-**Summary: 0 reportable findings in this delta.** All hits are test fixtures, placeholders, documentation comments referencing well-known endpoints, or internal build configuration.
+**Overall: 0 reportable secrets in this scan output.** All hits are test fixtures, placeholders, template variables, internal build hostnames, or documentation comments. The known LIVE finding (earthengine-api `oauth.py:45` client_secret) is **not present in this scan corpus** — different repo.
