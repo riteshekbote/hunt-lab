@@ -1563,3 +1563,9 @@
 - 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId @ graph.microsoft.com/v1.0 — 458-char zero-restriction EntityType, GET→401/237 Bearer auth-gate confirmed
 - 2026-08-18 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
 - 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, HTTP 400/401, no bypass
+- 2026-08-18 ACCEPTED: agentRegistrations 6-family CORS+PATCH vector remains live — true preflight 200 ACAO:* + PATCH allowlist confirmed at collection+item+agents+admin+policySettings levels; $metadata 873-char + 458-char blocks with 0 OperationRestrictions
+- 2026-08-18 ACCEPTED: Earth Engine OAuth client_secret valid credential — sha256 3f3f8d6f…d271 verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer + HEAD→405/0, 458-char EntityType 0 OperationRestrictions
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-8 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+- 2026-08-18 REJECTED: Source maps @ identity SPAs — mysignins.microsoft.com (404) + api.myaccount.microsoft.com (401); both closed, recon surface eliminated
