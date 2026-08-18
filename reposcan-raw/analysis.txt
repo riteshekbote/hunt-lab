@@ -1,70 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-LVMBETIL.js[90m [limit=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [limit=10][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=10][0m
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=35, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=10, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=10][0m
-Based on my analysis of all hits, here are the classifications:
+Let me analyze the new hits from the reposcan to classify them according to the categories specified. I need to look at each hit and determine if it's a REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
 
-### REAL_SECRET
-| File | Line | Classification | SHA256 | REPORT_CANDIDATE |
-|------|------|----------------|--------|------------------|
-| *(none in this scan delta)* |  |  |  |  |
+Let me go through the DELTA hits first:
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` - doc fixture |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` - doc fixture |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` - constant **key name**, not a secret value |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` - Helm template |
-| google/sam/.github/k8s/sam-box-canary-template.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/sam-node-openrouter-template.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/sam-node-everything-template.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/sam-node-template.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/sam-node-vllm-template.yaml | 14 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/sam-node-cop-template.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/sam/.github/k8s/dex-config.yaml | 2 | `kind: ConfigMap` - K8s template |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` - **auth method enum constant**, not a key |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` - GH Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=...="${{ secrets.X }}"` - GH Actions secret refs |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` - CI template placeholders |
+1. `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go:54: StorageDriverPassword        = "storage_driver_password"`
+   - This looks like a constant/flag name, not an actual password. The value is "storage_driver_password" which appears to be a placeholder/default value name.
 
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/closure-compiler/externs/es6.js | 392 | `http://dev.w3.org/html5/postmsg/` - W3C spec URL in externs |
-| google/closure-compiler/externs/browser/w3c_device_sensor_event.js | 22 | `http://dev.w3.org/geo/api/spec-source-orientation` - W3C spec URL |
-| google/closure-compiler/externs/browser/html5.js | 22, 1702, 1763 | `http://dev.w3.org/html5/...` - W3C spec URLs |
-| google/closure-compiler/externs/browser/w3c_css.js | 3994, 4830, 4835 | `http://dev.w3.org/csswg/...` - W3C spec URLs |
-| google/closure-compiler/externs/browser/webkit_notifications.js | 202 | `http://dev.w3.org/2006/webapi/...` - W3C spec URL |
-| google/closure-compiler/externs/browser/w3c_fileapi.js | 34 | `http://dev.w3.org/2006/webapi/FileAPI` - W3C spec URL |
-| google/closure-compiler/externs/browser/w3c_rtc.js | 1597, 3333 | `http://dev.w3.org/2011/webrtc/...` - W3C spec URLs |
-| google/closure-compiler/contrib/externs/ms-office-1.3.js | 27, 166, 205 | `https://dev.office.com/...` - MS Office API docs |
-| google/closure-compiler/contrib/externs/maps/google_maps_api_v3*.js | 4638-4639 | `https://developers.devsite.corp.google.com/...` - **internal Google docs URL in public externs** (low risk, documented deprecation notice) |
+2. `reposcan-raw/google/osv.dev/deployment/clouddeploy/gke-indexer/skaffold.yaml:2: kind: Config`
+   - Just a Kubernetes config kind, not a secret.
 
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` - shell param expansion with **empty default** (dev/kind env placeholder) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` - **Secret Manager reference pattern**, not a secret |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (all) | - | Minified **parser generator build artifacts** (Jison/Bison output) - parse error message templates |
-| google/adk-go/cmd/launcher/web/webui/distr/main-I3DI43ZQ.js | 5 | Minified build artifact |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-YL63DAMY.js | 9 | Minified build artifact |
+3. `reposcan-raw/google/osv.dev/deployment/clouddeploy/gke-workers/environments/oss-vdb-test/generate-sitemap.yaml:16: - "--base-url=https://test.osv.dev"`
+   - Test environment URL, not a secret.
 
----
+4. `reposcan-raw/google/osv.dev/deployment/clouddeploy/gke-workers/skaffold.yaml:2: kind: Config`
+   - Kubernetes config kind.
 
-### SHORT VERDICT
+5. `reposcan-raw/google/osv.dev/deployment/clouddeploy/oss-fuzz-workers/skaffold.yaml:2: kind: Config`
+   - Kubernetes config kind.
 
-**REPORT_CANDIDATE: no** for all hits in this scan delta.
+6. `reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-api/skaffold.yaml:2: kind: Config`
+   - Kubernetes config kind.
 
-**Summary**: This scan produced **zero new REAL_SECRET findings**. All 189 hits are:
-- **173** test/fixture/template hits (ConfigMap kinds, GH Actions secret refs, shell placeholders, enum constants)
-- **13** W3C/MS spec documentation URLs in Closure Compiler externs
-- **3** build artifacts (minified JS parser generator output)
-- The `devsite.corp.google.com` URLs in Maps API externs are known internal documentation links in public API definition files — low risk, not a new leak class.
+7. `reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml:23: # Get this Client ID from https://pantheon.corp.google.com/auth/clients`
+   - Comment referencing internal Google auth system, not an actual secret.
 
-The only live hardcoded secret in the Google org remains the previously **ACCEPTED** `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...d271`), already tracked in the knowledge base.
+8. `reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/skaffold.yaml:2: kind: Config`
+   - Kubernetes config kind.
+
+9. `reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js:129: const url = \`https://api.test.osv.dev/v1experimental/importfindings/${sourceName}\`;`
+   - Test API endpoint.
+
+10. `reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js:351: bugLink.href = \`https://api.test.osv.dev/v1/vulns/${issue.bug_id}\`;`
+    - Test API endpoint.
+
+11. `reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js:486: fetch(\`https://api.test.osv.dev/v1/vulns/${bugId}\`)`
+    - Test API endpoint.
+
+12. `reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go:80: "http://dev.mysql.com":       true,`
+    - Just a domain allowlist entry.
+
+13. `reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h:7: // http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3`
+    - Comment with URL.
+
+14. `reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h:126: // supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").`
+    - Comment about key format support.
+
+15. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"`
+    - Commented out placeholder.
+
+16. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"`
+    - Commented out placeholder.
+
+17. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
