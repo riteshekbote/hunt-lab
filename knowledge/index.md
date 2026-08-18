@@ -256,3 +256,10 @@
 - 2026-08-18 NO_DELTA — all fresh passive probes (2026-08-18 15:43 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed LIVE — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, A/B proof conclusive.
 - 2026-08-18 REJECTED: api.myaccount.microsoft.com CORS origin-reflection with credentials — standard Bearer-auth-gated behavior, not exploitable without auth.
+- 2026-08-18 ACCEPTED: all 3 hypothesis preconditions confirmed still live — agentRegistration 6-family true CORS preflight (OPTIONS 200 + ACAO:* + PATCH at collection+item+all 6 families), earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f…d271`), oauth2PermissionGrants caller-chosen resourceId (458-char EntityType 0 OperationRestrictions)
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 22 probes since 2026-08-17 consistent)
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collection+item level (unchanged 15:46 UTC).
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants true CORS preflight @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS 200 + ACAO:* + PATCH + Max-Age 86400 confirmed live (unchanged).
+- 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, A/B proof conclusive (15:46 UTC probe).
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 22+ consecutive probes stable).
+- 2026-08-18 NO_DELTA — all fresh passive probes (2026-08-18 15:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
