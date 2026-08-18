@@ -228,3 +228,8 @@
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate stable (every 2-hr probe since 2026-08-17 consistent, RFC 6749 §3.2.1 compliant)
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collection+item level (unchanged 10:52 UTC)
 - 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, 10:50 UTC probe)
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — unchanged, 6 families OPTIONS 200 + ACAO:* + PATCH at collection+item level.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, A/B proof conclusive.
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions.
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, no cross-endpoint confusion surface.
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules.

@@ -1,4 +1,4 @@
-## 2026-08-18 12:04:47 UTC [google] (model bigpickle)
+## 2026-08-18 13:04:57 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings} | 8.05 | attack=9 business=8 tech=9 gate=6 cloud=7 fresh=8
 [PRIO] oauth2.googleapis.com/token (earthengine-api python/ee/oauth.py:45) | 7.60 | attack=7 business=8 tech=9 gate=4 cloud=9 fresh=7
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | 6.35 | attack=7 business=9 tech=8 gate=5 cloud=6 fresh=5
@@ -32,10 +32,10 @@ testability: AUTH_HELPED
 [FINAL] (re-ranked by confidence):
 [NEXT] HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — single request unblocks AUTH_HELPED testing for BOTH hypothesis #1 (6-family IDOR+CORS at 97) and hypothesis #3 (consent-forge at 76). In parallel, submit reports/google-vrp-earthengine-secret.md via bughunters.google.com — the A/B invalid_grant-vs-invalid_client proof conclusively proves valid Google OAuth credential at confidence 96.
 [LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
-[LEARN] ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item+6 endpoint families — unchanged this cycle.
-[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
-[LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRestrictions.
-[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
-[LEARN] REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+[LEARN] ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — unchanged, 6 families OPTIONS 200 + ACAO:* + PATCH at collection+item level.
+[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, A/B proof conclusive.
+[LEARN] ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions.
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, no cross-endpoint confusion surface.
+[LEARN] REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules.
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); tokeninfo no-reward per Google VRP rules; no data-plane access without authorized token redemption; surface otherwise inert.
-[RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 76) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in $metadata schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold; 17+ consecutive NO_DELTA cycles confirm passive probe ceiling reached.
+[RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 76) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in $metadata schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold; 18+ consecutive NO_DELTA cycles confirm passive probe ceiling reached.
