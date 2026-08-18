@@ -1,51 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [limit=30, offset=550][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=20][0m
-### Classification Tables
+[0m→ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py[90m [offset=40, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=140][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=60, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=50, offset=160][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
+### REAL_SECRET
 
-#### REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none* | — | — | No hardcoded live secrets found |
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`; scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect; **KNOWN** (ACCEPTED 2026-08-07, pending VRP determination on native-app by-design) |
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
+### TEST_OR_EXAMPLE
+
 | File | Line | Context |
 |------|------|---------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` (commented placeholder) |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` (constant key name) |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` (constant key name) |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer constant names (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
-| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `INJECTED_TOKEN = "injected-token-probe"` (test fixture) |
-| microsoft/agent-governance-toolkit/.../smoke-test.js | 76 | `'const password = "secret123";'` (test payload) |
-| microsoft/agent-governance-toolkit/.../alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented placeholder) |
-| microsoft/agent-governance-toolkit/.../red_team_dataset.py | 306 | SQLi test payload with `password='newpass123'` |
-| microsoft/agent-governance-toolkit/.../adapter.py | 17 | `api_key="your-key"` (placeholder) |
-| microsoft/agent-governance-toolkit/.../extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` (placeholder) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Docstring example: `HttpCredentials(username="user", password="password")` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Docstring example: `HttpCredentials(token="eyAkaknabna....")` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | OAuth grant type enum: `PASSWORD = "password"` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Docstring example: `client_secret="your_client_secret"` |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | AuthType enum value: `GEMINI_API_KEY = "gemini_api_key"` |
+| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | Cookiecutter/Jinja2 template placeholders: `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| microsoft/agent-governance-toolkit (10+ files) | various | IMDS endpoints: `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (well-known cloud metadata IPs, not secrets) |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default, expects env var) |
+### ENDPOINT_LEAK
 
-#### INTERESTING (debug flags, keys, cloud configs, code patterns)
-| File | Line | Context |
-|------|------|---------|
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Code generation: emits `.secret_key = <var>` for CKKS secret key variable (compiler IR → Python, not a hardcoded secret) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Secrets → K8s secrets pattern (`${{ secrets.GHUB_CLIENT_SECRET }}`) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper GitHub Secrets usage (`${{ secrets.GEMINI_API_KEY }}`) |
-| google/sam/.github/workflows/*.yaml, .github/k8s/*.yaml | multiple | `kind: ConfigMap` (standard K8s, no secrets) |
-| google/osv-scalibr/.../winlocal_windows.go | 56 | Vulnerability reference constant `PASSWORD_HASH_LM_FORMAT` |
-| microsoft/agent-governance-toolkit/.../build_and_publish.sh | 105 | TestPyPI install command (no credentials) |
+| File | Line | Endpoint |
+|------|------|----------|
+| reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/...` |
+| reposcan-raw/google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | `https://b.corp.google.com/issues/492077374` |
+| reposcan-raw/google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema/schema.go | 5 | `https://b.corp.google.com/issues/492077374` |
+| reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `https://source.corp.google.com/h/chrome-internal/...` |
+| reposcan-raw/google/adk-python/.../container_code_executor.py | 114,154 | Documentation references to `169.254.169.254` (GCP metadata) |
+| reposcan-raw/google/adk-python/.../load_web_page.py | 171 | Documentation reference to `169.254.169.254` |
+| reposcan-raw/google/adk-python/.../computer_use_toolset.py | 146 | Comment reference to `169.254.169.254` |
+
+### INTERESTING
+
+| File | Line | Detail |
+|------|------|--------|
+| reposcan-raw/google/adk-python/.../gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` parameters (config options) |
+| reposcan-raw/google/adk-python/.../sandbox_computer.py | 47 | Internal state key: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| reposcan-raw/google/adk-python/.../cli_create.py | 131 | Code writing user-supplied `GOOGLE_API_KEY` to `.env` file |
+| reposcan-raw/google/adk-python/.../cli/browser/chunk-*.js | multiple | Minified JS source map chunks (parser error strings) — build artifacts |
 
 ---
 
-### SHORT VERDICT LIST
+### VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| HEIR JaxiteWordEmitter secret_key emission | **no** | Code generation pattern — emits variable assignment for secret key in generated Python, not a hardcoded value |
-| SAM deploy.yaml GitHub Secrets usage | **
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Hardcoded OAuth client_secret (earthengine) | google/earthengine-api/python/ee/oauth.py:45 | **yes** (already ACCEPTED in KB; sha256 `3f3f8d6f...`; pending VRP on native-app by-design) |
+| All adk-python auth_credential.py hits | google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278 | no (docstring examples with `...` placeholders) |
+| OAuth PASSWORD grant enum | google/adk-python/src/google/adk/auth/auth_schemes.py:68 | no (string constant for grant type name) |
+| openapi_tool client_secret example | google/adk-python/.../auth_helpers.py:64 | no (docstring placeholder `"your_client_secret"`) |
+| agents-cli GEMINI_API_KEY enum | google/agents-cli/src/google/agents/cli/auth.py:43 | no (enum value, not a key) |
+| staging.yaml template tokens | google/agents-cli/.../staging.yaml:168,192 | no (cookiecutter/Jinja2 template placeholders) |
+| skia-buildbot corp URLs | google/skia-buildbot/... | no (internal endpoint references, no auth material) |
+| 169.254.169.254 references | google/adk-python/.../code_executors/..., tools/... | no (documentation/comments about metadata endpoint) |
+| GKE kubeconfig params | google/adk-python/.../gke_code_executor.py | no (config parameters) |
+| vmaas state key | google/adk-python/.../sandbox_computer.py:47 | no (internal variable name) |
+| cli_create GOOGLE_API_KEY write | google/adk-python/.../cli_create.py:131 | no (writes user input to .env) |
+| cli/browser JS chunks | google/adk-python/.../cli/browser/chunk-*.js | no (minified build artifacts) |
+
+**Only the earthengine-api hardcoded client_secret is a reportable finding** — already tracked in KB as ACCEPTED (2026-08-07), awaiting VRP triage on whether native-app installed-client pattern qualifies. All other hits are test fixtures, doc examples, template placeholders, or internal endpoint references.
