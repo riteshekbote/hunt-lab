@@ -1,62 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<< 'iU5ohAF2qcqrujegE3hQ1cPt'
-405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m$ [0mecho -n 'iU5ohAF2qcqrujegE3hQ1cPt' | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
 [0m
-[0m$ [0msha256sum <<< 'RUP0RZ6e0pPhDzsqIJ7KlNd1'
-036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
-[0m
-[0m$ [0msha256sum <<< '3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271'
-e3e82b07f6ae73ab5f9df6dc6444d907419bc714658a4a534d9795057b320819  -
+[0m$ [0mgrep -r "iU5ohAF2qcqrujegE3hQ1cPt" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/ 2>/dev/null | head -5
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
 [0m
 ### Classification Tables
 
-#### REAL_SECRET Candidates
+#### REAL_SECRET
 | File | Line | Secret SHA256 | Context |
 |------|------|---------------|---------|
-| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes: cloud-platform+earthengine+drive+devstorage.full_control, OOB redirect. **ACCEPTED in KB** |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in **vendored ibis code** (third-party dependency) |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | Duplicate of above in same vendored package |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105` (vendored ibis code) |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret, duplicated in backend.py |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: truncated private_key `-----BEGIN PRIVATE KEY-----...`, `username="user", password="password"`, token `"eyAkaknabna...."` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `google/sam/development/kind/run.sh` | 139 | Shell var with default empty: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. |
-| `google/dagger/util/latest-dagger-version.sh` | 9 | Shell var ref: `local GITHUB_TOKEN="${GH_TOKEN:-}"` |
+| `reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — explicit test fixture |
+| `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | `g_shutdownPassword = "ServerShutdownPassword"` — test harness password |
+| `reposcan-raw/google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey` — **REJECTED CLASS** (search-only, public by design, per KB) |
+| `reposcan-raw/google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholder keys `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| `reposcan-raw/google/adk-web/src/app/components/*/*.spec.ts` | various | Test tokens (`initial-token`, `updated-token-123`, `nextPage`) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test private key, test credentials, test token |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — test constant |
+| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions **secret references** (`${{ secrets.* }}`), not hardcoded values |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret references (proper pattern) |
 
 #### ENDPOINT_LEAK
-| File | Line | Detail |
+| File | Line | Reason |
 |------|------|--------|
-| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | Test PyPI URLs: `https://test.pypi.org/...` |
-| `google/meridian/.github/workflows/publish.yml` | 127, 139 | Test PyPI URLs: `https://test.pypi.org/...` |
-| `google/sam/site/content/docs/manifests/*.yaml` | various | K8s ConfigMap manifests (documentation) |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes `GOOGLE_API_KEY=` from variable (not hardcoded) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Documents `169.254.169.254` metadata endpoint (public knowledge) |
-| `google/adk-python/src/google/adk/code_executors/*.py` | various | Documents cloud metadata endpoint `169.254.169.254` |
+| `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | Documentation URL in comment (not a leak) |
+| `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml` | 1 | Homepage URL (not a leak) |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/sqlglot/*.py` | various | MySQL documentation URLs in comments |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/expr/operations/reductions.py` | 107, 125, 143 | MySQL documentation URLs in comments |
 
 #### INTERESTING
-| File | Line | Detail |
+| File | Line | Reason |
 |------|------|--------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Private key fixture in auth credential test helpers |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | Kubeconfig path/context params (could enable cluster access if misused) |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Explicitly blocks `169.254.169.254` in Chrome (defensive) |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments referencing cloud metadata endpoint `169.254.169.254` and privilege escalation risk — **design discussion**, not a leak |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | Kubeconfig path parameters — config surface, not a secret |
+| `reposcan-raw/google/dagger/util/latest-dagger-version.sh` | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` — env var reference, proper pattern |
+| `reposcan-raw/google/bigframes/scripts/run_doctest.sh` | 38-39 | Service account file reference via `KOKORO_GFILE_DIR` — CI pattern |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| **earthengine-api oauth.py:45** | **YES** (already tracked) | Hardcoded native-app client_secret with broad scopes; **ACCEPTED in KB**, pending VRP determination on by-design status |
-| **bigframes vendored ibis CLIENT_SECRET** | **NO** | In `third_party/bigframes_vendored/` — vendored third-party dependency code (ibis project), not Google-owned; likely test cred from upstream |
-| All TEST_OR_EXAMPLE entries | **NO** | Test fixtures, placeholders, documentation |
-| All ENDPOINT_LEAK entries | **NO** | Public/test endpoints, metadata IP docs, variable references |
-| All INTERESTING entries | **NO** | Defensive code, test helpers, config params |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Ibis BigQuery `CLIENT_SECRET` | `bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` + `backend.py:59` | **NO** | Vendored third-party code (upstream ibis project); Google bigframes vendors this dependency. The secret belongs to the ibis project, not Google. Report upstream if valid. |
+| Algolia DocSearch apiKey | `xrblocks/docs/docusaurus.config.ts:175` | **NO** | **REJECTED CLASS** per KB: search-only key, public by design |
+| Earth Engine OAuth client_secret | `earthengine-api/python/ee/oauth.py:45` | **YES (pre-existing)** | **ACCEPTED** in KB (sha256 `3f3f8d6f…d271`), live on master, A/B proof conclusive — **pending VRP determination on native-app by-design status** |
+| All other hits | — | **NO** | Test fixtures, placeholder values, secret references (proper pattern), documentation URLs, or design comments |
 
-**Only the earthengine-api finding is a live report candidate (already tracked in KB as ACCEPTED).** The bigframes ibis secret is in vendored third-party code — not attributable to Google for VRP purposes.
+**Summary**: No **new** reportable findings in this delta. The only live REAL_SECRET candidate is the vendored ibis secret (not Google-owned), and the pre-existing Earth Engine client_secret remains in "pending VRP determination" status per KB.
