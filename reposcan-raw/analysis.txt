@@ -1,74 +1,165 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "earthengine-api" -type d 2>/dev/null | head -5
-./reposcan-raw/google/earthengine-api
+[0m$ [0mcat reposcan-raw/google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | head -60
+/*
+ * Copyright 2026 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.google.adk.kt.tools.mcp.it
+
+import com.google.adk.kt.tools.mcp.McpConnectionParameters
+import com.google.adk.kt.tools.mcp.McpToolset
+import com.google.adk.kt.tools.mcp.McpToolset.McpToolsetConfig
+import io.modelcontextprotocol.client.transport.ServerParameters
+import io.modelcontextprotocol.spec.McpSchema
+import java.nio.file.Files
+import java.nio.file.Path
+import java.time.Duration
+import java.util.concurrent.TimeoutException
+import kotlin.jvm.optionals.getOrNull
+import org.junit.Assume
+
+/**
+ * Shared helpers and constants for the MCP **integration** tests (this `it` package), which launch
+ * the real [FakeMcpServer] as a child JVM and talk to it over real stdio.
+ */
+
+/**
+ * Env var that, when truthy, skips the MCP integration suites (e.g. sandboxes forbidding
+ * subprocesses).
+ */
+const val DISABLE_IT_ENV = "ADK_MCP_DISABLE_IT"
+
+/** Default per-call request timeout; generous to absorb cold child-JVM startup on CI. */
+val REQUEST_TIMEOUT: Duration = Duration.ofSeconds(30)
+
+/**
+ * A fixed, non-semantic token injected into the server's environment and reflected back by the
+ * `whoami` tool and `mem://greeting` resource.
+ */
+const val INJECTED_TOKEN = "injected-token-probe"
+
+/** Values treated as truthy for the `*_DISABLE_IT` gates. */
+private val TRUTHY_VALUES = setOf("true", "t", "yes", "y", "1")
+
+/**
+ * Reads an environment variable, treating a blank value the same as unset (returns `null`). GitHub
+ * Actions sets a configured env var to the empty string when the secret/variable it maps to does
+ * not exist, so a plain null check is not enough -- such values must fall back to defaults.
+ */
+fun envOrNull(name: String): String? = System.getenv(name)?.takeIf { it.isNotBlank() }
 [0m
-[0m✗ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py failed
-[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py
-[0m✱ [0mGlob "**/earthengine-api/**/oauth.py"[90m 0 matches[0m
-[0m
-[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/
-total 20
-drwxr-xr-x   2 runner runner  4096 Aug 18 11:48 .
-drwxr-xr-x 407 runner runner 16384 Aug 18 11:48 ..
-[0m
-[0m$ [0mgrep -r "RUP0RZ6e0pPhDzsqIJ7KlNd1" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null | head -5
-(no output)
+[0m$ [0mcat reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | head -50
+#!/bin/bash
+echo ""
+echo "--- Debugging ADC Credentials inside VM ---"
+echo ""
+
+echo "1. Checking GOOGLE_APPLICATION_CREDENTIALS env var:"
+if [ -n "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+  echo "   GOOGLE_APPLICATION_CREDENTIALS is SET to: $GOOGLE_APPLICATION_CREDENTIALS"
+  if [ -f "$GOOGLE_APPLICATION_CREDENTIALS" ]; then
+    echo "   The file exists."
+    # Optionally, print type of key, but be careful about sensitive details
+    grep '"type":' "$GOOGLE_APPLICATION_CREDENTIALS" || echo "   Could not determine key type."
+  else
+    echo "   WARNING: The file $GOOGLE_APPLICATION_CREDENTIALS does NOT exist."
+  fi
+else
+  echo "   GOOGLE_APPLICATION_CREDENTIALS is NOT SET."
+fi
+echo ""
+
+echo "2. Checking for gcloud user ADC file:"
+ADC_FILE="$HOME/.config/gcloud/application_default_credentials.json"
+if [ -f "$ADC_FILE" ]; then
+  echo "   Found gcloud ADC file: $ADC_FILE"
+  # Optionally, print type of key
+  grep '"type":' "$ADC_FILE" || echo "   Could not determine key type."
+else
+  echo "   No gcloud ADC file found at $ADC_FILE"
+fi
+echo ""
+
+echo "3. gcloud auth status:"
+gcloud auth list
+echo ""
+gcloud config list account --format="value(core.account)"
+echo ""
+
+echo "4. VM Default Service Account from Metadata Server:"
+SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" -s -m 1)
+echo "   Email: $SA_EMAIL"
+echo ""
+
+echo "5. VM Default Service Account SCOPES from Metadata Server:"
+curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes" -s -m 1
+echo ""
+echo "--- End Debugging ADC Credentials ---"
 [0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
-|------|------|---------------|---------|------------------|
-| *(none in current scan hits)* | | | | |
-| **Pre-existing (knowledge base)**: `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes: cloud-platform+drive+devstorage.full_control, OOB redirect. **ACCEPTED 2026-08-07**, confirmed live on master. | **yes** (pending VRP determination on native-app by-design status) |
+#### REAL_SECRET (reportable credentials)
+| File | Line | SHA256 | Context | REPORT_CANDIDATE |
+|------|------|--------|---------|------------------|
+| *(none in new delta)* | | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| `google/device-infra/.../DeviceAdminUtil.java` | 49 | `ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"` | Android intent action constant name |
-| `google/goonami-scanner/.../const.go` | 47 | `VarCallbackSecret = "T_CBS_SECRET"` | Template variable name constant |
-| `google/osv-scalibr/.../winlocal_windows.go` | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` | Vulnerability reference format string |
-| `google/osv-scalibr/.../decrypt.go` | 40 | MySQL documentation URL comment | Documentation reference |
-| `google/osv-scalibr/.../mysqlmylogin.go` | 32 | Veles Secret documentation comment | Code documentation |
-| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` | Constant for key name |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` | GH Actions secret references |
-| `google/sam/.github/k8s/*.yaml` | multiple | `kind: ConfigMap` | K8s template ConfigMaps |
-| `google/agents-cli/.../auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Config key name constant |
-| `google/agents-cli/.../staging.yaml` | 168,192 | `_ID_TOKEN`, `_AUTH_TOKEN` from steps | CI token handling |
-| `google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` | Standard GH Actions pattern |
-| `google/adk-python/.../auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in test/example code |
-| `google/adk-python/.../auth_credential.py` | 269 | `username="user", password="password"` | Example credentials |
-| `google/adk-python/.../auth_credential.py` | 278 | `token="eyAkaknabna...."` | Example truncated token |
-| `google/adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` | Auth scheme constant name |
-| `google/adk-python/.../auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Placeholder value |
-| `google/adk-python/.../sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Key name constant |
-| `google/adk-python/.../cli/browser/chunk-*.js` | multiple | Parse error messages | Minified JS artifacts |
+#### TEST_OR_EXAMPLE (test/fixture/sample data)
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt` | 49 | `INJECTED_TOKEN = "injected-token-probe"` — integration test probe token, documented as "non-semantic token injected into server's environment" |
+| `google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java` | 50 | `ACTION_RESET_PASSWORD = "RESET_PASSWORD"` — Android intent action constant |
+| `google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java` | 44 | `PARAM_PASSWORD = "password"` — parameter name constant, not a credential |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: placeholder private_key, `username="user", password="password"`, fake JWT `eyAkaknabna....` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — constant definition |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` — placeholder |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template `GOOGLE_API_KEY={google_api_key}` — not hardcoded |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — reads from env, empty default |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` — correct GitHub Actions secret ref |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=...="${SECRET}"` — correct secret injection |
+| `google/goonami-scanner/common/templatedengine/environment/const.go` | 47 | `VarCallbackSecret = "T_CBS_SECRET"` — constant name, not value |
+| `google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` — vuln reference constant |
+| `google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32, 40 | MySQL mylogin docs/constants — not secrets |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| `google/adk-python/.../gke_code_executor.py` | 103,115 | `169.254.169.254` | Cloud metadata IP (well-known public) |
-| `google/adk-python/.../container_code_executor.py` | 114,154 | `169.254.169.254` | Cloud metadata IP |
-| `google/adk-python/.../load_web_page.py` | 171 | `169.254.169.254` | Cloud metadata IP |
-| `google/adk-python/.../computer_use_toolset.py` | 146 | `169.254.169.254` | Cloud metadata IP |
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Context |
+|------|------|---------|
+| `google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh` | 39 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email` — GCP metadata endpoint (standard, documented) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 115 | `169.254.169.254` — cloud metadata IP (documented in comments) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` — metadata endpoint reference |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` — metadata endpoint reference |
 
-#### INTERESTING
-| File | Line | Finding | Assessment |
-|------|------|---------|------------|
-| `google/crosvm/.../push_to_github.sh` | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | **Good pattern** - fetches from Secret Manager at runtime, not hardcoded |
-| `google/crosvm/.../codecov_wrapper.sh` | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | **Good pattern** - same |
-| `google/adk-python/.../cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Writes API key to file; variable source unclear (user input?) — **review variable origin** |
+#### INTERESTING (debug flags, build artifacts, cloud configs)
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-kotlin/webserver/browser/main-TCIQIOZ3.js` | 5 | Minified JS bundle / source map — build artifact |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (multiple) | Minified JS chunks — build artifacts |
+| `google/sam/.github/k8s/*.yaml` | (multiple) | `kind: ConfigMap` — K8s config templates |
+| `google/sam/site/content/docs/manifests/*.yaml` | 16, 88 | `kind: ConfigMap` — documentation manifests |
+| `google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh` | (full) | ADC debugging script — shows GCP metadata usage pattern |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (pre-existing, knowledge base) | **yes** | Hardcoded OAuth client_secret with cloud-platform scope; confirmed live on master; ACCEPTED 2026-08-07. Pending VRP determination on native-app by-design status. |
-| All current scan hits (delta + full grep) | **no** | All classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (known public metadata IP), or INTERESTING (good secret-management patterns). No hardcoded live secrets in current scan corpus. |
-| crosvm Secret Manager usage | **no** | Exemplary pattern — secrets fetched at runtime from Secret Manager, not committed. |
-| adk-python cli_create.py GOOGLE_API_KEY write | **no** (informational) | Variable `google_api_key` source not visible in scan; if user-supplied, expected behavior. No hardcoded value detected. |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| INJECTED_TOKEN probe | `adk-kotlin/.../McpIntegrationTestSupport.kt:49` | **no** | Test constant, documented as non-semantic probe token for integration tests |
+| ADC metadata fetch | `device-infra/.../adc_credentials.sh:39` | **no** | Standard GCP ADC debugging script, queries metadata server for SA email (no secret) |
+| Android intent constants | `device-infra/.../DeviceAdminUtil.java:50` | **no** | `RESET_PASSWORD` / `SETUP_PASSWORD_TOKEN` — Android framework constants |
+| PARAM_PASSWORD | `device-infra/.../GoogleAccountDecoratorSpec.java:44` | **no** | Parameter name constant `"password"`, not a credential |
+| ADK Python
