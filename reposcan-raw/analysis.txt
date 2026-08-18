@@ -1,83 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [limit=20, offset=170][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=135][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [offset=20, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [offset=0, limit=60][0m
-[0m→ [0mRead reposcan-raw/google/xrblocks/src/ai/AI.ts[90m [limit=20, offset=295][0m
-[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml[90m [limit=30, offset=120][0m
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [limit=30, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/dagger/util/latest-dagger-version.sh[90m [limit=20, offset=0][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts[90m [limit=20, offset=410][0m
-[0m→ [0mRead reposcan-raw/google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts[90m [offset=215, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [offset=0, limit=10][0m
+[0m$ [0msha256sum <<<'iU5ohAF2qcqrujegE3hQ1cPt'
+405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+[0m$ [0msha256sum <<<'RUP0RZ6e0pPhDzsqIJ7KlNd1'
+036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
 [0m
-[0m$ [0mecho -n "40150cc2c638b09de8ebbfefd50b80a4" | sha256sum
-b6905a8d45f30542bc9b068a8b9081a048778e98fb439242389242a42f6c4895  -
-[0m
-Now I have all the context needed. Let me classify the hits.
+### Classification Tables
 
-## Classification Results
+#### REAL_SECRET (hardcoded credentials with signs of life)
 
-### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN/ACCEPTED** — Live on master; native-app client_secret (installed-app pattern); scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect; A/B `invalid_grant` vs `invalid_client` proof; reposcan: REPORT_CANDIDATE=yes; pending VRP determination on by-design status |
 
-| File | Line | Secret Type | SHA256 |
-|------|------|-------------|--------|
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | OAuth client_secret (Google) | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | OAuth client_secret (Google, duplicate) | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` |
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
 
-### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (sha256 `405bc76c...`) | Vendored ibis test fixture; `# noqa: S105` suppresses bandit |
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | Same as above | Duplicate in vendored code |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Explicit placeholders |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz harness fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server password |
+| google/adk-web/.../chat-panel.component.spec.ts | 415,462 | `'initial-token'`, `'updated-token-123'` | Unit test stubs |
+| google/adk-web/.../session-tab.component.spec.ts | 221,240,463 | `'nextPage'`, `'nextPageToken'` | Pagination test fixtures |
 
-| File | Line | Description |
-|------|------|-------------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example private_key placeholder in docstring |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example `username="user", password="password"` in docstring |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example bearer token `eyAkaknabna....` in docstring |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Enum value `PASSWORD = "password"` (not a real secret) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Test fixture `secret_key = "fuzz test key"` |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test fixture `g_shutdownPassword = "ServerShutdownPassword"` |
-| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder examples `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 415,462 | Test tokens `'initial-token'`, `'updated-token-123'` |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221,240,463 | Test token `'nextPage'` |
-| google/sam/internal/node/store.go | 38 | Constant key name `keyRefreshToken = "refresh_token"` (not a secret value) |
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
 
-### ENDPOINT_LEAK (internal URLs, proper secret refs)
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal source link (cs.corp.google.com), not an API endpoint |
+| google/sam/.../deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GitHub Actions secret reference (proper pattern) |
+| google/langextract/.../ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper pattern) |
+| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference, not hardcoded |
+| microsoft/qlib/.../release.yml | 63,107 | `twine upload --repository-url https://test.pypi.org/legacy/` | TestPyPI upload (uses env auth, standard) |
 
-| File | Line | Description |
-|------|------|-------------|
-| google/sam/development/kind/run.sh | 139 | Env var reference `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secrets refs (proper pattern) |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | Public test.pypi.org URLs |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secrets refs (proper pattern) |
-| google/dagger/util/latest-dagger-version.sh | 9 | Env var reference `GITHUB_TOKEN="${GH_TOKEN:-}"` |
+#### INTERESTING (debug flags, keys, cloud configs)
 
-### INTERESTING (config/debug, already-known)
-
-| File | Line | Description |
-|------|------|-------------|
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey — **REJECTED per KB** (search-only, public by design) |
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| microsoft/Agents-for-python/.../telemetry/constants.py | 4-5,15,18 | `AGENTIC_TOKEN`, `AZURE_BOT_TOKEN`, `SPAN_GET_USER_TOKEN`, `SPAN_EXCHANGE_TOKEN` | Telemetry span/constant names — not secrets |
+| microsoft/Agents-for-python/.../dialogs/choices/channel.py | 34 | `https://dev.kik.com/#/docs/messaging...` | Documentation reference |
+| microsoft/Employee-Self-Service-Agent-Developer-Kit/.../install-telemetry.sh | 150 | `local envtoken="o:${ESS_TEL_IKEY%%-*}"` | Shell param expansion of env var `ESS_TEL_IKEY` (runtime config) |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED CLASS** — Algolia DocSearch public search-only key (per RAG) |
 
 ---
 
-## Verdict List
+### Verdict List
 
-| Candidate | File | REAL_SECRET? | REPORT_CANDIDATE | Rationale |
-|-----------|------|--------------|------------------|-----------|
-| ibis BigQuery client_secret | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58 | **YES** | **YES** | Real Google OAuth client secret (24-char format, paired with real client_id) in vendored code; matches accepted pattern for hardcoded OAuth secrets (cf. earthengine-api) |
-| ibis BigQuery client_secret (dup) | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59 | **YES** | **YES** (dup) | Same secret, duplicated in same vendored package |
-| Algolia DocSearch apiKey | google/xrblocks/docs/docusaurus.config.ts:175 | No | **NO** | **REJECTED per KB** — search-only key, public by design |
-| All TEST_OR_EXAMPLE hits | various | No | **NO** | Placeholders, test fixtures, docstring examples |
-| All ENDPOINT_LEAK hits | various | No | **NO** | Proper secret references (GitHub Actions secrets, env vars), public endpoints |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Earth Engine OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **yes** (pending VRP determination) | Live hardcoded native-app secret; full GCP scopes; A/B proof conclusive; already ACCEPTED in knowledge base; by-design status for installed apps under review |
+| Ibis vendored CLIENT_SECRET | google/bigframes/third_party/.../bigquery/__init__.py:58 | **no** | Test fixture in vendored third-party code; `# noqa: S105` |
+| Algolia DocSearch apiKey | google/xrblocks/docs/docusaurus.config.ts:175 | **no** | Public by design (search-only); explicitly REJECTED in RAG |
+| All other hits | — | **no** | Test fixtures, env var references, docs links, telemetry constant names, proper GitHub Actions secret usage |
 
-**Summary**: 1 unique reportable finding (the ibis BigQuery OAuth client secret, appearing in 2 files in the vendored third-party code). This is a real Google OAuth client secret that should be rotated and removed from source.
+**Summary**: Only the Earth Engine `client_secret` remains a live report candidate — already tracked, validated, and pending VRP determination on whether the installed-app default-secret pattern qualifies. No new reportable secrets in this delta.
