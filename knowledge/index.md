@@ -281,3 +281,8 @@
 - 2026-08-18 ACCEPTED: all 3 hypothesis preconditions confirmed still live — agentRegistration 6-family true CORS preflight (OPTIONS 200 + ACAO:* + PATCH at collection+item+all 6 families), earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f…d271`), oauth2PermissionGrants caller-chosen resourceId (458-char EntityType 0 OperationRestrictions).
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collection+item level (unchanged 16:52 UTC).
 - 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`, 16:52 UTC probe).
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 23+ consecutive probes since 2026-08-17).
+- 2026-08-18 ACCEPTED: graph.microsoft.com systemic RFC 6750 §3 deviation (HEAD→405/0 no WWW-Authenticate Bearer) confirmed across all tested endpoint families — unchanged.
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — OPTIONS 200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 families confirmed 16:52 UTC.
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions, true CORS preflight confirmed.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE on master — sha256 `3f3f8d6f…d271`, A/B RFC 6749 §5.2 proof conclusive.
