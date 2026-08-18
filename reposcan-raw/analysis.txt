@@ -1,44 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=40, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/fleetspeak/terraform/main.tf[90m [offset=320, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java[90m [offset=1, limit=30][0m
+# Scan Classification Results
+
+## REAL_SECRET
+| File | Line | SHA256 | Context |
+|------|------|--------|---------|
+| *none* | — | — | No production credentials with signs of life found |
+
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key (`-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Fake JWT token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` (test scheme) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name `GEMINI_API_KEY = "gemini_api_key"` (not a value) |
+| google/fleetspeak/sandboxes/*/docker-compose.yaml | 10-11 | Local dev MySQL passwords (`fleetspeak-password`, `password`) |
+| google/fleetspeak/terraform/main.tf | 323 | Terraform dev password `fsuserPass1!` (local deployment) |
+| google/ax/manifests/install-ax.sh | 239,241,286 | Generates random PG password or uses env var (good practice) |
+| google/sam/development/kind/run.sh | 139 | Reads `OIDC_CLIENT_SECRET` from env (proper pattern) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Uses GitHub Secrets properly (`${{ secrets.* }}`) |
+
+## ENDPOINT_LEAK
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documented GCP metadata endpoint `169.254.169.254` (public IP) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Same metadata endpoint reference (documentation) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment about metadata endpoint (explicit refusal) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path parameters (config, not secret) |
+
+## INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key name `_vmaas_access_token` (not a secret) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user's `GOOGLE_API_KEY` to generated project (expected behavior) |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified parser error messages (source map artifacts, not secrets) |
+
 ---
 
-### Classification Table
+## VERDICT LIST
 
-| File | Line | Pattern | Classification | Notes |
-|------|------|---------|----------------|-------|
-| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | minified JS | **TEST_OR_EXAMPLE** | Obfuscated source map / build artifact |
-| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | `kind: ConfigMap` | **TEST_OR_EXAMPLE** | Mock OIDC config in docs |
-| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | `kind: ConfigMap` | **TEST_OR_EXAMPLE** | Documentation example |
-| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` | **TEST_OR_EXAMPLE** | Constant name, not a secret value |
-| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | `kind: ConfigMap` | **TEST_OR_EXAMPLE** | Helm template |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | **TEST_OR_EXAMPLE** | Reads from env, default empty — dev script |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | **TEST_OR_EXAMPLE** | GitHub Actions secret refs, not hardcoded |
-| `google/sam/.github/k8s/*.yaml` | various | `kind: ConfigMap` | **TEST_OR_EXAMPLE** | K8s templates |
-| `google/fleetspeak/terraform/main.tf` | 323 | `password = "fsuserPass1!"` | **TEST_OR_EXAMPLE** | Terraform test DB resource (`fleetspeak_test`) |
-| `google/fleetspeak/sandboxes/*/docker-compose.yaml` | 10-11 | `MYSQL_PASSWORD: 'fleetspeak-password'` | **TEST_OR_EXAMPLE** | Sandbox/dev compose files |
-| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | `${{ secrets.GITHUB_TOKEN }}` | **TEST_OR_EXAMPLE** | GitHub Actions secret ref |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | **TEST_OR_EXAMPLE** | Enum constant for auth method name |
-| `google/agents-cli/.../staging.yaml` | 168,192 | `{% raw %}${{ steps.fetch-token...` | **TEST_OR_EXAMPLE** | Template syntax, not real values |
-| `google/quiche/.../certificate_view.h` | 126 | comment about RSA key format | **INTERESTING** | Code comment, no secret |
-| `google/quiche/.../spdy_protocol.h` | 7 | comment with URL | **INTERESTING** | Code comment |
-| `google/adk-go/.../cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=...` | **TEST_OR_EXAMPLE** | Secret reference syntax |
-| `google/adk-go/.../distr/*.js` | various | minified JS parse errors | **TEST_OR_EXAMPLE** | Build artifacts |
-| `google/conscrypt/testing/.../TestKeyStore.java` | 501,504 | `"password".toCharArray()` | **TEST_OR_EXAMPLE** | JUnit test fixture (Android OSS) |
-| `microsoft/ResearchStudio/.../render_poster.py` | 55 | `_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"` | **TEST_OR_EXAMPLE** | Feature flag constant, not a credential |
-| `microsoft/kiota-java/.../conflicting-pr-label.yml` | 33 | `${{ secrets.GITHUB_TOKEN }}` | **TEST_OR_EXAMPLE** | GitHub Actions secret ref |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py test fixtures | **no** | Explicit test/fixture data in auth examples |
+| adk-python auth_schemes.py PASSWORD constant | **no** | Test scheme constant |
+| adk-python openapi auth_helpers placeholder | **no** | Documentation placeholder |
+| fleetspeak sandboxes docker-compose | **no** | Local dev environments (`sandboxes/` dir) |
+| fleetspeak terraform main.tf | **no** | Dev/test deployment password, weak but not production |
+| ax install-ax.sh password generation | **no** | Generates random or uses env var (secure pattern) |
+| sam workflows/deploy.yaml | **no** | Proper GitHub Secrets usage |
+| agents-cli GEMINI_API_KEY constant | **no** | Constant name only, not a value |
+| 169.254.169.254 references | **no** | Public documented metadata endpoint |
+| kubeconfig path params | **no** | Configuration options |
+| CLI browser JS chunks | **no** | Minified source map parse errors |
 
----
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| (none — zero REAL_SECRET findings in this delta) | **no** |
-
-**Summary:** The single new hit (`_LEGACY_FIGURE_FLOOR_TOKEN`) is a versioned feature-flag constant in a research poster renderer. All other hits are test fixtures, template references, dev scaffolding, or build artifacts. No reportable secrets in this delta.
+**Overall: 0 reportable findings in this delta.** All hits are test fixtures, placeholders, local dev config, documentation references, or proper secret-handling patterns.
