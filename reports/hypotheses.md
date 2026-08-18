@@ -6143,3 +6143,25 @@
 - LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live on production v1.0 — GET→401/237 Bearer, 458-char EntityType 0 OperationRe
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → n
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
+
+## RANKED HYPOTHESES 2026-08-18 11:46:23 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal ownership takeover via CORS+PATCH (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` via msrc.microsoft.com/bounty portal — single authorized-token request unblocks AUTH_HELPED browser-based 
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — single request unblocks AUTH_HELPED testing for BOTH hypothesis #1 (6
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (expected for token endpoints per RFC 6749)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpo
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight confirmed live at 09:49 UTC — OPTIONS → 200, `Access-Control-Allow-Origin: *`,
+- LEARN: ACCEPTED: graph.microsoft.com 405 anomaly (RFC 6750 §3 violation) confirmed live at 09:49 UTC — HEAD /v1.0 → 405, Content-Length 0, no WWW-Authenticate Bearer; 
+- LEARN: ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item+6 endpoint families (unchanged)
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 3f3f8d6f…)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no cross-endpoint confusion surface
+- LEARN: ACCEPTED: oauth2PermissionGrants true CORS preflight @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS → 200, Access-Control-Allow-Origin: *, Allow-Me
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families (agentRegistrations, agentInstances, agents, admin/
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes c
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live cl
