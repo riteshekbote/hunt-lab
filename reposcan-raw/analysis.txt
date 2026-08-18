@@ -1,90 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find reposcan-raw -type f -name "*.sh" -o -name "*.py" -o -name "*.cpp" -o -name "*.cs" -o -name "*.ts" -o -name "*.yaml" -o -name "*.yml" -o -name "*.go" | head -20
-reposcan-raw/google/material-design-lite/.drone.yml
-reposcan-raw/google/XNNPACK/gemm_compiler/base_architecture.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_qs8_qc4w_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_qd8_f32_qc8w_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_qs8_qc8w_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/aarch64_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/avx512f_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_f32_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/avx512bf16_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/aarch32_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_bf16_f32_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_gemm_microkernels_main.py
-reposcan-raw/google/XNNPACK/gemm_compiler/x64_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/neonfma_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/arm_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/fma3_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/generate_qd8_f32_qc4w_gemm_microkernels.py
-reposcan-raw/google/XNNPACK/gemm_compiler/avx512vnni_template.py
-reposcan-raw/google/XNNPACK/gemm_compiler/neondot_template.py
-[0m
-[0m→ [0mRead reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp[90m [offset=550, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=15, offset=38][0m
-[0m→ [0mRead reposcan-raw/google/clusterfuzz/docker/base/setup_mock_metadata.sh
-[0m→ [0mRead reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs[90m [limit=20, offset=558][0m
-### Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
+## REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | SHA256 | Context |
 |------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live credentials found |
+| *none found in this delta* | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/heir/scripts/author_stats.py | 16 | `# TOKEN = "your_github_token_here"` (commented placeholder) |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen template: `os << ctx << ".secret_key = " << sk` (emits variable assignment, not a literal) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (enum string constant) |
-| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `${{secrets.GITHUB_TOKEN}}` (GitHub Actions secret ref) |
-| google/sam/.github/workflows/deploy.yaml | 247–250 | `${{secrets.GOOGLE_CLIENT_SECRET}}`, `${{secrets.GITHUB_CLIENT_SECRET}}`, `${{secrets.CLI_OAUTH_SECRET}}` (secret refs) |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var with empty default) |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` (constant name) |
-| google/langextract/.github/workflows/ci.yaml | 168–170 | `${{secrets.GEMINI_API_KEY}}`, `${{secrets.OPENAI_API_KEY}}` (secret refs) |
-| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions token handling (`steps.fetch-token.outputs._id_token`) |
-| microsoft/agent-governance-toolkit/.../smoke-test.js | 76 | Test payload: `const password = "secret123"` (security audit simulation) |
-| microsoft/.../red_team_dataset.py | 306 | SQLi test payload: `UPDATE users SET password='newpass123'` |
-| microsoft/.../build_and_publish.sh | 105 | TestPyPI index URL (public) |
-| microsoft/.../adapter.py | 17 | `OpenAI(api_key="your-key")` (placeholder) |
-| microsoft/.../alertmanager.yml | 15 | `# smtp_auth_password: 'password'` (commented) |
-| microsoft/.../extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` (placeholder) |
-| microsoft/.../configmap.yaml (multiple) | 2 | `kind: ConfigMap` (K8s resource, no secrets) |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18–20 | Test mock metadata server setup |
+## TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Type |
+|------|------|------|
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | 3,11 | Parser error messages in minified bundles (PEG.js-style) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant placeholder `"gemini_api_key"` |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Scaffold template with `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
+| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test mock metadata server setup |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | TODO comment referencing internal bug |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | TODO comment referencing internal bug |
+| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | TODO comment referencing internal bug |
+| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | Internal metadata server constant (test/stub context) |
 
-#### ENDPOINT_LEAK
+## ENDPOINT_LEAK (internal/dev/staging URLs)
 | File | Line | Endpoint |
 |------|------|----------|
-| google/clusterfuzz/src/.../source_mapper.py | 124,126,131 | `cs.corp.google.com`, `source.corp.google.com` (internal source browsing) |
-| google/clusterfuzz/src/.../data_handler.py | 459–460 | `source.corp.google.com/file:google3` (internal source replacement) |
-| google/clusterfuzz/.../compute_metadata.py | 23 | `metadata.google.internal` (GCP IMDS — well-known) |
-| google/clusterfuzz/.../run_bot.py | 267 | `metadata.google.internal/computeMetadata/v1/` (GCP IMDS) |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | GCP metadata server attributes (standard pattern) |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | GCP metadata server hostname (standard pattern) |
-| microsoft/.../OpaPolicyBackend.cs | 563,566,568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (cloud IMDS blocklist) |
-| microsoft/.../http_client.py | 102–103 | `169.254.169.254`, `metadata.google.internal` (cloud IMDS blocklist) |
-| microsoft/.../cedar.ts | 8,11,13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (cloud IMDS blocklist) |
-| microsoft/.../opa.ts | 13–14 | `169.254.169.254`, `metadata.google.internal` (cloud IMDS blocklist) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (staging Pages) |
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/...` (public test PyPI) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/...` (public test PyPI) |
+| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` (internal, not externally accessible) |
+| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124-131 | `cs.corp.google.com`, `source.corp.google.com` (internal) |
+| google/clusterfuzz/docker/base/setup_common.sh | 28 | `metadata.google.internal` (GCE metadata, internal) |
+| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | `metadata.google.internal` (GCE metadata, internal) |
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/clusterfuzz/src/.../engine.py | 77 | Internal buganizer link: `buganizer.corp.google.com/issues/334956516` |
-| google/clusterfuzz/src/.../task_creation.py | 152 | TODO with internal bug: `b.corp.google.com/issues/328691756` |
-| google/clusterfuzz/src/.../uworker_io.py | 241 | TODO with internal bug: `b.corp.google.com/issues/328691756` |
-| google/clusterfuzz/src/.../corpus_pruning_task.py | 890 | TODO with internal bug: `b.corp.google.com/issues/328691756` |
-| google/clusterfuzz/src/.../k8s/service.py | 171 | "In e2e tests, the kubeconfig is already loaded by the test setup" |
-| google/clusterfuzz/src/.../build_management/source_mapper.py | 124,131 | VCS revision substitution patterns for internal source |
-| microsoft/.../OpaPolicyBackend.cs | 564–565 | Blocklist includes `169.254.170.2` (ECS task metadata), `168.63.129.16` (Azure Wire Server) |
+## INTERESTING (debug flags, keys, cloud configs, patterns)
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref pattern) |
+| google/capsem/config/gate.toml | 584 | `password = "password.txt"` (external password file reference) |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` (reads from file) |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` (reads from file) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | K8s secrets from GitHub secrets: `google-client-secret`, `github-client-secret`, `cli-oauth-secret` |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var with empty default) |
+| google/sam/.github/k8s/*.yaml | multiple | ConfigMap kinds (K8s config patterns) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Workflow secrets: `GEMINI_API_KEY`, `OPENAI_API_KEY` (referenced from GitHub secrets) |
+| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup (test infra comment) |
 
----
-
-### Verdict List (REPORT_CANDIDATE)
-
+## VERDICT LIST
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| Hardcoded OAuth client_secret @ google/earthengine-api/python/ee/oauth.py:45 | **yes** (pre-existing) | Already tracked in knowledge base (sha256 `3f3f8d6f…d271`), pending VRP determination on native-app by-design status |
-| All other hits in this delta | **no** | All classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK (well-known cloud IMDS), or INTERESTING (internal refs) — no reportable secrets or novel vulnerabilities |
+| adk-go Cloud Run secret ref | no | Secret Manager reference, not hardcoded secret |
+| capsem staging URL | no | Staging environment, Pages subdomain (publicly routable but staging) |
+| meridian test.pypi.org | no | Public test PyPI endpoint |
+| clusterfuzz internal URLs | no | corp.google.com - not externally accessible |
+| sam K8s secret refs | no | All reference GitHub secrets, no hardcoded values |
+| sam OIDC_CLIENT_SECRET | no | Empty default, expects env injection |
+| langextract workflow secrets | no | References GitHub secrets |
+| capsem password.txt refs | no | Reads from external file, no hardcoded password |
+
+**NO REPORTABLE FINDINGS IN THIS DELTA**
+All hits are either test fixtures, template code, internal-only endpoints, or proper secret-reference patterns (GitHub Secrets / Secret Manager / env vars).
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
