@@ -1,62 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+Looking at the scan hits, I'll classify each one:
 
-## REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *none found* | | | |
+## Classification Tables
 
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Literal test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Placeholder JWT with ellipsis |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test password |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=` + getDatabasePassword() | Test code |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default name |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant name |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GitHub Actions secret ref (proper) |
-| google/sam/.github/workflows/staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions expression |
-| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` | K8s ConfigMap declarations |
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none found in this scan)* | | | |
 
-## ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
-| File | Line | Context | Risk |
-|------|------|---------|------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documents 169.254.169.254 metadata endpoint | Documentation only - warns about SSRF risk |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Documents 169.254.169.254 in Chrome | Documentation only |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses 169.254.169.254 in Chrome | Defensive coding |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context params | Config params, not leaks |
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Mock OIDC config (test fixture) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | Documentation example |
+| google/sam/internal/node/store.go | 38 | Constant `"refresh_token"` string literal |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Helm template (ConfigMap kind) |
+| google/sam/development/kind/run.sh | 139 | Shell var reference `${OIDC_CLIENT_SECRET:-}` (empty default) |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | GitHub Actions secret refs `${{ secrets.* }}` |
+| google/sam/.github/k8s/*.yaml | various | K8s template ConfigMaps |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` (explicit test) |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test shutdown password / test DB connection |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Default flag value `"storage_driver_password"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name `"gemini_api_key"` (not a key) |
+| google/agents-cli/.../staging.yaml | 168,192 | GitHub Actions expressions `${{ steps... }}` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Example private key / test credentials / truncated token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template generating `GOOGLE_API_KEY={var}` |
 
-## INTERESTING (debug flags, keys, cloud configs)
-| File | Line | Context | Note |
-|------|------|---------|------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Writes API key from variable to env file - verify variable source |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment on legacy OpenSSL RSA key format | Documentation |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell param with default empty |
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle | Build artifact |
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Public homepage URL |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Public documentation URL |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment with public dev.chromium.org URL |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments about `169.254.169.254` metadata endpoint (well-known) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment about metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment about metadata endpoint |
+
+### INTERESTING
+| File | Line | Reason |
+|------|------|--------|
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Legacy OpenSSL RSA key format support comment |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig path/context params (config surface) |
+| google/adk-python/src/google/adk/cli/browser/*.js | various | Minified browser bundles (source maps) — recon surface |
 
 ---
 
-## SHORT VERDICT LIST
+## SHORT VERDICT
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| GOOGLE_API_KEY write | google/adk-python/src/google/adk/cli/cli_create.py:131 | **no** | Variable-sourced, not hardcoded; verify upstream but not a static secret |
-| OIDC_CLIENT_SECRET param | google/sam/development/kind/run.sh:139 | **no** | Dev script with empty default, expects env injection |
-| GitHub Actions secret refs | google/sam/.github/workflows/deploy.yaml | **no** | Proper secret management pattern (`${{ secrets.* }}`) |
-| 169.254.169.254 refs | google/adk-python/code_executors/*.py | **no** | Documentation of SSRF risk, not a leak |
-| All other hits | various | **no** | Test data, placeholders, minified build artifacts, or documentation |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| *(no REAL_SECRET hits in this scan)* | **no** |
 
-**OVERALL: No reportable findings in this delta.** All hits are test fixtures, placeholders, documentation, build artifacts, or proper secret references.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Summary**: 298 grep hits → **0 reportable secrets**. All hits are test fixtures, template placeholders, GitHub Actions secret references (`${{ secrets.* }}`), documentation URLs, well-known metadata endpoint references, or minified browser bundles. The previously confirmed live secret (`google/earthengine-api/python/ee/oauth.py:45`) does not appear in this scan delta.
