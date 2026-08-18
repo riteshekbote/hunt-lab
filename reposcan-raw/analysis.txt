@@ -1,60 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<<'iU5ohAF2qcqrujegE3hQ1cPt'
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "40150cc2c638b09de8ebbfefd50b80a4"
+cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "iU5ohAF2qcqrujegE3hQ1cPt"
 405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
 [0m
-[0m$ [0msha256sum <<<'RUP0RZ6e0pPhDzsqIJ7KlNd1'
-036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
-[0m
-### Classification Tables
+## Classification Tables
 
-#### REAL_SECRET (hardcoded credentials with signs of life)
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | — | — | No live hardcoded credentials found in this scan |
 
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN/ACCEPTED** — Live on master; native-app client_secret (installed-app pattern); scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect; A/B `invalid_grant` vs `invalid_client` proof; reposcan: REPORT_CANDIDATE=yes; pending VRP determination on by-design status |
-
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
-
+### TEST_OR_EXAMPLE
 | File | Line | Pattern | Verdict |
 |------|------|---------|---------|
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (sha256 `405bc76c...`) | Vendored ibis test fixture; `# noqa: S105` suppresses bandit |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | Same as above | Duplicate in vendored code |
-| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Explicit placeholders |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz harness fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server password |
-| google/adk-web/.../chat-panel.component.spec.ts | 415,462 | `'initial-token'`, `'updated-token-123'` | Unit test stubs |
-| google/adk-web/.../session-tab.component.spec.ts | 221,240,463 | `'nextPage'`, `'nextPageToken'` | Pagination test fixtures |
+| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | `testpassword`, `test-token-123` | Test fixtures |
+| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | `testpassword` | Test fixtures |
+| `google/xrblocks/src/ai/AI.ts` | 303–304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | Placeholders |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `fuzz test key` | Fuzz test |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | `ServerShutdownPassword` | Test fixture |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `iU5ohAF2qcqrujegE3hQ1cPt` (sha256 `405bc76c…`) | Vendored test code, `# noqa: S105` |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same as above | Vendored test code |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs)
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Severity |
+|------|------|----------|----------|
+| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com` (internal Artifact Registry) | Internal URL leak |
+| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` | Public test registry (low) |
+| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` | Public test registry (low) |
+| `google/closure-compiler/externs/browser/*.js` | Multiple | `dev.w3.org`, `http://dev.w3.org/...` | Public spec references (not leaks) |
 
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/libultrahdr/third_party/image_io/.../image_metadata.h | 11 | `https://cs.corp.google.com/piper///depot/google3/...` | Internal source link (cs.corp.google.com), not an API endpoint |
-| google/sam/.../deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GitHub Actions secret reference (proper pattern) |
-| google/langextract/.../ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper pattern) |
-| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference, not hardcoded |
-| microsoft/qlib/.../release.yml | 63,107 | `twine upload --repository-url https://test.pypi.org/legacy/` | TestPyPI upload (uses env auth, standard) |
-
-#### INTERESTING (debug flags, keys, cloud configs)
-
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| microsoft/Agents-for-python/.../telemetry/constants.py | 4-5,15,18 | `AGENTIC_TOKEN`, `AZURE_BOT_TOKEN`, `SPAN_GET_USER_TOKEN`, `SPAN_EXCHANGE_TOKEN` | Telemetry span/constant names — not secrets |
-| microsoft/Agents-for-python/.../dialogs/choices/channel.py | 34 | `https://dev.kik.com/#/docs/messaging...` | Documentation reference |
-| microsoft/Employee-Self-Service-Agent-Developer-Kit/.../install-telemetry.sh | 150 | `local envtoken="o:${ESS_TEL_IKEY%%-*}"` | Shell param expansion of env var `ESS_TEL_IKEY` (runtime config) |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED CLASS** — Algolia DocSearch public search-only key (per RAG) |
+### INTERESTING
+| File | Line | Observation |
+|------|------|-------------|
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — proper env-var pattern |
+| `google/sam/.github/workflows/deploy.yaml` | 247–250 | GitHub Actions secrets refs (`${{ secrets.GOOGLE_CLIENT_SECRET }}`, etc.) — proper pattern |
+| `google/langextract/.github/workflows/ci.yaml` | 168–170 | GitHub Actions secrets refs — proper pattern |
+| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` (sha256 `cfaa7fa…`) — **KNOWN REJECTED**: search-only key, public by design |
 
 ---
 
-### Verdict List
+## Verdict List
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Earth Engine OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **yes** (pending VRP determination) | Live hardcoded native-app secret; full GCP scopes; A/B proof conclusive; already ACCEPTED in knowledge base; by-design status for installed apps under review |
-| Ibis vendored CLIENT_SECRET | google/bigframes/third_party/.../bigquery/__init__.py:58 | **no** | Test fixture in vendored third-party code; `# noqa: S105` |
-| Algolia DocSearch apiKey | google/xrblocks/docs/docusaurus.config.ts:175 | **no** | Public by design (search-only); explicitly REJECTED in RAG |
-| All other hits | — | **no** | Test fixtures, env var references, docs links, telemetry constant names, proper GitHub Actions secret usage |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `copybara/cloudbuild.yaml` internal URL | **no** | Internal endpoint reference only; no credential material |
+| `xrblocks` Algolia apiKey | **no** | REJECTED class (2026-08-07): search-only key, public by design |
+| `ibis` vendored CLIENT_SECRET | **no** | Third-party test code, bandit-suppressed, no production use |
+| All test fixtures (`testpassword`, `test-token-123`, placeholders) | **no** | TEST_OR_EXAMPLE |
+| GitHub Actions secret refs (sam, langextract) | **no** | Proper secret handling pattern |
 
-**Summary**: Only the Earth Engine `client_secret` remains a live report candidate — already tracked, validated, and pending VRP determination on whether the installed-app default-secret pattern qualifies. No new reportable secrets in this delta.
+**No reportable findings in this delta.**
