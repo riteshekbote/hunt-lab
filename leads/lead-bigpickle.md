@@ -12277,3 +12277,4 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
 [RISK] google: 55 — earthengine secret is a proven-valid Google OAuth credential with cloud-platform scope (A/B invalid_grant-vs-invalid_client, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness (ADK #2128 precedent); no data-plane access without authorized token redemption; surface otherwise inert.
 [RISK] microsoft: 70 — two independent high-confidence precondition packages (6-family IDOR+CORS at 97, consent-forge at 76) with systemic gateway-level RFC 6750 §3 deviations (HEAD→405/no-Bearer, CORS * + PATCH allowlist, 0 OperationRestrictions in $metadata schema), all blocked on authorized-tenant two-principal verification; exposure high if preconditions hold; 29 consecutive NO_DELTA cycles confirm passive probe ceiling reached.
+## 2026-08-18 23:22:56 UTC [google] (model bigpickle)
