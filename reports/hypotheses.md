@@ -6280,3 +6280,29 @@
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, no confusion surface.
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules.
 - LEARN: NO_DELTA — all fresh passive probes (2026-08-18 15:06 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-
+
+## RANKED HYPOTHESES 2026-08-18 15:46:58 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings,agentInstances,agentCollections}: Copilot Admin 6-family cross-principal ownership takeover via CORS+PATCH (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit reports/msrc-two-principal-request.md (already drafted, sha256 `ec993b9…b17`, 55 lines) via msrc.microsoft.com/bounty portal — single authorized t
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (expected for token endpoints per RFC 6749)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpo
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collectio
+- LEARN: ACCEPTED: oauth2PermissionGrants true CORS preflight @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS 200 + ACAO:* + PATCH + Max-Age 86400 confirmed 
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collectio
+- LEARN: ACCEPTED: oauth2PermissionGrants true CORS preflight @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS 200 + ACAO:* + PATCH + Max-Age 86400 confirmed 
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`, 15:10 UTC pr
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant)
+- LEARN: REJECTED: tokeninfo public introspection oracle — Google VRP no-reward (query-param introspection without Authorization header not eligible)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no cross-endpoint confusion surface
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-18 15:43 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — unchanged, 6 families OPTIONS 200 + ACAO:* + PATCH at collection+item level
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed LIVE — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, A/B proof concl
+- LEARN: ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions.
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant).
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, no confusion surface.
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules.
+- LEARN: REJECTED: api.myaccount.microsoft.com CORS origin-reflection with credentials — standard Bearer-auth-gated behavior, not exploitable without auth.
