@@ -1,285 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | head -250 | tail -50
-* const authCredential: AuthCredential = {
- *   authType: AuthCredentialTypes.API_KEY,
- *   apiKey: "your_api_key",
- * };
- *
- * @example
- * // HTTP Auth
- * const authCredential: AuthCredential = {
- *   authType: AuthCredentialTypes.HTTP,
- *   http: {
- *     scheme: "basic",
- *     credentials: {
- *       username: "user",
- *       password: "password",
- *     },
- *   }
- * }
- *
- * @example
- * // OAuth2 Bearer Token in HTTP Header
- * const authCredential: AuthCredential = {
- *   authType: AuthCredentialTypes.HTTP,
- *   http: {
- *     scheme: "bearer",
- *     credentials: {
- *       token: "your_access_token",
- *     },
- *   }
- * }
- *
- * @example
- * // OAuth2 Auth with Authorization Code Flow
- * const authCredential: AuthCredential = {
- *   authType: AuthCredentialTypes.OAUTH2,
- *   oauth2: {
- *     clientId: "your_client_id",
- *     clientSecret: "your_client_secret",
- *   }
- * }
- *
- * @example:
- * // Open ID Connect Auth
- * const authCredential: AuthCredential = {
- *   authType: AuthCredentialTypes.OPEN_ID_CONNECT,
- *   oauth2: {
- *     clientId: "1234",
- *     clientSecret: "secret",
- *     redirectUri: "https://example.com",
- *     scopes: ["scope1", "scope2"],
- *   }
+[0m$ [0mecho -n "AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k" | sha256sum
+b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896  -
 [0m
-[0m$ [0mcat reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts | head -60
-/**
- * @license
- * Copyright 2025 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import {OpenAPIV3} from 'openapi-types';
-
-type Oauth2Flow = OpenAPIV3.OAuth2SecurityScheme['flows'];
-
-/**
- * OpenIdConnectWithConfig extends OpenIdSecurityScheme with additional
- * configuration options.
- */
-export interface OpenIdConnectWithConfig
-  extends OpenAPIV3.OpenIdSecurityScheme {
-  authorizationEndpoint: string;
-  tokenEndpoint: string;
-  userinfoEndpoint?: string;
-  revocationEndpoint?: string;
-  tokenEndpointAuthMethodsSupported?: string[];
-  grantTypesSupported?: string[];
-  scopes?: string[];
-}
-
-/**
- * AuthSchemes contains SecuritySchemes from OpenAPI 3.0 and an extra flattened
- * OpenIdConnectWithConfig.
- */
-export type AuthScheme =
-  | OpenAPIV3.SecuritySchemeObject
-  | OpenIdConnectWithConfig;
-
-/**
- * Represents the OAuth2 flow (or grant type).
- */
-export enum OAuthGrantType {
-  CLIENT_CREDENTIALS = 'client_credentials',
-  AUTHORIZATION_CODE = 'authorization_code',
-  IMPLICIT = 'implicit',
-  PASSWORD = 'password',
-}
-
-/**
- * Converts an OAuthFlows object to a OAuthGrantType.
- */
-export function getOAuthGrantTypeFromFlow(
-  flow: Oauth2Flow,
-): OAuthGrantType | undefined {
-  if (flow.clientCredentials) {
-    return OAuthGrantType.CLIENT_CREDENTIALS;
-  }
-
-  if (flow.authorizationCode) {
-    return OAuthGrantType.AUTHORIZATION_CODE;
-  }
-
-  if (flow.implicit) {
-    return OAuthGrantType.IMPLICIT;
-  }
+[0m$ [0mecho -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
 [0m
-[0m$ [0mcat reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | head -230 | tail -30
-}
-export function validateDiscoveryUrl(urlStr: string): boolean {
-  try {
-    const url = new URL(urlStr);
-    if (url.protocol !== 'https:') {
-      logger.warn(`Unsafe protocol for discovery URL: ${url.protocol}`);
-      return false;
-    }
+### Classification Tables
 
-    const host = normaliseHostname(url.hostname.toLowerCase());
+#### REAL_SECRET (reportable candidates)
 
-    // Block localhost, cloud metadata, and common private IP ranges
-    if (
-      host === 'localhost' ||
-      host === 'metadata.google.internal' ||
-      host === 'metadata.goog' ||
-      host.startsWith('127.') ||
-      host === '[::1]' ||
-      host === '[::]' ||
-      host === '0.0.0.0' ||
-      host.startsWith('10.') ||
-      host.startsWith('192.168.') ||
-      host.startsWith('169.254.')
-    ) {
-      logger.warn(`Unsafe host for discovery URL: ${host}`);
-      return false;
-    }
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts` | 23 | `b3f0f75fb14ee32782482a48a396d0731fd9c34e92cad6e7745e232fd9140896` | Google API key (AIzaSy...) in staging env file — **NEW** |
+| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret "RUP0RZ6e0pPhDzsqIJ7KlNd1" — **KNOWN (ACCEPTED 2026-08-07, pending VRP determination)** |
 
-    // Check for 172.16.x.x - 172.31.x.x
-    const match = host.match(/^172\.(\d+)\./);
-[0m
-[0m$ [0mcat reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts | head -60
-/**
- * @license
- * Copyright 2026 Google LLC
- * SPDX-License-Identifier: Apache-2.0
- */
+#### TEST_OR_EXAMPLE (not reportable)
 
-import {lookup} from 'node:dns/promises';
-import {isIP} from 'node:net';
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/ground-platform/web/src/environments/environment.test.ts` | 33 | `mock-api-key` — explicit test fixture |
+| `reposcan-raw/google/copybara/javatests/.../AuthTest.java` | 75, 102, 129 | `testpassword`, `test-token-123` — unit test literals |
+| `reposcan-raw/google/copybara/javatests/.../HttpEndpointTest.java` | 136, 159, 189 | `testpassword` — unit test literals |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | Example `password` / `your_access_token` in JSDoc |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Constant `PASSWORD = 'password'` — scheme identifier |
+| `reposcan-raw/microsoft/physical-ai-toolchain/.../groot-train.yaml` | 65 | `HF_TOKEN: "{{hf_token}}"` — template variable |
+| `reposcan-raw/microsoft/physical-ai-toolchain/.../submit-osmo-lerobot-vla-fine-tuning.sh` | 149 | `hf_token="${HF_TOKEN:-}"` — env var reference |
+| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63, 107 | `twine upload` — uses GitHub Actions secrets (not hardcoded) |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=...=${{ secrets.X }}` — secret refs |
+| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — secret refs |
 
-import {z} from 'zod';
+#### ENDPOINT_LEAK (internal/dev/staging URLs, not secrets)
 
-import {FunctionTool} from './function_tool.js';
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/device-infra/.../adc_credentials.sh` | 39, 44 | GCP metadata server URLs (169.254.169.254 / metadata.google.internal) — standard ADC |
+| `reposcan-raw/google/adk-js/.../oauth2_discovery.ts` | 215 | `metadata.google.internal` check — ADC detection logic |
+| `reposcan-raw/google/adk-js/.../load_web_page.ts` | 36 | `169.254.0.0/16` CIDR block comment — link-local detection |
+| `reposcan-raw/microsoft/c9-python-getting-started/...` | 3, 18 | Cognitive Services docs URLs — public documentation |
+| `reposcan-raw/microsoft/build-server-for-gradle/.../gradle-cfs-variables.yml` | 20 | Azure DevOps package feed URL — public endpoint |
+| `reposcan-raw/microsoft/physical-ai-toolchain/.../defaults.conf` | 14, 54, 55 | K8s secret *names* (`nvcr-pull-secret`, `osmo-hil-operator-token`) — not values |
+| `reposcan-raw/microsoft/physical-ai-toolchain/.../*.sh` | 24, 58, 77, 45, 91, 92 | `kubeconfig` parameter handling — no secret material |
 
-/** Options for {@link loadWebPage}. */
-export interface LoadWebPageOptions {
-  /** Request timeout in milliseconds. Defaults to 30_000 (30s). */
-  timeoutMs?: number;
-}
+#### INTERESTING (unusual configs, debug flags, cloud configs)
 
-/** URL schemes that are allowed to be fetched (WHATWG `URL.protocol` form). */
-const ALLOWED_SCHEMES = new Set(['http:', 'https:']);
-
-/** Default request timeout in milliseconds. */
-const DEFAULT_TIMEOUT_MS = 30_000;
-
-/**
- * IPv4 ranges that are not globally routable and therefore blocked to defeat
- * SSRF. Mirrors the non-global ranges rejected by Python's
- * `ipaddress.is_global`.
- */
-const BLOCKED_IPV4_CIDRS = [
-  '0.0.0.0/8', // "this host on this network"
-  '10.0.0.0/8', // private
-  '100.64.0.0/10', // shared address space / CGNAT
-  '127.0.0.0/8', // loopback
-  '169.254.0.0/16', // link-local (includes GCP metadata 169.254.169.254)
-  '172.16.0.0/12', // private
-  '192.0.0.0/24', // IETF protocol assignments
-  '192.0.2.0/24', // TEST-NET-1 (documentation)
-  '192.88.99.0/24', // 6to4 relay anycast (deprecated)
-  '192.168.0.0/16', // private
-  '198.18.0.0/15', // benchmarking
-  '198.51.100.0/24', // TEST-NET-2 (documentation)
-  '203.0.113.0/24', // TEST-NET-3 (documentation)
-  '224.0.0.0/4', // multicast
-  '240.0.0.0/4', // reserved / future use (includes 255.255.255.255)
-].map(parseIpv4Cidr);
-
-/**
- * IPv6 ranges that are not globally routable and therefore blocked. The
- * IPv4-mapped range `::ffff:0:0/96` is handled separately by extracting the
- * embedded IPv4 address and re-checking it with the IPv4 rules.
- */
-const BLOCKED_IPV6_CIDRS = [
-  '::/128', // unspecified
-  '::1/128', // loopback
-  '64:ff9b:1::/48', // local NAT64
-  '100::/64', // discard-only
-  '2001:db8::/32', // documentation
-  'fc00::/7', // unique-local (ULA, private)
-[0m
-Based on my analysis of the scan results, here are the classifications:
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/device-infra/.../DeviceAdminUtil.java` | 49-50 | Android `DeviceAdminReceiver` action constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
+| `reposcan-raw/google/device-infra/.../GoogleAccountDecoratorSpec.java` | 44 | `PARAM_PASSWORD = "password"` — API param name constant |
+| `reposcan-raw/google/horologist/.../PreferencesSerializer.kt` | 43 | TODO referencing internal corp issue `b.corp.google.com/issues/241749603` |
+| `reposcan-raw/google/ml-compiler-opt/.../buildbot_init.sh` | 188 | `WORKER_PASSWORD="$(gcloud storage cat gs://.../buildbot_password)"` — **fetches secret at runtime from GCS** (secret not in repo) |
+| `reposcan-raw/google/sam/...` (multiple) | various | OIDC/dex ConfigMap manifests, Kind cluster scripts — infra-as-code, no secrets |
 
 ---
 
-### **REAL_SECRET** — Hardcoded credentials with signs of life
-| File | Line | SHA256 (truncated) | Verdict |
-|------|------|-------------------|---------|
-| *None new* — earthengine-api `oauth.py:45` (`RUP0RZ6e0pPhDzsqIJ7KlNd1`) already **ACCEPTED** in KB (sha256 `3f3f8d6f…d271`) | | | |
+### VERDICT LIST
 
----
-
-### **TEST_OR_EXAMPLE** — Sample/test/fixture data (not reportable)
-| File | Line | Context |
-|------|------|---------|
-| `google/adk-js/core/src/auth/auth_credential.ts` | 214 | JSDoc `@example` — `password: "password"` |
-| `google/adk-js/core/src/auth/auth_credential.ts` | 226 | JSDoc `@example` — `token: "your_access_token"` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder `...`) |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `HttpCredentials(token="eyAkaknabna....")` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` |
-| `google/copybara/javatests/.../AuthTest.java` | 75,102,129 | `testpassword`, `test-token-123` |
-| `google/copybara/javatests/.../HttpEndpointTest.java` | 136,159,189 | `testpassword` |
-| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` (constant name) |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var ref) |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=...="${SECRET}"` (GitHub Actions secrets) |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` (GitHub Actions secrets) |
-| `google/magika/.github/workflows/...` | 20,407,437 | `GITHUB_TOKEN`, test PyPI URLs |
-| `google/magika/tests_data/.../code.js` | 31 | Minified test fixture |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key name) |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | — | Minified build artifacts |
-
----
-
-### **ENDPOINT_LEAK** — Internal/dev/staging URLs, API endpoints
-| File | Line | Context |
-|------|------|---------|
-| `google/copybara/cloudbuild.yaml` | 27 | Comment: `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` (internal artifact registry) |
-
----
-
-### **INTERESTING** — Unusual patterns, security controls, cloud configs
-| File | Line | Context |
-|------|------|---------|
-| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` — **OAuth2 grant-type enum value** (RFC 6749 `password` grant), not a secret |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Same — `PASSWORD = "password"` OAuth2 grant-type enum |
-| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `host === 'metadata.google.internal'` — **SSRF protection** blocking GCP metadata |
-| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `'169.254.0.0/16'` — **SSRF protection** blocking link-local (incl. GCP metadata 169.254.169.254) |
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments documenting metadata endpoint SSRF risk |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: `routes to the internal 169.254.169.254 metadata` |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment refusing metadata endpoint access |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params (config surface) |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes API key from variable |
-| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` (secret manager pattern) |
-| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` |
-
----
-
-### **VERDICT LIST**
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| earthengine-api `oauth.py:45` client_secret | REAL_SECRET (known) | **no** — already ACCEPTED in KB, pending VRP determination on native-app by-design status |
-| adk-js `auth_credential.ts` examples | TEST_OR_EXAMPLE | no |
-| adk-js `auth_schemes.ts` PASSWORD enum | INTERESTING | no — OAuth2 grant-type constant |
-| adk-js `oauth2_discovery.ts` metadata block | INTERESTING | no — SSRF defense (good practice) |
-| adk-js `load_web_page.ts` CIDR block | INTERESTING | no — SSRF defense (good practice) |
-| adk-python auth examples/constants | TEST_OR_EXAMPLE / INTERESTING | no |
-| adk-python SSRF comments/blocks | INTERESTING | no — defensive coding |
-| sam/crosvm/langextract/magika/copybara workflows & tests | TEST_OR_EXAMPLE / INTERESTING | no — proper secret usage (GitHub Actions secrets, gcloud secret manager) |
-| copybara `cloudbuild.yaml` internal URL | ENDPOINT_LEAK | no — internal artifact registry ref in comment, no auth material |
-
----
-
-**SUMMARY:** **0 new reportable findings** in this delta. All new hits are either test fixtures, defensive SSRF controls, OAuth2 spec constants, or proper secret-management patterns. The only live secret (earthengine-api) is already tracked and triaged.
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| `ground-platform` staging API key (AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k) | **YES** | Live Google API key in committed staging config; not a test key; scope unknown — requires rotation + impact assessment |
+| `earthengine-api` OAuth client_secret (RUP0RZ6e0pPhDzsqIJ7KlNd1) | **PENDING** | **KNOWN DUPLICATE** — ACCEPTED 2026-08-07, classified REAL_SECRET by reposcan; pending VRP determination on "native app by-design" status (installed-app pattern with OOB redirect) |
+| `ml-compiler-opt` buildbot password in GCS | **NO** | Secret stored in GCS (not in repo); code only fetches at runtime — secure pattern |
+| All other hits | **NO** | Test fixtures, template vars, secret refs, endpoint constants, or public URLs |
