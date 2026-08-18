@@ -1,62 +1,21 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### REAL_SECRET
+Based on the scan hits, here's the classification:
 
-| File | Line | Hash (sha256) | Notes |
-|------|------|---------------|-------|
-| *(none)* | | | No hardcoded live credentials found |
+### Classification Table
 
----
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *None* |
+| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/mock-oidc.yaml:16`<br>`google/sam/site/content/docs/manifests/sam-control-plane.yaml:88`<br>`google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3`<br>`google/sam/development/kind/run.sh:139` (env var with empty default)<br>`google/sam/.github/workflows/deploy.yaml:247,249,250` (GitHub secrets refs)<br>`google/sam/.github/k8s/*.yaml` (ConfigMap templates)<br>`google/langextract/.github/workflows/ci.yaml:168-170` (GitHub secrets refs)<br>`google/oss-fuzz/projects/flask/fuzz_json.py:27` (`"fuzz test key"`)<br>`google/oss-fuzz/projects/h2database/TestServer.java:13,55` (test password)<br>`google/cadvisor/lib/cadvisorflags/flags.go:54` (default flag value)<br>`google/agents-cli/src/google/agents/cli/auth.py:43` (placeholder `"gemini_api_key"`)<br>`google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml:168,192` (template syntax)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (placeholders/truncated)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (constant name)<br>`google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`"your_client_secret"`)<br>`google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` (constant name)<br>`google/adk-python/src/google/adk/cli/cli_create.py:131` (variable interpolation) |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (metadata endpoint comments)<br>`google/adk-python/src/google/adk/tools/load_web_page.py:171` (metadata endpoint comment)<br>`google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (metadata endpoint comment)<br>`google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` (kubeconfig params) |
+| **INTERESTING** | `google/quiche/quiche/quic/core/crypto/certificate_view.h:126` (legacy OpenSSL note)<br>`google/quiche/quiche/http2/core/spdy_protocol.h:7` (SPDY protocol ref)<br>`google/adk-python/src/google/adk/cli/browser/*.js` (minified/bundled JS chunks - 11 files) |
 
-### TEST_OR_EXAMPLE
+### Verdict List
 
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GitHub Actions secret references (proper CI pattern) |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell param expansion with empty default |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` | GitHub Actions secret references |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit test fixture |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `"ServerShutdownPassword"`, test DB password | Test code |
-| reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default placeholder |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant placeholder string |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` | GitHub Actions template references |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | `private_key="-----BEGIN PRIVATE KEY-----..."`, `username="user", password="password"`, `token="eyAkaknabna...."` | Example/test credential structures |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Code generation template |
-| reposcan-raw/google/sam/site/content/docs/manifests/*.yaml | 16,88 | `kind: ConfigMap` | Documentation manifests |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | various | minified JS | Build artifacts |
+| File | Category | REPORT_CANDIDATE |
+|------|----------|------------------|
+| *No files classified as REAL_SECRET* | — | — |
 
----
-
-### ENDPOINT_LEAK
-
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` | Documented GCP/AWS metadata endpoint (public knowledge) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same |
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL | Public documentation link |
-
----
-
-### INTERESTING
-
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name (not a secret) |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| reposcan-raw/google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Legacy OpenSSL RSA key format comment | Code comment |
-| reposcan-raw/google/quiche/quiche/http2/core/spdy_protocol.h | 7 | SPDY protocol draft URL | Code comment |
-
----
-
-### VERDICT
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| All hits | **no** |
-
-**Summary:** All 494 grep hits resolve to **TEST_OR_EXAMPLE** (secret references, placeholders, test fixtures, templates, docs, build artifacts) or **ENDPOINT_LEAK** (well-known metadata endpoint `169.254.169.254`). No `REAL_SECRET` (hardcoded live credential) found. The Delta hits are GitHub Actions `${{ secrets.* }}` references — correct secret-handling pattern, not a leak.
+**Summary**: All 521 grep hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata endpoint references), or **INTERESTING** (minified JS, comments). No hardcoded live credentials found in this delta scan. The previously accepted `earthengine-api` OAuth client secret (tracked in knowledge base) does not appear in these new hits.
