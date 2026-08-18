@@ -1,56 +1,77 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=50, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=50, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
 [0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/404.js[90m [limit=10, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=30, offset=130][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh[90m [limit=20][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [limit=20][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=45, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml[90m [limit=50, offset=400][0m
+[0m→ [0mRead reposcan-raw/google/flatbuffers/.github/workflows/label.yml[90m [limit=30][0m
+Now I have a complete picture. Let me classify all hits and produce the tables.
+
+---
+
 ### Classification Tables
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` in Example docstring | Placeholder in example |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:269 | `username="user", password="password"` in HTTP basic example | Example credentials |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py:278 | `token="eyAkaknabna...."` truncated JWT in bearer example | Example token |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` constant name | Constant identifier |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | `client_secret="your_client_secret"` in Example docstring | Placeholder |
-| **TEST_OR_EXAMPLE** | magika/tests_data/basic/javascript/code.js:31 | Test fixture JS file | Test data |
-| **TEST_OR_EXAMPLE** | pebble/devsite/source/assets/js/404.js:24 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| **TEST_OR_EXAMPLE** | pebble/devsite/source/assets/js/quicksearch.js:33 | `apiKey: '{{ site.algolia_api_key }}'` | Jekyll template variable |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/cli/browser/chunk-*.js:3 | Parser generator error messages | Generated code |
+#### REAL_SECRET
+| File | Line | Secret Material (sha256) | Context |
+|------|------|--------------------------|---------|
+| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `"RUP0RZ6e0pPhDzsqIJ7KlNd1"`, used as default fallback at oauth.py:99, scopes: `cloud-platform`, `earthengine`, `drive`, `devstorage.full_control`, OOB redirect. **CONFIRMED LIVE on master** (2026-08-18 10:50 UTC probe). |
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | Comments referencing `169.254.169.254` metadata endpoint | Documentation of known endpoint |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/tools/load_web_page.py:171 | Comment referencing metadata endpoint | Documentation |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | Comment refusing metadata endpoint access | Security control documentation |
-| **ENDPOINT_LEAK** | adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | `kubeconfig_path`, `kubeconfig_context` parameters | Config parameters, not secrets |
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Example private_key in docstring: `"-----BEGIN PRIVATE KEY-----..."` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Example credentials: `username="user", password="password"` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Example token: `"eyAkaknabna...."` (fake JWT) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant string: `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder: `client_secret="your_client_secret"` |
+| `google/sam/internal/node/store.go` | 38 | Constant string: `keyRefreshToken = "refresh_token"` |
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **INTERESTING** | crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | `gcloud secrets versions access` for CODECOV_TOKEN | Proper secret management pattern |
-| **INTERESTING** | crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | `gcloud secrets versions access` for github-crosvm-bot | Proper secret management pattern |
-| **INTERESTING** | sam/.github/workflows/deploy.yaml:247-250 | Uses `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. in kubectl | Proper GitHub Actions secret usage |
-| **INTERESTING** | adk-python/src/google/adk/cli/cli_create.py:131 | Writes `GOOGLE_API_KEY={google_api_key}` to .env at runtime | Runtime value, not hardcoded |
-| **INTERESTING** | cadvisor/lib/cadvisorflags/flags.go:54 | `StorageDriverPassword = "storage_driver_password"` | Flag name constant, not a secret |
+#### ENDPOINT_LEAK (Internal/Dev URLs, ConfigMaps)
+| File | Line | Reason |
+|------|------|--------|
+| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | `kind: ConfigMap` (documentation) |
+| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | `kind: ConfigMap` (documentation) |
+| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | `kind: ConfigMap` (Helm template) |
+| `google/sam/.github/k8s/*.yaml` | various | `kind: ConfigMap` (K8s templates) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments referencing `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment referencing metadata endpoint |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment referencing metadata endpoint |
+
+#### INTERESTING (Debug flags, cloud configs, non-secret constants)
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum constant: `GEMINI_API_KEY = "gemini_api_key"` (string literal, not a key) |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | Runtime `export _ID_TOKEN` / `_AUTH_TOKEN` from `gcloud auth print-*-token` (fetched at runtime, not hardcoded) |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes user-provided `google_api_key` to `.env` (expected CLI behavior) |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default, sourced from env) |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Proper GitHub secrets usage (`${{ secrets.* }}`) |
+| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | Fetches token from GCP Secret Manager at runtime |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | Fetches token from GCP Secret Manager at runtime |
+| `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | Flag name constant: `StorageDriverPassword = "storage_driver_password"` |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Public TestPyPI URLs |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | Proper `${{ secrets.GITHUB_TOKEN }}` usage |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | various | Minified JS chunks (parse error messages) |
 
 ---
 
 ### Verdict List
 
-| File | Category | REPORT_CANDIDATE |
-|------|----------|------------------|
-| (none) | REAL_SECRET | **no** — zero hardcoded live credentials found |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/earthengine-api/python/ee/oauth.py:45` (OAuth client_secret) | **yes** | Confirmed live hardcoded secret with broad scopes (`cloud-platform`, `drive`, `devstorage.full_control`). Already tracked in knowledge base (2026-08-07/08/18 ACCEPTED). Pending VRP determination on native-app by-design status. |
+| `google/agents-cli/auth.py:43` (`GEMINI_API_KEY` enum) | no | String literal constant, not a credential. |
+| `google/agents-cli/staging.yaml:168,192` (workflow token exports) | no | Runtime-fetched via `gcloud auth print-*-token`; masked in logs via `::add-mask::`. |
+| All ADK test/example credentials | no | Placeholder/fake values in documentation and examples. |
+| All SAM/Crosvm/CAdvisor/Magika/Flatbuffers hits | no | Proper secret management (Secret Manager, GitHub secrets, env vars) or non-secret constants. |
 
-**Summary:** This scan produced **0 reportable secrets**. All hits are either:
-- Template variables (Algolia keys in Jekyll config)
-- Example/placeholder values in docstrings and test fixtures
-- Proper secret references via GitHub Actions `${{ secrets.X }}` or gcloud Secret Manager
-- Constant identifiers (flag names, not values)
-- Generated parser code (JS chunks)
-- Documentation of well-known endpoints (GCE metadata server)
+**Only the earthengine-api OAuth client_secret remains a reportable candidate.** All other hits are either test fixtures, proper secret hygiene, or non-secret constants.
