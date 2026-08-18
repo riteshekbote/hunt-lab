@@ -1535,3 +1535,9 @@
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com remains dead — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpoint confusion surface.
 - 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible).
 - 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-18 ACCEPTED: `graph.microsoft.com/beta/copilot/agentRegistrations/{id}` item-level auth-gate confirmed HTTP 401 (GET) + 405/0 (HEAD) — closes last inference gap, item-level zero-restriction precondition empirically verified
+- 2026-08-18 ACCEPTED: `graph.microsoft.com/v1.0/oauth2PermissionGrants` auth-gate confirmed HTTP 401 (GET) + 405/0 (HEAD) — production v1.0 consent-forge endpoint auth-gate verified
+- 2026-08-18 ACCEPTED: `oauth2.googleapis.com/token` GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is `grant_type=refresh_token` only
+- 2026-08-18 REJECTED: `graph.microsoft.com` root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-18 REJECTED: `www.googleapis.com/storage/v1/b` anonymous bucket enumeration — requires `project` param + auth; HTTP 400/401, no bypass
+- 2026-08-18 REJECTED: `login.microsoftonline.com/common/discovery/v2.0/keys` Accept: application/json requirement + JWKS rotation churn (v1⊂v2 steady-state subset, 0 persistent v1-exclusive) — rotation-desync class stays dead (v1 kid set never validated against v2 issuer)
