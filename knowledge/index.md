@@ -300,3 +300,13 @@
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no confusion surface.
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collection+item level (unchanged 18:19 UTC).
 - 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`, 18:19 UTC probe).
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 25th consecutive 2-hourly probe since 2026-08-17).
+- 2026-08-18 ACCEPTED: graph.microsoft.com systemic RFC 6750 §3 deviation (HEAD→405/0 no WWW-Authenticate Bearer) confirmed across all tested endpoint families.
+- 2026-08-18 ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed live at /v1.0/oauth2PermissionGrants — OPTIONS 200 + ACAO:* + PATCH + Max-Age 86400.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, RFC 6749 §5.2 A/B proof conclusive.
+- 2026-08-18 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 — no ownership binding at resource layer.
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface.
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH @ graph.microsoft.com/beta/copilot — all 6 endpoint families confirmed OPTIONS 200 + ACAO:* + PATCH at collection+item level (unchanged 19:03 UTC).
+- 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`, 19:03 UTC probe).
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 25+ consecutive probes stable since 2026-08-17).
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8, 0 v1-only), all kty=RSA, no confusion surface.
