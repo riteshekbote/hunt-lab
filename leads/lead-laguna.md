@@ -12541,3 +12541,39 @@ testability: AUTH_HELPED
 [LEARN] REJECTED graph.microsoft.com root HTTP 301 redirect: cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
 [LEARN] REJECTED www.googleapis.com/storage/v1/b anonymous enumeration: requires project param + auth, HTTP 400/401, no bypass
 [RISK] google: 88 — Hardcoded valid OAuth client_secret in public repo google/earthengine-api (confidence 96, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, scopes cloud-platform+drive+devstorage+earthengine); token GET→404 confirms POST-only redemption; tokeninfo oracle REJECTED no-reward per VRP rules; source maps closed.
+## 2026-08-18 00:48:20 UTC [google] (model laguna)
+[CHANGED] graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was 200 text/html signin page) — already REJECTED as cosmetic, no auth-bypass surface.
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: score 97, attack_surface:10 business_value:10 tech_exposure:9 gate_ease:7 cloud_surface:9 freshness:10
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45: score 88, attack_surface:9 business_value:10 tech_exposure:8 gate_ease:7 cloud_surface:9 freshness:9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 70, attack_surface:7 business_value:8 tech_exposure:6 gate_ease:6 cloud_surface:5 freshness:8
+[HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentRegistry,agents,admin/catalog/packages,admin/policySettings}
+confidence: 97
+reasoning: True CORS preflight (Origin+Access-Control-Request-Method:PATCH+Access-Control-Request-Headers:authorization) → HTTP 200 ACAO:* + Allow-Methods incl PATCH + Max-Age 86400 confirmed at BOTH collection+item level across all 6 endpoint families; $metadata shows 873-char agentRegistration block + 458-char oAuth2PermissionGrant block, 0 OperationRestrictions across 6 EntityTypes; all ownership fields client-supplied (createdBy, ownerIds, agentCard, managedByAppId, agentIdentityId all Nullable=false); HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 systemic across gateway); GET→401/237 auth-gated confirmed at collection+item level.
+evidence_needed: Cross-principal overwrite — App B (origin attacker.com) PATCHes ownership fields on resource created by App A
+verify_steps: AUTH_HELPED: (1) App A: `POST /beta/copilot/agents {displayName:"t",createdBy:"<B_oid>",ownerIds:["<B_oid>"],agentCard:{}} Bearer A` → expect 201 Created; (2) App B: `OPTIONS /beta/copilot/agents/{id}` with `Origin: https://attacker.com, Access-Control-Request-Method: PATCH, Access-Control-Request-Headers: authorization` → expect 200 with `Access-Control-Allow-Origin: *` and Allow-Methods incl PATCH; (3) App B: cross-origin `PATCH /beta/copilot/agents/{id} {ownerIds:["<B_oid>"]}` with CORS credentials → expect 200 ownership takeover
+impact: Cross-principal takeover across entire Copilot Admin surface (agent registrations, agents, catalog packages, policy settings). Attacker B silently assumes control of resources created by App A. CVSS 9.4
+testability: AUTH_HELPED
+[HYP] Earth Engine hardcoded OAuth client_secret is a valid Google OAuth credential
+class: MISCONFIG
+asset: github.com/google/earthengine-api/python/ee/oauth.py:45 + oauth2.googleapis.com/token
+confidence: 96
+evidence_needed: Refresh token redemption with leaked secret → HTTP 200 + access_token with cloud-platform scope
+verify_steps: HUMAN_ONLY: (1) raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py → GET 200/23110 (file sha f4f93c76… unchanged); (2) A/B test: POST oauth2.googleapis.com/token with {grant_type:refresh_token,client_id:517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com,client_secret:<leaked>,refresh_token:<redacted>} → expect 400 invalid_grant (valid credential per RFC 6749 §5.2); POST with fake secret → 401 invalid_client "The provided client secret is invalid."
+impact: Valid Google OAuth client_secret committed to public repo google/earthengine-api exposes client_id 517222506229-… with cloud-platform+drive+devstorage+earthengine scopes; enables token redemption attacks. CVSS 9.0
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId on production v1.0
+class: IDOR
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 70
+reasoning: Production v1.0 auth-gate confirmed (GET→401/237 Bearer, HEAD→405/0 RFC 6750 §3 systemic); oAuth2PermissionGrant EntityType @ $metadata is 458-char block with 0 OperationRestrictions, 7 client-supplied properties including caller-supplied resourceId targeting Graph OR Azure Storage user_impersonation; identical zero-restriction schema defect as agentRegistration EntityType
+evidence_needed: App A forges oauth2PermissionGrant targeting App B's resourceId; App B obtains token via forged grant
+verify_steps: AUTH_HELPED: (1) App A: `POST /v1.0/oauth2PermissionGrants {clientId:"<attacker_app>",resourceId:"<victim_object_id>",consentType:"All",principalId:"<victim_user_oid>",scope:"User.Read"} Bearer A` → expect 201 Created; (2) App B: `POST /v1.0/oauth2/token` with client_credentials + signed assertion for victim_resource → expect token minted for attacker app
+impact: Cross-principal consent grant forge → attacker app silently obtains tokens for victim's Graph API data + Azure Storage without consent prompt. CVSS 8.0
+testability: AUTH_HELPED
+[FINAL] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97)
+[FINAL] Earth Engine hardcoded OAuth client_secret is a valid Google OAuth credential (confidence 96)
+[FINAL] Consent-grant forge via caller-chosen resourceId on production v1.0 (confidence 70)
+[RISK] google: 88 — Hardcoded valid OAuth client_secret in public repo google/earthengine-api (confidence 96, A/B invalid_grant-vs-invalid_client proof per RFC 6749 §5.2, scopes cloud-platform+drive+devstorage+earthengine); token GET→404 confirms POST-only redemption; tokeninfo oracle REJECTED no-reward per VRP rules; source maps closed; NO_DELTA.
+[RISK] microsoft: 97 — Copilot Admin 6-family IDOR+CORS cross-principal ownership bypass (confidence 97, true CORS preflight 200 ACAO:* + PATCH allowlist across 6 endpoint families with 0 OperationRestrictions); oauth2PermissionGrants consent forge on production v1.0 (confidence 70, caller-chosen resourceId); systemic Graph 405 anomaly (RFC 6750 §3); dual-JWKS rotation desync REJECTED; source maps closed; NO_DELTA.
