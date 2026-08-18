@@ -1,18 +1,15 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the scan results and classify each hit according to the categories requested.
+[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+[0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=20, offset=50][0m
+### Classification Table
 
-First, let me identify the potential real secrets from the delta hits:
-
-1. `reposcan-raw/google/bigframes/scripts/run_doctest.sh:38-39` - References to KOKORO_GFILE_DIR and service-account.json - This looks like a CI/CD configuration for loading service account credentials from a secure file location (Kokoro is Google's internal CI system). This is not a hardcoded secret.
-
-2. `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` - `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` - This is in a vendored third-party library (ibis). The comment says `# noqa: S105` which suggests it's a known/intentional value. Need to check if this is a real secret or a test/placeholder.
-
-3. `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59` - Same CLIENT_SECRET value.
-
-4. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168-170` - References to secrets.GEMINI_API_KEY and secrets.OPENAI_API_KEY - These are GitHub Actions secret references, not hardcoded secrets.
-
-5. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63` and `base_config.yaml:63` - Commented out `hf_access_token: "your_token"` - This is clearly a placeholder/template.
-
-6. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195` - Token strings like `eot_token="
+| Category | File | Line | Evidence | SHA256 (secret) |
+|----------|------|------|----------|-----------------|
+| **REAL_SECRET** | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58-59 | Hardcoded OAuth `CLIENT_ID` + `CLIENT_SECRET` for GCP project 546535678771; `# noqa: S105` suppresses linter | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` |
+| **REAL_SECRET** | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 58-59 | Duplicate of above in vendored ibis code | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a
