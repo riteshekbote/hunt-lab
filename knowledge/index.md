@@ -210,3 +210,6 @@
 - 2026-08-18 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no cross-endpoint confusion surface
 - 2026-08-18 ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item level across all 6 endpoint families — unchanged this cycle.
+- 2026-08-18 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight confirmed live at 09:49 UTC — OPTIONS → 200, `Access-Control-Allow-Origin: *`, Allow-Methods includes PATCH, Max-Age 86400
+- 2026-08-18 ACCEPTED: graph.microsoft.com 405 anomaly (RFC 6750 §3 violation) confirmed live at 09:49 UTC — HEAD /v1.0 → 405, Content-Length 0, no WWW-Authenticate Bearer; GET /me → 401 proper Bearer
+- 2026-08-18 NO_DELTA — fresh passive probes 09:49 UTC confirmed all prior ACCEPTED/REJECTED unchanged; 3 active hypotheses stable; no new proving-dead/proving-live classes

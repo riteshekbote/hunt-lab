@@ -1,4 +1,4 @@
-## 2026-08-18 09:08:45 UTC [google] (model bigpickle)
+## 2026-08-18 09:47:53 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings} | 8.05 | attack=9 business=8 tech=9 gate=6 cloud=7 fresh=8
 [PRIO] oauth2.googleapis.com/token (earthengine-api python/ee/oauth.py:45) | 7.60 | attack=7 business=8 tech=9 gate=4 cloud=9 fresh=7
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants | 6.35 | attack=7 business=9 tech=8 gate=5 cloud=6 fresh=5
@@ -29,7 +29,7 @@ evidence_needed: A POST grant claiming B principalId + resourceId=<Azure Storage
 verify_steps: AUTH_HELPED: (1) A POST {clientId,consentType:"Principal",principalId:B-oid,resourceId:<Azure Storage>,scope:"user_impersonation"} → 201 vs 400; (2) B GET /v1.0/me/oauth2PermissionGrants → present vs absent; (3) if present, B token-mint → success vs denial.
 impact: cross-principal consent forgery → data-plane read/write to victim Azure Storage or Graph scopes; CVSS 7.0–9.0.
 testability: AUTH_HELPED
-[FINAL]
+[FINAL] (re-ranked by confidence):
 [NEXT] HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — this single request unblocks AUTH_HELPED testing for BOTH hypothesis #1 (6-family IDOR+CORS at 97) and hypothesis #3 (consent-forge at 76), covering 7 endpoint families across beta and v1.0 with systemic RFC 6750 §3 deviations. In parallel, submit reports/google-vrp-earthengine-secret.md via bughunters.google.com — the A/B invalid_grant-vs-invalid_client proof conclusively proves valid Google OAuth credential at confidence 96.
 [LEARN] NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 [LEARN] ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item level across all 6 endpoint families — unchanged this cycle.
