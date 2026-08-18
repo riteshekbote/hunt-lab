@@ -1,55 +1,195 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<<'RUP0RZ6e0pPhDzsqIJ7KlNd1'
-036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -60
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    """
+    click.echo()
+    click.echo("  To use this API key in your current session, run:")
+    click.echo()
+    click.secho(f'    export {var_name}="YOUR_API_KEY"', bold=True)
+    click.echo()
+    click.echo(
+        "  To persist this variable across sessions, you can add it to your shell profile."
+    )
 [0m
-[0m$ [0mprintf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
-3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '35,80p'
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    """
+    click.echo()
+    click.echo("  To use this API key in your current session, run:")
+    click.echo()
+    click.secho(f'    export {var_name}="YOUR_API_KEY"', bold=True)
+    click.echo()
+    click.echo(
+        "  To persist this variable across sessions, you can add it to your shell profile."
+    )
+    click.echo("  For example, add the export command above to your shell's startup file")
+    click.echo("  (e.g., ~/.bashrc, ~/.zshrc, or ~/.profile).")
+    click.echo()
+    click.echo(
+        "  If you create an ADK project, you can also store the API key under .env in the agent folder."
+    )
+    click.echo()
+    click.secho(
+        "  ⚠️  Warning: Be aware that when you export API keys or service account paths in\n"
+        "  your shell configuration file, any process launched from that shell can read them.",
+        fg="yellow",
+    )
+    click.echo()
+
+
+# ── Google Cloud (ADC) ──────────────────────────────────────────────
+
+
+_adc_credentials = None
 [0m
-### REAL_SECRET
-
-| File | Line | Secret SHA256 | Classification |
-|------|------|---------------|----------------|
-| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN ACCEPTED** — Hardcoded OAuth client_secret for Earth Engine native app (installed client, OOB redirect). Confirmed LIVE in KB across 40+ verification cycles. A/B proof: leaked secret→`invalid_grant`, fake→`invalid_client` (RFC 6749 §5.2). Native-app by-design pattern (ADK #2128 precedent caps VRP severity). |
-
-### TEST_OR_EXAMPLE
-
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/sam/**/*.yaml` | multiple | `kind: ConfigMap` in docs/templates — fixture data |
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` — constant string literal |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell var reference with empty default |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247,249,250 | `--from-literal=...="${SECRET}"` — GitHub Actions secret refs, not hardcoded |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Test fixtures: truncated private key, `user`/`password`, truncated JWT |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — test constant |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 62 | `client_secret="your_client_secret"` — placeholder |
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — constant key name |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template generating `GOOGLE_API_KEY=` env var |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Minified JS build artifacts (parse error messages) |
-| `reposcan-raw/google/closure-compiler/externs/**/*.js` | multiple | `@see http://dev.w3.org/...` — spec reference comments |
-
-### ENDPOINT_LEAK
-
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments referencing `169.254.169.254` (IMDS metadata endpoint) — documentation, not leak |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment referencing IMDS endpoint |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment referencing IMDS endpoint |
-
-### INTERESTING
-
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` config options — potential SSRF surface if user-controlled (documented in code as risk) |
-
+[0m$ [0mcat -n reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '38,50p'
+38	
+    39	class AuthType(enum.Enum):
+    40	    """Supported authentication methods."""
+    41	
+    42	    GOOGLE_CLOUD = "google_cloud"
+    43	    GEMINI_API_KEY = "gemini_api_key"
+    44	    EXPRESS_MODE = "express_mode"
+    45	
+    46	
+    47	def _api_key_instructions(var_name):
+    48	    """Print instructions for the user to export the API_KEY env var.
+    49	
+    50	    Args:
+[0m
+[0m$ [0mcat reposcan-raw/google/pebble/devsite/source/assets/js/404.js | head -40
+---
 ---
 
-### VERDICT LIST
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api `oauth.py:45` CLIENT_SECRET | **no** | **KNOWN DUPLICATE** — Already ACCEPTED in KB (2026-08-07 through 2026-08-17, 40+ live verifications). Native installed app + OOB redirect = by-design pattern per ADK #2128 precedent. VRP severity capped; not a new finding. |
-| All other hits | **no** | TEST_OR_EXAMPLE, ENDPOINT_LEAK (documentation), or INTERESTING (config options, not vulns) |
+var $results = $('#js-404-search');
 
-**Summary**: Zero new reportable findings. The only REAL_SECRET is the Earth Engine OAuth client_secret, which is a **KNOWN DUPLICATE** (tracked in KB as ACCEPTED since 2026-08-07, re-verified live every cycle including 2026-08-17). All other hits are test fixtures, placeholder patterns, or documentation references.
+var search = new Search({
+  appId: '{{ site.algolia_app_id }}',
+  apiKey: '{{ site.algolia_api_key }}',
+  prefix: '{{ site.algolia_prefix }}',
+  options: {
+    hitsPerPage: 2,
+    getRankingInfo: true,
+    distinct: true,
+    removeWordsIfNoResults: 'firstWords',
+    analytics: false
+  }
+});
+
+search.on('results', showResults);
+search.on('error', function (err) {
+  Rollbar.error('404 search error', err);
+});
+
+search.search(window.location.pathname.split('/').join(' '));
+[0m
+All 12 delta hits are **TEST_OR_EXAMPLE** or **INTERESTING** — no `REAL_SECRET` candidates.
+
+### Classification Table
+
+| File | Line | Hit | Category | Reason |
+|------|------|-----|----------|--------|
+| `google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 413 | `nextPageToken: 'initial-token'` | TEST_OR_EXAMPLE | Test fixture in `.spec.ts` |
+| `google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 459 | `nextToken = 'updated-token-123'` | TEST_OR_EXAMPLE | Test fixture in `.spec.ts` |
+| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 221 | `nextPageToken: 'nextPage'` | TEST_OR_EXAMPLE | Test fixture in `.spec.ts` |
+| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 240 | `pageToken: 'nextPage'` | TEST_OR_EXAMPLE | Test fixture in `.spec.ts` |
+| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 461 | `nextPageToken: 'nextPage'` | TEST_OR_EXAMPLE | Test fixture in `.spec.ts` |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | TEST_OR_EXAMPLE | Enum member value (string constant), not a real key |
+| `google/agents-cli/.../staging.yaml` | 168 | `${{ steps.fetch-token.outputs._id_token }}` | TEST_OR_EXAMPLE | GitHub Actions workflow template variable reference |
+| `google/agents-cli/.../staging.yaml` | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | TEST_OR_EXAMPLE | GitHub Actions workflow template variable reference |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` | TEST_OR_EXAMPLE | Proper GitHub Actions secret reference pattern |
+| `google/pebble/devsite/source/assets/js/404.js` | 24 | `{{ site.algolia_api_key }}` | TEST_OR_EXAMPLE | Jekyll/Liquid template variable; Algolia search keys are public-by-design (KB) |
+| `google/pebble/devsite/source/assets/js/quicksearch.js` | 33 | `{{ site.algolia_api_key }}` | TEST_OR_EXAMPLE | Same as above |
+| `google/pebble/third_party/jquery/jquery-1.11.2.js` | 6170 | `http://dev.w3.org/csswg/cssom/...` | INTERESTING | Spec reference comment in vendored jQuery |
+
+### Verdict
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (none — no REAL_SECRET hits) | **no** |
+
+**Summary:** The delta contains only test fixtures, enum constants, CI/CD template variable references, Jekyll template variables (Algolia search-only keys, public by design per KB), and a spec comment in vendored jQuery. No actionable secrets or credentials.
