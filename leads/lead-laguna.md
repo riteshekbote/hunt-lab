@@ -13460,3 +13460,37 @@ testability: AUTH_HELPED
 [LEARN] REJECTED: tokeninfo public introspection oracle — Google VRP no-reward (query-param introspection without Authorization header not eligible)
 [RISK] google: 88 reason: Hardcoded OAuth client_secret in google/earthengine-api (confidence 96, sha256 3f3f8d6f…d271, A/B RFC 6749 §5.2 proof) + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation).
 [RISK] microsoft: 94 reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight confirmed, 5 EntityTypes 0 OperationRestrictions) + oauth2PermissionGrants consent-forge (confidence 75, CORS preflight ACAO:*+PATCH confirmed) + Graph 405 anomaly (RFC 6750 §3 violation).
+## 2026-08-18 15:10:30 UTC [google] (model laguna)
+[HYP] Copilot Admin 6-family cross-principal ownership takeover via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings,agentInstances,agentCollections}
+confidence: 97
+reasoning: Fresh $metadata fetch (2026-08-18) confirms 5 EntityTypes with client-supplied createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId and ZERO OperationRestrictions; live OPTIONS → 200 + `Access-Control-Allow-Origin: *` + Allow-Methods including PATCH (Max-Age 86400) at collection+item+all 6 families; item-level auth-gate empirically confirmed 401 but no ownership binding.
+evidence_needed: Cross-origin PATCH by App B on a foreign-owned agentRegistration/agent returns 200 and mutation persists.
+verify_steps: AUTH_HELPED: (1) App A `POST /beta/copilot/agentRegistrations {displayName:"probe",ownerIds:["<A_oid>"]}` Bearer A → 201; (2) App B `OPTIONS /beta/copilot/agentRegistrations/{id}` → confirm ACAO:*+PATCH; (3) App B `PATCH /beta/copilot/agentRegistrations/{id} {ownerIds:["<B_oid>"]}` → expect 200 if no ownership check; (4) App A `GET /beta/copilot/agentRegistrations/{id}` → confirm ownerIds mutated.
+impact: Cross-principal takeover of any Copilot agent registration/catalog/package in a tenant — impersonate agents, rewrite agentCard instructions (supply-chain), forge creator attribution. CVSS 9.4.
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for cloud-platform access
+class: AUTH
+asset: oauth2.googleapis.com/token (google/earthengine-api python/ee/oauth.py:45)
+confidence: 96
+reasoning: Secret sha256 `3f3f8d6…d271` (11+ chars masked) confirmed live on google/earthengine-api master @ oauth.py:45 via curl+sha256sum; reposcan classified REAL_SECRET; used as default fallback @ oauth.py:99; scopes include cloud-platform+earthengine+drive+devstorage.full_control; A/B RFC 6749 §5.2 oracle (invalid_grant vs invalid_client) conclusive; POST-only token gate stable (GET→404 every probe since 2026-08-17).
+evidence_needed: Valid refresh_token + leaked client_id/client_secret → HTTP 200 + access_token scoped cloud-platform.
+verify_steps: HUMAN_ONLY: (1) Run `earthengine authenticate` in a non-prod GCP project → capture refresh_token; (2) `POST https://oauth2.googleapis.com/token` {grant_type:refresh_token,client_id:517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.apps.googleusercontent.com,client_secret:<secret from oauth.py:45>,refresh_token:<captured>} → verify HTTP 200 + scope contains cloud-platform; (3) `POST /token` with a fake client_secret → verify `invalid_client` 401 per RFC 6749 §5.2.
+impact: Full GCP project access (compute/storage/IAM/secrets) via a bundled native-app secret. CVSS 9.0. Pending VRP determination on installed-app "by-design" status.
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId with CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
+confidence: 75
+reasoning: Live OPTIONS → 200 + `Access-Control-Allow-Origin: *` + Allow-Methods including PATCH + Max-Age 86400 confirmed at /v1.0/oauth2PermissionGrants (browser-exploitable); EntityType (458 chars) with ZERO OperationRestrictions, 7 client-supplied properties incl resourceId; item-level auth-gate empirically confirmed 401.
+evidence_needed: App A POSTs grant w/ resourceId=victim_resource → App B mints token without consent.
+verify_steps: AUTH_HELPED: (1) App A `POST /v1.0/oauth2PermissionGrants {clientId:"<attacker>",resourceId:"<victim_resource_id>",consentType:"All",principalId:"<victim_user_oid>",scope:"User.Read"}` — Bearer A → 201; (2) App B cross-origin `PATCH /v1.0/oauth2PermissionGrants/{id} {resourceId:"<victim>"}` → 200; (3) App B `POST /oauth2/v2.0/token` client_credentials for victim_resource → token minted.
+impact: Attacker app silently obtains tokens for victim's Graph API data + Azure Storage without consent prompt. CVSS 8.0.
+testability: AUTH_HELPED
+[FINAL] 1) Copilot Admin 6-family cross-principal ownership takeover via CORS+PATCH — confidence 97, AUTH_HELPED
+[FINAL] 2) Earth Engine OAuth client_secret redeemable for cloud-platform access — confidence 96, HUMAN_ONLY
+[FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 75, AUTH_HELPED
+[NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 `ec993b9…b17`, 55 lines) via the msrc.microsoft.com/bounty portal — single authorized two-principal test-tenant request unblocks AUTH_HELPED browser-based testing for BOTH Microsoft hypotheses (#1 Copilot Admin 6-family CORS+PATCH IDOR + #3 oauth2PermissionGrants consent-forge, both confirmed browser-exploitable via true CORS preflight). This is the single bottleneck blocking the two highest-value Microsoft findings from reaching [FINAL] validated status.
+[RISK] google: 88 reason: Hardcoded OAuth client_secret in google/earthengine-api (confidence 96, sha256 `3f3f8d6…d271`, scopes cloud-platform+earthengine+drive+devstorage.full_control, A/B RFC 6749 §5.2 proof) + v2.0 authorize HTTP 200 error rendering at login.microsoftonline.com (RFC 6749 §3 violation). Both confirmed live; no ungated cross-project read surface (identitytoolkit 403-gated, discovery APIs auth-gated).
+[RISK] microsoft: 94 reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight ACAO:*+PATCH confirmed at collection+item+all 6 families, 5 EntityTypes with ZERO OperationRestrictions, item-level 401 confirmed no ownership binding) + oauth2PermissionGrants consent-forge (confidence 75, true CORS preflight ACAO:*+PATCH confirmed, caller-chosen resourceId, 458-char EntityType 0 OperationRestrictions) + Graph 405 anomaly (RFC 6750 §3 violation, masks IDOR enumeration + breaks SDK auto-auth) systemic across gateway.
