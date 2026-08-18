@@ -323,3 +323,7 @@
 - 2026-08-18 NO_DELTA — all fresh passive probes (robot + knowledge base, 19:57 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no confusion surface.
 - 2026-08-18 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 26th consecutive 2-hourly probe since 2026-08-17, unchanged at 20:23 UTC).
+- 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged at 20:23 UTC — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 20:23 UTC — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
+- 2026-08-18 NO_DELTA — all fresh passive probes confirmed prior findings unchanged; 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
