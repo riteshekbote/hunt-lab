@@ -1,59 +1,18 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-# Scan Classification Results
+Let me analyze the scan results and classify each hit according to the categories requested.
 
-## REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *none* | — | — | No production credentials with signs of life found |
+First, let me identify the potential real secrets from the delta hits:
 
-## TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder private key (`-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Fake JWT token `eyAkaknabna....` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` (test scheme) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant name `GEMINI_API_KEY = "gemini_api_key"` (not a value) |
-| google/fleetspeak/sandboxes/*/docker-compose.yaml | 10-11 | Local dev MySQL passwords (`fleetspeak-password`, `password`) |
-| google/fleetspeak/terraform/main.tf | 323 | Terraform dev password `fsuserPass1!` (local deployment) |
-| google/ax/manifests/install-ax.sh | 239,241,286 | Generates random PG password or uses env var (good practice) |
-| google/sam/development/kind/run.sh | 139 | Reads `OIDC_CLIENT_SECRET` from env (proper pattern) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Uses GitHub Secrets properly (`${{ secrets.* }}`) |
+1. `reposcan-raw/google/bigframes/scripts/run_doctest.sh:38-39` - References to KOKORO_GFILE_DIR and service-account.json - This looks like a CI/CD configuration for loading service account credentials from a secure file location (Kokoro is Google's internal CI system). This is not a hardcoded secret.
 
-## ENDPOINT_LEAK
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documented GCP metadata endpoint `169.254.169.254` (public IP) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Same metadata endpoint reference (documentation) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment about metadata endpoint (explicit refusal) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path parameters (config, not secret) |
+2. `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` - `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` - This is in a vendored third-party library (ibis). The comment says `# noqa: S105` which suggests it's a known/intentional value. Need to check if this is a real secret or a test/placeholder.
 
-## INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key name `_vmaas_access_token` (not a secret) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user's `GOOGLE_API_KEY` to generated project (expected behavior) |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified parser error messages (source map artifacts, not secrets) |
+3. `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59` - Same CLIENT_SECRET value.
 
----
+4. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168-170` - References to secrets.GEMINI_API_KEY and secrets.OPENAI_API_KEY - These are GitHub Actions secret references, not hardcoded secrets.
 
-## VERDICT LIST
+5. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63` and `base_config.yaml:63` - Commented out `hf_access_token: "your_token"` - This is clearly a placeholder/template.
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-python auth_credential.py test fixtures | **no** | Explicit test/fixture data in auth examples |
-| adk-python auth_schemes.py PASSWORD constant | **no** | Test scheme constant |
-| adk-python openapi auth_helpers placeholder | **no** | Documentation placeholder |
-| fleetspeak sandboxes docker-compose | **no** | Local dev environments (`sandboxes/` dir) |
-| fleetspeak terraform main.tf | **no** | Dev/test deployment password, weak but not production |
-| ax install-ax.sh password generation | **no** | Generates random or uses env var (secure pattern) |
-| sam workflows/deploy.yaml | **no** | Proper GitHub Secrets usage |
-| agents-cli GEMINI_API_KEY constant | **no** | Constant name only, not a value |
-| 169.254.169.254 references | **no** | Public documented metadata endpoint |
-| kubeconfig path params | **no** | Configuration options |
-| CLI browser JS chunks | **no** | Minified source map parse errors |
-
-**Overall: 0 reportable findings in this delta.** All hits are test fixtures, placeholders, local dev config, documentation references, or proper secret-handling patterns.
+6. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195` - Token strings like `eot_token="
