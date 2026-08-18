@@ -1,15 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
-[0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=35][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=20, offset=50][0m
-### Classification Table
+### Classification Tables
 
-| Category | File | Line | Evidence | SHA256 (secret) |
-|----------|------|------|----------|-----------------|
-| **REAL_SECRET** | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58-59 | Hardcoded OAuth `CLIENT_ID` + `CLIENT_SECRET` for GCP project 546535678771; `# noqa: S105` suppresses linter | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` |
-| **REAL_SECRET** | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 58-59 | Duplicate of above in vendored ibis code | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this delta)* | | | |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — explicit fuzz test fixture |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server fixture |
+| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test password usage in connection string |
+| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL connector test documentation reference |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | `http://169.254.169.254/latest/api/token` | AWS IMDSv2 token endpoint (well-known) |
+| reposcan-raw/google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9,14 | `http://169.254.169.254/latest/meta-data`, `http://169.254.169.254/computeMetadata/v1` | AWS/GCP metadata service IPs (public, link-local) |
+| reposcan-raw/google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | `169.254.169.254` | Link-local metadata IP (standard) |
+| reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` | GCP metadata endpoint (public) |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| reposcan-raw/google/grr/docker/docker-entrypoint.sh | 21,26 | Env-var password injection (`${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}`) — proper runtime secret pattern |
+| reposcan-raw/google/grr/docker_config_files/server/grr.server.yaml | 25 | Private key file reference `%(/configs/private-key.pem|file)` — config template, not hardcoded |
+| reposcan-raw/google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts | 232 | Client-side CSRF token extraction via curl — frontend code, not a secret |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret references (`${{ secrets.GOOGLE_CLIENT_SECRET }}`) — proper CI pattern |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/** | * | Vendored MathJax 2.7.2 — third-party code, "token" = LaTeX math tokens |
+| reposcan-raw/google/llm-sidebar-with-context/src/scripts/constants.ts | 47 | `API_KEY: 'geminiApiKey'` — constant *name*, not a secret value |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api `oauth.py:45` client_secret (sha256 `3f3f8d6f…d271`) | **pending** | Already in knowledge base as ACCEPTED; VRP determination needed on native-app by-design status |
+| GRR docker-entrypoint env vars | no | Proper runtime injection pattern |
+| GRR server.yaml key file ref | no | Config template, file mounted at runtime |
+| Cloud metadata endpoints (169.254.169.254) | no | Well-known public link-local endpoints |
+| OSS-Fuzz test keys | no | Explicit test fixtures ("fuzz test key", "ServerShutdownPassword") |
+| MathJax vendored code | no | Third-party library, "token" = math parser tokens |
+| sam workflow secrets | no | Proper GitHub Actions secret references |
+| llm-sidebar `geminiApiKey` constant | no | Identifier string, not a secret value |
+
+**No new reportable findings in this delta.** The only live secret remains the earthengine-api client_secret already tracked in the knowledge base.
