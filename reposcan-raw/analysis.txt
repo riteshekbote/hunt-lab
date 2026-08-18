@@ -1,65 +1,85 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
 
-## REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *none found in this delta* | | | |
+| Category | File:Line | Evidence | Verdict |
+|----------|-----------|----------|---------|
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:157 | private_key="-----BEGIN PRIVATE KEY-----..." (placeholder ellipsis) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:269 | HttpCredentials(username="user", password="password") | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:278 | HttpCredentials(token="eyAkaknabna....") (fake JWT prefix) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_schemes.py:68 | PASSWORD = "password" (constant name, test value) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/cli/cli_create.py:131 | GOOGLE_API_KEY={google_api_key} (template interpolation) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | client_secret="your_client_secret" (explicit placeholder) | NOT reportable |
+| TEST_OR_EXAMPLE | agents-cli/src/google/agents/cli/auth.py:43 | GEMINI_API_KEY = "gemini_api_key" (placeholder) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/config/gate.toml:584 | password = "password.txt" (reads from file) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/scripts/preflight.sh:39 | password="$(tr -d '\n' < "$pass_file")" (file-backed) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/scripts/fix_p12_legacy.sh:15 | PASS_FILE env var (not hardcoded) | NOT reportable |
+| TEST_OR_EXAMPLE | sam/development/kind/run.sh:139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" (env, default empty) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/container_code_executor.py:114 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/container_code_executor.py:154 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/tools/load_web_page.py:171 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | 169.254.169.254 metadata endpoint (doc/comment) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115 | kubeconfig_path/context params (config, not secret) | NOT reportable |
+| INTERESTING | crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | CODECOV_TOKEN from gcloud secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | github-crosvm-bot token from gcloud secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | sam/.github/workflows/deploy.yaml:247-250 | Secrets from GitHub Actions secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | langextract/.github/workflows/ci.yaml:168-170 | API keys from GitHub Actions secrets (proper secret mgmt) | NOT reportable |
+| NOISE | adk-python/src/google/adk/cli/browser/chunk-*.js | Minified JS parse error messages (20 files) | NOT reportable |
+| NOISE | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (var name) | NOT reportable |
+| CONFIG | sam/*.yaml (ConfigMap kind) | K8s ConfigMap manifests (no secret data) | NOT reportable |
 
-## TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Type |
-|------|------|------|
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | 3,11 | Parser error messages in minified bundles (PEG.js-style) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant placeholder `"gemini_api_key"` |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Scaffold template with `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test mock metadata server setup |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | TODO comment referencing internal bug |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | TODO comment referencing internal bug |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | TODO comment referencing internal bug |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | Internal metadata server constant (test/stub context) |
-
-## ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (staging Pages) |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/...` (public test PyPI) |
-| google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/...` (public test PyPI) |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | `source.corp.google.com` (internal, not externally accessible) |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124-131 | `cs.corp.google.com`, `source.corp.google.com` (internal) |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | `metadata.google.internal` (GCE metadata, internal) |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | `metadata.google.internal` (GCE metadata, internal) |
-
-## INTERESTING (debug flags, keys, cloud configs, patterns)
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref pattern) |
-| google/capsem/config/gate.toml | 584 | `password = "password.txt"` (external password file reference) |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` (reads from file) |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` (reads from file) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | K8s secrets from GitHub secrets: `google-client-secret`, `github-client-secret`, `cli-oauth-secret` |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var with empty default) |
-| google/sam/.github/k8s/*.yaml | multiple | ConfigMap kinds (K8s config patterns) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Workflow secrets: `GEMINI_API_KEY`, `OPENAI_API_KEY` (referenced from GitHub secrets) |
-| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | kubeconfig loaded by test setup (test infra comment) |
-
-## VERDICT LIST
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-go Cloud Run secret ref | no | Secret Manager reference, not hardcoded secret |
-| capsem staging URL | no | Staging environment, Pages subdomain (publicly routable but staging) |
-| meridian test.pypi.org | no | Public test PyPI endpoint |
-| clusterfuzz internal URLs | no | corp.google.com - not externally accessible |
-| sam K8s secret refs | no | All reference GitHub secrets, no hardcoded values |
-| sam OIDC_CLIENT_SECRET | no | Empty default, expects env injection |
-| langextract workflow secrets | no | References GitHub secrets |
-| capsem password.txt refs | no | Reads from external file, no hardcoded password |
-
-**NO REPORTABLE FINDINGS IN THIS DELTA**
-All hits are either test fixtures, template code, internal-only endpoints, or proper secret-reference patterns (GitHub Secrets / Secret Manager / env vars).
+=== SHORT VERDICT LIST ===
+REPORT_CANDIDATE: no (0 real secrets found in delta)
+- All private_key/token/password hits are placeholders, test fixtures, or template interpolations
+- All cloud metadata endpoint refs are documentation/warnings in code executors
+- All secret references use proper secret managers (gcloud secrets, GitHub Actions secrets)
+- Browser chunk JS files are build artifacts with parse error strings, not credentials
+- No hardcoded API keys, OAuth client_secrets, or live tokens discovered in this scan
 EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+=== CLASSIFICATION TABLE ===
+
+| Category | File:Line | Evidence | Verdict |
+|----------|-----------|----------|---------|
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:157 | private_key="-----BEGIN PRIVATE KEY-----..." (placeholder ellipsis) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:269 | HttpCredentials(username="user", password="password") | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_credential.py:278 | HttpCredentials(token="eyAkaknabna....") (fake JWT prefix) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/auth/auth_schemes.py:68 | PASSWORD = "password" (constant name, test value) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/cli/cli_create.py:131 | GOOGLE_API_KEY={google_api_key} (template interpolation) | NOT reportable |
+| TEST_OR_EXAMPLE | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | client_secret="your_client_secret" (explicit placeholder) | NOT reportable |
+| TEST_OR_EXAMPLE | agents-cli/src/google/agents/cli/auth.py:43 | GEMINI_API_KEY = "gemini_api_key" (placeholder) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/config/gate.toml:584 | password = "password.txt" (reads from file) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/scripts/preflight.sh:39 | password="$(tr -d '\n' < "$pass_file")" (file-backed) | NOT reportable |
+| TEST_OR_EXAMPLE | capsem/scripts/fix_p12_legacy.sh:15 | PASS_FILE env var (not hardcoded) | NOT reportable |
+| TEST_OR_EXAMPLE | sam/development/kind/run.sh:139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" (env, default empty) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/container_code_executor.py:114 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/container_code_executor.py:154 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/tools/load_web_page.py:171 | 169.254.169.254 metadata endpoint (doc/warning) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | 169.254.169.254 metadata endpoint (doc/comment) | NOT reportable |
+| ENDPOINT_LEAK | adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115 | kubeconfig_path/context params (config, not secret) | NOT reportable |
+| INTERESTING | crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | CODECOV_TOKEN from gcloud secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | github-crosvm-bot token from gcloud secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | sam/.github/workflows/deploy.yaml:247-250 | Secrets from GitHub Actions secrets (proper secret mgmt) | NOT reportable |
+| INTERESTING | langextract/.github/workflows/ci.yaml:168-170 | API keys from GitHub Actions secrets (proper secret mgmt) | NOT reportable |
+| NOISE | adk-python/src/google/adk/cli/browser/chunk-*.js | Minified JS parse error messages (20 files) | NOT reportable |
+| NOISE | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token" (var name) | NOT reportable |
+| CONFIG | sam/*.yaml (ConfigMap kind) | K8s ConfigMap manifests (no secret data) | NOT reportable |
+
+=== SHORT VERDICT LIST ===
+REPORT_CANDIDATE: no (0 real secrets found in delta)
+- All private_key/token/password hits are placeholders, test fixtures, or template interpolations
+- All cloud metadata endpoint refs are documentation/warnings in code executors
+- All secret references use proper secret managers (gcloud secrets, GitHub Actions secrets)
+- Browser chunk JS files are build artifacts with parse error strings, not credentials
+- No hardcoded API keys, OAuth client_secrets, or live tokens discovered in this scan
+[0m
+**Triage complete — 0 reportable findings in this delta.**
+
+All 34 new hits classify as:
+- **TEST_OR_EXAMPLE** (11): Placeholder credentials (`your_client_secret`, `password`, fake JWT `eyAkaknabna....`, template interpolation `GOOGLE_API_KEY={google_api_key}`)
+- **ENDPOINT_LEAK** (5): Documentation/comments about `169.254.169.254` metadata endpoint in code executors — warnings, not leaks
+- **INTERESTING** (4): Proper secret management patterns (gcloud secrets, GitHub Actions secrets)
+- **NOISE/CONFIG** (14): Minified JS parse errors, K8s ConfigMap manifests, variable names
+
+The previously known hardcoded secret at `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) remains the only LIVE finding from prior scans — already tracked in knowledge base, pending VRP determination on native-app by-design status.
