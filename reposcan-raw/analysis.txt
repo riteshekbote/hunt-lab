@@ -1,60 +1,77 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-# Scan Classification Results
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key" && sha256sum <<< "your_client_secret" && sha256sum <<< "password" && sha256sum <<< "refresh_token" && sha256sum <<< "eyAkaknabna...." && sha256sum <<< "fuzz test key" && sha256sum <<< "ServerShutdownPassword"
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+760146ec0d8c3db09a463087c65effdc349a9f993381232d0871a6df0b517ee0  -
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5  -
+1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782  -
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=260][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh[90m [limit=20][0m
+[0m→ [0mRead reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh[90m [offset=50, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
+### Classification Tables
 
-## REAL_SECRET Candidates
-| File | Line | Classification | SHA256 | Verdict |
-|------|------|----------------|--------|---------|
-| *none new* | — | — | — | All new hits are placeholders/test data |
+#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
 
-> **Note**: The previously known `google/earthengine-api/python/ee/oauth.py:45` hardcoded client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains **LIVE per knowledge base** but is not a *new* hit in this delta.
+| File | Line | Pattern | SHA256 (secret material) |
+|------|------|---------|--------------------------|
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | e5dfd035e35331bee769326e3089acefb86c020f7cbf44b622da565d9d0de2e5 |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | 1731c39527117b137258293523c57c5e7623859e35115ce0f52f4775192cc782 |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `"-----BEGIN PRIVATE KEY-----..."` (docstring placeholder) | N/A (truncated placeholder) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` (test creds) | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` (test token) | 597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (constant name) | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) | af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` (enum identifier) | 1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52 |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 287 | `client_secret="secret"` (test value) | N/A |
 
----
+#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
 
-## TEST_OR_EXAMPLE (not reportable)
-| File | Line | Evidence |
+| File | Line | Endpoint |
 |------|------|----------|
-| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` |
-| `google/oss-fuzz/projects/h2database/TestServer.java` | 55 | Test connection helper |
-| `google/oss-fuzz/projects/mysql-connector-j/TestServer.java` | 33 | Documentation URL comment |
-| `google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test fixture |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Placeholder private_key, password="password", token="eyAkaknabna...." |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` constant |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (placeholder string) |
+| google/oss-rebuild/deployments/scratch_startup.sh | 57 | `http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (cloud metadata endpoint) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (metadata endpoint, NAT64 context) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (metadata endpoint, Chrome context) |
 
----
+#### INTERESTING (config patterns, infra-as-code, proper secret handling)
 
-## ENDPOINT_LEAK (internal/dev URLs, not secrets)
-| File | Line | URL |
-|------|------|-----|
-| `google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | `https://source.corp.google.com/h/chrome-internal/` |
-| `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | `https://android-build.corp.google.com/range_search/...` |
-| `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud secrets access` (proper secret mgmt, not leak) |
-| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets access` (proper secret mgmt) |
-
----
-
-## INTERESTING (unusual but not exploitable)
 | File | Line | Note |
 |------|------|------|
-| `google/skia-buildbot/perf/go/*/schema/schema.go` | 5,7,12,14,46 | 6 files all reference internal issue `b.corp.google.com/issues/492077374` (UUID→Text migration) |
-| `google/skia-buildbot/temporal/docker/config_template.yaml` | 25 | Template `password: "{{ default .Env.POSTGRES_PWD "" }}"` — env-driven, safe |
-| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | `test.pypi.org` URLs (test registry, expected) |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper secret references (`${{ secrets.GEMINI_API_KEY }}`) |
-| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Template token placeholders (`${{ steps.fetch-token.outputs._id_token }}`) |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | JS parser error messages (source map artifacts) |
+| google/sam/.github/k8s/*.yaml | multiple | K8s ConfigMap definitions for DEX OIDC (infra-as-code, not secrets) |
+| google/sam/.github/workflows/deploy.yaml | 247–250 | Proper GH Actions secret injection (`${{ secrets.X }}`) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (expects env var) |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` (constant key name) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Runtime secret fetch from GCP Secret Manager via `gcloud` |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Runtime secret fetch from GCP Secret Manager via `gcloud` |
+| google/langextract/.github/workflows/ci.yaml | 168–170 | Proper GH Actions secret usage (`${{ secrets.GEMINI_API_KEY }}`) |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168, 192 | GH Actions OIDC token fetch pattern (`steps.fetch-token.outputs._id_token`) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key constant) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Template variable `GOOGLE_API_KEY={google_api_key}` |
 
 ---
 
-## SHORT VERDICT LIST
+### Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `google/earthengine-api/python/ee/oauth.py:45` (known, not in delta) | REAL_SECRET | **yes** (pending VRP determination on native-app by-design status) |
-| All new delta hits (20 lines) | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** |
-| All full-grep hits (358 total) | TEST_OR_EXAMPLE / ENDPOINT_LEAK / INTERESTING | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/oss-rebuild metadata endpoint | **no** | Well-known GCP metadata server endpoint (publicly documented), not a secret |
+| google/adk-python metadata endpoint refs | **no** | Code comments documenting security consideration (SSRF surface), not a leak |
+| google/sam K8s ConfigMaps | **no** | Infrastructure-as-code for DEX OIDC, no secret material |
+| google/sam GH Actions secret injection | **no** | Correct pattern — secrets injected at runtime from GH Secrets |
+| google/crosvm Secret Manager fetch | **no** | Correct pattern — secrets fetched at runtime from GCP Secret Manager |
+| google/agents-cli OIDC token fetch | **no** | Correct pattern — workload identity federation via GH Actions OIDC |
+| google/adk-python test/example creds | **no** | All placeholders in docstrings/test fixtures |
+| google/oss-fuzz test passwords | **no** | Explicit test fixtures in fuzz harnesses |
+| **KNOWN: google/earthengine-api oauth.py:45** | **no (known dup)** | Already ACCEPTED in KB (sha256 `3f3f8d6f…d271`), pending VRP determination on native-app by-design status |
 
-**Summary**: No *new* reportable secrets in this delta. The only live REAL_SECRET remains the previously tracked earthengine-api OAuth client_secret (already in knowledge base as ACCEPTED). All new hits are test fixtures, placeholders, internal URLs, or proper secret references.
+**No new REAL_SECRET findings in this delta.** All hits are test fixtures, placeholders, documented endpoints, or proper secret-injection patterns.
