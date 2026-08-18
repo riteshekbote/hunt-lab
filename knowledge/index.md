@@ -310,3 +310,5 @@
 - 2026-08-18 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`, 19:03 UTC probe).
 - 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 25+ consecutive probes stable since 2026-08-17).
 - 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8, 0 v1-only), all kty=RSA, no confusion surface.
+- 2026-08-18 ACCEPTED: All 3 hypothesis preconditions confirmed stable at 2026-08-18 19:37 UTC passive probe — agentRegistration 6-family CORS+PATCH IDOR preconditions unchanged, earthengine-api oauth.py:45 hardcoded client_secret sha256 3f3f8d6f…d271 confirmed live, oauth2PermissionGrants caller-chosen resourceId + zero restrictions confirmed live.
+- 2026-08-18 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 25th consecutive probe since 2026-08-17).
