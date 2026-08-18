@@ -1,53 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py[90m [limit=20, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/fuzzbench/common/utils.py[90m [offset=45, limit=15][0m
+[0m$ [0msha256sum <<< "RUP0RZ6e0pPhDzsqIJ7KlNd1"
+036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
+[0m
+[0m$ [0mprintf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | **KNOWN/ACCEPTED** — hardcoded OAuth client_secret, native-app pattern (OOB redirect), scopes: cloud-platform+earthengine+drive+devstorage.full_control |
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` — **confirmed LIVE on master** per knowledge base (ACCEPTED 2026-08-07/08/18), scopes include `cloud-platform`+`drive`+`devstorage.full_control`, used as default fallback at oauth.py:99, OOB redirect URI. Reposcan classified `REAL_SECRET (REPORT_CANDIDATE=yes)`. |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | Pagination test fixtures (`initial-token`, `updated-token-123`) |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | Pagination test fixtures (`nextPage`) |
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | Test passwords/tokens (`testpassword`, `test-token-123`) |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | Test passwords (`testpassword`) |
-| google/heir/scripts/author_stats.py | 16 | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| google/tsunami-security-scanner-plugins/.../influxdb_cve_2019_20933/... | 147 | Detector test JWT (malformed, exp 2025) |
-| google/tsunami-security-scanner-plugins/.../minio_cve_2023_28432/... | 83 | Detector default password `minioadmin` |
-| google/tsunami-security-scanner-plugins/.../apache_apisix_cve_2022_24112/... | 71 | Detector default admin key |
-| google/tsunami-security-scanner-plugins/.../apache_dolphin_scheduler/... | 105 | Detector default auth token |
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder value `"gemini_api_key"` |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions templated variables `${{ steps.fetch-token.outputs._id_token }}`, `${{ steps.fetch-token.outputs._auth_token }}` |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247–250 | Secret references `${{ GOOGLE_CLIENT_SECRET }}`, `${{ GITHUB_CLIENT_SECRET }}`, `${{ CLI_OAUTH_SECRET }}` |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Env var with default empty `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
+| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Key name `"refresh_token"`, not a secret value |
+| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts` | 399 | Explicit placeholder `"sk-REPLACE-WITH-YOUR-KEY"` |
+| `reposcan-raw/microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml` | 2 | Kubernetes `kind: ConfigMap` declaration only |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| google/fuzzbench/common/utils.py | 50 | `http://metadata.google.internal` (GCP metadata server — internal-only, no external access) |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` (internal artifact registry) |
-| google/yggdrasil-decision-forests/.../export_docker.py | 68 | `pantheon.corp.google.com` (internal Cloud Run console) |
-| google/tsunami-security-scanner-plugins/.../kubeflow/.../docker-compose.yml | 9, 30, 40 | `kubeconfig:/root/.kube/` (dev mount) |
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| `reposcan-raw/google/atheris/deployment/deploy_pypi.sh` | 26 | `https://test.pypi.org/simple/` | Public test PyPI index |
+| `reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh` | 49 | `http://metadata.google.internal/...` | GCP IMDS metadata endpoint |
+| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-dotnet/.../OpaPolicyBackend.cs` | 563, 566, 568 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | AWS/Azure/GCP/Alibaba IMDS |
+| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-python/.../http_client.py` | 102 | `169.254.169.254` | AWS metadata |
+| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/.../cedar.ts` | 8, 11, 13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | IMDS endpoints |
+| `reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/.../opa.ts` | 13, 14 | `169.254.169.254`, `metadata.google.internal` | IMDS endpoints |
 
 #### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/sam/... | various | ConfigMap kinds, `OIDC_CLIENT_SECRET` env var ref, workflow `--from-literal=...` secret refs (CI-injected, not hardcoded) |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `secret_key` into generated output (not a stored secret) |
-| google/closure-compiler/externs/... | various | `dev.w3.org` spec URLs (public standards references) |
+| File | Line | Observation |
+|------|------|-------------|
+| `reposcan-raw/google/yggdrasil-decision-forests/.../export_docker.py` | 68 | Comment references internal `pantheon.corp.google.com` (corp-only Cloud Run console) |
+| `reposcan-raw/google/closure-compiler/.../google_maps_api_v3*.js` | 4638–4639 | References `developers.devsite.corp.google.com` (internal docs) |
+| `reposcan-raw/google/fuzzbench/common/utils.py` | 50 | Fetches `http://metadata.google.internal` (GCP IMDS) at runtime |
+| `reposcan-raw/google/sam/.github/k8s/*.yaml` | multiple | Many `kind: ConfigMap` templates (infrastructure configs, no secrets) |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/earthengine-api/python/ee/oauth.py:45 (CLIENT_SECRET) | **no** | Already ACCEPTED in KB (2026-08-07+), native-app by-design pattern (OOB redirect + loopback), pending VRP determination on "by-design" status |
-| google/fuzzbench/common/utils.py:50 (metadata.google.internal) | **no** | Internal-only endpoint, unreachable externally; environment detection pattern |
-| All TEST_OR_EXAMPLE hits | **no** | Test fixtures, detector defaults, placeholders |
-| All ENDPOINT_LEAK (pantheon.corp, kubeconfig mounts) | **no** | Internal Google infra / dev configs, no external exposure |
-| All INTERESTING hits | **no** | CI secret references, codegen, public spec URLs |
-
-**Summary:** No new reportable findings. The only REAL_SECRET is the previously accepted earthengine-api OAuth client_secret (native-app pattern). All other hits are test data, internal endpoints, or CI/config references.
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| `google/earthengine-api` oauth.py:45 hardcoded client_secret | **yes** | **ACCEPTED** in knowledge base (2026-08-07/08/18): LIVE on master, `REAL_SECRET` per reposcan, A/B `invalid_grant` vs `invalid_client` proof conclusive per RFC 6749 §5.2, scopes include `cloud-platform` (full GCP). Pending VRP determination on native-app by-design status. |
+| All `TEST_OR_EXAMPLE` hits | no | Placeholders, templated CI variables, or explicit `REPLACE-WITH-YOUR-KEY` |
+| All `ENDPOINT_LEAK` hits | no | Well-known cloud metadata endpoints (IMDS), public test PyPI, or internal doc references — no credentials |
+| All `INTERESTING` hits | no | Internal corpus URLs in comments, runtime IMDS fetches, ConfigMap templates — no secret material |
