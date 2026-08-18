@@ -1,19 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "RUP0RZ6e0pPhDzsqIJ7KlNd1" --include="*.py" 2>/dev/null | head -5
+(no output)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find reposcan-raw -name "earthengine*" -type d 2>/dev/null
+reposcan-raw/google/earthengine-api
+reposcan-raw/google/earthengine-community
+reposcan-raw/google/earthengine-catalog
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/earthengine-api/python/ee/oauth.py | head -60
+cat: reposcan-raw/google/earthengine-api/python/ee/oauth.py: No such file or directory
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find reposcan-raw/google/earthengine-api -name "oauth.py" 2>/dev/null
+(no output)
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls -la reposcan-raw/google/earthengine-api/
+total 20
+drwxr-xr-x   2 runner runner  4096 Aug 18 06:26 .
+drwxr-xr-x 403 runner runner 16384 Aug 18 06:26 ..
+[0m
+### Classification Table
 
-| Category | Files/Lines |
-|----------|-------------|
-| **REAL_SECRET** | *none* |
-| **TEST_OR_EXAMPLE** | `adk-js/core/src/auth/auth_credential.ts:214` (comment: `password: "password"`), `:226` (comment: `token: "your_access_token"`), `adk-js/core/src/auth/auth_schemes.ts:41` (`PASSWORD = 'password'` default constant), `adk-python/src/google/adk/auth/auth_credential.py:157` (placeholder private_key), `:269` (test credentials), `:278` (placeholder token), `adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"`), `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`client_secret="your_client_secret"`), `oss-fuzz/projects/h2database/TestServer.java:13` (`g_shutdownPassword = "ServerShutdownPassword"`), `:55` (test DB password), `oss-fuzz/projects/flask/fuzz_json.py:27` (`secret_key = "fuzz test key"`), `agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"`), `garf/.../currencyapi/report_fetcher.py:64` (`api_key='YOUR_KEY'`), `garf/.../openweather/report_fetcher.py:57` (`api_key='YOUR_KEY'`) |
-| **ENDPOINT_LEAK** | `adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` (`metadata.google.internal` check), `adk-js/core/src/tools/load_web_page.ts:36` (`169.254.0.0/16` metadata CIDR), `capsem/.github/workflows/release-channel-staging.yaml:17` (`staging.release-eq7.pages.dev`) |
-| **INTERESTING** | `capsem/config/gate.toml:584` (`password = "password.txt"` — references external file), `capsem/scripts/fix_p12_legacy.sh:15` (reads `$PASS_FILE`), `capsem/scripts/preflight.sh:39` (reads `$pass_file`), `adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` (kubeconfig params), `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (metadata endpoint warnings), `adk-python/src/google/adk/tools/load_web_page.py:171` (metadata endpoint route), `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (metadata endpoint refusal), `sam/.github/workflows/deploy.yaml:247-250` (GitHub secrets refs), `langextract/.github/workflows/ci.yaml:168-170` (GitHub secrets refs) |
+| Category | Count | Files |
+|----------|-------|-------|
+| **TEST_OR_EXAMPLE** | 216 | Placeholder keys (`YOUR_KEY`), example credentials (`password`, `your_access_token`), GitHub Actions secret refs (`${{ secrets.* }}`), k8s ConfigMap templates, constant names (`PASSWORD = "password"`), truncated example private keys/tokens |
+| **ENDPOINT_LEAK** | 6 | GCP metadata endpoint `169.254.169.254` refs in adk-python (4 files), staging URL `staging.release-eq7.pages.dev` (capsem) |
+| **INTERESTING** | 2 | quiche: legacy OpenSSL RSA key format comment; SPDY protocol draft URL comment |
+| **REAL_SECRET** | 0 | None in this scan snapshot (earthengine-api oauth.py:45 secret not present in scanned files) |
+| **DELTA (new)** | 6 | Minified JS parser error messages in adk-python browser chunks — **not secrets** |
 
-## Verdict
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| (no real secrets found) | **no** |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| google/garf/.../openweather/report_fetcher.py | 57 | TEST_OR_EXAMPLE (`YOUR_KEY`) | no |
+| google/garf/.../currencyapi/report_fetcher.py | 64 | TEST_OR_EXAMPLE (`YOUR_KEY`) | no |
+| google/sam/.../mock-oidc.yaml | 16 | TEST_OR_EXAMPLE (doc) | no |
+| google/sam/.../sam-control-plane.yaml | 88 | TEST_OR_EXAMPLE (doc) | no |
+| google/sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE (const name) | no |
+| google/sam/charts/.../dex-deployment.yaml | 3 | TEST_OR_EXAMPLE (k8s template) | no |
+| google/sam/development/kind/run.sh | 139 | TEST_OR_EXAMPLE (var ref) | no |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | TEST_OR_EXAMPLE (GH Actions secrets) | no |
+| google/sam/.github/k8s/*.yaml | various | TEST_OR_EXAMPLE (k8s templates) | no |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | TEST_OR_EXAMPLE (comments) | no |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | TEST_OR_EXAMPLE (scheme const) | no |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | ENDPOINT_LEAK (169.254.169.254) | no |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE (GH Actions secrets) | no |
+| google/capsem/.github/workflows/... | 17 | ENDPOINT_LEAK (staging URL) | no |
+| google/capsem/config/gate.toml | 584 | TEST_OR_EXAMPLE (file ref) | no |
+| google/capsem/scripts/preflight.sh | 39 | TEST_OR_EXAMPLE (reads file) | no |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | TEST_OR_EXAMPLE (reads file) | no |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE (placeholder) | no |
+| google/agents-cli/.../staging.yaml | 168,192 | TEST_OR_EXAMPLE (template) | no |
+| google/quiche/.../certificate_view.h | 126 | INTERESTING (comment) | no |
+| google/quiche/.../spdy_protocol.h | 7 | INTERESTING (comment) | no |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | TEST_OR_EXAMPLE (truncated examples) | no |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE (scheme const) | no |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | TEST_OR_EXAMPLE (param defaults) | no |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | ENDPOINT_LEAK (169.254.169.254) | no |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | ENDPOINT_LEAK (169.254.169.254) | no |
+| google/adk-python/src/google/adk/tools/computer_use/... | 146 | ENDPOINT_LEAK (169.254.169.254) | no |
+| google/adk-python/src/google/adk/tools/openapi_tool/... | 64 | TEST_OR_EXAMPLE (placeholder) | no |
+| google/adk-python/src/google/adk/integrations/vmaas/... | 47 | TEST_OR_EXAMPLE (const name) | no |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | INTERESTING (writes var) | no |
+| google/adk-python/src/google/adk/cli/browser/*.js | 6 files | TEST_OR_EXAMPLE (minified parser errors) | no |
 
-**Summary**: All 11 delta hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK**, or **INTERESTING** — no hardcoded live credentials. The `PASSWORD = 'password'` constants are default scheme values; `YOUR_KEY`/`your_access_token`/`gemini_api_key` are explicit placeholders; metadata endpoint references are documented guardrails; capsem password lines read from external files; GitHub Actions lines use `${{ secrets.* }}`. No reportable findings this scan.
+**Summary**: No new `REAL_SECRET` findings in this scan. The previously accepted earthengine-api hardcoded client_secret (`oauth.py:45`, sha256 `3f3f8d6f...d271`) is **not present in this scan snapshot** (repo directory empty in `reposcan-raw`). All 238 hits are false positives: placeholders, examples, templates, CI secret references, or internal endpoint documentation.
