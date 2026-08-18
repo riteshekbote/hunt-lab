@@ -1,21 +1,19 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Based on the scan hits, here's the classification:
+## Classification Table
 
-### Classification Table
+| Category | Files/Lines |
+|----------|-------------|
+| **REAL_SECRET** | *none* |
+| **TEST_OR_EXAMPLE** | `adk-js/core/src/auth/auth_credential.ts:214` (comment: `password: "password"`), `:226` (comment: `token: "your_access_token"`), `adk-js/core/src/auth/auth_schemes.ts:41` (`PASSWORD = 'password'` default constant), `adk-python/src/google/adk/auth/auth_credential.py:157` (placeholder private_key), `:269` (test credentials), `:278` (placeholder token), `adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"`), `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`client_secret="your_client_secret"`), `oss-fuzz/projects/h2database/TestServer.java:13` (`g_shutdownPassword = "ServerShutdownPassword"`), `:55` (test DB password), `oss-fuzz/projects/flask/fuzz_json.py:27` (`secret_key = "fuzz test key"`), `agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"`), `garf/.../currencyapi/report_fetcher.py:64` (`api_key='YOUR_KEY'`), `garf/.../openweather/report_fetcher.py:57` (`api_key='YOUR_KEY'`) |
+| **ENDPOINT_LEAK** | `adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` (`metadata.google.internal` check), `adk-js/core/src/tools/load_web_page.ts:36` (`169.254.0.0/16` metadata CIDR), `capsem/.github/workflows/release-channel-staging.yaml:17` (`staging.release-eq7.pages.dev`) |
+| **INTERESTING** | `capsem/config/gate.toml:584` (`password = "password.txt"` — references external file), `capsem/scripts/fix_p12_legacy.sh:15` (reads `$PASS_FILE`), `capsem/scripts/preflight.sh:39` (reads `$pass_file`), `adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` (kubeconfig params), `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (metadata endpoint warnings), `adk-python/src/google/adk/tools/load_web_page.py:171` (metadata endpoint route), `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (metadata endpoint refusal), `sam/.github/workflows/deploy.yaml:247-250` (GitHub secrets refs), `langextract/.github/workflows/ci.yaml:168-170` (GitHub secrets refs) |
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *None* |
-| **TEST_OR_EXAMPLE** | `google/sam/site/content/docs/manifests/mock-oidc.yaml:16`<br>`google/sam/site/content/docs/manifests/sam-control-plane.yaml:88`<br>`google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3`<br>`google/sam/development/kind/run.sh:139` (env var with empty default)<br>`google/sam/.github/workflows/deploy.yaml:247,249,250` (GitHub secrets refs)<br>`google/sam/.github/k8s/*.yaml` (ConfigMap templates)<br>`google/langextract/.github/workflows/ci.yaml:168-170` (GitHub secrets refs)<br>`google/oss-fuzz/projects/flask/fuzz_json.py:27` (`"fuzz test key"`)<br>`google/oss-fuzz/projects/h2database/TestServer.java:13,55` (test password)<br>`google/cadvisor/lib/cadvisorflags/flags.go:54` (default flag value)<br>`google/agents-cli/src/google/agents/cli/auth.py:43` (placeholder `"gemini_api_key"`)<br>`google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml:168,192` (template syntax)<br>`google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (placeholders/truncated)<br>`google/adk-python/src/google/adk/auth/auth_schemes.py:68` (constant name)<br>`google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`"your_client_secret"`)<br>`google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` (constant name)<br>`google/adk-python/src/google/adk/cli/cli_create.py:131` (variable interpolation) |
-| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (metadata endpoint comments)<br>`google/adk-python/src/google/adk/tools/load_web_page.py:171` (metadata endpoint comment)<br>`google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (metadata endpoint comment)<br>`google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` (kubeconfig params) |
-| **INTERESTING** | `google/quiche/quiche/quic/core/crypto/certificate_view.h:126` (legacy OpenSSL note)<br>`google/quiche/quiche/http2/core/spdy_protocol.h:7` (SPDY protocol ref)<br>`google/adk-python/src/google/adk/cli/browser/*.js` (minified/bundled JS chunks - 11 files) |
+## Verdict
 
-### Verdict List
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| (no real secrets found) | **no** |
 
-| File | Category | REPORT_CANDIDATE |
-|------|----------|------------------|
-| *No files classified as REAL_SECRET* | — | — |
-
-**Summary**: All 521 grep hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata endpoint references), or **INTERESTING** (minified JS, comments). No hardcoded live credentials found in this delta scan. The previously accepted `earthengine-api` OAuth client secret (tracked in knowledge base) does not appear in these new hits.
+**Summary**: All 11 delta hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK**, or **INTERESTING** — no hardcoded live credentials. The `PASSWORD = 'password'` constants are default scheme values; `YOUR_KEY`/`your_access_token`/`gemini_api_key` are explicit placeholders; metadata endpoint references are documented guardrails; capsem password lines read from external files; GitHub Actions lines use `${{ secrets.* }}`. No reportable findings this scan.
