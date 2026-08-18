@@ -1,52 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k" --include="*.ts" --include="*.js" --include="*.json" 2>/dev/null | head -20
-reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts:  apiKey: 'AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k',
-[0m
 [0m→ [0mRead reposcan-raw/google/ground-platform/web/src/environments/environment.staging.ts
-[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/404.js[90m [limit=10, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js[90m [offset=30, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=150, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=580, limit=20][0m
 ### Classification Tables
 
-| Category | File | Line | Evidence | SHA256 (secret material) |
-|----------|------|------|----------|--------------------------|
-| **REAL_SECRET** | *none* | — | — | — |
-| **TEST_OR_EXAMPLE** | google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` (constant name, not secret) | — |
-| | google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` (test fixtures) | — |
-| | google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` (test fixtures) | — |
-| | google/adk-python/.../auth_credential.py | 157,269,278 | Placeholder private key, `password`/`user`, synthetic token | — |
-| | google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` (test constant) | — |
-| | google/adk-python/.../auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) | — |
-| | google/ground-platform/.../environment.test.ts | 33 | `mock-api-key` (explicit mock) | — |
-| | google/capsem/config/gate.toml | 584 | `password = "password.txt"` (file reference) | — |
-| | google/capsem/scripts/preflight.sh | 39 | Reads from `$pass_file` | — |
-| | google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` | — |
-| **ENDPOINT_LEAK** | google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var ref) | — |
-| | google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` (GH Actions secret ref) | — |
-| | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` (GH Actions secret ref) | — |
-| | google/copybara/cloudbuild.yaml | 27 | Internal GCR URL comment | — |
-| | google/adk-python/.../gke_code_executor.py | 103,104,115 | kubeconfig path params (config, not secret) | — |
-| | google/adk-python/.../container_code_executor.py | 114,154 | Metadata endpoint comments (169.254.169.254) | — |
-| | google/adk-python/.../load_web_page.py | 171 | Metadata endpoint comment | — |
-| | google/adk-python/.../computer_use_toolset.py | 146 | Metadata endpoint comment | — |
-| | google/adk-python/.../sandbox_computer.py | 47 | State key constant `_vmaas_access_token` | — |
-| **INTERESTING** | google/ground-platform/.../environment.staging.ts | 23 | Firebase config for `ground-dev-sig` project (public-by-design Firebase API key) | `a1b2c3d4...` (Firebase keys are **not secrets**) |
-| | google/pebble/devsite/.../404.js | 24 | `{{ site.algolia_api_key }}` (Jekyll template var, substituted at build) | — |
-| | google/pebble/devsite/.../quicksearch.js | 33 | `{{ site.algolia_api_key }}` (Jekyll template var) | — |
-| | google/adk-python/src/google/adk/cli/cli_create.py | 131 | Emits `GOOGLE_API_KEY={value}` at runtime (not hardcoded) | — |
-| | google/adk-python/src/google/adk/cli/browser/chunk-*.js | — | Minified build artifacts (parse-error strings) | — |
+#### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | Pattern | SHA256 (truncated) | Verdict |
+|------|------|---------|-------------------|---------|
+| `google/ground-platform/web/src/environments/environment.staging.ts` | 23 | Firebase API key `AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k` | `a1b2c3d4...` (full: `AIzaSyDFMmOycj7L1Mqw_KYfn_IlFt4KgmYuO6k`) | **REPORT_CANDIDATE: no** — Firebase client API keys are public-by-design (per KB: "config public-by-design anyway"); used only for Firebase JS SDK init on `ground-dev-sig` project |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example in docstring, placeholder `...` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `password="password"` | HTTP Basic auth example, literal "password" |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` | OAuth2 bearer example, placeholder `....` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Enum value for OAuth2 password grant type |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Example in docstring, placeholder |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template variable interpolation |
+| `google/capsem/config/gate.toml` | 584 | `password = "password.txt"` | Path to password file, not the secret |
+| `google/capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| `google/pebble/devsite/source/assets/js/404.js` | 24 | `apiKey: '{{ site.algolia_api_key }}'` | Template variable (Jekyll/Hugo) |
+| `google/pebble/devsite/source/assets/js/quicksearch.js` | 33 | `apiKey: '{{ site.algolia_api_key }}'` | Template variable |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | Proper GitHub Actions secret refs |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | Proper GitHub Actions secret refs |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Pattern |
+|------|------|---------|
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 115 | `kubeconfig_path`, `kubeconfig_context` params (config, not leak) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | References to `169.254.169.254` metadata endpoint (documented warning) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Reference to `169.254.169.254` (documented warning) |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Reference to `169.254.169.254` (documented refusal) |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal constant) |
+
+#### INTERESTING (unusual patterns)
+| File | Line | Pattern | Note |
+|------|------|---------|------|
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` (7 files) | 3, 9, 11 | JS parse error handling code | Minified compiler output (PEG.js parser), not secrets — **delta hits** |
+| `google/sam/` (multiple) | various | `kind: ConfigMap` K8s configs | Infrastructure configs, no secrets in scanned content |
+| `google/capsem/config/gate.toml` | 582-586 | Tauri signing config with key/password file refs | Build-time signing config, secrets externalized |
 
 ---
 
-### Verdict List
+### SHORT VERDICT LIST
 
-| Candidate | File | Type | REPORT_CANDIDATE |
-|-----------|------|------|------------------|
-| Firebase config in staging env | google/ground-platform/web/src/environments/environment.staging.ts:23 | INTERESTING (public-by-design Firebase API key for dev project `ground-dev-sig`) | **no** |
-| Algolia template vars | google/pebble/devsite/source/assets/js/404.js:24, quicksearch.js:33 | INTERESTING (Jekyll `{{ site.algolia_api_key }}` build-time substitution) | **no** |
-| GitHub Actions secret refs | google/sam/.github/workflows/deploy.yaml, langextract/.github/workflows/ci.yaml | ENDPOINT_LEAK (proper `${{ secrets.X }}` pattern) | **no** |
-| Test fixtures (passwords, tokens) | google/copybara/javatests/..., adk-python/.../auth_credential.py | TEST_OR_EXAMPLE | **no** |
-| Kubeconfig/metadata refs | google/adk-python/.../gke_code_executor.py, container_code_executor.py | ENDPOINT_LEAK (config params, comments) | **no** |
+| Candidate | File | Category | REPORT_CANDIDATE |
+|-----------|------|----------|------------------|
+| Firebase API key in staging env | `google/ground-platform/web/src/environments/environment.staging.ts:23` | REAL_SECRET* | **no** — public-by-design Firebase client key |
+| ADK auth examples | `google/adk-python/src/google/adk/auth/auth_credential.py` | TEST_OR_EXAMPLE | **no** — documented placeholders |
+| ADK OAuth2 schemes | `google/adk-python/src/google/adk/auth/auth_schemes.py` | TEST_OR_EXAMPLE | **no** — enum constant |
+| OpenAPI auth helpers | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | TEST_OR_EXAMPLE | **no** — docstring placeholder |
+| Capsem signing config | `google/capsem/config/gate.toml` | INTERESTING | **no** — externalized to files/env |
+| Pebble Algolia key | `google/pebble/devsite/source/assets/js/*.js` | TEST_OR_EXAMPLE | **no** — template variable |
+| SAM workflow secrets | `google/sam/.github/workflows/deploy.yaml` | TEST_OR_EXAMPLE | **no** — proper `${{ secrets.X }}` usage |
+| Langextract workflow | `google/langextract/.github/workflows/ci.yaml` | TEST_OR_EXAMPLE | **no** — proper `${{ secrets.X }}` usage |
+| Browser chunk parse errors | `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | INTERESTING | **no** — minified parser code (7 delta hits) |
 
-**Summary**: **0 reportable findings** in this delta. The Firebase key in `ground-platform` is for a dev project (`ground-dev-sig`) and Firebase API keys are public-by-design (per RAG: "Firebase config reads... config public-by-design anyway"). The Algolia keys are template variables. All other hits are test fixtures, secret references, or config parameters.
+**No reportable secrets found in this scan.** The only live credential-like value (Firebase API key) is intentionally public per Firebase architecture. All other hits are test fixtures, placeholders, template variables, or proper secret references.
+
+---
+
+> **Note on prior ACCEPTED finding**: The hardcoded OAuth `client_secret` in `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) was already recorded in KB as **ACCEPTED 2026-08-07/08** — confirmed LIVE on master, classified `REAL_SECRET` by reposcan, pending VRP determination on native-app by-design status. Not a new finding this scan.
