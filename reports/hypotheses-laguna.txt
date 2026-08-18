@@ -1,4 +1,4 @@
-## 2026-08-18 09:52:00 UTC [google] (model laguna)
+## 2026-08-18 10:14:38 UTC [google] (model laguna)
 [PRIO] `graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}` score 8.05 axes atk=9 biz=8 tech=8 gate=6 cloud=7 fresh=10
 [PRIO] `oauth2.googleapis.com/token` (earthengine-api client_secret) score 8.10 axes atk=8 biz=9 tech=8 gate=5 cloud=9 fresh=10
 [PRIO] `graph.microsoft.com/v1.0/oauth2PermissionGrants` score 7.40 axes atk=7 biz=8 tech=8 gate=5 cloud=7 fresh=10
@@ -33,8 +33,10 @@ testability: AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret — confidence 96, HUMAN_ONLY
 [FINAL] 3) oauth2PermissionGrants consent-forge — confidence 70, AUTH_HELPED
 [NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` via msrc.microsoft.com/bounty portal — single authorized-token request unblocks AUTH_HELPED testing for BOTH Microsoft hypotheses (#1 Copilot Admin CORS+PATCH IDOR + #3 oauth2PermissionGrants consent-forge)
-[LEARN] ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations true CORS preflight confirmed live at 09:49 UTC — OPTIONS → 200, `Access-Control-Allow-Origin: *`, Allow-Methods includes PATCH, Max-Age 86400
-[LEARN] ACCEPTED: graph.microsoft.com 405 anomaly (RFC 6750 §3 violation) confirmed live at 09:49 UTC — HEAD /v1.0 → 405, Content-Length 0, no WWW-Authenticate Bearer; GET /me → 401 proper Bearer
-[LEARN] NO_DELTA — fresh passive probes 09:49 UTC confirmed all prior ACCEPTED/REJECTED unchanged; 3 active hypotheses stable; no new proving-dead/proving-live classes
-[RISK] google: 88 reason: Hardcoded valid OAuth client_secret in public repo google/earthengine-api (confidence 96, A/B proof, sha256 3f3f8d6f…d271, scopes cloud-platform+earthengine+drive+devstorage.full_control) + token POST-only gate confirms refresh_token redemption + v2.0 authorize HTTP 200 error rendering (RFC 6749 §3 violation) + tokeninfo oracle (no-reward)
-[RISK] microsoft: 94 reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight 200 ACAO:*+PATCH collection+item+6 families, 5 EntityTypes 0 OperationRestrictions, item-level 401 confirmed) + oauth2PermissionGrants consent forge (confidence 70, 458-char zero-restriction EntityType, 401 gate confirmed) + Graph 405 anomaly (RFC 6750 §3) systemic across gateway
+[LEARN] ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item+6 endpoint families (unchanged)
+[LEARN] ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 3f3f8d6f…)
+[LEARN] REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+[LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no cross-endpoint confusion surface
+[RISK] google: 88 reason: Hardcoded valid OAuth client_secret in public repo google/earthengine-api (confidence 96, sha256 3f3f8d6f…d271, A/B proof, scopes cloud-platform+earthengine+drive+devstorage.full_control); token POST-only gate confirms refresh_token redemption path
+[RISK] microsoft: 94 reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight 200 ACAO:*+PATCH collection+item+6 families, 5 EntityTypes 0 OperationRestrictions, item-level 401 confirmed); Graph 405 anomaly (RFC 6750 §3 violation) systemic across gateway
