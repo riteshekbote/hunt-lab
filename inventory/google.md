@@ -1456,3 +1456,5 @@
 - CHANGED www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
 
 ## 2026-08-18 07:57:15 UTC
+
+## 2026-08-18 08:39:35 UTC

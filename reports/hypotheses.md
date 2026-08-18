@@ -5998,3 +5998,26 @@
 - LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (expected for token endpoints per RFC 6749)
 - LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpo
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+
+## RANKED HYPOTHESES 2026-08-18 08:39:35 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agents,admin/catalog/packages,admin/policySettings}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (reports/msrc-two-principal-request.md) via msrc.microsoft.com/bounty portal to unblock Micr
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit both pre-drafted reports via the respective bounty portals:
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via msrc.microsoft.com/bounty portal — this single request unblocks AUTH_HELPED testing for BOTH hypothesis 
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface; consistent across all cycles
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400 missing project then 401 storage.buckets.list denied
+- LEARN: ACCEPTED: oauth2.googleapis.com/token GET→404 confirms POST-only gate (expected for token endpoints per RFC 6749)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 steady-state subset holds, v1 kid set never validated against v2 issuer → no cross-endpo
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules (query-param introspection without Authorization header not eligible)
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate confirmed via GET→404 (every 2-hour probe since 2026-08-17 stable, RFC 6749 §3.2.1 compliant)
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (RFC 6750 §3 deviation intac
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0
+- LEARN: ACCEPTED: agentRegistration 6-family true CORS preflight with PATCH confirmed LIVE at collection+item+6 endpoint families (unchanged)
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE on master (sha256 `3f3f8d6f…d271`)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no confusion surface
+- LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP program rules
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-18 08:37 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-
