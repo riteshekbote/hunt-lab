@@ -1,65 +1,492 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan hits, I'll classify each category. The output is truncated but covers key repos.
+[0m$ [0mcat reposcan-raw/google/sam/.github/workflows/deploy.yaml | head -260 | tail -20
+CLI_OAUTH_SECRET: ${{ secrets.CLI_OAUTH_SECRET }}
+        run: |
+          # Declaratively apply secrets without writing them to disk
+          kubectl create secret generic dex-secrets \
+            --namespace=dex \
+            --from-literal=google-client-id="${GOOGLE_CLIENT_ID}" \
+            --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" \
+            --from-literal=github-client-id="${GITHUB_CLIENT_ID}" \
+            --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" \
+            --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" \
+            --dry-run=client -o yaml | kubectl apply -f -
 
-## Classification Tables
+      - name: Deploy Dex Resources
+        run: |
+          print_rollout_diagnostics() {
+            local namespace="$1"
+            local deployment="$2"
+            local selector="$3"
 
-### REAL_SECRET
-| File | Line | SHA256 (truncated) | Verdict |
-|------|------|-------------------|---------|
-| *none found in this scan output* | | | |
+            echo "Collecting diagnostics for deployment/${deployment} in namespace ${namespace}..."
+[0m
+[0m$ [0mcat reposcan-raw/google/sam/development/kind/run.sh | head -150 | tail -20
+read_mesh_nodes
 
-### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| `adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder `...`) |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` (literal test values) |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` (fake JWT prefix) |
-| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (constant name) |
-| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` (placeholder) |
-| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (var name) |
-| `adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` (template var) |
-| `agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (placeholder string) |
-| `agents-cli/.../staging.yaml` | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` (GH Actions template syntax) |
-| `adk-python/src/google/adk/cli/browser/chunk-*.js` | multiple | Minified JS parse-error strings (bundled output) |
-| `closure-compiler/contrib/externs/ms-office-1.3.js` | 27,166,205 | `dev.office.com` reference URLs (public docs) |
-| `closure-compiler/externs/browser/*.js` | multiple | `dev.w3.org` spec URLs (public standards) |
+# Apply the control plane and router, and wait until they accept connections
+ISSUER="$(kubectl --context "${KCTX}" get --raw /.well-known/openid-configuration | jq -r .issuer)"
+[[ -n "$ISSUER" ]] || { echo "could not determine cluster OIDC issuer" >&2; exit 1; }
 
-### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| `go-containerregistry/cloudbuild-golang-build.yml` | 102 | `artifact-registry.git.corp.google.com` (internal corp hostname) |
-| `go-containerregistry/cloudbuild-docker-build.yml` | 14 | `bcid.corp.google.com` (internal corp hostname) |
-| `go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: `169.254.169.254` metadata SSRF risk |
-| `go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91,151 | Comments: metadata endpoint SSRF, DNS SSRF |
-| `go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: cloud metadata endpoints |
-| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path` params (config, not secret) |
-| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments: `169.254.169.254` metadata endpoint |
-| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: NAT64 routes to metadata endpoint |
-| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment: `169.254.169.254` in Chrome |
-| `oss-rebuild/deployments/scratch_startup.sh` | 49 | `metadata.google.internal/computeMetadata/v1/...` (GCP metadata URL) |
-| `closure-compiler/src/.../ErrorManager.java` | 95 | `source.corp.google.com` (internal source link) |
+OIDC_ISSUER="${OIDC_ISSUER:-http://sam-mesh-dex:5556/dex}"
+OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-sam-console}"
+OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"
+OIDC_REDIRECT_URL="${OIDC_REDIRECT_URL:-}"
 
-### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| `atheris/deployment/deploy_pypi.sh` | 26 | `pip download --index-url test.pypi.org` (public test index, not secret) |
+CONTROL_PLANE_ISSUERS="${ISSUER}"
+if [[ -n "${OIDC_ISSUER}" ]]; then
+  CONTROL_PLANE_ISSUERS="${OIDC_ISSUER},${ISSUER}"
+fi
+
+ALLOWED_AUDIENCES="sam-mesh-audience,sam-control-plane-audience"
+if [[ -n "${OIDC_CLIENT_ID}" ]]; then
+  ALLOWED_AUDIENCES="${OIDC_CLIENT_ID},${ALLOWED_AUDIENCES}"
+fi
+[0m
+[0m$ [0mcat reposcan-raw/google/sam/internal/node/store.go | head -50
+// Copyright 2026 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package node
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"github.com/libp2p/go-libp2p/core/peer"
+	"go.etcd.io/bbolt"
+	bbolterrors "go.etcd.io/bbolt/errors"
+)
+
+const (
+	// StoreFile is the node database inside the data directory.
+	StoreFile = "agent.db"
+
+	bucketIdentity  = "identity"
+	keyBiscuit      = "identity_biscuit"
+	keyPrivKey      = "node_private_key"
+	keyIdentityExp  = "identity_expiration"
+	keyRefreshToken = "refresh_token"
+	keyOidcIssuer   = "oidc_issuer"
+	keyOidcClientID = "oidc_client_id"
+	keyOidcAudience = "oidc_audience"
+)
+
+type Store struct {
+	db *bbolt.DB
+}
+
+// ErrStoreLocked reports that another process already holds the data
+// directory, which for a node data directory means a node is running.
+var ErrStoreLocked = errors.New("another sam-node instance is using this data directory")
+[0m
+[0m$ [0mcat reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh | head -40 | tail -15
+# fetch is attempted unauthenticated.
+WORKER_BINARY_URI='${worker_binary_uri}'
+WORKER_BINARY_URL="https://storage.googleapis.com/$${WORKER_BINARY_URI#gs://}"
+CURL_AUTH=()
+if curl -fsS -H "Metadata-Flavor: Google" \
+       "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" 2>/dev/null \
+       | python3 -c 'import json, sys; print(json.load(sys.stdin)["access_token"])' > /tmp/sa_token 2>/dev/null; then
+  (printf "Authorization: Bearer "; cat /tmp/sa_token) > /tmp/sa_auth_header
+  chmod 600 /tmp/sa_auth_header /tmp/sa_token
+  CURL_AUTH=(-H "@/tmp/sa_auth_header")
+fi
+mkdir -p /var/lib/toolbox
+curl -fsSL "$${CURL_AUTH[@]}" -o /var/lib/toolbox/scratch-worker "$WORKER_BINARY_URL"
+chmod +x /var/lib/toolbox/scratch-worker
+rm -f /tmp/sa_token /tmp/sa_auth_header
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -280 | tail -30
+class AuthCredential(BaseModelWithConfig):
+  """Data class representing an authentication credential.
+
+  To exchange for the actual credential, please use
+  CredentialExchanger.exchange_credential().
+
+  Examples: API Key Auth
+  AuthCredential(
+      auth_type=AuthCredentialTypes.API_KEY,
+      api_key="1234",
+  )
+
+  Example: HTTP Auth
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | head -70 | tail -15
+token_uri: The token URI.
+      client_secret: The client secret.
+
+  Example:
+      config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | head -80 | tail -20
+class OAuthGrantType(str, Enum):
+  """Represents the OAuth2 flow (or grant type)."""
+
+  CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+      return OAuthGrantType.AUTHORIZATION_CODE
+    if flow.implicit:
+      return OAuthGrantType.IMPLICIT
+    if flow.password:
+      return OAuthGrantType.PASSWORD
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | head -140 | tail -20
+agent_py_file_path = os.path.join(agent_folder, "agent.py")
+  agent_config_file_path = os.path.join(agent_folder, "root_agent.yaml")
+
+  with open(dotenv_file_path, "w", encoding="utf-8") as f:
+    lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+[0m
+[0m$ [0mcat reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | head -60 | tail -20
+logger = logging.getLogger("google_adk." + __name__)
+
+# Session state keys for sharing resources across sessions
+_STATE_KEY_AGENT_ENGINE_NAME = "_vmaas_agent_engine_name"
+_STATE_KEY_SANDBOX_NAME = "_vmaas_sandbox_name"
+_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
+_STATE_KEY_TOKEN_EXPIRY = "_vmaas_token_expiry"
+
+# Default token timeout in seconds
+_DEFAULT_TOKEN_TIMEOUT = 3600
+
+# Buffer time before token expiry to trigger refresh (60 seconds)
+_TOKEN_REFRESH_BUFFER = 60
+
+
+@experimental(FeatureName.COMPUTER_USE)
+class AgentEngineSandboxComputer(BaseComputer):
+  """Computer implementation using Vertex AI Agent Engine Sandbox.
+[0m
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | head -200 | tail -40
+echo "::add-mask::${_AUTH_TOKEN}"
+          echo "_auth_token=${_AUTH_TOKEN}" >> $GITHUB_OUTPUT
+{%- endif %}
+
+      - name: Run load test
+        run: |
+{%- if cookiecutter.deployment_target == 'cloud_run' %}
+          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
+          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H ${_STAGING_URL} \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- elif cookiecutter.deployment_target == 'gke' %}
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H http://127.0.0.1:8080 \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+          LOCUST_EXIT_CODE=$?
+          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
+          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
+            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
+            exit $LOCUST_EXIT_CODE
+          fi
+{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
+          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -t 30s -u 2 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- endif %}
+[0m
+[0m$ [0mcat reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mock-oidc-script
+data:
+  server.py: |
+    import json
+    import time
+    import jwt
+    from http.server import BaseHTTPRequestHandler, HTTPServer
+
+    PRIVATE_KEY = """-----BEGIN PRIVATE KEY-----
+    MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDGtPD85uaT342Y
+    yqGAiWQ6OV2BxvpXQRMzsb7VpdLa146xf5/1b9lIR4dFvhvGUqnyzFLV0EdIzTqo
+    xyKGHbQY68DIUjH3iwt6rzU0Vkw/3g/R/TBEmGwdqNDLCBItsLOnF4HfsxAWtjaU
+    R96S4oXaCUcXOD/3yHs0ha4tu8YgwGwMHa/CQRgcTX5FshR6uHow5G7NiOVYUcAP
+    c1HXmwmf0FeSY9r0QudmIjkJSeIH1I/BufpEqbcjrSyjYd4eldbhjlCvuIR93Sva
+    8jZBzdCW+xxyU+8dz2tEgRjm9G7CpoCpAwhcEQQW7XRUb8DP9+bid9VfT+3C1Te6
+    u8eowndXAgMBAAECggEAGF6ZjZKt5aXNolb7jp2K/r8JUkC6dBgFiFn8uwwOu4sj
+    M26hCgNRJRWsp+eEVYLO1/mqERHtpCaTUp61g7hB3aqQJqE6Ao95dW7megg5ar3L
+    t+ey0z7UR6DsFnJjdFoO9meiJHK7/uUS9YWI7P++BbsMjnL2GWfrgEoCzhYQ2vQ2
+    8t9lGmJfaEeicTcPs4/Jtz9nX+KQ1CqKb5uHP6IyVQjV/nIjWh1WZJV5wsmLM1ZF
+    YT7NPEhXkgH5JjwzEI3QR9ZMs4FUgbduImmS280YCMNMUNVsSBbbV/1hh7Sxlp6B
+    bRaK12sPPRwW0sHw3odZKjGzKIFlu9I5TieNJ5w2AQKBgQDy3cxDXxj+bcSYuWDp
+    p4EVNTwg+IY9eT0x1x+tWXaOjGTscD4GrdUYhspWuoUn5NxZ0ub0apiTMQfoM9a0
+    Qr3CKngkL5JTi6OwdnEaTPNvQiSJdgXXzYdCXeucK5soeHCZTPAb3bV27LtpxyMI
+    QSx9rnKcSyoRSavLWP0hr8QNVwKBgQDRc84q3I5tZX/whoUmeTj6aNJoIa1KAACM
+    0Fnr9ecjLS50kXIiTSCiNE8pcBcsSxYgo+PG5W9oQaZcdd7r2nJOqaizpjnHbF+9
+    S/Ts9vj+dJlCUcjjROghzYrI5mdb8Dq2Ngd93IcBt5H+W6bm8wWUgLy0IJmJDKHE
+    Z7SS22imAQKBgAETHi5GI3QsxCvw1g7yoM2ZOLTkpKNs/+pSi19XAAFNebzaGkwp
+    RMIhBpAvrxsoFhmHp2H5fsdX9jL+17pgeTp8uZ9fXoRkH8tOGt4E7SbW4haBoTD9
+    RdXzWHGOd9dMASOMhZt59a2bCpFDQlJtB2de+D7czkjZTJtPv38AqhttAoGAE8X2
+    Aa/etk8tu9xHN7GcAm/g5TnArUrAwops4szNLFH4n8KXXsufOBDuJEBTv7e6+Avg
+    1gcU9Ge2N+ZczDFMN0bnCUa5D62YgDtqfPB34zXIvi0QZPw9WeuYnYy610AfmtIQ
+    9P3btPrKipPGdukcbr+UkQC+3eRWZT9RGcgi4gECgYApA3J0jlD+JFtYKFOuJWxS
+    aFEhYPe2dVW78bJoMMhxPtD9hWw/zWVUdyhdXMHoP8/igwNiUqXaYacPbxTFu5ft
+    w/+UummqB6KpqPFnpbqP826Udr4SEHH0iwvs4MDqSlXcOC5CXbIoMLB/zMjE+u/J
+    IqNKTt9jbR4zISCpyOCsQw==
+    -----END PRIVATE KEY-----"""
+
+    JWKS = {
+      "keys": [
+        {
+          "kty": "RSA",
+          "alg": "RS256",
+          "use": "sig",
+          "kid": "test-key-id",
+          "n": "xrTw_Obmk9-NmMqhgIlkOjldgcb6V0ETM7G-1aXS2teOsX-f9W_ZSEeHRb4bxlKp8sxS1dBHSM06qMcihh20GOvAyFIx94sLeq81NFZMP94P0f0wRJhsHajQywgSLbCzpxeB37MQFrY2lEfekuKF2glHFzg_98h7NIWuLbvGIMBsDB2vwkEYHE1-RbIUerh6MORuzYjlWFHAD3NR15sJn9BXkmPa9ELnZiI5CUniB9SPwbn6RKm3I60so2HeHpXW4Y5Qr7iEfd0r2vI2Qc3QlvscclPvHc9rRIEY5vRuwqaAqQMIXBEEFu10VG_Az_fm4nfVX0_twtU3urvHqMJ3Vw",
+          "e": "AQAB"
+        }
+      ]
+    }
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            if self.path == '/.well-known/openid-configuration':
+                body = {
+                    'issuer': 'http://mock-oidc:18080',
+                    'authorization_endpoint': 'http://mock-oidc:18080/auth',
+                    'token_endpoint': 'http://mock-oidc:18080/token',
+                    'jwks_uri': 'http://mock-oidc:18080/keys'
+                }
+                data = json.dumps(body).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            if self.path == '/keys':
+                data = json.dumps(JWKS).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b'ok')
+
+        def do_POST(self):
+            if self.path == '/token':
+                payload = {
+                    'iss': 'http://mock-oidc:18080',
+                    'aud': 'sam-e2e',
+                    'sub': 'test-user',
+                    'exp': int(time.time()) + 3600,
+                    'roles': ['admin', 'user']
+                }
+                token = jwt.encode(payload, PRIVATE_KEY, algorithm='RS256', headers={'kid': 'test-key-id'})
+                body = {
+                    'access_token': token,
+                    'token_type': 'Bearer',
+                    'expires_in': 3600
+                }
+                data = json.dumps(body).encode('utf-8')
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Content-Length', str(len(data)))
+                self.end_headers()
+                self.wfile.write(data)
+                return
+            self.send_response(404)
+            self.end_headers()
+
+    print("Mock OIDC server ready", flush=True)
+    HTTPServer(('0.0.0.0', 18080), Handler).serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-oidc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-oidc
+  template:
+    metadata:
+      labels:
+        app: mock-oidc
+    spec:
+      containers:
+      - name: mock-oidc
+        image: python:3.12
+        command: ["sh", "-c", "pip install pyjwt cryptography && python /app/server.py"]
+        volumeMounts:
+        - name: script-volume
+          mountPath: /app
+      volumes:
+      - name: script-volume
+        configMap:
+          name: mock-oidc-script
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mock-oidc
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 18080
+    targetPort: 18080
+  selector:
+    app: mock-oidc
+[0m
+Now I have enough context to classify all hits. Let me summarize:
+
+## Classification Results
+
+### REAL_SECRET (hardcoded credential with signs of life)
+**None found in this delta scan.** The only REAL_SECRET in the codebase is the previously known `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already tracked in knowledge base as ACCEPTED.
+
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Evidence |
+|------|------|----------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Docstring examples: `"1234"`, `username="user", password="password"`, `token="eyAkaknabna...."` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` (OAuth grant type) |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `"your_client_secret"` in example |
+| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | - | Full test PRIVATE_KEY + JWKS for mock OIDC server (e2e testing) |
+| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | ConfigMap manifest (documentation) |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | - | Minified JS bundles (build artifacts) |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Evidence |
+|------|------|----------|
+| `google/oss-rebuild/deployments/scratch_startup.sh` | 31 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` (standard GCP metadata endpoint) |
+| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: `169.254.169.254` metadata SSRF surface |
+| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments documenting metadata endpoint SSRF risk |
+| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: `169.254.169.254` cloud metadata |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments: `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: `169.254.169.254` metadata via NAT64 |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment: `169.254.169.254` in Chrome |
+| `google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | Internal `artifact-registry.git.corp.google.com` URL |
+| `google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | Internal `bcid.corp.google.com` attestation URL |
+
+### INTERESTING (debug flags, keys, cloud configs, infra)
+| File | Line | Evidence |
+|------|------|----------|
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Proper secret injection via `${{ secrets.* }}` → `kubectl create secret` (good pattern) |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default, expects env) |
+| `google/sam/internal/node/store.go` | 38 | Const `keyRefreshToken = "refresh_token"` (DB key name, not secret) |
+| `google/sam/.github/k8s/*.yaml` | 2, 14 | `kind: ConfigMap` declarations (infrastructure configs) |
+| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | `kind: ConfigMap` (Helm template) |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Cookiecutter template using GitHub Actions step outputs (`steps.fetch-token.outputs._id_token`) |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes user-provided `google_api_key` to `.env` (user config) |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Const `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (session state key name) |
 
 ---
 
-## SHORT VERDICT LIST
+## VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| adk-python test fixtures (auth_credential.py, auth_schemes.py, auth_helpers.py) | **no** | Placeholder/literal test values (`password`, `your_client_secret`, `...`) |
-| adk-python CLI template (`cli_create.py`) | **no** | Template variable `{google_api_key}`, not a secret |
-| agents-cli `auth.py` GEMINI_API_KEY | **no** | Placeholder string `"gemini_api_key"` |
-| agents-cli staging.yaml token refs | **no** | GitHub Actions template syntax (`${{ steps... }}`), not hardcoded |
-| go-containerregistry corp URLs (`.git.corp.google.com`, `.corp.google.com`) | **no** | Build-time internal hostnames in Cloud Build config; not runtime secrets |
-| Metadata endpoint comments (169.254.169.254, metadata.google.internal) | **no** | Code comments documenting SSRF risks, not leaks |
-| GKE kubeconfig params | **no** | Configuration parameters, not credentials |
-| Closure compiler externs / minified JS | **no** | Public spec URLs / build artifacts |
-| atheris test.pypi.org deploy | **no** | Public test PyPI index |
+| `google/sam` deploy.yaml secrets | **no** | Secrets properly sourced from GitHub Actions secrets, injected at deploy time via `kubectl create secret` — no hardcoded values |
+| `google/sam` OIDC_CLIENT_SECRET | **no** | Empty default (`${VAR:-}`), expects runtime environment injection |
+| `google/sam` store.go keyRefreshToken | **no** | Constant key name `"refresh_token"` for boltDB bucket, not a secret value |
+| `google/sam` K8s ConfigMaps | **no** | Infrastructure manifests, no secret data in grep hits |
+| `google/adk-python` auth examples | **no** | Docstring/fixture examples with obviously fake values (`"1234"`, `"password"`, `"eyAkaknabna...."`) |
+| `google/adk-python` mock-oidc.yaml | **no** | Test-only PRIVATE_KEY for e2e mock server, in documentation manifests |
+| `google/oss-rebuild` metadata endpoint | **no** | Standard GCP metadata service usage for service account token fetch |
+| `google/go-containerregistry` / `adk-python` 169.254.169.254 refs | **no** | Code comments documenting known SSRF surface, not leaks |
+| `google/go-containerregistry` corp.google.com URLs | **no** | Internal build infrastructure URLs, not accessible externally |
+| `google/agents-cli` staging.yaml template | **no** | Cookiecutter template using GitHub Actions outputs properly |
+| `google/adk-python` cli_create.py | **no** | Writes user-supplied API key to local .env (expected behavior) |
+| `google/adk-python` vmaas state keys | **no** | Session state key name constants |
 
-**Overall: 0 reportable secrets in this scan output.** All hits are test fixtures, placeholders, template variables, internal build hostnames, or documentation comments. The known LIVE finding (earthengine-api `oauth.py:45` client_secret) is **not present in this scan corpus** — different repo.
+**Bottom line: No new REPORT_CANDIDATE findings in this delta.** All hits are either test fixtures, documentation examples, infrastructure configs with proper secret management, or code comments documenting known surfaces. The only live hardcoded secret in the Google org remains the previously-triaged `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f...`), already in knowledge base as ACCEPTED pending VRP determination on native-app by-design status.
