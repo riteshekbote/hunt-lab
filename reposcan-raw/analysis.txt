@@ -1,52 +1,154 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-# Classification Results
-
-## REAL_SECRET (1) — Already tracked in knowledge base
-| File | Line | SHA256 | Status |
-|------|------|--------|--------|
-| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **ACCEPTED** (known, pending VRP determination on native-app by-design) |
-
-## TEST_OR_EXAMPLE (30+)
-- `adk-js/core/src/auth/auth_credential.ts:214,226` — example `password: "password"`, `token: "your_access_token"`
-- `adk-js/core/src/auth/auth_schemes.ts:41` — constant `PASSWORD = 'password'`
-- `adk-python/src/google/adk/auth/auth_credential.py:157,269,278` — placeholder private_key, HttpCredentials examples
-- `adk-python/src/google/adk/auth/auth_schemes.py:68` — constant `PASSWORD = "password"`
-- `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` — `client_secret="your_client_secret"`
-- `xrblocks/src/ai/AI.ts:303,304` — `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE`
-- `oss-fuzz/projects/h2database/TestServer.java:13,55` — test passwords
-- `oss-fuzz/projects/flask/fuzz_json.py:27` — `"fuzz test key"`
-- `agents-cli/src/google/agents/cli/auth.py:43` — constant name `GEMINI_API_KEY = "gemini_api_key"`
-- `adk-python/src/google/adk/cli/cli_create.py:131` — writes user-provided key (not hardcoded)
-- `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` — constant `_STATE_KEY_ACCESS_TOKEN`
-- `osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56` — reference constant `PASSWORD_HASH_LM_FORMAT`
-- `llm-sidebar-with-context/src/scripts/constants.ts:47` — constant name `API_KEY: 'geminiApiKey'`
-- All `chunk-*.js` / `main-*.js` — minified parser error strings (source maps)
-
-## ENDPOINT_LEAK (7) — Documentation/ref to GCP metadata IP
-- `adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` — `metadata.google.internal`
-- `adk-js/core/src/tools/load_web_page.ts:36` — `169.254.0.0/16`
-- `adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` — docs warning about `169.254.169.254`
-- `adk-python/src/google/adk/tools/load_web_page.py:171` — same
-- `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` — same
-
-## INTERESTING (5)
-| File | Line | Note |
-|------|------|------|
-| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` | 246 | Cloud Run secret ref `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (not a secret) |
-| `agents-cli/.../staging.yaml:168,192` | 168,192 | GH Actions token refs `${{ steps.fetch-token.outputs._id_token }}` (not secrets) |
-| `xrblocks/docs/docusaurus.config.ts:175` | 175 | **REJECTED** — Algolia DocSearch search-only key, public by design (per KB) |
-| `adk-python/.../gke_code_executor.py:103,104,115` | 103-115 | kubeconfig params (config, not secrets) |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
+./reposcan-raw
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ | head -30
+total 1664
+drwxr-xr-x 413 runner runner 16384 Aug 18 18:23 .
+drwxr-xr-x   4 runner runner  4096 Aug 18 18:23 ..
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 Accessibility-Test-Framework-for-Android
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 CFU-Playground
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 CausalImpact
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 ChromeBrowserEnterprise
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 CodeCity
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 EarlGrey
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 GoogleAppMeasurement
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 GoogleDataTransport
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 GoogleSignIn-iOS
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 OpenSK
+drwxr-xr-x  20 runner runner  4096 Aug 18 18:23 XNNPACK
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 Xee
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 aarch64-esr-decoder
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 aarch64-paging
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 acai
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 accompanist
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 addlicense
+drwxr-xr-x  11 runner runner  4096 Aug 18 18:23 adk-docs
+drwxr-xr-x  23 runner runner  4096 Aug 18 18:23 adk-go
+drwxr-xr-x  13 runner runner  4096 Aug 18 18:23 adk-java
+drwxr-xr-x  13 runner runner  4096 Aug 18 18:23 adk-js
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 adk-kotlin
+drwxr-xr-x  12 runner runner  4096 Aug 18 18:23 adk-python
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 adk-python-community
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 adk-web
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 ads_oneshop
+drwxr-xr-x   8 runner runner  4096 Aug 18 18:23 agents-cli
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ | grep -i earth
+earthengine-api
+earthengine-catalog
+earthengine-community
+[0m
+[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py | head -60
+cat: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py: No such file or directory
+[0m
+[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api -name "oauth.py" 2>/dev/null
+(no output)
+[0m
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/
+total 20
+drwxr-xr-x   2 runner runner  4096 Aug 18 18:23 .
+drwxr-xr-x 413 runner runner 16384 Aug 18 18:23 ..
+[0m
+[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/microsoft/ | head -30
+0xDeCA10B
+3DTelecommunications
+AI
+AI-Engineering-Coach
+AI-Red-Teaming-Playground-Labs
+AI-Robot-Challenge-Lab
+AIAgentsforITOps
+AICentral
+AIOpsLab
+AIforITOps
+AL
+AL-Go
+AL-Go-PTE
+ALAppExtensions
+APSI
+ARI
+AaronLocker
+ActiveDirectoryTierModel
+Agent-Framework-Samples
+Agent365-Samples
+Agent365-devTools
+Agent365-nodejs
+AgentRx
+Agents
+Agents-M365Copilot
+Agents-for-js
+Agents-for-net
+Agents-for-python
+AirSim-Drone-Racing-VAE-Imitation
+Analysis-Services
+[0m
+Based on the grep hits and knowledge base, here's the triage classification:
 
 ---
 
-## Verdict
+### REAL_SECRET
+| File | Line | Classification | SHA256 (truncated) | Notes |
+|------|------|----------------|-------------------|-------|
+| `github.com/google/earthengine-api/python/ee/oauth.py` | 45 | **LIVE CONFIRMED** | `3f3f8d6f...d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes: cloud-platform+earthengine+drive+devstorage.full_control, A/B proof conclusive (invalid_grant vs invalid_client), POST-only token gate stable. **From KB, not in current grep hits.** |
+
+---
+
+### TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| `osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | `PASSWORD_HASH_LM_FORMAT` | Constant referencing LM hash format, not a secret |
+| `osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go` | 32,40 | MySQL docs refs | Documentation comments |
+| `adk-js/core/src/auth/auth_credential.ts` | 214,226 | `"password"`, `"your_access_token"` | JSDoc examples |
+| `adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` | Auth scheme type constant |
+| `adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | GCP metadata IP range comment |
+| `llm-sidebar-with-context/src/scripts/constants.ts` | 47 | `API_KEY: 'geminiApiKey'` | Config key name, not value |
+| `xrblocks/src/ai/AI.ts` | 303,304 | `YOUR_*_API_KEY_HERE` | Explicit placeholders |
+| `xrblocks/docs/docusaurus.config.ts` | 175 | `40150cc2c638b09de8ebbfefd50b80a4` | **REJECTED** - Algolia DocSearch key, public by design (KB) |
+| `oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
+| `oss-fuzz/projects/h2database/TestServer.java` | 13,55 | `ServerShutdownPassword` | Test server password |
+| `agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant name, not secret value |
+| `agents-cli/.../staging.yaml` | 168,192 | `${{ steps.fetch-token.outputs.* }}` | GH Actions templated secrets |
+| `adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Private key, user/pass, token | Test fixtures (truncated/fake) |
+| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Auth scheme constant |
+| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Placeholder |
+| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN` | State key constant |
+| `adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template generation |
+
+---
+
+### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` | GCP metadata service hostname |
+| `adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` | Link-local / metadata IP range |
+| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` | GCP metadata endpoint (comments) |
+| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | GCP metadata endpoint (comment) |
+| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | GCP metadata endpoint (comment) |
+
+---
+
+### INTERESTING
+| File | Line | Finding | Notes |
+|------|------|---------|-------|
+| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret ref pattern (not a leak) |
+| `adk-python/src/google/adk/cli/browser/chunk-*.js` | (multiple) | Minified JS chunks | Build artifacts (source maps), 20+ files |
+| `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | (multiple) | Minified JS chunks | Build artifacts |
+| `adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | Minified JS | Build artifact |
+
+---
+
+### VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `google/earthengine-api/python/ee/oauth.py:45` | **no** | Already ACCEPTED in KB (2026-08-07), pending VRP determination on native-app by-design status |
-| `google/xrblocks/docs/docusaurus.config.ts:175` | **no** | REJECTED in KB — Algolia search-only key, public by design |
-| All other hits | **no** | Test fixtures, examples, documentation, config params, or constant names — no live credentials |
+| `earthengine-api/python/ee/oauth.py:45` (client_secret) | **YES** | Confirmed LIVE on master (sha256 `3f3f8d6f...d271`), A/B RFC 6749 §5.2 proof conclusive, scopes include cloud-platform. **Pending VRP determination on native-app by-design status.** |
+| `xrblocks/docs/docusaurus.config.ts:175` (Algolia key) | **NO** | REJECTED per KB - search-only key, public by design |
+| All TEST_OR_EXAMPLE hits | **NO** | Fixtures, placeholders, constants, comments |
+| All ENDPOINT_LEAK hits | **NO** | Well-known GCP metadata endpoints, documented |
+| All INTERESTING hits | **NO** | Build artifacts, secret management patterns |
 
-**No new reportable findings in this delta.** The only live secret (Earth Engine client_secret) is already tracked and classified.
+---
+
+**Summary**: Only **1 reportable candidate** from this corpus — the earthengine-api hardcoded OAuth client_secret (already tracked in KB as ACCEPTED/LIVE). All current grep hits are test fixtures, placeholders, comments, or build artifacts. No new REAL_SECRET findings in the delta scan.
