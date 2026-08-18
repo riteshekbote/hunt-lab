@@ -1,54 +1,37 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [offset=20, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [limit=60, offset=5][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java[90m [offset=28, limit=10][0m
+### Classification Table
 
-### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`; scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect; **CONFIRMED LIVE** in knowledge base |
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `-----BEGIN PRIVATE KEY-----...` | Example private key in test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | Literal "password" in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Synthetic JWT in example |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Example constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Explicit placeholder |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` | Template placeholder syntax |
-
-### ENDPOINT_LEAK
-| File | Line | Leak Type |
-|------|------|-----------|
-| google/skia-buildbot/perf/modules/subscription-table-sk.ts | 207 | Internal corp URL: `source.corp.google.com/h/chrome-internal/` |
-| google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | Internal issue tracker: `b.corp.google.com/issues/492077374` |
-| google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema/schema.go | 5 | Internal issue tracker: `b.corp.google.com/issues/492077374` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | Internal build URL: `android-build.corp.google.com/range_search/...` |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Documents SSRF risk to `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to `169.254.169.254` metadata endpoint (NAT64) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Explicitly refuses `169.254.169.254` access in Chrome |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` params (config injection surface) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secrets usage (`${{ secrets.* }}`) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper GitHub Actions secrets usage |
+| Category | File:Line | Evidence | Verdict |
+|----------|-----------|----------|---------|
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/flask/fuzz_json.py:27` | `secret_key = "fuzz test key"` — literal "fuzz test key" in fuzz harness | Not reportable |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java:13` | `g_shutdownPassword = "ServerShutdownPassword"` — test server shutdown password, comment "needs to be non-empty string" | Not reportable |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java:55` | Test DB connection helper using `getDatabasePassword()` | Not reportable |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33` | Comment with MySQL docs URL | Not reportable |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/mysql-connector-j/project.yaml:1` | Homepage URL in project config | Not reportable |
 
 ---
 
-## Verdict List
+### Previously Known (from knowledge base)
+| Category | File:Line | SHA256 | Status |
+|----------|-----------|--------|--------|
+| **REAL_SECRET** (KNOWN) | `google/earthengine-api/python/ee/oauth.py:45` | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **ACCEPTED** — hardcoded OAuth client_secret, live on master, scopes include `cloud-platform`+`drive`+`devstorage.full_control`; pending VRP determination on native-app by-design status |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|-----------------|--------|
-| google/earthengine-api/python/ee/oauth.py:45 | **yes** | Hardcoded OAuth client_secret with broad scopes (cloud-platform, drive, devstorage.full_control); confirmed LIVE on master; reposcan classified REAL_SECRET; pending VRP determination on native-app by-design status |
-| google/adk-python/* (test fixtures) | no | All test/example/placeholder values |
-| google/agents-cli/* (templates) | no | Template placeholder syntax, not real secrets |
-| google/skia-buildbot/* (corp URLs) | no | Internal Google corp endpoints (source.corp, b.corp, android-build.corp) — not externally reachable; hygiene only |
-| google/adk-python/* (metadata endpoint refs) | no | Documented SSRF surface with explicit mitigations (refusal in computer_use_toolset); no vulnerable code path |
-| google/sam/.github/workflows/deploy.yaml | no | Correct secrets pattern (GitHub Actions `${{ secrets.* }}`) |
-| google/langextract/.github/workflows/ci.yaml | no | Correct secrets pattern |
+---
 
-**Only one reportable candidate: the earthengine-api hardcoded client_secret (already tracked in knowledge base as ACCEPTED).**
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| google/oss-fuzz/projects/flask/fuzz_json.py:27 | **no** (test fixture) |
+| google/oss-fuzz/projects/h2database/TestServer.java:13 | **no** (test fixture) |
+| google/oss-fuzz/projects/h2database/TestServer.java:55 | **no** (test helper) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33 | **no** (doc URL) |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml:1 | **no** (config URL) |
+| google/earthengine-api/python/ee/oauth.py:45 | **no** (already ACCEPTED in knowledge base, tracked separately) |
+
+**No new reportable secrets in this delta.** All 5 new hits are test/fixture code in oss-fuzz project harnesses. The earthengine-api secret is a known finding already classified ACCEPTED.
