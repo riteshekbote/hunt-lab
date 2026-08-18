@@ -1542,6 +1542,16 @@
 - 2026-08-18 REJECTED: `graph.microsoft.com` root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
 - 2026-08-18 REJECTED: `www.googleapis.com/storage/v1/b` anonymous bucket enumeration — requires `project` param + auth; HTTP 400/401, no bypass
 - 2026-08-18 REJECTED: `login.microsoftonline.com/common/discovery/v2.0/keys` Accept: application/json requirement + JWKS rotation churn (v1⊂v2 steady-state subset, 0 persistent v1-exclusive) — rotation-desync class stays dead (v1 kid set never validated against v2 issuer)
+- 2026-08-18 ACCEPTED: `graph.microsoft.com/beta/copilot/agentRegistrations/{id}` item-level auth-gate empirically confirmed HTTP 401 (GET) + 405/0 (HEAD) — closes last inference gap, item-level zero-restriction precondition verified
+- 2026-08-18 ACCEPTED: `graph.microsoft.com/v1.0/oauth2PermissionGrants` auth-gate empirically confirmed HTTP 401 (GET) + 405/0 (HEAD) — production v1.0 consent-forge endpoint auth-gate verified
+- 2026-08-18 ACCEPTED: `oauth2.googleapis.com/token` GET→404 confirms POST-only alive gate (RFC-compliant OAuth token endpoint) — validates earthengine secret redemption path is grant_type=refresh_token only
+- 2026-08-18 REJECTED: `www.googleapis.com/storage/v1/b` anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-18 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1(4-5 kids)⊂v2(6-11 kids) steady-state subset holds, v1 kid set never validated against v2 issuer → no confusion surface
+- 2026-08-18 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP program rules
+- 2026-08-18 REJECTED: source maps @ identity SPAs — mysignins (404) + api.myaccount (401) both closed; recon surface eliminated
+- 2026-08-18 ACCEPTED: agentRegistrations 6-family true CORS preflight with PATCH confirmed live at collection+item+agents+admin+policySettings levels — 200 ACAO:* + PATCH allowlist + Max-Age 86400; 873-char + 458-char $metadata blocks with 0 OperationRestrictions across 6 EntityTypes
+- 2026-08-18 ACCEPTED: Earth Engine OAuth client_secret valid credential — A/B invalid_grant (valid) vs invalid_client (fake) per RFC 6749 §5.2 conclusive; sha256 3f3f8d6f…d271, file sha f4f93c76… unchanged
+- 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded secret confirmed live — sha256 `3f3f8d6f…d271` verbatim, A/B invalid_grant-vs-invalid_client proof conclusive per RFC 6749 §5.2, file sha unchanged.
 === INVENTORY google ===
 # Google surface inventory (seed 2026-08-07)
 
