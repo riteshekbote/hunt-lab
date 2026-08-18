@@ -1,3 +1,407 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcat reposcan-raw/google/tsunami-security-scanner-plugins/google/detectors/rce/cve20199193/src/main/java/com/google/tsunami/plugins/detectors/rce/cve20199193/Cve20199193Detector.java | head -80
+/*
+ * Copyright 2022 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.google.tsunami.plugins.detectors.rce.cve20199193;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import com.google.common.flogger.GoogleLogger;
+import com.google.protobuf.util.Timestamps;
+import com.google.tsunami.common.data.NetworkEndpointUtils;
+import com.google.tsunami.common.time.UtcClock;
+import com.google.tsunami.plugin.PluginType;
+import com.google.tsunami.plugin.VulnDetector;
+import com.google.tsunami.plugin.annotations.ForServiceName;
+import com.google.tsunami.plugin.annotations.PluginInfo;
+import com.google.tsunami.proto.DetectionReport;
+import com.google.tsunami.proto.DetectionReportList;
+import com.google.tsunami.proto.DetectionStatus;
+import com.google.tsunami.proto.NetworkService;
+import com.google.tsunami.proto.Severity;
+import com.google.tsunami.proto.TargetInfo;
+import com.google.tsunami.proto.Vulnerability;
+import com.google.tsunami.proto.VulnerabilityId;
+import java.security.SecureRandom;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.Clock;
+import java.time.Instant;
+import javax.inject.Inject;
+
+/** A Tsunami plugin for detecting CVE-2019-9193. */
+@PluginInfo(
+    type = PluginType.VULN_DETECTION,
+    name = "Cve20199193Detector",
+    version = "0.1",
+    description =
+        "This plugin for Tsunami detects a postgres remote code execution (RCE) caused by default"
+            + " credentials and 'COPY..PROGRAM'.",
+    author = "Victor (vicp@google.com)",
+    bootstrapModule = Cve20199193DetectorBootstrapModule.class)
+@ForServiceName(value = {"postgresql"})
+public final class Cve20199193Detector implements VulnDetector {
+  private static final GoogleLogger logger = GoogleLogger.forEnclosingClass();
+
+  private final Clock utcClock;
+  private final ConnectionProviderInterface connectionProvider;
+
+  private static final String USER = "postgres";
+  private static final String PASSWORD = "postgres";
+
+  @VisibleForTesting
+  static final String DESCRIPTION =
+      "This plugin for Tsunami detects a postgres remote code execution (RCE) caused by default"
+          + " credentials and 'COPY..PROGRAM'.";
+
+  @VisibleForTesting static final String RECOMMENDATION = "Change the default login credentials.";
+
+  @Inject
+  Cve20199193Detector(@UtcClock Clock utcClock, ConnectionProviderInterface connectionProvider) {
+    this.utcClock = checkNotNull(utcClock);
+    this.connectionProvider = checkNotNull(connectionProvider);
+  }
+
+  @Override
+  public ImmutableList<Vulnerability> getAdvisories() {
+[0m
+[0m$ [0mcat reposcan-raw/google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml | head -50
+version: '3.7'
+
+services:
+  kind:
+    image: kind_cluster:latest
+    privileged: true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kubeconfig:/root/.kube/
+      - lockconfig:/lockconfig
+      - ./kind_startup.sh:/src/startup.sh
+    entrypoint: /bin/sh -c "chmod +x /src/startup.sh && /src/startup.sh"
+    healthcheck:
+      test: ["CMD", "test", "-f", "/lockconfig/lock"]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+    ports:
+      - "58080:58080"
+    environment:
+      - MODELS_WEB_APP_TAG=${MODELS_WEB_APP_TAG}
+
+  kubeflow:
+    image: kubeflow-models-ui:${MODELS_WEB_APP_TAG}
+    depends_on:
+      - kind
+    ports:
+      - "8080:5000"
+    volumes:
+      - kubeconfig:/root/.kube/
+      - lockconfig:/lockconfig
+      - ./app_startup.sh:/src/startup.sh
+    environment:
+      - APP_PREFIX=/
+      - APP_DISABLE_AUTH=True
+      - APP_SECURE_COOKIES=False
+
+    entrypoint: ["/bin/sh", "-c", "sleep 60 && chmod +x /src/startup.sh && /src/startup.sh"]
+volumes:
+  kubeconfig:
+  lockconfig:
+[0m
+[0m$ [0mcat reposcan-raw/google/yggdrasil-decision-forests/yggdrasil_decision_forests/port/python/ydf/model/export_docker.py | head -80
+# Copyright 2022 Google LLC.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Utility to export the model to a docker end-point."""
+
+import os
+import re
+from typing import Dict, Sequence
+from ydf.dataset import dataspec as dataspec_lib
+from ydf.model import generic_model
+
+
+def to_docker(
+    model: generic_model.GenericModel, path: str, exist_ok: bool
+) -> None:
+  """See `model.to_docker` for the documentation of this function."""
+
+  os.makedirs(path, exist_ok=exist_ok)
+  model.save(os.path.join(path, "model"))
+
+  with open(os.path.join(path, "deploy_in_google_cloud.sh"), "w") as f:
+    f.write(content_deploy_sh())
+
+  with open(os.path.join(path, "readme.txt"), "w") as f:
+    f.write(content_readme())
+
+  with open(os.path.join(path, "test_locally.sh"), "w") as f:
+    f.write(content_test_sh())
+
+  with open(os.path.join(path, "main.py"), "w") as f:
+    f.write(content_main_py(model))
+
+  with open(os.path.join(path, "Dockerfile"), "w") as f:
+    f.write(content_dockerfile())
+
+  with open(os.path.join(path, "requirements.txt"), "w") as f:
+    f.write(content_requirements())
+
+
+def content_readme():
+  return """\
+This directory contains an automatically generated Docker endpoint for running a YDF Machine Learning model.
+
+- test_locally.sh: Show how to run the endpoint on your local machine.
+- deploy_in_google_cloud.sh: Deploy the model to Google Cloud.
+- For a comprehensive walkthrough, follow the tutorial at https://ydf.readthedocs.io/en/latest/tutorial/to_docker/.
+"""
+
+
+def content_deploy_sh():
+  return """\
+#!/bin/bash
+set -vex
+
+# Pack the model into a Docker endpoint, upload it to Google Cloud, and start a service endpoint.
+# Look at the logs for the end-point url.
+# Monitor your end-points at: https://pantheon.corp.google.com/run
+gcloud run deploy ydf-predict --source . --region us-east1
+"""
+
+
+def content_test_sh():
+  return """\
+#!/bin/bash
+set -vex
+
+# Pack the model into a Docker endpoint
+docker build --platform linux/amd64 -t ydf_predict_image .
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/TypeAgent/ts/tools/scripts/code/debtMarkersReport.ts | head -670 | tail -20
+}
+    return out;
+}
+
+// ---------------------------------------------------------------------------
+// Inline suppression markers
+// ---------------------------------------------------------------------------
+
+// A `// code-debt-allow[(#issue)]: <reason>` comment grandfathers the
+// focused/skipped test it annotates out of the --gate. Trailing on the test
+// line it applies to that line; as a standalone comment it applies to the next
+// line. A non-placeholder reason is required; an issue reference is optional but
+// expected for temporary skips. Report mode ignores markers entirely.
+const DEBT_ALLOW_TOKEN = "code-debt-allow";
+const PLACEHOLDER_REASON_RE = /^(temp|tbd|todo|fixme|xxx|n\/?a|\?+|-+|\.+)$/i;
+
+function isValidMarkerReason(reason: string): boolean {
+    const r = reason.trim();
+    return r.length >= 3 && !PLACEHOLDER_REASON_RE.test(r);
+}
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/TypeAgent/ts/tools/scripts/code/lintReport.ts | head -980 | tail -20
+out.add(`${file}:${line}`);
+    }
+    return out;
+}
+
+// ---------------------------------------------------------------------------
+// Inline suppression markers
+// ---------------------------------------------------------------------------
+
+// A `// code-lint-allow <rule>[,<rule>]: <reason>` comment grandfathers the
+// listed rule(s) on one line out of the --ratchet gate. Trailing on a code line
+// it applies to that line; as a standalone comment it applies to the next line
+// (like eslint-disable-next-line). The rule qualifier is required so a marker
+// can't mask an unrelated future violation on the same line, and the reason must
+// be non-empty and non-placeholder. Report mode ignores markers entirely.
+const LINT_ALLOW_TOKEN = "code-lint-allow";
+const PLACEHOLDER_REASON_RE = /^(temp|tbd|todo|fixme|xxx|n\/?a|\?+|-+|\.+)$/i;
+
+function isValidMarkerReason(reason: string): boolean {
+    const r = reason.trim();
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | head -20
+#!/usr/bin/env bash
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
+
+set -euo pipefail
+
+VERSION="latest"
+PLUGIN_VERSION="latest"
+PLUGIN_PACKAGE_NAME="typeagent-copilot-plugin"
+ORG="https://dev.azure.com/msctoproj"
+PROJECT="AI_Systems"
+FEED="typeagent"
+PLUGIN_SOURCE=""
+UPGRADE=0
+NO_START=0
+NO_AUTOSTART=0
+PROVIDER="aisystems"
+EMBEDDING="local"
+OLLAMA_HOST="http://localhost:11434"
+CHAT_MODEL=""
+[0m
+[0m$ [0mcat reposcan-raw/microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | head -330 | tail -80
+// OpenAI (non-Azure)
+    {
+        name: "OpenAI (Chat)",
+        description: "Alternative to Azure OpenAI for request translation",
+        requiredKeys: ["OPENAI_API_KEY", "OPENAI_ENDPOINT"],
+        optionalKeys: [
+            "OPENAI_ORGANIZATION",
+            "OPENAI_MODEL",
+            "OPENAI_RESPONSE_FORMAT",
+        ],
+        expectedFormats: {
+            OPENAI_API_KEY: "sk-<alphanumeric string>",
+            OPENAI_ENDPOINT: "https://api.openai.com/v1/chat/completions",
+        },
+        testFunction: testOpenAIChat,
+    },
+    {
+        name: "OpenAI (Embeddings)",
+        description: "Alternative to Azure OpenAI for text embeddings",
+        requiredKeys: ["OPENAI_ENDPOINT_EMBEDDING", "OPENAI_MODEL_EMBEDDING"],
+        optionalKeys: ["OPENAI_API_KEY_EMBEDDING"],
+        expectedFormats: {
+            OPENAI_ENDPOINT_EMBEDDING: "https://api.openai.com/v1/embeddings",
+            OPENAI_MODEL_EMBEDDING:
+                "text-embedding-ada-002, text-embedding-3-small, etc.",
+        },
+        testFunction: testOpenAIEmbeddings,
+    },
+    {
+        name: "Azure Speech SDK",
+        description: "Voice input for TypeAgent Shell",
+        requiredKeys: [
+            "SPEECH_SDK_KEY",
+            "SPEECH_SDK_ENDPOINT",
+            "SPEECH_SDK_REGION",
+        ],
+        expectedFormats: {
+            SPEECH_SDK_KEY: "<32-character hex string>",
+            SPEECH_SDK_ENDPOINT:
+                "https://<region>.api.cognitive.microsoft.com/sts/v1.0/issuetoken",
+            SPEECH_SDK_REGION: "eastus, westus2, westeurope, etc.",
+        },
+        testFunction: testSpeechSDK,
+    },
+
+    // Bing with Grounding
+    {
+        name: "Grounding with Bing",
+        description: "Internet lookups for chat",
+        requiredKeys: [
+            "BING_WITH_GROUNDING_ENDPOINT",
+            "BING_WITH_GROUNDING_AGENT_ID",
+        ],
+        expectedFormats: {
+            BING_WITH_GROUNDING_ENDPOINT:
+                "https://<resource-name>.services.ai.azure.com/agents",
+            BING_WITH_GROUNDING_AGENT_ID:
+                "<GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx>",
+        },
+        testFunction: testBingGrounding,
+    },
+
+    // Microsoft Graph
+    {
+        name: "Microsoft Graph",
+        description: "Calendar and Email integration",
+        requiredKeys: [
+            "MSGRAPH_APP_CLIENTID",
+            "MSGRAPH_APP_CLIENTSECRET",
+            "MSGRAPH_APP_TENANTID",
+        ],
+        expectedFormats: {
+            MSGRAPH_APP_CLIENTID:
+                "<GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx>",
+            MSGRAPH_APP_CLIENTSECRET: "<client secret string from Azure AD>",
+            MSGRAPH_APP_TENANTID:
+                "<GUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx>",
+        },
+        testFunction: testMicrosoftGraph,
+    },
+[0m
+[0m$ [0mgrep -r "PASSWORD\|SECRET\|KEY\|TOKEN" reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/ --include="*.java" | head -20
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_airflow_cve_2020_17526/src/main/java/com/google/tsunami/plugins/cve202017526/Cve202017526Detector.java:          "csrf_token=CSRFTOKEN&dag_id=example_trigger_target_dag&origin=%2Fadmin%2Fairflow%2Ftree%3Fdag_id%3Dexample_trigger_target_dag&conf=%7B%22message%22%3A%22%60PAYLOAD%60%22%7D"
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_airflow_cve_2020_17526/src/main/java/com/google/tsunami/plugins/cve202017526/Cve202017526Detector.java:              .replace("CSRFTOKEN", freshCsrfToken);
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/argocd_exposed_ui/src/main/java/com/google/tsunami/plugins/detectors/exposedui/argocd/ExposedArgoCdApiDetector.java:  static final String PAYLOAD_ARGOCD_TOKEN_SESSION =
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/argocd_exposed_ui/src/main/java/com/google/tsunami/plugins/detectors/exposedui/argocd/ExposedArgoCdApiDetector.java:        HttpHeaders.builder().addHeader("Cookie", PAYLOAD_ARGOCD_TOKEN_SESSION);
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/argocd_exposed_ui/src/test/java/com/google/tsunami/plugins/detectors/exposedui/argocd/ExposedArgoCdApiDetectorTest.java:import static com.google.tsunami.plugins.detectors.exposedui.argocd.ExposedArgoCdApiDetector.PAYLOAD_ARGOCD_TOKEN_SESSION;
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/argocd_exposed_ui/src/test/java/com/google/tsunami/plugins/detectors/exposedui/argocd/ExposedArgoCdApiDetectorTest.java:                    request.getHeaders().get("Cookie"), PAYLOAD_ARGOCD_TOKEN_SESSION)) {
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/argocd_exposed_ui/src/test/java/com/google/tsunami/plugins/detectors/exposedui/argocd/ExposedArgoCdApiDetectorTest.java:                    request.getHeaders().get("Cookie"), PAYLOAD_ARGOCD_TOKEN_SESSION)) {
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_default_token/src/main/java/com/google/tsunami/plugins/detectors/rce/apachedefaulttoken/ApacheDefaultTokenDetector.java:  private static final String TOKEN_HEADER_NAME = "X-API-KEY";
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_default_token/src/main/java/com/google/tsunami/plugins/detectors/rce/apachedefaulttoken/ApacheDefaultTokenDetector.java:  private static final String TOKEN_VALUE = "edd1c9f034335f136f87ad84b625c8f1";
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_default_token/src/main/java/com/google/tsunami/plugins/detectors/rce/apachedefaulttoken/ApacheDefaultTokenDetector.java:                    .setValue("APISIX_DEFAULT_TOKEN"))
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/apache_apisix_default_token/src/main/java/com/google/tsunami/plugins/detectors/rce/apachedefaulttoken/ApacheDefaultTokenDetector.java:                          .addHeader(TOKEN_HEADER_NAME, TOKEN_VALUE)
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:            + " MINIO_SECRET_KEY and MINIO_ROOT_PASSWORD, resulting in information disclosure."
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          + " including MINIO_SECRET_KEY and MINIO_ROOT_PASSWORD, resulting in information"
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          + " The MINIO_SECRET_KEY and / or MINIO_ROOT_PASSWORD of the affected MinIO instance must"
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          // Older/mitigated MinIO instances used "MINIO_ACCESS_KEY" and "MINIO_SECRET_KEY"
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          // Newer instances use "MINIO_ROOT_USER" and "MINIO_ROOT_PASSWORD".
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          JsonElement minioAccessKey = minioEnv.get("MINIO_ACCESS_KEY");
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          JsonElement minioSecretKey = minioEnv.get("MINIO_SECRET_KEY");
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          JsonElement minioRootPassword = minioEnv.get("MINIO_ROOT_PASSWORD");
+reposcan-raw/google/tsunami-security-scanner-plugins/community/detectors/minio_cve_2023_28432/src/main/java/com/google/tsunami/plugins/cves/cve202328432/Cve202328432VulnDetector.java:          // We have an old instance that still used the deprecated MINIO_ACCESS_KEY and
+[0m
+### Classification Table
+
+| Category | File | Line | Hit | Classification | Rationale |
+|----------|------|------|-----|----------------|-----------|
+| **TEST_OR_EXAMPLE** | google/tsunami-security-scanner-plugins/google/detectors/rce/cve20199193/.../Cve20199193Detector.java | 64 | `PASSWORD = "postgres"` | TEST_OR_EXAMPLE | Vulnerability detector for CVE-2019-9193; checks for **default** postgres credentials. Reference value, not a live secret. |
+| **ENDPOINT_LEAK** | google/tsunami-security-scanner-plugins/google/fingerprinters/web/scripts/updater/community/kubeflow/app/docker-compose.yml | 40 | `kubeconfig:` | ENDPOINT_LEAK | Docker volume mount path (`kubeconfig:/root/.kube/`), not a credential. |
+| **ENDPOINT_LEAK** | google/yggdrasil-decision-forests/.../export_docker.py | 68 | `pantheon.corp.google.com/run` | ENDPOINT_LEAK | Internal Google Cloud console URL in a generated `deploy.sh` comment. No auth material. |
+| **TEST_OR_EXAMPLE** | microsoft/TypeAgent/ts/tools/scripts/code/debtMarkersReport.ts | 664 | `DEBT_ALLOW_TOKEN = "code-debt-allow"` | TEST_OR_EXAMPLE | Constant for a lint suppression comment marker (`// code-debt-allow`). Not a secret. |
+| **TEST_OR_EXAMPLE** | microsoft/TypeAgent/ts/tools/scripts/code/lintReport.ts | 976 | `LINT_ALLOW_TOKEN = "code-lint-allow"` | TEST_OR_EXAMPLE | Constant for a lint suppression comment marker (`// code-lint-allow`). Not a secret. |
+| **ENDPOINT_LEAK** | microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `ORG="https://dev.azure.com/msctoproj"` | ENDPOINT_LEAK | Public Azure DevOps organization URL. No credential. |
+| **TEST_OR_EXAMPLE** | microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | TEST_OR_EXAMPLE | Placeholder format description in test fixture for expected key format. |
+| **TEST_OR_EXAMPLE** | microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string from Azure AD>"` | TEST_OR_EXAMPLE | Placeholder format description in test fixture. Not a real secret. |
+
+### Additional Context (Full Grep Hits)
+- **google/sam**: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` + `--from-literal=...-secret="${..._SECRET}"` — K8s ConfigMap / workflow env var references (placeholders), not hardcoded values.
+- **google/copybara**: `testpassword`, `test-token-123` in `*Test.java` files — test fixtures.
+- **google/tsunami-security-scanner-plugins/community**: Multiple detectors (Apache APISIX `edd1c9f0...`, MinIO `minioadmin`, DolphinScheduler `jwUDzpLs...`) — **default credential reference values** that detectors scan for. Not live secrets.
+- **google/heir**: `# TOKEN = "your_github_token_here"` — commented placeholder.
+
+---
+
+### Verdict List
+
+| Candidate | File | Line | SHA256 (of secret material) | REPORT_CANDIDATE |
+|-----------|------|------|------------------------------|------------------|
+| (none) | — | — | — | **no** |
+
+**Summary**: **0 reportable findings** in this delta. All 8 new hits are test fixtures, detector reference values, placeholder formats, or internal URL references — no live hardcoded credentials.
