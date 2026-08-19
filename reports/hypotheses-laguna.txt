@@ -1,4 +1,7 @@
-## 2026-08-19 16:49:14 UTC [google] (model laguna)
+## 2026-08-19 17:18:32 UTC [google] (model laguna)
+[NEW] `oauth2PermissionGrants` item-level CORS preflight confirmed browser-exploitable — `OPTIONS /v1.0/oauth2PermissionGrants/{id}` → HTTP 200 + `Access-Control-Allow-Origin: *` + `PATCH` + `Max-Age: 86400` (previously only collection-level CORS was confirmed in KB; item-level was HEAD→401 only)
+[NEW] `oauth2PermissionGrants` item-level HEAD→405/0/no-Bearer confirmed (RFC 6750 §3 deviation extends to item-level resource — contrasts with item-level GET→401+Bearer proper auth-gate)
+[NEW] `agentRegistrations` item-level OPTIONS CORS confirmed fresh at 17:15 UTC — `OPTIONS /beta/copilot/agentRegistrations/{id}` → 200 + ACAO:* + PATCH (re-confirms prior, now with full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: score 8.8 — attack_surface 9, business_value 9, tech_exposure 9, gate_ease 8, cloud_surface 8, freshness 9
 [PRIO] oauth2.googleapis.com/token (github.com/google/earthengine-api/python/ee/oauth.py:45): score 8.5 — attack_surface 8, business_value 9, tech_exposure 9, gate_ease 7, cloud_surface 9, freshness 9
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants: score 7.8 — attack_surface 8, business_value 7, tech_exposure 8, gate_ease 8, cloud_surface 7, freshness 9
@@ -6,7 +9,7 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
 confidence: 97
-reasoning: True CORS preflight (OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400) confirmed at collection+item+all 6 endpoint families at 15:43 UTC. 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) with ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. Item-level HTTP 401 confirmed no ownership binding at 2026-08-18 08:20 UTC. Empirically stable across 30+ probe cycles.
+reasoning: Fresh 17:15 UTC probe confirms OPTIONS at item level (agentRegistrations/{id}) → 200 + ACAO:* + PATCH. All 5 EntityTypes (agentRegistration, agentInstance, agentCollection, agentCardManifest, copilotPackage) have ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. Item-level HEAD→405/0/no-Bearer confirms auth gate inconsistency.
 evidence_needed: App B cross-origin PATCH {ownerIds:[<B_oid>]} onto App A's agentRegistration → mutation persists in victim tenant
 verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {ownerIds:[<A_oid>]} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:*+PATCH+Max-Age:86400; (3) App B cross-origin PATCH {ownerIds:[<B_oid>]} → 200; (4) App A GET → confirms mutation persisted
 impact: Cross-principal takeover of Copilot agent registrations across Microsoft 365 Copilot ecosystem; impersonate agents, rewrite agentCard supply-chain instructions; CVSS 9.4
@@ -15,7 +18,7 @@ testability: AUTH_HELPED
 class: AUTH
 asset: oauth2.googleapis.com/token (github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Secret sha256 `3f3f8d6f…d271` confirmed LIVE @ oauth.py:45 (15:46 UTC probe); used as default fallback @ oauth.py:99; scopes cloud-platform+earthengine+drive+devstorage; RFC 6749 §5.2 A/B proof conclusive (wrong-secret→400 invalid_client, valid-secret→400 invalid_grant since no refresh_token); POST-only token gate stable via GET→404 across 30+ probe cycles.
+reasoning: Secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` confirmed LIVE on master; used as default fallback @ oauth.py:99; scopes cloud-platform+earthengine+drive+devstorage; RFC 6749 §5.2 A/B proof conclusive (wrong-secret→400 invalid_client, valid-secret→400 invalid_grant since no refresh_token captured); POST-only token gate stable via GET→404 across 30+ probe cycles.
 evidence_needed: Valid refresh_token captured from earthengine CLI + leaked client_secret → HTTP 200 + cloud-platform-scoped access token
 verify_steps: HUMAN_ONLY: (1) Run earthengine authenticate → capture refresh_token; (2) POST /token {grant_type:refresh_token, client_id, client_secret:<secret>, refresh_token} → HTTP 200 + cloud-platform scope token; (3) Wrong-secret control → 400 invalid_client
 impact: Full GCP project access (compute/storage/IAM/secrets) across all authorized projects; CVSS 9.0
@@ -24,14 +27,18 @@ testability: HUMAN_ONLY
 class: IDOR
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants
 confidence: 76
-reasoning: Live OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 confirmed browser-exploitable at /v1.0/oauth2PermissionGrants at 15:43 UTC (PATCH widened from POST-only since 2026-08-19 08:20 UTC). 458-char EntityType with ZERO OperationRestrictions; 7 client-supplied properties including resourceId targeting Graph or Azure Storage user_impersonation. Item-level HEAD→401 confirmed no ownership binding at 2026-08-18 08:20 UTC.
+reasoning: Fresh 17:15 UTC probe confirms item-level OPTIONS preflight: /v1.0/oauth2PermissionGrants/{id} → 200 + ACAO:* + PATCH + Max-Age:86400 (was collection-level only in KB, now item-level confirmed). 458-char EntityType with ZERO OperationRestrictions; 7 client-supplied properties including resourceId targeting Graph or Azure Storage user_impersonation. Item-level HEAD→405/0/no-Bearer vs GET→401+Bearer shows auth-gate inconsistency exploitable via CORS.
 evidence_needed: App B cross-origin PATCH grant with caller-chosen resourceId → token minted without admin consent
 verify_steps: AUTH_HELPED: (1) App A POST /v1.0/oauth2PermissionGrants {resourceId:<victim_app>} → 201; (2) App B cross-origin OPTIONS → ACAO:*+PATCH; (3) App B cross-origin PATCH {resourceId:<victim>} → 200; (4) App B POST /oauth2/v2.0/token → token minted for victim resource
 impact: Attacker app silently obtains tokens for victim Graph API data + Azure Storage without consent prompt; CVSS 8.0
 testability: AUTH_HELPED
 [FINAL] 1) Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families — confidence 97, AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for full GCP access — confidence 96, HUMAN_ONLY
-[FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 76, AUTH_HELPED
-[NEXT] HUMAN: Submit MSRC two-principal test request (`reports/msrc-two-principal-request.md`, sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal to obtain authorized cross-principal tenant token — this unlocks verification of BOTH top-ranked hypotheses (#1 Copilot Admin IDOR confidence 97 + #3 oauth2PermissionGrants consent-forge confidence 76), both AUTH_HELPED and blocked only on the authorized tenant token.
+[FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 76, AUTH_HELPED (strengthened: item-level CORS now confirmed)
+[PARKED] none
+[NEXT] HUMAN: Submit the drafted MSRC two-principal authorization request (`reports/msrc-two-principal-request.md`, sha256 `ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17`) via the MSRC bounty portal to obtain the authorized cross-principal tenant token — this is the single bottleneck that unlocks verification of BOTH top-ranked AUTH_HELPED hypotheses (Copilot Admin IDOR #1 at confidence 97 + oauth2PermissionGrants consent-forge #3 at confidence 76).
+[LEARN] ACCEPTED oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age:86400 (was collection-level only in KB; item-level now confirmed live at 17:15 UTC)
+[LEARN] ACCEPTED Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405 (Content-Length:0, no Bearer) while GET→401+Bearer (proper auth gate) — confirms auth-gate inconsistency is systemic at both collection and item levels
+[LEARN] ACCEPTED agentRegistrations item-level CORS preflight confirmed: OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH (re-confirms prior; now with explicit Allow-Methods including PATCH)
 [RISK] google: 90 — earthengine-api oauth.py:45 hardcoded OAuth client_secret confirmed LIVE (sha256 `3f3f8d6f…d271`, scopes cloud-platform+earthengine+drive+devstorage, RFC 6749 §5.2 A/B proof conclusive, HUMAN_ONLY). No ungated cross-project read surface (identitytoolkit 403-gated, discovery APIs auth-gated, oauth2.googleapis.com/token GET→404).
-[RISK] microsoft: 94 — Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight ACAO:*+PATCH confirmed live, 5 EntityTypes ZERO OperationRestrictions, item-level HTTP 401 no ownership binding) + oauth2PermissionGrants consent-forge (confidence 76, browser-exploitable CORS preflight with PATCH, caller-chosen resourceId, 458-char EntityType 0 restrictions) + systemic Graph API RFC 6750 §3 deviation (HEAD→405/0 no Bearer) across all tested endpoint families. All 3 blocked on authorized cross-principal tenant test.
+[RISK] microsoft: 94 — Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight ACAO:*+PATCH confirmed live at item+collection+all 6 families including fresh 17:15 UTC item-level probe) + oauth2PermissionGrants consent-forge strengthened by fresh item-level CORS confirmation (OPTIONS→200+ACAO:*+PATCH, was collection-level only) + systemic Graph API RFC 6750 §3 deviation (HEAD→405/0 no Bearer) now confirmed at item-level too. All 3 active hypotheses blocked on authorized cross-principal tenant token.

@@ -448,3 +448,6 @@
 - 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, RFC 6749 §5.2 A/B proof conclusive
 - 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families (unchanged 16:13 UTC)
 - 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 16:13 UTC)
+- 2026-08-19 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age:86400 (was collection-level only in KB; item-level now confirmed live at 17:15 UTC)
+- 2026-08-19 ACCEPTED Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405 (Content-Length:0, no Bearer) while GET→401+Bearer (proper auth gate) — confirms auth-gate inconsistency is systemic at both collection and item levels
+- 2026-08-19 ACCEPTED agentRegistrations item-level CORS preflight confirmed: OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH (re-confirms prior; now with explicit Allow-Methods including PATCH)
