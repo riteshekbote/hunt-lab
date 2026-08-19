@@ -1,35 +1,24 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+Looking at the delta and full scan results, I'll classify each hit:
+
 ## Classification Table
 
-| File | Line | Hit | Category | Reason |
-|------|------|-----|----------|--------|
-| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference (auto-provided `GITHUB_TOKEN`) |
-| `google/langextract/.github/workflows/ci.yaml` | 168 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
-| `google/langextract/.github/workflows/ci.yaml` | 169 | `LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
-| `google/langextract/.github/workflows/ci.yaml` | 170 | `OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
-| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 59 | `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` | TEST_OR_EXAMPLE | Constant defining env var name, not secret value |
-| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 61 | `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"` | TEST_OR_EXAMPLE | Constant defining env var name, not secret value |
-| `google/talkback/.../BrailleImePreferencesActivity.java` | 66 | `KEYBOARD_ICON_TOKEN = "KEYBOARD_ICON"` | TEST_OR_EXAMPLE | Android SharedPreferences key name |
+| Category | Files (line) | Assessment |
+|----------|-------------|------------|
+| **REAL_SECRET** | *none* | No hardcoded credentials found in delta or full scan |
+| **TEST_OR_EXAMPLE** | adk-python:157,269,278,68,278; auth_helpers.py:64; auth_schemes.py:68; crosvm (2 files - gcloud secret fetch pattern); sam (deploy.yaml, k8s configs); langextract ci.yaml; oss-fuzz-gen env_vars.py; cadvisor flags.go; capsem configs; flatbuffers label.yml | All are test fixtures, placeholder values (`"password"`, `"your_client_secret"`, `"..."`), env var names, ConfigMaps, or proper secret references (`${{ secrets.X }}`, `gcloud secrets access`) |
+| **ENDPOINT_LEAK** | nearby_sharing_service.h:71 (internal source.corp.google.com link); container_code_executor.py:114,154,171,146 (169.254.169.254 metadata endpoint refs) | Internal source link (not exploitable); metadata endpoint is well-known public IP, not a leak |
+| **INTERESTING** | adk-python code_executors (metadata endpoint awareness); sam/deploy.yaml (proper secret injection pattern) | Metadata endpoint handling shows security awareness; proper CI/CD secret patterns |
 
-## Full Grep Context Check (additional hits reviewed)
-- `adk-python/auth_credential.py:157/269/278` — test fixtures (`-----BEGIN PRIVATE KEY-----...`, `user`/`password`, `eyAkaknabna....`)
-- `adk-python/auth_schemes.py:68` — test constant `PASSWORD = "password"`
-- `adk-python/auth_helpers.py:64` — placeholder `client_secret="your_client_secret"`
-- `sam/deploy.yaml:247-250` — `${{ secrets.X }}` references
-- `capsem/config/gate.toml:632` — file reference `password = "password.txt"`
-- `cadvisor/flags.go:54` — flag name constant `StorageDriverPassword = "storage_driver_password"`
+## Verdict on Delta Hits
 
-**All TEST_OR_EXAMPLE or secret references — no hardcoded live credentials.**
+| File | Line | Secret Material SHA256 | REPORT_CANDIDATE |
+|------|------|------------------------|------------------|
+| crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | 9999ea9a30e0abe8 | **NO** — Uses `gcloud secrets access` at runtime (correct CI/CD pattern) |
+| crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | 8ff50571183ceb29 | **NO** — Uses `gcloud secrets access` at runtime (correct CI/CD pattern) |
 
-## Verdict
+## Summary
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| flatbuffers label.yml | **no** |
-| langextract ci.yaml (3 hits) | **no** |
-| oss-fuzz-gen env_vars.py (2 hits) | **no** |
-| talkback BrailleImePreferencesActivity.java | **no** |
-
-**Delta result: 0 reportable findings.** The only known hardcoded secret in google/ org remains `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), already tracked in knowledge base as ACCEPTED but pending VRP determination on native-app by-design status.
+**No reportable findings.** Both delta hits use Google Secret Manager via `gcloud` at execution time — the recommended pattern for CI/CD. The full scan reveals only test fixtures, placeholder values, ConfigMaps, and proper secret references via GitHub Actions/GCP Secret Manager.
