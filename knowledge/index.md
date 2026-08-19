@@ -417,3 +417,5 @@
 - 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (30th consecutive probe)
 - 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271` (unchanged, reports finalized)
 - 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface
+- 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new classes proven dead or alive this cycle.
+- 2026-08-19 NO_DELTA — all 30+ consecutive 2-hourly probe cycles confirm findings stable; no new proving-dead or proving-live classes this cycle.

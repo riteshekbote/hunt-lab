@@ -1619,3 +1619,5 @@
 - CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
 
 ## 2026-08-19 09:45:05 UTC
+
+## 2026-08-19 10:13:09 UTC
