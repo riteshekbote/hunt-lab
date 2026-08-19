@@ -1,72 +1,14 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [offset=50, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=15, offset=125][0m
-[0m✱ [0mGrep "iU5ohAF2qcqrujegE3hQ1cPt"[90m in . · 97 matches[0m
+[0m← [0mWrite triage_results.md
+Wrote file successfully.
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
-[0m
-### Classification Tables
+Done. Wrote full triage to `triage_results.md`.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *(none new this delta)* | | | |
+**Bottom line:** No new reportable secrets in this 27,133-file delta. The only live candidate remains the known `google/earthengine-api` hardcoded OAuth client_secret (sha256 `3f3f8d6f…d271`), already ACCEPTED in the knowledge base and confirmed live on master as of 2026-08-19.
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js | 3 | Parser error message (generated JS) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js | 3 | Parser error message (generated JS) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js | 3 | Parser error message (generated JS) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub secrets references (proper pattern) |
-| reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | Vendored ibis test fixture `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (# noqa: S105) |
-| reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | Same vendored test fixture |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures (private_key, HttpCredentials) |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (test constant) |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test password constants |
-| reposcan-raw/google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py | 59,61 | Env var name constants |
-| reposcan-raw/google/sam/**/*.yaml | various | K8s ConfigMap manifests |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247,249,250 | GitHub secret refs |
-| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
-
-#### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` (documented) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Cloud metadata endpoint reference |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Cloud metadata endpoint reference |
-| reposcan-raw/google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` |
-| reposcan-raw/google/yggdrasil-decision-forests/.../export_docker.py | 68 | Internal Google Pantheon URL |
-| reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/... | various | Public MySQL documentation URLs |
-| reposcan-raw/google/bigframes/third_party/.../parser.py | various | Public MySQL documentation URLs |
-
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided `GOOGLE_API_KEY` to `.env` at runtime |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (token storage key) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path/context params |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` (config key) |
-| reposcan-raw/google/bigframes/scripts/run_doctest.sh | 38-39 | CI service account path logic |
-
----
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| ibis vendored `CLIENT_SECRET` (bigframes) | **no** | Upstream test fixture in vendored third-party code (ibis Apache project); paired with public test `CLIENT_ID`; `# noqa: S105` acknowledges lint; not Google's secret to rotate |
-| `GOOGLE_API_KEY` written to .env (adk-python cli_create.py:131) | **no** | Runtime behavior — writes user-supplied key, not hardcoded |
-| Cloud metadata endpoint refs (169.254.169.254) | **no** | Documented GCP internal endpoint; references are warnings/guards in code |
-| `_STATE_KEY_ACCESS_TOKEN` / `keyRefreshToken` | **no** | Config key names, not secrets |
-| GitHub Actions secret refs (`${{ secrets.* }}`) | **no** | Correct pattern — secrets not in repo |
-| All other hits | **no** | Test fixtures, placeholders, generated code, public URLs |
-
-**Summary: 0 reportable findings in this delta.** The only recurring "hardcoded secret" is the ibis vendored test fixture — already known, upstream-owned, and not a Google credential.
+All other hits are:
+- **TEST_OR_EXAMPLE**: mock configs, test fixtures, placeholder values, generated parser code (21 JS chunks), proper `${{ secrets.* }}` workflow refs
+- **ENDPOINT_LEAK**: well-known GCP metadata endpoints (169.254.169.254, metadata.google.internal) and corp-internal URLs
+- **INTERESTING**: kubeconfig params and a runtime API-key-to-file pattern — no secret material
