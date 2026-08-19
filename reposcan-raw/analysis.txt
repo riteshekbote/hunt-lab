@@ -1,86 +1,23 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [offset=230, limit=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/k8s/dex-config.yaml[90m [limit=15, offset=25][0m
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [limit=15, offset=25][0m
-Now I have enough context to classify all hits. Here's the triage:
-
 ## Classification Table
 
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live credentials found in delta |
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *(none in delta)* |
+| **TEST_OR_EXAMPLE** | `adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt:49` — `const val INJECTED_TOKEN = "injected-token-probe"` (test fixture)<br>`adk-kotlin/webserver/browser/main-TCIQIOZ3.js:5` — minified build artifact<br>`adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3` — minified build artifact<br>`adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9` — minified build artifact<br>`ads-api-report-fetcher/js/src/cli.ts:469` — `refresh_token: '<hidden>'` placeholder<br>`ads-api-report-fetcher/js/src/cli.ts:470` — `developer_token: '<hidden>'` placeholder |
+| **ENDPOINT_LEAK** | *(none in delta)* |
+| **INTERESTING** | `ads-api-report-fetcher/gcp/functions/deploy.sh:112` — `set_secret="--set-secrets DEVELOPER_TOKEN=google-ads-dev-token:latest"` (Secret Manager reference, not a leaked value) |
 
----
+## Verdict
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Example: `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Example: `token="eyAkaknabna...."` (fake JWT) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 287 | Example: `client_secret="secret"` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant: `PASSWORD = "password"` (auth scheme type) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Example: `client_secret="your_client_secret"` |
-| google/ads_oneshop/setup_local.sh | 29-31 | Local dev setup reads from gitignored files (client_secrets.json, refresh_token.txt) |
+| Candidate | REPORT_CANDIDATE |
+|-----------|-----------------|
+| adk-kotlin test token | no |
+| adk-kotlin build artifact | no |
+| adk-python build artifacts (2) | no |
+| ads-api-report-fetcher placeholder tokens (2) | no |
+| ads-api-report-fetcher Secret Manager reference | no |
 
----
-
-### ENDPOINT_LEAK / INFRASTRUCTURE CONFIG
-| File | Line | Reason |
-|------|------|--------|
-| google/sam/.github/k8s/dex-config.yaml | 2 | Template ConfigMap with `$GOOGLE_CLIENT_SECRET` env var placeholder |
-| google/sam/.github/k8s/sam-box-canary-template.yaml | 2 | Template ConfigMap (`kind: ConfigMap`) |
-| google/sam/.github/k8s/sam-node-cop-template.yaml | 2 | Template ConfigMap |
-| google/sam/.github/k8s/sam-node-everything-template.yaml | 2 | Template ConfigMap |
-| google/sam/.github/k8s/sam-node-openclaw-template.yaml | 2 | Template ConfigMap |
-| google/sam/.github/k8s/sam-node-openrouter-template.yaml | 2 | Template ConfigMap |
-| google/sam/.github/k8s/sam-node-template.yaml | 2 | Template ConfigMap |
-| google/sam/.github/k8s/sam-node-vllm-template.yaml | 14 | Template ConfigMap |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Template ConfigMap |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Documentation manifest (`kind: ConfigMap`) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | Documentation manifest (`kind: ConfigMap`) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Uses `gcloud secrets versions access` (proper secret manager) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Uses `gcloud secrets versions access` (proper secret manager) |
-| google/ads_oneshop/acit/bq.sh | 31 | Uses GCP metadata server for token (standard pattern) |
-| google/sam/internal/node/store.go | 38 | Constant key name: `keyRefreshToken = "refresh_token"` (DB key, not value) |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var with empty default) |
-| google/ax/manifests/install-ax.sh | 239, 241, 286 | Dynamic password generation / reads from K8s secret / env var |
-
----
-
-### INTERESTING (CI/CD secret handling patterns)
-| File | Line | Reason |
-|------|------|--------|
-| google/sam/.github/workflows/deploy.yaml | 247 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` (GitHub secret ref) |
-| google/sam/.github/workflows/deploy.yaml | 249 | `--from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}"` (GitHub secret ref) |
-| google/sam/.github/workflows/deploy.yaml | 250 | `--from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}"` (GitHub secret ref) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | API keys from GitHub secrets (proper pattern) |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` (standard) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY=` from variable (CLI config generation) |
-
----
-
-## SHORT VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|-----------------|--------|
-| google/sam deploy.yaml secret refs | **no** | Proper GitHub Actions secret references (`${{ secrets.* }}`), not hardcoded |
-| google/sam K8s ConfigMap templates | **no** | Templates with env var placeholders (`$GOOGLE_CLIENT_SECRET`), no values committed |
-| google/ax install-ax.sh password logic | **no** | Generates random password or reads from existing K8s secret; no static secret |
-| google/adk-python auth examples | **no** | All placeholder/fake values in docstrings and example code |
-| google/crosvm gcloud secret access | **no** | Proper Secret Manager usage at runtime |
-| google/ads_oneshop local setup | **no** | Reads from local gitignored files; dev-only helper script |
-| google/sam store.go keyRefreshToken | **no** | Constant *key name* for DB column, not a token value |
-| google/sam run.sh OIDC_CLIENT_SECRET | **no** | Empty default; expects env var at runtime |
-
----
-
-**SUMMARY**: **0 reportable findings** in this delta. All hits are either test/example placeholders, infrastructure templates with proper secret injection patterns, or runtime secret references via GitHub Actions / GCP Secret Manager / environment variables. No hardcoded live credentials detected.
+**Summary**: 0 reportable findings in this delta. All 7 new hits are test fixtures, build artifacts, placeholders, or secret-manager references — no hardcoded live credentials. The only live secret in the corpus remains the previously-accepted `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`), already tracked.
