@@ -419,3 +419,4 @@
 - 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface
 - 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new classes proven dead or alive this cycle.
 - 2026-08-19 NO_DELTA — all 30+ consecutive 2-hourly probe cycles confirm findings stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-19 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
