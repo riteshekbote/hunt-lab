@@ -1,105 +1,34 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "RUP0RZ6e0pPhDzsqIJ7KlNd1" --include="*.py" 2>/dev/null | head -5
-(no output)
-[0m
-[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null | head -30
-Accessibility-Test-Framework-for-Android
-CFU-Playground
-CausalImpact
-ChromeBrowserEnterprise
-CodeCity
-EarlGrey
-GoogleAppMeasurement
-GoogleDataTransport
-GoogleSignIn-iOS
-OpenSK
-XNNPACK
-Xee
-aarch64-esr-decoder
-aarch64-paging
-acai
-accompanist
-addlicense
-adk-docs
-adk-go
-adk-java
-adk-js
-adk-kotlin
-adk-python
-adk-python-community
-adk-web
-ads-api-report-fetcher
-ads_oneshop
-agents-cli
-agi
-ai-abap-assistant-sample
-[0m
-[0m$ [0mls /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null | grep -i earth
-earthengine-api
-earthengine-catalog
-earthengine-community
-[0m
-[0m$ [0mcat /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null | head -60
-(no output)
-[0m
-[0m$ [0mfind /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api -name "*.py" 2>/dev/null | head -20
-(no output)
-[0m
-[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/
-total 24
-drwxr-xr-x   2 runner runner  4096 Aug 19 14:50 .
-drwxr-xr-x 425 runner runner 20480 Aug 19 14:50 ..
-[0m
-Based on the scan output, here's the classification:
-
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this scan delta)* | — | — | The known `earthengine-api` hardcoded secret (sha256 `3f3f8d6f...`) is **NOT in this scan** — repo was sparse-cloned, `oauth.py` not present in scanned corpus |
-
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `google/re2j/benchmarks/.../BenchmarkFullMatch.java` | 33, 36 | `password`, `l0ngpassword` | Benchmark test fixtures |
-| `google/adk-python/.../auth_credential.py` | 157 | `-----BEGIN PRIVATE KEY-----...` | Placeholder (truncated `...`) |
-| `google/adk-python/.../auth_credential.py` | 269 | `username="user", password="password"` | Example credentials |
-| `google/adk-python/.../auth_credential.py` | 278 | `token="eyAkaknabna...."` | Example JWT (truncated) |
-| `google/adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` | Constant definition |
-| `google/adk-python/.../auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Placeholder literal |
-| `google/cadvisor/.../flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default name, not a secret |
-
-### ENDPOINT_LEAK
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `google/closure-compiler/externs/browser/html5.js` | 1702, 1763 | `http://dev.w3.org/html5/workers/` | Public W3C spec references (not leaks) |
-| `google/closure-compiler/externs/browser/w3c_css.js` | 3997, 4833 | `http://dev.w3.org/csswg/...` | Public W3C spec references |
-| `google/adk-python/.../container_code_executor.py` | 114, 154 | `169.254.169.254` | Well-known cloud metadata IP (AWS/GCP) |
-| `google/adk-python/.../load_web_page.py` | 171 | `169.254.169.254` | Same |
-| `google/adk-python/.../computer_use_toolset.py` | 146 | `169.254.169.254` | Same |
-
-### INTERESTING
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | **Proper** GitHub Actions secret refs (not hardcoded) |
-| `google/sam/.../run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var reference, not hardcoded |
-| `google/sam/.../*.yaml` | various | `kind: ConfigMap` | K8s ConfigMap templates (no secret data) |
-| `google/adk-python/.../cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Variable interpolation |
-| `google/flatbuffers/.../label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | Proper secret ref |
+| Category | File | Line | Evidence | Classification |
+|---|---|---|---|---|
+| **TEST_OR_EXAMPLE** | digitalbuildings/tools/abel/model/constants.py | 106 | `ACCESS_TOKEN = 'accessToken'` | Constant name, not a token |
+| **ENDPOINT_LEAK** | digitalbuildings/tools/validators/.../telemetry_validator.py | 159 | `yaqs.corp.google.com` internal link | Internal URL |
+| **TEST_OR_EXAMPLE** | kctf/kctf-operator/config/scorecard/... | 2,8,14 | `kind: Configuration` | YAML kind field |
+| **TEST_OR_EXAMPLE** | langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GH Actions secret refs |
+| **ENDPOINT_LEAK** | skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` | Service account email |
+| **TEST_OR_EXAMPLE** | skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` | Explicit placeholder |
+| **ENDPOINT_LEAK** | skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com` internal URL | Internal logging endpoint |
+| **TEST_OR_EXAMPLE** | skia-buildbot/perf/go/.../schema.go (7 files) | various | Comments referencing `b.corp.google.com/issues/492077374` | Internal issue tracker refs |
+| **ENDPOINT_LEAK** | skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com` internal URL | Internal build endpoint |
+| **TEST_OR_EXAMPLE** | skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` | Template variables |
+| **TEST_OR_EXAMPLE** | cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default name |
+| **TEST_OR_EXAMPLE** | re2j/benchmarks/.../BenchmarkFullMatch.java | 33,36 | `password = "password"`, `l0ngpassword = "l0ngpassword"` | Benchmark test values |
+| **TEST_OR_EXAMPLE** | flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GH Actions secret ref |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test private key (`...`), `username="user", password="password"`, `token="eyAkaknabna...."` | Test fixtures |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
+| **INTERESTING** | adk-python/src/google/adk/code_executors/... | 103-154 | References to `169.254.169.254` metadata endpoint | Cloud metadata awareness |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
+| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation |
 
 ---
 
-### VERDICT LIST
+### VERDICT
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| closure-compiler `@see` http URLs | **no** | Public W3C spec documentation references |
-| adk-python test fixtures/placeholders | **no** | Explicitly test/example code (truncated `...`, "your_client_secret", "user"/"password") |
-| re2j benchmark passwords | **no** | Benchmark test data |
-| cadvisor flag default name | **no** | Config flag name, not a secret value |
-| adk-python metadata IP comments | **no** | Well-known cloud metadata endpoint (169.254.169.254) |
-| sam workflow secret references | **no** | Proper `${{ secrets.X }}` usage — **good practice**, not a leak |
-| **earthengine-api oauth.py:45 hardcoded client_secret** | **yes** (known) | **From knowledge base**: LIVE on master, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, scopes `cloud-platform+earthengine+drive+devstorage.full_control`, A/B `invalid_grant` vs `invalid_client` proof conclusive per RFC 6749 §5.2. **Not in this scan delta** (sparse clone missed the file) — tracked separately. |
+| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
+|---|---|---|---|---|
+| *(none)* | — | — | — | **no** |
 
-**Summary**: This scan delta (4 new hits in closure-compiler externs) yields **0 new reportable findings**. The only live reportable secret remains the `google/earthengine-api` hardcoded client_secret, already tracked in knowledge base and pending VRP determination on native-app by-design status.
+**Summary:** 0 REAL_SECRET candidates in this delta. All 23 new hits are TEST_OR_EXAMPLE (placeholders, test fixtures, secret references, constant names) or ENDPOINT_LEAK (internal Google corp URLs, service account emails). The previously known `earthengine-api` hardcoded `client_secret` (sha256 `3f3f8d6f…d271`) remains LIVE per knowledge base but is not a *new* finding in this scan.
