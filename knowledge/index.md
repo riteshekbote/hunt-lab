@@ -398,3 +398,5 @@
 - 2026-08-19 ACCEPTED: reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK; confirms no new surface in latest scan cycle.
 - 2026-08-19 ACCEPTED: All 3 hypothesis preconditions remain stable across 29+ consecutive 2-hourly probe cycles — agentRegistration 6-family CORS+PATCH, earthengine-api oauth.py:45 hardcoded client_secret, oauth2PermissionGrants caller-chosen resourceId.
 - 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, all kty=RSA, no confusion surface.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — 29th consecutive 2-hourly probe returns HTTP 404 on GET (RFC 6749 §3.2.1 compliant)
