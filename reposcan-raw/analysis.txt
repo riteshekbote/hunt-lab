@@ -1,45 +1,153 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [offset=50, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/scripts/run_doctest.sh[90m [limit=50, offset=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "CLIENT_SECRET = \"iU5ohAF2qcqrujegE3hQ1cPt\"" reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
 [0m
-[0m$ [0mgrep -r "iU5ohAF2qcqrujegE3hQ1cPt" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/ 2>/dev/null | head -5
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -50 reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
 [0m
-Based on my analysis of all hits, here's the classification:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '160,200p' reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
+_AUTH_TOKEN=$(gcloud auth print-access-token -q)
+          echo "::add-mask::${_AUTH_TOKEN}"
+          echo "_auth_token=${_AUTH_TOKEN}" >> $GITHUB_OUTPUT
+{%- endif %}
 
-### Classification Table
+      - name: Run load test
+        run: |
+{%- if cookiecutter.deployment_target == 'cloud_run' %}
+          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
+          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H ${_STAGING_URL} \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- elif cookiecutter.deployment_target == 'gke' %}
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H http://127.0.0.1:8080 \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+          LOCUST_EXIT_CODE=$?
+          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
+          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
+            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
+            exit $LOCUST_EXIT_CODE
+          fi
+{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
+          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -t 30s -u 2 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- endif %}
+[0m
+### Classification Tables
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **TEST_OR_EXAMPLE** | | |
-| | `google/bigframes/scripts/run_doctest.sh:38-39` | CI reference to Kokoro-mounted service account file (not hardcoded) |
-| | `google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` | Example docs: placeholder private_key, "password", fake JWT `eyAkaknabna....` |
-| | `google/adk-python/src/google/adk/auth/auth_credential.py:287` | Example: `client_secret="secret"` |
-| | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | Test constant `PASSWORD = "password"` |
-| | `google/adk-web/src/app/components/**/*.spec.ts` | Test fixtures: `'initial-token'`, `'updated-token-123'`, `'nextPage'` |
-| | `google/xrblocks/src/ai/AI.ts:303-304` | Placeholders: `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
-| | `google/xrblocks/docs/docusaurus.config.ts:175` | Algolia DocSearch key (search-only, public by design) — **REJECTED class** |
-| | `google/pebble/devsite/source/assets/js/*.js` | Template var `{{ site.algolia_api_key }}` |
-| | `google/sam/**/*.yaml`, `store.go:38` | K8s ConfigMaps, constant name `keyRefreshToken = "refresh_token"` |
-| | `google/sam/.github/workflows/deploy.yaml:247-250` | GitHub Actions secret refs `${GOOGLE_CLIENT_SECRET}`, not hardcoded |
-| | SQLGlot/MySQL comment refs | Documentation URLs only |
-| **ENDPOINT_LEAK** | | |
-| | `google/adk-python/src/google/adk/code_executors/*.py:114,154,171` | References to `169.254.169.254` metadata endpoint (well-known GCP) |
-| **INTERESTING** | | |
-| | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58-59` | Vendored ibis OAuth client: `CLIENT_ID=546535678771-gvffde...`, `CLIENT_SECRET=iU5ohAF2qcqrujegE3hQ1cPt` (sha256 `e69cc771eb028ca1...`) — **installed-app pattern, public by design** |
-| | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:58-59` | Same as above (duplicated in vendored copy) |
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in delta)* | — | — | The earthengine-api `oauth.py:45` secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) is **already tracked in KB** (ACCEPTED 2026-08-07/08/18/19) |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — names the env var, not a key value |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Cookiecutter template placeholders referencing `steps.fetch-token.outputs.*` (render to `${{ steps... }}` at generation) |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | Vendored test value `iU5ohAF2qcqrujegE3hQ1cPt` with `# noqa: S105` (explicit bandit suppress) |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same vendored test value |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: truncated private key, `"user"/"password"`, truncated token `eyAkaknabna....` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
+| `google/sam/development/kind/run.sh` | 139 | Shell default `${OIDC_CLIENT_SECRET:-}` (empty) |
+| `google/sam/.github/workflows/deploy.yaml` | 247–250 | Proper GitHub Actions secret refs (`${{ GOOGLE_CLIENT_SECRET }}`) |
+| `google/pebble/devsite/source/assets/js/404.js` + `quicksearch.js` | 24, 33 | Jekyll template `{{ site.algolia_api_key }}` |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (multiple) | Minified/bundled JS parse-error strings — no secrets |
+| `google/sam/**/*.yaml` (ConfigMap templates) | — | K8s/Helm template boilerplate |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | GCP metadata endpoint — **well-known public IP**, not a leak |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Same |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Same (documents SSRF surface, not a secret) |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents metadata endpoint as SSRF/escalation risk — **defensive coding note** |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Explicitly refuses 169.254.169.254 in Chrome — **mitigation present** |
+
+---
 
 ### Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| ibis vendored OAuth client_secret (`iU5ohAF2qcqrujegE3hQ1cPt`) | **no** | Third-party vendored code (ibis project's public installed-app OAuth client); same class as earthengine-api (already tracked, pending VRP determination on native-app by-design status); `# noqa: S105` indicates known test/public credential |
-| All other hits | **no** | Test fixtures, examples, placeholders, CI references, or already-rejected classes (Algolia search key) |
+| earthengine-api `oauth.py:45` hardcoded client_secret | **no** (already reported) | Tracked in KB as ACCEPTED since 2026-08-07; pending VRP determination on native-app by-design status |
+| agents-cli `auth.py:43` GEMINI_API_KEY constant | **no** | Placeholder naming env var, not a secret value |
+| agents-cli staging.yaml template placeholders | **no** | Cookiecutter templates referencing GH Actions step outputs |
+| bigframes vendored ibis CLIENT_SECRET | **no** | Third-party vendored test fixture with `# noqa: S105` |
+| adk-python auth_credential test fixtures | **no** | Truncated/fake values in test/example code |
+| sam/pebble template placeholders | **no** | Template syntax (`${{...}}`, `{{...}}`), not rendered secrets |
+| GCP metadata endpoint references (169.254.169.254) | **no** | Well-known public endpoint; code documents SSRF risk, mitigations present |
+| Minified JS browser chunks (chunk-*.js) | **no** | Build artifacts with parse-error strings |
 
-**Summary**: No new reportable findings in this delta. The ibis vendored secret is a known pattern (public installed-app OAuth client) already covered by the earthengine-api tracking.
+**Summary**: **0 new reportable findings** in this delta. All hits are test fixtures, template placeholders, vendored third-party test values, or documented public endpoints. The only live secret (earthengine-api) is already tracked and triaged in the knowledge base.
