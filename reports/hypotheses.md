@@ -7609,3 +7609,25 @@
 - LEARN: ACCEPTED: Graph API systemic RFC 6750 §3 deviation confirmed by own probe — HEAD /v1.0 →405/no Bearer, GET /me →401 + WWW-Authenticate Bearer
 - LEARN: REJECTED: No new proving-dead classes — own passive probes (23:03–23:06 UTC) confirm all prior ACCEPTED/REJECTED findings unchanged
 - LEARN: NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no 
+
+## RANKED HYPOTHESES 2026-08-19 23:51:20 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal to ob
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection a
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- LEARN: ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: ACCEPTED: oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer — systemic at both collection 
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: OPTIONS→200 + ACAO:* + PATCH (full 
+- LEARN: REJECTED: No new proving-dead classes — all fresh passive probes (23:03–23:06 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; reposcan confirms 0 repor
+- LEARN: NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 23:29 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses 
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable across all probe cycles)
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
