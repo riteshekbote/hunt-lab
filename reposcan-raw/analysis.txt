@@ -1,308 +1,73 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF' > /tmp/classify.py
-#!/usr/bin/env python3
-import hashlib
-import sys
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/triage_results.md << 'EOF'
+# Reposcan Triage Results — 2026-08-19
 
-hits = [
-    ("google/sam/site/content/docs/manifests/mock-oidc.yaml", 16, 'kind: ConfigMap'),
-    ("google/sam/site/content/docs/manifests/sam-control-plane.yaml", 88, 'kind: ConfigMap'),
-    ("google/sam/internal/node/store.go", 38, 'keyRefreshToken = "refresh_token"'),
-    ("google/sam/charts/sam-mesh/templates/dex-deployment.yaml", 3, 'kind: ConfigMap'),
-    ("google/sam/development/kind/run.sh", 139, 'OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"'),
-    ("google/sam/.github/workflows/deploy.yaml", 247, '--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"'),
-    ("google/sam/.github/workflows/deploy.yaml", 249, '--from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}"'),
-    ("google/sam/.github/workflows/deploy.yaml", 250, '--from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}"'),
-    ("google/sam/.github/k8s/sam-box-canary-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-openrouter-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/dex-config.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-openclaw-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-everything-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-vllm-template.yaml", 14, 'kind: ConfigMap'),
-    ("google/sam/.github/k8s/sam-node-cop-template.yaml", 2, 'kind: ConfigMap'),
-    ("google/langextract/.github/workflows/ci.yaml", 168, 'GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"'),
-    ("google/langextract/.github/workflows/ci.yaml", 169, 'LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"'),
-    ("google/langextract/.github/workflows/ci.yaml", 170, 'OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"'),
-    ("google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh", 10, 'TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")'),
-    ("google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh", 11, 'CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")'),
-    ("google/capsem/.github/workflows/release-channel-staging.yaml", 17, 'default: https://staging.release-eq7.pages.dev'),
-    ("google/capsem/config/gate.toml", 597, 'password = "password.txt"'),
-    ("google/capsem/scripts/preflight.sh", 39, 'password="$(tr -d \'\\n\' < "$pass_file")"'),
-    ("google/capsem/scripts/fix_p12_legacy.sh", 15, 'PASSWORD="$(tr -d \'\\n\' < "$PASS_FILE")"'),
-    ("google/flatbuffers/.github/workflows/label.yml", 24, 'repo-token: "${{ secrets.GITHUB_TOKEN }}"'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 157, 'private_key="-----BEGIN PRIVATE KEY-----..."'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 269, 'credentials=HttpCredentials(username="user", password="password")'),
-    ("google/adk-python/src/google/adk/auth/auth_credential.py", 278, 'credentials=HttpCredentials(token="eyAkaknabna....")'),
-    ("google/adk-python/src/google/adk/auth/auth_schemes.py", 68, 'PASSWORD = "password"'),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 103, 'kubeconfig_path: str | None = None'),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 104, 'kubeconfig_context: str | None = None'),
-    ("google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 115, 'kubeconfig_path: str | None = None,'),
-    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py", 114, 'cloud metadata endpoint at 169.254.169.254'),
-    ("google/adk-python/src/google/adk/code_executors/container_code_executor.py", 154, 'cloud metadata endpoint at 169.254.169.254'),
-    ("google/adk-python/src/google/adk/tools/load_web_page.py", 171, 'routes to the internal 169.254.169.254 metadata'),
-    ("google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py", 146, '169.254.169.254 in Chrome, so refuse instead of checking'),
-    ("google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py", 64, 'client_secret="your_client_secret"'),
-    ("google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py", 47, '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"'),
-    ("google/adk-python/src/google/adk/cli/cli_create.py", 131, 'lines.append(f"GOOGLE_API_KEY={google_api_key}")'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-VJTRHJAQ.js", 11, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-ZO3BTNJM.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-OCQO4LX3.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-RNTHHQWK.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-WEKWG7SS.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js", 3, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js", 9, 'Parse error...'),
-    ("google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js", 3, 'Parse error...'),
-    ("google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go", 246, '--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest'),
-]
+## Classification Tables
 
-# Classification logic
-for file, line, content in hits:
-    # Compute sha256 of any potential secret material
-    secret_part = ""
-    if "password" in content.lower() and "=" in content and not "${" in content and not "password.txt" in content:
-        # Might have a literal password
-        parts = content.split("=")
-        if len(parts) > 1:
-            secret_part = parts[-1].strip().strip('"\'')
-    elif "secret" in content.lower() and "=" in content and not "${" in content and not "secret=" in content.lower():
-        parts = content.split("=")
-        if len(parts) > 1:
-            secret_part = parts[-1].strip().strip('"\'')
-    elif "token" in content.lower() and "=" in content and not "${" in content:
-        parts = content.split("=")
-        if len(parts) > 1:
-            secret_part = parts[-1].strip().strip('"\'')
-    elif "private_key" in content and "BEGIN" in content:
-        secret_part = content
-    elif "eyAkaknabna" in content:  # JWT-like
-        secret_part = content
-    
-    sha = hashlib.sha256(secret_part.encode()).hexdigest() if secret_part else "N/A"
-    
-    # Classify
-    if "mock-oidc" in file or "kind: ConfigMap" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "${{" in content or "${" in content and "secrets." in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "refresh_token" == content.split("=")[-1].strip().strip('"\'') if "=" in content else False:
-        cat = "TEST_OR_EXAMPLE"
-    elif "password.txt" in content or 'password="$(tr' in content or 'PASSWORD="$(tr' in content:
-        cat = "INTERESTING"
-    elif "gcloud --project" in content and "secrets versions access" in content:
-        cat = "INTERESTING"  # Secret Manager pattern
-    elif "staging.release" in content:
-        cat = "ENDPOINT_LEAK"
-    elif "169.254.169.254" in content:
-        cat = "INTERESTING"  # Metadata endpoint reference
-    elif "your_client_secret" in content or "user" == content.split("=")[-1].strip().strip('",)') if "=" in content else False:
-        cat = "TEST_OR_EXAMPLE"
-    elif "eyAkaknabna" in content or "BEGIN PRIVATE KEY" in content:
-        cat = "TEST_OR_EXAMPLE"  # Test fixtures
-    elif "PASSWORD = \"password\"" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "kubeconfig" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "_STATE_KEY_ACCESS_TOKEN" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "GOOGLE_API_KEY=" in content and "google_api_key" in content:
-        cat = "INTERESTING"  # Writes API key to file
-    elif "Parse error" in content or "chunk-" in file:
-        cat = "TEST_OR_EXAMPLE"  # Minified JS / sourcemap chunks
-    elif "--set-secrets=" in content:
-        cat = "TEST_OR_EXAMPLE"  # Cloud Run secret ref
-    else:
-        cat = "TEST_OR_EXAMPLE"
-    
-    print(f"{file}:{line} | {cat} | sha256:{sha[:16]}... | {content[:80]}")
+### REAL_SECRET (reportable)
+| File | Line | SHA256(secret) | Notes |
+|------|------|----------------|-------|
+| *(none new this delta)* | | | The only live hardcoded secret remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already ACCEPTED in KB |
 
-# Summary
-print("\n=== SUMMARY ===")
-cats = {}
-for file, line, content in hits:
-    # Re-classify for summary
-    if "mock-oidc" in file or "kind: ConfigMap" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "${{" in content or ("${" in content and "secrets." in content):
-        cat = "TEST_OR_EXAMPLE"
-    elif "refresh_token" == content.split("=")[-1].strip().strip('"\'') if "=" in content else False:
-        cat = "TEST_OR_EXAMPLE"
-    elif "password.txt" in content or 'password="$(tr' in content or 'PASSWORD="$(tr' in content:
-        cat = "INTERESTING"
-    elif "gcloud --project" in content and "secrets versions access" in content:
-        cat = "INTERESTING"
-    elif "staging.release" in content:
-        cat = "ENDPOINT_LEAK"
-    elif "169.254.169.254" in content:
-        cat = "INTERESTING"
-    elif "your_client_secret" in content or ("user" == content.split("=")[-1].strip().strip('",)') if "=" in content and "username" in content else False):
-        cat = "TEST_OR_EXAMPLE"
-    elif "eyAkaknabna" in content or "BEGIN PRIVATE KEY" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "PASSWORD = \"password\"" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "kubeconfig" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "_STATE_KEY_ACCESS_TOKEN" in content:
-        cat = "TEST_OR_EXAMPLE"
-    elif "GOOGLE_API_KEY=" in content and "google_api_key" in content:
-        cat = "INTERESTING"
-    elif "Parse error" in content or "chunk-" in file:
-        cat = "TEST_OR_EXAMPLE"
-    elif "--set-secrets=" in content:
-        cat = "TEST_OR_EXAMPLE"
-    else:
-        cat = "TEST_OR_EXAMPLE"
-    cats[cat] = cats.get(cat, 0) + 1
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Docs manifest fixture (ConfigMap) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | Docs manifest fixture (ConfigMap) |
+| google/sam/internal/node/store.go | 38 | Constant string `"refresh_token"` (not a secret value) |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Helm template (ConfigMap kind) |
+| google/sam/development/kind/run.sh | 139 | Shell var with empty default `${OIDC_CLIENT_SECRET:-}` |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | Proper GitHub secret refs (`${{ secrets.* }}`) |
+| google/sam/.github/k8s/*.yaml | various | K8s templates (ConfigMap kind) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper GitHub secret refs |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches from GCP Secret Manager via `gcloud` |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches from GCP Secret Manager via `gcloud` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Placeholder `-----BEGIN PRIVATE KEY-----...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test fixture `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test fixture token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key constant `_vmaas_access_token` |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Secret reference pattern `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
 
-for cat, count in sorted(cats.items()):
-    print(f"  {cat}: {count}")
+### ENDPOINT_LEAK (internal/dev URLs, metadata endpoints)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig references (config, not secret) |
 
-print("\n=== REPORT_CANDIDATE verdicts ===")
-# Check for REAL_SECRET candidates
-real_secrets = []
-for file, line, content in hits:
-    # The only potential real secret would be if there's a hardcoded value not using env vars
-    # But all secrets here use ${} or ${{}} references or are test fixtures
-    pass
-
-print("  REAL_SECRET candidates: 0")
-print("  REPORT_CANDIDATE: no (for all hits in this scan)")
-print("\nNote: The known LIVE finding (earthengine-api oauth.py:45 client_secret sha256 3f3f8d6f...)")
-print("is NOT in this scan's hits — it was found in prior full-clone audit (2026-08-18).")
-EOF
-python3 /tmp/classify.py
-google/sam/site/content/docs/manifests/mock-oidc.yaml:16 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/site/content/docs/manifests/sam-control-plane.yaml:88 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/internal/node/store.go:38 | TEST_OR_EXAMPLE | sha256:6c8a7d4aa21708a4... | keyRefreshToken = "refresh_token"
-google/sam/charts/sam-mesh/templates/dex-deployment.yaml:3 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/development/kind/run.sh:139 | TEST_OR_EXAMPLE | sha256:N/A... | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"
-google/sam/.github/workflows/deploy.yaml:247 | TEST_OR_EXAMPLE | sha256:N/A... | --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"
-google/sam/.github/workflows/deploy.yaml:249 | TEST_OR_EXAMPLE | sha256:N/A... | --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}"
-google/sam/.github/workflows/deploy.yaml:250 | TEST_OR_EXAMPLE | sha256:N/A... | --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}"
-google/sam/.github/k8s/sam-box-canary-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-openrouter-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/dex-config.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-openclaw-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-everything-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-vllm-template.yaml:14 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/sam/.github/k8s/sam-node-cop-template.yaml:2 | TEST_OR_EXAMPLE | sha256:N/A... | kind: ConfigMap
-google/langextract/.github/workflows/ci.yaml:168 | TEST_OR_EXAMPLE | sha256:N/A... | GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-google/langextract/.github/workflows/ci.yaml:169 | TEST_OR_EXAMPLE | sha256:N/A... | LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"
-google/langextract/.github/workflows/ci.yaml:170 | TEST_OR_EXAMPLE | sha256:N/A... | OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"
-google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | INTERESTING | sha256:cb154d7d5acd33ce... | TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="g
-google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | INTERESTING | sha256:b93e2c45f4a10072... | CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --s
-google/capsem/.github/workflows/release-channel-staging.yaml:17 | ENDPOINT_LEAK | sha256:N/A... | default: https://staging.release-eq7.pages.dev
-google/capsem/config/gate.toml:597 | INTERESTING | sha256:N/A... | password = "password.txt"
-google/capsem/scripts/preflight.sh:39 | INTERESTING | sha256:439947a376b0a0f9... | password="$(tr -d '\n' < "$pass_file")"
-google/capsem/scripts/fix_p12_legacy.sh:15 | INTERESTING | sha256:b1e2dabe586a925f... | PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
-google/flatbuffers/.github/workflows/label.yml:24 | TEST_OR_EXAMPLE | sha256:N/A... | repo-token: "${{ secrets.GITHUB_TOKEN }}"
-google/adk-python/src/google/adk/auth/auth_credential.py:157 | TEST_OR_EXAMPLE | sha256:c4698aa08cf73dbd... | private_key="-----BEGIN PRIVATE KEY-----..."
-google/adk-python/src/google/adk/auth/auth_credential.py:269 | TEST_OR_EXAMPLE | sha256:a7abd012a7ae33ed... | credentials=HttpCredentials(username="user", password="password")
-google/adk-python/src/google/adk/auth/auth_credential.py:278 | TEST_OR_EXAMPLE | sha256:ef078ec5bfcbc2eb... | credentials=HttpCredentials(token="eyAkaknabna....")
-google/adk-python/src/google/adk/auth/auth_schemes.py:68 | TEST_OR_EXAMPLE | sha256:5e884898da280471... | PASSWORD = "password"
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103 | TEST_OR_EXAMPLE | sha256:N/A... | kubeconfig_path: str | None = None
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py:104 | TEST_OR_EXAMPLE | sha256:N/A... | kubeconfig_context: str | None = None
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py:115 | TEST_OR_EXAMPLE | sha256:N/A... | kubeconfig_path: str | None = None,
-google/adk-python/src/google/adk/code_executors/container_code_executor.py:114 | INTERESTING | sha256:N/A... | cloud metadata endpoint at 169.254.169.254
-google/adk-python/src/google/adk/code_executors/container_code_executor.py:154 | INTERESTING | sha256:N/A... | cloud metadata endpoint at 169.254.169.254
-google/adk-python/src/google/adk/tools/load_web_page.py:171 | INTERESTING | sha256:N/A... | routes to the internal 169.254.169.254 metadata
-google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | INTERESTING | sha256:N/A... | 169.254.169.254 in Chrome, so refuse instead of checking
-google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | TEST_OR_EXAMPLE | sha256:N/A... | client_secret="your_client_secret"
-google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | TEST_OR_EXAMPLE | sha256:fe1c603c080d2df4... | _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-google/adk-python/src/google/adk/cli/cli_create.py:131 | INTERESTING | sha256:N/A... | lines.append(f"GOOGLE_API_KEY={google_api_key}")
-google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-VJTRHJAQ.js:11 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-VRRZ3RU5.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-ZO3BTNJM.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-OCQO4LX3.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-RNTHHQWK.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-WEKWG7SS.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-6HSYUS5O.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3 | TEST_OR_EXAMPLE | sha256:N/A... | Parse error...
-google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246 | TEST_OR_EXAMPLE | sha256:0f45f918501b381b... | --set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest
-
-=== SUMMARY ===
-  ENDPOINT_LEAK: 1
-  INTERESTING: 10
-  TEST_OR_EXAMPLE: 47
-
-=== REPORT_CANDIDATE verdicts ===
-  REAL_SECRET candidates: 0
-  REPORT_CANDIDATE: no (for all hits in this scan)
-
-Note: The known LIVE finding (earthengine-api oauth.py:45 client_secret sha256 3f3f8d6f...)
-is NOT in this scan's hits — it was found in prior full-clone audit (2026-08-18).
-[0m
-### Classification Tables
-
-#### REAL_SECRET (0 hits)
-*No hardcoded credentials with signs of life in this scan delta.*
-
-#### TEST_OR_EXAMPLE (47 hits)
-| File | Line | Summary |
-|------|------|---------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Mock OIDC ConfigMap (docs) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | ConfigMap in docs |
-| google/sam/internal/node/store.go | 38 | Const `keyRefreshToken = "refresh_token"` |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Helm template ConfigMap |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var ref) |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=...="${{ secrets.* }}"` (GH Actions secret refs) |
-| google/sam/.github/k8s/*.yaml | various | K8s template ConfigMaps (15 files) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: truncated PEM, `user`/`password`, JWT `eyAkaknabna....` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | Kubeconfig param defaults |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Const `_STATE_KEY_ACCESS_TOKEN` |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS sourcemap chunks (parse errors) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref) |
-
-#### ENDPOINT_LEAK (1 hit)
-| File | Line | Summary |
-|------|------|---------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
-
-#### INTERESTING (10 hits)
-| File | Line | Summary |
-|------|------|---------|
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Secret Manager fetch: `gcloud secrets versions access --secret="github-crosvm-bot"` |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Secret Manager fetch: `gcloud secrets versions access --secret="codecov-google-crosvm"` |
-| google/capsem/config/gate.toml | 597 | Password file reference: `password = "password.txt"` |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to `169.254.169.254` metadata endpoint (SSRF surface awareness) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Blocks `169.254.169.254` in Chrome (defensive) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to file (user-supplied key persistence) |
+### INTERESTING (build artifacts, minified chunks)
+| File | Line | Notes |
+|------|------|-------|
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | various | Minified JS source-map chunks (parse error strings) — build artifacts |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Same — minified JS chunks in source tree |
 
 ---
 
-### Verdict List
+## Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| All 58 hits in this scan | **no** | All are TEST_OR_EXAMPLE (fixtures, env refs, placeholders), ENDPOINT_LEAK (staging URL), or INTERESTING (secret-manager patterns, metadata endpoint refs, password-file patterns). No hardcoded live secrets. |
+| google/earthengine-api/python/ee/oauth.py:45 | **yes** (pre-existing) | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), scopes `cloud-platform+earthengine+drive+devstorage.full_control`, used as default fallback at oauth.py:99. **Already ACCEPTED in KB**, pending VRP determination on native-app by-design status. |
+| google/adk-go/cmd/launcher/web/webui/distr/* (5 new delta hits) | **no** | Minified JS build artifacts (source-map chunks with parser error strings), not secrets. |
+| google/sam/* (ConfigMaps, workflows, templates) | **no** | All test fixtures, docs manifests, helm templates, or proper secret refs. |
+| google/langextract/.github/workflows/ci.yaml | **no** | Proper `${{ secrets.GEMINI_API_KEY }}` usage. |
+| google/crosvm/infra/* | **no** | Proper GCP Secret Manager access via `gcloud`. |
+| google/adk-python/auth_credential.py, auth_schemes.py, auth_helpers.py | **no** | Placeholders, test fixtures, constants. |
+| GCP metadata endpoint refs (169.254.169.254) | **no** | Well-known public endpoint, documented in code comments as security boundary. |
 
-**Note:** The **confirmed LIVE finding** from prior audit — `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth `client_secret` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes `cloud-platform+earthengine+drive+devstorage.full_control`) — **does not appear in this scan's hits** (it was found in the 2026-08-18 full-clone audit). It remains **ACCEPTED** in the knowledge base and pending VRP determination on native-app by-design status.
+---
+
+## Summary
+- **0 new REAL_SECRET findings** in this delta scan
+- **1 pre-existing REAL_SECRET** (earthengine-api) remains live and tracked in KB
+- All other hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (known public endpoints), or INTERESTING build artifacts
+- **No new reportable findings** for GVRP/MSRC from this scan cycle
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
