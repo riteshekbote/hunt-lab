@@ -1,153 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "CLIENT_SECRET = \"iU5ohAF2qcqrujegE3hQ1cPt\"" reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -50 reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Authentication module for agents-cli.
-
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
-
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
-
-
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '160,200p' reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
-_AUTH_TOKEN=$(gcloud auth print-access-token -q)
-          echo "::add-mask::${_AUTH_TOKEN}"
-          echo "_auth_token=${_AUTH_TOKEN}" >> $GITHUB_OUTPUT
-{%- endif %}
-
-      - name: Run load test
-        run: |
-{%- if cookiecutter.deployment_target == 'cloud_run' %}
-          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
-          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-          -H ${_STAGING_URL} \
-          -t 30s -u 10 -r 0.5 \
-          --csv=tests/load_test/.results/results \
-          --html=tests/load_test/.results/report.html
-{%- elif cookiecutter.deployment_target == 'gke' %}
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-          -H http://127.0.0.1:8080 \
-          -t 30s -u 10 -r 0.5 \
-          --csv=tests/load_test/.results/results \
-          --html=tests/load_test/.results/report.html
-          LOCUST_EXIT_CODE=$?
-          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
-          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
-            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
-            exit $LOCUST_EXIT_CODE
-          fi
-{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
-          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
-          uvx locust==2.31.1 \
-          -f tests/load_test/load_test.py \
-          --headless \
-          -t 30s -u 2 -r 0.5 \
-          --csv=tests/load_test/.results/results \
-          --html=tests/load_test/.results/report.html
-{%- endif %}
+[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
 [0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in delta)* | — | — | The earthengine-api `oauth.py:45` secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) is **already tracked in KB** (ACCEPTED 2026-08-07/08/18/19) |
+#### REAL_SECRET (hardcoded credentials with signs of life)
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — names the env var, not a key value |
-| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Cookiecutter template placeholders referencing `steps.fetch-token.outputs.*` (render to `${{ steps... }}` at generation) |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | Vendored test value `iU5ohAF2qcqrujegE3hQ1cPt` with `# noqa: S105` (explicit bandit suppress) |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same vendored test value |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: truncated private key, `"user"/"password"`, truncated token `eyAkaknabna....` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
-| `google/sam/development/kind/run.sh` | 139 | Shell default `${OIDC_CLIENT_SECRET:-}` (empty) |
-| `google/sam/.github/workflows/deploy.yaml` | 247–250 | Proper GitHub Actions secret refs (`${{ GOOGLE_CLIENT_SECRET }}`) |
-| `google/pebble/devsite/source/assets/js/404.js` + `quicksearch.js` | 24, 33 | Jekyll template `{{ site.algolia_api_key }}` |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (multiple) | Minified/bundled JS parse-error strings — no secrets |
-| `google/sam/**/*.yaml` (ConfigMap templates) | — | K8s/Helm template boilerplate |
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105` — **vendored third-party code (ibis)**, likely upstream test placeholder |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret, duplicated in vendored code |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` | GCP metadata endpoint — **well-known public IP**, not a leak |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` | Same |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Same (documents SSRF surface, not a secret) |
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
 
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents metadata endpoint as SSRF/escalation risk — **defensive coding note** |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Explicitly refuses 169.254.169.254 in Chrome — **mitigation present** |
+| File | Line | Context |
+|------|------|---------|
+| `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts` | 214 | `*       password: "password",` — JSDoc comment example |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts` | 226 | `*       token: "your_access_token",` — JSDoc comment example |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password',` — auth scheme type constant, not a secret |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` — test fixture |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `credentials=HttpCredentials(username="user", password="password"),` — test fixture |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `credentials=HttpCredentials(token="eyAkaknabna...."),` — test fixture |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — auth scheme type constant |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret",` — placeholder in example |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` — GitHub Actions secret refs |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — config key name constant |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+
+| File | Line | Context |
+|------|------|---------|
+| `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `host === 'metadata.google.internal'` — GCP metadata hostname check |
+| `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts` | 36 | `'169.254.0.0/16'` — link-local/GCP metadata CIDR block |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig path/context params |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` metadata endpoint references |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` metadata endpoint |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` metadata endpoint |
+
+#### INTERESTING (config, debug, cloud configs)
+
+| File | Line | Context |
+|------|------|---------|
+| `reposcan-raw/google/sam/**/*.yaml` | various | `kind: ConfigMap` — Kubernetes ConfigMap manifests (no secrets) |
+| `reposcan-raw/google/bigframes/third_party/.../parser.py` | various | MySQL doc URL comments |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js` | various | Minified/bundled JS chunks (source map artifacts) |
 
 ---
 
-### Verdict List
+### VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| earthengine-api `oauth.py:45` hardcoded client_secret | **no** (already reported) | Tracked in KB as ACCEPTED since 2026-08-07; pending VRP determination on native-app by-design status |
-| agents-cli `auth.py:43` GEMINI_API_KEY constant | **no** | Placeholder naming env var, not a secret value |
-| agents-cli staging.yaml template placeholders | **no** | Cookiecutter templates referencing GH Actions step outputs |
-| bigframes vendored ibis CLIENT_SECRET | **no** | Third-party vendored test fixture with `# noqa: S105` |
-| adk-python auth_credential test fixtures | **no** | Truncated/fake values in test/example code |
-| sam/pebble template placeholders | **no** | Template syntax (`${{...}}`, `{{...}}`), not rendered secrets |
-| GCP metadata endpoint references (169.254.169.254) | **no** | Well-known public endpoint; code documents SSRF risk, mitigations present |
-| Minified JS browser chunks (chunk-*.js) | **no** | Build artifacts with parse-error strings |
+| `bigframes` vendored `CLIENT_SECRET` (ibis) | **no** | Third-party vendored code; secret appears to be upstream test placeholder (same value in two files, `# noqa: S105` suppresses linter); not Google-owned secret |
+| `adk-js` password/token examples | **no** | JSDoc comments with obvious placeholders (`"password"`, `"your_access_token"`) |
+| `adk-python` test fixtures | **no** | Explicit test data (`"password"`, `"eyAkaknabna...."`, `-----BEGIN PRIVATE KEY-----`) |
+| `adk-js` metadata.google.internal / 169.254.0.0/16 | **no** | Defensive coding — blocking metadata access, not leaking it |
+| `adk-python` metadata endpoint references | **no** | Documentation/comments warning about metadata endpoint risks |
+| SAM ConfigMaps / workflow secret refs | **no** | Standard K8s/GitHub Actions patterns; no hardcoded values |
+| `agents-cli` GEMINI_API_KEY constant | **no** | Config key name string, not a secret value |
 
-**Summary**: **0 new reportable findings** in this delta. All hits are test fixtures, template placeholders, vendored third-party test values, or documented public endpoints. The only live secret (earthengine-api) is already tracked and triaged in the knowledge base.
+**No reportable findings in this delta.** All hits are either test fixtures, defensive code, third-party vendored placeholders, or standard config patterns.
