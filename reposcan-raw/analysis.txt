@@ -1,66 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<<'sk-REPLACE-WITH-YOUR-KEY'
-1a3546e564ad4cabce882378a8a5943e1e4f1d1999a5c2da348f24edb05d7956  -
-[0m
-### Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-#### REAL_SECRET
-| File | Line | SHA256(secret) | Notes |
-|------|------|----------------|-------|
-| *(none)* | | | No hardcoded live credentials found in this delta |
+## REAL_SECRET (reportable)
+*None found in this delta*
 
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
+## TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context | SHA256 |
 |------|------|---------|--------|
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | Explicit placeholder |
-| google/sam/internal/node/store.go | 38 | `refresh_token` | Literal string constant |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` | Proper secret references |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | Proper secret references |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` | Fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword` | Test constant |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `gemini_api_key` | Placeholder |
-| google/agents-cli/.../staging.yaml | 168, 192 | Template vars `{% raw %}` | CI template |
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
-| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `injected-token-probe` | Integration test probe |
-| google/heir/scripts/author_stats.py | 16 | `your_github_token_here` | Commented placeholder |
-| google/device-infra/.../DeviceAdminUtil.java | 49-50 | Android action constants | Platform constants |
-| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `password` | Spec constant |
-| google/private-compute-services/.../rendertoken/*.kt | 41, 43, 82, 88, 91 | Constant names | Symbolic names |
+| google/capsem/config/gate.toml | 595 | `password = "password.txt"` (file ref) | N/A |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` | N/A |
+| google/capsem/scripts/preflight.sh | 39 | Reads from `$pass_file` | N/A |
+| google/garf/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | placeholder |
+| google/garf/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | placeholder |
+| google/kube-startup-cpu-boost/.github/workflows/release.yaml | 90 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
+| google/mtail/.github/workflows/automerge.yml | 61 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` x3 | N/A (secret refs) |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | placeholder |
+| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` | test fixtures |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` | test fixtures |
+| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
+| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
+| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` | placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` | commented placeholder |
+| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQL injection test payload | test fixture |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| microsoft/Qcodes/.github/package-lock.json | 13, 27 | `pkgs.dev.azure.com/ms-quantum/...` | Azure Artifacts npm registry |
-| microsoft/agent-governance-toolkit/.../cedar.ts | 8, 11, 13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) |
-| microsoft/agent-governance-toolkit/.../opa.ts | 13, 14 | `169.254.169.254`, `metadata.google.internal` | Cloud IMDS endpoints |
-| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `pkgs.dev.azure.com/microsoft/Dart/...` | Azure Artifacts Cargo registry |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70, 76 | `pkgs.dev.azure.com/...`, `pkgs.dev.azure.com/microsoft/_packaging/RustTools/...` | Azure Artifacts feeds |
-| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `rfc3161.gtm.corp.microsoft.com` | Internal timestamp server |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/...` | Internal artifact registry (comment) |
-| google/device-infra/.../adc_credentials.sh | 39, 44 | `metadata.google.internal/computeMetadata/...` | GCP metadata server usage |
-
-#### INTERESTING
-| File | Line | Finding |
+## ENDPOINT_LEAK (internal URLs, metadata endpoints)
+| File | Line | Context |
 |------|------|---------|
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `secret_key = <value>` in generated code — crypto key material sink (codegen, not a stored secret) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| google/device-infra/.../adc_credentials.sh | 39,44 | `metadata.google.internal` (GCP IMDS) |
+| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
+| microsoft/agent-governance-toolkit (10+ files) | various | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (cloud IMDS endpoints) |
+
+## INTERESTING (unusual patterns)
+*None beyond the above*
 
 ---
 
-### Verdicts
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `sk-REPLACE-WITH-YOUR-KEY` (microsoft/agent-governance-toolkit) | **no** | Explicit placeholder pattern |
-| Azure DevOps package registry URLs (Qcodes, coreutils) | **no** | Internal feed references, no credentials |
-| Cloud IMDS endpoints (169.254.169.254, metadata.google.internal, 100.100.100.200) | **no** | Well-known metadata IPs, no secrets |
-| Internal timestamp server (rfc3161.gtm.corp.microsoft.com) | **no** | Corp-internal service, no auth material |
-| GCP metadata server usage (adc_credentials.sh) | **no** | Standard ADC bootstrap pattern |
-| google/heir JaxiteWordEmitter secret_key emission | **no** | Codegen sink, not a stored secret |
-| All test fixtures / template refs / placeholder constants | **no** | Standard test/code patterns |
-
----
-
-**Summary**: 0 reportable findings in this delta. All hits are test fixtures, placeholders, internal endpoint references (no credentials), or standard cloud bootstrap patterns. The `sk-REPLACE-WITH-YOUR-KEY` is an explicit user-facing placeholder.
+## VERDICT
+**REPORT_CANDIDATE: no** — No REAL_SECRET findings in this delta. All hits are test fixtures, placeholder values, GitHub Actions secret references, or known cloud metadata endpoints. The earthengine-api hardcoded client_secret (KNOWN, tracked separately) is the only live secret in the corpus and remains pending VRP determination on native-app by-design status.
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
