@@ -1,76 +1,71 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/triage_report.md << 'EOF'
-# Triaging Results: 2026-08-19 Delta Scan
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-## Classification Tables
-
-### REAL_SECRET (hardcoded credentials with signs of life)
+## REAL_SECRET
 | File | Line | SHA256 | Verdict |
 |------|------|--------|---------|
-| *none found* | - | - | No hardcoded live secrets in delta |
+| (none) | - | - | No hardcoded live secrets in delta |
 
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated fixture) |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `credentials=HttpCredentials(username="user", password="password")` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `credentials=HttpCredentials(token="eyAkaknabna....")` (truncated) |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (test constant) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var ref) |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. (GH Actions secret refs) |
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. (GH Actions secret refs) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified JS bundles/source maps (build artifacts) |
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` — clearly example config |
 
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `default: https://staging.release-eq7.pages.dev` (staging URL) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Comments referencing `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment referencing metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment referencing metadata endpoint |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` (k8s config templates) |
+## ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal Google source link `source.corp.google.com/piper///depot/google3/...` — internal dev URL reference |
 
-### INTERESTING (unusual patterns, debug flags, cloud configs)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref) |
-| reposcan-raw/google/capsem/config/gate.toml | 632 | `password = "password.txt"` (file reference) |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` (reads from file) |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` (reads from file) |
-| reposcan-raw/google/dagger/util/latest-dagger-version.sh | 9 | `local GITHUB_TOKEN="${GH_TOKEN:-}"` (env var ref) |
-| reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` (flag name, not value) |
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (state key name) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` (writes variable) |
+## INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| google/android-emulator-container-scripts/run-with-gpu.sh | 28 | Runtime token file reference: `TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads local auth file at container start, not hardcoded |
+| google/android-emulator-container-scripts/run.sh | 22 | Same pattern — duplicate of above |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | Kubeconfig path resolution: `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — standard cloud config pattern |
 
-## Verdict List
+=== VERDICT LIST ===
+- google/android-emulator-container-scripts/run-with-gpu.sh:28 → REPORT_CANDIDATE: no (runtime file ref, not hardcoded secret)
+- google/android-emulator-container-scripts/run.sh:22 → REPORT_CANDIDATE: no (duplicate, same pattern)
+- google/nearby/sharing/nearby_sharing_service.h:71 → REPORT_CANDIDATE: no (internal URL reference only, no credential)
+- google/tunix/tunix/cli/base_agentic_config.yaml:63 → REPORT_CANDIDATE: no (commented placeholder, TEST_OR_EXAMPLE)
+- google/tunix/tunix/cli/base_rl_pipeline.py:862 → REPORT_CANDIDATE: no (config pattern, no secret material)
 
-| Candidate | File | Category | REPORT_CANDIDATE |
-|-----------|------|----------|------------------|
-| adk-go cloudrun secret ref | cloudrun.go:246 | INTERESTING | **no** (Secret Manager reference, not a secret value) |
-| capsem staging URL | release-channel-staging.yaml:17 | ENDPOINT_LEAK | **no** (public staging domain) |
-| capsem password.txt refs | gate.toml:632, fix_p12_legacy.sh:15, preflight.sh:39 | INTERESTING | **no** (file references, not hardcoded values) |
-| dagger GITHUB_TOKEN env ref | latest-dagger-version.sh:9 | INTERESTING | **no** (env var pattern, standard) |
-| adk-python test fixtures | auth_credential.py, auth_schemes.py, auth_helpers.py | TEST_OR_EXAMPLE | **no** (obvious test data) |
-| sam GH Actions secret refs | deploy.yaml:247-250 | TEST_OR_EXAMPLE | **no** (proper secret injection) |
-| langextract GH Actions secret refs | ci.yaml:168-170 | TEST_OR_EXAMPLE | **no** (proper secret injection) |
-| cadvisor flag name | flags.go:54 | INTERESTING | **no** (flag identifier, not value) |
-| metadata endpoint comments | multiple .py files | ENDPOINT_LEAK | **no** (documentation of known endpoint) |
-| minified JS bundles | adk-python/cli/browser/*.js | TEST_OR_EXAMPLE | **no** (build artifacts) |
-
-## Summary
-**0 REPORT_CANDIDATE findings** in this delta scan.
-
-All hits are either:
-- Proper secret references (Secret Manager, GH Actions secrets, env vars, file reads)
-- Test/fixture data with obvious placeholder values
-- Staging/internal URLs documented in config
-- Build artifacts (minified JS)
-
-The previously known **earthengine-api hardcoded client_secret** (oauth.py:45, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the only LIVE REAL_SECRET in the google/ corpus, already tracked and pending VRP determination on native-app by-design status.
+SUMMARY: 0 reportable findings in this delta.
 EOF
-cat /tmp/triage_report.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+=== CLASSIFICATION TABLES ===
+
+## REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none) | - | - | No hardcoded live secrets in delta |
+
+## TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` — clearly example config |
+
+## ENDPOINT_LEAK
+| File | Line | Detail |
+|------|------|--------|
+| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal Google source link `source.corp.google.com/piper///depot/google3/...` — internal dev URL reference |
+
+## INTERESTING
+| File | Line | Detail |
+|------|------|--------|
+| google/android-emulator-container-scripts/run-with-gpu.sh | 28 | Runtime token file reference: `TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads local auth file at container start, not hardcoded |
+| google/android-emulator-container-scripts/run.sh | 22 | Same pattern — duplicate of above |
+| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | Kubeconfig path resolution: `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — standard cloud config pattern |
+
+=== VERDICT LIST ===
+- google/android-emulator-container-scripts/run-with-gpu.sh:28 → REPORT_CANDIDATE: no (runtime file ref, not hardcoded secret)
+- google/android-emulator-container-scripts/run.sh:22 → REPORT_CANDIDATE: no (duplicate, same pattern)
+- google/nearby/sharing/nearby_sharing_service.h:71 → REPORT_CANDIDATE: no (internal URL reference only, no credential)
+- google/tunix/tunix/cli/base_agentic_config.yaml:63 → REPORT_CANDIDATE: no (commented placeholder, TEST_OR_EXAMPLE)
+- google/tunix/tunix/cli/base_rl_pipeline.py:862 → REPORT_CANDIDATE: no (config pattern, no secret material)
+
+SUMMARY: 0 reportable findings in this delta.
+[0m
+Done. **0 reportable findings** in this delta — all 5 new hits are non-secret patterns (runtime file refs, commented placeholder, internal URL reference, standard config resolution).
