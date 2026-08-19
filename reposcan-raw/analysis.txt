@@ -1,14 +1,56 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_results.md
-Wrote file successfully.
-[0m
-Done. Wrote full triage to `triage_results.md`.
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts[90m [limit=50, offset=200][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts[90m [limit=20, offset=205][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts[90m [offset=30, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=58, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=20][0m
+### Classification Table
 
-**Bottom line:** No new reportable secrets in this 27,133-file delta. The only live candidate remains the known `google/earthengine-api` hardcoded OAuth client_secret (sha256 `3f3f8d6f…d271`), already ACCEPTED in the knowledge base and confirmed live on master as of 2026-08-19.
+| Category | File:Line | Pattern | Verdict |
+|----------|-----------|---------|---------|
+| **TEST_OR_EXAMPLE** | adk-js/auth_credential.ts:214 | `password: "password"` in `@example` JSDoc | Example code |
+| **TEST_OR_EXAMPLE** | adk-js/auth_credential.ts:226 | `token: "your_access_token"` in `@example` JSDoc | Example code |
+| **TEST_OR_EXAMPLE** | adk-js/auth_schemes.ts:41 | `PASSWORD = 'password'` | OAuth grant type enum value |
+| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example config in docstring |
+| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:269 | `password="password"` in `Example:` docstring | Example code |
+| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:278 | `token="eyAkaknabna...."` in `Example:` docstring | Placeholder token |
+| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:287 | `client_secret="secret"` in `Example:` docstring | Placeholder |
+| **TEST_OR_EXAMPLE** | adk-python/auth_schemes.py:68 | `PASSWORD = "password"` | OAuth grant type enum |
+| **TEST_OR_EXAMPLE** | adk-python/auth_helpers.py:64 | `client_secret="your_client_secret"` | Example config in docstring |
+| **TEST_OR_EXAMPLE** | osv-scalibr/winlocal_windows.go:56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` | Vuln reference constant |
+| **TEST_OR_EXAMPLE** | sam/development/kind/run.sh:139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Dev script, empty default |
+| **ENDPOINT_LEAK** | adk-js/oauth2_discovery.ts:215 | `host === 'metadata.google.internal'` | SSRF blocklist (defensive) |
+| **ENDPOINT_LEAK** | adk-js/load_web_page.ts:36 | `'169.254.0.0/16'` link-local CIDR | SSRF blocklist (defensive) |
+| **ENDPOINT_LEAK** | adk-python/container_code_executor.py:114,154 | `169.254.169.254` metadata refs | SSRF warning in docstring |
+| **ENDPOINT_LEAK** | adk-python/load_web_page.py:171 | `169.254.169.254` metadata ref | SSRF warning in docstring |
+| **ENDPOINT_LEAK** | adk-python/gke_code_executor.py:103-115 | kubeconfig_path params | Config params, not secrets |
+| **ENDPOINT_LEAK** | orbax/checkpoint/environment.py:22 | `metadata.google.internal` URL | GCP metadata endpoint ref |
+| **ENDPOINT_LEAK** | yggdrasil-decision-forests/export_docker.py:68 | `pantheon.corp.google.com` | Internal URL in comment |
+| **ENDPOINT_LEAK** | sam/*.yaml (multiple) | `kind: ConfigMap` | K8s config kind, not secret data |
+| **INTERESTING** | sam/internal/node/store.go:38 | `keyRefreshToken = "refresh_token"` | DB key name (not secret value) |
+| **INTERESTING** | sam/.github/workflows/deploy.yaml:247-250 | `--from-literal=...-secret="${SECRET}"` | Proper K8s secret injection |
+| **INTERESTING** | langextract/.github/workflows/ci.yaml:168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper GH Actions secret ref |
 
-All other hits are:
-- **TEST_OR_EXAMPLE**: mock configs, test fixtures, placeholder values, generated parser code (21 JS chunks), proper `${{ secrets.* }}` workflow refs
-- **ENDPOINT_LEAK**: well-known GCP metadata endpoints (169.254.169.254, metadata.google.internal) and corp-internal URLs
-- **INTERESTING**: kubeconfig params and a runtime API-key-to-file pattern — no secret material
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-js 5 new delta hits | **no** | All TEST_OR_EXAMPLE or defensive ENDPOINT_LEAK (SSRF blocklist) |
+| adk-python example creds | **no** | All in docstrings/@example blocks — placeholder values |
+| sam store.go refresh_token key | **no** | Database key name constant, not a secret value |
+| sam deploy.yaml secret injection | **no** | Correct pattern: GH Actions secret → K8s secret |
+| langextract CI secret refs | **no** | Correct pattern: GH Actions secret interpolation |
+| osv-scalibr vuln constant | **no** | Vulnerability reference name, not a credential |
+| yggdrasil internal URL in comment | **no** | Documentation/reference only |
+| **earthengine-api oauth.py:45** | **yes (KNOWN)** | Already ACCEPTED in KB (sha256 `3f3f8d6f…d271`), pending VRP determination on native-app by-design status |
+
+---
+
+**Summary:** 0 **new** reportable findings in this delta. The 5 new hits are all test fixtures, OAuth enum constants, or defensive SSRF blocklist code. The only live hardcoded secret remains the previously-tracked `earthengine-api` OAuth client_secret (already in KB as ACCEPTED).
