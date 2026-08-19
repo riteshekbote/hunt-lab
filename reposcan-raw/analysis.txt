@@ -1,69 +1,75 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "not in reposcan-raw"
-not in reposcan-raw
-[0m
-### Classification Tables
+[0m→ [0mRead reposcan-raw/google/flatbuffers/.github/workflows/label.yml
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=35, limit=10][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=265, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=15][0m
+### CLASSIFICATION TABLES
 
-#### REAL_SECRET (reportable)
+#### REAL_SECRET (reportable hardcoded credentials)
 | File | Line | SHA256 | Verdict |
 |------|------|--------|---------|
-| *none in delta* | — | — | — |
+| *none* | — | — | No hardcoded live secrets found in delta or full scan |
 
-> The only live hardcoded secret is **earthengine-api `oauth.py:45`** (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — already **ACCEPTED** in knowledge base, pending VRP determination on native-app by-design status.
-
----
-
-#### TEST_OR_EXAMPLE (not reportable)
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
 | File | Line | Context |
 |------|------|---------|
-| `oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` |
-| `oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` |
-| `oss-fuzz/projects/h2database/TestServer.java` | 55 | Uses test password above |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 269 | `HttpCredentials(username="user", password="password")` (placeholder) |
-| `adk-python/src/google/adk/auth/auth_credential.py` | 278 | `HttpCredentials(token="eyAkaknabna....")` (placeholder) |
-| `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (test constant) |
-| `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` (placeholder) |
-| `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | 3,11 | All 24 JS chunks — minified parse-error strings from source maps |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — GitHub Actions built-in token |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=...="${SECRET_VAR}"` — GitHub Actions secret references |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` — constant key name, not a token value |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` — GitHub Actions secret refs |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33,55 | Test DB passwords ("ServerShutdownPassword") |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | Test shutdown password |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — fuzz test fixture |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — docstring placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` — example basic auth |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` — example JWT placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 287 | `client_secret="secret"` — example OAuth2 secret |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — OAuth grant type enum value |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — docstring placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — constant key name |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` — CLI config template |
+| google/sam/.github/k8s/*.yaml | 2,14 | `kind: ConfigMap` — K8s resource definitions |
+| google/sam/site/content/docs/manifests/*.yaml | 16,88 | `kind: ConfigMap` — documentation manifests |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` — Helm template |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Context |
+|------|------|---------|
+| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | `firebase.corp.google.com` — internal corp Firebase console URLs |
+| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` — Terraform variable (not hardcoded) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` params — config references |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` — cloud metadata endpoint docs |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` — metadata endpoint docs |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` — metadata endpoint docs |
+
+#### INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Security docs warning about metadata endpoint access |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Explicit refusal to access metadata endpoint in Chrome |
 
 ---
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| `go-cloud/docstore/gcpfirestore/create_indexes.sh` | 20,33 | `https://firebase.corp.google.com/project/$project_id/...` (corp UI) |
-| `go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh` | 70 | `http://metadata.google.internal/computeMetadata/v1/instance/...` (GCP metadata) |
-| `go-tpm-tools/launcher/spec/launch_spec.go` | 110 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` |
-| `go-tpm-tools/launcher/spec/launch_spec.go` | 111 | `https://staging-confidentialcomputing.sandbox.googleapis.com` |
-| `go-tpm-tools/run_cloudbuild.sh` | 16 | `https://pantheon.corp.google.com/compute/images...` (corp console) |
-| `adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` (metadata endpoint docs) |
-| `adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (metadata endpoint docs) |
-| `adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (metadata endpoint docs) |
-
----
-
-#### INTERESTING (config patterns, debug flags, cloud configs)
-| File | Line | Note |
-|------|------|------|
-| `go-cloud/docstore/mongodocstore/awsdocdb/main.tf` | 48 | `master_password = "${var.db_password}"` — Terraform variable ref (correct pattern) |
-| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Secret Manager ref (correct pattern) |
-| `langextract/.github/workflows/ci.yaml` | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` usage |
-| `adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name |
-| `adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` — CLI template output |
-| `adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path` / `kubeconfig_context` params (config surface) |
-
----
-
-### Verdict List
+### VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| earthengine-api `oauth.py:45` (known) | **yes** (pending) | Live hardcoded OAuth client_secret, A/B proof conclusive; VRP determination needed on native-app by-design |
-| All delta TEST_OR_EXAMPLE | **no** | Test fixtures, placeholders, source-map artifacts |
-| All delta ENDPOINT_LEAK | **no** | Internal URLs, metadata endpoints, sandbox/staging — no credentials |
-| All delta INTERESTING | **no** | Correct secret-management patterns (Secret Manager refs, GitHub Actions secrets, Terraform vars) |
-| New JS chunk parse errors (24 files) | **no** | Minified source-map error strings, zero signal |
+| google/flatbuffers label.yml GITHUB_TOKEN | **no** | Standard GitHub Actions built-in token (`secrets.GITHUB_TOKEN`), not a leaked credential |
+| google/sam deploy.yaml secret refs | **no** | References to GitHub Actions secrets (`${{ secrets.X }}`), not hardcoded values |
+| google/sam run.sh OIDC_CLIENT_SECRET | **no** | Shell default empty value (`${VAR:-}`), env var reference only |
+| google/sam store.go keyRefreshToken | **no** | Constant key name `"refresh_token"`, not an actual token value |
+| google/adk-python auth_credential.py examples | **no** | All in docstrings/examples: placeholder private key, "user"/"password", fake JWT, "secret" |
+| google/adk-python auth_schemes.py PASSWORD | **no** | OAuth2 grant type enum value (`password` grant), not a credential |
+| google/adk-python auth_helpers.py client_secret | **no** | Docstring placeholder `"your_client_secret"` |
+| google/go-cloud firebase.corp.google.com URLs | **no** | Internal corp console URLs in setup script — no auth material |
+| google/oss-fuzz test fixtures | **no** | Explicit test/fuzz fixtures in test server code |
+| google/sam ConfigMap/k8s manifests | **no** | Kubernetes resource definitions and Helm templates, no secrets |
 
-**No new reportable findings in this delta.** The only actionable secret remains the pre-existing earthengine-api client_secret (already tracked).
+**SUMMARY**: 0 reportable findings. All hits are either GitHub Actions secret references, Kubernetes config templates, test fixtures, documentation placeholders, or constant key names — no hardcoded live credentials.
