@@ -1640,3 +1640,5 @@
 - CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset, no confusion surface)
 - CHANGED graph.microsoft.com root HTTP 301 redirect — REJECTED (cosmetic, no auth-bypass)
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
+
+## 2026-08-19 13:55:50 UTC
