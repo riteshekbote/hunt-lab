@@ -1,86 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# CLASSIFICATION TABLE
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat > /tmp/classification.md << 'EOF'
+# Reposcan Classification Results
 
-## DELTA HITS (7 new lines)
+## REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| (none found in this delta) | | | |
 
-| File | Line | Content | Classification | Reason |
-|------|------|---------|----------------|--------|
-| google/meridian/.github/workflows/proto-publish.yml | 126 | url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }} | ENDPOINT_LEAK | Test PyPI endpoint, not production |
-| google/meridian/.github/workflows/proto-publish.yml | 138 | repository-url: https://test.pypi.org/legacy/ | ENDPOINT_LEAK | Test PyPI legacy endpoint |
-| google/meridian/.github/workflows/publish.yml | 127 | url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }} | ENDPOINT_LEAK | Test PyPI endpoint |
-| google/meridian/.github/workflows/publish.yml | 139 | repository-url: https://test.pypi.org/legacy/ | ENDPOINT_LEAK | Test PyPI legacy endpoint |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | apiKey: '40150cc2c638b09de8ebbfefd50b80a4' | REJECTED (KNOWN) | Algolia DocSearch search-only key, public by design — already REJECTED 2026-08-07 |
-| google/xrblocks/src/ai/AI.ts | 303 | gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'} | TEST_OR_EXAMPLE | Explicit placeholder pattern |
-| google/xrblocks/src/ai/AI.ts | 304 | openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'} | TEST_OR_EXAMPLE | Explicit placeholder pattern |
+## TEST_OR_EXAMPLE
+| File | Line | Notes |
+|------|------|-------|
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Example code using metadata endpoint |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/* | Multiple | Third-party library localization strings ("token" in error messages) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret REFERENCES (`${{ secrets.XXX }}`), not actual secrets |
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | Example credentials in JSDoc comments |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` in auth scheme definitions |
+| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder API keys (`YOUR_GEMINI_API_KEY_HERE`) |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey (search-only, public by design - REJECTED per KB) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name definition (`StorageDriverPassword`), not a value |
 
-## NOTABLE FULL-SCAN HITS (context)
+## ENDPOINT_LEAK
+| File | Line | Notes |
+|------|------|-------|
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment references 169.254.169.254 metadata endpoint |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | Comments about metadata endpoint SSRF risk |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment about 302 to metadata service |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | References `metadata.google.internal` |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | CIDR block `169.254.0.0/16` for link-local/metadata |
+| google/meridian/.github/workflows/proto-publish.yml | 126, 138 | test.pypi.org URLs (test endpoint) |
+| google/meridian/.github/workflows/publish.yml | 127, 139 | test.pypi.org URLs (test endpoint) |
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | Internal corp.google.com artifact registry URL |
+| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | Internal bcid.corp.google.com attestation URL |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Secret REFERENCES in workflow (proper `${{ secrets.XXX }}` pattern) |
+| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET with default empty (dev script) |
 
-| File | Line | Content | Classification | Reason |
-|------|------|---------|----------------|--------|
-| google/nomulus/core/src/nonprod/.../PostgresqlCommand.java | 28 | DB_PASSWORD = "domain-registry" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/core/src/nonprod/.../GenerateSqlSchemaCommand.java | 40 | DB_PASSWORD = "domain-registry" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/core/src/nonprod/.../GenerateSqlErDiagramCommand.java | 61 | DB_PASSWORD = "password" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/load-testing/.../EppClient.java | 156 | password = "abcde12345" | TEST_OR_EXAMPLE | Load-testing fixture |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | ENDPOINT_LEAK | Env var reference, not hardcoded |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | --from-literal=...="${SECRET}" | ENDPOINT_LEAK | GitHub Actions secret refs (proper) |
+## INTERESTING
+| File | Line | Notes |
+|------|------|-------|
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` - constant key name |
+| google/sam/.../*.yaml | Multiple | Kubernetes ConfigMap kind declarations (config structure) |
 
-# VERDICT
+---
+
+## VERDICT
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| meridian test.pypi.org URLs | **no** | Test endpoints, not production secrets |
-| xrblocks Algolia apiKey | **no** | Already REJECTED 2026-08-07 (search-only, public by design) |
-| xrblocks YOUR_*_API_KEY_HERE | **no** | Explicit placeholders |
-| nomulus nonprod DB passwords | **no** | Test fixtures in nonprod/load-testing code |
-| sam OIDC_CLIENT_SECRET env ref | **no** | Proper secret injection pattern |
+| No REAL_SECRET hits in delta | **no** | All hits are comments, test fixtures, secret references (not values), third-party library code, or placeholders |
+| google/xrblocks Algolia key | **no** | Already REJECTED in KB: search-only key, public by design |
+| google/langextract workflow secrets | **no** | Proper GitHub Actions secret references (`${{ secrets.XXX }}`), not leaked values |
+| google/sam workflow secret refs | **no** | Proper secret references, not hardcoded values |
+| Metadata endpoint comments (169.254.169.254) | **no** | Documentation/comments about SSRF risk, not exploitable SSRF |
+| Internal corp.google.com URLs | **no** | Internal build infrastructure, not accessible externally |
 
-**OVERALL: 0 reportable findings in this delta.** All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (test endpoints), or previously REJECTED classes. No REAL_SECRET with signs of life detected.
+**SUMMARY: 0 reportable findings in this delta scan.**
 EOF
-# CLASSIFICATION TABLE
-
-## DELTA HITS (7 new lines)
-
-| File | Line | Content | Classification | Reason |
-|------|------|---------|----------------|--------|
-| google/meridian/.github/workflows/proto-publish.yml | 126 | url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }} | ENDPOINT_LEAK | Test PyPI endpoint, not production |
-| google/meridian/.github/workflows/proto-publish.yml | 138 | repository-url: https://test.pypi.org/legacy/ | ENDPOINT_LEAK | Test PyPI legacy endpoint |
-| google/meridian/.github/workflows/publish.yml | 127 | url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }} | ENDPOINT_LEAK | Test PyPI endpoint |
-| google/meridian/.github/workflows/publish.yml | 139 | repository-url: https://test.pypi.org/legacy/ | ENDPOINT_LEAK | Test PyPI legacy endpoint |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | apiKey: '40150cc2c638b09de8ebbfefd50b80a4' | REJECTED (KNOWN) | Algolia DocSearch search-only key, public by design — already REJECTED 2026-08-07 |
-| google/xrblocks/src/ai/AI.ts | 303 | gemini: {apiKey: 'YOUR_GEMINI_API_KEY_HERE'} | TEST_OR_EXAMPLE | Explicit placeholder pattern |
-| google/xrblocks/src/ai/AI.ts | 304 | openai: {apiKey: 'YOUR_OPENAI_API_KEY_HERE'} | TEST_OR_EXAMPLE | Explicit placeholder pattern |
-
-## NOTABLE FULL-SCAN HITS (context)
-
-| File | Line | Content | Classification | Reason |
-|------|------|---------|----------------|--------|
-| google/nomulus/core/src/nonprod/.../PostgresqlCommand.java | 28 | DB_PASSWORD = "domain-registry" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/core/src/nonprod/.../GenerateSqlSchemaCommand.java | 40 | DB_PASSWORD = "domain-registry" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/core/src/nonprod/.../GenerateSqlErDiagramCommand.java | 61 | DB_PASSWORD = "password" | TEST_OR_EXAMPLE | Nonprod/test code |
-| google/nomulus/load-testing/.../EppClient.java | 156 | password = "abcde12345" | TEST_OR_EXAMPLE | Load-testing fixture |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | ENDPOINT_LEAK | Env var reference, not hardcoded |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | --from-literal=...="${SECRET}" | ENDPOINT_LEAK | GitHub Actions secret refs (proper) |
-
-# VERDICT
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| meridian test.pypi.org URLs | **no** | Test endpoints, not production secrets |
-| xrblocks Algolia apiKey | **no** | Already REJECTED 2026-08-07 (search-only, public by design) |
-| xrblocks YOUR_*_API_KEY_HERE | **no** | Explicit placeholders |
-| nomulus nonprod DB passwords | **no** | Test fixtures in nonprod/load-testing code |
-| sam OIDC_CLIENT_SECRET env ref | **no** | Proper secret injection pattern |
-
-**OVERALL: 0 reportable findings in this delta.** All hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK (test endpoints), or previously REJECTED classes. No REAL_SECRET with signs of life detected.
-[0m
-**Summary: 0 reportable findings in this delta.**
-
-All 7 new hits are either:
-- **ENDPOINT_LEAK**: Test PyPI URLs (`test.pypi.org`) — not production
-- **REJECTED (KNOWN)**: Algolia DocSearch apiKey — explicitly rejected 2026-08-07 as search-only, public by design
-- **TEST_OR_EXAMPLE**: Explicit `YOUR_*_API_KEY_HERE` placeholders
-
-The broader scan context shows only test fixtures (nonprod DB passwords, load-testing credentials) and proper GitHub Actions secret references — no hardcoded production secrets.
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
