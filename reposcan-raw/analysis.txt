@@ -1,67 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "bae16ae67ddbe24e700ac20d192ad20f" | sha256sum
-02851d5b6a27a58e6a492b71489a2bb2b8a1f2f76786a4a98f10eb7cfcca9d19  -
-[0m
-### Classification Tables
+## Classification Tables
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| `reposcan-raw/microsoft/typespec/website/algolia.ts` | 5 | `02851d5b6a27a58e6a492b71489a2bb2b8a1f2f76786a4a98f10eb7cfcca9d19` | Hardcoded Algolia `apiKey` in website config |
+### REAL_SECRET
+| File | Line | SHA256 (secret) | Notes |
+|------|------|-----------------|-------|
+| *(none in this delta)* | | | |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/microsoft/UFO/ufo/client/mcp/http_servers/linux_mcp_server.py` | 507 | Placeholder `<your-secret-key>` in template |
-| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py` | 54 | Redaction constant `[REDACTED]` |
-| `reposcan-raw/microsoft/power-platform-skills/evals/power-pages/test-site/evals.json` | 88, 92 | Test eval prompts with example URLs |
-| `reposcan-raw/microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js` | 54 | Commented placeholder `abc123...` |
-| `reposcan-raw/microsoft/typespec/packages/monarch/src/typespec-monarch.ts` | 43-45 | Syntax token definitions (curly/square/paren) |
-| `reposcan-raw/microsoft/typespec/packages/playground/src/services.ts` | 468, 477 | Syntax highlighting tokens |
-| `reposcan-raw/microsoft/typespec/packages/http-server-csharp/src/cli/cli.ts` | 164 | String constant `"hscs-msg:"` |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Shell param expansion `${OIDC_CLIENT_SECRET:-}` |
-| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | Commented placeholder `your_github_token_here` |
-| `reposcan-raw/microsoft/ResearchStudio/.../render_poster.py` | 55 | Constant string `preserve-immutable-source-v1` |
-| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63, 107 | TestPyPI upload (public registry) |
-| `reposcan-raw/microsoft/wassette/.github/workflows/nix.yml` | 20 | GitHub Actions secret ref `${{ secrets.CACHIX_AUTH_TOKEN }}` |
-| `reposcan-raw/microsoft/wassette/.github/workflows/dependabot-automerge.yml` | 21 | GitHub Actions secret ref `${{ secrets.GITHUB_TOKEN }}` |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | GitHub Actions secret refs (`GOOGLE_CLIENT_SECRET`, etc.) |
-| `reposcan-raw/microsoft/UFO/config/ufo/rag.yaml` | 8 | Env var reference `${BING_API_KEY}` (not hardcoded) |
+### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` (obvious test creds) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` (fake JWT, truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (test constant) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` (fuzz fixture) |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` (test) |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB password function |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ GOOGLE_CLIENT_SECRET }}` etc. (GH Actions secret refs, not hardcoded) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `reposcan-raw/microsoft/azure-devops-mcp/server.json` | 10 | `https://mcp.dev.azure.com/{organization}` (template) |
-| `reposcan-raw/microsoft/azure-devops-mcp/src/index.ts` | 62 | `https://dev.azure.com/` + orgName |
-| `reposcan-raw/microsoft/azure-devops-mcp/src/org-tenants.ts` | 38 | `https://vssps.dev.azure.com/${orgName}` |
-| `reposcan-raw/microsoft/cascadia-code/pipelines/release.yml` | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal corp) |
-| `reposcan-raw/microsoft/typespec/eng/common/pipelines/templates/steps/create-authenticated-npmrc.yml` | 10 | `pkgs.dev.azure.com/azure-sdk/public/_packaging/...` (public feed) |
-| `reposcan-raw/microsoft/typespec/eng/common/pipelines/templates/steps/pypi-auth-dev-feed.yml` | 10, 13 | Azure DevOps internal/public feed URLs (comments) |
-| `reposcan-raw/microsoft/typespec/eng/tsp-core/pipelines/templates/release/ado-feed-release.yml` | 9 | Public Azure Artifacts feed |
-| `reposcan-raw/microsoft/typespec/eng/tsp-core/pipelines/templates/signing/windows.yml` | 20 | Internal timestamp server (same as cascadia-code) |
-| `reposcan-raw/microsoft/typespec/packages/http-client-csharp/eng/pipeline/publish.yml` | 158, 166, 255 | Public Azure Artifacts feed URLs |
-| `reposcan-raw/microsoft/typespec/packages/http-client-java/package-lock.json` | 75, 88 | Public feed resolved URLs (package-lock) |
-| `reposcan-raw/microsoft/typespec/packages/http-client-python/package-lock.json` | 71, 93, 122 | Public feed resolved URLs (package-lock) |
+### ENDPOINT_LEAK
+| File | Line | Endpoint / Reference |
+|------|------|---------------------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata, documented SSRF surface) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (Chrome metadata block comment) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (NAT64 metadata route comment) |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | `169.254.169.254` (metadata endpoint comment) |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | `169.254.169.254` (302 redirect to metadata comment) |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | `169.254.169.254` / `fd00:ec2::254` (SSRF discussion) |
+| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | `bcid.corp.google.com` (internal Google attestation) |
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | `artifact-registry.git.corp.google.com` (internal artifact registry) |
 
-#### INTERESTING
+### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| `reposcan-raw/microsoft/UFO/ufo/utils/url_security.py` | 148 | IMDS endpoint blocking config (169.254.169.254) |
-| `reposcan-raw/microsoft/UFO/galaxy/webui/security/url_validator.py` | 12, 174, 179 | IMDS blocking + IPv6-mapped normalization |
-| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py` | 42 | IMDS endpoint detection logic |
-| `reposcan-raw/google/filonov/libs/media_tagging_cloud/setup.sh` | 120 | Secret Manager ref `GEMINI_API_KEY=gemini-api-key:latest` |
-| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | Crypto code emitting `secret_key` |
-| `reposcan-raw/microsoft/typespec/website/algolia.ts` | 5 | **Algolia search key** — likely search-only (public by design per REJECTED class) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` — writes key to config file (pattern) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params (config surface) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (token state key) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | (20+ files) | Minified parser bundles — source maps live (7-35MB each) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (dev default empty) |
+| google/sam/.github/k8s/dex-config.yaml | - | Dex OIDC ConfigMap templates |
 
 ---
 
-### Verdict
+## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| Algolia `apiKey` in `typespec/website/algolia.ts` | **no** | Search-only key for DocSearch; public by design (matches REJECTED class: "Algolia DocSearch apiKey in docusaurus config — search-only key, public by design") |
-| All other hits | **no** | Test fixtures, placeholders, env var refs, public feed URLs, internal corp endpoints (timestamp server), security config patterns |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Hardcoded client_secret (earthengine-api) | `google/earthengine-api/python/ee/oauth.py:45` | **no** (already tracked) | **KNOWN DUPLICATE** — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, accepted 2026-08-07/08/18/19, pending VRP determination on native-app by-design status |
+| ADK `/run_sse` OAuth client_secret | `google/adk-python` | **no** | **KNOWN DUPLICATE** — issue #2128 closed 2025-07-23 |
+| ADK ya29 token in git history | `google/adk-python` | **no** | **KNOWN DUPLICATE** — issue #5520 closed 2026-04-28 |
+| New REAL_SECRET in this delta | — | **no** | **No new hardcoded secrets with signs of life** — all hits are test fixtures, placeholders, or known metadata endpoint references |
+| `sammo` PRT RCE | `microsoft/sammo/.github/workflows/build.yml` | **no** | **KILLED by triager** — repo default token read-only, zero secrets, ephemeral runners, stale since 2025-06 |
 
-**No reportable findings in this delta.** The sole hardcoded credential (Algolia key) falls under a previously rejected class — search-only keys embedded in public website configs are by-design public. All other "secrets" are either GitHub Actions secret references (`${{ secrets.X }}`), shell param expansions (`${VAR:-}`), or template placeholders.
+---
+
+## Summary
+**No new reportable findings in this delta.** All 44 new hit lines classify as TEST_OR_EXAMPLE (test fixtures/placeholders), ENDPOINT_LEAK (known `169.254.169.254` metadata references + internal `corp.google.com` URLs), or INTERESTING (config patterns, minified browser bundles with source maps). The three active hypotheses (agentRegistration CORS+PATCH IDOR, earthengine hardcoded secret, oauth2PermissionGrants caller-chosen resourceId) remain stable per 2026-08-19 probes — no new surface, no regression.
