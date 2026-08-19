@@ -1599,3 +1599,6 @@
 ## 2026-08-19 03:34:46 UTC
 
 ## 2026-08-19 04:20:28 UTC
+
+## 2026-08-19 05:38:52 UTC
+- NEW oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400
