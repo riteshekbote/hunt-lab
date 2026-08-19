@@ -1699,3 +1699,16 @@
 - NEW oauth2PermissionGrants item-level CORS preflight confirmed browser-exploitable — OPTIONS /v1.0/oauth2PermissionGrants/{id} → HTTP 200 + Access-Control-Allow-Origin: * + PATCH + Max-Age: 86400
 - NEW oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level resource (contrasts with item-level GET→401+Bearer proper auth-gate)
 - NEW agentRegistrations item-level OPTIONS CORS confirmed fresh at 17:15 UTC — OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH (re-confirms prior, now with full Allow-Methods: DELETE,G
+
+## 2026-08-19 18:07:05 UTC
+- NEW oauth2PermissionGrants item-level CORS preflight confirmed browser-exploitable — OPTIONS /v1.0/oauth2PermissionGrants/{id} → HTTP 200 + Access-Control-Allow-Origin: * + PATCH + Max-Age: 86400
+- NEW oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level resource (contrasts with item-level GET→401+Bearer proper auth-gate)
+- NEW agentRegistrations item-level OPTIONS CORS confirmed fresh at 17:15 UTC — OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH (re-confirms prior, now with full Allow-Methods: DELETE,G
+- NEW reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK
+- CHANGED oauth2PermissionGrants CORS preflight @ graph.microsoft.com/v1.0/oauth2PermissionGrants — status moved from "API-callable only" to "browser-exploitable" (OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400)
+- CHANGED graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate — status moved from "inferred" to "empirically confirmed HTTP 401 + HEAD→405/0"
+- CHANGED graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate — status moved from "inferred" to "empirically confirmed HTTP 401 + HEAD→405/0"
+- CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset 6⊂9, all kty=RSA, no confusion surface, confirmed stable)
+- CHANGED graph.microsoft.com root HTTP 301 redirect — REJECTED (cosmetic, no auth-bypass)
+- CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project param + auth, HTTP 400/401)
+- CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP rules)

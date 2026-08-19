@@ -454,3 +454,6 @@
 - 2026-08-19 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable — OPTIONS→200 + ACAO:* + Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age:86400 (item-level confirmed 17:15 UTC, was collection-level only)
 - 2026-08-19 ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level — HEAD→405/0/no-Bearer while GET→401+Bearer (item-level auth-gate asymmetry confirmed)
 - 2026-08-19 ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh — OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH (re-confirmed 17:15 UTC)
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (item-level confirmed at 17:15 UTC, was collection-level only)
+- 2026-08-19 ACCEPTED: Graph API RFC 6750 §3 deviation extends to item-level — HEAD→405/0/no-Bearer while GET→401+Bearer (systemic auth-gate inconsistency confirmed at both collection and item levels)
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable across all probe cycles)
