@@ -1,49 +1,32 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=58][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=20, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py[90m [limit=20, offset=108][0m
-[0m→ [0mRead reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go[90m [offset=75, limit=20][0m
-### Classification Tables
+## Classification Table
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` in docstring example (truncated) | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:269 | `username="user", password="password"` in HTTP auth example | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:278 | `token="eyAkaknabna...."` truncated fake JWT in OAuth2 example | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/auth_schemes.py:68 | `PASSWORD = "password"` OAuth grant type enum value | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/cli_create.py:131 | `f"GOOGLE_API_KEY={google_api_key}"` — writes user-supplied var to .env template | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/openapi_tool/auth/auth_helpers.py:64 | `client_secret="your_client_secret"` in docstring example | Not reportable |
-| **TEST_OR_EXAMPLE** | adk-python/vmaas/sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session state key name constant | Not reportable |
-| **TEST_OR_EXAMPLE** | agents-cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` — constant name, not value | Not reportable |
-| **TEST_OR_EXAMPLE** | sam/ internal & workflow files | ConfigMap kinds, secrets from `${{ secrets.* }}` / env vars | Not reportable |
-| **TEST_OR_EXAMPLE** | tunix/base_*_config.yaml:63 | `# hf_access_token: "your_token"` — commented placeholder | Not reportable |
-| **ENDPOINT_LEAK** | adk-python/container_code_executor.py:114,154 | `169.254.169.254` metadata endpoint in security docs/comments | Info only |
-| **ENDPOINT_LEAK** | adk-python/gke_code_executor.py:103,104,115 | `kubeconfig_path` / `kubeconfig_context` params | Config options |
-| **ENDPOINT_LEAK** | adk-python/computer_use_toolset.py:146 | Comment ref to `169.254.169.254` | Info only |
-| **ENDPOINT_LEAK** | adk-python/load_web_page.py:171 | Comment ref to `169.254.169.254` metadata | Info only |
-| **ENDPOINT_LEAK** | osv.dev/pypi.go:80 | `"http://dev.mysql.com": true` — allowlist config entry | Config, not secret |
-| **INTERESTING** | adk-python/cli/browser/chunk-*.js | Minified JS source map parse-error strings (20+ files) | Build artifacts |
+| File:Line | Hit | Category | Reason |
+|-----------|-----|----------|--------|
+| cadvisor/lib/cadvisorflags/flags.go:54 | `StorageDriverPassword = "storage_driver_password"` | **TEST_OR_EXAMPLE** | Flag default/constant name (placeholder config key), not a live secret |
+| langextract/.github/workflows/ci.yaml:168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` etc. | **TEST_OR_EXAMPLE** | GitHub Actions secret references (secure pattern), not hardcoded values |
 
----
+## Full Grep Context — Additional Checks
 
-### Verdict List
+| File:Line | Hit | Category | Reason |
+|-----------|-----|----------|--------|
+| adk-python/.../auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | **TEST_OR_EXAMPLE** | Test fixture (truncated) |
+| adk-python/.../auth_credential.py:269 | `username="user", password="password"` | **TEST_OR_EXAMPLE** | Test credentials |
+| adk-python/.../auth_credential.py:278 | `token="eyAkaknabna...."` | **TEST_OR_EXAMPLE** | Test token (truncated) |
+| adk-python/.../auth_helpers.py:64 | `client_secret="your_client_secret"` | **TEST_OR_EXAMPLE** | Placeholder literal |
+| adk-python/.../cli_create.py:131 | `GOOGLE_API_KEY={google_api_key}` | **TEST_OR_EXAMPLE** | Variable interpolation, not hardcoded |
+| tunix/.../base_*_config.yaml:63 | `# hf_access_token: "your_token"` | **TEST_OR_EXAMPLE** | Commented placeholder |
+| sam/.../deploy.yaml:247-250 | `--from-literal=*-secret="${SECRET}"` | **TEST_OR_EXAMPLE** | K8s secret refs from GitHub Actions secrets |
+| JS source map chunks | Parse error strings | **ENDPOINT_LEAK** | Minified build artifacts, not secrets |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-python auth_credential.py examples | **no** | All in docstrings, truncated/placeholder values |
-| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth grant type constant, not a secret |
-| adk-python cli_create.py GOOGLE_API_KEY | **no** | Template writes user input, not hardcoded |
-| adk-python openapi_tool client_secret | **no** | Docstring placeholder `"your_client_secret"` |
-| adk-python vmaas state key | **no** | Session key name constant `_vmaas_access_token` |
-| adk-python 169.254.169.254 refs | **no** | Security documentation/comments, not leaks |
-| sam/ workflow ConfigMaps & secrets | **no** | GitHub Actions `${{ secrets.* }}` pattern |
-| agents-cli GEMINI_API_KEY constant | **no** | String literal is the *env var name* |
-| osv.dev dev.mysql.com allowlist | **no** | Config entry, no credentials |
+## Verdict
 
-**No new REAL_SECRET findings in this delta.** The only live hardcoded secret remains the pre-existing `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already tracked in knowledge base pending VRP determination on native-app by-design status.
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| cadvisor `StorageDriverPassword` flag default | **no** — placeholder constant |
+| langextract workflow secret refs | **no** — secure `${{ secrets.X }}` pattern |
+| earthengine-api oauth.py:45 (KNOWN) | **no** — already tracked in KNOWLEDGE BASE (ACCEPTED, pending VRP determination on native-app by-design) |
+
+**No new reportable findings in this delta.** All hits are test fixtures, placeholders, or secure secret-reference patterns. The only live hardcoded secret (earthengine-api) is already documented and triaged.
