@@ -1,62 +1,188 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat > /tmp/classification.md << 'EOF'
-# Reposcan Classification Results
+[0m$ [0mcat << 'EOF'
+# TRIAGE RESULTS — google/microsoft org static scan (2026-08-19)
 
-## REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| (none found in this delta) | | | |
+## DELTA (7 new hits since last scan)
+| File | Line | Classification | Reason |
+|------|------|----------------|--------|
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/da/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string "%1 er ikke et token element" |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/lki/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Kildin Sami) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sk/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Slovak) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sl/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Slovenian) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sv/TeX.js | 44 | TEST_OR_EXAMPLE | MathJax localization string (Swedish) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/uk/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Ukrainian) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/zh-hans/TeX.js | 46 | TEST_OR_EXAMPLE | MathJax localization string (Simplified Chinese) |
 
-## TEST_OR_EXAMPLE
-| File | Line | Notes |
-|------|------|-------|
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Example code using metadata endpoint |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/* | Multiple | Third-party library localization strings ("token" in error messages) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret REFERENCES (`${{ secrets.XXX }}`), not actual secrets |
-| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | Example credentials in JSDoc comments |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` in auth scheme definitions |
-| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholder API keys (`YOUR_GEMINI_API_KEY_HERE`) |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch apiKey (search-only, public by design - REJECTED per KB) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name definition (`StorageDriverPassword`), not a value |
-
-## ENDPOINT_LEAK
-| File | Line | Notes |
-|------|------|-------|
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment references 169.254.169.254 metadata endpoint |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | Comments about metadata endpoint SSRF risk |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment about 302 to metadata service |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | References `metadata.google.internal` |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | CIDR block `169.254.0.0/16` for link-local/metadata |
-| google/meridian/.github/workflows/proto-publish.yml | 126, 138 | test.pypi.org URLs (test endpoint) |
-| google/meridian/.github/workflows/publish.yml | 127, 139 | test.pypi.org URLs (test endpoint) |
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | Internal corp.google.com artifact registry URL |
-| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | Internal bcid.corp.google.com attestation URL |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Secret REFERENCES in workflow (proper `${{ secrets.XXX }}` pattern) |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET with default empty (dev script) |
-
-## INTERESTING
-| File | Line | Notes |
-|------|------|-------|
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` - constant key name |
-| google/sam/.../*.yaml | Multiple | Kubernetes ConfigMap kind declarations (config structure) |
+**All 7 delta hits are third-party MathJax library localization files — NOT reportable.**
 
 ---
 
-## VERDICT
+## FULL SCAN CLASSIFICATION SUMMARY
+
+### REAL_SECRET (reportable candidates)
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none found in this scan)* | | | **REPORT_CANDIDATE: no** |
+
+### TEST_OR_EXAMPLE (sample/test/fixture/placeholder — not reportable)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | test.pypi.org URLs | Test PyPI endpoint (not production) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | test.pypi.org URLs | Test PyPI endpoint |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Documentation example |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Documentation example |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a secret value |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default (secret injection pattern) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | **Correct** GitHub Secrets reference pattern |
+| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | `"password"`, `"your_access_token"` | Inline documentation examples |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Auth scheme type constant |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | **Correct** GitHub Secrets reference pattern |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Placeholder examples |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/* | various | Token parsing code, localization | Third-party library vendored code |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check (defensive) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local/GCP metadata IP range blocklist (defensive) |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` | GCP metadata endpoint reference (case study) |
+
+### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shows secret-injection pattern; empty default = dev-only |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED per KB** — Algolia DocSearch search-only key, public by design |
+
+---
+
+## VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| No REAL_SECRET hits in delta | **no** | All hits are comments, test fixtures, secret references (not values), third-party library code, or placeholders |
-| google/xrblocks Algolia key | **no** | Already REJECTED in KB: search-only key, public by design |
-| google/langextract workflow secrets | **no** | Proper GitHub Actions secret references (`${{ secrets.XXX }}`), not leaked values |
-| google/sam workflow secret refs | **no** | Proper secret references, not hardcoded values |
-| Metadata endpoint comments (169.254.169.254) | **no** | Documentation/comments about SSRF risk, not exploitable SSRF |
-| Internal corp.google.com URLs | **no** | Internal build infrastructure, not accessible externally |
+| MathJax localization strings (7 delta hits) | **no** | Third-party vendored code, not secrets |
+| test.pypi.org workflow URLs | **no** | Test endpoint, not production credential |
+| SAM ConfigMap/helm templates | **no** | Infrastructure-as-code templates |
+| SAM deploy.yaml secret references | **no** | **Correct** `${{ secrets.* }}` pattern — not a leak |
+| ADK-JS auth examples/constants | **no** | Documentation placeholders & type constants |
+| ADK-JS metadata.google.internal / 169.254.0.0/16 | **no** | Defensive blocklist/check, not endpoint leak for attack |
+| jsonnet GCP metadata endpoint in case study | **no** | Example code showing metadata access pattern |
+| langextract CI secret references | **no** | **Correct** `${{ secrets.* }}` pattern |
+| xrblocks placeholder API keys | **no** | Explicit `YOUR_*_HERE` placeholders |
+| xrblocks Algolia DocSearch apiKey | **no** | **REJECTED in KB** — search-only key, public by design |
+| SAM run.sh OIDC_CLIENT_SECRET shell var | **no** | Secret injection pattern with empty default (dev only) |
 
-**SUMMARY: 0 reportable findings in this delta scan.**
+---
+
+## FINAL TRIAGE DECISION
+**NO REPORTABLE FINDINGS** in this scan cycle.
+
+- 0 REAL_SECRET hits
+- 434 total hits → all classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (defensive/internal), or INTERESTING (known-rejected/patterns)
+- The xrblocks Algolia key is explicitly REJECTED in knowledge base (search-only, public by design)
+- All secret references use proper `${{ secrets.* }}` GitHub Actions pattern
+- Defensive metadata endpoint references are blocklists/checks, not exposures
 EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+# TRIAGE RESULTS — google/microsoft org static scan (2026-08-19)
+
+## DELTA (7 new hits since last scan)
+| File | Line | Classification | Reason |
+|------|------|----------------|--------|
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/da/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string "%1 er ikke et token element" |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/lki/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Kildin Sami) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sk/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Slovak) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sl/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Slovenian) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/sv/TeX.js | 44 | TEST_OR_EXAMPLE | MathJax localization string (Swedish) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/uk/TeX.js | 47 | TEST_OR_EXAMPLE | MathJax localization string (Ukrainian) |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/zh-hans/TeX.js | 46 | TEST_OR_EXAMPLE | MathJax localization string (Simplified Chinese) |
+
+**All 7 delta hits are third-party MathJax library localization files — NOT reportable.**
+
+---
+
+## FULL SCAN CLASSIFICATION SUMMARY
+
+### REAL_SECRET (reportable candidates)
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none found in this scan)* | | | **REPORT_CANDIDATE: no** |
+
+### TEST_OR_EXAMPLE (sample/test/fixture/placeholder — not reportable)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | test.pypi.org URLs | Test PyPI endpoint (not production) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | test.pypi.org URLs | Test PyPI endpoint |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | Documentation example |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | Documentation example |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a secret value |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell var with empty default (secret injection pattern) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | **Correct** GitHub Secrets reference pattern |
+| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | `"password"`, `"your_access_token"` | Inline documentation examples |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Auth scheme type constant |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` etc. | **Correct** GitHub Secrets reference pattern |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Placeholder examples |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/* | various | Token parsing code, localization | Third-party library vendored code |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` | GCP metadata hostname check (defensive) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` | Link-local/GCP metadata IP range blocklist (defensive) |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` | GCP metadata endpoint reference (case study) |
+
+### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shows secret-injection pattern; empty default = dev-only |
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | **REJECTED per KB** — Algolia DocSearch search-only key, public by design |
+
+---
+
+## VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| MathJax localization strings (7 delta hits) | **no** | Third-party vendored code, not secrets |
+| test.pypi.org workflow URLs | **no** | Test endpoint, not production credential |
+| SAM ConfigMap/helm templates | **no** | Infrastructure-as-code templates |
+| SAM deploy.yaml secret references | **no** | **Correct** `${{ secrets.* }}` pattern — not a leak |
+| ADK-JS auth examples/constants | **no** | Documentation placeholders & type constants |
+| ADK-JS metadata.google.internal / 169.254.0.0/16 | **no** | Defensive blocklist/check, not endpoint leak for attack |
+| jsonnet GCP metadata endpoint in case study | **no** | Example code showing metadata access pattern |
+| langextract CI secret references | **no** | **Correct** `${{ secrets.* }}` pattern |
+| xrblocks placeholder API keys | **no** | Explicit `YOUR_*_HERE` placeholders |
+| xrblocks Algolia DocSearch apiKey | **no** | **REJECTED in KB** — search-only key, public by design |
+| SAM run.sh OIDC_CLIENT_SECRET shell var | **no** | Secret injection pattern with empty default (dev only) |
+
+---
+
+## FINAL TRIAGE DECISION
+**NO REPORTABLE FINDINGS** in this scan cycle.
+
+- 0 REAL_SECRET hits
+- 434 total hits → all classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (defensive/internal), or INTERESTING (known-rejected/patterns)
+- The xrblocks Algolia key is explicitly REJECTED in knowledge base (search-only, public by design)
+- All secret references use proper `${{ secrets.* }}` GitHub Actions pattern
+- Defensive metadata endpoint references are blocklists/checks, not exposures
+[0m
+**TRIAGE COMPLETE — NO REPORTABLE FINDINGS**
+
+| Category | Count | Reportable |
+|----------|-------|------------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | ~420 | no |
+| ENDPOINT_LEAK (defensive/internal) | 3 | no |
+| INTERESTING (known-rejected/patterns) | 2 | no |
+
+**Delta (7 new hits):** All MathJax third-party localization strings in `google/jsonnet/doc/third_party/` — vendored library code, not secrets.
+
+**Key notes:**
+- `google/xrblocks/docs/docusaurus.config.ts:175` Algolia key → **REJECTED per KB** (search-only, public by design)
+- All GitHub Actions workflows use correct `${{ secrets.* }}` pattern — no hardcoded credentials
+- GCP metadata endpoint refs (`metadata.google.internal`, `169.254.0.0/16`) are defensive blocklists/checks, not exposures
+- SAM `OIDC_CLIENT_SECRET` shell var shows secret-injection pattern with empty default (dev-only)
