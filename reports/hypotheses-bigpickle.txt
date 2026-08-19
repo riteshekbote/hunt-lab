@@ -1,4 +1,7 @@
-## 2026-08-19 19:48:35 UTC [google] (model bigpickle)
+## 2026-08-19 20:06:28 UTC [google] (model bigpickle)
+[CHANGED] oauth2PermissionGrants item-level CORS preflight — status moved from "collection-level only" to "browser-exploitable" at /v1.0/oauth2PermissionGrants/{id} (OPTIONS→200 + ACAO:* + Allow-Methods now includes PATCH + Max-Age:86400, confirmed 17:15 UTC)
+[CHANGED] oauth2PermissionGrants item-level auth-gate — status moved from "inferred" to "empirically confirmed" (HEAD→405/0/no-Bearer while GET→401+Bearer, item-level RFC 6750 §3 deviation confirmed)
+[CHANGED] agentRegistrations item-level OPTIONS CORS — status refreshed at 17:15 UTC (OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH, full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — 8.45 — attack:9, business:8, tech:9, gate:7, cloud:9, fresh:9
 [PRIO] graph.microsoft.com/beta/copilot/{6 families} — 8.0 — attack:9, business:9, tech:8, gate:7, cloud:8, fresh:7
 [PRIO] oauth2.googleapis.com/token + earthengine secret — 7.3 — attack:7, business:7, tech:8, gate:5, cloud:9, fresh:7
@@ -31,6 +34,12 @@ impact: Full GCP project access via cloud-platform scope; CVSS 9.0+; native-app 
 testability: HUMAN_ONLY
 [FINAL]
 [NEXT] HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — request authorized two-principal (A + B within same tenant) testing for both the Copilot Admin 6-family IDOR + oauth2PermissionGrants consent-forge hypotheses; both preconditions confirmed stable across 30+ consecutive probe cycles with 0 OperationRestrictions in $metadata + true CORS preflight ACAO:*+PATCH confirmed browser-exploitable at collection+item levels.
-[LEARN] NO_DELTA — all fresh passive probes (2026-08-19 19:18:04 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+[LEARN] ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (item-level confirmed 17:15 UTC, was collection-level only)
+[LEARN] ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection and item levels)
+[LEARN] ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (re-confirms prior; now with explicit Allow-Methods including PATCH)
+[LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+[LEARN] REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+[LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+[LEARN] REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
 [RISK] google: 55 — earthengine secret is proven-valid Google OAuth credential with cloud-platform scope (A/B proof, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; no data-plane access without authorized redemption; report drafted and ready.
 [RISK] microsoft: 72 — two independent high-confidence precondition packages: (1) 6-family IDOR+CORS at 97 with 0 OperationRestrictions across 5 EntityTypes + systemic HEAD→405/0 RFC 6750 §3 deviation; (2) consent-forge at 79 now elevated by item-level PATCH browser-exploitability + caller-chosen resourceId; both blocked on authorized-tenant two-principal verification; MSRC request drafted and ready; exposure high if preconditions hold; 30+ consecutive NO_DELTA cycles confirm passive probe ceiling reached — delta now item-level expansion of consent-forge surface.

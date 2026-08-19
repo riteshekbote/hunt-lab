@@ -1734,3 +1734,17 @@
 - CHANGED graph.microsoft.com root 301 redirect — REJECTED (cosmetic)
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
+
+## 2026-08-19 20:06:40 UTC
+- NEW oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400
+- NEW oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (contrasts with GET→401+Bearer)
+- NEW agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods)
+- NEW reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE/ENDPOINT_LEAK
+- CHANGED oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+- CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset 6⊂9, all kty=RSA, stable)
+- CHANGED graph.microsoft.com root 301 redirect — REJECTED (cosmetic)
+- CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
+- CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
+- CHANGED oauth2PermissionGrants item-level CORS preflight — status moved from "collection-level only" to "browser-exploitable" at /v1.0/oauth2PermissionGrants/{id} (OPTIONS→200 + ACAO:* + Allow-Methods now inc
+- CHANGED oauth2PermissionGrants item-level auth-gate — status moved from "inferred" to "empirically confirmed" (HEAD→405/0/no-Bearer while GET→401+Bearer, item-level RFC 6750 §3 deviation confirmed)
+- CHANGED agentRegistrations item-level OPTIONS CORS — status refreshed at 17:15 UTC (OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH, full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)

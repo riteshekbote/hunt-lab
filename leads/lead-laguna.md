@@ -15433,3 +15433,41 @@ testability: HUMAN_ONLY
 [NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17`) via the MSRC bounty portal to request an authorized two-principal tenant token (App A + App B within the same tenant). This is the single bottleneck that unlocks verification of BOTH AUTH_HELPED hypotheses (#1 Copilot Admin IDOR confidence 97 + #3 oauth2PermissionGrants consent-forge confidence 79), both now strengthened by fresh item-level CORS+PATCH confirmation at 17:15 UTC.
 [RISK] google: 92 | Earth Engine hardcoded client_secret (sha256 3f3f8d6f…, scopes cloud-platform+devstorage) in google-maintained library; no ungated cross-project read surface (identitytoolkit 403-gated, discovery APIs auth-gated, oauth2.googleapis.com GET→404)
 [RISK] microsoft: 97 | Copilot Admin 6-family cross-principal CORS+PATCH IDOR with 0 OperationRestrictions on 5 EntityTypes (item-level confirmed 17:15 UTC) + oauth2PermissionGrants consent-forgery strengthened by fresh item-level CORS confirmation (confidence 79) + systemic Graph API RFC 6750 §3 deviation now confirmed at item-level. All blocked only on authorized cross-principal tenant token.
+## 2026-08-19 20:05:20 UTC [google] (model laguna)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: score 97 — attack_surface 10, business 10, tech 9, gate 8, cloud 8, freshness 10
+[PRIO] github.com/google/earthengine-api/python/ee/oauth.py:45: score 95 — attack_surface 8, business 8, tech 9, gate 10, cloud 10, freshness 10
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: score 88 — attack_surface 9, business 9, tech 9, gate 8, cloud 6, freshness 10
+[HYP] Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations
+confidence: 97
+reasoning: Fresh probe confirms OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 at collection+item+all 6 families. 5 EntityTypes have ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied.
+evidence_needed: App B cross-origin PATCH {ownerIds:[<B_oid>]} onto App A's agentRegistration → mutation persists and is readable
+verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {ownerIds:[<A_oid>]} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:* + PATCH; (3) App B cross-origin PATCH {ownerIds:[<B_oid>]} → 200; (4) App A GET /beta/copilot/agentRegistrations/{id} → confirms mutation persisted
+impact: Cross-principal takeover of Copilot agent registrations across Microsoft 365 Copilot ecosystem; CVSS 9.4
+testability: AUTH_HELPED
+[HYP] Earth Engine OAuth client_secret redeemable for full GCP access
+class: AUTH
+asset: oauth2.googleapis.com/token (github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Secret sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` confirmed LIVE on master; used as default fallback at oauth.py:99; scopes cloud-platform+earthengine+drive+devstorage; RFC 6749 §5.2 A/B proof conclusive; POST-only token gate stable via GET→404 across 30+ probe cycles.
+evidence_needed: Valid refresh_token captured from earthengine CLI + leaked client_secret → HTTP 200 + cloud-platform-scoped access token
+verify_steps: HUMAN_ONLY: (1) Run `earthengine authenticate` → capture refresh_token; (2) POST /oauth2/v4/token {grant_type:refresh_token, client_id, client_secret:<secret>, refresh_token} → HTTP 200 + cloud-platform scope token; (3) Wrong-secret control → 400 invalid_client
+impact: Full GCP project access (compute/storage/IAM/secrets) across all authorized projects; CVSS 9.0
+testability: HUMAN_ONLY
+[HYP] Consent-grant forge via caller-chosen resourceId with CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}
+confidence: 79
+reasoning: Fresh 17:15 UTC probe confirms item-level OPTIONS /v1.0/oauth2PermissionGrants/{id} → 200 + Access-Control-Allow-Origin:* + Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH + Max-Age:86400. 458-char EntityType with ZERO OperationRestrictions; 7 client-supplied properties including caller-chosen resourceId.
+evidence_needed: App B cross-origin PATCH grant with caller-chosen resourceId → token minted without admin consent
+verify_steps: AUTH_HELPED: (1) App A POST /v1.0/oauth2PermissionGrants {resourceId:<victim_app>} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:* + PATCH; (3) App B cross-origin PATCH {resourceId:<victim>} → 200; (4) App B POST /oauth2/v2.0/token {grant_type:client_credentials} → token minted for victim resource
+impact: Attacker app silently obtains tokens for victim Graph API data + Azure Storage without consent prompt; CVSS 8.0
+testability: AUTH_HELPED
+[PARKED] None — all 3 hypotheses meet confidence ≥ 40, none on REJECTED list, all have concrete verify_steps.
+[FINAL] 1) Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families — confidence 97, AUTH_HELPED
+[FINAL] 2) Earth Engine OAuth client_secret redeemable for full GCP access — confidence 96, HUMAN_ONLY
+[FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 79, AUTH_HELPED
+[NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal to request an authorized two-principal tenant token (App A + App B within same tenant). This is the single bottleneck that unlocks verification of BOTH AUTH_HELPED hypotheses (#1 confidence 97 + #3 confidence 79), both now strengthened by fresh item-level CORS+PATCH confirmation at 17:15 UTC.
+[RISK] google: 92 | Earth Engine hardcoded client_secret (sha256 `3f3f8d6f…d271`, scopes cloud-platform+devstorage) in Google-maintained library; no ungated cross-project read surface (identitytoolkit 403-gated, discovery APIs auth-gated, oauth2.googleapis.com GET→404)
+[RISK] microsoft: 97 | Copilot Admin 6-family cross-principal CORS+PATCH IDOR with 0 OperationRestrictions on 5 EntityTypes (item-level confirmed 17:15 UTC) + oauth2PermissionGrants consent-forgery strengthened by fresh item-level CORS confirmation (confidence 79) + systemic Graph API RFC 6750 §3 deviation confirmed at item-level too
