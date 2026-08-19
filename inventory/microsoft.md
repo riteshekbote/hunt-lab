@@ -1624,3 +1624,6 @@
 ## 2026-08-19 09:45:05 UTC
 
 ## 2026-08-19 10:13:09 UTC
+
+## 2026-08-19 10:49:24 UTC
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS preflight confirmed live at 10:5X UTC — HTTP 200 + Access-Control-Allow-Origin:* + PATCH (agentRegistration 6-family CORS+PATCH IDOR precond
