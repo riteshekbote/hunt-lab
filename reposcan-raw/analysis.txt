@@ -1,117 +1,66 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# TRIAGE RESULTS — DELTA SCAN (39 new hits)
-
-## CLASSIFICATION TABLES
-
-### REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live secrets in this delta |
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context |
-|------|------|---------|
-| google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | 49 | `const val INJECTED_TOKEN = "injected-token-probe"` — test fixture |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | Workflow template: `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | Workflow template: `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` — unit test literals |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136,159,189 | `testpassword` — unit test literals |
-| google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java | 49,50 | Action name constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
-| google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java | 44 | Parameter name constant `PARAM_PASSWORD = "password"` |
-| google/heir/scripts/author_stats.py | 16 | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Constant `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer name constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngine/IntegrationTests/proxyTests.ts | 112 | Test fixture `proxyPassword: 'pass#123:'` |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| google/copybara/cloudbuild.yaml | 27 | Comment: `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` — internal Google Artifact Registry URL |
-| microsoft/azure-pipelines-extensions/package-lock.json | 42,52,62 | `pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/` — internal Azure DevOps npm registry (10 occurrences across package-locks) |
-| microsoft/azure-pipelines-extensions/Extensions/Ansible/Src/Tasks/Ansible/package-lock.json | 25,38,47 | Same internal npm registry |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngine/package-lock.json | 35,50,60 | Same internal npm registry |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngineV2/package-lock.json | 34,49 | Same internal npm registry |
-
-### INTERESTING (debug flags, keys, cloud configs, unusual patterns)
-| File | Line | Context |
-|------|------|---------|
-| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | Fetches SA email/scopes from GCP metadata server (`metadata.google.internal`) — standard ADC pattern, not a leak |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = <var>` — compiler outputting generated secret variable, not hardcoded |
-
----
-
-## VERDICT LIST
-
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| *(none)* | — | **no** | No REAL_SECRET findings in this delta. All hits are test fixtures, workflow templates, internal registry URLs, or codegen patterns. |
-
-**SUMMARY**: 0 reportable findings. Delta contains only TEST_OR_EXAMPLE (24), ENDPOINT_LEAK (14), INTERESTING (2). No hardcoded live credentials.
-EOF
-# TRIAGE RESULTS — DELTA SCAN (39 new hits)
-
-## CLASSIFICATION TABLES
-
-### REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live secrets in this delta |
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context |
-|------|------|---------|
-| google/adk-kotlin/core/src/jvmTest/kotlin/com/google/adk/kt/tools/mcp/it/McpIntegrationTestSupport.kt | 49 | `const val INJECTED_TOKEN = "injected-token-probe"` — test fixture |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168 | Workflow template: `${{ steps.fetch-token.outputs._id_token }}` |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 192 | Workflow template: `${{ steps.fetch-token.outputs._auth_token }}` |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` — unit test literals |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136,159,189 | `testpassword` — unit test literals |
-| google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java | 49,50 | Action name constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
-| google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java | 44 | Parameter name constant `PARAM_PASSWORD = "password"` |
-| google/heir/scripts/author_stats.py | 16 | Commented placeholder `# TOKEN = "your_github_token_here"` |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | Constant `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer name constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngine/IntegrationTests/proxyTests.ts | 112 | Test fixture `proxyPassword: 'pass#123:'` |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| google/copybara/cloudbuild.yaml | 27 | Comment: `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` — internal Google Artifact Registry URL |
-| microsoft/azure-pipelines-extensions/package-lock.json | 42,52,62 | `pkgs.dev.azure.com/mseng/PipelineTools/_packaging/PipelineTools_PublicPackages/npm/registry/` — internal Azure DevOps npm registry (10 occurrences across package-locks) |
-| microsoft/azure-pipelines-extensions/Extensions/Ansible/Src/Tasks/Ansible/package-lock.json | 25,38,47 | Same internal npm registry |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngine/package-lock.json | 35,50,60 | Same internal npm registry |
-| microsoft/azure-pipelines-extensions/Extensions/ArtifactEngineV2/package-lock.json | 34,49 | Same internal npm registry |
-
-### INTERESTING (debug flags, keys, cloud configs, unusual patterns)
-| File | Line | Context |
-|------|------|---------|
-| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | Fetches SA email/scopes from GCP metadata server (`metadata.google.internal`) — standard ADC pattern, not a leak |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Codegen emits `.secret_key = <var>` — compiler outputting generated secret variable, not hardcoded |
-
----
-
-## VERDICT LIST
-
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| *(none)* | — | **no** | No REAL_SECRET findings in this delta. All hits are test fixtures, workflow templates, internal registry URLs, or codegen patterns. |
-
-**SUMMARY**: 0 reportable findings. Delta contains only TEST_OR_EXAMPLE (24), ENDPOINT_LEAK (14), INTERESTING (2). No hardcoded live credentials.
+[0m$ [0msha256sum <<<'sk-REPLACE-WITH-YOUR-KEY'
+1a3546e564ad4cabce882378a8a5943e1e4f1d1999a5c2da348f24edb05d7956  -
 [0m
-**TRIAGE COMPLETE** — 0 reportable findings in this delta.
+### Classification Tables
 
-**Breakdown:**
-- **TEST_OR_EXAMPLE**: 24 hits (test fixtures, placeholder constants, workflow templates, secret refs)
-- **ENDPOINT_LEAK**: 14 hits (internal Google Artifact Registry URL + 13 Azure DevOps npm registry URLs in package-locks)
-- **INTERESTING**: 2 hits (GCP metadata-server ADC pattern, compiler codegen emitting secret variable)
-- **REAL_SECRET**: 0 hits
+#### REAL_SECRET
+| File | Line | SHA256(secret) | Notes |
+|------|------|----------------|-------|
+| *(none)* | | | No hardcoded live credentials found in this delta |
 
-The `heir` C++ codegen (`JaxiteWordEmitter.cpp:558`) emits `.secret_key = <var>` at **code-generation time** — not a hardcoded secret. The `device-infra` shell script uses the standard GCP metadata server for ADC — expected pattern, not a leak.
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | Explicit placeholder |
+| google/sam/internal/node/store.go | 38 | `refresh_token` | Literal string constant |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` | Proper secret references |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | Proper secret references |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` | Fuzz test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword` | Test constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `gemini_api_key` | Placeholder |
+| google/agents-cli/.../staging.yaml | 168, 192 | Template vars `{% raw %}` | CI template |
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
+| google/adk-kotlin/.../McpIntegrationTestSupport.kt | 49 | `injected-token-probe` | Integration test probe |
+| google/heir/scripts/author_stats.py | 16 | `your_github_token_here` | Commented placeholder |
+| google/device-infra/.../DeviceAdminUtil.java | 49-50 | Android action constants | Platform constants |
+| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `password` | Spec constant |
+| google/private-compute-services/.../rendertoken/*.kt | 41, 43, 82, 88, 91 | Constant names | Symbolic names |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| microsoft/Qcodes/.github/package-lock.json | 13, 27 | `pkgs.dev.azure.com/ms-quantum/...` | Azure Artifacts npm registry |
+| microsoft/agent-governance-toolkit/.../cedar.ts | 8, 11, 13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Cloud IMDS endpoints (AWS/Azure/GCP/Alibaba) |
+| microsoft/agent-governance-toolkit/.../opa.ts | 13, 14 | `169.254.169.254`, `metadata.google.internal` | Cloud IMDS endpoints |
+| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `pkgs.dev.azure.com/microsoft/Dart/...` | Azure Artifacts Cargo registry |
+| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70, 76 | `pkgs.dev.azure.com/...`, `pkgs.dev.azure.com/microsoft/_packaging/RustTools/...` | Azure Artifacts feeds |
+| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `rfc3161.gtm.corp.microsoft.com` | Internal timestamp server |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/...` | Internal artifact registry (comment) |
+| google/device-infra/.../adc_credentials.sh | 39, 44 | `metadata.google.internal/computeMetadata/...` | GCP metadata server usage |
+
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Emits `secret_key = <value>` in generated code — crypto key material sink (codegen, not a stored secret) |
+
+---
+
+### Verdicts
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `sk-REPLACE-WITH-YOUR-KEY` (microsoft/agent-governance-toolkit) | **no** | Explicit placeholder pattern |
+| Azure DevOps package registry URLs (Qcodes, coreutils) | **no** | Internal feed references, no credentials |
+| Cloud IMDS endpoints (169.254.169.254, metadata.google.internal, 100.100.100.200) | **no** | Well-known metadata IPs, no secrets |
+| Internal timestamp server (rfc3161.gtm.corp.microsoft.com) | **no** | Corp-internal service, no auth material |
+| GCP metadata server usage (adc_credentials.sh) | **no** | Standard ADC bootstrap pattern |
+| google/heir JaxiteWordEmitter secret_key emission | **no** | Codegen sink, not a stored secret |
+| All test fixtures / template refs / placeholder constants | **no** | Standard test/code patterns |
+
+---
+
+**Summary**: 0 reportable findings in this delta. All hits are test fixtures, placeholders, internal endpoint references (no credentials), or standard cloud bootstrap patterns. The `sk-REPLACE-WITH-YOUR-KEY` is an explicit user-facing placeholder.
