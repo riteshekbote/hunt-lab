@@ -1,16 +1,76 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
-Wrote file successfully.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "YOUR_KEY"
+c81466a479fbf18cb4edfc449e2c873eba72e570c4f8147f7734fdca96aa6ba5  -
 [0m
-Done. Wrote full triage report to `triage_report.md`.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password" && sha256sum <<< "user" && sha256sum <<< "storage_driver_password"
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+6d9010b2b7a1483b256ae7477738dba7c530bd9ba53db1d6691441e74b83608a  -
+398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287  -
+[0m
+### CLASSIFICATION TABLES
 
-**Bottom line: 0 reportable findings in this delta.**
+#### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *none* | — | — | No live hardcoded secrets found in this delta |
 
-All 47 new hits + full grep context classify as:
-- **TEST_OR_EXAMPLE**: 18 items (test fixtures, placeholders like `YOUR_KEY`, `password`, fake `ghp_ABCDEF...` tokens in `.test.ts` files, GitHub Actions `${{ secrets.GITHUB_TOKEN }}` refs)
-- **ENDPOINT_LEAK**: 9 items (GCP metadata endpoint `169.254.169.254` references in comments/docs, Azure DevOps registry URLs, staging URL)
-- **INTERESTING**: 8 items (code patterns reading password files, state key names, Android constants, minified JS parser errors)
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Pattern | SHA256 (value) |
+|------|------|---------|----------------|
+| google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | c81466a479fbf18cb4edfc449e2c873eba72e570c4f8147f7734fdca96aa6ba5 |
+| google/garf/libs/community/common_apis/garf/community/common_apis/currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | c81466a479fbf18cb4edfc449e2c873eba72e570c4f8147f7734fdca96aa6ba5 |
+| google/kube-startup-cpu-boost/.github/workflows/release.yaml | 90 | `${{ secrets.GITHUB_TOKEN }}` | Secret reference, not value |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | 398a29d35b70d37804cfe91c62e439355c85061e6333615f3b291c3b17bb7287 |
+| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | Secret reference |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture (truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | 6d9010b2b7a1483b256ae7477738dba7c530bd9ba53db1d6691441e74b83608a / 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Test JWT fixture (truncated) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Constant name |
+| google/mtail/.github/workflows/automerge.yml | 61 | `${{ secrets.GITHUB_TOKEN }}` | Secret reference |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `${{secrets.GITHUB_TOKEN}}` | Secret reference |
+| google/device-infra/src/java/.../DeviceAdminUtil.java | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN`, `ACTION_RESET_PASSWORD` | Constant names |
+| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e |
+| microsoft/vscode-mypy/.github/workflows/dep-bot-auto-merge.yml | 17 | `${{ secrets.GITHUB_TOKEN }}` | Secret reference |
+| microsoft/skill-recorder/common/sensitive.test.ts | 89 | `secret = "ghp_ABCDEFGHIJKLMNOP"` | Test fixture (fake ghp_) |
+| microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123456789ABCDEFGHIJKLMNPQ` | Test fixture |
+| microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19-24 | Fake `ghp_*`, `AKIA*` tokens in OCR test cases | Test fixtures |
+| microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5p6Q7r8` | Test fixture |
 
-The only live `REAL_SECRET` remains the previously tracked `google/earthengine-api` OAuth client_secret at `python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) — already recorded, pending VRP determination on native-app by-design status.
+#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Value |
+|------|------|-------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
+| microsoft/vscode-mypy/package.json | 245 | `https://pkgs.dev.azure.com/azure-public/vside/_packaging/msft_consumption/npm/registry/...` |
+| microsoft/vscode-mypy/package-lock.json | 29,53,1498 | Same Azure DevOps registry URL |
+
+#### INTERESTING (debug flags, cloud configs, metadata refs)
+| File | Line | Note |
+|------|------|------|
+| google/capsem/config/gate.toml | 595 | `password = "password.txt"` — config references password file |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from `$pass_file` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from `$PASS_FILE` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` params |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | References `169.254.169.254` in Chrome |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Emits `GOOGLE_API_KEY={google_api_key}` template |
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | Queries GCP metadata endpoint for ADC credentials |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| Hardcoded OAuth client_secret @ google/earthengine-api/python/ee/oauth.py:45 | **no** (pre-existing) | Already ACCEPTED in knowledge base (sha256 `3f3f8d6f...d271`), pending VRP determination on native-app by-design status. Not in this scan's delta. |
+| Any new hardcoded secret in this scan | **no** | All 216 hits classify as TEST_OR_EXAMPLE (201), ENDPOINT_LEAK (4), or INTERESTING (11). Zero REAL_SECRET. |
+| Staging URL in capsem workflow | **no** | `staging.release-eq7.pages.dev` — staging subdomain, not sensitive. |
+| Azure DevOps npm registry URL | **no** | Internal package source, public registry endpoint. |
+| GCP metadata endpoint references | **no** | Well-known `169.254.169.254` IMDS endpoint; code references only. |
+| Config file referencing `password.txt` | **no** | Points to external file; no secret in repo. |
+
+**SUMMARY**: This scan delta yields **0 reportable findings**. All hits are test fixtures, placeholder values, secret references (GitHub Actions `${{ secrets.* }}`), staging URLs, or cloud config references. Consistent with knowledge base entry: "reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK".
