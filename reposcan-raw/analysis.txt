@@ -1,71 +1,35 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+## Classification Table
 
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none) | - | - | No hardcoded live secrets in delta |
+| File | Line | Hit | Category | Reason |
+|------|------|-----|----------|--------|
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference (auto-provided `GITHUB_TOKEN`) |
+| `google/langextract/.github/workflows/ci.yaml` | 168 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
+| `google/langextract/.github/workflows/ci.yaml` | 169 | `LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
+| `google/langextract/.github/workflows/ci.yaml` | 170 | `OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"` | TEST_OR_EXAMPLE | GitHub Actions secret reference |
+| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 59 | `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` | TEST_OR_EXAMPLE | Constant defining env var name, not secret value |
+| `google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py` | 61 | `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"` | TEST_OR_EXAMPLE | Constant defining env var name, not secret value |
+| `google/talkback/.../BrailleImePreferencesActivity.java` | 66 | `KEYBOARD_ICON_TOKEN = "KEYBOARD_ICON"` | TEST_OR_EXAMPLE | Android SharedPreferences key name |
 
-## TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` — clearly example config |
+## Full Grep Context Check (additional hits reviewed)
+- `adk-python/auth_credential.py:157/269/278` — test fixtures (`-----BEGIN PRIVATE KEY-----...`, `user`/`password`, `eyAkaknabna....`)
+- `adk-python/auth_schemes.py:68` — test constant `PASSWORD = "password"`
+- `adk-python/auth_helpers.py:64` — placeholder `client_secret="your_client_secret"`
+- `sam/deploy.yaml:247-250` — `${{ secrets.X }}` references
+- `capsem/config/gate.toml:632` — file reference `password = "password.txt"`
+- `cadvisor/flags.go:54` — flag name constant `StorageDriverPassword = "storage_driver_password"`
 
-## ENDPOINT_LEAK
-| File | Line | Detail |
-|------|------|--------|
-| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal Google source link `source.corp.google.com/piper///depot/google3/...` — internal dev URL reference |
+**All TEST_OR_EXAMPLE or secret references — no hardcoded live credentials.**
 
-## INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| google/android-emulator-container-scripts/run-with-gpu.sh | 28 | Runtime token file reference: `TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads local auth file at container start, not hardcoded |
-| google/android-emulator-container-scripts/run.sh | 22 | Same pattern — duplicate of above |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | Kubeconfig path resolution: `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — standard cloud config pattern |
+## Verdict
 
-=== VERDICT LIST ===
-- google/android-emulator-container-scripts/run-with-gpu.sh:28 → REPORT_CANDIDATE: no (runtime file ref, not hardcoded secret)
-- google/android-emulator-container-scripts/run.sh:22 → REPORT_CANDIDATE: no (duplicate, same pattern)
-- google/nearby/sharing/nearby_sharing_service.h:71 → REPORT_CANDIDATE: no (internal URL reference only, no credential)
-- google/tunix/tunix/cli/base_agentic_config.yaml:63 → REPORT_CANDIDATE: no (commented placeholder, TEST_OR_EXAMPLE)
-- google/tunix/tunix/cli/base_rl_pipeline.py:862 → REPORT_CANDIDATE: no (config pattern, no secret material)
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| flatbuffers label.yml | **no** |
+| langextract ci.yaml (3 hits) | **no** |
+| oss-fuzz-gen env_vars.py (2 hits) | **no** |
+| talkback BrailleImePreferencesActivity.java | **no** |
 
-SUMMARY: 0 reportable findings in this delta.
-EOF
-=== CLASSIFICATION TABLES ===
-
-## REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| (none) | - | - | No hardcoded live secrets in delta |
-
-## TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` — clearly example config |
-
-## ENDPOINT_LEAK
-| File | Line | Detail |
-|------|------|--------|
-| google/nearby/sharing/nearby_sharing_service.h | 71 | Internal Google source link `source.corp.google.com/piper///depot/google3/...` — internal dev URL reference |
-
-## INTERESTING
-| File | Line | Detail |
-|------|------|--------|
-| google/android-emulator-container-scripts/run-with-gpu.sh | 28 | Runtime token file reference: `TOKEN="$(cat ~/.emulator_console_auth_token)"` — reads local auth file at container start, not hardcoded |
-| google/android-emulator-container-scripts/run.sh | 22 | Same pattern — duplicate of above |
-| google/tunix/tunix/cli/base_rl_pipeline.py | 862 | Kubeconfig path resolution: `os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` — standard cloud config pattern |
-
-=== VERDICT LIST ===
-- google/android-emulator-container-scripts/run-with-gpu.sh:28 → REPORT_CANDIDATE: no (runtime file ref, not hardcoded secret)
-- google/android-emulator-container-scripts/run.sh:22 → REPORT_CANDIDATE: no (duplicate, same pattern)
-- google/nearby/sharing/nearby_sharing_service.h:71 → REPORT_CANDIDATE: no (internal URL reference only, no credential)
-- google/tunix/tunix/cli/base_agentic_config.yaml:63 → REPORT_CANDIDATE: no (commented placeholder, TEST_OR_EXAMPLE)
-- google/tunix/tunix/cli/base_rl_pipeline.py:862 → REPORT_CANDIDATE: no (config pattern, no secret material)
-
-SUMMARY: 0 reportable findings in this delta.
-[0m
-Done. **0 reportable findings** in this delta — all 5 new hits are non-secret patterns (runtime file refs, commented placeholder, internal URL reference, standard config resolution).
+**Delta result: 0 reportable findings.** The only known hardcoded secret in google/ org remains `earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), already tracked in knowledge base as ACCEPTED but pending VRP determination on native-app by-design status.
