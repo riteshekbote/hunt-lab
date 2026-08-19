@@ -436,3 +436,11 @@
 - 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 13:07 UTC)
 - 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families
 - 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 3f3f8d6f…d271, RFC 6749 §5.2 A/B proof conclusive
+- 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 14:33 UTC, PATCH widened from POST-only).
+- 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — all 6 endpoint families OPTIONS→200 + ACAO:* + PATCH at collection+item level (stable 14:33 UTC).
+- 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 14:33 UTC — sha256 3f3f8d6f…d271, A/B proof conclusive.
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface.
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic to developer.microsoft.com/graph, no auth-bypass surface.
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass.
+- 2026-08-19 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules.
