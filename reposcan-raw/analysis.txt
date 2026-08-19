@@ -1,54 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none new)* | — | — | The only live hardcoded secret remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`), already tracked in KB as ACCEPTED pending VRP determination on native-app by-design status. No new REAL_SECRET in this delta. |
+[0m$ [0mecho -n "bae16ae67ddbe24e700ac20d192ad20f" | sha256sum
+02851d5b6a27a58e6a492b71489a2bb2b8a1f2f76786a4a98f10eb7cfcca9d19  -
+[0m
+### Classification Tables
 
-### TEST_OR_EXAMPLE
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/microsoft/typespec/website/algolia.ts` | 5 | `02851d5b6a27a58e6a492b71489a2bb2b8a1f2f76786a4a98f10eb7cfcca9d19` | Hardcoded Algolia `apiKey` in website config |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/microsoft/UFO/ufo/client/mcp/http_servers/linux_mcp_server.py` | 507 | Placeholder `<your-secret-key>` in template |
+| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py` | 54 | Redaction constant `[REDACTED]` |
+| `reposcan-raw/microsoft/power-platform-skills/evals/power-pages/test-site/evals.json` | 88, 92 | Test eval prompts with example URLs |
+| `reposcan-raw/microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js` | 54 | Commented placeholder `abc123...` |
+| `reposcan-raw/microsoft/typespec/packages/monarch/src/typespec-monarch.ts` | 43-45 | Syntax token definitions (curly/square/paren) |
+| `reposcan-raw/microsoft/typespec/packages/playground/src/services.ts` | 468, 477 | Syntax highlighting tokens |
+| `reposcan-raw/microsoft/typespec/packages/http-server-csharp/src/cli/cli.ts` | 164 | String constant `"hscs-msg:"` |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Shell param expansion `${OIDC_CLIENT_SECRET:-}` |
+| `reposcan-raw/google/heir/scripts/author_stats.py` | 16 | Commented placeholder `your_github_token_here` |
+| `reposcan-raw/microsoft/ResearchStudio/.../render_poster.py` | 55 | Constant string `preserve-immutable-source-v1` |
+| `reposcan-raw/microsoft/qlib/.github/workflows/release.yml` | 63, 107 | TestPyPI upload (public registry) |
+| `reposcan-raw/microsoft/wassette/.github/workflows/nix.yml` | 20 | GitHub Actions secret ref `${{ secrets.CACHIX_AUTH_TOKEN }}` |
+| `reposcan-raw/microsoft/wassette/.github/workflows/dependabot-automerge.yml` | 21 | GitHub Actions secret ref `${{ secrets.GITHUB_TOKEN }}` |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247, 249, 250 | GitHub Actions secret refs (`GOOGLE_CLIENT_SECRET`, etc.) |
+| `reposcan-raw/microsoft/UFO/config/ufo/rag.yaml` | 8 | Env var reference `${BING_API_KEY}` (not hardcoded) |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| `reposcan-raw/microsoft/azure-devops-mcp/server.json` | 10 | `https://mcp.dev.azure.com/{organization}` (template) |
+| `reposcan-raw/microsoft/azure-devops-mcp/src/index.ts` | 62 | `https://dev.azure.com/` + orgName |
+| `reposcan-raw/microsoft/azure-devops-mcp/src/org-tenants.ts` | 38 | `https://vssps.dev.azure.com/${orgName}` |
+| `reposcan-raw/microsoft/cascadia-code/pipelines/release.yml` | 89 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` (internal corp) |
+| `reposcan-raw/microsoft/typespec/eng/common/pipelines/templates/steps/create-authenticated-npmrc.yml` | 10 | `pkgs.dev.azure.com/azure-sdk/public/_packaging/...` (public feed) |
+| `reposcan-raw/microsoft/typespec/eng/common/pipelines/templates/steps/pypi-auth-dev-feed.yml` | 10, 13 | Azure DevOps internal/public feed URLs (comments) |
+| `reposcan-raw/microsoft/typespec/eng/tsp-core/pipelines/templates/release/ado-feed-release.yml` | 9 | Public Azure Artifacts feed |
+| `reposcan-raw/microsoft/typespec/eng/tsp-core/pipelines/templates/signing/windows.yml` | 20 | Internal timestamp server (same as cascadia-code) |
+| `reposcan-raw/microsoft/typespec/packages/http-client-csharp/eng/pipeline/publish.yml` | 158, 166, 255 | Public Azure Artifacts feed URLs |
+| `reposcan-raw/microsoft/typespec/packages/http-client-java/package-lock.json` | 75, 88 | Public feed resolved URLs (package-lock) |
+| `reposcan-raw/microsoft/typespec/packages/http-client-python/package-lock.json` | 71, 93, 122 | Public feed resolved URLs (package-lock) |
+
+#### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| google/heir/scripts/author_stats.py | 16 | Placeholder comment `# TOKEN = "your_github_token_here"` |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Example/mock ConfigMap in docs |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | Placeholder `api_key = "sk-REPLACE-WITH-YOUR-KEY"` |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | Commented placeholder `# smtp_auth_password: 'password'` |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | Red-team test data (SQLi example) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/src/agent_control_plane/adapter.py | 17 | Placeholder `api_key="your-key"` |
-| microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py | 55 | Legacy constant `_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"` |
-| microsoft/qlib/.github/workflows/release.yml | 63, 107 | Public test.pypi.org upload (intentional test publish) |
-
-### ENDPOINT_LEAK
-| File | Line | Note |
-|------|------|------|
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | Internal MS timestamp server `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | Public test.pypi.org index URL |
-| microsoft/UFO/galaxy/webui/security/url_validator.py | 12, 174, 179 | Well-known IMDS endpoints (169.254.169.254, metadata.google.internal) — public knowledge, used for SSRF blocking |
-| microsoft/agent-governance-toolkit (multiple: .cs, .go, .py, .ts) | various | Cloud metadata IPs (AWS/Azure/GCP/Alibaba) used in SSRF allow/deny lists — public endpoints, defensive code |
-
-### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/filonov/libs/media_tagging_cloud/setup.sh | 120 | Secret Manager reference pattern `GEMINI_API_KEY=gemini-api-key:latest` (not a secret value) |
-| google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | 558 | Crypto code emitting `secret_key` variable (codegen for HE scheme, not a leak) |
-| google/kube-startup-cpu-boost/.github/workflows/release.yaml | 90 | Standard `${{ secrets.GITHUB_TOKEN }}` reference |
-| google/sam/.github/workflows/deploy.yaml | 247–250 | Standard secret references (`GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET`) |
-| google/sam/development/kind/run.sh | 139 | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env-driven) |
-| google/sam/internal/node/store.go | 38 | Constant key name `keyRefreshToken = "refresh_token"` (not a token value) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27–30 | Legitimate Azure IMDS token acquisition code (well-known endpoints) |
-| microsoft/wassette/.github/workflows/nix.yml | 20 | Standard `${{ secrets.CACHIX_AUTH_TOKEN }}` reference |
+| `reposcan-raw/microsoft/UFO/ufo/utils/url_security.py` | 148 | IMDS endpoint blocking config (169.254.169.254) |
+| `reposcan-raw/microsoft/UFO/galaxy/webui/security/url_validator.py` | 12, 174, 179 | IMDS blocking + IPv6-mapped normalization |
+| `reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py` | 42 | IMDS endpoint detection logic |
+| `reposcan-raw/google/filonov/libs/media_tagging_cloud/setup.sh` | 120 | Secret Manager ref `GEMINI_API_KEY=gemini-api-key:latest` |
+| `reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp` | 558 | Crypto code emitting `secret_key` |
+| `reposcan-raw/microsoft/typespec/website/algolia.ts` | 5 | **Algolia search key** — likely search-only (public by design per REJECTED class) |
 
 ---
 
-### VERDICT LIST
+### Verdict
+
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| google/earthengine-api oauth.py:45 (known) | **yes** (pending) | Already in KB as ACCEPTED; hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f…d271`), scopes include `cloud-platform`; native-app by-design argument pending VRP triage |
-| microsoft/agent-governance-toolkit ESRP timestamp server | **no** | Internal corp endpoint leak only; no auth bypass, no secret |
-| All IMDS endpoint references | **no** | Well-known public cloud metadata IPs; used defensively in SSRF allow/deny lists |
-| All `${{ secrets.* }}` GitHub Actions references | **no** | Standard secret injection pattern; no hardcoded values |
-| All test/placeholder/mock constants | **no** | Obvious fixtures, comments, or example configs |
-| google/filonov setup.sh Secret Manager ref | **no** | References secret by name/version; no secret material in source |
-| google/heir JaxiteWordEmitter | **no** | Crypto codegen emitting a variable named `secret_key`; not a static secret |
+| Algolia `apiKey` in `typespec/website/algolia.ts` | **no** | Search-only key for DocSearch; public by design (matches REJECTED class: "Algolia DocSearch apiKey in docusaurus config — search-only key, public by design") |
+| All other hits | **no** | Test fixtures, placeholders, env var refs, public feed URLs, internal corp endpoints (timestamp server), security config patterns |
 
-**Bottom line:** No *new* reportable secrets in this delta. The only live report candidate remains the earthengine-api hardcoded client_secret (already tracked). All other hits are defensive code, test fixtures, secret references, or well-known public endpoints.
+**No reportable findings in this delta.** The sole hardcoded credential (Algolia key) falls under a previously rejected class — search-only keys embedded in public website configs are by-design public. All other "secrets" are either GitHub Actions secret references (`${{ secrets.X }}`), shell param expansions (`${VAR:-}`), or template placeholders.
