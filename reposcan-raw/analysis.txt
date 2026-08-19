@@ -1,53 +1,59 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0msha256sum <<< "iU5ohAF2qcqrujegE3hQ1cPt"
+405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 (secret) | Notes |
-|------|------|-----------------|-------|
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `a6f3c8d7e9b2f1a4c6e8d0f3b5a7c9e1d3f5b7a9c1e3d5f7a9b1c3e5f7a9b1c` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in vendored ibis; `# noqa: S105` suppresses bandit; appears in two files |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `a6f3c8d7e9b2f1a4c6e8d0f3b5a7c9e1d3f5b7a9c1e3d5f7a9b1c3e5f7a9b1c` | Same secret, second occurrence |
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | Hardcoded `CLIENT_SECRET` in vendored ibis code; `# noqa: S105` suppresses bandit warning — **investigate if real or test fixture** |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | Duplicate of above |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Pattern |
-|------|------|---------|
-| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | `testpassword`, `test-token-123` |
-| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | `testpassword` |
-| `google/xrblocks/src/ai/AI.ts` | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test private key, `user`/`password`, `eyAkaknabna...` |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `your_client_secret` placeholder |
-| `google/sam/development/kind/run.sh` | 139 | `${OIDC_CLIENT_SECRET:-}` env var default |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GH Actions secret refs (`${{ SECRETS }}`) |
+| File | Line | Reason |
+|------|------|--------|
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | JSDoc examples (`password: "password"`, `token: "your_access_token"`) |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Constant `PASSWORD = 'password'` — scheme constant |
+| `google/sam/**` | multiple | ConfigMap kinds, shell var refs `${VAR:-}`, GH Actions secret refs `${SECRET}` — all templates/CI |
+| `google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholder `YOUR_GEMINI_API_KEY_HERE` / `YOUR_OPENAI_API_KEY_HERE` |
+| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch key — **REJECTED per KB** (public search-only key) |
+| `google/bigframes/scripts/run_doctest.sh` | 38-39 | Test script referencing `GOOGLE_APPLICATION_CREDENTIALS` from CI |
+| `google/copybara/javatests/**` | multiple | Test fixtures: `testpassword`, `test-token-123` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: truncated private key, `password`, `eyAkaknabna....` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
 
 #### ENDPOINT_LEAK
-| File | Line | Content |
-|------|------|---------|
-| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` (comment) |
-| `google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | `artifact-registry.git.corp.google.com/github.com/google/go-containerregistry` |
-| `google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | `bcid.corp.google.com/build-content-restrictions/v0.1` (comment) |
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | `artifact-registry.git.corp.google.com` (internal) |
+| `google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | `bcid.corp.google.com` (internal) |
+| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com` (internal) |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | kubeconfig params (config surface, not secret) |
 
 #### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name, not secret |
-| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment documents 169.254.169.254 metadata endpoint |
-| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service → SSRF risk noted in code |
-| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: metadata endpoint SSRF surface, DNS-based SSRF out of scope |
-| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **KNOWN REJECTED** (search-only, public by design, per KB) |
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | Checks `metadata.google.internal` — metadata endpoint awareness |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | Blocks `169.254.0.0/16` (GCP metadata) — SSRF mitigation |
+| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service (169.254.169.254) — SSRF documented |
+| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: metadata endpoint SSRF risk, DNS-based SSRF noted |
+| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: cloud metadata endpoints at 169.254.169.254 |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Docs warn about metadata endpoint 169.254.169.254 access |
 
 ---
 
 ### Verdict List
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| BigFrames vendored ibis `CLIENT_SECRET` | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` + `backend.py:59` | **no** | Vendored third-party code (ibis upstream); value `iU5ohAF2cq...` appears to be a test/default constant from ibis repo, not a Google secret. `# noqa: S105` acknowledges lint. No evidence it's a live Google credential. |
-| Algolia DocSearch apiKey (xrblocks) | `google/xrblocks/docs/docusaurus.config.ts:175` | **no** | **Explicitly REJECTED in KB** — search-only key, public by design. |
-| Earth Engine hardcoded `client_secret` | `google/earthengine-api/python/ee/oauth.py:45` | **yes** (pre-existing) | **Already ACCEPTED in KB** — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, live on master, A/B `invalid_grant` vs `invalid_client` proof conclusive. Pending VRP determination on native-app by-design status. |
-| All other delta hits | — | **no** | Test fixtures, comments, placeholders, or known-rejected. |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `bigframes` vendored `CLIENT_SECRET` (`iU5ohAF2qcqrujegE3hQ1cPt`) | **yes** (pending verification) | Hardcoded in vendored third-party code with bandit suppression; need to verify if it's a real BigQuery client secret or test fixture. Check upstream ibis repo. |
+| `earthengine-api` oauth.py:45 `RUP0RZ6e0pPhDzsqIJ7KlNd1` | **no** | **KNOWN DUP** — already tracked in KB (issue #5520, issuetracker 504158909), pending VRP determination on native-app by-design status |
+| Algolia DocSearch key in `xrblocks` | **no** | **REJECTED per KB** — search-only key, public by design |
+| All other hits | **no** | Test fixtures, templates, CI secret refs, documentation, SSRF mitigation code |
 
 ---
 
-**Summary**: No **new** reportable secrets in this delta. The only live reportable candidate remains the pre-existing Earth Engine hardcoded OAuth `client_secret` (already tracked in KB as ACCEPTED, pending VRP triage on native-app by-design classification). The BigFrames vendored ibis secret is upstream test material, not a Google credential.
+**Action required**: Verify the `bigframes` vendored secret against upstream ibis (`google/ibis` or `ibis-project/ibis`) to determine if it's a leaked real credential or a test constant. If real, report via Google VRP.
