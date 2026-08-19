@@ -444,3 +444,5 @@
 - 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic to developer.microsoft.com/graph, no auth-bypass surface.
 - 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass.
 - 2026-08-19 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 15:06 UTC)
+- 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, RFC 6749 §5.2 A/B proof conclusive
