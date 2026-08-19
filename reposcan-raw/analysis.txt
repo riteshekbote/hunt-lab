@@ -1,71 +1,48 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho "40150cc2c638b09de8ebbfefd50b80a4" | sha256sum
-cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130  -
-[0m
-[0m$ [0mecho -n "initial-token" | sha256sum
-echo -n "updated-token-123" | sha256sum
-echo -n "nextPage" | sha256sum
-ed49274ca88ccff09d7a08ec10d0ef3a99d9814f5680e09944f1e3ddaa8d323b  -
-638445cbc51691a8ddc819ee847be4ce3c3c0e81b3838b2169a3dca45e3e09d2  -
-723f7c705fec389a7aed94faaff3b274e65919f4403940319894c3688fa2cc27  -
-[0m
+## Classification Tables
+
 ### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none)* |  |  |  |
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none found in this delta/scan)* | | | The only hardcoded key candidate (Algolia in xrblocks) is explicitly REJECTED in KB as "search-only key, public by design" |
 
 ### TEST_OR_EXAMPLE
-| File | Line | Context | SHA256 |
-|------|------|---------|--------|
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413 | `{items: [], nextPageToken: 'initial-token'}` | ed49274ca88ccff09d7a08ec10d0ef3a99d9814f5680e09944f1e3ddaa8d323b |
-| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 459 | `const nextToken = 'updated-token-123'` | 638445cbc51691a8ddc819ee847be4ce3c3c0e81b3838b2169a3dca45e3e09d2 |
-| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221,240,461 | `nextPageToken: 'nextPage'` / `pageToken: 'nextPage'` | 723f7c705fec389a7aed94faaff3b274e65919f4403940319894c3688fa2cc27 |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | cfaa7fabcf9b17f50e10d55102bed75d97a53e999ab79d8e5e84f0aec20a8130 |
-| google/xrblocks/src/ai/AI.ts | 303-304 | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | (placeholders) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: private_key, username/password, truncated JWT | (test data) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | (test constant) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | (placeholder) |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | (constant name) |
+| File | Line | Classification |
+|------|------|----------------|
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `-----BEGIN PRIVATE KEY-----...`) |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test JWT fixture `token="eyAkaknabna...."` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
+| reposcan-raw/google/xrblocks/src/ai/AI.ts | 303-304 | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| reposcan-raw/google/adk-web/src/app/components/*/*.spec.ts | multiple | Test tokens (`initial-token`, `updated-token-123`, `nextPage`) |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | String constant `keyRefreshToken = "refresh_token"` (key name, not token) |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Compiled parser tables (generated code, not secrets) |
 
 ### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` (K8s) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` |
-| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` templates |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env ref) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` (GH secret refs) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GH secret refs) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` |
+| File | Line | Classification |
+|------|------|----------------|
+| *(none)* | | ConfigMap `kind:` entries are K8s resource types, not endpoint leaks |
 
 ### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | `kubeconfig_path`, cloud metadata endpoint `169.254.169.254` references |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | Cloud metadata endpoint `169.254.169.254` access/escalation warnings |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Routes to `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses `169.254.169.254` in Chrome |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (internal state key) |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` template emission |
+| File | Line | Classification |
+|------|------|----------------|
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secret refs (`${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}`) — good practice |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — safe pattern |
+| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | Template placeholder `apiKey: '{{ site.algolia_api_key }}'` (sha256: 924dbf7185deec79) |
+| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | Same template placeholder (sha256: 924dbf7185deec79) |
+| reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `40150cc2c638b09de8ebbfefd50b80a4` — **REJECTED per KB** (search-only, public by design) |
 
 ---
 
-### VERDICT LIST
+## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-web test tokens (`initial-token`, `updated-token-123`, `nextPage`) | **no** | Test fixtures in `.spec.ts` files — pagination tokens, not credentials |
-| xrblocks Algolia DocSearch apiKey | **no** | **REJECTED 2026-08-07**: search-only key, public by design (KB) |
-| xrblocks `YOUR_*_API_KEY_HERE` placeholders | **no** | Explicit placeholder literals |
-| adk-python auth_credential test fixtures | **no** | Test file: truncated JWT, "password", dummy private key |
-| adk-python `PASSWORD = "password"` / `your_client_secret` | **no** | Test constants & placeholders |
-| sam/langextract/crosvm GH secret refs & gcloud secret access | **no** | CI/CD secret *references*, not leaked values — standard pattern |
-| sam K8s ConfigMap manifests | **no** | ConfigMap *kind* declarations, no secret data |
-| adk-python cloud metadata endpoint (169.254.169.254) refs | **no** | Defensive code comments/warnings about SSRF surface, not vuln |
-| adk-python `_STATE_KEY_ACCESS_TOKEN` / `GOOGLE_API_KEY` template | **no** | Internal state key name & CLI template emission |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Algolia DocSearch apiKey | google/xrblocks/docs/docusaurus.config.ts:175 | **no** (REJECTED class per KB: search-only key, public by design) |
+| Hardcoded OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **no** (not in this scan delta; already tracked as ACCEPTED pending VRP determination on native-app by-design status) |
+| Any other hardcoded secret | — | **no** (all hits are test fixtures, placeholders, template vars, or compiled code) |
 
-**No reportable findings in this delta.** All hits are test fixtures, placeholders, CI secret references (not values), or previously rejected public-by-design keys.
+**Summary**: 0 reportable findings in this delta. All 5 new hits are generated/compiled JS parser tables or template placeholders. Full grep hits are test fixtures, proper CI/CD secret references, or already-rejected Algolia key.
