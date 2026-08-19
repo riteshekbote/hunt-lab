@@ -1,50 +1,16 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+[0m← [0mWrite triage_report.md
+Wrote file successfully.
+[0m
+Done. Wrote full triage report to `triage_report.md`.
 
-## REAL_SECRET (reportable)
-*None found in this delta*
+**Bottom line: 0 reportable findings in this delta.**
 
-## TEST_OR_EXAMPLE (not reportable)
-| File | Line | Context | SHA256 |
-|------|------|---------|--------|
-| google/capsem/config/gate.toml | 595 | `password = "password.txt"` (file ref) | N/A |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` | N/A |
-| google/capsem/scripts/preflight.sh | 39 | Reads from `$pass_file` | N/A |
-| google/garf/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | placeholder |
-| google/garf/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | placeholder |
-| google/kube-startup-cpu-boost/.github/workflows/release.yaml | 90 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
-| google/mtail/.github/workflows/automerge.yml | 61 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` x3 | N/A (secret refs) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | placeholder |
-| google/copybara/javatests/.../AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` | test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136,159,189 | `testpassword` | test fixtures |
-| microsoft/agent-governance-toolkit/.github/workflows/auto-merge-dependabot.yml | 41 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
-| microsoft/agent-governance-toolkit/.github/workflows/labeler.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
-| microsoft/agent-governance-toolkit/.github/workflows/pr-size.yml | 20 | `${{ secrets.GITHUB_TOKEN }}` | N/A (secret ref) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `sk-REPLACE-WITH-YOUR-KEY` | placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` | placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` | commented placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQL injection test payload | test fixture |
+All 47 new hits + full grep context classify as:
+- **TEST_OR_EXAMPLE**: 18 items (test fixtures, placeholders like `YOUR_KEY`, `password`, fake `ghp_ABCDEF...` tokens in `.test.ts` files, GitHub Actions `${{ secrets.GITHUB_TOKEN }}` refs)
+- **ENDPOINT_LEAK**: 9 items (GCP metadata endpoint `169.254.169.254` references in comments/docs, Azure DevOps registry URLs, staging URL)
+- **INTERESTING**: 8 items (code patterns reading password files, state key names, Android constants, minified JS parser errors)
 
-## ENDPOINT_LEAK (internal URLs, metadata endpoints)
-| File | Line | Context |
-|------|------|---------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` |
-| google/device-infra/.../adc_credentials.sh | 39,44 | `metadata.google.internal` (GCP IMDS) |
-| microsoft/agent-governance-toolkit/.github/pipelines/esrp-publish.yml | 1180 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` |
-| microsoft/agent-governance-toolkit (10+ files) | various | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` (cloud IMDS endpoints) |
-
-## INTERESTING (unusual patterns)
-*None beyond the above*
-
----
-
-## VERDICT
-**REPORT_CANDIDATE: no** — No REAL_SECRET findings in this delta. All hits are test fixtures, placeholder values, GitHub Actions secret references, or known cloud metadata endpoints. The earthengine-api hardcoded client_secret (KNOWN, tracked separately) is the only live secret in the corpus and remains pending VRP determination on native-app by-design status.
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+The only live `REAL_SECRET` remains the previously tracked `google/earthengine-api` OAuth client_secret at `python/ee/oauth.py:45` (sha256 `3f3f8d6f…d271`) — already recorded, pending VRP determination on native-app by-design status.
