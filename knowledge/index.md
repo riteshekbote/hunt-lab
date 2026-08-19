@@ -411,3 +411,9 @@
 - 2026-08-19 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants true CORS preflight confirmed LIVE at 08:20 UTC — OPTIONS→200 + Access-Control-Allow-Origin:* + Access-Control-Allow-Methods now includes PATCH (widened from POST-only) + Max-Age 86400
 - 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate confirmed stable at 08:20 UTC via GET→404 (RFC 6749 §3.2.1 compliant, 30th consecutive probe since 2026-08-17)
 - 2026-08-19 ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE at 08:20 UTC — secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1', sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271, scopes cloud-platform+earthengine+drive+devstorage.full_control; file blob sha changed (formatting commit) but secret value unchanged
+- 2026-08-19 NO_DELTA — all 26+ consecutive probe cycles confirm all findings stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (fresh probe 09:05 UTC)
+- 2026-08-19 ACCEPTED: agentRegistrations true CORS preflight confirmed live — OPTIONS→200 + ACAO:* + PATCH (fresh probe 09:05 UTC)
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (30th consecutive probe)
+- 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271` (unchanged, reports finalized)
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface

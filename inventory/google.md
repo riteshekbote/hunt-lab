@@ -1617,3 +1617,5 @@
 - CHANGED graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph — cosmetic, REJECTED
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
 - CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
+
+## 2026-08-19 09:45:05 UTC
