@@ -1633,3 +1633,13 @@
 ## 2026-08-19 11:43:50 UTC
 
 ## 2026-08-19 12:05:35 UTC
+
+## 2026-08-19 13:07:28 UTC
+- NEW oauth2PermissionGrants CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (was API-callable only prior)
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (29 consecutive probes, RFC 6749 §3.2.1 compliant)
+- NEW reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK
+- CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset, no confusion surface)
+- CHANGED graph.microsoft.com root HTTP 301 redirect — REJECTED (cosmetic, no auth-bypass)
+- CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)

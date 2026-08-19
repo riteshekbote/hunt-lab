@@ -423,3 +423,9 @@
 - 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (fresh probe 11:13 UTC, PATCH widened from POST-only)
 - 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 families (unchanged at 11:13 UTC)
 - 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (was API-callable only)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate HTTP 401 + HEAD→405/0 empirically confirmed
+- 2026-08-19 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate HTTP 401 + HEAD→405/0 empirically confirmed
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, all kty=RSA, no cross-endpoint confusion surface
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass

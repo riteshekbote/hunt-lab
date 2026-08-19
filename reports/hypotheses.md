@@ -7158,3 +7158,20 @@
 - LEARN: REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules
 - LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass
+
+## RANKED HYPOTHESES 2026-08-19 13:07:28 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via msrc.microsoft.com/bounty po
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit both drafted reports — (1) MSRC two-principal request (`reports/msrc-two-principal-request.md`, sha256 `ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8
+- LEARN: ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + ACAO:* + PATCH + Max-
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate HTTP 401 + HEAD→405/0 empirically confirmed
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate HTTP 401 + HEAD→405/0 empirically confirmed
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, all kty=RSA, no cross-endpoint confusion surface
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
+- LEARN: ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Cont
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 familie
+- LEARN: NO_DELTA — all 30+ consecutive 2-hourly probe cycles confirm findings stable; no new proving-dead or proving-live classes this cycle.

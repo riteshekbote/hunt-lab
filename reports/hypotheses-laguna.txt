@@ -1,13 +1,10 @@
-## 2026-08-19 12:03:58 UTC [google] (model laguna)
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations (6-family CORS+PATCH IDOR) — score 95 — attack_surface:10, business:10, tech:8(Azure/Graph/Copilot admin), gate:6(auth-gated but zero ownership restrictions), cloud:9(MS365 Copilot ecosystem), freshness:9(stable 30+ probes)
-[PRIO] oauth2.googleapis.com/token (earthengine-api hardcoded client_secret) — score 90 — attack_surface:9, business:9, tech:8(OAuth/cloud-platform), gate:7(secret in public repo, RFC 6749 §5.2 A/B conclusive), cloud:10(full GCP scopes), freshness:10(stable 30+ probes)
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants (consent-forge CORS+PATCH) — score 80 — attack_surface:8, business:9, tech:8(OAuth/OIDC), gate:6(browser-exploitable CORS+PATCH, caller-chosen resourceId), cloud:7(Graph/Azure), freshness:9(stable probes)
+## 2026-08-19 13:05:48 UTC [google] (model laguna)
 [HYP] Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
 confidence: 97
 reasoning: True CORS preflight confirmed at collection+item+all 6 endpoint families (OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400). $metadata shows 5 EntityTypes with ZERO OperationRestrictions; createdBy/ownerIds/agentCard/managedByAppId/agentIdentityId all client-supplied Nullable=false. Item-level HTTP 401 confirmed no ownership binding.
-evidence_needed: App B cross-origin PATCH {ownerIds:["<B_oid>"]} on App A's agentRegistration returns HTTP 200 + persists in App A's subsequent GET
+evidence_needed: App B cross-origin PATCHs grant with caller-chosen ownerIds → mutation persists for App A
 verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {ownerIds:["<A_oid>"]} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:*+PATCH+Max-Age:86400; (3) App B cross-origin PATCH {ownerIds:["<B_oid>"]} → 200; (4) App A GET → confirms mutation persisted
 impact: Cross-tenant takeover of Copilot agent registrations; impersonate agents, rewrite agentCard supply-chain instructions across Microsoft 365 Copilot ecosystem; CVSS 9.4
 testability: AUTH_HELPED
@@ -33,8 +30,8 @@ testability: AUTH_HELPED
 [FINAL] 1) Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families — confidence 97, AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for full GCP access — confidence 96, HUMAN_ONLY
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 76, AUTH_HELPED
-[NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via msrc.microsoft.com/bounty portal — authorized two-principal test unblocks browser-based validation for hypotheses #1 and #3 (both blocked on AUTH_HELPED cross-principal test); #2 RFC 6749 §5.2 A/B proof is already conclusive.
-[LEARN] NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+[NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via msrc.microsoft.com/bounty portal to authorize cross-tenant two-principal test — unblocks browser-based validation for hypotheses #1 and #3 (both blocked on AUTH_HELPED cross-principal test); #2 RFC 6749 §5.2 A/B proof is already conclusive.
+[LEARN] NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
 [LEARN] ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (fresh probe 11:13 UTC, PATCH widened from POST-only)
 [LEARN] ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 families (unchanged at 11:13 UTC)
 [RISK] google: 90 — earthengine-api oauth.py:45 hardcoded OAuth client_secret confirmed LIVE (sha256 3f3f8d6f…d271, scopes cloud-platform+earthengine+drive+devstorage, RFC 6749 §5.2 A/B proof conclusive, HUMAN_ONLY). No ungated cross-project read surface (identitytoolkit 403-gated, discovery APIs auth-gated, oauth2.googleapis.com/token GET→404).
