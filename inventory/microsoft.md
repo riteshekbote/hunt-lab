@@ -1768,3 +1768,7 @@
 - CHANGED graph.microsoft.com root HTTP 301 redirect — REJECTED (cosmetic, no auth-bypass)
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project param + auth, HTTP 400/401)
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP rules)
+
+## 2026-08-19 21:59:29 UTC
+- NEW None — all fresh passive probes (2026-08-19 21:39 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; no new surface items
+- CHANGED None — all hypothesis preconditions stable across 30+ consecutive 2-hourly probe cycles
