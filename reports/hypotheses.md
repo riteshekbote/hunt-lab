@@ -7461,3 +7461,18 @@
 - LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
 - LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+
+## RANKED HYPOTHESES 2026-08-19 20:43:40 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-laguna.txt)
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 `ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17`) via the MSRC bounty portal. Th
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — reque
+- LEARN: ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} item-level CORS preflight browser-exploitable — OPTIONS→200 + Access-Control-Allow-Origin: * + PA
+- LEARN: ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0/no-Bearer (was previously in
+- LEARN: ACCEPTED: Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 confirmed LIVE — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 30+ consecutive 2-hourly probes)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: NO_DELTA — all fresh passive probes (20:40 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or pro

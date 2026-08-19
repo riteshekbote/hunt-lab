@@ -1748,3 +1748,5 @@
 - CHANGED oauth2PermissionGrants item-level CORS preflight — status moved from "collection-level only" to "browser-exploitable" at /v1.0/oauth2PermissionGrants/{id} (OPTIONS→200 + ACAO:* + Allow-Methods now inc
 - CHANGED oauth2PermissionGrants item-level auth-gate — status moved from "inferred" to "empirically confirmed" (HEAD→405/0/no-Bearer while GET→401+Bearer, item-level RFC 6750 §3 deviation confirmed)
 - CHANGED agentRegistrations item-level OPTIONS CORS — status refreshed at 17:15 UTC (OPTIONS /beta/copilot/agentRegistrations/{id} → 200 + ACAO:* + PATCH, full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
+
+## 2026-08-19 20:43:40 UTC
