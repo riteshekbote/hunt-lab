@@ -1,94 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
-./reposcan-raw
+[0m→ [0mRead reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py[90m [offset=20, limit=20][0m
 [0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [offset=50, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [offset=50, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=130][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=20, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
-[0m→ [0mRead reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh[90m [offset=25, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/bigframes/scripts/run_doctest.sh[90m [limit=30, offset=33][0m
-[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml
-[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml[90m [limit=30, offset=95][0m
-Now I have full context. Let me classify all findings:
-
----
-
+[0m$ [0mecho -n 'kuaqECaVXOKEJ2L6ifZu4Aqt' | sha256sum
+a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d  -
+[0m
+[0m$ [0mgrep -r "639403125587" reposcan-raw/google/neuroglancer/ 2>/dev/null | head -5
+reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py:        client_id="639403125587-ue3c18dalqidqehs1n1p5rjvgni5f7qu.apps.googleusercontent.com",
+reposcan-raw/google/neuroglancer/rspack.config.ts:        "639403125587-4k5hgdfumtrvur8v48e3pr7oo91d765k.apps.googleusercontent.com",
+[0m
 ### Classification Tables
 
-#### REAL_SECRET (hardcoded credential with signs of life)
+#### REAL_SECRET
 | File | Line | Secret SHA256 | Context |
 |------|------|---------------|---------|
-| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `sha256(iU5ohAF2qcqrujegE3hQ1cPt)` | Vendored ibis test fixture (CLIENT_SECRET + CLIENT_ID for BigQuery) |
-| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `sha256(iU5ohAF2qcqrujegE3hQ1cPt)` | Same vendored test fixture |
+| reposcan-raw/google/neuroglancer/python/neuroglancer/default_credentials_manager.py | 28 | `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d` | Hardcoded Google OAuth `client_secret` for client_id `639403125587-ue3c18dalqidqehs1n1p5rjvgni5f7qu.apps.googleusercontent.com`, scope `https://www.googleapis.com/auth/brainmaps` |
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
+#### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js` | 3 | Parser generator error message (test/fixture) |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js` | 3 | Parser generator error message (test/fixture) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Example docstring: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Example: `username="user", password="password"` (obvious test) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Example: `token="eyAkaknabna...."` (truncated fake JWT) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` (constant name, not secret) |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Example docstring: `client_secret="your_client_secret"` (placeholder) |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template: `GOOGLE_API_KEY={google_api_key}` (runtime variable) |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Dev script: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs (`${{ secrets.X }}`), not hardcoded |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` (constant name) |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions step outputs (`${{ steps.fetch-token.outputs... }}`) |
+| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | Proper `${{ secrets.GITHUB_TOKEN }}` usage |
+| reposcan-raw/google/neuroglancer/.github/workflows/deploy_docs_preview.yml | 41,50,54 | Proper `${{ secrets.GITHUB_TOKEN }}` usage |
+| reposcan-raw/google/neuroglancer/.github/workflows/deploy_preview.yml | 41,50,54 | Proper `${{ secrets.GITHUB_TOKEN }}` usage |
+| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` |
+| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | Commented placeholder `# hf_access_token: "your_token"` |
+| reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py | 193-195 | Tokenizer special tokens (`eot_token`, `system_token`, `user_token`) |
+| reposcan-raw/microsoft/Ontology-Playground/src/lib/github.test.ts | 84,98 | Test fixtures (`ghp_real_token`, `ghp_after_retry`) |
+| reposcan-raw/microsoft/ResearchStudio/.../render_poster.py | 55 | Legacy constant `_LEGACY_FIGURE_FLOOR_TOKEN` |
+| reposcan-raw/microsoft/data-formulator/.../log_sanitizer.py | 54 | Redaction placeholder `_REDACTED_TOKEN = "[REDACTED]"` |
+| reposcan-raw/microsoft/skill-recorder/common/sensitive.test.ts | 89 | Test fixture `ghp_ABCDEFGHIJKLMNOP` |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19,20,24 | Test fixtures (GitHub/AWS token patterns) |
+| reposcan-raw/microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | Test fixture `ghp_abcdefghij...` |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | Eval data `ghp_A1b2C3d4...` |
+| reposcan-raw/microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | Eval data `token ghp_abcdefghij...` |
+| reposcan-raw/microsoft/qlib/.github/workflows/release.yml | 63,107 | Test PyPI uploads to `test.pypi.org` |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
+#### ENDPOINT_LEAK
 | File | Line | Endpoint |
 |------|------|----------|
-| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud --project=crosvm-infra secrets versions access` (secret manager access, not leak) |
-| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud --project=crosvm-infra secrets versions access` (secret manager access) |
-| `reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | `https://bcid.corp.google.com/` (internal Google corp URL) |
-| `reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | `https://artifact-registry.git.corp.google.com/` (internal Google corp URL) |
-| `reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: `169.254.169.254` (GCP metadata IP) |
-| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: `169.254.169.254` (GCP metadata IP) |
-| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: `169.254.169.254` / `fd00:ec2::254` (metadata IPs) |
-| `reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh` | 31 | `http://metadata.google.internal/...` (GCP metadata endpoint, standard) |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments: `169.254.169.254` (metadata IP) |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: `169.254.169.254` (metadata IP) |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment: `169.254.169.254` (metadata IP) |
-| `reposcan-raw/google/sam/site/content/docs/manifests/*.yaml` | various | K8s `ConfigMap` kind (documentation) |
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant: `keyRefreshToken = "refresh_token"` (OAuth field name) |
-| `reposcan-raw/google/sam/.github/k8s/*.yaml` | various | K8s `ConfigMap` kind (templates) |
-| `reposcan-raw/google/bigframes/scripts/run_doctest.sh` | 38-39 | Kokoro CI: `KOKORO_GFILE_DIR/service-account.json` (CI-injected) |
+| reposcan-raw/microsoft/mxc/.azure-pipelines/Update.Feed.Dependencies.yml | 5 | `https://dev.azure.com/shine-oss/mxc/_build?definitionId=33` |
+| reposcan-raw/microsoft/vcpkg/scripts/azure-pipelines/osx/guest-prepare.sh | 17 | `https://download.agent.dev.azure.com/agent/5.277.0/vsts-agent-osx-arm64-5.277.0.tar.gz` |
 
-#### INTERESTING (debug flags, keys, cloud configs)
+#### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (session key name) |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` params (config, not secret) |
+| reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py | 42 | SSRF-relevant metadata IP check `169.254.169.254` (IMDS) |
+| reposcan-raw/microsoft/vcpkg/scripts/azure-pipelines/osx/host-register-guest.sh | 40 | Script accepts PAT via `$1` parameter (not hardcoded) |
 
 ---
 
-### VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| bigframes vendored ibis CLIENT_SECRET | **no** | Third-party vendored test fixture; known public test credentials for ibis BigQuery backend; `# noqa: S105` acknowledges bandit suppression |
-| adk-python auth_credential.py private_key example | **no** | Documentation placeholder (`...` truncation), not a real key |
-| adk-python auth_credential.py test passwords/tokens | **no** | Obvious test fixtures in example docstrings |
-| crosvm gcloud secret manager access | **no** | Runtime secret fetch from GCP Secret Manager (correct pattern), no secret in repo |
-| go-containerregistry corp URLs | **no** | Internal Google build infrastructure URLs (not accessible externally) |
-| GCP metadata endpoint references (169.254.169.254) | **no** | Standard cloud metadata IP documented in comments/code for SSRF awareness |
-| sam OIDC_CLIENT_SECRET empty default | **no** | Dev script with empty default, expects env var at runtime |
-| sam deploy.yaml GitHub Actions secrets | **no** | Proper secret references (`${{ secrets.X }}`), not hardcoded |
-| agents-cli GEMINI_API_KEY enum | **no** | Constant name, not a value |
-
----
-
-**Bottom line**: **0 reportable findings** in this delta. All hits are either test fixtures, documentation placeholders, internal build config, standard cloud metadata references, or proper secret-manager patterns. The ibis CLIENT_SECRET is a known public test credential in vendored third-party code.
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| neuroglancer `default_credentials_manager.py:28` client_secret | **yes** | Hardcoded Google OAuth client_secret (24-char, web-app format) for live client_id with `brainmaps` scope in public google/neuroglancer repo. Mirrors earthengine-api pattern (ACCEPTED 2026-08-07). Secret SHA256: `a97a85332fb876e176abab5f8d92f9e4c98c361e6c978c0f1920a8cb7597f73d`. Requires validation if secret is revoked/intentional (some Google services publish client_secrets for public integrations). |
+| All TEST_OR_EXAMPLE | no | Test fixtures, placeholders, proper secret references, or tokenizer constants. |
+| All ENDPOINT_LEAK | no | Public Azure DevOps URLs and agent download endpoints — no credentials. |
+| data-formulator IMDS check | no | Defensive SSRF guard pattern (checks for metadata IP), not a vulnerability. |
+| vcpkg token parameter | no | Token passed at runtime (`$1`), not hardcoded. |
