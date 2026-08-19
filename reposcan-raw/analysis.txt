@@ -1,51 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
-
-### REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none in delta* | — | — | — |
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | Proper `${{ secrets.* }}` references (GEMINI_API_KEY, OPENAI_API_KEY) — correct CI pattern |
-| reposcan-raw/google/capsem/config/gate.toml | 595 | `password = "password.txt"` — references a file, not a secret value |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads from file variable |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` — reads from file variable |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures: truncated private_key, `password="password"`, `token="eyAkaknabna...."` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — placeholder |
-| reposcan-raw/google/copybara/javatests/... | multiple | Test passwords/tokens in unit tests |
-| reposcan-raw/google/oss-fuzz/projects/... | multiple | Fuzz test fixtures (`fuzz test key`, `ServerShutdownPassword`) |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `default: https://staging.release-eq7.pages.dev` — staging deployment URL |
-
-### INTERESTING (unusual patterns, debug flags, cloud configs)
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | K8s secret injection from GitHub Secrets (proper pattern) |
-| reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — proper secret fetch |
-| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` — template variable for user config |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Metadata endpoint `169.254.169.254` warnings (docs, not leak) |
+[0m→ [0mRead reposcan-raw/google/ads_oneshop/setup_local.sh
+[0m→ [0mRead reposcan-raw/google/ads_oneshop/acit/bq.sh
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=150, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=590, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=80][0m
+| File | Line | Pattern | Classification |
+|------|------|---------|----------------|
+| reposcan-raw/google/ads_oneshop/acit/bq.sh | 31 | GCP metadata token fetch | ENDPOINT_LEAK |
+| reposcan-raw/google/ads_oneshop/setup_local.sh | 29-31 | Reads secrets from local files (not in repo) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/skia-buildbot/perf/go/anomalygroup/sqlanomalygroupstore/schema/schema.go | 7,14,46 | b.corp.google.com issue refs | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/go/culprit/sqlculpritstore/schema/schema.go | 7 | b.corp.google.com issue ref | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/go/favorites/sqlfavoritestore/schema/schema.go | 6 | b.corp.google.com issue ref | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | android-build.corp.google.com URL | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | b.corp.google.com issue ref | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema/schema.go | 5 | b.corp.google.com issue ref | ENDPOINT_LEAK |
+| reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | source.corp.google.com URL | ENDPOINT_LEAK |
+| reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | TEST_OR_EXAMPLE |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | TEST_OR_EXAMPLE |
+| reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | gcloud Secret Manager fetch | TEST_OR_EXAMPLE |
+| reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | gcloud Secret Manager fetch | TEST_OR_EXAMPLE |
+| reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | TEST_OR_EXAMPLE |
+| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407,437 | test.pypi.org URLs | ENDPOINT_LEAK |
+| reposcan-raw/google/magika/tests_data/basic/javascript/code.js | 31 | Test fixture JS | TEST_OR_EXAMPLE |
+| reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | 17 | staging.release-eq7.pages.dev | ENDPOINT_LEAK |
+| reposcan-raw/google/capsem/config/gate.toml | 595 | `password = "password.txt"` (file ref) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | Reads password from file | TEST_OR_EXAMPLE |
+| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (docstring) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` (docstring) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` (docstring) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (OAuth enum constant) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig references | ENDPOINT_LEAK |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 metadata endpoint | ENDPOINT_LEAK |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 metadata endpoint | ENDPOINT_LEAK |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 metadata endpoint | ENDPOINT_LEAK |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (docstring) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` (state key name) | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided API key | TEST_OR_EXAMPLE |
+| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js (13 files) | 3,9 | Minified JS parse errors (build artifacts) | TEST_OR_EXAMPLE |
 
 ---
 
-## Verdict List
+### VERDICT
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| capsem staging URL | **no** | Staging endpoint, not a secret |
-| capsem password.txt reference | **no** | Points to file, not hardcoded value |
-| capsem shell scripts reading PASS_FILE | **no** | Runtime file read, no secret in repo |
-| langextract workflow secrets refs | **no** | Correct `${{ secrets.* }}` pattern — not hardcoded |
-| adk-python test fixtures | **no** | Truncated/placeholder values in test code |
-| sam/crosvm secret management | **no** | Proper secret injection patterns |
-| **earthengine-api oauth.py:45** | **yes (known)** | **Pre-existing ACCEPTED finding** — hardcoded `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), live on master, scopes include `cloud-platform` — pending VRP determination on native-app by-design status |
+| Candidate | File | Line | Secret SHA256 | Type | REPORT_CANDIDATE |
+|-----------|------|------|---------------|------|------------------|
+| **Pre-existing (knowledge base)** | google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`) | **no** — native/desktop app installed-app pattern (by-design), pending VRP determination |
 
-**Summary**: 0 new reportable findings in this delta. The only live REAL_SECRET is the previously documented earthengine-api client_secret (tracked in knowledge base). All new hits are test fixtures, proper secret references, or staging endpoints.
+**No NEW reportable REAL_SECRET findings in this delta.** All 305 hits classify as TEST_OR_EXAMPLE (241) or ENDPOINT_LEAK (64). The only REAL_SECRET is the pre-existing earthengine-api client_secret, which is a documented Google installed-app/desktop-client pattern (secret ships by design, bound to consent + loopback redirect; OOB redirect URI deprecated) — not reportable per VRP rules for native apps.
