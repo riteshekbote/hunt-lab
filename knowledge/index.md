@@ -446,3 +446,5 @@
 - 2026-08-19 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules.
 - 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 15:06 UTC)
 - 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, RFC 6749 §5.2 A/B proof conclusive
+- 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families (unchanged 16:13 UTC)
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight browser-exploitable — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (stable 16:13 UTC)

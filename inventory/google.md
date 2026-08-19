@@ -1659,3 +1659,14 @@
 - CHANGED graph.microsoft.com root HTTP 301 redirect — cosmetic, REJECTED
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules — REJECTED
+
+## 2026-08-19 16:49:40 UTC
+- NEW oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (wa
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29+ consecutive probes)
+- NEW reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK
+- CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface — REJECTED (confirmed stable)
+- CHANGED graph.microsoft.com root HTTP 301 redirect — cosmetic, REJECTED
+- CHANGED www.googleapis.com/storage/v1/b anonymous enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
+- CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules — REJECTED
