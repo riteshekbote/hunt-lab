@@ -1,23 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/triage_results.md << 'EOF'
+# Triage Results — google/ + microsoft/ org scan (2026-08-19)
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *(none in delta)* |
-| **TEST_OR_EXAMPLE** | `adk-kotlin/core/src/jvmTest/.../McpIntegrationTestSupport.kt:49` — `const val INJECTED_TOKEN = "injected-token-probe"` (test fixture)<br>`adk-kotlin/webserver/browser/main-TCIQIOZ3.js:5` — minified build artifact<br>`adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3` — minified build artifact<br>`adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9` — minified build artifact<br>`ads-api-report-fetcher/js/src/cli.ts:469` — `refresh_token: '<hidden>'` placeholder<br>`ads-api-report-fetcher/js/src/cli.ts:470` — `developer_token: '<hidden>'` placeholder |
-| **ENDPOINT_LEAK** | *(none in delta)* |
-| **INTERESTING** | `ads-api-report-fetcher/gcp/functions/deploy.sh:112` — `set_secret="--set-secrets DEVELOPER_TOKEN=google-ads-dev-token:latest"` (Secret Manager reference, not a leaked value) |
+## Classification Tables
 
-## Verdict
+### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | SHA256 (secret) | Context | REPORT_CANDIDATE |
+|------|------|-----------------|---------|------------------|
+| *none in this scan* | | | | |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| adk-kotlin test token | no |
-| adk-kotlin build artifact | no |
-| adk-python build artifacts (2) | no |
-| ads-api-report-fetcher placeholder tokens (2) | no |
-| ads-api-report-fetcher Secret Manager reference | no |
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Reason |
+|------|------|--------|
+| google/sam/internal/node/store.go | 38 | Constant key name `refresh_token`, not a secret value |
+| google/sam/development/kind/run.sh | 139 | Env var reference with empty default: `${OIDC_CLIENT_SECRET:-}` |
+| google/ads-api-report-fetcher/js/src/cli.ts | 469-470 | Placeholder values `<hidden>` in source |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test private key fixture (truncated `...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token fixture (truncated `...`) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant string `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Constant key name `_STATE_KEY_ACCESS_TOKEN` |
+| google/adk-kotlin/core/src/jvmTest/kotlin/.../McpIntegrationTestSupport.kt | 49 | Test constant `INJECTED_TOKEN = "injected-token-probe"` |
 
-**Summary**: 0 reportable findings in this delta. All 7 new hits are test fixtures, build artifacts, placeholders, or secret-manager references — no hardcoded live credentials. The only live secret in the corpus remains the previously-accepted `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`), already tracked.
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | Well-known GCP metadata endpoint (public IP) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same |
+
+### INTERESTING (debug flags, keys, cloud configs, hygiene issues)
+| File | Line | Finding | Severity |
+|------|------|---------|----------|
+| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret refs (`${{ secrets.GOOGLE_CLIENT_SECRET }}`, etc.) — **correct pattern**, not a leak | Info |
+| google/ads-api-report-fetcher/gcp/functions/deploy.sh | 112 | Secret Manager ref `google-ads-dev-token:latest` — correct pattern | Info |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret refs — correct pattern | Info |
+| google/ax/manifests/install-ax.sh | 239-286 | Generates random PG password via `openssl rand -hex 16` or uses `POSTGRES_PASSWORD` env — correct pattern | Info |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to file — variable value unknown; could be user-supplied at runtime | Low (hygiene) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig path params — config, not secrets | Info |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml + 8 other .github/k8s/*.yaml | various | `kind: ConfigMap` templates — no secret data in templates | Info |
+
+---
+
+## SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| **No hardcoded secrets found in this scan delta** | **no** | All hits are test fixtures, placeholders, env-var references, GitHub Actions secret refs, or well-known public endpoints (metadata IP). |
+| google/adk-python cli_create.py:131 (API key written to file) | **no** | Variable `google_api_key` — likely user-supplied at runtime; not a hardcoded secret in repo. Hygiene note only. |
+| Metadata endpoint references (169.254.169.254) | **no** | Public GCP metadata IP, documented behavior. |
+| GitHub Actions / Secret Manager references | **no** | Correct secret-injection patterns; no secrets in repo. |
+
+---
+
+## NOTES
+- **Earth Engine hardcoded client_secret** (`google/earthengine-api/python/ee/oauth.py:45`, sha256 `3f3f8d6f...d271`) is **NOT in this scan's hits** — it was found in prior full-clone probes and is tracked as **ACCEPTED** in knowledge base (pending VRP determination on native-app by-design status).
+- **sammo PRT RCE** (`microsoft/sammo/.github/workflows/build.yml`) was **KILLED by triager verdict** (2026-08-16) — default token read-only, no secrets, ephemeral runners, stale repo.
+- **This scan covers 25,930 files** across sampled repos; full corpuses not deep-scanned (git history scan pending terminal stability).
+- **No new reportable findings** in this delta.
+EOF
+cat /tmp/triage_results.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
