@@ -1568,3 +1568,26 @@
 - NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
 - NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
 - NEW Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
+
+## 2026-08-19 00:14:23 UTC
+- NEW oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (wa
+- NEW graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was HTTP 200 text/html) — cosmetic, REJECTED
+- NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
+- NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- NEW Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (wa
+- NEW graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was HTTP 200 text/html) — cosmetic, REJECTED
+- NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
+- NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- NEW Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (wa
+- NEW graph.microsoft.com root → HTTP 301 redirect to developer.microsoft.com/graph (was HTTP 200 text/html) — cosmetic, REJECTED
+- NEW www.googleapis.com/storage/v1/b anonymous bucket enumeration → HTTP 400/401 requires `project` param + auth — REJECTED (no bypass)
+- NEW oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- NEW Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
+- NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)

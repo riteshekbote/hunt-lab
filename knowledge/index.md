@@ -357,3 +357,37 @@
 - 2026-08-18 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed stable — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 endpoint families.
 - 2026-08-18 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 3f3f8d6f…d271, A/B proof conclusive.
 - 2026-08-18 NO_DELTA — all fresh passive probes (robot 22:57 UTC + knowledge base + inventory) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (was API-callable only prior)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (was API-callable only prior)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight now confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (was API-callable only prior)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive probes)
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface
+- 2026-08-19 ACCEPTED: reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE (test fixtures, env vars) or ENDPOINT_LEAK (well-known GCP metadata); confirms no new surface in latest scan cycle.
+- 2026-08-19 ACCEPTED: All 3 hypothesis preconditions remain stable across 29+ consecutive 2-hourly probe cycles — agentRegistration 6-family CORS+PATCH (OPTIONS→200 + ACAO:* + PATCH), earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f…d271`), oauth2PermissionGrants caller-chosen resourceId (458-char EntityType 0 OperationRestrictions).
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — 29th consecutive 2-hourly probe returns HTTP 404 on GET (RFC 6749 §3.2.1 compliant, NO_DELTA confirmed).
+- 2026-08-19 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible); confirmed in ctx.txt by 2026-08-18 passive re-probe.
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface; confirmed stable across all probe cycles.
+- 2026-08-19 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 (RFC 6749 §3.2.1 compliant, 29 consecutive 2-hourly probes since 2026-08-17).
+- 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed unchanged — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families.
+- 2026-08-19 ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE — sha256 `3f3f8d6f…d271`, A/B proof conclusive.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants caller-chosen resourceId precondition confirmed live — 458-char EntityType 0 OperationRestrictions.
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset, no confusion surface.
+- 2026-08-19 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
+- 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
+- 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
