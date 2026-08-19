@@ -1,56 +1,77 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'iU5ohAF2qcqrujegE3hQ1cPt'
-405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
+./reposcan-raw
 [0m
-### CLASSIFICATION TABLES
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [offset=50, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [offset=50, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=130][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh
+[0m→ [0mRead reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh[90m [offset=25, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/scripts/run_doctest.sh[90m [limit=30, offset=33][0m
+[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml
+[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml[90m [limit=30, offset=95][0m
+Now I have full context. Let me classify all findings:
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | Vendored ibis code, `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` — real secret in third-party vendored dep |
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | Same secret, duplicated in backend.py |
-| `google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN LIVE** — hardcoded OAuth client_secret, scopes: cloud-platform/earthengine/drive/devstorage.full_control, A/B proof conclusive (RFC 6749 §5.2) |
+---
 
-#### TEST_OR_EXAMPLE
+### Classification Tables
+
+#### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `sha256(iU5ohAF2qcqrujegE3hQ1cPt)` | Vendored ibis test fixture (CLIENT_SECRET + CLIENT_ID for BigQuery) |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `sha256(iU5ohAF2qcqrujegE3hQ1cPt)` | Same vendored test fixture |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data)
 | File | Line | Reason |
 |------|------|--------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixture private_key, username/password, token (truncated/placeholder) |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` — default/test value |
-| `google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js` | 3 | Minified parser error message |
-| `google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js` | 3 | Minified parser error message |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
-| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | CI template variable references `${{ steps.fetch-token.outputs... }}` |
-| `google/bigframes/scripts/run_doctest.sh` | 38-39 | CI env var reference `KOKORO_GFILE_DIR/service-account.json` |
-| `google/bigframes/third_party/bigframes_vendored/ibis/expr/operations/reductions.py` | 107, 125, 143 | MySQL doc URL comments |
-| `google/bigframes/third_party/bigframes_vendored/sqlglot/expressions.py` | 1926, 2007, 2116 | MySQL doc URL comments |
-| `google/bigframes/third_party/bigframes_vendored/sqlglot/optimizer/merge_subqueries.py` | 36 | MySQL doc URL comment |
-| `google/bigframes/third_party/bigframes_vendored/sqlglot/parser.py` | 2704, 3361, 4321 | MySQL doc URL comments |
-| `google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts` | 413, 459 | Test tokens: `'initial-token'`, `'updated-token-123'` |
-| `google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts` | 221, 240, 461 | Test tokens: `'nextPage'` |
-| `google/sam/internal/node/store.go` | 38 | Const `keyRefreshToken = "refresh_token"` — key name, not secret |
-| `google/sam/development/kind/run.sh` | 139 | Env var default `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret references `${{ GOOGLE_CLIENT_SECRET }}` etc. |
-| `google/eclipsa-audio-plugin/scripts/package_ci.sh` | 51, 53 | Env var references `APPLE_APP_SPECIFIC_PASSWORD`, `KEYCHAIN_PASSWORD` |
-| `google/virtual-broadcast-production-assistant/som-hackathon-starter-dotnet/listen.sh` | 48 | Command substitution `$(gcloud auth application-default print-access-token)` |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js` | 3 | Parser generator error message (test/fixture) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-M4CFRGUH.js` | 3 | Parser generator error message (test/fixture) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Example docstring: `private_key="-----BEGIN PRIVATE KEY-----..."` (placeholder) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Example: `username="user", password="password"` (obvious test) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Example: `token="eyAkaknabna...."` (truncated fake JWT) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` (constant name, not secret) |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Example docstring: `client_secret="your_client_secret"` (placeholder) |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template: `GOOGLE_API_KEY={google_api_key}` (runtime variable) |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Dev script: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs (`${{ secrets.X }}`), not hardcoded |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` (constant name) |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions step outputs (`${{ steps.fetch-token.outputs... }}`) |
 
-#### ENDPOINT_LEAK
+#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints)
 | File | Line | Endpoint |
 |------|------|----------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` (GCP metadata) |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (Chrome metadata) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (NAT64 metadata) |
-| `google/virtual-broadcast-production-assistant/archive/2025/orchestrator/agent-health-checker/main.py` | 28 | `http://metadata.google.internal/computeMetadata/v1/instance/` |
+| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud --project=crosvm-infra secrets versions access` (secret manager access, not leak) |
+| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | `gcloud --project=crosvm-infra secrets versions access` (secret manager access) |
+| `reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | `https://bcid.corp.google.com/` (internal Google corp URL) |
+| `reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | `https://artifact-registry.git.corp.google.com/` (internal Google corp URL) |
+| `reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment: `169.254.169.254` (GCP metadata IP) |
+| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: `169.254.169.254` (GCP metadata IP) |
+| `reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: `169.254.169.254` / `fd00:ec2::254` (metadata IPs) |
+| `reposcan-raw/google/oss-rebuild/deployments/scratch_startup.sh` | 31 | `http://metadata.google.internal/...` (GCP metadata endpoint, standard) |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments: `169.254.169.254` (metadata IP) |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment: `169.254.169.254` (metadata IP) |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment: `169.254.169.254` (metadata IP) |
+| `reposcan-raw/google/sam/site/content/docs/manifests/*.yaml` | various | K8s `ConfigMap` kind (documentation) |
+| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant: `keyRefreshToken = "refresh_token"` (OAuth field name) |
+| `reposcan-raw/google/sam/.github/k8s/*.yaml` | various | K8s `ConfigMap` kind (templates) |
+| `reposcan-raw/google/bigframes/scripts/run_doctest.sh` | 38-39 | Kokoro CI: `KOKORO_GFILE_DIR/service-account.json` (CI-injected) |
 
-#### INTERESTING
+#### INTERESTING (debug flags, keys, cloud configs)
 | File | Line | Note |
 |------|------|------|
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Code writes `GOOGLE_API_KEY={google_api_key}` to file — pattern, not secret |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` params — config surface |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key `_vmaas_access_token` — storage key name |
-| `google/sam/.github/k8s/*.yaml` | Various | ConfigMap kind definitions — K8s config, not secrets |
+| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` (session key name) |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` params (config, not secret) |
 
 ---
 
@@ -58,15 +79,16 @@
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` + `backend.py:59` | **no** | Real secret but in **vendored third-party code** (ibis). Upstream ibis issue; not Google-owned secret. Track for dependency update. |
-| `google/earthengine-api/python/ee/oauth.py:45` | **yes** (pending VRP determination) | **CONFIRMED LIVE** per knowledge base. Hardcoded OAuth client_secret with broad scopes (cloud-platform, earthengine, drive, devstorage.full_control). A/B `invalid_grant` vs `invalid_client` proof conclusive per RFC 6749 §5.2. Native-app by-design status pending VRP triage. |
-| All TEST_OR_EXAMPLE | **no** | Test fixtures, placeholders, CI templates, doc links |
-| All ENDPOINT_LEAK | **no** | Well-known metadata endpoints (169.254.169.254, metadata.google.internal) — public documentation |
-| All INTERESTING | **no** | Config patterns, parameter names, storage keys — no secret material |
+| bigframes vendored ibis CLIENT_SECRET | **no** | Third-party vendored test fixture; known public test credentials for ibis BigQuery backend; `# noqa: S105` acknowledges bandit suppression |
+| adk-python auth_credential.py private_key example | **no** | Documentation placeholder (`...` truncation), not a real key |
+| adk-python auth_credential.py test passwords/tokens | **no** | Obvious test fixtures in example docstrings |
+| crosvm gcloud secret manager access | **no** | Runtime secret fetch from GCP Secret Manager (correct pattern), no secret in repo |
+| go-containerregistry corp URLs | **no** | Internal Google build infrastructure URLs (not accessible externally) |
+| GCP metadata endpoint references (169.254.169.254) | **no** | Standard cloud metadata IP documented in comments/code for SSRF awareness |
+| sam OIDC_CLIENT_SECRET empty default | **no** | Dev script with empty default, expects env var at runtime |
+| sam deploy.yaml GitHub Actions secrets | **no** | Proper secret references (`${{ secrets.X }}`), not hardcoded |
+| agents-cli GEMINI_API_KEY enum | **no** | Constant name, not a value |
 
 ---
 
-### SUMMARY
-- **1 reportable candidate**: `google/earthengine-api/python/ee/oauth.py:45` (already tracked in knowledge base as ACCEPTED, pending VRP determination on native-app by-design status)
-- **1 real secret in vendored code**: ibis `CLIENT_SECRET` — not Google-owned, file upstream/dependency update
-- **0 new findings** from this delta scan
+**Bottom line**: **0 reportable findings** in this delta. All hits are either test fixtures, documentation placeholders, internal build config, standard cloud metadata references, or proper secret-manager patterns. The ibis CLIENT_SECRET is a known public test credential in vendored third-party code.
