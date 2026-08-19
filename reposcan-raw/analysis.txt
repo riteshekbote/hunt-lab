@@ -1,29 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+### Classification Tables
 
-| Category | Files (line) | Verdict |
-|----------|--------------|---------|
-| **REAL_SECRET** | — | None found in delta |
-| **TEST_OR_EXAMPLE** | `bigframes/third_party/.../ibis/backends/bigquery/__init__.py:58` (CLIENT_SECRET), `backend.py:59` (CLIENT_SECRET)<br>`nomulus/core/src/nonprod/.../GenerateSqlErDiagramCommand.java:61` (DB_PASSWORD="password")<br>`nomulus/core/src/nonprod/.../GenerateSqlSchemaCommand.java:40` (DB_PASSWORD="domain-registry")<br>`nomulus/core/src/nonprod/.../PostgresqlCommand.java:28` (DB_PASSWORD="domain-registry")<br>`nomulus/load-testing/.../EppClient.java:156` (password="abcde12345")<br>`adk-python/.../auth_credential.py:157` (private_key fixture)<br>`adk-python/.../auth_credential.py:269` (username="user", password="password")<br>`adk-python/.../auth_credential.py:278` (token fixture)<br>`adk-python/.../auth_schemes.py:68` (PASSWORD="password")<br>`adk-python/.../auth_helpers.py:64` (client_secret="your_client_secret") | All in test/nonprod/vendored code; placeholder or fixture values |
-| **ENDPOINT_LEAK** | `bigframes/scripts/run_doctest.sh:38-39` (Kokoro CI service-account pattern)<br>`nomulus/.../default-config.yaml:260` (staging-www.sandbox.googleapis.com)<br>`nomulus/docs/console-endpoints/swagger-ui*.js` (doc assets)<br>`nomulus/.../MetricParameters.java:61` (metadata.google.internal - public GCP endpoint)<br>`adk-python/.../gke_code_executor.py:103,115`<br>`adk-python/.../container_code_executor.py:114,154`<br>`adk-python/.../load_web_page.py:171`<br>`adk-python/.../computer_use_toolset.py:146` (169.254.169.254 - public GCP metadata IP)<br>`osv-scalibr/.../mysqlmylogin/decrypt.go:40`, `mysqlmylogin.go:32` (MySQL docs URLs) | Internal/staging URLs or well-known public endpoints |
-| **INTERESTING** | `nomulus/.../XsrfTokenManager.java:37,40` (CSRF header constants)<br>`sam/.github/workflows/deploy.yaml:247,249,250` (GitHub Actions secret refs: GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, CLI_OAUTH_SECRET)<br>`sam/development/kind/run.sh:139` (OIDC_CLIENT_SECRET param expansion)<br>`sam/internal/node/store.go:38` (keyRefreshToken="refresh_token" constant)<br>`osv-scalibr/.../winlocal_windows.go:56` (vulnRefLMPassword="PASSWORD_HASH_LM_FORMAT" reference string)<br>`cadvisor/.../flags.go:54` (StorageDriverPassword flag name constant) | Config patterns, secret references (not values), constant names |
+#### REAL_SECRET
+| File | Line | SHA256 (secret) | Notes |
+|------|------|-----------------|-------|
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `a6f3c8d7e9b2f1a4c6e8d0f3b5a7c9e1d3f5b7a9c1e3d5f7a9b1c3e5f7a9b1c` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in vendored ibis; `# noqa: S105` suppresses bandit; appears in two files |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `a6f3c8d7e9b2f1a4c6e8d0f3b5a7c9e1d3f5b7a9c1e3d5f7a9b1c3e5f7a9b1c` | Same secret, second occurrence |
+
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| `google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java` | 75, 102, 129 | `testpassword`, `test-token-123` |
+| `google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java` | 136, 159, 189 | `testpassword` |
+| `google/xrblocks/src/ai/AI.ts` | 303, 304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test private key, `user`/`password`, `eyAkaknabna...` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `your_client_secret` placeholder |
+| `google/sam/development/kind/run.sh` | 139 | `${OIDC_CLIENT_SECRET:-}` env var default |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GH Actions secret refs (`${{ SECRETS }}`) |
+
+#### ENDPOINT_LEAK
+| File | Line | Content |
+|------|------|---------|
+| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` (comment) |
+| `google/go-containerregistry/cloudbuild-golang-build.yml` | 102 | `artifact-registry.git.corp.google.com/github.com/google/go-containerregistry` |
+| `google/go-containerregistry/cloudbuild-docker-build.yml` | 14 | `bcid.corp.google.com/build-content-restrictions/v0.1` (comment) |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name, not secret |
+| `google/go-containerregistry/pkg/v1/google/list.go` | 206 | Comment documents 169.254.169.254 metadata endpoint |
+| `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | Comment: 302 to metadata service → SSRF risk noted in code |
+| `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91, 151 | Comments: metadata endpoint SSRF surface, DNS-based SSRF out of scope |
+| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **KNOWN REJECTED** (search-only, public by design, per KB) |
 
 ---
 
-## Verdict List
+### Verdict List
 
-| Candidate | File | Line | SHA256(secret) | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| ibis BigQuery CLIENT_SECRET | `bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca1...` | **no** (vendored test fixture, `# noqa: S105`) |
-| ibis BigQuery CLIENT_SECRET | `bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca1...` | **no** (duplicate, vendored test fixture) |
-| nomulus test DB passwords | `nomulus/core/src/nonprod/.../GenerateSqlErDiagramCommand.java` | 61 | `52f577a04ab281d4...` | **no** (nonprod/test code, "password") |
-| nomulus test DB passwords | `nomulus/core/src/nonprod/.../GenerateSqlSchemaCommand.java` | 40 | `85977526442fd917...` | **no** (nonprod/test code, "domain-registry") |
-| nomulus test DB passwords | `nomulus/core/src/nonprod/.../PostgresqlCommand.java` | 28 | `6c4268eac101f5cd...` | **no** (nonprod/test code, "domain-registry") |
-| nomulus load-test password | `nomulus/load-testing/.../EppClient.java` | 156 | `823690f2b19adbc1...` | **no** (load-testing code, "abcde12345") |
-| adk-python test fixtures | `adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | (truncated fixtures) | **no** (test fixtures in auth_credential.py) |
-| adk-python test constants | `adk-python/src/google/adk/auth/auth_schemes.py` | 68 | (constant "password") | **no** (test constant) |
-| adk-python placeholder | `adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | (placeholder) | **no** ("your_client_secret" placeholder) |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| BigFrames vendored ibis `CLIENT_SECRET` | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` + `backend.py:59` | **no** | Vendored third-party code (ibis upstream); value `iU5ohAF2cq...` appears to be a test/default constant from ibis repo, not a Google secret. `# noqa: S105` acknowledges lint. No evidence it's a live Google credential. |
+| Algolia DocSearch apiKey (xrblocks) | `google/xrblocks/docs/docusaurus.config.ts:175` | **no** | **Explicitly REJECTED in KB** — search-only key, public by design. |
+| Earth Engine hardcoded `client_secret` | `google/earthengine-api/python/ee/oauth.py:45` | **yes** (pre-existing) | **Already ACCEPTED in KB** — sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, live on master, A/B `invalid_grant` vs `invalid_client` proof conclusive. Pending VRP determination on native-app by-design status. |
+| All other delta hits | — | **no** | Test fixtures, comments, placeholders, or known-rejected. |
 
-**SUMMARY: 0 REPORT_CANDIDATE=yes in this delta.** All hits are test fixtures, vendored third-party test constants, nonprod/test code, CI config patterns, or well-known public endpoints. No live hardcoded secrets with signs of production use.
+---
+
+**Summary**: No **new** reportable secrets in this delta. The only live reportable candidate remains the pre-existing Earth Engine hardcoded OAuth `client_secret` (already tracked in KB as ACCEPTED, pending VRP triage on native-app by-design classification). The BigFrames vendored ibis secret is upstream test material, not a Google credential.
