@@ -1,48 +1,45 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [offset=50, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/scripts/run_doctest.sh[90m [limit=50, offset=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m
+[0m$ [0mgrep -r "iU5ohAF2qcqrujegE3hQ1cPt" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/ 2>/dev/null | head -5
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+/home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+[0m
+Based on my analysis of all hits, here's the classification:
 
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none found in this delta/scan)* | | | The only hardcoded key candidate (Algolia in xrblocks) is explicitly REJECTED in KB as "search-only key, public by design" |
+### Classification Table
 
-### TEST_OR_EXAMPLE
-| File | Line | Classification |
-|------|------|----------------|
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `-----BEGIN PRIVATE KEY-----...`) |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test JWT fixture `token="eyAkaknabna...."` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| reposcan-raw/google/xrblocks/src/ai/AI.ts | 303-304 | Placeholders `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` |
-| reposcan-raw/google/adk-web/src/app/components/*/*.spec.ts | multiple | Test tokens (`initial-token`, `updated-token-123`, `nextPage`) |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | String constant `keyRefreshToken = "refresh_token"` (key name, not token) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Compiled parser tables (generated code, not secrets) |
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **TEST_OR_EXAMPLE** | | |
+| | `google/bigframes/scripts/run_doctest.sh:38-39` | CI reference to Kokoro-mounted service account file (not hardcoded) |
+| | `google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` | Example docs: placeholder private_key, "password", fake JWT `eyAkaknabna....` |
+| | `google/adk-python/src/google/adk/auth/auth_credential.py:287` | Example: `client_secret="secret"` |
+| | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | Test constant `PASSWORD = "password"` |
+| | `google/adk-web/src/app/components/**/*.spec.ts` | Test fixtures: `'initial-token'`, `'updated-token-123'`, `'nextPage'` |
+| | `google/xrblocks/src/ai/AI.ts:303-304` | Placeholders: `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` |
+| | `google/xrblocks/docs/docusaurus.config.ts:175` | Algolia DocSearch key (search-only, public by design) — **REJECTED class** |
+| | `google/pebble/devsite/source/assets/js/*.js` | Template var `{{ site.algolia_api_key }}` |
+| | `google/sam/**/*.yaml`, `store.go:38` | K8s ConfigMaps, constant name `keyRefreshToken = "refresh_token"` |
+| | `google/sam/.github/workflows/deploy.yaml:247-250` | GitHub Actions secret refs `${GOOGLE_CLIENT_SECRET}`, not hardcoded |
+| | SQLGlot/MySQL comment refs | Documentation URLs only |
+| **ENDPOINT_LEAK** | | |
+| | `google/adk-python/src/google/adk/code_executors/*.py:114,154,171` | References to `169.254.169.254` metadata endpoint (well-known GCP) |
+| **INTERESTING** | | |
+| | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58-59` | Vendored ibis OAuth client: `CLIENT_ID=546535678771-gvffde...`, `CLIENT_SECRET=iU5ohAF2qcqrujegE3hQ1cPt` (sha256 `e69cc771eb028ca1...`) — **installed-app pattern, public by design** |
+| | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:58-59` | Same as above (duplicated in vendored copy) |
 
-### ENDPOINT_LEAK
-| File | Line | Classification |
-|------|------|----------------|
-| *(none)* | | ConfigMap `kind:` entries are K8s resource types, not endpoint leaks |
+### Verdict List
 
-### INTERESTING
-| File | Line | Classification |
-|------|------|----------------|
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secret refs (`${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}`) — good practice |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — safe pattern |
-| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | Template placeholder `apiKey: '{{ site.algolia_api_key }}'` (sha256: 924dbf7185deec79) |
-| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | Same template placeholder (sha256: 924dbf7185deec79) |
-| reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch key `40150cc2c638b09de8ebbfefd50b80a4` — **REJECTED per KB** (search-only, public by design) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| ibis vendored OAuth client_secret (`iU5ohAF2qcqrujegE3hQ1cPt`) | **no** | Third-party vendored code (ibis project's public installed-app OAuth client); same class as earthengine-api (already tracked, pending VRP determination on native-app by-design status); `# noqa: S105` indicates known test/public credential |
+| All other hits | **no** | Test fixtures, examples, placeholders, CI references, or already-rejected classes (Algolia search key) |
 
----
-
-## Verdict List
-
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| Algolia DocSearch apiKey | google/xrblocks/docs/docusaurus.config.ts:175 | **no** (REJECTED class per KB: search-only key, public by design) |
-| Hardcoded OAuth client_secret | google/earthengine-api/python/ee/oauth.py:45 | **no** (not in this scan delta; already tracked as ACCEPTED pending VRP determination on native-app by-design status) |
-| Any other hardcoded secret | — | **no** (all hits are test fixtures, placeholders, template vars, or compiled code) |
-
-**Summary**: 0 reportable findings in this delta. All 5 new hits are generated/compiled JS parser tables or template placeholders. Full grep hits are test fixtures, proper CI/CD secret references, or already-rejected Algolia key.
+**Summary**: No new reportable findings in this delta. The ibis vendored secret is a known pattern (public installed-app OAuth client) already covered by the earthengine-api tracking.
