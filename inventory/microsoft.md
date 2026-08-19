@@ -1593,3 +1593,5 @@
 - NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
 
 ## 2026-08-19 01:50:32 UTC
+
+## 2026-08-19 02:47:18 UTC
