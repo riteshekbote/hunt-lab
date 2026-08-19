@@ -1,24 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the delta and full scan results, I'll classify each hit:
+[0m$ [0msha256sum <<<'gemini_api_key'
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m
+[0m$ [0msha256sum <<<'AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg'
+44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
+[0m
+### Classification Tables
 
-## Classification Table
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN** — Hardcoded OAuth client_secret (native app pattern), scopes: cloud-platform+earthengine+drive+devstorage.full_control. Already ACCEPTED in knowledge base (2026-08-07). Pending VRP determination on native-app by-design status. |
+| google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Domain-restricted API key (AIzaSy...), comment: "locked to https://skottie.skia.org" — by-design, referer-restricted. |
 
-| Category | Files (line) | Assessment |
-|----------|-------------|------------|
-| **REAL_SECRET** | *none* | No hardcoded credentials found in delta or full scan |
-| **TEST_OR_EXAMPLE** | adk-python:157,269,278,68,278; auth_helpers.py:64; auth_schemes.py:68; crosvm (2 files - gcloud secret fetch pattern); sam (deploy.yaml, k8s configs); langextract ci.yaml; oss-fuzz-gen env_vars.py; cadvisor flags.go; capsem configs; flatbuffers label.yml | All are test fixtures, placeholder values (`"password"`, `"your_client_secret"`, `"..."`), env var names, ConfigMaps, or proper secret references (`${{ secrets.X }}`, `gcloud secrets access`) |
-| **ENDPOINT_LEAK** | nearby_sharing_service.h:71 (internal source.corp.google.com link); container_code_executor.py:114,154,171,146 (169.254.169.254 metadata endpoint refs) | Internal source link (not exploitable); metadata endpoint is well-known public IP, not a leak |
-| **INTERESTING** | adk-python code_executors (metadata endpoint awareness); sam/deploy.yaml (proper secret injection pattern) | Metadata endpoint handling shows security awareness; proper CI/CD secret patterns |
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant (sha256: `1a539ef3...`) |
+| google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py | 59 | `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` | Env var name placeholder |
+| google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py | 61 | `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"` | Env var name placeholder |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` | Explicitly invalid placeholder |
+| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` | Secret *name* (not value), nolint comment confirms |
+| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions template syntax (scaffold) |
 
-## Verdict on Delta Hits
+#### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com/logs/query...` |
+| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` |
+| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | `skia-corp.google.com` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com/range_search/...` |
+| google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `source.corp.google.com/h/chrome-internal/` |
+| google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | `b.corp.google.com/issues/new...` |
+| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68,75,82 | `rotations.corp.google.com/rotation/...` |
+| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | `pantheon.corp.google.com/storage/browser/...` |
+| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
+| Multiple schema.go files | various | `b.corp.google.com/issues/492077374` (internal bug tracker) |
 
-| File | Line | Secret Material SHA256 | REPORT_CANDIDATE |
-|------|------|------------------------|------------------|
-| crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | 9999ea9a30e0abe8 | **NO** — Uses `gcloud secrets access` at runtime (correct CI/CD pattern) |
-| crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | 8ff50571183ceb29 | **NO** — Uses `gcloud secrets access` at runtime (correct CI/CD pattern) |
+#### INTERESTING
+| File | Line | Finding |
+|------|------|---------|
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | Service account identity: `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (not a secret) |
+| google/skia-buildbot/skolo/ansible/.../gce.yml | 4 | Ansible secret ref: `{{ secrets.skolo_password }}` (proper pattern) |
+| google/skia-buildbot/skolo/ansible/.../win_autologon.yml | 12 | Ansible secret ref: `{{ secrets.skolo_password }}` (proper pattern) |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Template vars: `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` (proper pattern) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | K8s secret refs: `google-client-secret`, `github-client-secret`, `cli-oauth-secret` (proper CI pattern) |
 
-## Summary
+---
 
-**No reportable findings.** Both delta hits use Google Secret Manager via `gcloud` at execution time — the recommended pattern for CI/CD. The full scan reveals only test fixtures, placeholder values, ConfigMaps, and proper secret references via GitHub Actions/GCP Secret Manager.
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api oauth.py:45 client_secret | **no** | Already ACCEPTED in knowledge base (2026-08-07). Native-app pattern (OOB redirect, loopback), by-design for installed apps. Pending VRP determination only. |
+| skottie-drive-sk API key | **no** | Domain-restricted (referer-locked to skottie.skia.org). Comment confirms intent. 403 on referer-empty confirmed dead for attackers (2026-08-16 histscan). |
+| All TEST_OR_EXAMPLE | **no** | Placeholders, env var names, template syntax, explicitly invalid values. |
+| All ENDPOINT_LEAK | **no** | Internal Google Corp URLs (corp.google.com, metadata.google.internal). Not exploitable externally. |
+| All INTERESTING | **no** | Service account identities, proper secret reference patterns (Ansible/GHA/K8s). No hardcoded credentials. |
+
+**Summary**: 0 new reportable findings in this delta. The only live secret (earthengine-api) is already tracked and classified.
