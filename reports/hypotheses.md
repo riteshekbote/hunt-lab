@@ -7476,3 +7476,33 @@
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
 - LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
 - LEARN: NO_DELTA — all fresh passive probes (20:40 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or pro
+
+## RANKED HYPOTHESES 2026-08-19 21:08:31 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [79] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: Consent-grant forge via caller-chosen resourceId + item-level PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal. This
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection a
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+- LEARN: ACCEPTED: All 3 hypothesis preconditions confirmed still live via fresh 20:45+ UTC probes — agentRegistrations CORS preflight (OPTIONS→200 + ACAO:* + PATCH at c
+- LEARN: ACCEPTED: Systemic Graph API RFC 6750 §3 deviation (HEAD→405/0/no Bearer) confirmed stable across all tested endpoint families at collection+item levels — auth-
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate confirmed stable via GET→404 (RFC 6749 §3.2.1 compliant, 30+ consecutive 2-hourly probes since 2026-08-17, 
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface (stable across all
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, HTTP 400/401, no bypass
+- LEARN: REJECTED: sammo prt workflow (@ microsoft/sammo) — KILLED by triager verdict (repo stale since 2025-06, read-only token, saturated known class, ephemeral runner
+- LEARN: NO_DELTA — latest reposcan (2026-08-19 19:59 UTC) confirms 0 new reportable findings; all 319 hits in current scan are TEST_OR_EXAMPLE or ENDPOINT_LEAK; no new 
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection a
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- LEARN: NO_DELTA — all fresh passive probes (20:40 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or pro
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
