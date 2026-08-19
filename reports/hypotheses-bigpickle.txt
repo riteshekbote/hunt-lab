@@ -1,12 +1,12 @@
-## 2026-08-19 07:01:12 UTC [google] (model bigpickle)
-[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections} — 8.8 | attack:10 business:9 tech:9 gate:8 cloud:8 freshness:7
+## 2026-08-19 07:49:38 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections} — 8.8 | attack:9 business:9 tech:9 gate:8 cloud:8 freshness:7
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants — 7.6 | attack:8 business:8 tech:8 gate:7 cloud:7 freshness:6
 [PRIO] oauth2.googleapis.com/token (earthengine-api/oauth.py:45) — 6.9 | attack:8 business:7 tech:9 gate:3 cloud:8 freshness:5
 [HYP] Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
 confidence: 97
-reasoning: true preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + PATCH Allow-Methods + Max-Age 86400 at collection+item across all 6 families; $metadata blocks 0 OperationRestrictions, client-supplied createdBy/ownerIds Nullable=false; HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 systemic).
+reasoning: True CORS preflight (Origin+ACRM:PATCH+ACH:authorization) → 200 ACAO:* + PATCH Allow-Methods + Max-Age 86400 at collection+item across all 6 families; $metadata blocks 0 OperationRestrictions, client-supplied createdBy/ownerIds Nullable=false; HEAD→405/0 no WWW-Authenticate Bearer (RFC 6750 §3 systemic).
 evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any of the 6 family members.
 verify_steps: AUTH_HELPED: (1) A POST agentRegistrations → 201; (2) B GET /beta/copilot/agentRegistrations/{A's-id} → 200 vs 403; (3) B PATCH → 200/204 vs 403; (4) repeat for all 6 families; (5) record status + CORS headers.
 impact: cross-principal agent/package/policy tamper → impersonation, instruction injection, supply-chain via catalog packages; CVSS 7.5–9.0.
@@ -15,7 +15,7 @@ testability: AUTH_HELPED
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: source live on master (raw GitHub 200/len=23110, whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 at :45 + :99 fallback); A/B leaked-secret → 400 invalid_grant vs fake-secret → 401 invalid_client (RFC 6749 §5.2 conclusive); scopes incl cloud-platform+earthengine+drive+devstorage; native installed app + OOB redirect (line 420).
+reasoning: Source live on master (raw GitHub 200/len=23110, whole-file sha f4f93c76… unchanged, secret sha 3f3f8d6f…d271 at :45 + :99 fallback); A/B leaked-secret → 400 invalid_grant vs fake-secret → 401 invalid_client (RFC 6749 §5.2 conclusive); scopes incl cloud-platform+earthengine+drive+devstorage; native installed app + OOB redirect.
 evidence_needed: authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
 verify_steps: HUMAN_ONLY: submit drafted VRP report (reports/google-vrp-earthengine-secret.md) citing invalid_grant A/B proof + blob sha; request authorized redemption test only.
 impact: full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness per ADK #2128 precedent.
