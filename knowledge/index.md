@@ -495,3 +495,11 @@
 - 2026-08-19 ACCEPTED: Graph API RFC 6750 §3 deviation confirmed systemic at item-level — HEAD→405/0/no-Bearer while GET→401+Bearer at both collection and item levels
 - 2026-08-19 ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed — HEAD→405/0 + 401 (was previously inferred)
 - 2026-08-19 REJECTED: No new proving-dead classes — all passive probes stable
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — extends IDOR precondition from collection-level to item-level, strengthening hypothesis #3
+- 2026-08-19 ACCEPTED: Graph API RFC 6750 §3 deviation (HEAD→405/0/no-Bearer) extends to oauth2PermissionGrants item-level — systemic at both collection + item levels, confirms auth-gate asymmetry
+- 2026-08-19 ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed @ graph.microsoft.com/beta/copilot/agentRegistrations/{id} — HTTP 401 + HEAD→405/0/no-Bearer (was previously only inferred), strengthens hypothesis #1
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com/common/discovery/keys vs /discovery/v2.0/keys — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface, stable across 30+ probes
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable confirmed at /v1.0/oauth2PermissionGrants/{id} — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (item-level now confirmed, extends from collection-level).
+- 2026-08-19 ACCEPTED: Graph API RFC 6750 §3 deviation confirmed systemic at item-level — HEAD→405/0/no-Bearer while GET→401+Bearer at both collection and item levels.
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable).
+- 2026-08-19 REJECTED: No new proving-dead classes — all passive probes stable.
