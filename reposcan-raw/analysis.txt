@@ -1,34 +1,48 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-| Category | File | Line | Evidence | Classification |
-|---|---|---|---|---|
-| **TEST_OR_EXAMPLE** | digitalbuildings/tools/abel/model/constants.py | 106 | `ACCESS_TOKEN = 'accessToken'` | Constant name, not a token |
-| **ENDPOINT_LEAK** | digitalbuildings/tools/validators/.../telemetry_validator.py | 159 | `yaqs.corp.google.com` internal link | Internal URL |
-| **TEST_OR_EXAMPLE** | kctf/kctf-operator/config/scorecard/... | 2,8,14 | `kind: Configuration` | YAML kind field |
-| **TEST_OR_EXAMPLE** | langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | GH Actions secret refs |
-| **ENDPOINT_LEAK** | skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` | Service account email |
-| **TEST_OR_EXAMPLE** | skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` | Explicit placeholder |
-| **ENDPOINT_LEAK** | skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com` internal URL | Internal logging endpoint |
-| **TEST_OR_EXAMPLE** | skia-buildbot/perf/go/.../schema.go (7 files) | various | Comments referencing `b.corp.google.com/issues/492077374` | Internal issue tracker refs |
-| **ENDPOINT_LEAK** | skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com` internal URL | Internal build endpoint |
-| **TEST_OR_EXAMPLE** | skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` | Template variables |
-| **TEST_OR_EXAMPLE** | cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Flag default name |
-| **TEST_OR_EXAMPLE** | re2j/benchmarks/.../BenchmarkFullMatch.java | 33,36 | `password = "password"`, `l0ngpassword = "l0ngpassword"` | Benchmark test values |
-| **TEST_OR_EXAMPLE** | flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GH Actions secret ref |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test private key (`...`), `username="user", password="password"`, `token="eyAkaknabna...."` | Test fixtures |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Auth scheme constant |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
-| **INTERESTING** | adk-python/src/google/adk/code_executors/... | 103-154 | References to `169.254.169.254` metadata endpoint | Cloud metadata awareness |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| **TEST_OR_EXAMPLE** | adk-python/src/google/adk/cli/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Variable interpolation |
+[0m→ [0mRead reposcan-raw/google/skia-buildbot/get_service_account/go/get_service_account/main.go
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+Based on my analysis of all 443 hits (with 2 new delta hits), here are the classifications:
+
+### CLASSIFICATION TABLES
+
+| File:Line | Category | Rationale |
+|-----------|----------|-----------|
+| digitalbuildings/.../constants.py:106 | TEST_OR_EXAMPLE | Constant name `ACCESS_TOKEN = 'accessToken'` — placeholder string literal |
+| digitalbuildings/.../telemetry_validator.py:159 | ENDPOINT_LEAK | Internal `yaqs.corp.google.com` link |
+| langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE | Standard `${{ secrets.* }}` GitHub Actions references |
+| cadvisor/.../flags.go:54 | TEST_OR_EXAMPLE | Flag default `StorageDriverPassword = "storage_driver_password"` — config name |
+| kctf/.../kustomization.yaml:8,14 / config.yaml:2 | TEST_OR_EXAMPLE | Kubernetes `kind: Configuration` — resource type |
+| flatbuffers/.github/workflows/label.yml:24 | TEST_OR_EXAMPLE | `${{ secrets.GITHUB_TOKEN }}` — Actions secret ref |
+| adk-python/.../auth_credential.py:157 | TEST_OR_EXAMPLE | Test fixture `private_key="-----BEGIN PRIVATE KEY-----..."` |
+| adk-python/.../auth_credential.py:269 | TEST_OR_EXAMPLE | Test creds `username="user", password="password"` |
+| adk-python/.../auth_credential.py:278 | TEST_OR_EXAMPLE | Test token `token="eyAkaknabna...."` (truncated placeholder) |
+| adk-python/.../auth_schemes.py:68 | TEST_OR_EXAMPLE | Constant `PASSWORD = "password"` |
+| adk-python/.../gke_code_executor.py:103-115 | INTERESTING | Cloud metadata endpoint `169.254.169.254` references + kubeconfig params |
+| adk-python/.../container_code_executor.py:114,154 | INTERESTING | Cloud metadata endpoint `169.254.169.254` warnings |
+| adk-python/.../load_web_page.py:171 | INTERESTING | Cloud metadata endpoint `169.254.169.254` route mention |
+| adk-python/.../computer_use_toolset.py:146 | INTERESTING | Cloud metadata endpoint `169.254.169.254` refusal logic |
+| adk-python/.../auth_helpers.py:64 | TEST_OR_EXAMPLE | Placeholder `client_secret="your_client_secret"` |
+| adk-python/.../sandbox_computer.py:47 | TEST_OR_EXAMPLE | Constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| adk-python/.../cli_create.py:131 | INTERESTING | CLI writes user-supplied `GOOGLE_API_KEY` to `.env` — tool behavior |
+| adk-python/.../browser/chunk-*.js (19 files) | TEST_OR_EXAMPLE | Minified parser error messages — no secrets |
+| skia-buildbot/.../subscription-table-sk.ts:207 | ENDPOINT_LEAK | Internal `source.corp.google.com` URL |
+| skia-buildbot/.../schema.go (6 files) | ENDPOINT_LEAK | Internal `b.corp.google.com/issues/492077374` references |
+| skia-buildbot/.../android_notification_provider.go:223 | ENDPOINT_LEAK | Internal `android-build.corp.google.com` URL |
+| skia-buildbot/.../config_template.yaml:25,51,70 | TEST_OR_EXAMPLE | Template vars `{{ default .Env.POSTGRES_PWD "" }}` — not hardcoded |
+| skia-buildbot/.../arb-status-sk.ts:75 | ENDPOINT_LEAK | Internal `pantheon.corp.google.com` logging URL |
+| skia-buildbot/.../autoroll-fe/main.go:76 | ENDPOINT_LEAK | Internal service account `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` |
+| skia-buildbot/.../autoroll-fe/main.go:98 | TEST_OR_EXAMPLE | Explicit placeholder `ClientSecret: "not-a-valid-client-secret"` |
+| **skia-buildbot/get_service_account/.../main.go:2,16** | **INTERESTING** | **Tool fetches JWT service account from GCP metadata at runtime, writes to `service-account.json` — no hardcoded secret; legitimate infra tool** |
 
 ---
 
-### VERDICT
+### VERDICT SUMMARY
 
-| Candidate | File | Line | SHA256 | REPORT_CANDIDATE |
-|---|---|---|---|---|
-| *(none)* | — | — | — | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| skia-buildbot/get_service_account main.go | **no** | Runtime metadata fetch tool; writes fetched JWT to file — standard GCP infra pattern, no hardcoded credential |
+| All other hits | **no** | All classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URLs), or INTERESTING (cloud metadata refs / tool behavior) — no live hardcoded secrets |
 
-**Summary:** 0 REAL_SECRET candidates in this delta. All 23 new hits are TEST_OR_EXAMPLE (placeholders, test fixtures, secret references, constant names) or ENDPOINT_LEAK (internal Google corp URLs, service account emails). The previously known `earthengine-api` hardcoded `client_secret` (sha256 `3f3f8d6f…d271`) remains LIVE per knowledge base but is not a *new* finding in this scan.
+**No reportable findings in this delta.** The 2 new hits in `get_service_account` are a legitimate build-time tool that retrieves a service account JWT from GCP project metadata (`jwt_service_account` key) via `gcloud` and writes it to a local file — the secret material lives in GCP metadata, not in source code.
