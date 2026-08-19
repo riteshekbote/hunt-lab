@@ -420,3 +420,6 @@
 - 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new classes proven dead or alive this cycle.
 - 2026-08-19 NO_DELTA — all 30+ consecutive 2-hourly probe cycles confirm findings stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-19 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-19 ACCEPTED: oauth2PermissionGrants true CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH + Max-Age:86400 (fresh probe 11:13 UTC, PATCH widened from POST-only)
+- 2026-08-19 ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions stable — OPTIONS→200 + Access-Control-Allow-Origin:* + PATCH at collection+item+all 6 families (unchanged at 11:13 UTC)
+- 2026-08-19 NO_DELTA — all fresh passive probes confirm prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
