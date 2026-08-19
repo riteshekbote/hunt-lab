@@ -1,117 +1,54 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/eclipsa-audio-plugin/scripts/package_ci.sh | head -60
-#!/bin/bash -eu
-#
-# CI-specific packaging script for Eclipsa Plugins
-#
-# This script is intended to be run within a GitHub Actions macOS environment.
-# It performs the following steps:
-# 1. Adjusts RPATHs in plugin binaries.
-# 2. Signs dylibs and plugin binaries using Apple Developer ID Application certificate.
-# 3. Copies signed plugins to the output directory.
-#
-# It expects the following environment variables to be set by the CI workflow:
-# - APPLE_SIGNING_IDENTITY: The "Developer ID Application: ..." string.
-# - KEYCHAIN_PATH: Path to the temporary keychain containing the certs.
-# - KEYCHAIN_PASSWORD: Password for the temporary keychain.
-# - BUILD_CONFIG: Build configuration (e.g., Release, RelWithDebInfo). Defaults to Release.
+Based on the scan results, here's my classification:
 
-# --- Configuration ---
-BUILD_CONFIG="${BUILD_CONFIG:-Release}"
+## Classification Tables
 
-# Sanitize branch name to avoid invalid characters in artifact/installer names
-BRANCH_NAME_RAW="${BRANCH_NAME:-unknown_branch}"
-BRANCH_NAME="${BRANCH_NAME_RAW//\//_}"
+### REAL_SECRET: Hardcoded credentials with signs of life
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none found* | - | - | No hardcoded live secrets detected |
 
-SKIP_PACE_WRAPPING="${SKIP_PACE_WRAPPING:-false}"
+### TEST_OR_EXAMPLE: Sample/test/fixture data
+| File | Line | Context |
+|------|------|---------|
+| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413, 459 | Test fixtures: `'initial-token'`, `'updated-token-123'` |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221, 240, 461 | Test fixtures: `'nextPage'`, `'nextPage'` |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/*/TeX.js | 47 | Translation strings: `"%1 is not a token element"` (3 new + 38 existing locales) |
 
-# Plugin format selection (AAX, VST3 or AU only)
-PLUGIN_FORMAT="${PLUGIN_FORMAT:-aax}" # Default to AAX, options: aax, vst3, au
+### ENDPOINT_LEAK: Internal/dev/staging URLs
+| File | Line | Endpoint |
+|------|------|----------|
+| google/virtual-broadcast-production-assistant/archive/2025/orchestrator/agent-health-checker/main.py | 28 | `http://metadata.google.internal/computeMetadata/v1/instance/` (GCP metadata) |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` (GCP metadata) |
+| google/virtual-broadcast-production-assistant/som-hackathon-starter-dotnet/listen.sh | 48 | `$(gcloud auth application-default print-access-token)` — runtime token fetch, not leak |
 
-# Set format suffix based on plugin format
-case "$PLUGIN_FORMAT" in
-    aax)
-        FORMAT_SUFFIX="AAX"
-        ;;
-    vst3)
-        FORMAT_SUFFIX="VST3"
-        ;;
-    au)
-        FORMAT_SUFFIX="AU"
-        ;;
-    *)
-        echo "Error: Invalid plugin format. Use PLUGIN_FORMAT=aax , PLUGIN_FORMAT=vst3 or PLUGIN_FORMAT=au."
-        exit 1
-        ;;
-esac
+### INTERESTING: Config/debug/cloud configs (no secrets)
+| File | Line | Note |
+|------|------|------|
+| google/sam/internal/node/store.go | 38 | Constant key name: `keyRefreshToken = "refresh_token"` (not a value) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | `--from-literal=...="${ENV_VAR}"` — all reference env vars, not hardcoded |
+| google/eclipsa-audio-plugin/scripts/package_ci.sh | 51, 53 | `${APPLE_APP_SPECIFIC_PASSWORD:?}` / `${KEYCHAIN_PASSWORD}` — require env vars |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml + 7 k8s templates | 2-14 | `kind: ConfigMap` — Kubernetes template files |
+| google/sam/site/content/docs/manifests/*.yaml | 16, 88 | Documentation/examples — ConfigMap manifests |
 
-# Apple Credentials & Identities
-DEV_APP_SIGNING_IDENTITY="${APPLE_SIGNING_IDENTITY:?Error: APPLE_SIGNING_IDENTITY env var not set.}"
-DEV_INSTALLER_IDENTITY="${APPLE_INSTALLER_IDENTITY:?Error: APPLE_INSTALLER_IDENTITY env var not set.}"
-APPLE_TEAM_ID="${APPLE_TEAM_ID:?Error: APPLE_TEAM_ID env var not set.}"
-APPLE_ACCOUNT_EMAIL="${APPLE_ACCOUNT_EMAIL:?Error: APPLE_ACCOUNT_EMAIL env var not set.}"
-APPLE_APP_SPECIFIC_PASSWORD="${APPLE_APP_SPECIFIC_PASSWORD:?Error: APPLE_APP_SPECIFIC_PASSWORD env var not set.}"
-KEYCHAIN_PATH="${KEYCHAIN_PATH:?Error: KEYCHAIN_PATH env var not set.}"
-KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD}"
+---
 
-# Extract the signing identities - handle different formats
-# The input might be in the format:   1) 41BB6575983E1E97CC536403262FC40B38CDBC54 "Developer ID Application: A-CX, LLC (***)"
-# For regular codesigning, we use the fingerprint (hash) directly
-# For PACE wraptool, we need the full certificate name
+## Verdict List
 
-# Store the original full identity for PACE wraptool
-[0m
-[0m$ [0mcat reposcan-raw/google/eclipsa-audio-plugin/scripts/package_ci.sh | head -80 | tail -30
-APPLE_APP_SPECIFIC_PASSWORD="${APPLE_APP_SPECIFIC_PASSWORD:?Error: APPLE_APP_SPECIFIC_PASSWORD env var not set.}"
-KEYCHAIN_PATH="${KEYCHAIN_PATH:?Error: KEYCHAIN_PATH env var not set.}"
-KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD}"
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| MathJax localization strings (41 files) | TEST_OR_EXAMPLE | **no** — translation error messages |
+| ADK-web test tokens (`initial-token`, `nextPage`) | TEST_OR_EXAMPLE | **no** — test fixtures |
+| SAM OIDC_CLIENT_SECRET env var reference | INTERESTING | **no** — empty default, requires env |
+| SAM deploy workflow secrets | INTERESTING | **no** — all `${ENV_VAR}` references |
+| GCP metadata endpoints (169.254.169.254, metadata.google.internal) | ENDPOINT_LEAK | **no** — well-known internal endpoints, not exploitable |
+| Kafka SASL password via `gcloud auth` | ENDPOINT_LEAK | **no** — runtime token fetch |
+| SAM k8s ConfigMap templates | INTERESTING | **no** — infrastructure templates |
+| SAM doc manifests | INTERESTING | **no** — documentation examples |
+| `keyRefreshToken = "refresh_token"` constant | INTERESTING | **no** — key name, not value |
+| Apple/Keychain password env vars | INTERESTING | **no** — require env at CI time |
 
-# Extract the signing identities - handle different formats
-# The input might be in the format:   1) 41BB6575983E1E97CC536403262FC40B38CDBC54 "Developer ID Application: A-CX, LLC (***)"
-# For regular codesigning, we use the fingerprint (hash) directly
-# For PACE wraptool, we need the full certificate name
-
-# Store the original full identity for PACE wraptool
-DEV_APP_SIGNING_IDENTITY_FULL="$DEV_APP_SIGNING_IDENTITY"
-
-if [[ "$DEV_APP_SIGNING_IDENTITY" == *")"* ]]; then
-    # Extract the full certificate name for PACE wraptool (between quotes)
-    # Input format: 1) 41BB6575983E1E97CC536403262FC40B38CDBC54 "Developer ID Application: A-CX, LLC (***)"
-    DEV_APP_SIGNING_IDENTITY_FULL=$(echo "$DEV_APP_SIGNING_IDENTITY" | sed -E 's/.*[0-9A-F]{40} "(.*)"/\1/')
-    echo "Full signing identity for PACE: $DEV_APP_SIGNING_IDENTITY_FULL"
-    
-    # Extract the fingerprint/hash part (the 40-character hex string) for regular codesigning
-    DEV_APP_SIGNING_IDENTITY=$(echo "$DEV_APP_SIGNING_IDENTITY" | grep -o -E '[0-9A-F]{40}')
-    echo "Extracted signing identity hash: $DEV_APP_SIGNING_IDENTITY"
-fi
-
-if [[ "$DEV_INSTALLER_IDENTITY" == *")"* ]]; then
-    # Extract the fingerprint/hash part (the 40-character hex string)
-    DEV_INSTALLER_IDENTITY=$(echo "$DEV_INSTALLER_IDENTITY" | grep -o -E '[0-9A-F]{40}')
-    echo "Extracted installer identity hash: $DEV_INSTALLER_IDENTITY"
-fi
-
-# PACE Configuration
-[0m
-**Classification Table**
-
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | *(none)* | — |
-| **TEST_OR_EXAMPLE** | adk-web test specs (5× `initial-token`, `updated-token-123`, `nextPage`); MathJax tokenization/localization files (50+) | Test fixtures / tokenizer constants |
-| **ENDPOINT_LEAK** | `virtual-broadcast-production-assistant/.../main.py:28` (GCP metadata URL); `jsonnet/.../service_google.py:198` (GCP metadata URL); `som-hackathon-starter-dotnet/listen.sh:48` (dynamic `gcloud auth` token gen) | Internal metadata endpoints / dynamic token fetch — not static secrets |
-| **INTERESTING** | `sam/internal/node/store.go:38` (`keyRefreshToken` const name); `sam/development/kind/run.sh:139` (env var ref); 15+ workflow files using `${{ secrets.X }}` (proper pattern); 10+ ConfigMap YAMLs; 2 delta hits (env var refs) | Config constants, proper secret refs, K8s configs, **correct CI pattern** |
-
-**Delta Hits Detail**
-| File:Line | Content | Classification |
-|-----------|---------|----------------|
-| `eclipsa-audio-plugin/scripts/package_ci.sh:51` | `APPLE_APP_SPECIFIC_PASSWORD="${APPLE_APP_SPECIFIC_PASSWORD:?Error: ... not set.}"` | **INTERESTING** — shell param expansion requiring runtime env var (GitHub Actions secret injection pattern) |
-| `eclipsa-audio-plugin/scripts/package_ci.sh:53` | `KEYCHAIN_PASSWORD="${KEYCHAIN_PASSWORD}"` | **INTERESTING** — shell param expansion referencing runtime env var |
-
-**Verdict List**
-- `eclipsa-audio-plugin/scripts/package_ci.sh:51` → **REPORT_CANDIDATE: no** (env var reference, not hardcoded secret)
-- `eclipsa-audio-plugin/scripts/package_ci.sh:53` → **REPORT_CANDIDATE: no** (env var reference, not hardcoded secret)
-
-**Summary**: 0 reportable secrets in this delta. Both new hits are correct CI patterns expecting secrets at runtime via GitHub Actions `secrets` context. No hardcoded credentials, API keys, or tokens found.
+**No reportable findings in this delta.** All hits are test fixtures, documentation, env-var references, or well-known internal endpoints.
