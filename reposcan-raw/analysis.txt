@@ -1,194 +1,129 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "iU5ohAF2qcqrujegE3hQ1cPt" --include="*.py" 2>/dev/null | head -20
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+[0m$ [0mls -la /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null | head -20
+total 1740
+drwxr-xr-x 431 runner runner 20480 Aug 19 20:22 .
+drwxr-xr-x   4 runner runner  4096 Aug 19 20:22 ..
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 ARC-GEN
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 Accessibility-Test-Framework-for-Android
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 CFU-Playground
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 CausalImpact
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 ChromeBrowserEnterprise
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 CodeCity
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 EarlGrey
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 GoogleAppMeasurement
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 GoogleDataTransport
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 GoogleSignIn-iOS
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 OpenSK
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 XNNPACK
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 Xee
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 aarch64-esr-decoder
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 aarch64-paging
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 acai
+drwxr-xr-x   2 runner runner  4096 Aug 19 20:22 accompanist
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -80 reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py
-# Contains code from https://github.com/ibis-project/ibis/blob/9.2.0/ibis/backends/bigquery/__init__.py
+[0m$ [0mhead -20 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts 2>/dev/null
+/**
+ * @license
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
-"""BigQuery public API."""
-
-from __future__ import annotations
-
-import concurrent.futures
-import contextlib
-import glob
-import os
-import re
-from typing import TYPE_CHECKING, Any, Optional
-
-import bigframes_vendored.ibis
-import bigframes_vendored.ibis.common.exceptions as com
-import bigframes_vendored.ibis.expr.datatypes as ibis_dtypes
-import bigframes_vendored.ibis.expr.operations as ops
-import bigframes_vendored.ibis.expr.schema as sch
-import bigframes_vendored.ibis.expr.types as ir
-import bigframes_vendored.sqlglot as sg
-import bigframes_vendored.sqlglot.expressions as sge
-import google.api_core.exceptions
-import google.auth.credentials
-import google.cloud.bigquery as bq
-import google.cloud.bigquery_storage_v1 as bqstorage
-import pydata_google_auth
-from bigframes_vendored.ibis import util
-from bigframes_vendored.ibis.backends import CanCreateDatabase, CanCreateSchema
-from bigframes_vendored.ibis.backends.bigquery.client import (
-    bigquery_param,
-    parse_project_and_dataset,
-    rename_partitioned_column,
-    schema_from_bigquery_table,
-)
-from bigframes_vendored.ibis.backends.bigquery.datatypes import BigQuerySchema
-from bigframes_vendored.ibis.backends.sql import SQLBackend
-from bigframes_vendored.ibis.backends.sql.compilers import BigQueryCompiler
-from bigframes_vendored.ibis.backends.sql.datatypes import BigQueryType
-from pydata_google_auth import cache
-
-if TYPE_CHECKING:
-    from collections.abc import Iterable, Mapping
-    from pathlib import Path
-    from urllib.parse import ParseResult
-
-    import pandas as pd
-    import polars as pl
-    import pyarrow as pa
-
-
-SCOPES = ["https://www.googleapis.com/auth/bigquery"]
-EXTERNAL_DATA_SCOPES = [
-    "https://www.googleapis.com/auth/bigquery",
-    "https://www.googleapis.com/auth/cloud-platform",
-    "https://www.googleapis.com/auth/drive",
-]
-CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
-CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
-
-
-def _create_user_agent(application_name: str) -> str:
-    user_agent = []
-
-    if application_name:
-        user_agent.append(application_name)
-
-    user_agent_default_template = f"ibis/{bigframes_vendored.ibis.__version__}"
-    user_agent.append(user_agent_default_template)
-
-    return " ".join(user_agent)
-
-
-def _create_client_info(application_name):
-    from google.api_core.client_info import ClientInfo
-
-    return ClientInfo(user_agent=_create_user_agent(application_name))
-
-
-def _create_client_info_gapic(application_name):
-    from google.api_core.gapic_v1.client_info import ClientInfo
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {SimpleChange} from '@angular/core';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese" --include="*.py" 2>/dev/null | head -5
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
-reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+[0m$ [0mgrep -n "password\|secret\|token\|key" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java 2>/dev/null | head -10
+61:  private static final String DB_PASSWORD = "password";
+93:     * primary and foreign key columns, and columns that are part of unique indexes.
+205:    info.put("password", container.getPassword());
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "169.254.169.254" reposcan-raw/google/ --include="*.py" 2>/dev/null | head -10
-reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:  cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
-reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py:  network -- in particular the cloud metadata endpoint at 169.254.169.254
-reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:        # `http://169.254.169.254\@example.com/` the host is example.com here
-reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:        # and 169.254.169.254 in Chrome, so refuse instead of checking it.
-reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:  For example ``64:ff9b::169.254.169.254`` is reported as global but, on a
-reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py:  network with NAT64, routes to the internal ``169.254.169.254`` metadata
-reposcan-raw/google/adk-python/tests/unittests/agents/test_remote_a2a_agent.py:          "http://169.254.169.254/rpc",
-reposcan-raw/google/adk-python/tests/unittests/agents/test_remote_a2a_agent.py:              ("http://169.254.169.254/", "JSONRPC"),
-reposcan-raw/google/adk-python/tests/unittests/tools/test_load_web_page.py:      'http://[64:ff9b::169.254.169.254]/computeMetadata/v1/'
-reposcan-raw/google/adk-python/tests/unittests/tools/test_load_web_page.py:      ' http://[64:ff9b::169.254.169.254]/computeMetadata/v1/'
+[0m$ [0mgrep -n "password" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java 2>/dev/null
+154:      names = {"--password", "-pw"},
+155:      description = "Registrar password.")
+156:  private String password = "abcde12345";
+214:              .replace("@@PASSWORD@@", password)
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -A2 -B2 "google-client-secret\|github-client-secret\|cli-oauth-secret" reposcan-raw/google/sam/.github/workflows/deploy.yaml
---namespace=dex \
-            --from-literal=google-client-id="${GOOGLE_CLIENT_ID}" \
-            --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" \
-            --from-literal=github-client-id="${GITHUB_CLIENT_ID}" \
-            --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" \
-            --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+[0m$ [0mgrep -n "metadata.google.internal" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh 2>/dev/null
+70:            network_mtu=$(curl -s -f -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${i}/mtu" || echo "")
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B3 -A3 "OIDC_CLIENT_SECRET" reposcan-raw/google/sam/development/kind/run.sh
-OIDC_ISSUER="${OIDC_ISSUER:-http://sam-mesh-dex:5556/dex}"
-OIDC_CLIENT_ID="${OIDC_CLIENT_ID:-sam-console}"
-OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"
-OIDC_REDIRECT_URL="${OIDC_REDIRECT_URL:-}"
+[0m$ [0mgrep -n "sandbox.googleapis.com" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-tpm-tools/launcher/spec/launch_spec.go 2>/dev/null
+110:	"autopush": "https://autopush-confidentialcomputing.sandbox.googleapis.com",
+111:	"staging":  "https://staging-confidentialcomputing.sandbox.googleapis.com",
+[0m
+[0m$ [0mgrep -n "GCE_METADATA_URL_BASE" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java 2>/dev/null
+61:  private static final String GCE_METADATA_URL_BASE = "http://metadata.google.internal/";
+84:    String url = GCE_METADATA_URL_BASE + path;
+[0m
+Now I have enough context to classify all the hits. Let me create the classification tables.
 
-CONTROL_PLANE_ISSUERS="${ISSUER}"
---
-  ALLOWED_AUDIENCES="${OIDC_CLIENT_ID},${ALLOWED_AUDIENCES}"
-fi
+## Classification Summary
 
-export NAMESPACE ISSUER IMAGE_TAG OIDC_ISSUER OIDC_CLIENT_ID OIDC_CLIENT_SECRET OIDC_REDIRECT_URL CONTROL_PLANE_ISSUERS ALLOWED_AUDIENCES
+### TEST_OR_EXAMPLE (sample/test/fixture data - NOT reportable)
 
-echo "== Applying namespace and RBAC cluster rules =="
-envsubst '${NAMESPACE}' < "${SCRIPT_DIR}/00-namespace-rbac.yaml" | kubectl --context "${KCTX}" apply -f -
-[0m
-Now I have all the context needed. Let me classify the findings.
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 413 | `nextPageToken: 'initial-token'` | Test file (.spec.ts), pagination test fixture |
+| google/adk-web/src/app/components/chat-panel/chat-panel.component.spec.ts | 459 | `nextToken = 'updated-token-123'` | Test file, token pagination test |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 221 | `nextPageToken: 'nextPage'` | Test file, pagination fixture |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 240 | `pageToken: 'nextPage'` | Test file, pagination fixture |
+| google/adk-web/src/app/components/session-tab/session-tab.component.spec.ts | 461 | `nextPageToken: 'nextPage'` | Test file, pagination fixture |
+| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | `ID_TOKEN = "id_token"` | Constant definition, not a secret |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | `X_CSRF_TOKEN = "X-CSRF-Token"` | Header name constant |
+| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | `P_CSRF_TOKEN = "xsrfToken"` | Parameter name constant |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | `DB_PASSWORD = "password"` | Nonprod/test directory, fixture |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | `DB_PASSWORD = "domain-registry"` | Nonprod/test directory, fixture |
+| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` | Nonprod/test directory, fixture |
+| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | `password = "abcde12345"` | Load-testing directory, test default |
+| google/nomulus/docs/console-endpoints/swagger-ui-bundle.js | 2 | Minified JS bundle | Vendored library |
+| google/nomulus/docs/console-endpoints/swagger-ui.js | 1 | Minified JS | Vendored library |
+| google/nomulus/release/clouddeploy/skaffold.yaml | 3 | `kind: Config` | Config file header |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/${i}/mtu` | GCP Metadata Service (internal) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | `https://autopush-confidentialcomputing.sandbox.googleapis.com` | Sandbox/autopush endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | `https://staging-confidentialcomputing.sandbox.googleapis.com` | Staging endpoint |
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | `https://pantheon.corp.google.com/compute/images...` | Internal corp URL (comment) |
+| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | `https://staging-www.sandbox.googleapis.com` | Staging endpoint in config |
+| google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | `http://metadata.google.internal/` | GCP Metadata Service base URL |
+
+### INTERESTING (unusual patterns, debug flags, cloud configs)
+
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a secret value |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell param expansion, expects env var |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | CI secret refs (not hardcoded) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | Example password/token in JSDoc | Documentation examples |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Auth scheme constant name |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | Metadata endpoint check (known pattern) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` | Link-local/GCP metadata CIDR |
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` | Vendored third-party, likely test fixture |
 
 ---
 
-### Classification Tables
+## VERDICT LIST
 
-#### REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| *(none)* | — | — | No reportable hardcoded secrets found in Google/Microsoft org repos |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| All TEST_OR_EXAMPLE hits | TEST_OR_EXAMPLE | **NO** | All in test/spec/nonprod/load-testing dirs or constant definitions |
+| All ENDPOINT_LEAK hits | ENDPOINT_LEAK | **NO** | Internal/staging endpoints; metadata.google.internal is documented public pattern; sandbox.googleapis.com is public sandbox |
+| All INTERESTING hits | INTERESTING | **NO** | Constants, env var refs, vendored code, documented patterns |
+| earthengine-api oauth.py:45 | REAL_SECRET (KNOWN) | **NO** | Already ACCEPTED in KB (2026-08-07), pending VRP determination on native-app by-design status |
 
-> **Note**: The `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` in `bigframes/third_party/bigframes_vendored/ibis/...` is **vendored third-party code** from the upstream `ibis-project/ibis` (v9.2.0). The matching `CLIENT_ID` (`546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com`) belongs to the ibis project, not Google. This is a test/development OAuth client from the upstream dependency, not a Google credential. **NOT REPORTABLE**.
-
----
-
-#### TEST_OR_EXAMPLE
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| `google/bigframes/scripts/run_doctest.sh` | 38-39 | Kokoro CI service-account load (internal CI path) | CI config, not a secret |
-| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` | Proper secret ref |
-| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | Test PyPI URLs | Test config |
-| `google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test JS fixture | Test data |
-| `google/sam/...` (multiple) | — | `kind: ConfigMap`, `${{secrets.*}}` refs | K8s configs, proper secret refs |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Dev script, empty default |
-| `google/osv-scalibr/...` | — | MySQL doc refs, vuln refs | Documentation |
-| `google/adk-js/...` | — | JSDoc examples (`"password"`, `"your_access_token"`), metadata IP refs | Example code |
-| `google/adk-python/...` | — | Example creds (`"password"`, `"eyAkaknabna...."`, `"your_client_secret"`), metadata IP refs | Example/test code |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Template placeholder |
-| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | Proper secret ref |
-| `google/bigframes/third_party/...` (sqlglot, ibis reductions) | — | MySQL doc URLs in comments | Documentation |
-
----
-
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Verdict |
-|------|------|----------|---------|
-| `google/yggdrasil-decision-forests/.../export_docker.py` | 68 | `https://pantheon.corp.google.com/run` | Internal Google URL in comment (low risk, documented) |
-| `google/adk-python/...` (multiple) | — | `169.254.169.254` (GCP metadata IP) | Well-known public metadata endpoint, documented in code/tests |
-
----
-
-#### INTERESTING
-| File | Line | Detail | Verdict |
-|------|------|--------|---------|
-| `google/bigframes/scripts/run_doctest.sh` | 38-39 | References `KOKORO_GFILE_DIR` (Google internal CI) | Internal CI marker, not exploitable |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Multiple `${{secrets.*}}` refs for OAuth clients | Proper secret management pattern |
-| `google/adk-python/.../container_code_executor.py` | 114, 154 | Warns about metadata endpoint access/escalation | Security hardening documentation |
-| `google/adk-python/.../load_web_page.py` | 171 | NAT64 route to metadata endpoint documented | SSRF defense documentation |
-
----
-
-### Final Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| `bigframes` vendored ibis `CLIENT_SECRET` | **NO** | Third-party vendored code (ibis-project/ibis); upstream test OAuth client |
-| `magika` workflow `GITHUB_TOKEN` refs | **NO** | Proper GitHub Actions secret reference pattern |
-| `sam` workflow secret refs | **NO** | Proper `${{secrets.*}}` injection at deploy time |
-| `sam` dev script `OIDC_CLIENT_SECRET` | **NO** | Empty default, local dev only |
-| `adk-python` example creds | **NO** | Obvious placeholders in example/test code |
-| `yggdrasil` internal pantheon URL | **NO** | Comment-only, internal hostname, no auth material |
-| GCP metadata IP (`169.254.169.254`) refs | **NO** | Public documented endpoint, appears in warnings/tests/docs |
-
-**Overall: 0 reportable findings in this delta scan.** All hits are either vendored third-party test credentials, proper secret references, test fixtures, or documented public endpoints.
+**NO NEW REPORTABLE FINDINGS in this delta scan.** All hits are either test fixtures, documented internal endpoints, staging/sandbox URLs, or previously known/accepted findings.
