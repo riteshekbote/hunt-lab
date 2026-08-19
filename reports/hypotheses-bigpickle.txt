@@ -1,7 +1,7 @@
-## 2026-08-19 21:59:05 UTC [google] (model bigpickle)
-[PRIO] graph.microsoft.com/beta/copilot/{6 families}, score 8.8 — attack:9 business:9 tech:9 gate:8 cloud:9 fresh:10 → 0.25×9+0.25×9+0.15×9+0.15×8+0.10×9+0.10×10 = 8.80
-[PRIO] github.com/google/earthengine-api/oauth.py:45, score 8.3 — attack:7 business:8 tech:9 gate:6 cloud:9 fresh:10 → 0.25×7+0.25×8+0.15×9+0.15×6+0.10×9+0.10×10 = 7.55 (adjusted 8.3 with VRP cap)
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}, score 8.2 — attack:8 business:8 tech:8 gate:7 cloud:8 fresh:10 → 0.25×8+0.25×8+0.15×8+0.15×7+0.10×8+0.10×10 = 8.05
+## 2026-08-19 22:34:45 UTC [google] (model bigpickle)
+[PRIO] graph.microsoft.com/beta/copilot/{6 families}, score 8.95 — attack:9 business:9 tech:9 gate:8 cloud:9 fresh:10 → 0.25×9+0.25×9+0.15×9+0.15×8+0.10×9+0.10×10 = 8.95
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}, score 8.05 — attack:8 business:8 tech:8 gate:7 cloud:8 fresh:10 → 0.25×8+0.25×8+0.15×8+0.15×7+0.10×8+0.10×10 = 8.05
+[PRIO] oauth2.googleapis.com/token (earthengine secret), score 7.90 — attack:7 business:8 tech:9 gate:6 cloud:9 fresh:10 → 0.25×7+0.25×8+0.15×9+0.15×6+0.10×9+0.10×10 = 7.90 (VRP cap applied)
 [HYP] Copilot Admin 6-family cross-principal IDOR via CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
@@ -31,9 +31,6 @@ impact: Full GCP project access via cloud-platform scope; CVSS 9.0+; native-app 
 testability: HUMAN_ONLY
 [FINAL]
 [NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 `ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17`) via the MSRC bounty portal — request authorized two-principal (A + B within same tenant) testing for both the Copilot Admin 6-family IDOR + oauth2PermissionGrants consent-forge hypotheses; both preconditions confirmed stable across 30+ consecutive probe cycles with 0 OperationRestrictions in $metadata + true CORS preflight ACAO:*+PATCH confirmed browser-exploitable at collection+item levels. Passive ceiling reached; AUTH_HELPED testing is the only path forward.
-[LEARN] ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable confirmed at /v1.0/oauth2PermissionGrants/{id} — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (item-level now confirmed, extends from collection-level)
-[LEARN] ACCEPTED: Graph API RFC 6750 §3 deviation confirmed systemic at item-level — HEAD→405/0/no-Bearer while GET→401+Bearer at both collection and item levels
-[LEARN] ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed — HEAD→405/0 + 401 (was previously inferred)
-[LEARN] REJECTED: No new proving-dead classes — all passive probes stable
+[LEARN] NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 [RISK] google: 55 — earthengine secret is proven-valid Google OAuth credential with cloud-platform scope (A/B proof, confidence 96) but native-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; no data-plane access without authorized redemption; report drafted and ready.
 [RISK] microsoft: 72 — two independent high-confidence precondition packages: (1) 6-family IDOR+CORS at 97 with 0 OperationRestrictions across 5 EntityTypes + systemic HEAD→405/0 RFC 6750 §3 deviation; (2) consent-forge at 79 elevated by item-level PATCH browser-exploitability + caller-chosen resourceId; both blocked on authorized-tenant two-principal verification; MSRC request drafted and ready; 31+ consecutive NO_DELTA cycles confirm passive probe ceiling reached.
