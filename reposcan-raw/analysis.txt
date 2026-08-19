@@ -1,164 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | head -170 | tail -20
-// Handle the initial sign-in state.
-      this.updateSigninStatus(isSignedIn.get());
-    };
-
-    window.gapi.client
-      .init({
-        // eslint-disable-next-line no-useless-concat
-        apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
-        clientId: '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        scope:
-          'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.install',
-      })
-      .then(postInit);
-  }
-
-  // updateSigninStatus is called when the signed in status changes.
-  updateSigninStatus(isSignedIn: boolean): void {
-    if (!isSignedIn) {
-      window.gapi.auth2.getAuthInstance().signIn();
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "reposcan-raw" -type d 2>/dev/null | head -5
+./reposcan-raw
 [0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-"""Authentication module for agents-cli.
-
-Supports 3 authentication methods:
-- Google Cloud credentials (Application Default Credentials)
-- Gemini API Key from AI Studio (GEMINI_API_KEY)
-- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
-
-Authentication is based on environment variables and gcloud ADC.
-For API key methods, we print instructions for the user to
-export and persist the environment variable themselves.
-"""
-
-import enum
-import os
-import subprocess
-import webbrowser
-from typing import Any
-
-import click
-
-from google.agents.cli._runner import run_resolved
-from google.agents.cli._tools import ToolNotFoundError, require_tool
-
-
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=140, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
 [0m
-[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
-"""Supported authentication methods."""
-
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
-
-
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'-----BEGIN PRIVATE KEY-----...' && sha256sum <<<'password' && sha256sum <<<'eyAkaknabna....' && sha256sum <<<'your_client_secret'
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582  -
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
 [0m
-[0m$ [0msed -n '35,45p' reposcan-raw/google/sam/internal/node/store.go
-keyBiscuit      = "identity_biscuit"
-	keyPrivKey      = "node_private_key"
-	keyIdentityExp  = "identity_expiration"
-	keyRefreshToken = "refresh_token"
-	keyOidcIssuer   = "oidc_issuer"
-	keyOidcClientID = "oidc_client_id"
-	keyOidcAudience = "oidc_audience"
-)
+### Classification Table
 
-type Store struct {
-	db *bbolt.DB
-[0m
-[0m$ [0msha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
-44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
-[0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none)* | | | No live hardcoded credentials found in delta or full scan |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
-| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` | Fuzz test constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword` | Test DB password constant |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `gemini_api_key` | Enum member name (string constant) |
-| google/sam/internal/node/store.go | 38 | `refresh_token` | DB field key name constant |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `not-a-valid-client-secret` | Explicit placeholder |
-| google/agents-cli/.../staging.yaml | 168, 192 | Template placeholders | CI template with `{% raw %}` |
-| google/oss-fuzz-gen/.../env_vars.py | 59, 61 | Env var name constants | Constant definitions |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Template passwords | Go template defaults |
-
-#### ENDPOINT_LEAK
-| File | Line | Content | Notes |
-|------|------|---------|-------|
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` | Internal Google Artifact Registry URL (comment) |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL | Documentation reference |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Homepage URL | Project metadata |
-| google/skia-buildbot/perf/... | multiple | `corp.google.com`, `android-build.corp.google.com` | Internal Corp URLs in comments/code |
-| google/skia-buildbot/autoroll/... | 75, 76, 98 | `pantheon.corp.google.com`, `skia-corp.google.com` | Internal Corp URLs |
-| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` | Config script |
-| google/sam/.github/k8s/... | multiple | `kind: ConfigMap` | K8s manifests (not secrets) |
-
-#### INTERESTING
-| File | Line | Pattern | Assessment |
-|------|------|---------|------------|
-| google/skia-buildbot/skottie/.../skottie-drive-sk.ts | 158 | `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (sha256 `44d8f81d...`) | **Referrer-restricted API key** — locked to `skottie.skia.org` per code comment; same class as perfetto (REJECTED 2026-08-16) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | Proper secret injection pattern (not hardcoded) |
-| google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud secrets versions access` | Secret Manager runtime fetch (correct pattern) |
-| google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access` | Secret Manager runtime fetch (correct pattern) |
-| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference (correct pattern) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper secret injection |
-| google/skia-buildbot/get_service_account/.../main.go | 2, 16 | Service account JSON writer | Code pattern (generates, doesn't leak) |
-| google/skia-buildbot/kube/secrets/generate-new-key... | 21 | Key generation script | Operational tooling |
+| Category | File:Line | Secret SHA256 | Notes |
+|---|---|---|---|
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:157` | `87fc30e9...` | Docstring example, truncated `-----BEGIN PRIVATE KEY-----...` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:269` | `6b3a55e0...` | Docstring example: `username="user", password="password"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_credential.py:278` | `597730b3...` | Docstring example: truncated JWT `eyAkaknabna....` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` | `6b3a55e0...` | Constant `PASSWORD = "password"` |
+| **TEST_OR_EXAMPLE** | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` | `af452314...` | Docstring placeholder: `client_secret="your_client_secret"` |
+| **TEST_OR_EXAMPLE** | `google/magika/.github/workflows/github-issue-labeler.yml:20` | — | GitHub Actions secret ref: `${{secrets.GITHUB_TOKEN}}` |
+| **TEST_OR_EXAMPLE** | `google/magika/tests_data/basic/javascript/code.js:31` | — | Minified test fixture JS |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/flask/fuzz_json.py:27` | — | `secret_key = "fuzz test key"` |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/h2database/TestServer.java:13,55` | — | Test shutdown password |
+| **TEST_OR_EXAMPLE** | `google/copybara/javatests/.../AuthTest.java:75,102,129` | — | Test passwords/tokens in Java tests |
+| **TEST_OR_EXAMPLE** | `google/copybara/javatests/.../HttpEndpointTest.java:136,159,189` | — | Test passwords in Java tests |
+| **TEST_OR_EXAMPLE** | `google/agents-cli/src/google/agents/cli/auth.py:43` | — | Constant name `GEMINI_API_KEY = "gemini_api_key"` (not a value) |
+| **TEST_OR_EXAMPLE** | `google/agents-cli/.../staging.yaml:168,192` | — | GitHub Actions token refs in workflow template |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` | — | GCP metadata endpoint `169.254.169.254` in comments |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` | — | GCP metadata endpoint in comment |
+| **ENDPOINT_LEAK** | `google/adk-python/src/google/adk/tools/load_web_page.py:171` | — | GCP metadata endpoint in comment |
+| **ENDPOINT_LEAK** | `google/magika/.github/workflows/python-build-and-release-package.yml:407,437` | — | Public TestPyPI URLs |
+| **ENDPOINT_LEAK** | `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10` | — | `gcloud secrets access` command (runtime fetch) |
+| **ENDPOINT_LEAK** | `google/crosvm/infra/recipe_modules/.../codecov_wrapper.sh:11` | — | `gcloud secrets access` command |
+| **ENDPOINT_LEAK** | `google/sam/.github/workflows/deploy.yaml:247,249,250` | — | `--from-literal=...` secret refs (CI secrets) |
+| **ENDPOINT_LEAK** | `google/sam/development/kind/run.sh:139` | — | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` env var |
+| **INTERESTING** | `google/adk-python/src/google/adk/cli/browser/*.js` (9 files) | — | Minified JS source-map chunks (build artifacts) |
+| **INTERESTING** | `google/adk-python/src/google/adk/cli/cli_create.py:131` | — | Writes user-provided `GOOGLE_API_KEY` to `.env` |
+| **INTERESTING** | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115` | — | `kubeconfig_path/context` params (config, not secret) |
+| **INTERESTING** | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` | — | Internal state key name `_vmaas_access_token` |
+| **INTERESTING** | `google/sam/...` (ConfigMap/k8s templates) | — | K8s ConfigMap kinds, no secret data |
 
 ---
 
 ### Verdict List
 
-| Candidate | Category | REPORT_CANDIDATE | Rationale |
-|-----------|----------|------------------|-----------|
-| skia-buildbot API key (skottie-drive-sk.ts:158) | INTERESTING (referrer-restricted) | **no** | Referrer-locked to `skottie.skia.org`; identical to perfetto CSE key rejected 2026-08-16 (403 on empty referer) |
-| sam deploy.yaml secrets | INTERESTING (proper pattern) | **no** | Uses GitHub Actions secret injection — correct practice |
-| crosvm gcloud secret access | INTERESTING (proper pattern) | **no** | Runtime Secret Manager fetch — correct practice |
-| langextract CI secrets | INTERESTING (proper pattern) | **no** | GitHub Actions secret injection — correct practice |
-| All TEST_OR_EXAMPLE hits | TEST_OR_EXAMPLE | **no** | Test fixtures, constants, placeholders, templates |
-| All ENDPOINT_LEAK hits | ENDPOINT_LEAK | **no** | Internal corp URLs in comments/config — no credentials, no exploitable surface |
+| Candidate | File | Type | REPORT_CANDIDATE |
+|---|---|---|---|
+| — | (none in delta) | REAL_SECRET | **no** |
 
-**Overall: 0 reportable findings in this delta.** The scan confirms only test data, proper secret-management patterns, and referrer-restricted API keys (already classified as non-reportable).
+**Summary:** 0 reportable findings in this delta. All 300 hits across 39,382 scanned files classify as **TEST_OR_EXAMPLE** (placeholder/test/fixture data), **ENDPOINT_LEAK** (public endpoints, metadata URLs, CI secret references), or **INTERESTING** (build artifacts, config parameters). No hardcoded live credentials with signs of life detected in the new scan lines.
+
+The previously tracked **earthengine-api** hardcoded `client_secret` (`sha256:3f3f8d6f...`) remains the sole live REAL_SECRET in the corpus (confirmed in knowledge base), but it is **not in this delta** — it was already known and is pending VRP determination on native-app by-design status.
