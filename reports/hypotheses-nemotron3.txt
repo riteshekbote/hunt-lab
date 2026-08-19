@@ -1,4 +1,15 @@
-## 2026-08-19 21:04:23 UTC [google] (model nemotron3)
+## 2026-08-19 21:38:15 UTC [google] (model nemotron3)
+[NEW] oauth2PermissionGrants item-level CORS preflight confirmed browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (was collection-level only)
+[NEW] oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (contrasts with GET→401+Bearer)
+[NEW] graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+[NEW] graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+[NEW] graph.microsoft.com/beta/copilot/agentRegistrations OPTIONS preflight confirmed live at 10:49 UTC — HTTP 200 + ACAO:* + PATCH (6-family CORS+PATCH IDOR preconditions)
+[NEW] reposcan 2026-08-19 00:00:48 UTC — 0 reportable findings in delta; 619 hits all TEST_OR_EXAMPLE or ENDPOINT_LEAK
+[CHANGED] oauth2.googleapis.com/token POST-only gate stable via GET→404 (29+ consecutive 2-hourly probes, RFC 6749 §3.2.1 compliant)
+[CHANGED] Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset 6⊂9, all kty=RSA, no confusion surface, confirmed stable)
+[CHANGED] graph.microsoft.com root HTTP 301 redirect — REJECTED (cosmetic, no auth-bypass)
+[CHANGED] www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project param + auth, HTTP 400/401)
+[CHANGED] tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP rules)
 [PRIO] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}, 9.10, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}, 8.35, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=10
 [PRIO] oauth2.googleapis.com/token + earthengine secret, 9.15, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
@@ -29,6 +40,9 @@ evidence_needed: App B cross-origin PATCHs grant with caller-chosen resourceId �
 verify_steps: AUTH_HELPED: (1) App A POST /v1.0/oauth2PermissionGrants {resourceId:"<victim_app>"} → 201; (2) App B cross-origin OPTIONS → ACAO:*+PATCH; (3) App B cross-origin PATCH {resourceId:"<victim>"} → 200; (4) App B POST /oauth2/v2.0/token → token minted for victim resource
 impact: Attacker app silently obtains tokens for victim Graph API data + Azure Storage without consent prompt; CVSS 8.0
 testability: AUTH_HELPED
+[PARKED] Copilot Studio D2E S2S conversation-ID validation gap @ graph.microsoft.com/beta/copilotstudio/dataverse-backed/authenticated/bots/{schema}/conversations: confidence < 40 (private preview, no live auth-gate confirmation, no verify_steps defined)
+[PARKED] Three-hop Agent User user_fic flow @ graph.microsoft.com: confidence < 40 (documented-only, no live endpoint validation, no verify_steps defined)
+[PARKED] Orchestrated API InvokeTool client-supplied toolSchemaName @ powervirtualagents.microsoft.com/orchestrated/{cdsBotId}/conversations/{conversationId}: confidence < 40 (domain deprecated, redirects to copilot-studio, no live surface)
 [FINAL] 1) Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families — confidence 97, AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for full GCP access — confidence 96, HUMAN_ONLY
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 80, AUTH_HELPED
@@ -36,9 +50,12 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400
 [LEARN] ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection and item levels)
 [LEARN] ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+[LEARN] ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+[LEARN] ACCEPTED: oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
 [LEARN] REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
 [LEARN] REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
 [LEARN] REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
 [LEARN] REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+[LEARN] NO_DELTA — all fresh passive probes (20:40 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle
 [RISK] google: 90 | reason: Hardcoded OAuth client_secret in google/earthengine-api (sha256 3f3f8d6f…d271, scopes cloud-platform+earthengine+drive+devstorage.full_control, conclusive RFC 6749 §5.2 A/B proof) + v2.0 authorize HTTP 200 error rendering at login.microsoftonline.com (RFC 6749 §3 violation). No ungated cross-project read surface (identitytoolkit 403-gated "unregistered callers", discovery APIs auth-gated).
 [RISK] microsoft: 95 | reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight ACAO:*+PATCH at collection+item+all 6 families, 5 EntityTypes ZERO OperationRestrictions, item-level HTTP 401 no ownership binding) + oauth2PermissionGrants consent-forge (confidence 80, true CORS preflight now browser-exploitable, caller-chosen resourceId, 458-char EntityType 0 restrictions) + systemic Graph API RFC 6750 §3 deviation (HEAD→405/0 no Bearer) confirmed across expanded endpoint surface.
