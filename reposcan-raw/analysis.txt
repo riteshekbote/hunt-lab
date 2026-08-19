@@ -1,63 +1,164 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0msha256sum <<<'gemini_api_key'
-1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m$ [0mcat reposcan-raw/google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | head -170 | tail -20
+// Handle the initial sign-in state.
+      this.updateSigninStatus(isSignedIn.get());
+    };
+
+    window.gapi.client
+      .init({
+        // eslint-disable-next-line no-useless-concat
+        apiKey: 'AIzaSyD2US0bcYT2Vh' + 'guMezYgDa4lbZc6rIQbDg', // API Key is locked to https://skottie.skia.org, so it's safe to hardcode here.
+        clientId: '145247227042-fetft5vnkf582o817e1t553cm3tjvobl.apps.googleusercontent.com', // Not protected info (clientSecret would be).
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
+        scope:
+          'https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.install',
+      })
+      .then(postInit);
+  }
+
+  // updateSigninStatus is called when the signed in status changes.
+  updateSigninStatus(isSignedIn: boolean): void {
+    if (!isSignedIn) {
+      window.gapi.auth2.getAuthInstance().signIn();
 [0m
-[0m$ [0msha256sum <<<'AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg'
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -50
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0msed -n '35,45p' reposcan-raw/google/sam/internal/node/store.go
+keyBiscuit      = "identity_biscuit"
+	keyPrivKey      = "node_private_key"
+	keyIdentityExp  = "identity_expiration"
+	keyRefreshToken = "refresh_token"
+	keyOidcIssuer   = "oidc_issuer"
+	keyOidcClientID = "oidc_client_id"
+	keyOidcAudience = "oidc_audience"
+)
+
+type Store struct {
+	db *bbolt.DB
+[0m
+[0m$ [0msha256sum <<< "AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg"
 44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6  -
 [0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN** — Hardcoded OAuth client_secret (native app pattern), scopes: cloud-platform+earthengine+drive+devstorage.full_control. Already ACCEPTED in knowledge base (2026-08-07). Pending VRP determination on native-app by-design status. |
-| google/skia-buildbot/skottie/modules/skottie-drive-sk/skottie-drive-sk.ts | 158 | `44d8f81ddda57c416b0197bf1ea37884cba3c9a8a24f303efef13673df0e13c6` | Domain-restricted API key (AIzaSy...), comment: "locked to https://skottie.skia.org" — by-design, referer-restricted. |
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none)* | | | No live hardcoded credentials found in delta or full scan |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Pattern | Reason |
 |------|------|---------|--------|
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant (sha256: `1a539ef3...`) |
-| google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py | 59 | `OSSFUZZ_CLIENT_SECRET = "OSSFUZZ_CLIENT_SECRET"` | Env var name placeholder |
-| google/oss-fuzz-gen/ossfuzz_py/utils/env_vars.py | 61 | `OSSFUZZ_API_KEY = "OSSFUZZ_API_KEY"` | Env var name placeholder |
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` | Explicitly invalid placeholder |
-| google/skia-buildbot/pinpoint/go/backends/issuetracker.go | 28 | `secretAPIKey = "perf-issue-tracker-apikey"` | Secret *name* (not value), nolint comment confirms |
-| google/agents-cli/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions template syntax (scaffold) |
+| google/copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` | Unit test fixtures |
+| google/copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` | Unit test fixtures |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `fuzz test key` | Fuzz test constant |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13, 55 | `ServerShutdownPassword` | Test DB password constant |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `gemini_api_key` | Enum member name (string constant) |
+| google/sam/internal/node/store.go | 38 | `refresh_token` | DB field key name constant |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `not-a-valid-client-secret` | Explicit placeholder |
+| google/agents-cli/.../staging.yaml | 168, 192 | Template placeholders | CI template with `{% raw %}` |
+| google/oss-fuzz-gen/.../env_vars.py | 59, 61 | Env var name constants | Constant definitions |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25, 51, 70 | Template passwords | Go template defaults |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `pantheon.corp.google.com/logs/query...` |
-| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` |
-| google/skia-buildbot/kube/secrets/generate-new-key-for-service-account.sh | 21 | `skia-corp.google.com` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `android-build.corp.google.com/range_search/...` |
-| google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `source.corp.google.com/h/chrome-internal/` |
-| google/skia-buildbot/pinpoint/webui/app/header/header.component.ts | 15 | `b.corp.google.com/issues/new...` |
-| google/skia-buildbot/status/modules/tree-status-sk/tree-status-sk.ts | 68,75,82 | `rotations.corp.google.com/rotation/...` |
-| google/skia-buildbot/skottie/modules/helpers/availableFonts.ts | 2 | `pantheon.corp.google.com/storage/browser/...` |
-| google/skia-buildbot/skolo/ansible/hosts.yml | 143 | `metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token` |
-| Multiple schema.go files | various | `b.corp.google.com/issues/492077374` (internal bug tracker) |
+#### ENDPOINT_LEAK
+| File | Line | Content | Notes |
+|------|------|---------|-------|
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com` | Internal Google Artifact Registry URL (comment) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL | Documentation reference |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Homepage URL | Project metadata |
+| google/skia-buildbot/perf/... | multiple | `corp.google.com`, `android-build.corp.google.com` | Internal Corp URLs in comments/code |
+| google/skia-buildbot/autoroll/... | 75, 76, 98 | `pantheon.corp.google.com`, `skia-corp.google.com` | Internal Corp URLs |
+| google/skia-buildbot/kube/corp-config.sh | 9 | `skia-corp.google.com` | Config script |
+| google/sam/.github/k8s/... | multiple | `kind: ConfigMap` | K8s manifests (not secrets) |
 
 #### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | Service account identity: `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (not a secret) |
-| google/skia-buildbot/skolo/ansible/.../gce.yml | 4 | Ansible secret ref: `{{ secrets.skolo_password }}` (proper pattern) |
-| google/skia-buildbot/skolo/ansible/.../win_autologon.yml | 12 | Ansible secret ref: `{{ secrets.skolo_password }}` (proper pattern) |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | Template vars: `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` (proper pattern) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | K8s secret refs: `google-client-secret`, `github-client-secret`, `cli-oauth-secret` (proper CI pattern) |
+| File | Line | Pattern | Assessment |
+|------|------|---------|------------|
+| google/skia-buildbot/skottie/.../skottie-drive-sk.ts | 158 | `AIzaSyD2US0bcYT2VhguMezYgDa4lbZc6rIQbDg` (sha256 `44d8f81d...`) | **Referrer-restricted API key** — locked to `skottie.skia.org` per code comment; same class as perfetto (REJECTED 2026-08-16) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | Proper secret injection pattern (not hardcoded) |
+| google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud secrets versions access` | Secret Manager runtime fetch (correct pattern) |
+| google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud secrets versions access` | Secret Manager runtime fetch (correct pattern) |
+| google/dagger/util/latest-dagger-version.sh | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` | Env var reference (correct pattern) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` | Proper secret injection |
+| google/skia-buildbot/get_service_account/.../main.go | 2, 16 | Service account JSON writer | Code pattern (generates, doesn't leak) |
+| google/skia-buildbot/kube/secrets/generate-new-key... | 21 | Key generation script | Operational tooling |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 client_secret | **no** | Already ACCEPTED in knowledge base (2026-08-07). Native-app pattern (OOB redirect, loopback), by-design for installed apps. Pending VRP determination only. |
-| skottie-drive-sk API key | **no** | Domain-restricted (referer-locked to skottie.skia.org). Comment confirms intent. 403 on referer-empty confirmed dead for attackers (2026-08-16 histscan). |
-| All TEST_OR_EXAMPLE | **no** | Placeholders, env var names, template syntax, explicitly invalid values. |
-| All ENDPOINT_LEAK | **no** | Internal Google Corp URLs (corp.google.com, metadata.google.internal). Not exploitable externally. |
-| All INTERESTING | **no** | Service account identities, proper secret reference patterns (Ansible/GHA/K8s). No hardcoded credentials. |
+| Candidate | Category | REPORT_CANDIDATE | Rationale |
+|-----------|----------|------------------|-----------|
+| skia-buildbot API key (skottie-drive-sk.ts:158) | INTERESTING (referrer-restricted) | **no** | Referrer-locked to `skottie.skia.org`; identical to perfetto CSE key rejected 2026-08-16 (403 on empty referer) |
+| sam deploy.yaml secrets | INTERESTING (proper pattern) | **no** | Uses GitHub Actions secret injection — correct practice |
+| crosvm gcloud secret access | INTERESTING (proper pattern) | **no** | Runtime Secret Manager fetch — correct practice |
+| langextract CI secrets | INTERESTING (proper pattern) | **no** | GitHub Actions secret injection — correct practice |
+| All TEST_OR_EXAMPLE hits | TEST_OR_EXAMPLE | **no** | Test fixtures, constants, placeholders, templates |
+| All ENDPOINT_LEAK hits | ENDPOINT_LEAK | **no** | Internal corp URLs in comments/config — no credentials, no exploitable surface |
 
-**Summary**: 0 new reportable findings in this delta. The only live secret (earthengine-api) is already tracked and classified.
+**Overall: 0 reportable findings in this delta.** The scan confirms only test data, proper secret-management patterns, and referrer-restricted API keys (already classified as non-reportable).
