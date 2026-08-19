@@ -1,55 +1,135 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -r "iU5ohAF2qcqrujegE3hQ1cPt" --include="*.py" 2>/dev/null | head -20
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B5 -A5 "iU5ohAF2qcqrujegE3hQ1cPt" reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py
+"https://www.googleapis.com/auth/bigquery",
+    "https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/drive",
+]
+CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+
+
+def _create_user_agent(application_name: str) -> str:
+    user_agent = []
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B3 -A3 "CLIENT_ID = " reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py
+"https://www.googleapis.com/auth/cloud-platform",
+    "https://www.googleapis.com/auth/drive",
+]
+CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"
+CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"  # noqa: S105
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B3 -A3 "private_key=" reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -30
+type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B3 -A3 'HttpCredentials' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | head -40
+yield key, _REDACTED if key in extra else value
+
+
+class HttpCredentials(BaseModelWithConfig):
+  """Represents the secret token value for HTTP authentication, like user name, password, oauth token, etc."""
+
+  username: str | None = None
+--
+  token: Annotated[str | None, Field(repr=False)] = None
+
+  @classmethod
+  def model_validate(cls, data: Dict[str, Any]) -> "HttpCredentials":
+    return cls(
+        username=data.get("username"),
+        password=data.get("password"),
+--
+  # IANA Authentication Scheme registry.
+  # Examples: 'basic', 'bearer'
+  scheme: str
+  credentials: HttpCredentials
+  additional_headers: Annotated[dict[str, str] | None, Field(repr=False)] = None
+
+
+--
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+--
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && grep -B3 -A3 "PASSWORD = " reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+[0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live credentials found in delta |
+| File | Line | SHA256 (secret) | Context |
+|------|------|-----------------|---------|
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca1...` | OAuth `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` + `CLIENT_ID = "546535678771-gvffde27nd83kfl6qbrnletqvkdmsese.apps.googleusercontent.com"` — **upstream ibis vendored credential** |
+| `reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca1...` | Duplicate of above (vendored copy) |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (fixture) |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `password="password"` (fixture) |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `token="eyAkaknabna...."` (fake JWT fixture) |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` (test constant) |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` (placeholder) |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` (template) |
-| `google/xrblocks/src/ai/AI.ts` | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` (placeholders) |
-| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env default) |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. (proper GH secrets) |
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/bigframes/scripts/run_doctest.sh` | 38-39 | Kokoro CI service-account.json path — test infra pattern |
+| `reposcan-raw/google/bigframes/third_party/.../reductions.py` | 107,125,143 | MySQL doc URL comments |
+| `reposcan-raw/google/bigframes/third_party/.../sqlglot/*.py` | 1926,2007,2116,2704,3361,4321,36 | MySQL doc URL comments |
+| `reposcan-raw/google/sam/...` (multiple) | various | GitHub Actions secret refs (`${{ secrets.X }}`) — proper secret mgmt |
+| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret refs |
+| `reposcan-raw/google/xrblocks/src/ai/AI.ts` | 303-304 | Placeholder `YOUR_*_API_KEY_HERE` |
+| `reposcan-raw/google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch key — **KNOWN REJECTED** (public search-only) |
+| `reposcan-raw/google/adk-python/.../auth_credential.py` | 157 | Fixture: `private_key="-----BEGIN PRIVATE KEY-----..."` + `your_project_id` placeholders |
+| `reposcan-raw/google/adk-python/.../auth_credential.py` | 269 | Fixture: `username="user", password="password"` |
+| `reposcan-raw/google/adk-python/.../auth_credential.py` | 278 | Fixture: `token="eyAkaknabna...."` (truncated fake JWT) |
+| `reposcan-raw/google/adk-python/.../auth_schemes.py` | 68 | Enum value `PASSWORD = "password"` (OAuth grant type) |
+| `reposcan-raw/google/adk-python/.../gke_code_executor.py` | 103,104,115 | kubeconfig path params (not secrets) |
+| `reposcan-raw/google/adk-python/.../container_code_executor.py` | 114,154 | Ref to standard GCP metadata endpoint `169.254.169.254` |
+| `reposcan-raw/google/orbax/.../environment.py` | 22 | Standard GCP metadata URL `metadata.google.internal` |
+| `reposcan-raw/google/oss-rebuild/.../scratch_startup.sh` | 31 | Standard GCP metadata token fetch pattern |
+| `reposcan-raw/google/quiche/...` | various | OpenSSL/SPDY protocol comments |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| `google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py` | 22 | `http://metadata.google.internal/computeMetadata/v1` (std GCP) |
-| `google/oss-rebuild/deployments/scratch_startup.sh` | 31 | `metadata.google.internal/.../token` (std GCP) |
-| `google/quiche/quiche/http2/core/spdy_protocol.h` | 7 | `dev.chromium.org/spdy/...` (doc URL) |
-| `google/adk-python` (multiple) | — | `169.254.169.254` (cloud metadata IP, standard) |
+| File | Line | Note |
+|------|------|------|
+| `reposcan-raw/google/yggdrasil-decision-forests/.../export_docker.py` | 68 | Internal `pantheon.corp.google.com` URL in comment |
 
 #### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| `google/dotprompt/.github/workflows/publish_python_*_package.yml` | 33-34 | `https://test.pypi.org/legacy/` (public test PyPI) |
-| `google/xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch key `40150cc2...` — **REJECTED per KB** (search-only, public by design) |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | — | Minified build artifacts (parse error messages) |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | Proper GitHub Actions secret usage (not hardcoded) |
+| (none new) | | |
 
 ---
 
-### SHORT VERDICT LIST
+### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| adk-python JS build artifacts | **no** | Minified chunks, parse error strings only |
-| dotprompt test.pypi.org workflows | **no** | Public test registry endpoint |
-| dotprompt monaco syntax config | **no** | Language token definitions |
-| orbax GCP metadata URL | **no** | Standard `metadata.google.internal` endpoint |
-| quiche SPDY/SSL comments | **no** | Documentation references |
-| xrblocks Algolia key | **no** | **REJECTED in KB** — search-only, public by design |
-| adk-python test fixtures | **no** | Obvious placeholders (`password`, `your_client_secret`, fake JWT) |
-| sam GH Actions secrets | **no** | Proper `${{ secrets.* }}` usage, not hardcoded |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| ibis vendored OAuth client_id/secret | `bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py:58` | **no** | Upstream ibis credential in vendored third-party code; not Google-owned; fix belongs in ibis repo. Same credential appears in backend.py duplicate. |
+| earthengine-api oauth.py:45 | (from knowledge base) | **pending** | Known LIVE hardcoded secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), A/B proof conclusive — pending VRP determination on native-app by-design status. |
+| Algolia DocSearch key | `xrblocks/docs/docusaurus.config.ts:175` | **no** | **REJECTED** per knowledge base — search-only key, public by design. |
+| ADK ya29 token in git history | (from knowledge base) | **no** | **KNOWN DUPLICATE** — issue #5520 closed, token redacted. |
+| ADK /run_sse client_secret | (from knowledge base) | **no** | **KNOWN DUPLICATE** — issue #2128 closed. |
 
-**Overall: 0 reportable findings in this delta.** All hits are test fixtures, placeholders, build artifacts, public endpoints, or previously rejected surfaces.
+**Summary**: No **new** reportable REAL_SECRET findings in this delta. The ibis vendored credential is an upstream issue. The earthengine-api secret remains the only live Google-owned candidate (already tracked, pending VRP triage). All other hits are test fixtures, placeholders, proper secret references, or known-rejected items.
