@@ -1,92 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/triage_results.md << 'EOF'
-# Triage Results — Static Scan Delta (2026-08-19)
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=125, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=58][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=48, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/trillian/testonly/keys.go[90m [offset=20, limit=20][0m
+### Classification Tables
 
-## Classification Tables
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Verdict |
+|------|------|---------------|---------|
+| *(none)* | | | |
 
-### REAL_SECRET (hardcoded credentials with signs of life)
-*None found in this delta.*
+#### TEST_OR_EXAMPLE
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — example placeholder in ServiceAccountCredential docstring |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` — HttpCredentials example in AuthCredential docstring |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` — bearer token example in AuthCredential docstring |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — OAuthGrantType enum value (grant type name, not a secret) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` — template writing user-provided key to .env (not hardcoded) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — example placeholder in OpenIdConfig docstring |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` — config flag name constant |
+| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75,102,129 | `testpassword`, `test-token-123` — test fixtures |
+| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136,159,189 | `testpassword` — test fixtures |
+| google/trillian/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` — `DemoPrivateKey` const in `testonly` package, explicitly for testing |
 
----
+#### ENDPOINT_LEAK
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` — well-known GCP metadata endpoint (public knowledge, not a leak) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` — same, metadata endpoint reference |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` — same |
+| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/...` — internal Google artifact registry URL in build config (internal, but not a secret) |
+| google/fhir/spec/hl7.fhir.core/* | multiple | `intranet.aumc.nl/labvalues` — test data URLs in FHIR spec example resources |
 
-### TEST_OR_EXAMPLE (sample/test/fixture data, placeholders, proper secret handling)
-
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/charts/agentmesh/templates/configmap.yaml | 2 | `kind: ConfigMap` | K8s template |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/charts/agent-os/templates/configmap.yaml | 2 | `kind: ConfigMap` | K8s template |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/extensions/copilot/smoke-test.js | 76 | `'const password = "secret123";'` | Test fixture in smoke test |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/build_and_publish.sh | 105 | `pip install --index-url https://test.pypi.org/...` | TestPyPI publish script |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/benchmarks/red_team_dataset.py | 306 | SQLi payload with `password='newpass123'` | Red-team benchmark fixture |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/control-plane/src/agent_control_plane/adapter.py | 17 | `api_key="your-key"` | Placeholder/template |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/observability/alertmanager/alertmanager.yml | 15 | `# smtp_auth_password: 'password'` | Commented placeholder |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts | 399 | `api_key = "sk-REPLACE-WITH-YOUR-KEY"` | Explicit placeholder |
-| microsoft/agent-governance-toolkit/policy-engine/deploy/kubernetes/acs-sidecar-reference/acs-policy-configmap.yaml | 2 | `kind: ConfigMap` | K8s template |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | K8s template (mock) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | K8s template |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | K8s template |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s templates (10 files) |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not a token value |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var reference (proper) |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. | GitHub Actions secret refs (proper) |
-| google/digitalbuildings/tools/abel/model/constants.py | 106 | `ACCESS_TOKEN = 'accessToken'` | Constant key name |
-| google/go-cloud/docstore/mongodocstore/awsdocdb/main.tf | 48 | `master_password = "${var.db_password}"` | Terraform var reference |
-| google/trillian/testonly/keys.go | 24 | `-----BEGIN EC PRIVATE KEY-----` | Test-only package fixture |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13,55 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server fixture |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Constant key name (env var name) |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions token output refs |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions secret ref (proper) |
-
----
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, cloud metadata endpoints)
-
-| File | Line | Endpoint | Notes |
-|------|------|----------|-------|
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 563 | `169.254.169.254` | AWS/Azure IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 566 | `metadata.google.internal` | GCP IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-dotnet/src/AgentGovernance/Policy/OpaPolicyBackend.cs | 568 | `100.100.100.200` | Alibaba Cloud IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/governance/advisory.py | 39 | `169.254.169.254` | Cloud metadata (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/entra_agent_id.py | 24 | `http://169.254.169.254/metadata` | Azure IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 27 | `http://169.254.169.254/metadata/identity/oauth2/token` | Azure IMDS token (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 29 | `http://169.254.169.254/latest/meta-data/iam` | AWS IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-mesh/src/agentmesh/identity/managed_identity.py | 30 | `http://169.254.169.254/latest/api/token` | AWS IMDS token (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 102 | `169.254.169.254` | AWS metadata (public) |
-| microsoft/agent-governance-toolkit/agent-governance-python/agent-os/modules/atr/atr/tools/safe/http_client.py | 103 | `metadata.google.internal` | GCP metadata (public) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8,11,13 | `169.254.169.254`, `metadata.google.internal`, `100.100.100.200` | Multi-cloud IMDS (public) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts | 13,14 | `169.254.169.254`, `metadata.google.internal` | Multi-cloud IMDS (public) |
-| google/digitalbuildings/tools/validators/instance_validator/validate/telemetry_validator.py | 159 | `https://yaqs.corp.google.com/...` | Internal Google Q&A link |
-| google/go-cloud/docstore/gcpfirestore/create_indexes.sh | 20,33 | `https://firebase.corp.google.com/...` | Internal Firebase console URLs |
+#### INTERESTING
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`, `kubeconfig_context` — GKE executor config params (not secrets) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — internal session state key name |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified browser CLI bundles (source maps already inventoried 2026-08-07) |
 
 ---
 
-### INTERESTING (debug flags, unusual configs, supply-chain signals)
+### Verdict List
 
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| google/trillian/util/election2/k8s/provider.go | 19,41 | `kubeconfig` flag + out-of-cluster config | K8s auth pattern, not a secret |
-| google/trillian/testonly/keys.go | 24 | EC private key in `testonly` package | Test fixture, segregated |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| google/adk-python auth_credential.py examples | **no** — all docstring placeholders (`...`, `password`, `eyAkaknabna....`) |
+| google/adk-python auth_schemes.py PASSWORD enum | **no** — OAuth grant type literal, not a credential |
+| google/adk-python cli_create.py GOOGLE_API_KEY template | **no** — writes user-supplied value to .env at runtime |
+| google/adk-python openapi_tool auth_helpers.py example | **no** — `your_client_secret` placeholder in docstring |
+| google/cadvisor StorageDriverPassword flag name | **no** — config constant name, not a value |
+| google/copybara test fixtures | **no** — `testpassword`, `test-token-123` in `javatests/` |
+| google/trillian testonly DemoPrivateKey | **no** — in `testonly` package, encrypted, labeled for testing |
+| 169.254.169.254 metadata endpoint refs | **no** — public well-known IP |
+| pantheon.corp.google.com in cloudbuild.yaml | **no** — internal artifact registry, build-time only |
+| intranet.aumc.nl in FHIR test data | **no** — synthetic test identifiers in spec examples |
+| gke_code_executor kubeconfig params | **no** — config options, not secrets |
+| vmaas _STATE_KEY_ACCESS_TOKEN | **no** — internal state key name |
+| JS browser chunk source maps | **no** — already inventoried, minified bundles |
 
----
-
-## Verdict List
-
-| Candidate | File | Line | Classification | REPORT_CANDIDATE |
-|-----------|------|------|----------------|------------------|
-| (none) | — | — | — | **no** |
-
-**Summary**: 0 reportable findings in this delta. All 24 new hits are either:
-- Well-known public cloud metadata endpoints (IMDS IPs/hostnames) — **ENDPOINT_LEAK** but not exploitable
-- Kubernetes ConfigMap templates — **TEST_OR_EXAMPLE**
-- Test fixtures, placeholders, red-team benchmarks — **TEST_OR_EXAMPLE**
-- Proper secret handling via env vars / GitHub Actions secrets — **TEST_OR_EXAMPLE**
-- Internal Google corp URLs (yaqs, firebase.corp) — **ENDPOINT_LEAK** (internal only, no external access)
-
-The `testonly/keys.go` EC key is in a `testonly` package (build tag segregated). The IMDS endpoints are public by design (169.254.169.254, metadata.google.internal, 100.100.100.200) and appear in policy-backend allow-lists for cloud identity detection — not secrets.
-EOF
-cat /tmp/triage_results.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Overall: 0 reportable findings in this delta.** All hits are test fixtures, documentation placeholders, config constants, or well-known public endpoints.
