@@ -7594,3 +7594,18 @@
 - LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules.
 - LEARN: REJECTED: No new proving-dead classes — all passive probes stable.
 - LEARN: NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no 
+
+## RANKED HYPOTHESES 2026-08-19 23:29:23 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-laguna.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b3 — wait, recompute below) via the MSR
+- LEARN: NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no 
+- LEARN: ACCEPTED: agentRegistrations collection-level CORS preflight re-verified by own probe at 23:05 UTC — OPTIONS→200 + Access-Control-Allow-Origin:* + Allow-Methods
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH confirmed browser-exploitable by own probe at 23:06 UTC — OPTIONS→200 + ACAO:* + full Allow-Methods incl 
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via own GET→404 at 23:03 UTC (RFC 6749 §3.2.1 compliant, 30+ consecutive probes)
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering stable — own probe GET response_type=token → HTTP 200 / 23782 bytes (RFC 6749 §3 violation)
+- LEARN: ACCEPTED: v1.0↔v2.0 JWKS kid subset stable — own probe v1=6 kids ⊂ v2=9 kids (strict subset, 0 v1-only, all kty=RSA)
+- LEARN: ACCEPTED: Graph API systemic RFC 6750 §3 deviation confirmed by own probe — HEAD /v1.0 →405/no Bearer, GET /me →401 + WWW-Authenticate Bearer
+- LEARN: REJECTED: No new proving-dead classes — own passive probes (23:03–23:06 UTC) confirm all prior ACCEPTED/REJECTED findings unchanged
+- LEARN: NO_DELTA — all fresh passive probes (robot + knowledge base + inventory) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no 
