@@ -391,3 +391,6 @@
 - 2026-08-19 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules.
 - 2026-08-19 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass.
 - 2026-08-19 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass.
+- 2026-08-19 ACCEPTED: All 3 hypothesis preconditions remain stable across 29+ consecutive 2-hourly probe cycles — agentRegistration 6-family CORS+PATCH (200 + ACAO:* + PATCH), earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f…d271`), oauth2PermissionGrants caller-chosen resourceId (458-char EntityType 0 OperationRestrictions).
+- 2026-08-19 REJECTED: tokeninfo public introspection oracle — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible).
+- 2026-08-19 REJECTED: Dual-JWKS rotation desync @ login.microsoftazure.com — v1⊂v2 strict subset, all kty=RSA, no confusion surface.

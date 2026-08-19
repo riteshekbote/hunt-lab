@@ -1591,3 +1591,5 @@
 - NEW Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (5⊂8/9), all kty=RSA, no cross-endpoint confusion surface — REJECTED
 - NEW graph.microsoft.com/beta/copilot/agentRegistrations/{id} item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
 - NEW graph.microsoft.com/v1.0/oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+
+## 2026-08-19 01:50:32 UTC
