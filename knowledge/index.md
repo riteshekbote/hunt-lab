@@ -564,3 +564,4 @@
 - 2026-08-20 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (32nd consecutive 2-hourly probe since 2026-08-17, RFC 6749 §3.2.1 compliant).
 - 2026-08-20 NO_DELTA — all fresh passive probes (2026-08-20 15:54:57 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-20 NO_DELTA — all fresh passive probes (robot 16:30:43 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
+- 2026-08-20 NO_DELTA — all fresh passive probes (robot 17:04:36 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.

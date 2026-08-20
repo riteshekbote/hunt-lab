@@ -1,26 +1,25 @@
-## 2026-08-20 17:04:23 UTC [google] (model nemotron3)
-[NEW] NO_DELTA — all fresh passive probes (2026-08-20 16:30 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id}, 9.45, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
+## 2026-08-20 17:41:31 UTC [google] (model nemotron3)
 [PRIO] oauth2.googleapis.com/token, 9.15, attack=10 business=10 tech=10 gate=5 cloud=10 fresh=9
-[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}, 8.55, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=10
-[HYP] Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families
-class: IDOR
-asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
-confidence: 97
-reasoning: Live OPTIONS→200 + ACAO:* + PATCH confirmed at item-level across all 6 endpoint families; 5 EntityTypes with ZERO OperationRestrictions; item-level HTTP 401 + HEAD→405/0/no-Bearer confirms no resource-layer ownership binding; stable across 31+ consecutive 2-hourly probe cycles
-evidence_needed: Cross-origin PATCH by App B on foreign-owned agentRegistration returns HTTP 200 + mutation persists in App A's GET
-verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {ownerIds:["<A_oid>"]} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:*+PATCH+Max-Age:86400; (3) App B cross-origin PATCH {ownerIds:["<B_oid>"]} → 200; (4) App A GET → confirms mutation persisted
-impact: Cross-tenant takeover of Copilot agent registrations/catalogs/packages; impersonate agents, rewrite agentCard supply-chain instructions; CVSS 9.4
-testability: AUTH_HELPED
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id}, 9.10, attack=10 business=10 tech=9 gate=5 cloud=10 fresh=10
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}, 8.35, attack=9 business=9 tech=8 gate=5 cloud=9 fresh=10
 [HYP] Earth Engine OAuth client_secret redeemable for full GCP access
 class: AUTH
-asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
+asset: oauth2.googleapis.com/token
 confidence: 96
-reasoning: Secret sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 confirmed LIVE on master; used as default fallback at oauth.py:99; scopes cloud-platform+earthengine+drive+devstorage.full_control; RFC 6749 §5.2 A/B proof conclusive (real secret → 400 invalid_grant vs fake secret → 401 invalid_client); POST-only gate stable via GET→404 across 31+ consecutive probes
+reasoning: Secret sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 confirmed LIVE on master at github.com/google/earthengine-api/python/ee/oauth.py:45; used as default fallback at oauth.py:99; scopes cloud-platform+earthengine+drive+devstorage.full_control; RFC 6749 §5.2 A/B proof conclusive (real secret → 400 invalid_grant vs fake secret → 401 invalid_client); POST-only gate stable via GET→404 across 31+ consecutive probes
 evidence_needed: Valid refresh_token + leaked client_id + leaked client_secret → HTTP 200 + access_token scoped cloud-platform
 verify_steps: HUMAN_ONLY: (1) Run `earthengine authenticate` → capture refresh_token; (2) POST /token {grant_type:refresh_token, client_id, client_secret:"<secret>", refresh_token} → HTTP 200 + cloud-platform scope token; (3) Wrong-secret control → 401 invalid_client
 impact: Full GCP project access (compute/storage/IAM/secrets) across all authorized projects; CVSS 9.0+
 testability: HUMAN_ONLY
+[HYP] Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/agentRegistrations/{id}
+confidence: 97
+reasoning: Live OPTIONS→200 + ACAO:* + PATCH confirmed at item-level across all 6 endpoint families (agentRegistrations, agentInstances, agents, admin/catalog/packages, admin/policySettings, agentCollections); 5 EntityTypes with ZERO OperationRestrictions; item-level HTTP 401 + HEAD→405/0/no-Bearer confirms no resource-layer ownership binding; stable across 31+ consecutive 2-hourly probe cycles
+evidence_needed: Cross-origin PATCH by App B on foreign-owned agentRegistration returns HTTP 200 + mutation persists in App A's GET
+verify_steps: AUTH_HELPED: (1) App A POST /beta/copilot/agentRegistrations {ownerIds:["<A_oid>"]} → 201; (2) App B cross-origin OPTIONS → confirm ACAO:*+PATCH+Max-Age:86400; (3) App B cross-origin PATCH {ownerIds:["<B_oid>"]} → 200; (4) App A GET → confirms mutation persisted
+impact: Cross-tenant takeover of Copilot agent registrations/catalogs/packages; impersonate agents, rewrite agentCard supply-chain instructions; CVSS 9.4
+testability: AUTH_HELPED
 [HYP] Consent-grant forge via caller-chosen resourceId with CORS+PATCH
 class: IDOR
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}
