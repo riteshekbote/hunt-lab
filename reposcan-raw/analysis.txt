@@ -1,58 +1,115 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && find . -name "*.go" -o -name "*.py" -o -name "*.js" -o -name "*.yaml" -o -name "*.toml" -o -name "*.sh" -o -name "*.java" -o -name "*.h" 2>/dev/null | head -20
+./scripts/sync-issues.py
+./reposcan-raw/google/gts/eslint.config.js
+./reposcan-raw/google/gts/eslint.ignores.js
+./reposcan-raw/google/gts/src/index.js
+./reposcan-raw/google/gts/.github/workflows/ci.yaml
+./reposcan-raw/google/gts/.github/workflows/release.yaml
+./reposcan-raw/google/gts/.pre-commit-hooks.yaml
+./reposcan-raw/google/gts/test/fixtures/kitchen/src/samples.js
+./reposcan-raw/google/osv-scalibr/packageindex/package_index.go
+./reposcan-raw/google/osv-scalibr/packageindex/package_index_test.go
+./reposcan-raw/google/osv-scalibr/run_scalibr_on_image.sh
+./reposcan-raw/google/osv-scalibr/testing/testmetadata/metadata.go
+./reposcan-raw/google/osv-scalibr/testing/testcollector/test_collector.go
+./reposcan-raw/google/osv-scalibr/testing/testcollector/test_collector_test.go
+./reposcan-raw/google/osv-scalibr/testing/mockregistry/mockregistry.go
+./reposcan-raw/google/osv-scalibr/testing/fakefs/fake_fileinfo_test.go
+./reposcan-raw/google/osv-scalibr/testing/fakefs/symlink_fs.go
+./reposcan-raw/google/osv-scalibr/testing/fakefs/fakefs.go
+./reposcan-raw/google/osv-scalibr/testing/fakefs/fake_fileinfo.go
+./reposcan-raw/google/osv-scalibr/testing/fakefs/fakefs_test.go
 [0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | **TEST_OR_EXAMPLE** — vendored 3rd-party test fixture (ibis BigQuery backend), not project code |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | **TEST_OR_EXAMPLE** — same vendored fixture |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Example credentials in docstrings (`private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."`) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` — test/example value |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Example `client_secret="your_client_secret"` |
-| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | Example `password: "password"`, `token: "your_access_token"` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
-| google/capsem/config/gate.toml | 597 | Config `password = "password.txt"` — references file, not secret |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file — runtime pattern |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file — runtime pattern |
-| google/sam/internal/node/store.go | 38 | Constant `keyRefreshToken = "refresh_token"` — key name, not value |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var reference |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=...="${SECRET}"` — CI secret injection, not hardcoded |
-
-#### ENDPOINT_LEAK
-| File | Line | Reason |
-|------|------|--------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References `169.254.169.254` (GCP metadata) — well-known, documented |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Same metadata endpoint reference |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Same metadata endpoint reference |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | Same metadata endpoint reference (`169.254.0.0/16` CIDR) |
-| google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/..."` — well-known GCP metadata |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks for `metadata.google.internal` — defensive coding |
-
-#### INTERESTING
-| File | Line | Reason |
-|------|------|--------|
-| google/bigframes/scripts/run_doctest.sh | 38-39 | CI pattern: loads SA from `KOKORO_GFILE_DIR/service-account.json` — Google-internal test infra, not a leak |
-| google/sam/.github/k8s/dex-config.yaml + 7 other K8s templates | various | `kind: ConfigMap` — Kubernetes config, no secrets in scanned lines |
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=30, offset=590][0m
+Now I have enough context. Let me classify all the hits.
 
 ---
 
-### SHORT VERDICT LIST
+## CLASSIFICATION TABLES
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| bigframes vendored ibis `CLIENT_SECRET` | **no** | Third-party vendored test fixture (`third_party/bigframes_vendored/`), not project code; value is a known ibis test placeholder |
-| adk-python/adk-js example credentials | **no** | Explicitly example/test values in docstrings and constants (`password`, `your_client_secret`, `your_access_token`) |
-| sam CI secret references | **no** | Proper CI pattern — secrets injected at runtime via `${SECRET}` env vars |
-| GCP metadata endpoint references | **no** | Well-known documented endpoints (`169.254.169.254`, `metadata.google.internal`) |
-| bigframes doctest CI pattern | **no** | Standard Google-internal Kokoro test infrastructure pattern |
+### REAL_SECRET (hardcoded credentials with signs of life)
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *(none found in this delta)* | | | |
 
-**OVERALL: 0 reportable findings in this delta.** All hits are test fixtures, example code, vendored third-party test data, documented public endpoints, or proper CI secret-injection patterns.
+---
+
+### TEST_OR_EXAMPLE (sample/test/fixture data, not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go` | 56 | Constant `"PASSWORD_HASH_LM_FORMAT"` — format identifier, not a hash |
+| `reposcan-raw/google/triage-party/skaffold.yaml` | 16 | Boilerplate `kind: Config` |
+| `reposcan-raw/google/triage-party/deploy/kubernetes/configmap.yaml` | 16 | Boilerplate `kind: ConfigMap` |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Test fixture: `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Test fixture: `username="user", password="password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Test fixture: `token="eyAkaknabna...."` (placeholder JWT) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Test constant: `PASSWORD = "password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | Type annotations: `kubeconfig_path: str \| None = None` |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder: `client_secret="your_client_secret"` |
+| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key name: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| `reposcan-raw/google/capsem/scripts/preflight.sh` | 39 | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
+| `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` (14 files) | 3-11 | Minified PEG.js parser error templates — generated code |
+
+---
+
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints, well-known IPs)
+| File | Line | Endpoint / Reference |
+|------|------|---------------------|
+| `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/decrypt.go` | 40 | `https://dev.mysql.com/doc/refman/8.0/en/mysql-config-editor.html` (public doc) |
+| `reposcan-raw/google/osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/mysqlmylogin.go` | 32 | `https://dev.mysql.com/doc/refman/8.4/en/option-files.html` (public doc) |
+| `reposcan-raw/google/google-api-objectivec-client-for-rest/.../Datastream/.../GTLRDatastreamObjects.h` | 2291 | `https://dev.mysql.com/doc/refman/8.0/en/data-types.html` (public doc) |
+| `reposcan-raw/google/google-api-objectivec-client-for-rest/.../CloudDeploy/.../GTLRCloudDeployObjects.h` | 4704 | `https://kubernetes.io/docs/concepts/configuration/organize-cluster-access-kubeconfig/#proxy` (public doc) |
+| `reposcan-raw/google/google-api-objectivec-client-for-rest/.../FirebaseDataConnect/.../GTLRFirebaseDataConnectObjects.h` | 1562 | `https://g3doc.corp.google.com/...` (**internal Google docs**) |
+| `reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` (**staging endpoint**) |
+| `reposcan-raw/google/closure-compiler/externs/ms-office-1.3.js` | 27, 166 | `https://dev.office.com/...` (public Microsoft docs) |
+| `reposcan-raw/google/closure-compiler/externs/browser/html5.js` | 22, 1702, 1763 | `http://dev.w3.org/html5/...` (W3C specs) |
+| `reposcan-raw/google/closure-compiler/externs/browser/w3c_css.js` | 3997, 4833, 4838 | `http://dev.w3.org/csswg/...` (W3C specs) |
+| `reposcan-raw/google/closure-compiler/externs/browser/w3c_device_sensor_event.js` | 22 | `http://dev.w3.org/geo/api/...` (W3C spec) |
+| `reposcan-raw/google/closure-compiler/externs/browser/webkit_notifications.js` | 202 | `http://dev.w3.org/2006/webapi/...` (W3C spec) |
+| `reposcan-raw/google/closure-compiler/externs/browser/w3c_fileapi.js` | 34 | `http://dev.w3.org/2006/webapi/...` (W3C spec) |
+| `reposcan-raw/google/closure-compiler/externs/browser/w3c_rtc.js` | 1597, 3333 | `http://dev.w3.org/2011/webrtc/...` (W3C specs) |
+| `reposcan-raw/google/closure-compiler/externs/es6.js` | 392 | `http://dev.w3.org/html5/postmsg/` (W3C spec) |
+| `reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | `https://source.corp.google.com/...` (**internal Google source**) |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` (GCP metadata IP — well-known) |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (GCP metadata IP) |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (GCP metadata IP) |
+
+---
+
+### INTERESTING (unusual patterns, debug flags, secret-handling code)
+| File | Line | Note |
+|------|------|------|
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes `GOOGLE_API_KEY={google_api_key}` from user-provided variable to `.env` — **secret-handling code, not a leak** |
+| `reposcan-raw/google/capsem/config/gate.toml` | 597 | `password = "password.txt"` — references a file (gitignored), not hardcoded secret |
+| `reposcan-raw/google/google-api-objectivec-client-for-rest/.../FirebaseDataConnect/.../GTLRFirebaseDataConnectObjects.h` | 1562 | References `g3doc.corp.google.com` — internal docs leak in generated client |
+| `reposcan-raw/google/closure-compiler/src/com/google/javascript/jscomp/ErrorManager.java` | 95 | References `source.corp.google.com` — internal source leak in compiler code |
+
+---
+
+## SHORT VERDICT LIST
+
+| Candidate | Classification | REPORT_CANDIDATE | Rationale |
+|-----------|----------------|------------------|-----------|
+| **adk-python browser chunk JS files (14 files)** | TEST_OR_EXAMPLE | **no** | Minified PEG.js parser error templates — generated/bundled code, no secrets |
+| **adk-python auth_credential.py test fixtures** | TEST_OR_EXAMPLE | **no** | Obvious placeholders (`...`, `"password"`, `"user"`) in test/example code |
+| **adk-python cli_create.py:131** | INTERESTING | **no** | CLI tool writes user-provided API key to `.env` — secret handling, not a leak |
+| **capsem gate.toml:597** | INTERESTING | **no** | Config references `password.txt` file (gitignored), not hardcoded |
+| **capsem workflow staging URL** | ENDPOINT_LEAK | **no** | Staging endpoint `staging.release-eq7.pages.dev` — not sensitive |
+| **google-api-objectivec-client internal g3doc link** | ENDPOINT_LEAK | **no** | Internal docs reference in generated client — info only |
+| **closure-compiler internal source.corp.google.com link** | ENDPOINT_LEAK | **no** | Internal source reference in compiler code — info only |
+| **adk-python metadata IP references (169.254.169.254)** | ENDPOINT_LEAK | **no** | Well-known GCP metadata IP — public knowledge |
+| **All W3C/dev.office.com spec links** | ENDPOINT_LEAK | **no** | Public specification URLs in externs — not sensitive |
+| **osv-scalibr MySQL doc links** | ENDPOINT_LEAK | **no** | Public MySQL documentation references |
+
+---
+
+## SUMMARY
+
+**No REAL_SECRET findings in this delta.** All 38 new hit lines are parser error templates from minified JavaScript bundles in `adk-python/src/google/adk/cli/browser/` (generated code). The remaining hits across the corpus are test fixtures, documentation links, well-known metadata IPs, or config patterns referencing external secret files — none are reportable hardcoded credentials.
+
+**Action:** No new reports needed from this scan cycle. The previously accepted `earthengine-api` hardcoded `client_secret` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) remains the only live REAL_SECRET from prior scans — already tracked in knowledge base.
