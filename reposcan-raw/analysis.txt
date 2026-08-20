@@ -1,55 +1,64 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
-
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in delta)* | | | |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern |
-|------|------|---------|
-| google/garf/libs/community/common_apis/garf/community/common_apis/currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` |
-| google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
-
-#### ENDPOINT_LEAK
-| File | Line | Pattern |
-|------|------|---------|
-| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | GCP metadata server `metadata.google.internal` (legitimate ADC pattern) |
-| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | `169.254.169.254` (AWS/Azure IMDS - public documented endpoint) |
-
-#### INTERESTING
-| File | Line | Pattern |
-|------|------|---------|
-| google/device-infra/src/java/.../DeviceAdminUtil.java | 49,50 | Android device admin action constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
-| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` (parameter name constant) |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` (constant key name) |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer name constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
-| microsoft/clarity/packages/clarity-visualize/types/visualize.d.ts | 203 | `NewPassword = "new-password"` (TypeScript type literal) |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper secret refs: `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secret refs: `${{ secrets.GEMINI_API_KEY }}` etc. |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref pattern: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | - | Minified source map chunks (not secrets) |
+[0m→ [0mRead reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=20, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh[90m [offset=35, limit=30][0m
+Now I have enough context. Let me classify all hits and produce the output.
 
 ---
 
-### SHORT VERDICT LIST
+### Classification Tables
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (KNOWN) | **yes** (pending VRP determination) | Already ACCEPTED in KB: hardcoded client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), scopes include `cloud-platform`, used as default fallback. Native-app by-design status under VRP review. |
-| google/garf `YOUR_KEY` placeholders | no | Obvious test fixtures |
-| google/tunix `your_token` comments | no | Commented-out examples |
-| google/sam OIDC_CLIENT_SECRET empty default | no | Dev-only Kind cluster bootstrap, expects env override |
-| GCP metadata server access (device-infra) | no | Legitimate ADC pattern for workload identity |
-| Azure/AWS IMDS IP `169.254.169.254` | no | Public documented endpoint |
-| Android/render token constant names | no | Constant identifiers, not secrets |
-| CI/CD secret references (sam, langextract, adk-go) | no | Correct pattern — secrets injected at runtime |
+#### REAL_SECRET
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| *(none)* | — | — | No hardcoded live credentials found |
 
-**Summary**: 0 **new** reportable secrets in this delta. The only live REAL_SECRET remains the previously-accepted earthengine-api client_secret (tracked in KB, pending VRP determination on native-app by-design). All other hits are test fixtures, constant names, legitimate cloud patterns, or proper secret references.
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/garf/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | Docstring example placeholder |
+| google/garf/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | Docstring example placeholder |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a value |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var reference with default |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | GitHub Actions secret ref (correct pattern) |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
+| google/device-infra/.../DeviceAdminUtil.java | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN`, `ACTION_RESET_PASSWORD` | Constant names (Android intent actions) |
+| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Constant name |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | `IPP_CREATE_TERMINAL_TOKEN` etc. | Constant names (timer metrics) |
+| google/adk-go/.../distr/*.js | multiple | Minified JS parser error strings | Build artifacts, not secrets |
+| microsoft/clarity/.../visualize.d.ts | 203 | `NewPassword = "new-password"` | TypeScript HTML input type constant |
+
+#### ENDPOINT_LEAK
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/device-infra/.../adc_credentials.sh | 39,44 | `metadata.google.internal/computeMetadata/...` | Standard GCP ADC metadata server calls (expected, not a leak) |
+| google/sam/.../dex-config.yaml | — | `kind: ConfigMap` | K8s ConfigMap definitions (config, not secrets) |
+| google/sam/.../deploy.yaml | — | `kind: ConfigMap` | K8s ConfigMap definitions |
+| google/sam/.../sam-*-template.yaml | — | `kind: ConfigMap` | K8s ConfigMap templates |
+
+#### INTERESTING
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| microsoft/ResearchStudio/.../render_poster.py | 55 | `_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"` | Legacy feature flag / policy token constant; value is a policy identifier, not a credential |
+
+---
+
+### Verdict List
+
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py:55` | INTERESTING (legacy policy token constant) | **no** — value `preserve-immutable-source-v1` is a feature flag identifier, not a secret |
+| All `YOUR_KEY` / `your_token` placeholders | TEST_OR_EXAMPLE | **no** — documentation/examples |
+| All `${{ secrets.X }}` workflow refs | TEST_OR_EXAMPLE | **no** — proper secret handling pattern |
+| All `metadata.google.internal` calls | ENDPOINT_LEAK | **no** — standard GCP ADC metadata access |
+| All `kind: ConfigMap` / constant names | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** — config/constant definitions |
+
+---
+
+**Summary**: 0 reportable findings in this delta. The single new hit (`_LEGACY_FIGURE_FLOOR_TOKEN`) is a legacy feature-flag constant with a policy-string value, not a credential. All other hits are test fixtures, documentation placeholders, proper secret references, or standard cloud metadata access patterns.
