@@ -1,31 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [offset=75, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/go-github/github/github.go[90m [offset=1985, limit=15][0m
-[0m→ [0mRead reposcan-raw/microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go[90m [offset=130, limit=20][0m
-| Category | File | Line | Classification | Notes |
-|---|---|---|---|---|
-| **REAL_SECRET** | — | — | **None** | No hardcoded live credentials found |
-| **TEST_OR_EXAMPLE** | google/go-github/github/github.go | 1990 | TEST_OR_EXAMPLE | Placeholder `"your app's client secret"` in example code |
-| | microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | 81 | TEST_OR_EXAMPLE | Synthetic PEM, comment: "Truncated key body so it cannot accidentally be used" |
-| | google/sam/* | multiple | TEST_OR_EXAMPLE | K8s ConfigMap kinds, workflow secret refs (`${{ secrets.* }}`) |
-| | google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references |
-| | google/tunix/tunix/cli/base_*.yaml | 63 | TEST_OR_EXAMPLE | Placeholder `# hf_access_token: "your_token"` |
-| | google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
-| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/** | multiple | ENDPOINT_LEAK | Example `dev.azure.com` URLs in docs/comments |
-| | microsoft/apm/src/apm_cli/core/script_executors.py | 711, 841 | ENDPOINT_LEAK | GCP/Azure IMDS IPs (`metadata.google.internal`, `169.254.169.254`) in comments |
-| | microsoft/apm/src/apm_cli/install/mcp/warnings.py | 33-34 | ENDPOINT_LEAK | Cloud metadata IPs in warning list |
-| **INTERESTING** | microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go | 135 | INTERESTING | Const `KDF_RAW_SECRET = "TRUNCATE"` — flag name, not a secret |
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< '-----BEGIN PRIVATE KEY-----...' | cut -d' ' -f1
+87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'password' | cut -d' ' -f1 && sha256sum <<< 'eyAkaknabna....' | cut -d' ' -f1 && sha256sum <<< 'your_client_secret' | cut -d' ' -f1
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
+[0m
+### Classification Tables
 
-### Verdict
+#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | 87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582 | Truncated fixture private key (`...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Literal `"password"` in example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | 597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b | Truncated fake JWT (`....`) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f | Placeholder `"your_client_secret"` |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | — | Commented `# hf_access_token: "your_token"` |
+| google/tunix/tunix/cli/base_config.yaml | 63 | — | Commented `# hf_access_token: "your_token"` |
+| google/go-github/github/github.go | 1990 | — | Placeholder `"your app's client secret"` |
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|---|---|---|
-| google/go-github placeholder | **no** | Documentation example |
-| microsoft/apm synthetic PEM | **no** | Explicitly truncated test fixture, masked in CI |
-| All secret refs (`${{ secrets.* }}`) | **no** | CI secret references, not hardcoded values |
-| IMDS/metadata URLs | **no** | Well-known cloud endpoints, informational |
-| KDF_RAW_SECRET constant | **no** | API flag identifier ("TRUNCATE" literal) |
+#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints — not reportable)
+| File | Line | Notes |
+|------|------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documentation/comments referencing `169.254.169.254` metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment about `169.254.169.254` in NAT64 context |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment refusing to check metadata endpoint |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Config params `kubeconfig_path`, `kubeconfig_context` (not secrets) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key name `_vmaas_access_token` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Generates config with user-supplied `GOOGLE_API_KEY` (not hardcoded) |
 
-**No reportable findings in this delta.** All 435 hits are test fixtures, documentation placeholders, CI secret references, or well-known endpoint references.
+#### INTERESTING (debug flags, keys, cloud configs — review only)
+| File | Line | Notes |
+|------|------|-------|
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified/bundled JS source map chunks (parse error messages) — build artifacts |
+| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | 5 | Minified bundle — build artifact |
+| google/sam/**/*.yaml | multiple | K8s ConfigMaps, workflows using `${{ secrets.* }}` (proper secret injection) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Workflow using `${{ secrets.GEMINI_API_KEY }}` etc. (proper) |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` (key name, not value) |
+
+---
+
+### REAL_SECRET — **NONE FOUND** in this delta
+
+No hardcoded credentials/API keys/tokens with signs of life were detected in the 33 new hit lines. All hits are test fixtures, placeholders, documentation references, or proper secret-injection patterns.
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| adk-python auth_credential.py fixtures | **no** (TEST_OR_EXAMPLE) |
+| adk-python auth_helpers.py placeholder | **no** (TEST_OR_EXAMPLE) |
+| adk-python metadata endpoint comments | **no** (ENDPOINT_LEAK) |
+| adk-python browser JS chunks | **no** (build artifacts) |
+| sam K8s/workflow secret refs | **no** (proper `${{ secrets }}` usage) |
+| langextract workflow secret refs | **no** (proper `${{ secrets }}` usage) |
+| tunix commented HF tokens | **no** (TEST_OR_EXAMPLE) |
+| go-github placeholder | **no** (TEST_OR_EXAMPLE) |
+| private-compute-services key name | **no** (INTERESTING only) |
