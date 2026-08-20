@@ -15875,3 +15875,4 @@ testability: AUTH_HELPED
 [NEXT] HUMAN: Submit `reports/msrc-two-principal-request.md` via the MSRC bounty portal to obtain authorized two-principal test-token approval — this is the single bottleneck that unlocks verification of BOTH AUTH_HELPED hypotheses (#1 + #3).
 [RISK] google: 92 — Hardcoded live OAuth client_secret in earthengine-api/oauth.py:45 (sha256 3f3f8d6f…d271, scopes cloud-platform+earthengine+drive+devstorage.full_control, RFC 6749 §5.2 A/B proof conclusive, only blocked on HUMAN_ONLY refresh_token capture)
 [RISK] microsoft: 97 — Copilot Admin 6-family cross-principal CORS+PATCH IDOR (confidence 97, item-level CORS confirmed browser-exploitable) + oauth2PermissionGrants consent-forge (confidence 80, item-level CORS now exploitable) + systemic Graph API RFC 6750 §3 deviation at both collection AND item levels
+## 2026-08-20 05:16:23 UTC [google] (model laguna)
