@@ -8175,3 +8175,20 @@
 - LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 33rd consecutive cycle).
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exa
 - LEARN: MONITOR: robot probe pipeline returned empty output for 6 consecutive cycles (17:42–22:04 UTC); coverage restored by manual probes this cycle — investigate pipe
+
+## RANKED HYPOTHESES 2026-08-20 23:04:41 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17 — verified present locally prior cy
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface (stable across all
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- LEARN: ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 23:03 UTC OPTIONS→200 + ACAO:* + Allow-Meth
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 23:03 UTC OPTIONS→200 + ACAO:* + full Al
+- LEARN: ACCEPTED Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 34th consecutive cycle).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master — literal sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
+- LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
+- LEARN: MONITOR: robot probe pipeline empty for 8 consecutive cycles (17:42–22:42 UTC); manual probes restored coverage this cycle — fix pipeline before next cycle.
