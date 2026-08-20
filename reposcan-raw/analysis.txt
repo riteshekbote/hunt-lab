@@ -1,91 +1,16 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json | head -30
-{
-  "project_info": {
-    "project_number": "334087903719",
-    "project_id": "local",
-    "storage_bucket": "local.appspot.com"
-  },
-  "client": [
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
-        "android_client_info": {
-          "package_name": "org.groundplatform.android"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "local.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
+[0m← [0mWrite triage-report.md
+Wrote file successfully.
 [0m
-[0m$ [0mcat reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | head -210 | tail -20
-# Process instance commands
-        instances = infra.get('google_compute_instance', {})
-        for inst_name, inst in instances.iteritems():
-            cmds = inst['cmds']
-            boot_cmds = inst['bootCmds']
-            metadata = inst['metadata']
-            def curl_md(k):
-                md_pref = 'http://169.254.169.254/computeMetadata/v1/instance/attributes'
-                return 'curl -s -H Metadata-Flavor:Google %s/%s' % (md_pref, k)
-            if 'startup-script' in metadata:
-                # Move user startup script out of the way (but still run it at every boot).
-                metadata['micromanage-user-startup-script'] = metadata['startup-script']
-                metadata.pop('startup-script', None)
-                bootCmds += ['%s | bash' % curl_md('micromanage-user-startup-script')]
-            inst['metadata'] = metadata
-            inst['metadata_startup_script'] = self.compileStartupScript(cmds, boot_cmds)
-            inst.pop('cmds', None)
-            inst.pop('bootCmds', None)
+**Triage complete.** Wrote full report to `triage-report.md`.
 
-        return {
-[0m
-### Classification Tables
+**Summary:** 0 new reportable findings in this delta.
 
-#### REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| *none* | — | — | No live credentials found |
+- **REAL_SECRET (1):** `google/earthengine-api/python/ee/oauth.py:45` — hardcoded OAuth client_secret (sha256 `3f3f8d6f...`). **Already ACCEPTED in KB** (2026-08-07), known to VRP, pending native-app by-design determination. No new info.
+- **TEST_OR_EXAMPLE (27 hits):** Test fixtures, placeholders, compiled JS, doc comments, CI secret refs.
+- **ENDPOINT_LEAK (4 hits):** 169.254.169.254 metadata endpoint references (documentation), staging URL.
+- **INTERESTING (1):** Firebase API key in `google/ground-android` debug/local config — project-scoped, debug-only, not production.
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key in `debug/local` folder; `project_id: "local"`, `client_id: "local.apps.googleusercontent.com"` — local dev fixture |
-| reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/** | 42–1180 | 400+ localization files with "token" in error messages (e.g., `"%1 is not a token element"`) — third-party library code |
-
-#### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` — GCP metadata server (well-known, documented) |
-
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| *none* | — | No unusual debug flags, cloud configs, or keys beyond above |
-
----
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google-services.json Firebase key | **no** | Local dev fixture (`project_id: "local"`), Firebase API keys are public-by-design per KB |
-| MathJax "token" strings | **no** | Third-party library localization files, not secrets |
-| GCP metadata server URL | **no** | Documented public endpoint (169.254.169.254), not a leak |
-
-**Overall: 0 reportable findings in this delta.** All hits are either test fixtures, third-party library code, or well-known documented endpoints.
+No new attack surface, credential leaks, or bypass primitives.
