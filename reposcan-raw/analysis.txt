@@ -1,90 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -570 | tail -30
-os << "\"composite_degree\": " << compDeg << ",\n";
-  os << "\"p\": 30,\n";
-  os << "\"max_bits_in_word\": 61,\n";
-  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
-  os << "\"noise_scale_degree\": 1,\n";
-  os << "\"CKKS_M_FACTOR\": 1\n";
-  os.unindent();
-  os << "}\n";
-
-  os << ctx << " = ckks.CKKSContext(params)\n";
-  return success();
-}
-
-LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
-  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
-  auto sk = variableNames->getNameForValue(op.getSecretKey());
-
-  os << ctx << ".secret_key = " << sk << "\n";
-  os << ctx << ".program_initialization(";
-  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
-
-  os << "total_rotation_indices=[";
-  auto rotIndices = op.getTotalRotationIndices();
-  llvm::interleaveComma(rotIndices, os);
-  os << "], ";
-
-  os << "dnum=" << op.getDnum() << ", ";
-  os << "r=" << op.getR() << ", ";
-  os << "c=" << op.getC() << ", ";
-  os << "batch=" << op.getBatch();
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key"
+1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
 [0m
-[0m$ [0mcat reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | head -210 | tail -30
-uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-    - name: Build docker image
-      run: container/image/image-builder.sh -m ${INPUTS_DEPLOY_CHANNEL}
-      env:
-        INPUTS_DEPLOY_CHANNEL: ${{ inputs.deploy-channel }}
-    - name: Authentication on GCP project android-cuttlefish-artifacts
-      uses: 'google-github-actions/auth@v3'
-      with:
-        credentials_json: '${{ secrets.artifact-registry-uploader-json-creds }}'
-    - name: Login to Artifact Registry
-      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3.6.0
-      with:
-        registry: us-docker.pkg.dev
-        username: _json_key
-        password: '${{ secrets.artifact-registry-uploader-json-creds }}'
-    - name: Deploy docker image
-      uses: ./.github/actions/deploy-docker-image
-      with:
-        arch: amd64
-        image-version: ${{ needs.set-variables.outputs.image-version }}
-  deploy-docker-image-arm64:
-    if: inputs.deploy-channel != ''
-    needs: [set-variables, update-bazel-cache-and-deploy-debian-package-arm64]
-    environment: deployment
-    runs-on: ubuntu-22.04-arm
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
-    - name: Build docker image
-      run: container/image/image-builder.sh -m ${INPUTS_DEPLOY_CHANNEL}
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password.txt" && sha256sum <<< "password" && sha256sum <<< "your_client_secret" && sha256sum <<< "eyAkaknabna...."
+62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c  -
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
+597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
 [0m
-**Classification Table**
+### Classification Tables
 
-| Category | Files |
-|----------|-------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `adk-python/src/google/adk/cli/browser/chunk-*.js` (5 files) — minified parser error messages (build artifacts)<br>`heir/scripts/author_stats.py:16` — `# TOKEN = "your_github_token_here"` placeholder comment |
-| **ENDPOINT_LEAK** | `android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml:195` — `${{ secrets.artifact-registry-uploader-json-creds }}` (proper GitHub Actions secret reference, not hardcoded) |
-| **INTERESTING** | `heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558` — emits `secret_key = <var>` in generated FHE code; `sk` is an MLIR value name, not a hardcoded secret (compiler codegen for CKKS contexts) |
+#### REAL_SECRET (reportable)
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| *none in new delta* | — | — | Prior ACCEPTED: `google/earthengine-api/python/ee/oauth.py:45` sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` (live on master, documented in KB) |
 
-**Verdict List**
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52` | `GEMINI_API_KEY = "gemini_api_key"` placeholder |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | (private key fixture) | Test private key `-----BEGIN PRIVATE KEY-----...` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | `password="password"` test creds |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` | `token="eyAkaknabna...."` test JWT |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | `PASSWORD = "password"` constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | `client_secret="your_client_secret"` placeholder |
+| `google/capsem/config/gate.toml` | 597 | `62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c` | `password = "password.txt"` references file |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | (reads from file) | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| `google/capsem/scripts/preflight.sh` | 39 | (reads from file) | `password="$(tr -d '\n' < "$pass_file")"` |
+| `google/sam/internal/node/store.go` | 38 | N/A | `keyRefreshToken = "refresh_token"` constant name |
+| `google/sam/development/kind/run.sh` | 139 | N/A | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` env var default empty |
 
-| File:Line | Classification | REPORT_CANDIDATE |
-|-----------|----------------|------------------|
-| adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js:3 | TEST_OR_EXAMPLE | no |
-| adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3 | TEST_OR_EXAMPLE | no |
-| adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js:3 | TEST_OR_EXAMPLE | no |
-| adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js:3 | TEST_OR_EXAMPLE | no |
-| adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9 | TEST_OR_EXAMPLE | no |
-| android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml:195 | ENDPOINT_LEAK | no |
-| heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 | INTERESTING | no |
-| heir/scripts/author_stats.py:16 | TEST_OR_EXAMPLE | no |
+#### ENDPOINT_LEAK (internal URLs, not secrets)
+| File | Line | Content |
+|------|------|---------|
+| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `default: https://staging.release-eq7.pages.dev` |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs (`${{ GOOGLE_CLIENT_SECRET }}`, etc.) — proper pattern |
+| `google/sam/**/dex-config.yaml`, `sam-*-template.yaml` | — | Kubernetes `kind: ConfigMap` (not secrets) |
 
-**Summary**: 0 reportable findings in this delta. All hits are test fixtures, build artifacts, proper secret references, or compiler codegen — no hardcoded live credentials.
+#### INTERESTING (template vars, config patterns, metadata refs)
+| File | Line | Note |
+|------|------|------|
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Template vars `_ID_TOKEN`, `_AUTH_TOKEN` from `steps.fetch-token.outputs` |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` references |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template `GOOGLE_API_KEY={google_api_key}` interpolation |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`/`kubeconfig_context` params (config, not secret) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Metadata endpoint `169.254.169.254` reference (documented) |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Same metadata endpoint reference |
+| `google/adk-python/src/google/adk/cli/browser/*.js` | — | Minified JS chunks / source maps (no secrets) |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| `google/earthengine-api/python/ee/oauth.py:45` (prior KB) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), live on master, scopes `cloud-platform+earthengine+drive+devstorage.full_control`, A/B RFC 6749 §5.2 proof conclusive. Pending VRP determination on native-app by-design status. |
+| All new delta hits | **no** | All are TEST_OR_EXAMPLE (placeholders, test fixtures, template vars) or ENDPOINT_LEAK (staging URLs, proper secret refs). No new hardcoded live credentials. |
+| `google/sam` workflow secret refs | **no** | Proper `${{ secrets.X }}` pattern — not leaked. |
+| `google/langextract` workflow secret refs | **no** | Proper `${{ secrets.X }}` pattern — not leaked. |
+| `google/capsem` password file refs | **no** | Reads from external file at runtime — not hardcoded. |
