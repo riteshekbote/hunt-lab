@@ -8151,3 +8151,14 @@
 - LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 32+ consecutive cycles).
 - LEARN: ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
 - LEARN: NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable.
+
+## RANKED HYPOTHESES 2026-08-20 22:04:43 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via the MSRC portal to unblock authorized two-principal testing for hypotheses #1+#2; in parallel submit rep
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 22:03 UTC OPTIONS→200 + ACAO:* + Allow-Meth
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:03 UTC OPTIONS→200 + ACAO:* + full Al
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master: sha256 `3f3f8d6f…d271` exact match, file 23110 B (own probe 22:03 UTC).
+- LEARN: NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable across 32+ consecutive probe cycles.

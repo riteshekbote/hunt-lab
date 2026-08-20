@@ -1,4 +1,4 @@
-## 2026-08-20 21:40:59 UTC [google] (model bigpickle)
+## 2026-08-20 22:04:25 UTC [google] (model bigpickle)
 [PRIO] graph.microsoft.com/beta/copilot/{6 families}: 8.4 | attack=9 business=9 tech=9 gate=5 cloud=8 fresh=10
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: 7.8 | attack=8 business=8 tech=9 gate=5 cloud=7 fresh=10
 [PRIO] oauth2.googleapis.com/token (earthengine-api): 7.3 | attack=6 business=9 tech=7 gate=4 cloud=9 fresh=10
@@ -6,37 +6,34 @@
 class: IDOR
 asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
 confidence: 97
-reasoning: True CORS preflight ACAO:*+PATCH re-confirmed live at collection+item on all families; 5 EntityTypes with 0 OperationRestrictions in $metadata; systemic HEAD→405/0 no-Bearer vs GET→401+Bearer confirms asymmetric enforcement; item-level 401 shows no ownership binding.
-evidence_needed: B reads/mutates A's resource (200/204 vs 403) on any of the 6 family members.
-verify_steps: AUTH_HELPED: (1) A POST agentRegistrations → 201; (2) B GET /beta/copilot/agentRegistrations/{A-id} → 200 vs 403; (3) B PATCH → 200/204 vs 403; (4) repeat across all 6 families.
-impact: Cross-principal agent/package/policy tamper → impersonation, instruction injection, supply-chain via catalog packages; CVSS 7.5–9.0.
+reasoning: True CORS preflight ACAO:*+PATCH re-confirmed by own probe at 22:03 UTC at collection level (item-level per KB); $metadata shows 5 EntityTypes with zero OperationRestrictions and client-supplied ownership fields; systemic HEAD→405/0 no-Bearer vs GET→401+Bearer asymmetry; item-level 401 shows no ownership binding.
+evidence_needed: Principal B reads/mutates principal A's resource (200/204 vs 403) on any of the 6 families.
+verify_steps: AUTH_HELPED: (1) A POST /beta/copilot/agentRegistrations → 201; (2) B GET /beta/copilot/agentRegistrations/{A-id} → 200 vs 403; (3) B PATCH same id → 200/204 vs 403; (4) repeat across all 6 families.
+impact: Cross-principal agent/package/policy tamper → impersonation, instruction injection, catalog supply-chain; CVSS 7.5–9.0.
 testability: AUTH_HELPED
 [HYP] Consent-grant forge via caller-chosen resourceId + item-level PATCH
 class: AUTH
 asset: graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}
 confidence: 79
-reasoning: Caller-chosen resourceId + principalId (458-char EntityType, 0 OperationRestrictions); item-level CORS preflight ACAO:*+PATCH browser-exploitable re-confirmed this cycle; HEAD→405/0 no-Bearer while GET→401+Bearer confirms asymmetric enforcement.
-evidence_needed: A POST grant {clientId, consentType:"Principal", principalId:<B-oid>, resourceId:<target-appId>, scope:"user_impersonation"} → 201; B GET /v1.0/me/oauth2PermissionGrants shows forged grant.
-verify_steps: AUTH_HELPED: (1) A POST /v1.0/oauth2PermissionGrants with B's OID as principalId + attacker-chosen resourceId → 201 vs 400; (2) B GET /v1.0/me/oauth2PermissionGrants → verify forged grant present; (3) if present, B redeems token with new scope → verify escalation.
-impact: Cross-principal consent forgery → read/write to victim Azure Storage, SharePoint, or any Graph-consented app; CVSS 7.5–9.0.
+reasoning: oauth2PermissionGrants EntityType exposes caller-chosen resourceId/principalId with zero OperationRestrictions; item-level CORS preflight ACAO:*+PATCH browser-exploitable re-confirmed by own probe 22:03 UTC; HEAD→405/0 no-Bearer while GET→401+Bearer confirms asymmetric enforcement.
+evidence_needed: POST grant {clientId, consentType:"Principal", principalId:<B-oid>, resourceId:<target-appId>, scope:"user_impersonation"} → 201; forged grant visible to B.
+verify_steps: AUTH_HELPED: (1) A POST /v1.0/oauth2PermissionGrants with B's OID as principalId + attacker-chosen resourceId → 201 vs 400; (2) B GET /v1.0/me/oauth2PermissionGrants → verify forged grant; (3) if present, B redeems token with new scope → verify escalation.
+impact: Cross-principal consent forgery → read/write to victim-consented resources (Storage, SharePoint, Graph apps); CVSS 7.5–9.0.
 testability: AUTH_HELPED
-[HYP] earthengine-api oauth.py:45 hardcoded client_secret with cloud-platform scope
+[HYP] earthengine-api hardcoded client_secret redeemable for cloud-platform tokens
 class: MISCONFIG
 asset: oauth2.googleapis.com/token (source: github.com/google/earthengine-api/python/ee/oauth.py:45)
 confidence: 96
-reasoning: Secret live on master re-verified this cycle (sha256 `3f3f8d6f…d271`, 23110 B); A/B proof real→invalid_grant vs fake→invalid_client conclusive per RFC 6749 §5.2; scopes incl cloud-platform+earthengine+drive+devstorage.full_control; native OOB; POST-only gate stable.
+reasoning: Secret live on master re-verified by own probe 22:03 UTC (24-char string sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, file 23110 B); A/B proof real→invalid_grant vs fake→invalid_client conclusive per RFC 6749 §5.2; scopes include cloud-platform+earthengine+drive+devstorage.full_control; native OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent.
 evidence_needed: Authorized grant_type=refresh_token redemption → 200 + signed cloud-platform access token.
 verify_steps: HUMAN_ONLY: submit reports/google-vrp-earthengine-secret.md via bughunters.google.com with A/B proof; request authorized redemption test only.
-impact: Full GCP project access via cloud-platform scope; CVSS 9.0+; native-app OOB caps VRP-worthiness per ADK #2128 precedent.
+impact: Full GCP project access via cloud-platform scope; CVSS 9.0+, reward capped by installed-app by-design posture.
 testability: HUMAN_ONLY
 [FINAL]
-[NEXT] HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC portal to unblock AUTH_HELPED two-principal testing for hypotheses #1+#2; in parallel submit reports/google-vrp-earthengine-secret.md via bughunters.google.com with the A/B proof.
-[LEARN] ACCEPTED: agentRegistration 6-family CORS+PATCH preconditions stable @ graph.microsoft.com/beta/copilot — own probe 21:15 UTC: OPTIONS→200 + ACAO:* + Allow-Methods incl PATCH at collection+item.
-[LEARN] ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable stable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — own probe: OPTIONS→200 + ACAO:* + full Allow-Methods.
-[LEARN] ACCEPTED: Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0 — HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
-[LEARN] ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret still live on master — line-45 string sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exact match, file 23110 B (own probe).
-[LEARN] ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 32+ consecutive cycles).
-[LEARN] ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
-[LEARN] NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable.
-[RISK] google: 55 — Earth Engine secret is a proven-valid OAuth credential with cloud-platform scope (A/B proof, conf 96) but installed-app/OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; report ready, pending human submission.
+[NEXT] HUMAN: Submit reports/msrc-two-principal-request.md via the MSRC portal to unblock authorized two-principal testing for hypotheses #1+#2; in parallel submit reports/google-vrp-earthengine-secret.md via bughunters.google.com with the A/B proof.
+[LEARN] ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 22:03 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH (stable).
+[LEARN] ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:03 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+[LEARN] ACCEPTED earthengine-api oauth.py:45 secret still live on master: sha256 `3f3f8d6f…d271` exact match, file 23110 B (own probe 22:03 UTC).
+[LEARN] NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable across 32+ consecutive probe cycles.
+[RISK] google: 55 — proven-valid credential with cloud-platform scope (A/B proof, conf 96) but installed-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; report ready, pending human submission.
 [RISK] microsoft: 72 — two independent high-confidence precondition packages (IDOR+CORS 97; consent-forge 79) with browser-exploitable preflights and zero schema restrictions, both blocked solely on authorized two-principal verification; MSRC request drafted and ready.
