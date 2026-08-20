@@ -1,220 +1,51 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat > /tmp/classify.py << 'EOF'
-import hashlib
-import re
+### Classification Table
 
-hits = [
-    # Delta hits
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-dispatch.yml", 100, "GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-dispatch.yml", 123, "GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-dispatch.yml", 124, "GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml", 50, "GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml", 60, "gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-invoke.yml", 64, "google_api_key: '${{ secrets.GOOGLE_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml", 52, "GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml", 62, "gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml", 66, "google_api_key: '${{ secrets.GOOGLE_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-review.yml", 48, "GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOKEN || github.token }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-review.yml", 54, "GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/gemini-review.yml", 60, "gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml", 207, "password: '${{ secrets.artifact-registry-uploader-json-creds }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml", 236, "password: '${{ secrets.artifact-registry-uploader-json-creds }}'"),
-    ("reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml", 261, "password: '${{ secrets.artifact-registry-uploader-json-creds }}'"),
-    ("reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp", 42, '"http://metadata.google.internal/computeMetadata/v1/%s", key);'),
-    ("reposcan-raw/google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp", 187, 'exchange << "client_secret=" << request.client_secret << "&";'),
-    ("reposcan-raw/google/sandboxed-api/.github/workflows/generator-tool.yml", 121, 'repo_token: "${{secrets.GITHUB_TOKEN}}"'),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts", 399, 'api_key = "sk-REPLACE-WITH-YOUR-KEY"'),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts", 11, "'metadata.google.internal',"),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts", 13, "'100.100.100.200',    // Alibaba Cloud IMDS"),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts", 8, "'169.254.169.254',    // AWS/Azure IMDS"),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts", 13, "'169.254.169.254',"),
-    ("reposcan-raw/microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts", 14, "'metadata.google.internal',"),
-    
-    # Full grep additional hits
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 157, 'private_key="-----BEGIN PRIVATE KEY-----...",'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 269, 'credentials=HttpCredentials(username="user", password="password"),'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py", 278, 'credentials=HttpCredentials(token="eyAkaknabna...."),'),
-    ("reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py", 68, 'PASSWORD = "password"'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 103, 'kubeconfig_path: str | None = None'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 104, 'kubeconfig_context: str | None = None'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py", 115, 'kubeconfig_path: str | None = None,'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 114, 'cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For'),
-    ("reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py", 154, 'network -- in particular the cloud metadata endpoint at 169.254.169.254'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py", 171, 'network with NAT64, routes to the internal ``169.254.169.254`` metadata'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py", 146, '# and 169.254.169.254 in Chrome, so refuse instead of checking it.'),
-    ("reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py", 64, 'client_secret="your_client_secret",'),
-    ("reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py", 47, '_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"'),
-    ("reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py", 131, 'lines.append(f"GOOGLE_API_KEY={google_api_key}")'),
-    ("reposcan-raw/google/go-github/github/github.go", 1990, 'ClientSecret: "your app\'s client secret",'),
-    ("reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py", 55, '_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"'),
-]
+| Category | File:Line | Evidence | Classification |
+|----------|-----------|----------|----------------|
+| **REAL_SECRET** | — | None in delta; earthengine-api secret (KNOWN ACCEPTED) not in this scan corpus | — |
+| **TEST_OR_EXAMPLE** | adk-python/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated example) | TEST_OR_EXAMPLE |
+| | adk-python/auth_credential.py:269 | `password="password"` (literal example) | TEST_OR_EXAMPLE |
+| | adk-python/auth_credential.py:278 | `token="eyAkaknabna...."` (fake JWT) | TEST_OR_EXAMPLE |
+| | adk-python/auth_schemes.py:68 | `PASSWORD = "password"` (constant example) | TEST_OR_EXAMPLE |
+| | adk-python/auth_helpers.py:64 | `client_secret="your_client_secret"` (placeholder) | TEST_OR_EXAMPLE |
+| **ENDPOINT_LEAK** | go-cloud/create_indexes.sh:20 | `https://firebase.corp.google.com/project/$project_id/...` (internal corp) | ENDPOINT_LEAK |
+| | go-cloud/create_indexes.sh:33 | `https://firebase.corp.google.com/project/$project_id/...` (internal corp) | ENDPOINT_LEAK |
+| | go-cloud/main.tf:48 | `master_password = "${var.db_password}"` (TF var ref, not secret) | ENDPOINT_LEAK |
+| | microsoft/coreutils/release-windows-ms.toml:11 | `sparse+https://pkgs.dev.azure.com/microsoft/Dart/_packaging/uutils-installer/Cargo/index/` | ENDPOINT_LEAK |
+| | microsoft/coreutils/job-build-project.yml:70 | Same Azure DevOps feed URL | ENDPOINT_LEAK |
+| | android-cuttlefish/defaults.cpp:42 | `http://metadata.google.internal/...` (well-known GCP metadata) | ENDPOINT_LEAK |
+| **INTERESTING** | langextract/ci.yaml:168-170 | Workflow uses `GEMINI_API_KEY`, `LANGEXTRACT_API_KEY`, `OPENAI_API_KEY` from secrets (correct pattern) | INTERESTING |
+| | android-cuttlefish/*.yaml (10+ files) | Workflows reference `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `GITHUB_TOKEN` from secrets (correct pattern) | INTERESTING |
+| | adk-python/container_code_executor.py:114,154 | References `169.254.169.254` metadata endpoint (well-known) | INTERESTING |
+| | adk-python/load_web_page.py:171 | References `169.254.169.254` metadata endpoint | INTERESTING |
+| | adk-python/computer_use_toolset.py:146 | References `169.254.169.254` metadata endpoint | INTERESTING |
+| | adk-python/sandbox_computer.py:47 | `_STATE_KEY_ACCESS_TOKEN` constant name | INTERESTING |
+| | sandboxed-api/generator-tool.yml:121 | `repo_token: "${{secrets.GITHUB_TOKEN}}"` (correct pattern) | INTERESTING |
+| | adk-python/cli_create.py:131 | `GOOGLE_API_KEY={google_api_key}` (writes key from var, not hardcoded) | INTERESTING |
 
-def classify(filepath, line, content):
-    # REAL_SECRET: hardcoded credential with signs of life
-    # TEST_OR_EXAMPLE: sample/test/fixture data
-    # ENDPOINT_LEAK: internal/dev/staging URLs, API endpoints
-    # INTERESTING: anything unusual
-    
-    # Check for GitHub secrets pattern (proper usage)
-    if '${{ secrets.' in content or '${{secrets.' in content:
-        return "TEST_OR_EXAMPLE"  # Proper secret reference, not a leak
-    
-    # Check for placeholder patterns
-    placeholders = [
-        "REPLACE-WITH-YOUR",
-        "your_client_secret",
-        "your app's client secret",
-        "-----BEGIN PRIVATE KEY-----...",
-        'username="user", password="password"',
-        'token="eyAkaknabna...."',
-        'PASSWORD = "password"',
-        'preserve-immutable-source-v1',
-    ]
-    for p in placeholders:
-        if p in content:
-            return "TEST_OR_EXAMPLE"
-    
-    # Check for IMDS/metadata endpoints
-    imds_endpoints = [
-        "169.254.169.254",
-        "metadata.google.internal",
-        "100.100.100.200",
-        "computeMetadata/v1",
-    ]
-    for ep in imds_endpoints:
-        if ep in content:
-            return "ENDPOINT_LEAK"
-    
-    # Check for variable references (not hardcoded)
-    if 'request.client_secret' in content:
-        return "INTERESTING"  # Code pattern, not hardcoded secret
-    
-    # Config/state key names
-    if '_STATE_KEY_ACCESS_TOKEN' in content or 'kubeconfig_path' in content or 'kubeconfig_context' in content:
-        return "INTERESTING"
-    
-    # CLI output of API key variable
-    if 'GOOGLE_API_KEY=' in content and 'google_api_key' in content:
-        return "INTERESTING"
-    
-    return "INTERESTING"
+---
 
-results = {}
-for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
-    results[cat] = []
+### Verdict List
 
-for f, l, c in hits:
-    cat = classify(f, l, c)
-    results[cat].append((f, l, c))
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| firebase.corp.google.com URLs (go-cloud) | **no** | Internal Google endpoint references; not exploitable externally |
+| Azure DevOps feed URLs (microsoft/coreutils) | **no** | Package registry endpoints; public knowledge, no auth leakage |
+| GCP metadata endpoint refs (169.254.169.254) | **no** | Well-known public IP; documentation-only |
+| Workflow secret references (`${{ secrets.XXX }}`) | **no** | Correct CI pattern; secrets not hardcoded |
+| adk-python example credentials | **no** | Obvious test/fixture values (`password`, `your_client_secret`, truncated keys) |
+| Terraform `var.db_password` reference | **no** | Variable reference, not hardcoded secret |
+| **earthengine-api oauth.py:45 client_secret** | **yes (KNOWN)** | **Already ACCEPTED in KB** (sha256 `3f3f8d6f...d271`), LIVE on master, RFC 6749 §5.2 A/B proof conclusive — pending VRP determination on native-app by-design status |
 
-# Print tables
-for cat in ["REAL_SECRET", "TEST_OR_EXAMPLE", "ENDPOINT_LEAK", "INTERESTING"]:
-    items = results[cat]
-    print(f"\n=== {cat} ({len(items)}) ===")
-    if items:
-        print(f"{'File':<80} {'Line':<6} {'Content'}")
-        print("-" * 120)
-        for f, l, c in items:
-            short_f = f.replace("reposcan-raw/", "")
-            short_c = c[:80] + "..." if len(c) > 80 else c
-            print(f"{short_f:<80} {l:<6} {short_c}")
-    else:
-        print("(none)")
-
-# Verdict
-print("\n\n=== VERDICT ===")
-real_secrets = results["REAL_SECRET"]
-if real_secrets:
-    for f, l, c in real_secrets:
-        # Extract potential secret for hashing
-        secret_match = re.search(r'["\']([A-Za-z0-9_\-]{20,})["\']', c)
-        if secret_match:
-            secret = secret_match.group(1)
-            sha = hashlib.sha256(secret.encode()).hexdigest()
-            print(f"REPORT_CANDIDATE: yes | {f}:{l} | sha256={sha}")
-        else:
-            print(f"REPORT_CANDIDATE: yes | {f}:{l} | (no extractable secret pattern)")
-else:
-    print("REPORT_CANDIDATE: no — no REAL_SECRET findings in this delta")
-
-EOF
-python3 /tmp/classify.py
-=== REAL_SECRET (0) ===
-(none)
-
-=== TEST_OR_EXAMPLE (20) ===
-File                                                                             Line   Content
-------------------------------------------------------------------------------------------------------------------------
-google/android-cuttlefish/.github/workflows/gemini-dispatch.yml                  123    GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-dispatch.yml                  124    GOOGLE_API_KEY: '${{ secrets.GOOGLE_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-invoke.yml                    60     gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-invoke.yml                    64     google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml              62     gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml              66     google_api_key: '${{ secrets.GOOGLE_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-review.yml                    54     GEMINI_API_KEY: '${{ secrets.GEMINI_API_KEY }}'
-google/android-cuttlefish/.github/workflows/gemini-review.yml                    60     gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml     207    password: '${{ secrets.artifact-registry-uploader-json-creds }}'
-google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml     236    password: '${{ secrets.artifact-registry-uploader-json-creds }}'
-google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml     261    password: '${{ secrets.artifact-registry-uploader-json-creds }}'
-google/sandboxed-api/.github/workflows/generator-tool.yml                        121    repo_token: "${{secrets.GITHUB_TOKEN}}"
-microsoft/agent-governance-toolkit/agent-governance-typescript/agent-os-vscode/src/extension.ts 399    api_key = "sk-REPLACE-WITH-YOUR-KEY"
-google/adk-python/src/google/adk/auth/auth_credential.py                         157    private_key="-----BEGIN PRIVATE KEY-----...",
-google/adk-python/src/google/adk/auth/auth_credential.py                         269    credentials=HttpCredentials(username="user", password="password"),
-google/adk-python/src/google/adk/auth/auth_credential.py                         278    credentials=HttpCredentials(token="eyAkaknabna...."),
-google/adk-python/src/google/adk/auth/auth_schemes.py                            68     PASSWORD = "password"
-google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py         64     client_secret="your_client_secret",
-google/go-github/github/github.go                                                1990   ClientSecret: "your app's client secret",
-microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py 55     _LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"
-
-=== ENDPOINT_LEAK (10) ===
-File                                                                             Line   Content
-------------------------------------------------------------------------------------------------------------------------
-google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp 42     "http://metadata.google.internal/computeMetadata/v1/%s", key);
-microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts 11     'metadata.google.internal',
-microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts 13     '100.100.100.200',    // Alibaba Cloud IMDS
-microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts 8      '169.254.169.254',    // AWS/Azure IMDS
-microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts 13     '169.254.169.254',
-microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/opa.ts 14     'metadata.google.internal',
-google/adk-python/src/google/adk/code_executors/container_code_executor.py       114    cloud metadata endpoint at ``169.254.169.254``) or escalate privileges. For
-google/adk-python/src/google/adk/code_executors/container_code_executor.py       154    network -- in particular the cloud metadata endpoint at 169.254.169.254
-google/adk-python/src/google/adk/tools/load_web_page.py                          171    network with NAT64, routes to the internal ``169.254.169.254`` metadata
-google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py      146    # and 169.254.169.254 in Chrome, so refuse instead of checking it.
-
-=== INTERESTING (10) ===
-File                                                                             Line   Content
-------------------------------------------------------------------------------------------------------------------------
-google/android-cuttlefish/.github/workflows/gemini-dispatch.yml                  100    GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOK...
-google/android-cuttlefish/.github/workflows/gemini-invoke.yml                    50     GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOK...
-google/android-cuttlefish/.github/workflows/gemini-plan-execute.yml              52     GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOK...
-google/android-cuttlefish/.github/workflows/gemini-review.yml                    48     GITHUB_TOKEN: '${{ steps.mint_identity_token.outputs.token || secrets.GITHUB_TOK...
-google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp   187    exchange << "client_secret=" << request.client_secret << "&";
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py             103    kubeconfig_path: str | None = None
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py             104    kubeconfig_context: str | None = None
-google/adk-python/src/google/adk/code_executors/gke_code_executor.py             115    kubeconfig_path: str | None = None,
-google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py          47     _STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"
-google/adk-python/src/google/adk/cli/cli_create.py                               131    lines.append(f"GOOGLE_API_KEY={google_api_key}")
-
-
-=== VERDICT ===
-REPORT_CANDIDATE: no — no REAL_SECRET findings in this delta
-[0m
-**Classification complete. No REAL_SECRET findings in this delta.**
+---
 
 ### Summary
+**0 new reportable findings** in this delta. All hits are either:
+- Internal endpoint references (ENDPOINT_LEAK, not exploitable)
+- Correct CI/CD secret usage patterns (INTERESTING, not vulnerable)
+- Obvious test/fixture values (TEST_OR_EXAMPLE)
 
-| Category | Count | Key Observations |
-|----------|-------|------------------|
-| **REAL_SECRET** | 0 | No hardcoded credentials with signs of life |
-| **TEST_OR_EXAMPLE** | 20 | All workflow secrets use proper `${{ secrets.X }}` pattern; adk-python examples use clear placeholders (`REPLACE-WITH-YOUR-KEY`, `your_client_secret`, `password`, `...`) |
-| **ENDPOINT_LEAK** | 10 | Cloud metadata endpoints (169.254.169.254, metadata.google.internal, 100.100.100.200) documented in code — known attack surface, not secrets |
-| **INTERESTING** | 10 | OAuth client_secret variable usage (not hardcoded), kubeconfig params, state key names, CLI API key output pattern |
-
-### Key Notes
-- **android-cuttlefish workflows**: Correctly use GitHub secrets for `GEMINI_API_KEY`, `GOOGLE_API_KEY`, `artifact-registry-uploader-json-creds` — no leakage
-- **oauth2_consent.cpp:187**: Uses `request.client_secret` variable — proper code pattern, not hardcoded
-- **agent-governance-toolkit**: Documents IMDS endpoints for AWS/Azure/GCP/Alibaba — defensive coding, not a leak
-- **adk-python**: All hits are test fixtures, examples, or documentation of metadata endpoint risks
-
-**Verdict**: No reportable secrets in this scan delta.
+The only live REAL_SECRET in the corpus remains the **earthengine-api hardcoded client_secret** (pre-existing KNOWN ACCEPTED finding, tracked separately).
