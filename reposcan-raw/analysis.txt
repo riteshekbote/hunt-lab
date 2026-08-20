@@ -1,63 +1,150 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "gemini_api_key"
-1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52  -
+[0m$ [0mwc -l reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js
+4155 reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "password.txt" && sha256sum <<< "password" && sha256sum <<< "your_client_secret" && sha256sum <<< "eyAkaknabna...."
-62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c  -
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
-af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f  -
-597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b  -
+[0m$ [0mhead -20 reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Authentication module for agents-cli.
+
+Supports 3 authentication methods:
+- Google Cloud credentials (Application Default Credentials)
+- Gemini API Key from AI Studio (GEMINI_API_KEY)
+- Express Mode / Vertex AI API key (GOOGLE_API_KEY)
 [0m
-### Classification Tables
+[0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+"""Supported authentication methods."""
 
-#### REAL_SECRET (reportable)
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| *none in new delta* | — | — | Prior ACCEPTED: `google/earthengine-api/python/ee/oauth.py:45` sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` (live on master, documented in KB) |
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
 
-#### TEST_OR_EXAMPLE (not reportable)
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `1a539ef3ab3bfd3101e354a5b429858d256afe0d5e9da5f7eb0487aa33f0eb52` | `GEMINI_API_KEY = "gemini_api_key"` placeholder |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | (private key fixture) | Test private key `-----BEGIN PRIVATE KEY-----...` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | `password="password"` test creds |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | `597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b` | `token="eyAkaknabna...."` test JWT |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e` | `PASSWORD = "password"` constant |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f` | `client_secret="your_client_secret"` placeholder |
-| `google/capsem/config/gate.toml` | 597 | `62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c` | `password = "password.txt"` references file |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | (reads from file) | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| `google/capsem/scripts/preflight.sh` | 39 | (reads from file) | `password="$(tr -d '\n' < "$pass_file")"` |
-| `google/sam/internal/node/store.go` | 38 | N/A | `keyRefreshToken = "refresh_token"` constant name |
-| `google/sam/development/kind/run.sh` | 139 | N/A | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` env var default empty |
 
-#### ENDPOINT_LEAK (internal URLs, not secrets)
-| File | Line | Content |
-|------|------|---------|
-| `google/capsem/.github/workflows/release-channel-staging.yaml` | 17 | `default: https://staging.release-eq7.pages.dev` |
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs (`${{ GOOGLE_CLIENT_SECRET }}`, etc.) — proper pattern |
-| `google/sam/**/dex-config.yaml`, `sam-*-template.yaml` | — | Kubernetes `kind: ConfigMap` (not secrets) |
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
 
-#### INTERESTING (template vars, config patterns, metadata refs)
-| File | Line | Note |
-|------|------|------|
-| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | Template vars `_ID_TOKEN`, `_AUTH_TOKEN` from `steps.fetch-token.outputs` |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | Proper `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` references |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template `GOOGLE_API_KEY={google_api_key}` interpolation |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`/`kubeconfig_context` params (config, not secret) |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Metadata endpoint `169.254.169.254` reference (documented) |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Same metadata endpoint reference |
-| `google/adk-python/src/google/adk/cli/browser/*.js` | — | Minified JS chunks / source maps (no secrets) |
+    Args:
+[0m
+[0m$ [0msed -n '595,600p' reposcan-raw/google/capsem/config/gate.toml
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+[0m
+[0m$ [0mgrep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN OUTPUT"
+NOT IN SCAN OUTPUT
+[0m
+[0m$ [0mls reposcan-raw/google/ | head -20
+ARC-GEN
+Accessibility-Test-Framework-for-Android
+CFU-Playground
+CausalImpact
+ChromeBrowserEnterprise
+CodeCity
+EarlGrey
+GoogleAppMeasurement
+GoogleDataTransport
+GoogleSignIn-iOS
+OpenSK
+XNNPACK
+Xee
+aarch64-esr-decoder
+aarch64-paging
+acai
+accompanist
+addlicense
+adk-docs
+adk-go
+[0m
+[0m$ [0mls reposcan-raw/google/ | grep -i earth
+earthengine-api
+earthengine-catalog
+earthengine-community
+[0m
+[0m$ [0mgrep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py
+grep: reposcan-raw/google/earthengine-api/python/ee/oauth.py: No such file or directory
+[0m
+[0m$ [0mfind reposcan-raw/google/earthengine-api -name "oauth.py" 2>/dev/null
+(no output)
+[0m
+Based on the scan output and verification, here are the classifications:
 
 ---
 
-### Verdict List
+### **REAL_SECRET** — *Hardcoded credential with signs of life*
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in this scan delta)* | — | — | — |
+
+> **Note**: The known `earthengine-api` client_secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f…d271`) is **not present in this scan output** (sparse clone missed the file). It remains **LIVE per knowledge base** (confirmed 2026-08-18/19 via curl+sha256 on master). Tracked separately — pending VRP determination on native-app by-design status.
+
+---
+
+### **TEST_OR_EXAMPLE** — *Sample/test/fixture data (not reportable)*
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | Minified JS build artifact (4155 lines) |
+| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Mock OIDC ConfigMap (docs) |
+| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Example ConfigMap (docs) |
+| `google/sam/internal/node/store.go` | 38 | Const `keyRefreshToken = "refresh_token"` (identifier, not secret) |
+| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm ConfigMap template |
+| `google/sam/development/kind/run.sh` | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` (not hardcoded) |
+| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. — **secret refs, not values** |
+| `google/sam/.github/k8s/*.yaml` (7 files) | 2,14 | ConfigMap templates |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — **secret refs** |
+| `google/capsem/config/gate.toml` | 597 | `password = "password.txt"` — **file reference**, not inline secret |
+| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file (`$pass_file`) |
+| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file (`$PASS_FILE`) |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — **enum constant**, not a key |
+| `google/agents-cli/.../staging.yaml` | 168,192 | Template placeholders `{% raw %}${{ steps.fetch-token.outputs... }}{% endraw %}` |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Test fixtures: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` (truncated/placeholder) |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — test constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` — **placeholder** |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — const name |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template var `f"GOOGLE_API_KEY={google_api_key}"` |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` (18 files) | 3,5,9,11 | Minified JS chunks / source maps (build artifacts) |
+
+---
+
+### **ENDPOINT_LEAK** — *Internal/dev/staging URLs, metadata endpoints*
+| File | Line | Context |
+|------|------|---------|
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments warning about `169.254.169.254` metadata endpoint |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about metadata endpoint / NAT64 |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment refusing metadata endpoint access |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path/context` parameters (config, not leak) |
+
+---
+
+### **INTERESTING** — *Unusual patterns worth noting*
+| File | Line | Context |
+|------|------|---------|
+| `google/capsem/config/gate.toml` | 597 | Tauri signing config referencing `password.txt` file — build-time secret injection pattern |
+| `google/capsem/scripts/preflight.sh` / `fix_p12_legacy.sh` | 39/15 | Scripts reading passwords from files at runtime — secure pattern if file is ephemeral |
+
+---
+
+### **VERDICT LIST**
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| `google/earthengine-api/python/ee/oauth.py:45` (prior KB) | **yes** | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), live on master, scopes `cloud-platform+earthengine+drive+devstorage.full_control`, A/B RFC 6749 §5.2 proof conclusive. Pending VRP determination on native-app by-design status. |
-| All new delta hits | **no** | All are TEST_OR_EXAMPLE (placeholders, test fixtures, template vars) or ENDPOINT_LEAK (staging URLs, proper secret refs). No new hardcoded live credentials. |
-| `google/sam` workflow secret refs | **no** | Proper `${{ secrets.X }}` pattern — not leaked. |
-| `google/langextract` workflow secret refs | **no** | Proper `${{ secrets.X }}` pattern — not leaked. |
-| `google/capsem` password file refs | **no** | Reads from external file at runtime — not hardcoded. |
+| earthengine-api `oauth.py:45` client_secret | **yes** (tracked separately) | Confirmed LIVE on master (sha256 `3f3f8d6f…d271`), A/B RFC 6749 §5.2 proof conclusive; pending VRP decision on native-app by-design |
+| All other hits in this scan | **no** | Test fixtures, placeholders, secret refs (`${{ secrets.X }}`), build artifacts, config templates — no hardcoded live credentials |
+
+**No new reportable findings from this scan delta.** The only live secret remains the earthengine-api client_secret already tracked in the knowledge base (pending VRP triage on native-app classification).
