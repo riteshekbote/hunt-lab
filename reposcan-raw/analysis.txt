@@ -1,77 +1,60 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
-3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'iU5ohAF2qcqrujegE3hQ1cPt' | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
 [0m
-[0m$ [0mecho -n 'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q' | sha256sum
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q' | sha256sum
 4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
 [0m
-### REAL_SECRET
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'PASSWORD' | sha256sum
+0be64ae89ddd24e225434de95d501711339baeee18f009ba9b4369af27d30d60  -
+[0m
+### Classification Tables
 
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`; used as default fallback at oauth.py:99; scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect URI; **KNOWN DUPLICATE** (accepted 2026-08-07, pending VRP determination on native-app by-design) |
-| google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in debug/local path; Firebase keys are public-by-design (project-scoped, meant for client inclusion) |
+#### REAL_SECRET Candidates
+| File | Line | Material (sha256) | Context |
+|------|------|-------------------|---------|
+| google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | `current_key: "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"` — debug-only source set, real Google API key format |
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` — vendored ibis code, `# noqa: S105` |
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same as above |
 
-### TEST_OR_EXAMPLE
-
+#### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token `eyAkaknabna....` (truncated JWT) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Variable name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Code writing API key to file, not hardcoded secret |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Fuzz test key `secret_key = "fuzz test key"` |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test password `g_shutdownPassword = "ServerShutdownPassword"` |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test code referencing password getter |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Documentation homepage URL |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Documentation reference URL |
-| google/flatbuffers/.github/workflows/label.yml | 24 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
-| google/sam/development/kind/run.sh | 139 | Shell variable with empty default `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret references (GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, CLI_OAUTH_SECRET) |
-| google/sam/internal/node/store.go | 38 | String constant for key name `keyRefreshToken = "refresh_token"` |
-| google/capsem/config/gate.toml | 597 | Path to password file `password = "password.txt"` |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file `password="$(tr -d '\n' < "$pass_file")"` |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment referencing OpenSSL RSA key format |
-| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment referencing SPDY protocol draft |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified/bundled JS chunks (build artifacts) |
+| google/bigframes/third_party/.../reductions.py | 107,125,143 | MySQL doc URLs in comments |
+| google/bigframes/third_party/.../sqlglot/*.py | 1926,2007,2116,2704,3361,4321 | MySQL doc URLs in comments |
+| google/bigframes/third_party/.../merge_subqueries.py | 36 | MySQL doc URL in comment |
+| google/secops-wrapper/src/secops/chronicle/models.py | 116,180 | `PASSWORD = "PASSWORD"` — literal placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: private_key, password, token examples |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — docs example |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — empty default |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Workflow secret refs (`${{ secrets.X }}`) |
+| google/secops-wrapper/.github/workflows/*.yml | 45,103,141 | Workflow secret refs (`${{ secrets.X }}`) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — runtime fetch |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` — runtime fetch |
+| google/bigframes/scripts/run_doctest.sh | 38-39 | CI service-account path reference (Kokoro), not a secret |
 
-### ENDPOINT_LEAK
+#### ENDPOINT_LEAK
+*None in delta*
 
-| File | Line | Type |
+#### INTERESTING
+| File | Line | Note |
 |------|------|------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | K8s ConfigMap (mock OIDC) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | K8s ConfigMap |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | K8s ConfigMap (Dex OIDC) |
-| google/sam/.github/k8s/sam-box-canary-template.yaml | 2 | K8s ConfigMap template |
-| google/sam/.github/k8s/sam-node-openrouter-template.yaml | 2 | K8s ConfigMap template |
-| google/sam/.github/k8s/dex-config.yaml | 2 | K8s ConfigMap (Dex config) |
-| google/sam/.github/k8s/sam-node-openclaw-template.yaml | 2 | K8s ConfigMap template |
-| google/sam/.github/k8s/sam-node-everything-template.yaml | 2 | K8s ConfigMap template |
-| google/sam/.github/k8s/sam-node-template.yaml | 2 | K8s ConfigMap template |
-| google/sam/.github/k8s/sam-node-vllm-template.yaml | 14 | K8s ConfigMap template |
-| google/sam/.github/k8s/sam-node-cop-template.yaml | 2 | K8s ConfigMap template |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
-
-### INTERESTING
-
-| File | Line | Notes |
-|------|------|-------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References to cloud metadata endpoint `169.254.169.254` (IMDSv1/v2) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References cloud metadata endpoint `169.254.169.254` in NAT64 context |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses connections to `169.254.169.254` (metadata endpoint) |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path/context parameters (potential SSRF/kubeconfig injection surface) |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | Debug-build API key committed; verify if test project or real |
 
 ---
 
-### VERDICT LIST
+### Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| google/earthengine-api/python/ee/oauth.py:45 | **no** | **KNOWN DUPLICATE** — Already accepted in knowledge base (2026-08-07), tracked as live finding with sha256 `3f3f8d6f...d271`; pending VRP determination on native-app by-design status (OOB redirect, installed-app pattern). Do not re-report. |
-| google/ground-android/app/src/debug/local/google-services.json:23 | **no** | Firebase API key in `debug/local/` path; Firebase API keys are **public by design** (project-scoped, meant for client-side inclusion). No secret exposure. |
+| ground-android `google-services.json` API key | **yes** (needs live validation) | Real Google API key format in committed debug config; must verify if key is restricted/test-project or has live privileges |
+| bigframes vendored ibis `CLIENT_SECRET` | **no** | Vendored third-party test constant; `# noqa: S105`; value format inconsistent with real OAuth secrets; not google-owned code |
+| secops-wrapper `PASSWORD = "PASSWORD"` | **no** | Obvious placeholder |
+| adk-python test fixtures | **no** | Explicit test/examples in auth_credential.py |
+| Workflow secret refs / gcloud secret fetches | **no** | CI/CD best practice, not hardcoded secrets |
+| KOKORO service-account reference | **no** | CI infrastructure pointer, no secret material in repo |
+
+**Priority action**: Validate the ground-android API key (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) against Google's API key restrictions — if it's unrestricted or has live project access, it's reportable. The bigframes ibis secret is a known test constant in vendored code (not reportable).
