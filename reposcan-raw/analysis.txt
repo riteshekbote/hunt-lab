@@ -1,3 +1,42 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+[0m$ [0mecho -n 'v6V3fKV_zWU7iw1DrpO1rknX' | sha256sum
+846cd027bbd3a783adc8cafeccd8d79fa1f7ac9afbb3e088604dd2b755cb359f  -
+[0m
+[0m$ [0mecho -n "export const DEFAULT_CLASP_OAUTH_CLIENT_SECRET = 'v6V3fKV_zWU7iw1DrpO1rknX';" | sha256sum
+b2050022a7b373b23b497e8fda7a0321c099ec61696181bc7946748edd47ec56  -
+[0m
+[0m$ [0mecho -n 'storage_driver_password' | sha256sum | cut -c1-14
+8d768561d2b563
+[0m
+[0m$ [0mecho -n 'StorageDriverPassword        = "storage_driver_password"' | sha256sum | cut -c1-14
+69775253d557fd
+[0m
+[0m→ [0mRead reposcan-raw/google/clasp/src/auth/oauth_client.ts[90m [offset=1, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [limit=20, offset=45][0m
+[0m→ [0mRead reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py[90m [offset=35, limit=20][0m
+### Classification Table
+
+| Category | Hits | Classification |
+|----------|------|----------------|
+| **REAL_SECRET** | 1 | `google/clasp/src/auth/oauth_client.ts:24` — `DEFAULT_CLASP_OAUTH_CLIENT_SECRET = 'v6V3fKV_zWU7iw1DrpO1rknX'` (sha256: `846cd027bbd3a783...`) — **but documented as by-design for desktop OAuth** (lines 21-23: "known to be publicly accessible... requirement because Google Identity OAuth 2.0 does not yet support secretless public clients") |
+| **TEST_OR_EXAMPLE** | 11 | `google/cadvisor/lib/cadvisorflags/flags.go:54` — flag name constant `StorageDriverPassword = "storage_driver_password"`<br>`google/flatbuffers/.github/workflows/label.yml:24` — standard `${{ secrets.GITHUB_TOKEN }}` usage<br>`microsoft/SqlScriptDOM/.../CodeGenerationSupporter.cs:648,691,735` — placeholder constants `MEDIAPASSWORD`, `NEW_PASSWORD`, `OLD_PASSWORD`<br>`microsoft/SqlScriptDOM/.../ScriptGeneratorVisitor.*.cs` (7 hits) — SQL template comments with placeholder `'password'` |
+| **ENDPOINT_LEAK** | 1 | `microsoft/data-formulator/.../web_utils.py:42` — SSRF guard checking for `169.254.169.254` (cloud metadata IP) — defensive code, not a leak |
+| **INTERESTING** | 1 | `google/clasp/src/auth/oauth_client.ts:24` — same as REAL_SECRET above, but classified as **by-design installed-app pattern** (not a vulnerability) |
+
+---
+
+### Verdict List
+
+| File | Secret SHA256 (truncated) | REPORT_CANDIDATE | Reason |
+|------|---------------------------|------------------|--------|
+| `google/clasp/src/auth/oauth_client.ts:24` | `846cd027bbd3a7...` | **NO** | By-design desktop OAuth client secret (public by design, bound to loopback redirect + user consent). Same class as `earthengine-api` — explicitly documented in-code as "known to be publicly accessible" |
+| `google/cadvisor/lib/cadvisorflags/flags.go:54` | N/A | NO | Flag name constant, not a credential |
+| `google/flatbuffers/.github/workflows/label.yml:24` | N/A | NO | Standard `GITHUB_TOKEN` secret reference |
+| `microsoft/SqlScriptDOM/...` (10 hits) | N/A | NO | Placeholder constants & SQL template comments |
+| `microsoft/data-formulator/.../web_utils.py:42` | N/A | NO | SSRF protection logic (blocks metadata IP) |
+
+---
+
+**Summary**: 0 reportable findings in this delta. The clasp OAuth secret is a known/accepted pattern for Google's installed-app OAuth clients (desktop/native apps) where the secret ships with the binary — security derives from redirect_uri=localhost + user consent, not secret confidentiality. This matches the `earthengine-api` finding already tracked as "pending VRP determination on native-app by-design status."
