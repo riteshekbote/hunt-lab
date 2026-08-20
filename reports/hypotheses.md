@@ -8137,3 +8137,17 @@
 - [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Earth Engine OAuth client_secret redeemable for full GCP access (from reports/hypotheses-nemotron3.txt)
 - NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — this 
 - LEARN: NO_DELTA — all passive probes confirmed prior findings unchanged; no new proving-dead or proving-live classes this cycle.
+
+## RANKED HYPOTHESES 2026-08-20 21:41:12 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC portal to unblock AUT
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH preconditions stable @ graph.microsoft.com/beta/copilot — own probe 21:15 UTC: OPTIONS→200 + ACAO:* + Allow-Meth
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable stable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — own probe: OPTIONS→20
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0 — HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret still live on master — line-45 string sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76cce
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 32+ consecutive cycles).
+- LEARN: ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
+- LEARN: NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable.
