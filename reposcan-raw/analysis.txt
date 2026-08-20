@@ -1,34 +1,50 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification of New Delta Hits
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
 
-| File | Line | Pattern | Classification |
-|------|------|---------|----------------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | **TEST_OR_EXAMPLE** — constant default config key name, not a live secret |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `default: https://staging.release-eq7.pages.dev` | **ENDPOINT_LEAK** — staging URL, no credential |
-| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | **TEST_OR_EXAMPLE** — references a password file, value is a filename |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | **INTERESTING** — runtime secret read from file (proper pattern) |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | **INTERESTING** — runtime secret read from file (proper pattern) |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | **TEST_OR_EXAMPLE** — proper GitHub Actions secret reference |
-| google/uncertainty-baselines/experimental/shoshin/train_tf_lib.py | 706 | `# https://b.corp.google.com/issues/124099628` | **INTERESTING** — internal issue tracker reference, no secret |
+| Category         | Count | Files/Lines                                                                 |
+|------------------|-------|-----------------------------------------------------------------------------|
+| REAL_SECRET      | 0     | (earthengine-api oauth.py:45 already tracked in KB, no new live secrets)    |
+| TEST_OR_EXAMPLE  | 18    | adk-web/*.spec.ts (5), adk-python/cli/browser/*.js (6), kube-startup-cpu-boost release.yaml (1), adk-python/auth_credential.py (3), adk-python/auth_schemes.py (1), adk-python/openapi_tool/auth_helpers.py (1), flatbuffers label.yml (1) |
+| ENDPOINT_LEAK    | 8     | sam/ ConfigMaps & workflows (6), adk-python/code_executors (3), adk-python/vmaas (1), adk-python/cli_create.py (1), cadvisor flags.go (1) |
+| INTERESTING      | 5     | capsem password.txt refs (3), ax install-ax.sh pg_password pattern (2)       |
 
-## Hashed Material Check
-- `5a4316412a20cd0b` → cadvisor constant `"storage_driver_password"` (placeholder)
-- `af9e58fe9074c1e1` → capsem staging URL
-- `8d327d2404ae0a7a` → flatbuffers `${{ secrets.GITHUB_TOKEN }}` (proper secret ref)
-- `0a8049e413bfb3c2` → internal issue comment
+=== VERDICT ===
+REPORT_CANDIDATE: no
 
-## Verdict
+Reasoning:
+- All 12 delta hits are minified parser error messages (adk-python/cli/browser) or test fixture tokens (adk-web/*.spec.ts: 'initial-token', 'updated-token-123', 'nextPage') or GitHub Actions secret refs (${{ secrets.GITHUB_TOKEN }}).
+- Full grep context confirms: sam/ uses GitHub secrets (not hardcoded), adk-python auth_credential.py has placeholder private_key="-----BEGIN PRIVATE KEY-----...", password="password", token="eyAkaknabna....", auth_schemes.py has PASSWORD="password" constant, openapi_tool has client_secret="your_client_secret" placeholder.
+- Only pre-existing REAL_SECRET is earthengine-api oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — already ACCEPTED in KB, pending VRP determination on native-app by-design status.
+- No new hardcoded credentials, API keys, or tokens with signs of life found in this delta.
+EOF
+=== CLASSIFICATION TABLE ===
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| cadvisor StorageDriverPassword | **no** — placeholder constant |
-| capsem staging URL | **no** — endpoint leak only |
-| capsem gate.toml password.txt | **no** — filename reference |
-| capsem fix_p12_legacy.sh | **no** — runtime file read (correct pattern) |
-| capsem preflight.sh | **no** — runtime file read (correct pattern) |
-| flatbuffers GITHUB_TOKEN | **no** — proper Actions secret syntax |
-| uncertainty-baselines corp link | **no** — internal reference only |
+| Category         | Count | Files/Lines                                                                 |
+|------------------|-------|-----------------------------------------------------------------------------|
+| REAL_SECRET      | 0     | (earthengine-api oauth.py:45 already tracked in KB, no new live secrets)    |
+| TEST_OR_EXAMPLE  | 18    | adk-web/*.spec.ts (5), adk-python/cli/browser/*.js (6), kube-startup-cpu-boost release.yaml (1), adk-python/auth_credential.py (3), adk-python/auth_schemes.py (1), adk-python/openapi_tool/auth_helpers.py (1), flatbuffers label.yml (1) |
+| ENDPOINT_LEAK    | 8     | sam/ ConfigMaps & workflows (6), adk-python/code_executors (3), adk-python/vmaas (1), adk-python/cli_create.py (1), cadvisor flags.go (1) |
+| INTERESTING      | 5     | capsem password.txt refs (3), ax install-ax.sh pg_password pattern (2)       |
 
-**No new REAL_SECRET findings in this delta.** The only live hardcoded secret in google/ org remains the earthengine-api `oauth.py:45` client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already tracked as **ACCEPTED** in KB pending VRP determination on native-app by-design status.
+=== VERDICT ===
+REPORT_CANDIDATE: no
+
+Reasoning:
+- All 12 delta hits are minified parser error messages (adk-python/cli/browser) or test fixture tokens (adk-web/*.spec.ts: 'initial-token', 'updated-token-123', 'nextPage') or GitHub Actions secret refs (${{ secrets.GITHUB_TOKEN }}).
+- Full grep context confirms: sam/ uses GitHub secrets (not hardcoded), adk-python auth_credential.py has placeholder private_key="-----BEGIN PRIVATE KEY-----...", password="password", token="eyAkaknabna....", auth_schemes.py has PASSWORD="password" constant, openapi_tool has client_secret="your_client_secret" placeholder.
+- Only pre-existing REAL_SECRET is earthengine-api oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — already ACCEPTED in KB, pending VRP determination on native-app by-design status.
+- No new hardcoded credentials, API keys, or tokens with signs of life found in this delta.
+[0m
+**Classification complete. No new reportable findings.**
+
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | 0 new (earthengine-api `oauth.py:45` sha256 `3f3f8d6f…d271` already tracked in KB) | — |
+| **TEST_OR_EXAMPLE** | 18 hits: `adk-web/*.spec.ts` (5 test tokens), `adk-python/cli/browser/*.js` (6 minified parser errors), `kube-startup-cpu-boost release.yaml` (GITHUB_TOKEN secret ref), `adk-python/auth_credential.py` (3 placeholders), `auth_schemes.py` (constant), `openapi_tool/auth_helpers.py` (placeholder), `flatbuffers label.yml` (secret ref) | Not reportable |
+| **ENDPOINT_LEAK** | 8 hits: `sam/` ConfigMaps & workflows (secret refs), `adk-python/code_executors` (metadata endpoint refs), `vmaas` (state key name), `cli_create.py` (API key pattern), `cadvisor flags.go` (flag name) | Config/infra only |
+| **INTERESTING** | 5 hits: `capsem` password.txt file refs, `ax/install-ax.sh` pg_password generation pattern | Hygiene/patterns |
+
+**REPORT_CANDIDATE: no** — All delta hits are test fixtures, minified build artifacts, GitHub Actions secret references, or infrastructure config patterns. The only live hardcoded secret remains the known `earthengine-api` OAuth client_secret (KB-tracked, pending VRP by-design determination).
