@@ -1,54 +1,48 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'RUP0RZ6e0pPhDzsqIJ7KlNd1'
-036d0583491f3f1b5f043e02c5a62511e588b30fd31ce95be696039df342510c  -
-[0m
-[0m→ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py[90m [offset=40, limit=20][0m
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && printf 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
 [0m
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| reposcan-raw/google/earthengine-api/python/ee/oauth.py | 45 | 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271 | Hardcoded OAuth client_secret for installed-app (OOB redirect). **KNOWN DUPLICATE** — tracked in KB since 2026-08-07, pending VRP determination on native-app by-design status. |
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` — **KNOWN ACCEPTED** (live on master, used as default fallback at oauth.py:99, scopes: cloud-platform/earthengine/drive/devstorage.full_control, OOB redirect). Pending VRP determination on native-app by-design status. |
 
 #### TEST_OR_EXAMPLE
 | File | Line | Reason |
 |------|------|--------|
-| reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/unpacked/** (38 files) | Various | Third-party MathJax 2.7.2 library bundled in jsonnet docs — localization error strings ("NotMathMLToken"), tokenizer regexes, not secrets |
-| reposcan-raw/google/magika/tests_data/basic/javascript/code.js | 31 | Test fixture JS code |
-| reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | Test PyPI URLs (test.pypi.org) |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | Constant key name "refresh_token" (not a value) |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | Shell default `${OIDC_CLIENT_SECRET:-}` (empty default) |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | CI secret references (`${{secrets.XXX}}`) — not hardcoded values |
+| `reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | `kind: ConfigMap` in docs/manifests — documentation fixture |
+| `reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | `kind: ConfigMap` in docs/manifests — documentation fixture |
+| `reposcan-raw/google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` — constant key name, not a secret value |
+| `reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm chart template `kind: ConfigMap` |
+| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell var with empty default |
+| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247,249,250 | `--from-literal=...="${SECRET}"` — GitHub Actions secret references, not hardcoded |
+| `reposcan-raw/google/sam/.github/k8s/*.yaml` | 2,14 | K8s template `kind: ConfigMap` (7 files) |
+| `reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — GitHub secret reference |
+| `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | Public test.pypi.org URLs |
+| `reposcan-raw/google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test fixture JS |
+| `reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/**` | 42-1180 | 39 localization/test files — third-party library test data |
 
 #### ENDPOINT_LEAK
-| File | Line | Endpoint |
-|------|------|----------|
-| reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` — GCP metadata endpoint (well-known, not sensitive) |
-| reposcan-raw/google/sam/.github/k8s/dex-config.yaml | 2 | ConfigMap kind (k8s resource) |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | Various | K8s ConfigMap templates |
-| reposcan-raw/google/sam/site/content/docs/manifests/*.yaml | Various | K8s ConfigMap manifests (docs) |
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py` | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` — well-known GCP metadata endpoint (public by design) |
 
 #### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | CI workflow injects `google-client-secret`, `github-client-secret`, `cli-oauth-secret` from GitHub secrets — proper secret management pattern |
+| File | Line | Reason |
+|------|------|--------|
+| *(none)* | — | No debug flags, unusual keys, or cloud configs beyond above |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api CLIENT_SECRET | **no** | **KNOWN DUPLICATE** — ACCEPTED in KB since 2026-08-07, classified REAL_SECRET by reposcan but native-app/OOB pattern (installed app, `urn:ietf:wg:oauth:2.0:oob` redirect), pending VRP by-design determination. Do not re-report. |
-| GCP metadata endpoint (169.254.169.254) | no | Well-known public endpoint, not a leak |
-| MathJax third-party code | no | Vendored library, not project secrets |
-| SAM CI secret references | no | Proper `${{secrets.XXX}}` pattern, no hardcoded values |
-| Magika test PyPI URLs | no | Test infrastructure |
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| `google/earthengine-api/python/ee/oauth.py:45` (client_secret) | **no** | **KNOWN DUPLICATE / ACCEPTED** — Already tracked in knowledge base (2026-08-07 through 2026-08-19). Classified `REAL_SECRET` by reposcan but **pending VRP determination on native-app by-design status** (installed-app pattern: secret ships with binary, bound to consent + loopback/OOB redirect). Do not re-report. |
+| All other hits | **no** | `TEST_OR_EXAMPLE` (fixtures, templates, secret refs, third-party test data) or `ENDPOINT_LEAK` (well-known GCP metadata IP) |
 
-**No new reportable findings in this delta.** The only REAL_SECRET hit is the pre-existing earthengine-api client_secret already tracked in the knowledge base.
+**Summary**: 0 new reportable findings. The only live secret is the previously accepted earthengine-api client_secret (no delta).
