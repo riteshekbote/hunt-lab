@@ -1,48 +1,448 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
-3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -200 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+# Copyright 2026 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+from enum import Enum
+from typing import Annotated
+from typing import Any
+from typing import Dict
+from typing import Iterator
+from typing import List
+from typing import Literal
+
+from pydantic import alias_generators
+from pydantic import BaseModel
+from pydantic import ConfigDict
+from pydantic import Field
+from pydantic import model_validator
+
+_REDACTED = "<redacted>"
+
+
+# Pydantic echoes the rejected value into ValidationError messages
+# ("input_value=..."), which would put a malformed secret straight into logs and
+# into the error strings surfaced to the LLM. The field name and error type are
+# still reported. Passed as a class keyword rather than added to `model_config`
+# below: `model_config` states what these models accept, and rewriting that
+# declaration reads as an API change to the breaking-change detector even though
+# nothing about what they accept has changed.
+class BaseModelWithConfig(BaseModel, hide_input_in_errors=True):
+  """Base model for credential types, hardened against leaking secrets."""
+
+  model_config = ConfigDict(
+      extra="allow",
+      alias_generator=alias_generators.to_camel,
+      populate_by_name=True,
+  )
+  """The pydantic model config."""
+
+  def __repr_args__(self) -> Iterator[tuple[str | None, Any]]:
+    """Redacts the values of extra (unmodeled) fields from repr and str.
+
+    `extra="allow"` lets callers attach arbitrary keys to these credential
+    models, and pydantic renders extras in repr unconditionally: marking a
+    declared field `repr=False` does nothing for a secret that arrives under an
+    unexpected key (e.g. a non-standard field in an OAuth2 token response).
+    Redacting the values keeps them out of logs and out of error strings that
+    reach the LLM, while still showing which keys were set.
+
+    Yields:
+      `(name, value)` pairs to render, with the values of extra fields replaced
+      by a redaction placeholder.
+    """
+    extra = self.__pydantic_extra__ or {}
+    for key, value in super().__repr_args__():
+      yield key, _REDACTED if key in extra else value
+
+
+class HttpCredentials(BaseModelWithConfig):
+  """Represents the secret token value for HTTP authentication, like user name, password, oauth token, etc."""
+
+  username: str | None = None
+  password: Annotated[str | None, Field(repr=False)] = None
+  token: Annotated[str | None, Field(repr=False)] = None
+
+  @classmethod
+  def model_validate(cls, data: Dict[str, Any]) -> "HttpCredentials":
+    return cls(
+        username=data.get("username"),
+        password=data.get("password"),
+        token=data.get("token"),
+    )
+
+
+class HttpAuth(BaseModelWithConfig):
+  """The credentials and metadata for HTTP authentication."""
+
+  # The name of the HTTP Authorization scheme to be used in the Authorization
+  # header as defined in RFC7235. The values used SHOULD be registered in the
+  # IANA Authentication Scheme registry.
+  # Examples: 'basic', 'bearer'
+  scheme: str
+  credentials: HttpCredentials
+  additional_headers: Annotated[dict[str, str] | None, Field(repr=False)] = None
+
+
+class OAuth2Auth(BaseModelWithConfig):
+  """Represents credential value and its metadata for a OAuth2 credential."""
+
+  client_id: str | None = None
+  client_secret: Annotated[str | None, Field(repr=False)] = None
+  # tool or adk can generate the auth_uri with the state info thus client
+  # can verify the state
+  auth_uri: str | None = None
+  # A unique value generated at the start of the OAuth flow to bind the user's
+  # session to the authorization request. This value is typically stored with
+  # user session and passed to backend for validation.
+  nonce: str | None = None
+  state: str | None = None
+  # tool or adk can decide the redirect_uri if they don't want client to decide
+  redirect_uri: str | None = None
+  auth_response_uri: Annotated[str | None, Field(repr=False)] = None
+  auth_code: Annotated[str | None, Field(repr=False)] = None
+  access_token: Annotated[str | None, Field(repr=False)] = None
+  refresh_token: Annotated[str | None, Field(repr=False)] = None
+  id_token: Annotated[str | None, Field(repr=False)] = None
+  expires_at: int | None = None
+  expires_in: int | None = None
+  audience: str | None = None
+  prompt: str | None = None
+  code_verifier: Annotated[str | None, Field(repr=False)] = None
+  code_challenge_method: str | None = None
+  token_endpoint_auth_method: (
+      Literal[
+          "client_secret_basic",
+          "client_secret_post",
+          "client_secret_jwt",
+          "private_key_jwt",
+      ]
+      | None
+  ) = "client_secret_basic"
+
+
+class ServiceAccountCredential(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    type: The type should be "service_account".
+    project_id: The project ID.
+    private_key_id: The ID of the private key.
+    private_key: The private key.
+    client_email: The client email.
+    client_id: The client ID.
+    auth_uri: The authorization URI.
+    token_uri: The token URI.
+    auth_provider_x509_cert_url: URL for auth provider's X.509 cert.
+    client_x509_cert_url: URL for the client's X.509 cert.
+    universe_domain: The universe domain.
+
+  Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+
+
+      config = ServiceAccountConfig.model_construct(**{
+          ...service account config dict
+      })
+  """
+
+  type_: str = Field("", alias="type")
+  project_id: str
+  private_key_id: Annotated[str, Field(repr=False)]
+  private_key: Annotated[str, Field(repr=False)]
+  client_email: str
+  client_id: str
+  auth_uri: str
+  token_uri: str
+  auth_provider_x509_cert_url: str
+  client_x509_cert_url: str
+  universe_domain: str
+
+
+class ServiceAccount(BaseModelWithConfig):
+  """Represents Google Service Account configuration.
+
+  Attributes:
+    service_account_credential: The service account credential (JSON key).
+    scopes: The OAuth2 scopes to request. Optional; when omitted with
+        ``use_default_credential=True``, defaults to the cloud-platform scope.
+    use_default_credential: Whether to use Application Default Credentials.
+    use_id_token: Whether to exchange for an ID token instead of an access
+        token. Required for service-to-service authentication with Cloud Run,
+        Cloud Functions, and other Google Cloud services that require identity
+        verification. When True, ``audience`` must also be set.
+    audience: The target audience for the ID token, typically the URL of the
+        receiving service (e.g. ``https://my-service-xyz.run.app``). Required
+        when ``use_id_token`` is True.
 [0m
-### Classification Tables
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '150,165p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+Example:
 
-#### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| `reposcan-raw/google/earthengine-api/python/ee/oauth.py` | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` — **KNOWN ACCEPTED** (live on master, used as default fallback at oauth.py:99, scopes: cloud-platform/earthengine/drive/devstorage.full_control, OOB redirect). Pending VRP determination on native-app by-design status. |
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | `kind: ConfigMap` in docs/manifests — documentation fixture |
-| `reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | `kind: ConfigMap` in docs/manifests — documentation fixture |
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` — constant key name, not a secret value |
-| `reposcan-raw/google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm chart template `kind: ConfigMap` |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — shell var with empty default |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247,249,250 | `--from-literal=...="${SECRET}"` — GitHub Actions secret references, not hardcoded |
-| `reposcan-raw/google/sam/.github/k8s/*.yaml` | 2,14 | K8s template `kind: ConfigMap` (7 files) |
-| `reposcan-raw/google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — GitHub secret reference |
-| `reposcan-raw/google/magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | Public test.pypi.org URLs |
-| `reposcan-raw/google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test fixture JS |
-| `reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/**` | 42-1180 | 39 localization/test files — third-party library test data |
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
 
-#### ENDPOINT_LEAK
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py` | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` — well-known GCP metadata endpoint (public by design) |
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '60,80p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py
+class OAuthGrantType(str, Enum):
+  """Represents the OAuth2 flow (or grant type)."""
 
-#### INTERESTING
-| File | Line | Reason |
-|------|------|--------|
-| *(none)* | — | No debug flags, unusual keys, or cloud configs beyond above |
+  CLIENT_CREDENTIALS = "client_credentials"
+  AUTHORIZATION_CODE = "authorization_code"
+  IMPLICIT = "implicit"
+  PASSWORD = "password"
+
+  @staticmethod
+  def from_flow(flow: OAuthFlows) -> Optional["OAuthGrantType"]:
+    """Converts an OAuthFlows object to a OAuthGrantType."""
+    if flow.clientCredentials:
+      return OAuthGrantType.CLIENT_CREDENTIALS
+    if flow.authorizationCode:
+      return OAuthGrantType.AUTHORIZATION_CODE
+    if flow.implicit:
+      return OAuthGrantType.IMPLICIT
+    if flow.password:
+      return OAuthGrantType.PASSWORD
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '125,140p' reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py
+lines = []
+    if google_cloud_project and google_cloud_region:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=1")
+    elif google_api_key:
+      lines.append("GOOGLE_GENAI_USE_ENTERPRISE=0")
+    if google_api_key:
+      lines.append(f"GOOGLE_API_KEY={google_api_key}")
+    if google_cloud_project:
+      lines.append(f"GOOGLE_CLOUD_PROJECT={google_cloud_project}")
+    if google_cloud_region:
+      lines.append(f"GOOGLE_CLOUD_LOCATION={google_cloud_region}")
+    f.write("\n".join(lines))
+  _ensure_dotenv_gitignored(agent_folder)
+
+  if type == "config":
+    with open(agent_config_file_path, "w", encoding="utf-8") as f:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '60,70p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+"""Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '160,200p' reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
+_AUTH_TOKEN=$(gcloud auth print-access-token -q)
+          echo "::add-mask::${_AUTH_TOKEN}"
+          echo "_auth_token=${_AUTH_TOKEN}" >> $GITHUB_OUTPUT
+{%- endif %}
+
+      - name: Run load test
+        run: |
+{%- if cookiecutter.deployment_target == 'cloud_run' %}
+          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
+          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H ${_STAGING_URL} \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- elif cookiecutter.deployment_target == 'gke' %}
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H http://127.0.0.1:8080 \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+          LOCUST_EXIT_CODE=$?
+          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
+          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
+            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
+            exit $LOCUST_EXIT_CODE
+          fi
+{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
+          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -t 30s -u 2 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- endif %}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '215,230p' reposcan-raw/google/skia-buildbot/perf/go/notify/android_notification_provider.go
+TraceID:               metadata.TraceID,
+		RegressionCommitLinks: metadata.RegressionCommitLinks,
+		PreviousCommitLinks:   metadata.PreviousCommitLinks,
+		Tests:                 formatTests(metadata),
+	}
+}
+
+func buildIdsToUrlDiff(fromBuildId string, toBuildId string) string {
+	const urlFormat = "https://android-build.corp.google.com/range_search/cls/from_id/%s/to_id/%s/?s=menu&includeTo=0&includeFrom=1"
+	return fmt.Sprintf(urlFormat, fromBuildId, toBuildId)
+}
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '200,215p' reposcan-raw/google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts
+if (!url) {
+      return '';
+    }
+    if (url.startsWith('https://chrome-internal.googlesource.com/')) {
+      // Open internal codesearch for faster editing.
+      url = url.replace(
+        'https://chrome-internal.googlesource.com/',
+        'https://source.corp.google.com/h/chrome-internal/'
+      );
+      url = url.replace('/+/{revision}/', '/+/{revision}:');
+    }
+    return url.replace('{revision}', revision);
+  }
+
+  /** Formats the revision string as a link to the config file.
+   * @param revision The revision string.
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/skywater-pdk/.github/workflows/labeler.yml
+name: "Pull Request Labeler"
+on:
+- pull_request_target
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/labeler@main
+      with:
+        repo-token: "${{ secrets.GITHUB_TOKEN }}"
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sed -n '10,20p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from __future__ import annotations
+
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Literal
+[0m
+### Classification Table
+
+| Category | Files/Lines | Count |
+|----------|-------------|-------|
+| **TEST_OR_EXAMPLE** | `adk-python/auth_credential.py:157,269,278` (docstring placeholders), `auth_schemes.py:68` (OAuth grant type enum), `auth_helpers.py:64` (docstring placeholder), `agents-cli/auth.py:43` (config key name), `agents-cli/staging.yaml:168,192` (cookiecutter CI template), 21 browser chunk JS files (parse errors) | 29 |
+| **ENDPOINT_LEAK** | `adk-python/container_code_executor.py:114,154`, `computer_use_toolset.py:146`, `load_web_page.py:171` (169.254.169.254 metadata refs); `skia-buildbot/*schema.go` (3 files, `b.corp.google.com` issue links), `android_notification_provider.go:223` (`android-build.corp.google.com`), `subscription-table-sk.ts:207` (`source.corp.google.com`) | 10 |
+| **INTERESTING** | `adk-python/gke_code_executor.py:103,104,115` (kubeconfig params), `vmaas/sandbox_computer.py:47` (state key name), `cli_create.py:131` (CLI writes user key to .env) | 3 |
+| **NOT A FINDING** | `skywater-pdk/labeler.yml:11` (standard `secrets.GITHUB_TOKEN` usage) | 1 |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| `google/earthengine-api/python/ee/oauth.py:45` (client_secret) | **no** | **KNOWN DUPLICATE / ACCEPTED** — Already tracked in knowledge base (2026-08-07 through 2026-08-19). Classified `REAL_SECRET` by reposcan but **pending VRP determination on native-app by-design status** (installed-app pattern: secret ships with binary, bound to consent + loopback/OOB redirect). Do not re-report. |
-| All other hits | **no** | `TEST_OR_EXAMPLE` (fixtures, templates, secret refs, third-party test data) or `ENDPOINT_LEAK` (well-known GCP metadata IP) |
+| File | Line | Classification | REPORT_CANDIDATE |
+|------|------|----------------|------------------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | TEST_OR_EXAMPLE | no |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | TEST_OR_EXAMPLE | no |
+| `google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168,192 | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (21 files) | TEST_OR_EXAMPLE | no |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | ENDPOINT_LEAK | no |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | ENDPOINT_LEAK | no |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | ENDPOINT_LEAK | no |
+| `google/skia-buildbot/perf/go/anomalygroup/sqlanomalygroupstore/schema.go` | 7,14,46 | ENDPOINT_LEAK | no |
+| `google/skia-buildbot/perf/go/notify/android_notification_provider.go` | 223 | ENDPOINT_LEAK | no |
+| `google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts` | 207 | ENDPOINT_LEAK | no |
+| `google/skia-buildbot/perf/go/regression/sqlregression2store/schema.go` | 12 | ENDPOINT_LEAK | no |
+| `google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema.go` | 5 | ENDPOINT_LEAK | no |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | INTERESTING | no |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | INTERESTING | no |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | INTERESTING | no |
+| `google/skywater-pdk/.github/workflows/labeler.yml` | 11 | NOT A FINDING | no |
 
-**Summary**: 0 new reportable findings. The only live secret is the previously accepted earthengine-api client_secret (no delta).
+---
+
+**No new REAL_SECRET candidates in this delta.** The only live hardcoded secret remains the previously tracked `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), already ACCEPTED in the knowledge base pending VRP determination on native-app by-design status.
