@@ -544,3 +544,5 @@
 - 2026-08-20 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 at 09:39 UTC (RFC 6749 §3.2.1 compliant, 31+ consecutive probes)
 - 2026-08-20 ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed stable — GET response_type=token → HTTP 200 (x-ms-clientdata error 900144, RFC 6749 §3 violation)
 - 2026-08-20 NO_DELTA — all fresh passive probes (09:39 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle
+- 2026-08-20 ACCEPTED: All 3 hypothesis preconditions confirmed stable across 31+ consecutive 2-hourly probe cycles — agentRegistration 6-family CORS+PATCH (OPTIONS→200 + ACAO:* + PATCH), earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f…d271`), oauth2PermissionGrants item-level CORS browser-exploitable (OPTIONS→200 + ACAO:* + PATCH + Max-Age 86400).
+- 2026-08-20 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.

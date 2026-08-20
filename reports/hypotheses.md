@@ -7822,3 +7822,35 @@
 - LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 at 09:39 UTC (RFC 6749 §3.2.1 compliant, 31+ consecutive probes)
 - LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed stable — GET response_type=token → HTTP 200 (x-ms-clientdata error 900144, RFC 6749 §3 violation)
 - LEARN: NO_DELTA — all fresh passive probes (09:39 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or pro
+
+## RANKED HYPOTHESES 2026-08-20 10:04:42 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/google-vrp-earthengine-secret.md via bughunters.google.com — report is finalized, A/B proof confirmed live 09:39 UTC, sha256 3f3f8d6f…d271
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection a
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- LEARN: ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: ACCEPTED: oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH 
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection a
+- LEARN: ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- LEARN: ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: ACCEPTED: oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+- LEARN: ACCEPTED: agentRegistrations 6-family CORS+PATCH IDOR preconditions confirmed stable at 09:39 UTC — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 famili
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable confirmed stable at 09:39 UTC — OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 at both 
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 hardcoded client_secret confirmed LIVE at 09:39 UTC — sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable via GET→404 at 09:39 UTC (RFC 6749 §3.2.1 compliant, 31+ consecutive probes)
+- LEARN: ACCEPTED: v2.0 authorize HTTP 200 error rendering confirmed stable — GET response_type=token → HTTP 200 (x-ms-clientdata error 900144, RFC 6749 §3 violation)
+- LEARN: NO_DELTA — all fresh passive probes (09:39 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or pro
+- LEARN: ACCEPTED: All 3 hypothesis preconditions confirmed stable across 31+ consecutive 2-hourly probe cycles — agentRegistration 6-family CORS+PATCH (OPTIONS→200 + AC
+- LEARN: NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; no new proving-dead or proving-live classes this cycle.
