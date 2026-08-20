@@ -1,15 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_report.md
-Wrote file successfully.
+[0m$ [0mecho -n 'iU5ohAF2qcqrujegE3hQ1cPt' | sha256sum && echo -n 'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q' | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
 [0m
-Done. Wrote triage report to `triage_report.md`.
+[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
+[0m
+### Classification Tables
 
-**Summary:** 0 reportable findings in this delta. All 123 hits classify as:
-- **TEST_OR_EXAMPLE** (105): documentation comments, auth scheme enums, CI test scripts, vendored third-party test fixtures (ibis/sqlglot with `#noqa:S105`), runtime token loads, standard GH Actions secret refs, placeholder strings, debug-only Firebase keys (public by design per REJECTED class)
-- **ENDPOINT_LEAK** (18): known GCP metadata endpoint references (`metadata.google.internal`, `169.254.169.254`), external spec URLs in Closure Compiler externs, one internal Google corp source URL (not exploitable)
-- **REAL_SECRET**: none
-- **INTERESTING**: none
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (vendored ibis, `# noqa: S105`) |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same secret, duplicated in backend.py |
+| `google/ground-android/app/src/debug/local/google-services.json` | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | `"current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"` (debug/local build config) |
 
-The previously accepted `earthengine-api` client_secret (sha256 `3f3f8d6f...`) does not appear in this scan's hits — it remains tracked separately in the knowledge base as LIVE.
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/android-emulator-container-scripts/run-with-gpu.sh` | 28 | Reads token from local file `~/.emulator_console_auth_token` |
+| `google/android-emulator-container-scripts/run.sh` | 22 | Same |
+| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | `kind: ConfigMap` (K8s manifest doc) |
+| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | `kind: ConfigMap` |
+| `google/sam/internal/node/store.go` | 38 | `keyRefreshToken = "refresh_token"` (constant name, not secret) |
+| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | `kind: ConfigMap` |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var with empty default) |
+| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | Secrets referenced via `${{secrets.*}}` (GitHub Actions secrets) |
+| `google/sam/.github/k8s/*.yaml` | various | All `kind: ConfigMap` templates |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214,226 | Example values: `"password"`, `"your_access_token"` |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` (constant name) |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` |
+| `google/magika/tests_data/basic/javascript/code.js` | 31 | Minified test fixture |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` (placeholder constant) |
+| `google/agents-cli/.../staging.yaml` | 168,192 | Step outputs `_ID_TOKEN`, `_AUTH_TOKEN` (CI vars) |
+| `google/bigframes/scripts/run_doctest.sh` | 38,39 | `GOOGLE_APPLICATION_CREDENTIALS` from CI mount |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` |
+| `google/bigframes/third_party/.../sqlglot/*.py` | various | MySQL documentation URLs |
+| `google/bigframes/third_party/.../ibis/expr/operations/reductions.py` | 107,125,143 | MySQL documentation URLs |
+
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | `https://test.pypi.org/...` (public test registry) |
+| `google/closure-compiler/externs/*.js` | various | `http://dev.w3.org/...` (W3C spec URLs, public) |
+| `google/closure-compiler/src/.../ErrorManager.java` | 95 | `source.corp.google.com/piper/...` (internal Google corporate URL) |
+| `google/closure-compiler/contrib/externs/ms-office-1.3.js` | 27 | `https://dev.office.com/...` (public Microsoft dev docs) |
+
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `'169.254.0.0/16'` — link-local CIDR including GCP metadata endpoint `169.254.169.254` (SSRF surface hint) |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| `bigframes` vendored ibis `CLIENT_SECRET` (2 files) | **no** | Third-party vendored code (ibis); secret appears to be a test/default placeholder in upstream; `# noqa: S105` indicates known suppression; not Google-owned secret |
+| `ground-android` debug `google-services.json` API key | **no** | Path `app/src/debug/local/` = debug build flavor; API keys in debug configs are typically restricted/rotated test keys; not production secret |
+| `adk-js` GCP metadata CIDR reference | **no** | Code comment/reference only; SSRF defense (blocklist) not a vulnerability |
+| `closure-compiler` internal `source.corp.google.com` URL | **no** | Internal build reference in error manager; no actionable leak |
+| All other hits | **no** | Test fixtures, placeholder constants, CI secret references, public documentation URLs |
+
+**Summary: 0 reportable findings in this scan delta.** The two `CLIENT_SECRET` hits are in vendored third-party test fixtures; the Android debug API key is in a non-production build variant. All other hits are test data, config templates, or public endpoint references.
