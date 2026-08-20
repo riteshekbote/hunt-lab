@@ -1,36 +1,55 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n 'v6V3fKV_zWU7iw1DrpO1rknX' | sha256sum
-846cd027bbd3a783adc8cafeccd8d79fa1f7ac9afbb3e088604dd2b755cb359f  -
-[0m
-[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
-3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
-[0m
-### Classification Results
+### Classification Tables
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **REAL_SECRET** | `google/clasp/src/auth/oauth_client.ts:24` | `DEFAULT_CLASP_OAUTH_CLIENT_SECRET = 'v6V3fKV_zWU7iw1DrpO1rknX'` (sha256 `846cd027bbd3a783adc8cafeccd8d79fa1f7ac9afbb3e088604dd2b755cb359f`) | **REPORT_CANDIDATE: yes** — hardcoded OAuth client secret in source, used as default fallback |
-| **REAL_SECRET** | `google/earthengine-api/python/ee/oauth.py:45` | Known from KB: `'RUP0RZ6e0pPhDzsqIJ7KlNd1'` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) | **REPORT_CANDIDATE: yes** — confirmed live on master, scopes include `cloud-platform` |
-| TEST_OR_EXAMPLE | `google/sam/**/*.yaml` (ConfigMap kinds) | K8s template/config docs | No |
-| TEST_OR_EXAMPLE | `google/sam/internal/node/store.go:38` | `keyRefreshToken = "refresh_token"` — constant key name | No |
-| TEST_OR_EXAMPLE | `google/sam/development/kind/run.sh:139` | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var ref, empty default | No |
-| TEST_OR_EXAMPLE | `google/sam/.github/workflows/deploy.yaml:247-250` | `--from-literal=...="${SECRET}"` — GitHub Actions secret refs | No |
-| TEST_OR_EXAMPLE | `google/langextract/.github/workflows/ci.yaml:168-170` | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` — secret refs | No |
-| TEST_OR_EXAMPLE | `google/flatbuffers/.github/workflows/label.yml:24` | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — secret ref | No |
-| TEST_OR_EXAMPLE | `google/tunix/tunix/cli/base_*_config.yaml:63` | `# hf_access_token: "your_token"` — commented placeholder | No |
-| TEST_OR_EXAMPLE | `google/tunix/tunix/rl/agentic/parser/parser.py:193-195` | `eot_token`, `system_token`, `user_token` — parser constants | No |
-| TEST_OR_EXAMPLE | `google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go:246` | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — secret ref | No |
-| TEST_OR_EXAMPLE | `google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | Minified JS parse-error strings | No |
-| TEST_OR_EXAMPLE | `microsoft/apm/src/apm_cli/models/dependency/reference.py:1481` | Azure DevOps URL in docstring example | No |
-| TEST_OR_EXAMPLE | `microsoft/app-store-vsts-extension/**/package-lock.json` | `resolved: "https://pkgs.dev.azure.com/mseng/..."` — npm registry URLs | No |
+#### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none in delta)* | | | |
 
-### Short Verdict List
+#### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/garf/libs/community/common_apis/garf/community/common_apis/currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` |
+| google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` |
+| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
+| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` (commented) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) |
 
-| Finding | File | Secret SHA256 | REPORT_CANDIDATE |
-|---------|------|---------------|------------------|
-| Hardcoded OAuth client_secret (clasp) | `google/clasp/src/auth/oauth_client.ts:24` | `846cd027bbd3a783adc8cafeccd8d79fa1f7ac9afbb3e088604dd2b755cb359f` | **yes** |
-| Hardcoded OAuth client_secret (earthengine) | `google/earthengine-api/python/ee/oauth.py:45` | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **yes** (per KB, confirmed live) |
+#### ENDPOINT_LEAK
+| File | Line | Pattern |
+|------|------|---------|
+| google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh | 39,44 | GCP metadata server `metadata.google.internal` (legitimate ADC pattern) |
+| microsoft/agent-governance-toolkit/agent-governance-typescript/src/policy-backends/cedar.ts | 8 | `169.254.169.254` (AWS/Azure IMDS - public documented endpoint) |
 
-**Note:** The clasp secret `v6V3fKV_zWU7iw1DrpO1rknX` is a default installed-app client secret (like the earthengine one). Per Google's "installed app" threat model, these are bound to consent screen + loopback redirect — but still constitute hardcoded credentials in public source. Triager should evaluate against VRP "by-design" guidance.
+#### INTERESTING
+| File | Line | Pattern |
+|------|------|---------|
+| google/device-infra/src/java/.../DeviceAdminUtil.java | 49,50 | Android device admin action constants (`SETUP_PASSWORD_TOKEN`, `RESET_PASSWORD`) |
+| google/device-infra/src/java/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` (parameter name constant) |
+| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` (constant key name) |
+| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` |
+| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | Timer name constants (`IPP_CREATE_TERMINAL_TOKEN`, etc.) |
+| microsoft/clarity/packages/clarity-visualize/types/visualize.d.ts | 203 | `NewPassword = "new-password"` (TypeScript type literal) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper secret refs: `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secret refs: `${{ secrets.GEMINI_API_KEY }}` etc. |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref pattern: `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | - | Minified source map chunks (not secrets) |
+
+---
+
+### SHORT VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api oauth.py:45 (KNOWN) | **yes** (pending VRP determination) | Already ACCEPTED in KB: hardcoded client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f...d271`), scopes include `cloud-platform`, used as default fallback. Native-app by-design status under VRP review. |
+| google/garf `YOUR_KEY` placeholders | no | Obvious test fixtures |
+| google/tunix `your_token` comments | no | Commented-out examples |
+| google/sam OIDC_CLIENT_SECRET empty default | no | Dev-only Kind cluster bootstrap, expects env override |
+| GCP metadata server access (device-infra) | no | Legitimate ADC pattern for workload identity |
+| Azure/AWS IMDS IP `169.254.169.254` | no | Public documented endpoint |
+| Android/render token constant names | no | Constant identifiers, not secrets |
+| CI/CD secret references (sam, langextract, adk-go) | no | Correct pattern — secrets injected at runtime |
+
+**Summary**: 0 **new** reportable secrets in this delta. The only live REAL_SECRET remains the previously-accepted earthengine-api client_secret (tracked in KB, pending VRP determination on native-app by-design). All other hits are test fixtures, constant names, legitimate cloud patterns, or proper secret references.
