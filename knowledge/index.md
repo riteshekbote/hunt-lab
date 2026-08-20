@@ -515,3 +515,15 @@
 - 2026-08-19 ACCEPTED: agentRegistrations item-level CORS preflight confirmed @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: OPTIONS→200 + ACAO:* + PATCH (full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH) at 17:15 UTC, re-verified 23:05 UTC
 - 2026-08-19 REJECTED: No new proving-dead classes — all fresh passive probes (23:03–23:06 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; reposcan confirms 0 reportable in delta
 - 2026-08-19 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 23:29 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-20 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400
+- 2026-08-20 ACCEPTED: Graph API RFC 6750 §3 deviation extends to oauth2PermissionGrants item-level: HEAD→405/0/no-Bearer while GET→401+Bearer (systemic at both collection and item levels)
+- 2026-08-20 ACCEPTED: agentRegistrations item-level CORS preflight confirmed fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH
+- 2026-08-20 ACCEPTED: agentRegistrations item-level auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-20 ACCEPTED: oauth2PermissionGrants auth-gate empirically confirmed HTTP 401 + HEAD→405/0 (was previously inferred)
+- 2026-08-20 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable)
+- 2026-08-20 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic, no auth-bypass
+- 2026-08-20 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
+- 2026-08-20 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
+- 2026-08-20 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 23:51 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
+- 2026-08-20 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible)
+- 2026-08-20 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable across all probe cycles)
