@@ -1,14 +1,62 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-2026-08-20.md
-Wrote file successfully.
-[0m
-**Triage complete. 0 reportable findings in this delta.**
+[0m→ [0mRead reposcan-raw/google/clasp/src/auth/oauth_client.ts[90m [limit=20, offset=20][0m
+[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=590, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=20, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=20, offset=35][0m
+[0m→ [0mRead reposcan-raw/microsoft/Ontology-Playground/src/lib/github.test.ts[90m [limit=30, offset=75][0m
+### Classification Tables
 
-All 52 new hits classify as:
-- **TEST_OR_EXAMPLE** (12): GH Actions secret refs, React dev constants, TS type placeholders, test fixtures with `<placeholder>` patterns, env var name constants
-- **ENDPOINT_LEAK** (11): Internal doc URLs (`devsite.corp.google.com`, `source.corp.google.com`), public spec URLs (`dev.w3.org`, `dev.office.com`), Azure DevOps org/feed URLs, public API paths
-- **INTERESTING** (9): OAuth scope telemetry constants, internal lint/debt/complexity allow-tokens, `IdentityApiKey = "identity"` key-name constants
+| Category | File:Line | Evidence |
+|----------|-----------|----------|
+| **REAL_SECRET** | `google/clasp/src/auth/oauth_client.ts:24` | Hardcoded OAuth client_secret `v6V3fKV_zWU7iw1DrpO1rknX` (sha256: `8ef045f5edcd95ca...`). Comment: "Google Identity OAuth 2.0 does not yet support secretless public clients for desktop applications" — **by-design installed-app pattern** (same class as earthengine-api, chrome-enterprise-premium-mcp). |
+| **TEST_OR_EXAMPLE** | `microsoft/Ontology-Playground/src/lib/github.test.ts:84,98` | Test fixtures `'ghp_real_token'`, `'ghp_after_retry'` in `.test.ts` — mock token strings for unit tests. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/embeddings/cohere.py:21` | `cohere_api_key="my-api-key"` — placeholder in example/integration code. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/embeddings/huggingface_hub.py:28` | `huggingfacehub_api_token="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/embeddings/openai.py:22` | `openai_api_key="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/llms/aleph_alpha.py:25` | `aleph_alpha_api_key="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/llms/anthropic.py:22` | `anthropic_api_key="my-api-key"` — placeholder. |
+| **TEST_OR EXAMPLE** | `microsoft/MM-REACT/langchain/llms/cohere.py:25` | `cohere_api_key="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/llms/deepinfra.py:28` | `deepinfra_api_token="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/llms/huggingface_endpoint.py:32` | `huggingfacehub_api_token="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/MM-REACT/langchain/llms/huggingface_hub.py:27` | `huggingfacehub_api_token="my-api-key"` — placeholder. |
+| **TEST_OR_EXAMPLE** | `microsoft/psi/Sources/Runtime/Test.Psi/CloningTester.cs:234` | `Secret = "password"` — test fixture in `CloningTester.cs`. |
+| **TEST_OR_EXAMPLE** | `microsoft/UFO/ufo/client/mcp/http_servers/linux_mcp_server.py:507` | `export UFO_MCP_API_KEY='<your-secret-key>'` — documentation placeholder. |
+| **ENDPOINT_LEAK** | `google/CFU-Playground/.github/workflows/fmax-trials.yml:10` | `wget` from `static.dev.sifive.com` — external toolchain fetch in CI. |
+| **ENDPOINT_LEAK** | `google/capsem/.github/workflows/release-channel-staging.yaml:17` | `default: https://staging.release-eq7.pages.dev` — staging URL default. |
+| **ENDPOINT_LEAK** | `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11` | `gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm"` — secret manager reference (not the secret). |
+| **ENDPOINT_LEAK** | `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10` | `gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot"` — secret manager reference. |
+| **ENDPOINT_LEAK** | `google/uncertainty-baselines/experimental/shoshin/train_tf_lib.py:706` | Comment with internal bug tracker `b.corp.google.com/issues/124099628`. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/.../DeploymentIngesterTests.cs:64-65` | Azure DevOps URLs `dev.azure.com/buildxlcachetest/...` in test fixtures. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/.../DeploymentLauncherTests.cs:44-46` | Azure DevOps URLs in test fixtures. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/bxl.sh:446,475,558` | Azure Artifacts/DevOps feed URLs with `$PAT1esSharedAssets` env var reference. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/.../DirectorySymlinkTests.cs:590` | Internal work item URL `dev.azure.com/mseng/1ES/_workitems/edit/2154637`. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/.../ReclassificationRulesTests.cs:339` | Internal work item URL `dev.azure.com/mseng/1ES/_workitems/edit/2194350`. |
+| **ENDPOINT_LEAK** | `microsoft/BuildXL/.../HistoricMetadataCacheTests.cs:113` | Internal work item URL `dev.azure.com/mseng/1ES/_workitems/edit/2191478`. |
+| **ENDPOINT_LEAK** | `microsoft/UFO/galaxy/webui/security/url_validator.py:12,174,179` | References to IMDS endpoint `169.254.169.254` (cloud metadata) in security validator — defensive coding. |
+| **ENDPOINT_LEAK** | `microsoft/UFO/config/ufo/rag.yaml:8` | `BING_API_KEY: "${BING_API_KEY}"` — env var reference, not hardcoded. |
+| **ENDPOINT_LEAK** | `microsoft/psi/Sources/Integrations/.../PersonGroup.cs:19` | Documentation link to `westus.dev.cognitive.microsoft.com/docs/...`. |
+| **INTERESTING** | `google/capsem/config/gate.toml:597` | `password = "password.txt"` — references a password **file** (not the secret); signing material loaded from `private/tauri/` at release time. |
+| **INTERESTING** | `google/capsem/scripts/fix_p12_legacy.sh:15` | Reads PKCS#12 password from file `$PASS_FILE` — no hardcoded secret. |
+| **INTERESTING** | `google/capsem/scripts/preflight.sh:39` | Reads PKCS#12 password from file `$pass_file` — no hardcoded secret. |
 
-No hardcoded live credentials, API keys, or tokens with signs of life. Full details in `triage-2026-08-20.md`.
+---
+
+### Verdict List
+
+| File:Line | Classification | REPORT_CANDIDATE | Reason |
+|-----------|----------------|------------------|--------|
+| `google/clasp/src/auth/oauth_client.ts:24` | REAL_SECRET (by-design) | **no** | Google installed-app/desktop-client pattern — secret ships by design, bound to user consent + loopback redirect. Same class as `earthengine-api` (pending/recorded only) and `chrome-enterprise-premium-mcp` (VERDICT: by-design, NOT reportable per 2026-08-16 audit). |
+| `microsoft/Ontology-Playground/src/lib/github.test.ts:84,98` | TEST_OR_EXAMPLE | no | Test fixtures in `.test.ts` file. |
+| `microsoft/MM-REACT/langchain/**/*.py` (9 files) | TEST_OR_EXAMPLE | no | All `my-api-key` placeholders in example/integration code. |
+| `microsoft/psi/Sources/Runtime/Test.Psi/CloningTester.cs:234` | TEST_OR_EXAMPLE | no | Test fixture `Secret = "password"`. |
+| `microsoft/UFO/ufo/client/mcp/http_servers/linux_mcp_server.py:507` | TEST_OR_EXAMPLE | no | Documentation placeholder `<your-secret-key>`. |
+| `google/capsem/config/gate.toml:597` | INTERESTING | no | References password file; signing done in CI from secrets. |
+| `google/capsem/scripts/fix_p12_legacy.sh:15` | INTERESTING | no | Reads password from file at runtime. |
+| `google/capsem/scripts/preflight.sh:39` | INTERESTING | no | Reads password from file at runtime. |
+| All `ENDPOINT_LEAK` entries | ENDPOINT_LEAK | no | Internal/dev/staging URLs, secret-manager references (not secrets), IMDS references in defensive code, test fixture URLs. |
+
+---
+
+**Summary**: **0 reportable findings** in this delta. The only `REAL_SECRET` (clasp OAuth client_secret) is a known by-design pattern for Google public/desktop OAuth clients — explicitly documented in-code and consistent with prior triage verdicts (earthengine-api, chrome-enterprise-premium-mcp). All other hits are test fixtures, placeholders, env-var references, or internal endpoint references in test/defensive code.
