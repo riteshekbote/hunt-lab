@@ -1,61 +1,34 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Tables
+Let me analyze the scan results and classify each hit according to the categories. I need to look at the NEW HITS (delta) first, then the full grep hits for context.
 
-#### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *none found in this delta* | | | |
+Let me go through each hit:
 
-#### TEST_OR_EXAMPLE
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | 214 | JSDoc example `password: "password"` |
-| reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts | 226 | JSDoc example `token: "your_access_token"` |
-| reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const `PASSWORD = 'password'` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Example `private_key="-----BEGIN PRIVATE KEY-----..."` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test `HttpCredentials(username="user", password="password")` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Fake token `token="eyAkaknabna...."` |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const `PASSWORD = "password"` |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
-| reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml | 63 | Commented `# hf_access_token: "your_token"` |
-| reposcan-raw/google/tunix/tunix/cli/base_config.yaml | 63 | Commented `# hf_access_token: "your_token"` |
-| reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | K8s ConfigMap in docs (mock) |
-| reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | K8s ConfigMap in docs |
-| reposcan-raw/google/sam/.github/k8s/*.yaml | various | K8s template ConfigMaps (10 files) |
+**NEW HITS (DELTA - 8 lines):**
 
-#### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts | 36 | GCP metadata `169.254.0.0/16` (well-known) |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | GCP metadata `169.254.169.254` (well-known) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | GCP metadata `169.254.169.254` (well-known) |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | GCP metadata `169.254.169.254` (well-known) |
-| reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | GCP metadata hostname `metadata.google.internal` |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (env var ref) |
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247-250 | GH Actions secret refs `${GOOGLE_CLIENT_SECRET}` etc. |
-| reposcan-raw/google/agents-cli/.../staging.yaml | 168, 192 | GH Actions token refs `${{ steps.fetch-token.outputs...}}` |
+1. `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11: CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm") $@`
+   - This fetches a secret from Google Cloud Secret Manager at runtime - not a hardcoded secret. The secret value is not in the code.
+   - Classification: ENDPOINT_LEAK (references internal secret management)
 
-#### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | Kubeconfig path parameters (config, not secret) |
-| reposcan-raw/google/sam/internal/node/store.go | 38 | Const `keyRefreshToken = "refresh_token"` (key name, not value) |
+2. `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10: TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")`
+   - Same pattern - fetches from Secret Manager at runtime. Not hardcoded.
+   - Classification: ENDPOINT_LEAK
 
----
+3. `reposcan-raw/google/flatbuffers/.github/workflows/label.yml:24: repo-token: "${{ secrets.GITHUB_TOKEN }}"`
+   - This is a GitHub Actions workflow using the built-in GITHUB_TOKEN secret. This is standard practice, not a leak.
+   - Classification: TEST_OR_EXAMPLE (standard workflow pattern)
 
-### Delta Hits (14 new lines)
-All 14 are **parser error messages in minified JS bundles** (`adk-python/src/google/adk/cli/browser/chunk-*.js`) — generated PEG.js parser code, not secrets. Pattern: `Expecting \`+arr.join(", ")+\`, got '"'+...` — characteristic of parser generator output.
+4. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:168: GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"`
+   - GitHub Actions secret reference, not hardcoded value.
+   - Classification: TEST_OR_EXAMPLE
 
----
+5. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:169: LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}"`
+   - Same as above.
+   - Classification: TEST_OR_EXAMPLE
 
-### Verdict List
+6. `reposcan-raw/google/langextract/.github/workflows/ci.yaml:170: OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}"`
+   - Same as above.
+   - Classification: TEST_OR_EXAMPLE
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| earthengine-api oauth.py:45 (known from prior scans) | **yes** — tracked separately, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, pending VRP determination on native-app by-design status |
-| All hits in **this delta scan** | **no** — 100% TEST_OR_EXAMPLE / ENDPOINT_LEAK (well-known) / INTERESTING |
-
-**Summary:** No new reportable secrets in this delta. The only live credential remains the previously-tracked `google/earthengine-api` hardcoded client_secret (already in knowledge base, classified REAL_SECRET, report candidate pending VRP triage on installed-app by-design argument).
+7. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
