@@ -1,42 +1,72 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Let me analyze the new hits from the reposcan delta. I need to classify each hit as REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING.
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts[90m [offset=200, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts[90m [limit=30, offset=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts[90m [limit=30, offset=200][0m
+[0m→ [0mRead reposcan-raw/google/go-github/github/github.go[90m [limit=30, offset=1980][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh[90m [limit=30, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/launcher/spec/launch_spec.go[90m [limit=30, offset=100][0m
+[0m→ [0mRead reposcan-raw/google/go-tpm-tools/run_cloudbuild.sh[90m [offset=10, limit=30][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/auth.py[90m [limit=30, offset=890][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/host_providers.py[90m [limit=30, offset=45][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py[90m [offset=200, limit=30][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py[90m [limit=30, offset=700][0m
+[0m→ [0mRead reposcan-raw/microsoft/apm/src/apm_cli/core/script_executors.py[90m [offset=830, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [limit=30, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/scripts/run_doctest.sh[90m [offset=30, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [offset=170, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml[90m [offset=55, limit=30][0m
+[0m
+[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
+e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+[0m
+### Classification Tables
 
-Let me go through each delta hit:
+| Category | File:Line | Secret/Value (sha256) | Notes |
+|----------|-----------|----------------------|-------|
+| **TEST_OR_EXAMPLE** | google/adk-js/core/src/auth/auth_credential.ts:214 | `password` (doc example) | JSDoc `@example` block for HTTP basic auth |
+| **TEST_OR_EXAMPLE** | google/adk-js/core/src/auth/auth_credential.ts:226 | `your_access_token` (doc example) | JSDoc `@example` block for OAuth2 bearer |
+| **TEST_OR_EXAMPLE** | google/adk-js/core/src/auth/auth_schemes.ts:41 | `PASSWORD = 'password'` | Enum value for OAuth2 *password grant type*, not a secret |
+| **TEST_OR_EXAMPLE** | google/go-github/github/github.go:1990 | `your app's client secret` | Doc comment example for `UnauthenticatedRateLimitedTransport` |
+| **TEST_OR_EXAMPLE** | google/xrblocks/src/ai/AI.ts:303-304 | `YOUR_GEMINI_API_KEY_HERE`, `YOUR_OPENAI_API_KEY_HERE` | Placeholder constants for local prototyping |
+| **TEST_OR_EXAMPLE** | google/xrblocks/docs/docusaurus.config.ts:175 | `40150cc2c638b09de8ebbfefd50b80a4` (Algolia) | **REJECTED per KB** — search-only DocSearch key, public by design |
+| **TEST_OR_EXAMPLE** | google/oss-fuzz/projects/flask/fuzz_json.py:27 | `fuzz test key` | Test fixture |
+| **TEST_OR_EXAMPLE** | google/oss-fuzz/projects/h2database/TestServer.java:13,55 | `ServerShutdownPassword` | Test fixture |
+| **TEST_OR_EXAMPLE** | google/tunix/tunix/cli/base_agentic_config.yaml:63 | `your_token` | Commented placeholder for HF token |
+| **TEST_OR_EXAMPLE** | google/tunix/tunix/cli/base_config.yaml:63 | `your_token` | Commented placeholder for HF token |
+| **TEST_OR_EXAMPLE** | google/artemis/artemis/config/*.py | `GOOGLE_API_KEY`, `GEMINI_API_KEY`, `ARTEMIS_TENANT_TOKEN` | Env var name constants, not values |
+| **TEST_OR_EXAMPLE** | google/meridian/.github/workflows/*.yml | `test.pypi.org` | Test PyPI publish URLs |
+| **TEST_OR_EXAMPLE** | microsoft/apm/src/apm_cli/core/auth.py:904 | `https://dev.azure.com/<org>/...` | Template placeholder URL |
+| **ENDPOINT_LEAK** | google/adk-js/core/src/tools/load_web_page.ts:36 | `169.254.0.0/16` CIDR | Link-local blocklist (includes GCP metadata IP) — defensive |
+| **ENDPOINT_LEAK** | google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh:70 | `metadata.google.internal` | Legitimate metadata query in debug image bootstrap |
+| **ENDPOINT_LEAK** | google/go-tpm-tools/launcher/spec/launch_spec.go:110 | `autopush-confidentialcomputing.sandbox.googleapis.com` | Internal sandbox endpoint |
+| **ENDPOINT_LEAK** | google/go-tpm-tools/launcher/spec/launch_spec.go:111 | `staging-confidentialcomputing.sandbox.googleapis.com` | Internal staging endpoint |
+| **ENDPOINT_LEAK** | google/go-tpm-tools/run_cloudbuild.sh:16 | `pantheon.corp.google.com` | Internal corp console URL (comment) |
+| **ENDPOINT_LEAK** | google/bigframes/scripts/run_doctest.sh:38-39 | `KOKORO_GFILE_DIR/service-account.json` | Internal CI credential path reference |
+| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/core/auth.py:898 | `dev.azure.com/{org}/_usersSettings/tokens` | Azure DevOps PAT management endpoint pattern |
+| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/core/host_providers.py:54 | `https://dev.azure.com` | Azure DevOps API base URL constant |
+| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/core/script_executors.py:208 | kubeconfig embeds cert/token | Comment describing secret handling |
+| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/utils/github_host.py:* | `dev.azure.com` URL patterns | ADO API endpoint docs in code |
+| **INTERESTING** | google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215 | `metadata.google.internal` in blocklist | **SSRF protection** — rejects metadata host in discovery URL validation |
+| **INTERESTING** | google/adk-js/core/src/tools/load_web_page.ts:36 | `169.254.0.0/16` blocklist | **SSRF protection** — blocks link-local/metadata IPs |
+| **INTERESTING** | google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py:59 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (sha256 `e69cc771...`) | **Vendored 3rd-party code** (ibis upstream) — not Google-owned; `# noqa: S105` acknowledges lint trigger |
+| **INTERESTING** | microsoft/apm/src/apm_cli/core/script_executors.py:711 | `metadata.google.internal` in `_METADATA_HOSTNAMES` | **SSRF protection** — hostname blocklist for metadata services |
+| **INTERESTING** | microsoft/apm/src/apm_cli/core/script_executors.py:841 | `169.254.169.254` in DNS-rebinding guard | **SSRF protection** — same-resolution connect guard |
+| **INTERESTING** | google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh:70 | curl to metadata with `Metadata-Flavor: Google` | Legitimate debug-image bootstrap; not a leak |
 
-1. `reposcan-raw/google/artemis/artemis/config/constants.py:35: ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN"` - This is an environment variable NAME, not a secret value. Just a constant defining the env var name.
+---
 
-2. `reposcan-raw/google/artemis/artemis/config/constants.py:51: ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` - Same, env var name constant.
+### Verdict List
 
-3. `reposcan-raw/google/artemis/artemis/config/constants.py:52: ENV_GEMINI_API_KEY = "GEMINI_API_KEY"` - Same, env var name constant.
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| Hardcoded OAuth client_secret in google/earthengine-api (known from KB) | **yes** (pending VRP determination on native-app by-design) | Already tracked in KB as ACCEPTED LIVE; sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` |
+| ibis vendored CLIENT_SECRET in google/bigframes | **no** | Upstream 3rd-party code, not Google-owned; vendor fix required |
+| Algolia DocSearch key in google/xrblocks | **no** | **REJECTED per KB** — search-only key, public by design |
+| All TEST_OR_EXAMPLE hits | **no** | Placeholders, doc examples, test fixtures |
+| All ENDPOINT_LEAK hits | **no** | Internal/staging URLs, metadata endpoints, API patterns — no credentials |
+| All INTERESTING (SSRF protections) | **no** | Defensive controls (blocklists, metadata guards) — positive security signals |
+| microsoft/apm Azure DevOps URL patterns | **no** | Public API endpoints, no secrets |
 
-4. `reposcan-raw/google/artemis/artemis/config/settings.py:163: self.GOOGLE_API_KEY = self.GEMINI_API_KEY` - Code assigning one config value to another, not a hardcoded secret.
-
-5. `reposcan-raw/google/artemis/artemis/config/settings.py:165: self.GOOGLE_API_KEY = self.GCP_API_KEY` - Same, config assignment.
-
-6. `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml:126: url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` - TestPyPI URL with env var, not a secret.
-
-7. `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml:138: repository-url: https://test.pypi.org/legacy/` - TestPyPI URL, not a secret.
-
-8. `reposcan-raw/google/meridian/.github/workflows/publish.yml:127: url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` - Same as above.
-
-9. `reposcan-raw/google/meridian/.github/workflows/publish.yml:139: repository-url: https://test.pypi.org/legacy/` - Same as above.
-
-10. `reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py:27: secret_key = "fuzz test key"` - This is clearly a test/fixture key ("fuzz test key").
-
-11. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:13: private static String g_shutdownPassword = "ServerShutdownPassword";` - Test password in a TestServer class.
-
-12. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:55: return getConnection("PASSWORD=" + getDatabasePassword() + ";");` - Code using a password getter, not hardcoded.
-
-13. `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33: * https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html` - Documentation URL in comment.
-
-14. `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml:1: homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/"` - Project homepage URL.
-
-15. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder.
-
-16. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Same, commented placeholder.
-
-17. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config")` - Setting KUBECONFIG env var from config, not a secret.
-
-18. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
+**No new reportable findings in this delta scan.** The only live reportable candidate remains the earthengine-api hardcoded client_secret (already in KB, pending VRP triage on native-app by-design status).
