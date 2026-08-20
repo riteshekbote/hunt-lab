@@ -1,65 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< '-----BEGIN PRIVATE KEY-----...' | cut -d' ' -f1
-87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< 'password' | cut -d' ' -f1 && sha256sum <<< 'eyAkaknabna....' | cut -d' ' -f1 && sha256sum <<< 'your_client_secret' | cut -d' ' -f1
-6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e
-597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b
-af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f
-[0m
-### Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/triage.md << 'EOF'
+# Triaged Scan Results — 2026-08-20
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data — not reportable)
-| File | Line | Secret SHA256 | Notes |
-|------|------|---------------|-------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | 87fc30e940e9f80b3920e2d3f8627a293decdc3283b702a6179ea8ecaeb74582 | Truncated fixture private key (`...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Literal `"password"` in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | 597730b302a6cf0c1c3537fa18c60401fbe1b8ce159381ac553afa0dd1b4651b | Truncated fake JWT (`....`) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | 6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | af452314c6f4e31acafd601cd17b9c9f119e7e2be286356be0e01fed6524a31f | Placeholder `"your_client_secret"` |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | — | Commented `# hf_access_token: "your_token"` |
-| google/tunix/tunix/cli/base_config.yaml | 63 | — | Commented `# hf_access_token: "your_token"` |
-| google/go-github/github/github.go | 1990 | — | Placeholder `"your app's client secret"` |
+## Classification Tables
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, metadata endpoints — not reportable)
-| File | Line | Notes |
-|------|------|-------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Documentation/comments referencing `169.254.169.254` metadata endpoint |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment about `169.254.169.254` in NAT64 context |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment refusing to check metadata endpoint |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Config params `kubeconfig_path`, `kubeconfig_context` (not secrets) |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Internal state key name `_vmaas_access_token` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Generates config with user-supplied `GOOGLE_API_KEY` (not hardcoded) |
+### REAL_SECRET (reportable candidates)
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| *none in new delta* | — | — | No new hardcoded credentials with signs of life in the 10 new delta hits. The known `earthengine-api` client_secret (sha256 `3f3f8d6f...d271`) remains the only LIVE secret in corpus — already tracked/pending VRP determination. | no |
 
-#### INTERESTING (debug flags, keys, cloud configs — review only)
-| File | Line | Notes |
-|------|------|-------|
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified/bundled JS source map chunks (parse error messages) — build artifacts |
-| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | 5 | Minified bundle — build artifact |
-| google/sam/**/*.yaml | multiple | K8s ConfigMaps, workflows using `${{ secrets.* }}` (proper secret injection) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Workflow using `${{ secrets.GEMINI_API_KEY }}` etc. (proper) |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | Constant `KEY_RENDER_TOKEN = "render_token"` (key name, not value) |
+### TEST_OR_EXAMPLE (sample/fixture/test data)
+| File | Line | Reason |
+|------|------|--------|
+| reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py | 55 | `_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"` — clearly a named constant for legacy figure handling, not a secret |
+| reposcan-raw/microsoft/power-platform-skills/evals/power-pages/test-site/evals.json | 88, 92 | Test eval prompts referencing a test-site URL (`intranet.powerappsportals.com`) — test fixture |
+| reposcan-raw/microsoft/power-platform-skills/plugins/mobile-apps/hooks/validate-write-safety.js | 54 | `// client_secret: "abc123..." or client_secret=abc123` — commented example format in validation hook |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` — constant key name, not a token value |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Test fixtures: placeholder private key, `username="user", password="password"`, `token="eyAkaknabna...."` |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — placeholder in example |
+| reposcan-raw/google/go-github/github/github.go | 1990 | `ClientSecret: "your app's client secret"` — SDK doc/example |
 
----
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| reposcan-raw/microsoft/vcpkg/scripts/azure-pipelines/osx/guest-prepare.sh | 17 | `https://download.agent.dev.azure.com/agent/5.277.0/vsts-agent-osx-arm64-5.277.0.tar.gz` | Official Azure Pipelines agent download URL — public |
+| reposcan-raw/microsoft/vcpkg/scripts/azure-pipelines/osx/host-register-guest.sh | 40 | `https://dev.azure.com/vcpkg` | Public Azure DevOps org URL (vcpkg) |
+| reposcan-raw/microsoft/vscode-cosmosdb/src/cosmosdb/utils/managedIdentityUtils.ts | 46 | `http://169.254.169.254/metadata/versions` | Azure IMDS endpoint — well-known, not a leak |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` | GCP metadata endpoint references in docs/comments — public knowledge |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` | Same — metadata endpoint reference |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` | Same — metadata endpoint reference |
 
-### REAL_SECRET — **NONE FOUND** in this delta
-
-No hardcoded credentials/API keys/tokens with signs of life were detected in the 33 new hit lines. All hits are test fixtures, placeholders, documentation references, or proper secret-injection patterns.
+### INTERESTING (unusual configs, debug flags, cloud configs)
+| File | Line | Finding |
+|------|------|---------|
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247–250 | Workflow populates K8s secrets from GitHub Actions secrets (`GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET`) — correct secret-handling pattern, not a leak |
+| reposcan-raw/google/sam/.github/k8s/*.yaml | various | Many `kind: ConfigMap` manifests — config-as-code, no secrets observed |
+| reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified/bundled JS (source map artifact) — no secrets |
+| reposcan-raw/microsoft/vscode-cosmosdb/.azure-pipelines/compliance/compliance.yml | 28 | Secure Dev Tools publish task — compliance pipeline, standard |
+| reposcan-raw/microsoft/vscode-cosmosdb/packages/nosql-language-service/src/providers/monaco/monarchTokenizer.ts | 51 | Monaco tokenizer delimiter config — code, not config leak |
 
 ---
 
-### VERDICT LIST
+## VERDICT LIST (per real candidate)
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| adk-python auth_credential.py fixtures | **no** (TEST_OR_EXAMPLE) |
-| adk-python auth_helpers.py placeholder | **no** (TEST_OR_EXAMPLE) |
-| adk-python metadata endpoint comments | **no** (ENDPOINT_LEAK) |
-| adk-python browser JS chunks | **no** (build artifacts) |
-| sam K8s/workflow secret refs | **no** (proper `${{ secrets }}` usage) |
-| langextract workflow secret refs | **no** (proper `${{ secrets }}` usage) |
-| tunix commented HF tokens | **no** (TEST_OR_EXAMPLE) |
-| go-github placeholder | **no** (TEST_OR_EXAMPLE) |
-| private-compute-services key name | **no** (INTERESTING only) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| earthengine-api `oauth.py:45` client_secret (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) | **yes** (pending) | Confirmed LIVE on master; A/B `invalid_grant` vs `invalid_client` proves real secret; scopes include `cloud-platform` + `drive` + `devstorage.full_control`. VRP determination pending on native-app by-design status. |
+| All 10 new delta hits | **no** | All classify as TEST_OR_EXAMPLE or ENDPOINT_LEAK (public endpoints). No hardcoded credentials. |
+| google/sam workflow secrets refs | **no** | Proper secret injection from GitHub Actions secrets — not hardcoded. |
+| google/adk-python test fixtures | **no** | Placeholder values in test/example code (`password`, `your_client_secret`, `eyAkaknabna...`). |
+| Azure IMDS / metadata endpoint refs | **no** | Well-known public endpoints (169.254.169.254). |
+| vcpkg Azure DevOps URLs | **no** | Public org/download URLs. |
+
+---
+
+## SUMMARY
+- **0 new REPORT_CANDIDATE findings** in this delta scan.
+- **1 pre-existing LIVE secret** (`google/earthengine-api` client_secret) remains under VRP review — no change in status.
+- All other hits are test fixtures, example code, or references to public endpoints.
+- No new proving-dead or proving-live classes vs knowledge base.
+EOF
+cat /tmp/triage.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
