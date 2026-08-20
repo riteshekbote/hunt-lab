@@ -1,64 +1,31 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/garf/libs/community/common_apis/garf/community/common_apis/openweather/report_fetcher.py[90m [limit=20, offset=50][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=20, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh[90m [offset=35, limit=30][0m
-Now I have enough context. Let me classify all hits and produce the output.
+[0m→ [0mRead reposcan-raw/microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml[90m [offset=75, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/go-github/github/github.go[90m [offset=1985, limit=15][0m
+[0m→ [0mRead reposcan-raw/microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go[90m [offset=130, limit=20][0m
+| Category | File | Line | Classification | Notes |
+|---|---|---|---|---|
+| **REAL_SECRET** | — | — | **None** | No hardcoded live credentials found |
+| **TEST_OR_EXAMPLE** | google/go-github/github/github.go | 1990 | TEST_OR_EXAMPLE | Placeholder `"your app's client secret"` in example code |
+| | microsoft/apm/.github/workflows/verify-shared-apm-matrix.yml | 81 | TEST_OR_EXAMPLE | Synthetic PEM, comment: "Truncated key body so it cannot accidentally be used" |
+| | google/sam/* | multiple | TEST_OR_EXAMPLE | K8s ConfigMap kinds, workflow secret refs (`${{ secrets.* }}`) |
+| | google/langextract/.github/workflows/ci.yaml | 168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references |
+| | google/tunix/tunix/cli/base_*.yaml | 63 | TEST_OR_EXAMPLE | Placeholder `# hf_access_token: "your_token"` |
+| | google/flatbuffers/.github/workflows/label.yml | 24 | TEST_OR_EXAMPLE | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
+| **ENDPOINT_LEAK** | microsoft/apm/src/apm_cli/** | multiple | ENDPOINT_LEAK | Example `dev.azure.com` URLs in docs/comments |
+| | microsoft/apm/src/apm_cli/core/script_executors.py | 711, 841 | ENDPOINT_LEAK | GCP/Azure IMDS IPs (`metadata.google.internal`, `169.254.169.254`) in comments |
+| | microsoft/apm/src/apm_cli/install/mcp/warnings.py | 33-34 | ENDPOINT_LEAK | Cloud metadata IPs in warning list |
+| **INTERESTING** | microsoft/go-crypto-winnative/internal/bcrypt/bcrypt_windows.go | 135 | INTERESTING | Const `KDF_RAW_SECRET = "TRUNCATE"` — flag name, not a secret |
 
----
+### Verdict
 
-### Classification Tables
+| Candidate | REPORT_CANDIDATE | Reason |
+|---|---|---|
+| google/go-github placeholder | **no** | Documentation example |
+| microsoft/apm synthetic PEM | **no** | Explicitly truncated test fixture, masked in CI |
+| All secret refs (`${{ secrets.* }}`) | **no** | CI secret references, not hardcoded values |
+| IMDS/metadata URLs | **no** | Well-known cloud endpoints, informational |
+| KDF_RAW_SECRET constant | **no** | API flag identifier ("TRUNCATE" literal) |
 
-#### REAL_SECRET
-| File | Line | SHA256(secret) | Verdict |
-|------|------|----------------|---------|
-| *(none)* | — | — | No hardcoded live credentials found |
-
-#### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/garf/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | Docstring example placeholder |
-| google/garf/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | Docstring example placeholder |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a value |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var reference with default |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | GitHub Actions secret ref (correct pattern) |
-| google/tunix/tunix/cli/base_agentic_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/tunix/tunix/cli/base_config.yaml | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| google/device-infra/.../DeviceAdminUtil.java | 49-50 | `ACTION_SETUP_PASSWORD_TOKEN`, `ACTION_RESET_PASSWORD` | Constant names (Android intent actions) |
-| google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Constant name |
-| google/private-compute-services/.../RenderTokenHint.kt | 41 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
-| google/private-compute-services/.../RenderTokenInsight.kt | 43 | `KEY_RENDER_TOKEN = "render_token"` | Constant name |
-| google/private-compute-services/.../PrivateInferenceClientTimerNames.kt | 82,88,91 | `IPP_CREATE_TERMINAL_TOKEN` etc. | Constant names (timer metrics) |
-| google/adk-go/.../distr/*.js | multiple | Minified JS parser error strings | Build artifacts, not secrets |
-| microsoft/clarity/.../visualize.d.ts | 203 | `NewPassword = "new-password"` | TypeScript HTML input type constant |
-
-#### ENDPOINT_LEAK
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/device-infra/.../adc_credentials.sh | 39,44 | `metadata.google.internal/computeMetadata/...` | Standard GCP ADC metadata server calls (expected, not a leak) |
-| google/sam/.../dex-config.yaml | — | `kind: ConfigMap` | K8s ConfigMap definitions (config, not secrets) |
-| google/sam/.../deploy.yaml | — | `kind: ConfigMap` | K8s ConfigMap definitions |
-| google/sam/.../sam-*-template.yaml | — | `kind: ConfigMap` | K8s ConfigMap templates |
-
-#### INTERESTING
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| microsoft/ResearchStudio/.../render_poster.py | 55 | `_LEGACY_FIGURE_FLOOR_TOKEN = "preserve-immutable-source-v1"` | Legacy feature flag / policy token constant; value is a policy identifier, not a credential |
-
----
-
-### Verdict List
-
-| Candidate | Category | REPORT_CANDIDATE |
-|-----------|----------|------------------|
-| `microsoft/ResearchStudio/ResearchStudio-Reel/skills/paper2poster/scripts/render_poster.py:55` | INTERESTING (legacy policy token constant) | **no** — value `preserve-immutable-source-v1` is a feature flag identifier, not a secret |
-| All `YOUR_KEY` / `your_token` placeholders | TEST_OR_EXAMPLE | **no** — documentation/examples |
-| All `${{ secrets.X }}` workflow refs | TEST_OR_EXAMPLE | **no** — proper secret handling pattern |
-| All `metadata.google.internal` calls | ENDPOINT_LEAK | **no** — standard GCP ADC metadata access |
-| All `kind: ConfigMap` / constant names | TEST_OR_EXAMPLE / ENDPOINT_LEAK | **no** — config/constant definitions |
-
----
-
-**Summary**: 0 reportable findings in this delta. The single new hit (`_LEGACY_FIGURE_FLOOR_TOKEN`) is a legacy feature-flag constant with a policy-string value, not a credential. All other hits are test fixtures, documentation placeholders, proper secret references, or standard cloud metadata access patterns.
+**No reportable findings in this delta.** All 435 hits are test fixtures, documentation placeholders, CI secret references, or well-known endpoint references.
