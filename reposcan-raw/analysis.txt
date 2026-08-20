@@ -1,85 +1,88 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=20, offset=55][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=30, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
-All hits classified. Here are the results:
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/nomulus/core/src/nonprod/java/google/registry/tools/
+DevTool.java
+DumpGoldenSchemaCommand.java
+GenerateSqlErDiagramCommand.java
+GenerateSqlSchemaCommand.java
+PostgresqlCommand.java
+[0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
+[0m→ [0mRead reposcan-raw/google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml[90m [limit=50, offset=1][0m
+[0m→ [0mRead reposcan-raw/google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml[90m [limit=20, offset=255][0m
+[0m→ [0mRead reposcan-raw/google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts[90m [limit=30, offset=210][0m
+Now I have enough context to classify all hits. Here are the results:
 
 ---
 
-### REAL_SECRET: Hardcoded credentials with signs of life
+### **REAL_SECRET** — *Hardcoded credentials with signs of life*
+| File | Line | Classification | SHA256 (secret) | Verdict |
+|------|------|----------------|-----------------|---------|
+| *none in delta* | — | — | — | — |
 
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| *(none)* | — | — | No hardcoded live secrets found |
-
----
-
-### TEST_OR_EXAMPLE: Sample/test/fixture data (not reportable)
-
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Example in docstring (placeholder `...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | Example in docstring |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Example in docstring (fake JWT) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | OAuth grant type enum value |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Example in docstring |
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example in JSDoc |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Example in JSDoc |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | OAuth grant type enum value |
-| google/magika/tests_data/basic/javascript/code.js | 31 | Minified JS | Test fixture |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant name, not a secret |
+> The only live hardcoded secret in this org is **google/earthengine-api/python/ee/oauth.py:45** (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — **already ACCEPTED in KB**, pending VRP determination on native-app by-design status. Not in this delta.
 
 ---
 
-### ENDPOINT_LEAK: Internal/dev/staging URLs, metadata endpoints
+### **TEST_OR_EXAMPLE** — *Sample/test/fixture data (not reportable)*
+| File | Line | Context |
+|------|------|---------|
+| `google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java` | 61 | `DB_PASSWORD = "password"` — nonprod test tool |
+| `google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java` | 40 | `DB_PASSWORD = "domain-registry"` — nonprod test tool |
+| `google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java` | 28 | `DB_PASSWORD = "domain-registry"` — nonprod test tool |
+| `google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java` | 156 | `password = "abcde12345"` — load test default |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` — fuzz harness |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test server |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example blocks: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — constant name |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` — example |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | JSDoc `@example` blocks: `"password"`, `"your_access_token"` |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` — constant name |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — GH Actions secret ref |
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — GH Actions secret ref |
+| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (5 files) | Minified parser generator error messages — build artifacts |
 
+---
+
+### **ENDPOINT_LEAK** — *Internal/dev/staging URLs, metadata endpoints*
 | File | Line | Endpoint |
 |------|------|----------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` |
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `metadata.google.internal` |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
-| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | `metadata.google.internal` |
-| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | `169.254.169.254` |
-| google/go-tpm-tools/run_cloudbuild.sh | 16 | `pantheon.corp.google.com` |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | `test.pypi.org` |
-| google/openhtf/.github/workflows/python_publish.yml | 91, 105 | `test.pypi.org` |
+| `google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml` | 260 | `https://staging-www.sandbox.googleapis.com` — staging API root |
+| `google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java` | 61 | `http://metadata.google.internal/` — GCE metadata |
+| `google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh` | 70 | `curl ... metadata.google.internal/computeMetadata/v1/...` |
+| `google/go-tpm-tools/launcher/spec/launch_spec.go` | 110-111 | `https://autopush-confidentialcomputing.sandbox.googleapis.com`, `https://staging-confidentialcomputing.sandbox.googleapis.com` |
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` check |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` (includes `169.254.169.254` metadata) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Metadata endpoint `169.254.169.254` warnings |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` metadata route |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` refusal comment |
 
 ---
 
-### INTERESTING: Config patterns, secret references (not hardcoded)
-
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Writes user-provided key to .env |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | `kubeconfig_path`, `kubeconfig_context` | Config parameters |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key constant |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` | Fetches from Secret Manager |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` | Fetches from Secret Manager |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.* }}` | GitHub Actions secret refs |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var with default |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s ConfigMaps (not Secrets) |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` | Standard GITHUB_TOKEN |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | `${{secrets.GITHUB_TOKEN}}` | Standard GITHUB_TOKEN |
+### **INTERESTING** — *Unusual patterns (debug flags, constants, cloud configs)*
+| File | Line | Note |
+|------|------|------|
+| `google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java` | 61 | `ID_TOKEN = "id_token"` — constant name |
+| `google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java` | 37, 40 | `X_CSRF_TOKEN = "X-CSRF-Token"`, `P_CSRF_TOKEN = "xsrfToken"` — header/param names |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path`, `kubeconfig_context` params — config surface |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session key name |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes `GOOGLE_API_KEY={google_api_key}` to file — user-supplied, not hardcoded |
 
 ---
 
-### VERDICT LIST
+### **VERDICT LIST**
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| All hits | **no** | All findings are TEST_OR_EXAMPLE (placeholder values in docstrings/enums), ENDPOINT_LEAK (well-known metadata/internal URLs), or INTERESTING (secret references via Secret Manager/GitHub Actions — proper pattern, not hardcoded). No live hardcoded credentials discovered. |
+| earthengine-api oauth.py:45 (known) | **no** (pending) | Already in KB as ACCEPTED; native-app installed-client pattern (by-design per Google), VRP determination pending |
+| nomulus staging/sandbox URLs | **no** | Default config with placeholder project IDs; non-production endpoints |
+| GCE metadata endpoint references | **no** | Well-known internal IP (`169.254.169.254` / `metadata.google.internal`); documented platform behavior |
+| All test passwords / example credentials | **no** | In `nonprod/`, `load-testing/`, `oss-fuzz/`, or marked `@example` / `Example:` in source |
+| GitHub Actions `${{secrets.GITHUB_TOKEN}}` refs | **no** | Secret references, not hardcoded values |
+| Minified browser chunk JS files | **no** | Build artifacts (parser generator output) |
 
 ---
 
-**Summary**: 0 reportable findings in this delta. The scan caught example code, metadata endpoint references, and proper secret-management patterns (Secret Manager, GitHub Actions secrets) — none are hardcoded live secrets.
+**SUMMARY**: **0 new reportable findings** in this delta. All hits are either pre-existing known findings (earthengine secret), test fixtures, staging endpoints in config templates, or documented platform metadata references.
