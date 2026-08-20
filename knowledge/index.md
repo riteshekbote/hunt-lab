@@ -527,3 +527,4 @@
 - 2026-08-20 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 23:51 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-20 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible)
 - 2026-08-20 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no confusion surface (stable across all probe cycles)
+- 2026-08-20 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 00:27 UTC) confirm prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
