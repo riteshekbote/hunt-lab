@@ -1,296 +1,110 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/mtail/.github/workflows/automerge.yml | head -80
-# We "trust" dependabot updates once they pass tests.
-# (this still requires all other checks to pass!)
+[0m$ [0mcat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json 2>/dev/null | head -40
+{
+  "project_info": {
+    "project_number": "334087903719",
+    "project_id": "local",
+    "storage_bucket": "local.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
+        "android_client_info": {
+          "package_name": "org.groundplatform.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "local.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
+[0m
+[0m$ [0mcat reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py 2>/dev/null | head -220 | tail -30
+# Process instance commands
+        instances = infra.get('google_compute_instance', {})
+        for inst_name, inst in instances.iteritems():
+            cmds = inst['cmds']
+            boot_cmds = inst['bootCmds']
+            metadata = inst['metadata']
+            def curl_md(k):
+                md_pref = 'http://169.254.169.254/computeMetadata/v1/instance/attributes'
+                return 'curl -s -H Metadata-Flavor:Google %s/%s' % (md_pref, k)
+            if 'startup-script' in metadata:
+                # Move user startup script out of the way (but still run it at every boot).
+                metadata['micromanage-user-startup-script'] = metadata['startup-script']
+                metadata.pop('startup-script', None)
+                bootCmds += ['%s | bash' % curl_md('micromanage-user-startup-script')]
+            inst['metadata'] = metadata
+            inst['metadata_startup_script'] = self.compileStartupScript(cmds, boot_cmds)
+            inst.pop('cmds', None)
+            inst.pop('bootCmds', None)
 
-# This doesn't work on forked repos per the discussion in
-# https://github.com/pascalgn/automerge-action/issues/46 so don't attempt to
-# add people other than dependabot to the if field below.
-name: dependabot-auto-merge
-on:
-  pull_request_target:
-    types:
-      # Dependabot will label the PR
-      - labeled
-      # Dependabot has rebased the PR
-      - synchronize
-
-jobs:
-  enable-automerge:
-    if: github.event.pull_request.user.login == 'dependabot[bot]' && contains(github.event.pull_request.labels.*.name, 'dependencies')
-    runs-on: ubuntu-latest
-    # https://github.com/orgs/community/discussions/24686
-    permissions:
-      contents: write
-      pull-requests: write
-    steps:
-      - run: |
-          gh api graphql -f pullRequestId="${GITHUB_EVENT_PULL_REQUEST_NODE_ID}" -f query='
-          mutation EnablePullRequestAutoMerge($pullRequestId: ID!) {
-            enablePullRequestAutoMerge(input: {pullRequestId: $pullRequestId}) {
-              clientMutationId
+        return {
+            'service.%s.tf.json' % self.fullName(ctx + [service_name]): {
+                'resource': infra,
+                'output': {
+                    k: { 'value': v }
+                    for k, v in service['outputs'].iteritems()
+                }
             }
-          }
-          '
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GITHUB_EVENT_PULL_REQUEST_NODE_ID: ${{ github.event.pull_request.node_id }}
-
-  wait-on-checks:
-    needs: enable-automerge
-    runs-on: ubuntu-latest
-    permissions:
-      # wait-on-check requires only checks read
-      checks: read
-    steps:
-      - uses: lewagon/wait-on-check-action@v1.3.4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
-          check-regexp: "test.*"
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-          wait-interval: 60
-
-  approve:
-    needs: wait-on-checks
-    runs-on: ubuntu-latest
-    permissions:
-      # https://github.com/hmarr/auto-approve-action/issues/183 says
-      # auto-approve-action requires write on pull-requests
-      pull-requests: write
-    steps:
-      - uses: hmarr/auto-approve-action@f0939ea97e9205ef24d872e76833fa908a770363
-        with:
-          github-token: "${{ secrets.GITHUB_TOKEN }}"
+        }
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -5 reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/chunk-LVMBETIL.js
-import{a as _e}from"./chunk-B2DSW4QB.js";import{a as fe}from"./chunk-PDRDFWTH.js";import{a as be,b as ye}from"./chunk-ZMOC4H7T.js";import{d as ke,g as me,j as Ee}from"./chunk-NRMNZ7EH.js";import"./chunk-VWUZC4UJ.js";import"./chunk-3TW5HJSC.js";import"./chunk-PRKFGJVH.js";import"./chunk-4V3PIBXT.js";import"./chunk-UKZIEWH5.js";import"./chunk-GP6TCC26.js";import{G as B,O as pe,Y as M,c as de,d as te,e as ne,r as W}from"./chunk-37QI3DOO.js";import{g as o,i as Y}from"./chunk-JRNAXTJ7.js";import"./chunk-URMDZFG4.js";import{j as ge}from"./chunk-RMXJBC7V.js";var ie=(function(){var e=o(function(O,i,n,s){for(n=n||{},s=O.length;s--;n[O[s]]=i);return n},"o"),u=[1,4],p=[1,13],r=[1,12],d=[1,15],m=[1,16],k=[1,20],l=[1,19],D=[6,7,8],I=[1,26],g=[1,24],w=[1,25],E=[6,7,11],U=[1,31],N=[6,7,11,24],j=[1,6,13,16,17,20,23],f=[1,35],A=[1,36],L=[1,6,7,11,13,16,17,20,23],H=[1,38],T={trace:o(function(){},"trace"),yy:{},symbols_:{error:2,start:3,mindMap:4,spaceLines:5,SPACELINE:6,NL:7,KANBAN:8,document:9,stop:10,EOF:11,statement:12,SPACELIST:13,node:14,shapeData:15,ICON:16,CLASS:17,nodeWithId:18,nodeWithoutId:19,NODE_DSTART:20,NODE_DESCR:21,NODE_DEND:22,NODE_ID:23,SHAPE_DATA:24,$accept:0,$end:1},terminals_:{2:"error",6:"SPACELINE",7:"NL",8:"KANBAN",11:"EOF",13:"SPACELIST",16:"ICON",17:"CLASS",20:"NODE_DSTART",21:"NODE_DESCR",22:"NODE_DEND",23:"NODE_ID",24:"SHAPE_DATA"},productions_:[0,[3,1],[3,2],[5,1],[5,2],[5,2],[4,2],[4,3],[10,1],[10,1],[10,1],[10,2],[10,2],[9,3],[9,2],[12,3],[12,2],[12,2],[12,2],[12,1],[12,2],[12,1],[12,1],[12,1],[12,1],[14,1],[14,1],[19,3],[18,1],[18,4],[15,2],[15,1]],performAction:o(function(i,n,s,a,h,t,R){var c=t.length-1;switch(h){case 6:case 7:return a;case 8:a.getLogger().trace("Stop NL ");break;case 9:a.getLogger().trace("Stop EOF ");break;case 11:a.getLogger().trace("Stop NL2 ");break;case 12:a.getLogger().trace("Stop EOF2 ");break;case 15:a.getLogger().info("Node: ",t[c-1].id),a.addNode(t[c-2].length,t[c-1].id,t[c-1].descr,t[c-1].type,t[c]);break;case 16:a.getLogger().info("Node: ",t[c].id),a.addNode(t[c-1].length,t[c].id,t[c].descr,t[c].type);break;case 17:a.getLogger().trace("Icon: ",t[c]),a.decorateNode({icon:t[c]});break;case 18:case 23:a.decorateNode({class:t[c]});break;case 19:a.getLogger().trace("SPACELIST");break;case 20:a.getLogger().trace("Node: ",t[c-1].id),a.addNode(0,t[c-1].id,t[c-1].descr,t[c-1].type,t[c]);break;case 21:a.getLogger().trace("Node: ",t[c].id),a.addNode(0,t[c].id,t[c].descr,t[c].type);break;case 22:a.decorateNode({icon:t[c]});break;case 27:a.getLogger().trace("node found ..",t[c-2]),this.$={id:t[c-1],descr:t[c-1],type:a.getType(t[c-2],t[c])};break;case 28:this.$={id:t[c],descr:t[c],type:0};break;case 29:a.getLogger().trace("node found ..",t[c-3]),this.$={id:t[c-3],descr:t[c-1],type:a.getType(t[c-2],t[c])};break;case 30:this.$=t[c-1]+t[c];break;case 31:this.$=t[c];break}},"anonymous"),table:[{3:1,4:2,5:3,6:[1,5],8:u},{1:[3]},{1:[2,1]},{4:6,6:[1,7],7:[1,8],8:u},{6:p,7:[1,10],9:9,12:11,13:r,14:14,16:d,17:m,18:17,19:18,20:k,23:l},e(D,[2,3]),{1:[2,2]},e(D,[2,4]),e(D,[2,5]),{1:[2,6],6:p,12:21,13:r,14:14,16:d,17:m,18:17,19:18,20:k,23:l},{6:p,9:22,12:11,13:r,14:14,16:d,17:m,18:17,19:18,20:k,23:l},{6:I,7:g,10:23,11:w},e(E,[2,24],{18:17,19:18,14:27,16:[1,28],17:[1,29],20:k,23:l}),e(E,[2,19]),e(E,[2,21],{15:30,24:U}),e(E,[2,22]),e(E,[2,23]),e(N,[2,25]),e(N,[2,26]),e(N,[2,28],{20:[1,32]}),{21:[1,33]},{6:I,7:g,10:34,11:w},{1:[2,7],6:p,12:21,13:r,14:14,16:d,17:m,18:17,19:18,20:k,23:l},e(j,[2,14],{7:f,11:A}),e(L,[2,8]),e(L,[2,9]),e(L,[2,10]),e(E,[2,16],{15:37,24:U}),e(E,[2,17]),e(E,[2,18]),e(E,[2,20],{24:H}),e(N,[2,31]),{21:[1,39]},{22:[1,40]},e(j,[2,13],{7:f,11:A}),e(L,[2,11]),e(L,[2,12]),e(E,[2,15],{24:H}),e(N,[2,30]),{22:[1,41]},e(N,[2,27]),e(N,[2,29])],defaultActions:{2:[2,1],6:[2,2]},parseError:o(function(i,n){if(n.recoverable)this.trace(i);else{var s=new Error(i);throw s.hash=n,s}},"parseError"),parse:o(function(i){var n=this,s=[0],a=[],h=[null],t=[],R=this.table,c="",z=0,oe=0,ce=0,Ne=2,le=1,xe=t.slice.call(arguments,1),y=Object.create(this.lexer),P={yy:{}};for(var q in this.yy)Object.prototype.hasOwnProperty.call(this.yy,q)&&(P.yy[q]=this.yy[q]);y.setInput(i,P.yy),P.yy.lexer=y,P.yy.parser=this,typeof y.yylloc>"u"&&(y.yylloc={});var Q=y.yylloc;t.push(Q);var ve=y.options&&y.options.ranges;typeof P.yy.parseError=="function"?this.parseError=P.yy.parseError:this.parseError=Object.getPrototypeOf(this).parseError;function De(S){s.length=s.length-2*S,h.length=h.length-S,t.length=t.length-S}o(De,"popStack");function he(){var S;return S=a.pop()||y.lex()||le,typeof S!="number"&&(S instanceof Array&&(a=S,S=a.pop()),S=n.symbols_[S]||S),S}o(he,"lex");for(var _,Z,V,x,ze,$,G={},X,C,ue,K;;){if(V=s[s.length-1],this.defaultActions[V]?x=this.defaultActions[V]:((_===null||typeof _>"u")&&(_=he()),x=R[V]&&R[V][_]),typeof x>"u"||!x.length||!x[0]){var ee="";K=[];for(X in R[V])this.terminals_[X]&&X>Ne&&K.push("'"+this.terminals_[X]+"'");y.showPosition?ee="Parse error on line "+(z+1)+`:
-`+y.showPosition()+`
-Expecting `+K.join(", ")+", got '"+(this.terminals_[_]||_)+"'":ee="Parse error on line "+(z+1)+": Unexpected "+(_==le?"end of input":"'"+(this.terminals_[_]||_)+"'"),this.parseError(ee,{text:y.match,token:this.terminals_[_]||_,line:y.yylineno,loc:Q,expected:K})}if(x[0]instanceof Array&&x.length>1)throw new Error("Parse Error: multiple actions possible at state: "+V+", token: "+_);switch(x[0]){case 1:s.push(_),h.push(y.yytext),t.push(y.yylloc),s.push(x[1]),_=null,Z?(_=Z,Z=null):(oe=y.yyleng,c=y.yytext,z=y.yylineno,Q=y.yylloc,ce>0&&ce--);break;case 2:if(C=this.productions_[x[1]][1],G.$=h[h.length-C],G._$={first_line:t[t.length-(C||1)].first_line,last_line:t[t.length-1].last_line,first_column:t[t.length-(C||1)].first_column,last_column:t[t.length-1].last_column},ve&&(G._$.range=[t[t.length-(C||1)].range[0],t[t.length-1].range[1]]),$=this.performAction.apply(G,[c,oe,z,P.yy,x[1],h,t].concat(xe)),typeof $<"u")return $;C&&(s=s.slice(0,-1*C*2),h=h.slice(0,-1*C),t=t.slice(0,-1*C)),s.push(this.productions_[x[1]][0]),h.push(G.$),t.push(G._$),ue=R[s[s.length-2]][s[s.length-1]],s.push(ue);break;case 3:return!0}}return!0},"parse")},J=(function(){var O={EOF:1,parseError:o(function(n,s){if(this.yy.parser)this.yy.parser.parseError(n,s);else throw new Error(n)},"parseError"),setInput:o(function(i,n){return this.yy=n||this.yy||{},this._input=i,this._more=this._backtrack=this.done=!1,this.yylineno=this.yyleng=0,this.yytext=this.matched=this.match="",this.conditionStack=["INITIAL"],this.yylloc={first_line:1,first_column:0,last_line:1,last_column:0},this.options.ranges&&(this.yylloc.range=[0,0]),this.offset=0,this},"setInput"),input:o(function(){var i=this._input[0];this.yytext+=i,this.yyleng++,this.offset++,this.match+=i,this.matched+=i;var n=i.match(/(?:\r\n?|\n).*/g);return n?(this.yylineno++,this.yylloc.last_line++):this.yylloc.last_column++,this.options.ranges&&this.yylloc.range[1]++,this._input=this._input.slice(1),i},"input"),unput:o(function(i){var n=i.length,s=i.split(/(?:\r\n?|\n)/g);this._input=i+this._input,this.yytext=this.yytext.substr(0,this.yytext.length-n),this.offset-=n;var a=this.match.split(/(?:\r\n?|\n)/g);this.match=this.match.substr(0,this.match.length-1),this.matched=this.matched.substr(0,this.matched.length-1),s.length-1&&(this.yylineno-=s.length-1);var h=this.yylloc.range;return this.yylloc={first_line:this.yylloc.first_line,last_line:this.yylineno+1,first_column:this.yylloc.first_column,last_column:s?(s.length===a.length?this.yylloc.first_column:0)+a[a.length-s.length].length-s[0].length:this.yylloc.first_column-n},this.options.ranges&&(this.yylloc.range=[h[0],h[0]+this.yyleng-n]),this.yyleng=this.yytext.length,this},"unput"),more:o(function(){return this._more=!0,this},"more"),reject:o(function(){if(this.options.backtrack_lexer)this._backtrack=!0;else return this.parseError("Lexical error on line "+(this.yylineno+1)+`. You can only invoke reject() in the lexer when the lexer is of the backtracking persuasion (options.backtrack_lexer = true).
-`+this.showPosition(),{text:"",token:null,line:this.yylineno});return this},"reject"),less:o(function(i){this.unput(this.match.slice(i))},"less"),pastInput:o(function(){var i=this.matched.substr(0,this.matched.length-this.match.length);return(i.length>20?"...":"")+i.substr(-20).replace(/\n/g,"")},"pastInput"),upcomingInput:o(function(){var i=this.match;return i.length<20&&(i+=this._input.substr(0,20-i.length)),(i.substr(0,20)+(i.length>20?"...":"")).replace(/\n/g,"")},"upcomingInput"),showPosition:o(function(){var i=this.pastInput(),n=new Array(i.length+1).join("-");return i+this.upcomingInput()+`
-`+n+"^"},"showPosition"),test_match:o(function(i,n){var s,a,h;if(this.options.backtrack_lexer&&(h={yylineno:this.yylineno,yylloc:{first_line:this.yylloc.first_line,last_line:this.last_line,first_column:this.yylloc.first_column,last_column:this.yylloc.last_column},yytext:this.yytext,match:this.match,matches:this.matches,matched:this.matched,yyleng:this.yyleng,offset:this.offset,_more:this._more,_input:this._input,yy:this.yy,conditionStack:this.conditionStack.slice(0),done:this.done},this.options.ranges&&(h.yylloc.range=this.yylloc.range.slice(0))),a=i[0].match(/(?:\r\n?|\n).*/g),a&&(this.yylineno+=a.length),this.yylloc={first_line:this.yylloc.last_line,last_line:this.yylineno+1,first_column:this.yylloc.last_column,last_column:a?a[a.length-1].length-a[a.length-1].match(/\r?\n?/)[0].length:this.yylloc.last_column+i[0].length},this.yytext+=i[0],this.match+=i[0],this.matches=i,this.yyleng=this.yytext.length,this.options.ranges&&(this.yylloc.range=[this.offset,this.offset+=this.yyleng]),this._more=!1,this._backtrack=!1,this._input=this._input.slice(i[0].length),this.matched+=i[0],s=this.performAction.call(this,this.yy,this,n,this.conditionStack[this.conditionStack.length-1]),this.done&&this._input&&(this.done=!1),s)return s;if(this._backtrack){for(var t in h)this[t]=h[t];return!1}return!1},"test_match"),next:o(function(){if(this.done)return this.EOF;this._input||(this.done=!0);var i,n,s,a;this._more||(this.yytext="",this.match="");for(var h=this._currentRules(),t=0;t<h.length;t++)if(s=this._input.match(this.rules[h[t]]),s&&(!n||s[0].length>n[0].length)){if(n=s,a=t,this.options.backtrack_lexer){if(i=this.test_match(s,h[t]),i!==!1)return i;if(this._backtrack){n=!1;continue}else return!1}else if(!this.options.flex)break}return n?(i=this.test_match(n,h[a]),i!==!1?i:!1):this._input===""?this.EOF:this.parseError("Lexical error on line "+(this.yylineno+1)+`. Unrecognized text.
+[0m$ [0mhead -5 reposcan-raw/google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-AMS-MML_HTMLorMML.js
+/*
+ *  /MathJax/config/TeX-AMS-MML_HTMLorMML.js
+ *  
+ *  Copyright (c) 2010-2017 The MathJax Consortium
+ *
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -30 reposcan-raw/google/trillian/testonly/keys.go
-// Copyright 2016 Google LLC. All Rights Reserved.
-//
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//     http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+### Classification Tables
 
-package testonly
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *none* | — | — | — |
 
-// KEYS IN THIS FILE ARE ONLY FOR TESTING. They must not be used by production code.
+#### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `google/ground-android/app/src/debug/local/google-services.json` | 23 | Firebase config for **project_id="local"**, client_id="local.apps.googleusercontent.com" — explicit test/local fixture |
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/**` (20 files) | various | Third-party MathJax 2.7.2 library code — tokenizer vars (`mmlToken`), localization strings ("NotMathMLToken"), config JS — all **vendored test/library code** |
 
-// DemoPrivateKeyPass is the password for DemoPrivateKey
-const DemoPrivateKeyPass string = "towel"
+#### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/jsonnet/case_studies/micromanage/service_google.py` | 198 | `http://169.254.169.254/computeMetadata/v1/instance/attributes` — **well-known GCE metadata server** (publicly documented, not sensitive) |
 
-// DemoPrivateKey is the private key itself; must only be used for testing purposes
-const DemoPrivateKey string = `
------BEGIN EC PRIVATE KEY-----
-Proc-Type: 4,ENCRYPTED
-DEK-Info: DES-CBC,B71ECAB011EB4E8F
-
-+6cz455aVRHFX5UsxplyGvFXMcmuMH0My/nOWNmYCL+bX2PnHdsv3dRgpgPRHTWt
-IPI6kVHv0g2uV5zW8nRqacmikBFA40CIKp0SjRmi1CtfchzuqXQ3q40rFwCjeuiz
-t48+aoeFsfU6NnL5sP8mbFlPze+o7lovgAWEqHEcebU=
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/grr/docker/docker-entrypoint.sh
-#!/bin/bash
-
-# Entrypoint script for GRR docker components.
-# If specific components aren't specified this script will initialize the GRR
-# server and run all components inside the same container.
-
-set -e
-
-run_component() {
-  COMPONENT=$1; shift
-  grr_server --component "${COMPONENT}" "$@"
-}
-
-initialize() {
-  if [[ ! -e "${VIRTUALENV}/install_data/etc/server.local.yaml" ]]; then
-    if [[ "${EXTERNAL_HOSTNAME}" ]] && [[ "${ADMIN_PASSWORD}" ]]; then
-      grr_config_updater initialize \
-        --noprompt \
-        --use_rel_db \
-        --external_hostname="${EXTERNAL_HOSTNAME}" \
-        --admin_password="${ADMIN_PASSWORD}" \
-        --mysql_hostname="${GRR_MYSQL_HOSTNAME}" \
-        --mysql_port="${GRR_MYSQL_PORT:-0}" \
-        --mysql_db="${GRR_MYSQL_DB}" \
-        --mysql_username="${GRR_MYSQL_USERNAME}" \
-        --mysql_password="${GRR_MYSQL_PASSWORD}"
-    else
-      echo "initialize hasn't run and EXTERNAL_HOSTNAME/ADMIN_PASSWORD not set"
-      exit 1
-    fi
-  fi
-}
-
-APPLICATION=$1;
-VIRTUALENV="/usr/share/grr-server/"
-if [[ ${APPLICATION} = 'grr' ]]; then
-  if [[ "${DISABLE_INTERNAL_MYSQL}" != 'true' ]]; then
-    # Start the "inherited" mariadb:bionic entrypoint.
-    # See: https://github.com/docker-library/mariadb/blob/master/10.1/Dockerfile
-    gosu mysql bash -x <<EOF
-    export MYSQL_ALLOW_EMPTY_PASSWORD=1
-    source docker-entrypoint.sh
-
-    mysql_check_config mysqld
-    docker_setup_env mysqld
-    docker_create_db_directories
-    docker_verify_minimum_env
-    docker_init_database_dir mysqld
-    docker_temp_server_start mysqld
-    docker_setup_db
-    docker_process_init_files /docker-entrypoint-initdb.d/*
-EOF
-  fi
-  source "${VIRTUALENV}/bin/activate"
-
-  if [[ "$#" -eq 1 ]]; then
-    # Run all components in the same container. This is only useful for
-    # testing and very small deployments.
-    initialize
-    echo "Admin UI gui is at http://${EXTERNAL_HOSTNAME}:8000, clients will poll to http://${EXTERNAL_HOSTNAME}:8080"
-    run_component frontend &
-    run_component admin_ui &
-    run_component worker &
-    run_component worker &
-    run_component worker &
-    run_component worker
-  else
-    # TODO(user): this won't actually work yet. Need to solve the problem of
-    # getting the initialized config to each component.
-    COMPONENT=$2; shift 2
-    run_component "${COMPONENT}" "$@"
-  fi
-else
-  exec "$@"
-fi
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/grr/docker_config_files/server/grr.server.yaml
-Server.initialized: true
-Server.fleetspeak_server: fleetspeak-admin:4444
-Server.fleetspeak_message_listen_address: grr-fleetspeak-frontend:11111
-
-AdminUI.csrf_secret_key: random_passphrase____PLEASE_REPLACE_WHEN_RUNNING_IN_PRODUCTION____
-AdminUI.url: http://admin-ui:8000
-AdminUI.bind: 0.0.0.0
-AdminUI.use_precompiled_js: true
-
-API.DefaultRouter: ApiCallRouterWithoutChecks
-
-Mysql.host: mysql-host
-Mysql.port: 3306
-Mysql.database_name: fleetspeak
-Mysql.database_password: fleetspeak-password
-Mysql.database_username: fleetspeak-user
-Mysql.database: grr
-Mysql.password: grrp
-Mysql.username: grru
-
-Blobstore.implementation: DbBlobStore
-Database.implementation: MysqlDB
-
-Client.executable_signing_public_key: "%(/configs/public-key.pem|file)"
-PrivateKeys.executable_signing_private_key: "%(/configs/private-key.pem|file)"
-
-# Configuration for repacking client templates:
-ClientBuilder.fleetspeak_bundled: true
-ClientBuilder.template_dir: /client_templates
-ClientBuilder.executables_dir: /client_installers
-
-Target:Linux:
-  ClientBuilder.fleetspeak_client_config: /configs/client/client.config
-Target:Windows:
-  ClientBuilder.fleetspeak_client_config: /configs/client/client.config
-Target:Darwin:
-  ClientBuilder.fleetspeak_client_config: /configs/client/client.config
-[0m
-Now I have enough context to classify all hits. Here are the classification tables:
-
-## CLASSIFICATION TABLES
-
-### REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256 | Context |
-|------|------|--------|---------|
-| *(none found)* | | | |
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Notes |
-|------|------|-------|
-| google/trillian/testonly/keys.go | 24 | Test-only EC private key in `testonly` package, explicit comment "must not be used by production code" |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GitHub Actions secret references (`${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}`) - not actual secrets |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` - standard CI pattern |
-| google/grr/docker/docker-entrypoint.sh | 21,26 | Environment variable references `${ADMIN_PASSWORD}`, `${GRR_MYSQL_PASSWORD}` |
-| google/grr/docker_config_files/server/grr.server.yaml | - | Config template with placeholder `random_passphrase____PLEASE_REPLACE_WHEN_RUNNING_IN_PRODUCTION____` and dev defaults |
-| google/clusterfuzz/docker/base/setup_mock_metadata.sh | 18,20 | Test infrastructure for mocking metadata server |
-| google/clusterfuzz/src/clusterfuzz/_internal/k8s/service.py | 171 | Test kubeconfig reference "In e2e tests, the kubeconfig is already loaded" |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/fuzzers/googlefuzztest/engine.py | 77 | Internal buganizer issue reference |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Secret reference pattern for Cloud Run (`--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest`) |
-| google/mtail/.github/workflows/automerge.yml | 61 | `github-token: "${{ secrets.GITHUB_TOKEN }}"` - standard dependabot auto-merge workflow using built-in GITHUB_TOKEN |
-| google/trillian/quota/mysqlqm/mysql_quota.go | 140 | Documentation reference to MySQL docs |
-| google/trillian/deployment/deploy-config.yaml | 2 | Kubernetes ConfigMap kind declaration |
-| google/trillian/deployment/tf-patch.template.yaml | 2 | Template file ConfigMap kind |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Notes |
-|------|------|-------|
-| google/grr/grr/client/grr_response_client/client_actions/cloud.py | 41 | AWS metadata URL `http://169.254.169.254/latest/api/token` |
-| google/grr/grr/core/grr_response_core/lib/rdfvalues/cloud.py | 9,12,14 | AWS/GCP metadata URLs (169.254.169.254) |
-| google/grr/grr/server/grr_response_server/flows/general/cloud.py | 524 | Hardcoded metadata IP `169.254.169.254` |
-| google/clusterfuzz/src/python/bot/startup/run_bot.py | 267 | GCP metadata URL `metadata.google.internal` |
-| google/clusterfuzz/src/clusterfuzz/_internal/google_cloud_utils/compute_metadata.py | 23 | Metadata server constant `metadata.google.internal` |
-| google/clusterfuzz/src/clusterfuzz/_internal/build_management/source_mapper.py | 124,126,131 | Internal corp source URLs (`source.corp.google.com`, `cs.corp.google.com`) |
-| google/clusterfuzz/docker/base/setup_clusterfuzz.sh | 20,24 | Metadata server curl commands for deployment |
-| google/clusterfuzz/docker/base/setup_common.sh | 28 | Hostname from metadata server |
-| google/trillian/util/election2/k8s/provider.go | 19,41 | Kubeconfig path flags for out-of-cluster access |
-| google/clusterfuzz/src/clusterfuzz/_internal/datastore/data_handler.py | 459-460 | Internal corp source URL rewrites |
-
-### INTERESTING (debug flags, keys, cloud configs, security TODOs)
-| File | Line | Notes |
-|------|------|-------|
-| google/grr/grr/server/grr_response_server/gui/ui/components/client_page/client_flows/client_flows.ts | 232 | CSRF token extraction via curl in TypeScript code |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/task_creation.py | 152 | TODO: "Allow untrusted" (security boundary) |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/uworker_io.py | 241 | TODO: "Change this to trusted based on..." |
-| google/clusterfuzz/src/clusterfuzz/_internal/bot/tasks/utasks/corpus_pruning_task.py | 890 | TODO: "Set trusted based on..." |
-| google/grr/grr/server/grr_response_server/databases/mysql.py | 648 | MySQL datetime documentation reference |
-| google/grr/grr/server/grr_response_server/databases/db.py | 667 | MySQL datetime documentation reference |
-| google/grr/grr/server/grr_response_server/databases/mysql_pool.py | 225 | MySQL drop table documentation reference |
-
-### SOURCE MAP ARTIFACTS (build output, not source)
-| File | Notes |
-|------|-------|
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (19 files) | Minified Jison-generated parser chunks (build artifacts in `distr/`), contain parse error message strings |
+#### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| *none* | — | — |
 
 ---
 
-## VERDICT LIST
+### Verdict
 
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| mtail automerge workflow GITHUB_TOKEN | `google/mtail/.github/workflows/automerge.yml:61` | **no** — Standard `pull_request_target` dependabot auto-merge workflow using built-in `secrets.GITHUB_TOKEN` (ephemeral per-run token). No checkout of fork code, no secret leakage. Safe pattern. |
-| adk-go source map parse error | `google/adk-go/cmd/launcher/web/webui/distr/chunk-LVMBETIL.js:3` | **no** — Build artifact (minified parser chunk in `distr/`), not source code. Parse error message string, not a secret. |
-| trillian testonly keys | `google/trillian/testonly/keys.go:24` | **no** — Explicit test fixtures in `testonly` package with warning comments. |
-| langextract CI secret refs | `google/langextract/.github/workflows/ci.yaml:168-170` | **no** — Secret references (`${{ secrets.* }}`), not actual values. |
-| grr docker/config templates | `google/grr/docker/*.sh`, `google/grr/docker_config_files/*.yaml` | **no** — Env var references and config templates with placeholder values. |
-| clusterfuzz metadata/internal URLs | `google/clusterfuzz/**` | **no** — Well-known metadata endpoints (169.254.169.254, metadata.google.internal) and internal corp URLs (not accessible externally). |
-| flatbuffers label workflow | `google/flatbuffers/.github/workflows/label.yml:24` | **no** — Standard `secrets.GITHUB_TOKEN` reference. |
+| Candidate | Category | REPORT_CANDIDATE |
+|-----------|----------|------------------|
+| `google/ground-android/app/src/debug/local/google-services.json:23` (AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q) | TEST_OR_EXAMPLE | **no** — explicit `project_id: "local"` fixture |
+| `google/jsonnet/case_studies/micromanage/service_google.py:198` (169.254.169.254 metadata URL) | ENDPOINT_LEAK | **no** — well-known GCE internal endpoint, documented |
+| MathJax 2.7.2 vendored files (20 hits) | TEST_OR_EXAMPLE | **no** — third-party library code, tokenizer/localization logic |
 
----
-
-**SUMMARY: 0 REPORT_CANDIDATE findings in this delta.** All 247 hits classify as TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING, or build artifacts. No hardcoded live credentials detected.
-
-The 2 new delta hits (adk-go source map chunk + mtail automerge workflow) are both non-issues: one is a build artifact, the other is a standard safe CI pattern using the built-in GITHUB_TOKEN.
+**No reportable findings in this delta.** All hits are test fixtures, vendored third-party code, or documented public endpoints.
