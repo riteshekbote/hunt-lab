@@ -1889,3 +1889,13 @@
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
 
 ## 2026-08-20 14:43:12 UTC
+
+## 2026-08-20 15:18:55 UTC
+- NEW oauth2PermissionGrants item-level CORS+PATCH browser-exploitable @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: OPTIONS→200 + ACAO:* + PATCH + Max-Age:86400 (was collection-level only)
+- NEW oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (systemic at collection+item)
+- NEW agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
+- CHANGED oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+- CHANGED Dual-JWKS rotation desync @ login.microsoftonline.com — REJECTED (v1⊂v2 strict subset 6⊂9, all kty=RSA, stable)
+- CHANGED graph.microsoft.com root 301 redirect — REJECTED (cosmetic)
+- CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
+- CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
