@@ -1,50 +1,90 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLE ===
+[0m$ [0mcat reposcan-raw/google/heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp | head -570 | tail -30
+os << "\"composite_degree\": " << compDeg << ",\n";
+  os << "\"p\": 30,\n";
+  os << "\"max_bits_in_word\": 61,\n";
+  os << "\"max_bits_value\": " << ((1ULL << 63) - (1ULL << 9) - 1) << ",\n";
+  os << "\"noise_scale_degree\": 1,\n";
+  os << "\"CKKS_M_FACTOR\": 1\n";
+  os.unindent();
+  os << "}\n";
 
-| Category         | Count | Files/Lines                                                                 |
-|------------------|-------|-----------------------------------------------------------------------------|
-| REAL_SECRET      | 0     | (earthengine-api oauth.py:45 already tracked in KB, no new live secrets)    |
-| TEST_OR_EXAMPLE  | 18    | adk-web/*.spec.ts (5), adk-python/cli/browser/*.js (6), kube-startup-cpu-boost release.yaml (1), adk-python/auth_credential.py (3), adk-python/auth_schemes.py (1), adk-python/openapi_tool/auth_helpers.py (1), flatbuffers label.yml (1) |
-| ENDPOINT_LEAK    | 8     | sam/ ConfigMaps & workflows (6), adk-python/code_executors (3), adk-python/vmaas (1), adk-python/cli_create.py (1), cadvisor flags.go (1) |
-| INTERESTING      | 5     | capsem password.txt refs (3), ax install-ax.sh pg_password pattern (2)       |
+  os << ctx << " = ckks.CKKSContext(params)\n";
+  return success();
+}
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
+LogicalResult JaxiteWordEmitter::printOperation(ProgramInitializationOp op) {
+  auto ctx = variableNames->getNameForValue(op.getCryptoContext());
+  auto sk = variableNames->getNameForValue(op.getSecretKey());
 
-Reasoning:
-- All 12 delta hits are minified parser error messages (adk-python/cli/browser) or test fixture tokens (adk-web/*.spec.ts: 'initial-token', 'updated-token-123', 'nextPage') or GitHub Actions secret refs (${{ secrets.GITHUB_TOKEN }}).
-- Full grep context confirms: sam/ uses GitHub secrets (not hardcoded), adk-python auth_credential.py has placeholder private_key="-----BEGIN PRIVATE KEY-----...", password="password", token="eyAkaknabna....", auth_schemes.py has PASSWORD="password" constant, openapi_tool has client_secret="your_client_secret" placeholder.
-- Only pre-existing REAL_SECRET is earthengine-api oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — already ACCEPTED in KB, pending VRP determination on native-app by-design status.
-- No new hardcoded credentials, API keys, or tokens with signs of life found in this delta.
-EOF
-=== CLASSIFICATION TABLE ===
+  os << ctx << ".secret_key = " << sk << "\n";
+  os << ctx << ".program_initialization(";
+  os << "total_hemul_levels=" << op.getTotalHemulLevels() << ", ";
 
-| Category         | Count | Files/Lines                                                                 |
-|------------------|-------|-----------------------------------------------------------------------------|
-| REAL_SECRET      | 0     | (earthengine-api oauth.py:45 already tracked in KB, no new live secrets)    |
-| TEST_OR_EXAMPLE  | 18    | adk-web/*.spec.ts (5), adk-python/cli/browser/*.js (6), kube-startup-cpu-boost release.yaml (1), adk-python/auth_credential.py (3), adk-python/auth_schemes.py (1), adk-python/openapi_tool/auth_helpers.py (1), flatbuffers label.yml (1) |
-| ENDPOINT_LEAK    | 8     | sam/ ConfigMaps & workflows (6), adk-python/code_executors (3), adk-python/vmaas (1), adk-python/cli_create.py (1), cadvisor flags.go (1) |
-| INTERESTING      | 5     | capsem password.txt refs (3), ax install-ax.sh pg_password pattern (2)       |
+  os << "total_rotation_indices=[";
+  auto rotIndices = op.getTotalRotationIndices();
+  llvm::interleaveComma(rotIndices, os);
+  os << "], ";
 
-=== VERDICT ===
-REPORT_CANDIDATE: no
-
-Reasoning:
-- All 12 delta hits are minified parser error messages (adk-python/cli/browser) or test fixture tokens (adk-web/*.spec.ts: 'initial-token', 'updated-token-123', 'nextPage') or GitHub Actions secret refs (${{ secrets.GITHUB_TOKEN }}).
-- Full grep context confirms: sam/ uses GitHub secrets (not hardcoded), adk-python auth_credential.py has placeholder private_key="-----BEGIN PRIVATE KEY-----...", password="password", token="eyAkaknabna....", auth_schemes.py has PASSWORD="password" constant, openapi_tool has client_secret="your_client_secret" placeholder.
-- Only pre-existing REAL_SECRET is earthengine-api oauth.py:45 (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271) — already ACCEPTED in KB, pending VRP determination on native-app by-design status.
-- No new hardcoded credentials, API keys, or tokens with signs of life found in this delta.
+  os << "dnum=" << op.getDnum() << ", ";
+  os << "r=" << op.getR() << ", ";
+  os << "c=" << op.getC() << ", ";
+  os << "batch=" << op.getBatch();
 [0m
-**Classification complete. No new reportable findings.**
+[0m$ [0mcat reposcan-raw/google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml | head -210 | tail -30
+uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Build docker image
+      run: container/image/image-builder.sh -m ${INPUTS_DEPLOY_CHANNEL}
+      env:
+        INPUTS_DEPLOY_CHANNEL: ${{ inputs.deploy-channel }}
+    - name: Authentication on GCP project android-cuttlefish-artifacts
+      uses: 'google-github-actions/auth@v3'
+      with:
+        credentials_json: '${{ secrets.artifact-registry-uploader-json-creds }}'
+    - name: Login to Artifact Registry
+      uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef  # v3.6.0
+      with:
+        registry: us-docker.pkg.dev
+        username: _json_key
+        password: '${{ secrets.artifact-registry-uploader-json-creds }}'
+    - name: Deploy docker image
+      uses: ./.github/actions/deploy-docker-image
+      with:
+        arch: amd64
+        image-version: ${{ needs.set-variables.outputs.image-version }}
+  deploy-docker-image-arm64:
+    if: inputs.deploy-channel != ''
+    needs: [set-variables, update-bazel-cache-and-deploy-debian-package-arm64]
+    environment: deployment
+    runs-on: ubuntu-22.04-arm
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8  # v6.0.1
+    - name: Build docker image
+      run: container/image/image-builder.sh -m ${INPUTS_DEPLOY_CHANNEL}
+[0m
+**Classification Table**
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | 0 new (earthengine-api `oauth.py:45` sha256 `3f3f8d6f…d271` already tracked in KB) | — |
-| **TEST_OR_EXAMPLE** | 18 hits: `adk-web/*.spec.ts` (5 test tokens), `adk-python/cli/browser/*.js` (6 minified parser errors), `kube-startup-cpu-boost release.yaml` (GITHUB_TOKEN secret ref), `adk-python/auth_credential.py` (3 placeholders), `auth_schemes.py` (constant), `openapi_tool/auth_helpers.py` (placeholder), `flatbuffers label.yml` (secret ref) | Not reportable |
-| **ENDPOINT_LEAK** | 8 hits: `sam/` ConfigMaps & workflows (secret refs), `adk-python/code_executors` (metadata endpoint refs), `vmaas` (state key name), `cli_create.py` (API key pattern), `cadvisor flags.go` (flag name) | Config/infra only |
-| **INTERESTING** | 5 hits: `capsem` password.txt file refs, `ax/install-ax.sh` pg_password generation pattern | Hygiene/patterns |
+| Category | Files |
+|----------|-------|
+| **REAL_SECRET** | *(none)* |
+| **TEST_OR_EXAMPLE** | `adk-python/src/google/adk/cli/browser/chunk-*.js` (5 files) — minified parser error messages (build artifacts)<br>`heir/scripts/author_stats.py:16` — `# TOKEN = "your_github_token_here"` placeholder comment |
+| **ENDPOINT_LEAK** | `android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml:195` — `${{ secrets.artifact-registry-uploader-json-creds }}` (proper GitHub Actions secret reference, not hardcoded) |
+| **INTERESTING** | `heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558` — emits `secret_key = <var>` in generated FHE code; `sk` is an MLIR value name, not a hardcoded secret (compiler codegen for CKKS contexts) |
 
-**REPORT_CANDIDATE: no** — All delta hits are test fixtures, minified build artifacts, GitHub Actions secret references, or infrastructure config patterns. The only live hardcoded secret remains the known `earthengine-api` OAuth client_secret (KB-tracked, pending VRP by-design determination).
+**Verdict List**
+
+| File:Line | Classification | REPORT_CANDIDATE |
+|-----------|----------------|------------------|
+| adk-python/src/google/adk/cli/browser/chunk-DS3WV6GO.js:3 | TEST_OR_EXAMPLE | no |
+| adk-python/src/google/adk/cli/browser/chunk-LVMBETIL.js:3 | TEST_OR_EXAMPLE | no |
+| adk-python/src/google/adk/cli/browser/chunk-NRR3JWGL.js:3 | TEST_OR_EXAMPLE | no |
+| adk-python/src/google/adk/cli/browser/chunk-OGD5RHV2.js:3 | TEST_OR_EXAMPLE | no |
+| adk-python/src/google/adk/cli/browser/chunk-YL63DAMY.js:9 | TEST_OR_EXAMPLE | no |
+| android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml:195 | ENDPOINT_LEAK | no |
+| heir/lib/Target/JaxiteWord/JaxiteWordEmitter.cpp:558 | INTERESTING | no |
+| heir/scripts/author_stats.py:16 | TEST_OR_EXAMPLE | no |
+
+**Summary**: 0 reportable findings in this delta. All hits are test fixtures, build artifacts, proper secret references, or compiler codegen — no hardcoded live credentials.
