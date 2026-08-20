@@ -1,81 +1,146 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/triage_results.md
-# Triaging Results - Google/Microsoft Org Scan (2026-08-20)
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-## REAL_SECRET
-| File | Line | SHA256 (secret) | Verdict |
-|------|------|-----------------|---------|
-| (none found in delta) | | | |
+## REAL_SECRET (hardcoded credential with signs of life)
+# NONE in this delta/scan
+# Note: earthengine-api oauth.py:45 'RUP0RZ6e0pPhDzsqIJ7KlNd1' (sha256 3f3f8d6f...) is KNOWN from prior cycles — pending VRP determination on native-app by-design status; NOT new.
 
-## TEST_OR_EXAMPLE
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/adk-js/core/src/auth/auth_credential.ts | 214 | `password: "password"` | Example placeholder |
-| google/adk-js/core/src/auth/auth_credential.ts | 226 | `token: "your_access_token"` | Example placeholder |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Constant definition (example) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder constant name |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168 | `${{ steps.fetch-token.outputs._id_token }}` | GH Actions token ref (template) |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 192 | `${{ steps.fetch-token.outputs._auth_token }}` | GH Actions token ref (template) |
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | `StorageDriverPassword = "storage_driver_password"` | Default config value |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | `PASSWORD=` + getDatabasePassword() | Test fixture |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | GH Actions secret ref (template) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Test fixture (truncated) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` | Test fixture |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` | Test fixture (truncated JWT) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant definition (example) |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Example placeholder |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GH Actions token ref (template) |
+## TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Reason |
+|------|------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Kind: ConfigMap (test manifest) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | Kind: ConfigMap (test manifest) |
+| google/sam/internal/node/store.go | 38 | Const key name "refresh_token" |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Kind: ConfigMap (K8s template) |
+| google/sam/.github/k8s/*.yaml | various | Kind: ConfigMap (K8s templates) |
+| google/sam/development/kind/run.sh | 139 | Shell var with empty default ${OIDC_CLIENT_SECRET:-} |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper ${{ secrets.* }} refs (good pattern) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test private_key fixture (truncated "...") |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials username="user", password="password" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token fixture "eyAkaknabna...." |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const PASSWORD = "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder client_secret="your_client_secret" |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Variable interpolation, not hardcoded |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name "_vmaas_access_token" |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | Test password: "password" |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | Placeholder token: "your_access_token" |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const PASSWORD = 'password' |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper ${{ secrets.* }} refs (good pattern) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Explicit test key: "fuzz test key" |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test password: "ServerShutdownPassword" |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB connection usage |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag default name "storage_driver_password" |
+| google/flatbuffers/.github/workflows/label.yml | 24 | Proper ${{ secrets.GITHUB_TOKEN }} ref |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS chunks (source maps) |
 
-## ENDPOINT_LEAK
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | `attestationType: "https://bcid.corp.google.com/..."` | Internal corp endpoint |
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | `url: "https://artifact-registry.git.corp.google.com/..."` | Internal corp endpoint |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | `https://dev.mysql.com/...` | Public docs URL (not sensitive) |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` | Public docs URL (not sensitive) |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s config templates (not secrets) |
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Public GCP metadata endpoint (well-known) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Public AWS metadata endpoint (well-known) |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | Public GCP metadata endpoint reference |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.169.254 | Link-local/metadata IP reference (comment) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | Metadata endpoint SSRF warning in docs |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | Metadata endpoint reference in comment |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Metadata endpoint reference in comment |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 | SSRF risk comment re metadata endpoint |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | 169.254.169.254 | Metadata endpoint comments |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 | Metadata endpoint comment |
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | artifact-registry.git.corp.google.com | Internal Google corp URL |
+| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | bcid.corp.google.com | Internal Google corp URL |
 
-## INTERESTING
-| File | Line | Context | Verdict |
-|------|------|---------|---------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | GCP metadata hostname check |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `'169.254.0.0/16'` | Link-local/GCP metadata CIDR block |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment: cloud metadata endpoints at 169.254.169.254 | SSRF surface documentation |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment: 302 to cloud instance metadata service | SSRF surface documentation |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91 | Comment: metadata endpoint causing SSRF | SSRF surface documentation |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 151 | Comment: 169.254.169.254 / fd00:ec2::254 | SSRF surface documentation |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig_path/context params | K8s auth surface (not a secret) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Comment: cloud metadata endpoint 169.254.169.254 | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment: routes to internal 169.254.169.254 metadata | SSRF surface documentation |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment: refuses 169.254.169.254 in Chrome | SSRF mitigation note |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code writing API key to file (runtime) |
+## INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle (source map available) — not actionable |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Project homepage URL (public) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL (public) |
 
----
+=== VERDICT ===
+REPORT_CANDIDATE: no (for all 3 new delta hits)
 
-## VERDICT LIST (REPORT_CANDIDATE)
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| Hardcoded OAuth client_secret @ github.com/google/earthengine-api/python/ee/oauth.py:45 | **YES** | Already in KB as ACCEPTED (sha256 `3f3f8d6f...d271`), LIVE on master, RFC 6749 §5.2 A/B proof conclusive, scopes include cloud-platform. Pending VRP determination on native-app by-design status. |
-| All delta hits above | **NO** | All classified as TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal corp URLs only), or INTERESTING (documentation/comments about SSRF surfaces). No live credentials found in delta. |
-| google/sam workflow secrets | **NO** | Template references to `${{ secrets.* }}` — not hardcoded values. |
-| google/adk-python test fixtures | **NO** | Truncated/placeholder values in test files. |
-| GCP metadata endpoint references (169.254.169.254) | **NO** | Documented SSRF surface in comments/code logic — defensive coding, not a leak. |
-| Internal corp URLs (bcid.corp.google.com, artifact-registry.git.corp.google.com) | **NO** | Internal build infra endpoints, not accessible externally, no credentials. |
-
----
-
-## SUMMARY
-- **0 new REAL_SECRET findings** in this delta scan
-- **1 pre-existing ACCEPTED finding** (earthengine-api client_secret) remains LIVE — already tracked in KB
-- All other hits are test fixtures, templates, documentation, or defensive SSRF-related code comments
-- No new reportable candidates from this scan cycle
+Rationale:
+- The 3 NEW delta hits are all ENDPOINT_LEAK class: well-known public cloud metadata endpoints (GCP metadata.google.internal, AWS 169.254.169.254) documented in header comments — not secrets, not vulnerabilities.
+- Full-scan grep hits are overwhelmingly TEST_OR_EXAMPLE (test fixtures, placeholder values, proper ${{ secrets.* }} GitHub Actions patterns) or ENDPOINT_LEAK (public metadata endpoint references in comments/docs).
+- The only REAL_SECRET in the corpus remains the earthengine-api oauth.py:45 client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271), which is a KNOWN finding from prior cycles — pending VRP determination on whether native-app default secret is by-design (Google's installed-app pattern ships secret in source, bound to consent screen + loopback redirect). No new reportable secrets found in this scan cycle.
 EOF
-cat /tmp/triage_results.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+=== CLASSIFICATION TABLES ===
+
+## REAL_SECRET (hardcoded credential with signs of life)
+# NONE in this delta/scan
+# Note: earthengine-api oauth.py:45 'RUP0RZ6e0pPhDzsqIJ7KlNd1' (sha256 3f3f8d6f...) is KNOWN from prior cycles — pending VRP determination on native-app by-design status; NOT new.
+
+## TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Reason |
+|------|------|--------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Kind: ConfigMap (test manifest) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | Kind: ConfigMap (test manifest) |
+| google/sam/internal/node/store.go | 38 | Const key name "refresh_token" |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Kind: ConfigMap (K8s template) |
+| google/sam/.github/k8s/*.yaml | various | Kind: ConfigMap (K8s templates) |
+| google/sam/development/kind/run.sh | 139 | Shell var with empty default ${OIDC_CLIENT_SECRET:-} |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper ${{ secrets.* }} refs (good pattern) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test private_key fixture (truncated "...") |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials username="user", password="password" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token fixture "eyAkaknabna...." |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Const PASSWORD = "password" |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder client_secret="your_client_secret" |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Variable interpolation, not hardcoded |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name "_vmaas_access_token" |
+| google/adk-js/core/src/auth/auth_credential.ts | 214 | Test password: "password" |
+| google/adk-js/core/src/auth/auth_credential.ts | 226 | Placeholder token: "your_access_token" |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Const PASSWORD = 'password' |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper ${{ secrets.* }} refs (good pattern) |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Explicit test key: "fuzz test key" |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test password: "ServerShutdownPassword" |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test DB connection usage |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag default name "storage_driver_password" |
+| google/flatbuffers/.github/workflows/label.yml | 24 | Proper ${{ secrets.GITHUB_TOKEN }} ref |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS chunks (source maps) |
+
+## ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Endpoint | Notes |
+|------|------|----------|-------|
+| google/tensorstore/tensorstore/internal/oauth2/gce_auth_provider.h | 55 | metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/ | Public GCP metadata endpoint (well-known) |
+| google/tensorstore/tensorstore/kvstore/s3/aws_credentials_spec.h | 51 | http://169.254.169.254/latest/meta-data/iam/ | Public AWS metadata endpoint (well-known) |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | metadata.google.internal | Public GCP metadata endpoint reference |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | 169.254.169.254 | Link-local/metadata IP reference (comment) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | Metadata endpoint SSRF warning in docs |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | Metadata endpoint reference in comment |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | Metadata endpoint reference in comment |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 | SSRF risk comment re metadata endpoint |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | 169.254.169.254 | Metadata endpoint comments |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 | Metadata endpoint comment |
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | artifact-registry.git.corp.google.com | Internal Google corp URL |
+| google/go-containerregistry/cloudbuild-docker-build.yml | 14 | bcid.corp.google.com | Internal Google corp URL |
+
+## INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Finding |
+|------|------|---------|
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS bundle (source map available) — not actionable |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Project homepage URL (public) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL (public) |
+
+=== VERDICT ===
+REPORT_CANDIDATE: no (for all 3 new delta hits)
+
+Rationale:
+- The 3 NEW delta hits are all ENDPOINT_LEAK class: well-known public cloud metadata endpoints (GCP metadata.google.internal, AWS 169.254.169.254) documented in header comments — not secrets, not vulnerabilities.
+- Full-scan grep hits are overwhelmingly TEST_OR_EXAMPLE (test fixtures, placeholder values, proper ${{ secrets.* }} GitHub Actions patterns) or ENDPOINT_LEAK (public metadata endpoint references in comments/docs).
+- The only REAL_SECRET in the corpus remains the earthengine-api oauth.py:45 client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271), which is a KNOWN finding from prior cycles — pending VRP determination on whether native-app default secret is by-design (Google's installed-app pattern ships secret in source, bound to consent screen + loopback redirect). No new reportable secrets found in this scan cycle.
+[0m
+**Summary**: 3 new delta hits — all `ENDPOINT_LEAK` (well-known public cloud metadata endpoints in header comments). No new `REAL_SECRET` findings.
+
+| Category | Count | Action |
+|----------|-------|--------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | 24 | Not reportable |
+| ENDPOINT_LEAK | 13 (3 new) | Not reportable (public endpoints) |
+| INTERESTING | 3 | Not actionable |
+
+**REPORT_CANDIDATE: no** for all 3 new hits.
+
+The only live `REAL_SECRET` in the corpus remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f...`) — a **known finding from prior cycles**, pending VRP determination on native-app by-design status (Google's installed-app pattern ships the secret in source, bound to consent screen + loopback redirect).
