@@ -1,16 +1,77 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage-report.md
-Wrote file successfully.
+[0m$ [0mecho -n 'RUP0RZ6e0pPhDzsqIJ7KlNd1' | sha256sum
+3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271  -
 [0m
-**Triage complete.** Wrote full report to `triage-report.md`.
+[0m$ [0mecho -n 'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q' | sha256sum
+4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
+[0m
+### REAL_SECRET
 
-**Summary:** 0 new reportable findings in this delta.
+| File | Line | Secret SHA256 | Notes |
+|------|------|---------------|-------|
+| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`; used as default fallback at oauth.py:99; scopes: cloud-platform, earthengine, drive, devstorage.full_control; OOB redirect URI; **KNOWN DUPLICATE** (accepted 2026-08-07, pending VRP determination on native-app by-design) |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in debug/local path; Firebase keys are public-by-design (project-scoped, meant for client inclusion) |
 
-- **REAL_SECRET (1):** `google/earthengine-api/python/ee/oauth.py:45` — hardcoded OAuth client_secret (sha256 `3f3f8d6f...`). **Already ACCEPTED in KB** (2026-08-07), known to VRP, pending native-app by-design determination. No new info.
-- **TEST_OR_EXAMPLE (27 hits):** Test fixtures, placeholders, compiled JS, doc comments, CI secret refs.
-- **ENDPOINT_LEAK (4 hits):** 169.254.169.254 metadata endpoint references (documentation), staging URL.
-- **INTERESTING (1):** Firebase API key in `google/ground-android` debug/local config — project-scoped, debug-only, not production.
+### TEST_OR_EXAMPLE
 
-No new attack surface, credential leaks, or bypass primitives.
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token `eyAkaknabna....` (truncated JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | Variable name `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Code writing API key to file, not hardcoded secret |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | Fuzz test key `secret_key = "fuzz test key"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | Test password `g_shutdownPassword = "ServerShutdownPassword"` |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Test code referencing password getter |
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | Documentation homepage URL |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | Documentation reference URL |
+| google/flatbuffers/.github/workflows/label.yml | 24 | GitHub Actions secret reference `${{ secrets.GITHUB_TOKEN }}` |
+| google/sam/development/kind/run.sh | 139 | Shell variable with empty default `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret references (GOOGLE_CLIENT_SECRET, GITHUB_CLIENT_SECRET, CLI_OAUTH_SECRET) |
+| google/sam/internal/node/store.go | 38 | String constant for key name `keyRefreshToken = "refresh_token"` |
+| google/capsem/config/gate.toml | 597 | Path to password file `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file `password="$(tr -d '\n' < "$pass_file")"` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| google/quiche/quiche/quic/core/crypto/certificate_view.h | 126 | Comment referencing OpenSSL RSA key format |
+| google/quiche/quiche/http2/core/spdy_protocol.h | 7 | Comment referencing SPDY protocol draft |
+| google/adk-python/src/google/adk/cli/browser/*.js | multiple | Minified/bundled JS chunks (build artifacts) |
+
+### ENDPOINT_LEAK
+
+| File | Line | Type |
+|------|------|------|
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | K8s ConfigMap (mock OIDC) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | K8s ConfigMap |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | K8s ConfigMap (Dex OIDC) |
+| google/sam/.github/k8s/sam-box-canary-template.yaml | 2 | K8s ConfigMap template |
+| google/sam/.github/k8s/sam-node-openrouter-template.yaml | 2 | K8s ConfigMap template |
+| google/sam/.github/k8s/dex-config.yaml | 2 | K8s ConfigMap (Dex config) |
+| google/sam/.github/k8s/sam-node-openclaw-template.yaml | 2 | K8s ConfigMap template |
+| google/sam/.github/k8s/sam-node-everything-template.yaml | 2 | K8s ConfigMap template |
+| google/sam/.github/k8s/sam-node-template.yaml | 2 | K8s ConfigMap template |
+| google/sam/.github/k8s/sam-node-vllm-template.yaml | 14 | K8s ConfigMap template |
+| google/sam/.github/k8s/sam-node-cop-template.yaml | 2 | K8s ConfigMap template |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging URL `https://staging.release-eq7.pages.dev` |
+
+### INTERESTING
+
+| File | Line | Notes |
+|------|------|-------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References to cloud metadata endpoint `169.254.169.254` (IMDSv1/v2) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References cloud metadata endpoint `169.254.169.254` in NAT64 context |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Refuses connections to `169.254.169.254` (metadata endpoint) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig path/context parameters (potential SSRF/kubeconfig injection surface) |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/earthengine-api/python/ee/oauth.py:45 | **no** | **KNOWN DUPLICATE** — Already accepted in knowledge base (2026-08-07), tracked as live finding with sha256 `3f3f8d6f...d271`; pending VRP determination on native-app by-design status (OOB redirect, installed-app pattern). Do not re-report. |
+| google/ground-android/app/src/debug/local/google-services.json:23 | **no** | Firebase API key in `debug/local/` path; Firebase API keys are **public by design** (project-scoped, meant for client-side inclusion). No secret exposure. |
