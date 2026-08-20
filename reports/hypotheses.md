@@ -8131,3 +8131,9 @@
 - LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth, no bypass
 - LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules
 - LEARN: NO_DELTA — all passive probes confirmed prior findings unchanged; 3 active hypotheses stable; no new proving-dead/proving-live classes.
+
+## RANKED HYPOTHESES 2026-08-20 21:04:58 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Earth Engine OAuth client_secret redeemable for full GCP access (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — this 
+- LEARN: NO_DELTA — all passive probes confirmed prior findings unchanged; no new proving-dead or proving-live classes this cycle.
