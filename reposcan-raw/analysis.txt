@@ -1,35 +1,14 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+[0m← [0mWrite triage-2026-08-20.md
+Wrote file successfully.
+[0m
+**Triage complete. 0 reportable findings in this delta.**
 
-| Category | File:Line | Evidence |
-|----------|-----------|----------|
-| **TEST_OR_EXAMPLE** | adk-js/core/src/auth/auth_credential.ts:214 | `password: "password"` (commented example) |
-|  | adk-js/core/src/auth/auth_credential.ts:226 | `token: "your_access_token"` (commented example) |
-|  | adk-js/core/src/auth/auth_schemes.ts:41 | `PASSWORD = 'password'` (auth scheme constant) |
-|  | osv-scalibr/detector/weakcredentials/winlocal/winlocal_windows.go:56 | `vulnRefLMPassword = "PASSWORD_HASH_LM_FORMAT"` (vuln ref format) |
-|  | adk-python/src/google/adk/auth/auth_credential.py:157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (test fixture) |
-|  | adk-python/src/google/adk/auth/auth_credential.py:269 | `HttpCredentials(username="user", password="password")` (test) |
-|  | adk-python/src/google/adk/auth/auth_credential.py:278 | `HttpCredentials(token="eyAkaknabna....")` (test token) |
-|  | adk-python/src/google/adk/auth/auth_schemes.py:68 | `PASSWORD = "password"` (auth scheme constant) |
-|  | adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | `client_secret="your_client_secret"` (example) |
-| **ENDPOINT_LEAK** | adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215 | `host === 'metadata.google.internal'` (GCP metadata) |
-|  | adk-js/core/src/tools/load_web_page.ts:36 | `169.254.0.0/16` (link-local, includes 169.254.169.254) |
-|  | adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | Cloud metadata endpoint references |
-|  | adk-python/src/google/adk/tools/load_web_page.py:171 | Routes to internal `169.254.169.254` metadata |
-|  | adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | Refuses 169.254.169.254 in Chrome |
-| **INTERESTING** | artemis/artemis/config/constants.py:35,51,52 | Env var name constants (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) |
-|  | artemis/artemis/config/settings.py:163,165 | Settings assignment from env vars (`GOOGLE_API_KEY = GEMINI_API_KEY`) |
-|  | osv-scalibr/extractor/filesystem/secrets/mysqlmylogin/*.go | MySQL MyLogin documentation references |
-|  | triage-party/skaffold.yaml:16, deploy/kubernetes/configmap.yaml:16 | K8s Config/ConfigMap kinds (no secrets) |
-|  | adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115 | Kubeconfig path/context parameters |
-|  | adk-python/src/google/adk/cli/cli_create.py:131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes key to file |
+All 52 new hits classify as:
+- **TEST_OR_EXAMPLE** (12): GH Actions secret refs, React dev constants, TS type placeholders, test fixtures with `<placeholder>` patterns, env var name constants
+- **ENDPOINT_LEAK** (11): Internal doc URLs (`devsite.corp.google.com`, `source.corp.google.com`), public spec URLs (`dev.w3.org`, `dev.office.com`), Azure DevOps org/feed URLs, public API paths
+- **INTERESTING** (9): OAuth scope telemetry constants, internal lint/debt/complexity allow-tokens, `IdentityApiKey = "identity"` key-name constants
 
-### Verdict
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| (none — no REAL_SECRET findings) | no |
-
-**Summary**: 0 reportable secrets. All hits are test fixtures, example code, endpoint references (metadata server), or configuration patterns. The `cli_create.py:131` pattern (writing `GOOGLE_API_KEY` to a file) is a hygiene concern but not a hardcoded secret — the value comes from a variable at runtime.
+No hardcoded live credentials, API keys, or tokens with signs of life. Full details in `triage-2026-08-20.md`.
