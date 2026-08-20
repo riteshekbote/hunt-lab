@@ -1,125 +1,68 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go | head -60 | tail -20
-// The remainder are vestigial cAdvisor flags the kubelet exposes only as
-	// deprecated, for backwards compatibility with existing command lines.
-	ApplicationMetricsCountLimit = "application_metrics_count_limit"
-	BootIDFile                   = "boot_id_file"
-	ContainerHints               = "container_hints"
-	Containerd                   = "containerd"
-	EnableLoadReader             = "enable_load_reader"
-	EventStorageAgeLimit         = "event_storage_age_limit"
-	EventStorageEventLimit       = "event_storage_event_limit"
-	GlobalHousekeepingInterval   = "global_housekeeping_interval"
-	LogCadvisorUsage             = "log_cadvisor_usage"
-	MachineIDFile                = "machine_id_file"
-	StorageDriverUser            = "storage_driver_user"
-	StorageDriverPassword        = "storage_driver_password"
-	StorageDriverHost            = "storage_driver_host"
-	StorageDriverDB              = "storage_driver_db"
-	StorageDriverTable           = "storage_driver_table"
-	StorageDriverSecure          = "storage_driver_secure"
-	StorageDriverBufferDuration  = "storage_driver_buffer_duration"
-	ContainerdNamespace          = "containerd-namespace"
-[0m
-[0m$ [0mcat reposcan-raw/google/xrblocks/docs/docusaurus.config.ts | head -180 | tail -20
-},
-        {
-          href: 'https://github.com/google/xrblocks',
-          label: 'GitHub',
-          position: 'right',
-        },
-      ],
-    },
-    prism: {
-      theme: prismThemes.github,
-      darkTheme: prismThemes.dracula,
-    },
-    algolia: {
-      appId: 'WRVGZCGOJP',
-      apiKey: '40150cc2c638b09de8ebbfefd50b80a4',
-      indexName: 'XR Blocks Docs Crawler',
-      contextualSearch: true,
-      // Optional: Replace parts of the item URLs from Algolia. Useful when
-      // using the same search index for multiple deployments using a different
-      // baseUrl. You can use regexp or string in the `from` param. For example:
-[0m
-[0m$ [0mcat reposcan-raw/google/sam/.github/workflows/deploy.yaml | head -260 | tail -30
-kubectl create namespace dex --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
-          kubectl create namespace ${CANARY_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+Looking at the scan results, let me classify each hit:
 
-      - name: Provision Dex Secrets
-        env:
-          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
-          GITHUB_CLIENT_ID: ${{ secrets.GHUB_CLIENT_ID }}
-          GITHUB_CLIENT_SECRET: ${{ secrets.GHUB_CLIENT_SECRET }}
-          CLI_OAUTH_SECRET: ${{ secrets.CLI_OAUTH_SECRET }}
-        run: |
-          # Declaratively apply secrets without writing them to disk
-          kubectl create secret generic dex-secrets \
-            --namespace=dex \
-            --from-literal=google-client-id="${GOOGLE_CLIENT_ID}" \
-            --from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}" \
-            --from-literal=github-client-id="${GITHUB_CLIENT_ID}" \
-            --from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}" \
-            --from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}" \
-            --dry-run=client -o yaml | kubectl apply -f -
+## Classification Tables
 
-      - name: Deploy Dex Resources
-        run: |
-          print_rollout_diagnostics() {
-            local namespace="$1"
-            local deployment="$2"
-            local selector="$3"
+### REAL_SECRET Candidates
 
-            echo "Collecting diagnostics for deployment/${deployment} in namespace ${namespace}..."
-[0m
-### Classification Tables
+| File | Line | Material (sha256) | Notes |
+|------|------|-------------------|-------|
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `iU5ohAF2qcqrujegE3hQ1cPt` → `e69cc771eb028ca1...` | In vendored 3rd-party code; `# noqa: S105` suppression; format doesn't match Google OAuth secret patterns (typically `GOCSPX-` or 24-char base64). Likely upstream test fixture. |
+| `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | Same as above | Duplicate in vendored code |
 
-#### REAL_SECRET (hardcoded credentials with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | No hardcoded live secrets found |
+### TEST_OR_EXAMPLE
 
-#### TEST_OR_EXAMPLE (sample/test/fixture data)
 | File | Line | Reason |
 |------|------|--------|
-| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name constant `"storage_driver_password"` — identifier, not a secret value |
-| google/xrblocks/src/ai/AI.ts | 303 | Placeholder `'YOUR_GEMINI_API_KEY_HERE'` |
-| google/xrblocks/src/ai/AI.ts | 304 | Placeholder `'YOUR_OPENAI_API_KEY_HERE'` |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | Mock OIDC ConfigMap for documentation |
-| google/sam/development/kind/run.sh | 139 | Shell default `${OIDC_CLIENT_SECRET:-}` (empty) |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/** | 47+ | Vendored 3rd-party localization strings (MathJax) — not project code |
+| `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
+| `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Constant `PASSWORD = 'password'` (scheme identifier) |
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Test fixtures: placeholder private key, `username="user", password="password"`, `token="eyAkaknabna...."` |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| `google/bigframes/third_party/bigframes_vendored/ibis/expr/operations/reductions.py` | 107,125,143 | MySQL function docs (BIT_AND/OR/XOR) |
+| `google/bigframes/third_party/bigframes_vendored/sqlglot/...` | various | MySQL doc references in comments |
+| `google/sam/internal/node/store.go` | 38 | Key name `keyRefreshToken = "refresh_token"` |
+| `google/sam/development/kind/run.sh` | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` (not hardcoded) |
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Type |
-|------|------|------|
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | Corp-internal artifact registry URL (`git.corp.google.com`) |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 85, 151 | Code comments re: 169.254.169.254 metadata SSRF protection |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment re: cloud metadata endpoints |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | Case study reference to metadata endpoint |
+### ENDPOINT_LEAK
 
-#### INTERESTING (debug flags, keys, cloud configs)
+| File | Line | Endpoint |
+|------|------|----------|
+| `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` (GCP metadata) |
+| `google/adk-js/core/src/tools/load_web_page.ts` | 36 | `169.254.0.0/16` (link-local/GCP metadata) |
+| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | `169.254.169.254` (GCP metadata) |
+| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` (Chrome blocks this) |
+| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | `169.254.169.254` (NAT64 routes to metadata) |
+| `google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` (test PyPI) |
+| `google/meridian/.github/workflows/publish.yml` | 127, 139 | `test.pypi.org` (test PyPI) |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | GitHub Actions secret refs (proper pattern) |
+
+### INTERESTING
+
 | File | Line | Note |
 |------|------|------|
-| google/sam/.github/workflows/deploy.yaml | 247-250 | **Correct pattern**: GitHub Actions secret refs (`${{ secrets.X }}`), not hardcoded |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | Algolia DocSearch `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — **REJECTED per KB** (search-only, public by design) |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` — K8s resource definitions, not secrets |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Emits `GOOGLE_API_KEY=<var>` to generated files — check if variable source is user input or hardcoded |
+| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | Kubeconfig path/context params — ensure no default creds leak |
+| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | State key `_vmaas_access_token` — storage location for VMaaS tokens |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | GitHub Actions OIDC token flow (`_ID_TOKEN`, `_AUTH_TOKEN`) — proper pattern |
+| `google/bigframes/scripts/run_doctest.sh` | 38-39 | Kokoro CI service account path — internal CI only |
+| `google/sam/.../*.yaml` | various | K8s ConfigMap kinds — config, not secrets |
 
 ---
 
-### SHORT VERDICT LIST
+## Verdict List
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| cadvisor `StorageDriverPassword` flag | **no** | Flag name constant, not a secret value |
-| xrblocks Algolia DocSearch apiKey | **no** | REJECTED in KB: search-only key, public by design |
-| sam workflow secret refs | **no** | Proper `${{ secrets.X }}` pattern, no hardcoded values |
-| MathJax localization strings | **no** | Vendored 3rd-party code, not project secrets |
-| go-containerregistry metadata comments | **no** | Documentation/comments about SSRF protection, not vulns |
-| Corp-internal artifact registry URL | **no** | Internal hostname, no credential material |
+| BigFrames vendored ibis `CLIENT_SECRET` | **no** | In `third_party/bigframes_vendored/` (upstream ibis code); value `iU5ohAF2qcqrujegE3hQ1cPt` doesn't match Google OAuth secret format; likely test fixture from upstream; `# noqa: S105` acknowledges bandit flag |
+| ADK auth test fixtures | **no** | Explicitly test/example code (placeholder values, JSDoc examples) |
+| GCP metadata endpoint references (169.254.169.254) | **no** | Well-known public IP for GCP metadata; documented in code as blocked/refused |
+| GitHub Actions secret refs (`${{ secrets.* }}`) | **no** | Correct CI pattern — secrets not in repo |
+| Earth Engine `oauth.py:45` hardcoded secret | **no (known)** | Already in knowledge base as ACCEPTED (sha256 `3f3f8d6f...`), pending VRP determination on native-app by-design status; not a new finding |
 
-**Overall: 0 reportable findings in this delta.** All hits are either test fixtures, third-party vendored code, documentation/comments, or properly referenced secrets (GitHub Actions `${{ secrets.X }}` pattern). The Algolia key in xrblocks is explicitly REJECTED in the knowledge base as public-by-design.
+---
+
+**Summary**: No new reportable secrets in this delta. The only live hardcoded secret remains the Earth Engine OAuth client_secret (already tracked). The BigFrames "secret" is vendored third-party test fixture material.
