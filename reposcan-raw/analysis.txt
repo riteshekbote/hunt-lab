@@ -1,114 +1,84 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-# Classification Results
-
-## REAL_SECRET
-(none found in this delta scan — earthengine-api oauth.py:45 secret already tracked in KB as LIVE)
-
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/artemis/artemis/config/constants.py | 35 | ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN" | Env var name constant |
-| google/artemis/artemis/config/constants.py | 51 | ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY" | Env var name constant |
-| google/artemis/artemis/config/constants.py | 52 | ENV_GEMINI_API_KEY = "GEMINI_API_KEY" | Env var name constant |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | K8s doc example |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | K8s doc example |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant key name (not a secret value) |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell reads from env (empty default) |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates (10 files) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }}, ${{ secrets.OPENAI_API_KEY }} | GitHub Actions secret refs |
-| google/xrblocks/src/ai/AI.ts | 303-304 | 'YOUR_GEMINI_API_KEY_HERE', 'YOUR_OPENAI_API_KEY_HERE' | Placeholder/example values |
-
-## ENDPOINT_LEAK
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | artifact-registry.git.corp.google.com | Internal Google corp registry |
-| google/go-containerregistry/cloudbuild-docker-build.yml | 15 | bcid.corp.google.com | Internal Google corp attestation endpoint |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 (comment) | Metadata endpoint reference in SSRF guard comment |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | 169.254.169.254 (comments) | Metadata endpoint references in SSRF protection code |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 (comment) | Metadata endpoint reference in comment |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | 169.254.169.254/computeMetadata | Code accessing GCE metadata endpoint (legitimate) |
-
-## INTERESTING
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | "issuing a 302 to a cloud instance metadata service... causing SSRF" | Explicit SSRF guard comment — shows awareness/mitigation |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Metadata endpoint SSRF protection logic | Active defense code against metadata SSRF |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | apiKey: '40150cc2c638b09de8ebbfefd50b80a4' | Algolia DocSearch key — **REJECTED per KB** (search-only, public by design) |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/* | various | NotMathMLToken translation strings | Third-party library localization strings (49 files) — noise |
-
-## VERDICT SUMMARY
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (pre-existing) | yes (pending VRP determination) | Hardcoded OAuth client_secret, REAL_SECRET per reposcan, A/B proof conclusive (RFC 6749 §5.2), scopes=cloud-platform+drive+devstorage.full_control |
-| xrblocks Algolia key | no | REJECTED in KB — search-only key, public by design |
-| All other hits | no | TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URLs/comments), or INTERESTING (defense code/third-party noise) |
-| sammo PRT workflow | no | KILLED by triager verdict (repo stale, read-only token, saturated class) |
-
-**NO NEW REPORTABLE FINDINGS** in this delta scan.
-EOF
-# Classification Results
-
-## REAL_SECRET
-(none found in this delta scan — earthengine-api oauth.py:45 secret already tracked in KB as LIVE)
-
-## TEST_OR_EXAMPLE
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/artemis/artemis/config/constants.py | 35 | ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN" | Env var name constant |
-| google/artemis/artemis/config/constants.py | 51 | ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY" | Env var name constant |
-| google/artemis/artemis/config/constants.py | 52 | ENV_GEMINI_API_KEY = "GEMINI_API_KEY" | Env var name constant |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | kind: ConfigMap | K8s doc example |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | kind: ConfigMap | K8s doc example |
-| google/sam/internal/node/store.go | 38 | keyRefreshToken = "refresh_token" | Constant key name (not a secret value) |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | kind: ConfigMap | Helm template |
-| google/sam/development/kind/run.sh | 139 | OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}" | Shell reads from env (empty default) |
-| google/sam/.github/workflows/deploy.yaml | 247 | google-client-secret="${GOOGLE_CLIENT_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 249 | github-client-secret="${GITHUB_CLIENT_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/workflows/deploy.yaml | 250 | cli-oauth-secret="${CLI_OAUTH_SECRET}" | GitHub Actions secret ref |
-| google/sam/.github/k8s/*.yaml | various | kind: ConfigMap | K8s templates (10 files) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | ${{ secrets.GEMINI_API_KEY }}, ${{ secrets.OPENAI_API_KEY }} | GitHub Actions secret refs |
-| google/xrblocks/src/ai/AI.ts | 303-304 | 'YOUR_GEMINI_API_KEY_HERE', 'YOUR_OPENAI_API_KEY_HERE' | Placeholder/example values |
-
-## ENDPOINT_LEAK
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | artifact-registry.git.corp.google.com | Internal Google corp registry |
-| google/go-containerregistry/cloudbuild-docker-build.yml | 15 | bcid.corp.google.com | Internal Google corp attestation endpoint |
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | 169.254.169.254 (comment) | Metadata endpoint reference in SSRF guard comment |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | 169.254.169.254 (comments) | Metadata endpoint references in SSRF protection code |
-| google/go-containerregistry/pkg/v1/google/list.go | 206 | 169.254.169.254 (comment) | Metadata endpoint reference in comment |
-| google/jsonnet/case_studies/micromanage/service_google.py | 198 | 169.254.169.254/computeMetadata | Code accessing GCE metadata endpoint (legitimate) |
-
-## INTERESTING
-| File | Line | Pattern | Reason |
-|------|------|---------|--------|
-| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | "issuing a 302 to a cloud instance metadata service... causing SSRF" | Explicit SSRF guard comment — shows awareness/mitigation |
-| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Metadata endpoint SSRF protection logic | Active defense code against metadata SSRF |
-| google/xrblocks/docs/docusaurus.config.ts | 175 | apiKey: '40150cc2c638b09de8ebbfefd50b80a4' | Algolia DocSearch key — **REJECTED per KB** (search-only, public by design) |
-| google/jsonnet/doc/third_party/MathJax-2.7.2/* | various | NotMathMLToken translation strings | Third-party library localization strings (49 files) — noise |
-
-## VERDICT SUMMARY
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api oauth.py:45 (pre-existing) | yes (pending VRP determination) | Hardcoded OAuth client_secret, REAL_SECRET per reposcan, A/B proof conclusive (RFC 6749 §5.2), scopes=cloud-platform+drive+devstorage.full_control |
-| xrblocks Algolia key | no | REJECTED in KB — search-only key, public by design |
-| All other hits | no | TEST_OR_EXAMPLE, ENDPOINT_LEAK (internal URLs/comments), or INTERESTING (defense code/third-party noise) |
-| sammo PRT workflow | no | KILLED by triager verdict (repo stale, read-only token, saturated class) |
-
-**NO NEW REPORTABLE FINDINGS** in this delta scan.
+[0m$ [0mwc -l /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/artemis/artemis/config/settings.py /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/artemis/artemis/config/constants.py /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/store.go /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/development/kind/run.sh /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/workflows/deploy.yaml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/langextract/.github/workflows/ci.yaml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/xrblocks/src/ai/AI.ts /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/xrblocks/docs/docusaurus.config.ts /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py 2>/dev/null | head -20
+299 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/artemis/artemis/config/settings.py
+   142 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/artemis/artemis/config/constants.py
+   160 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml
+   300 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/internal/node/store.go
+   214 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/development/kind/run.sh
+   846 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/sam/.github/workflows/deploy.yaml
+   536 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/langextract/.github/workflows/ci.yaml
+   323 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/xrblocks/src/ai/AI.ts
+   203 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/xrblocks/docs/docusaurus.config.ts
+   104 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml
+    43 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml
+   434 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/remote/fetcher.go
+   543 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/remote/transport/bearer.go
+   366 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/go-containerregistry/pkg/v1/google/list.go
+   219 /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py
+  4732 total
 [0m
-**Classification complete.** No new reportable findings in this delta.
+[0m→ [0mRead reposcan-raw/google/xrblocks/docs/docusaurus.config.ts[90m [offset=170, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/xrblocks/src/ai/AI.ts[90m [limit=15, offset=298][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=15, offset=135][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/settings.py[90m [limit=15, offset=158][0m
+[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/constants.py[90m [offset=45, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/langextract/.github/workflows/ci.yaml[90m [offset=160, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-golang-build.yml[90m [offset=98, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/go-containerregistry/cloudbuild-docker-build.yml[90m [limit=20, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/jsonnet/case_studies/micromanage/service_google.py[90m [limit=15, offset=193][0m
+Now I have full context. Let me classify all 342 hits.
+[0m
+[0m$ [0mgrep -r "YOUR_GEMINI_API_KEY_HERE\|YOUR_OPENAI_API_KEY_HERE" /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/ 2>/dev/null | wc -l
+7
+[0m
+### Classification Tables
 
-- **REAL_SECRET**: Only the pre-existing `earthengine-api` oauth.py:45 client_secret (sha256 `3f3f8d6f…d271`), already tracked LIVE in KB with conclusive A/B proof (real→`invalid_grant`, fake→`invalid_client` per RFC 6749 §5.2). Pending VRP determination on native-app by-design status.
-- **TEST_OR_EXAMPLE**: 100% of config/workflow hits (env var names, K8s templates, GitHub Actions `${{ secrets.* }}` refs, placeholder strings).
-- **ENDPOINT_LEAK**: Internal Google corp URLs (`artifact-registry.git.corp.google.com`, `bcid.corp.google.com`) and metadata endpoint references in SSRF **guard comments/code** — defensive, not vulnerable.
-- **INTERESTING**: go-containerregistry SSRF protection logic (explicit defense), xrblocks Algolia key (REJECTED per KB), MathJax third-party localization noise.
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` | Algolia DocSearch search-only key, public by design (REJECTED in KB) |
+| google/xrblocks/src/ai/AI.ts | 303-304 | `'YOUR_GEMINI_API_KEY_HERE'`, `'YOUR_OPENAI_API_KEY_HERE'` | Placeholder sample structure |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Mock OIDC config for documentation |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | DB key name constant, not a secret value |
+| google/jsonnet/doc/third_party/MathJax-2.7.2/**/*.js | 47+ | `"token"` localization strings | UI text for "token" in 30+ languages, not secrets |
 
-**Verdict**: `NO_DELTA` — all 3 active hypotheses stable (agentRegistration CORS+PATCH, earthengine client_secret, oauth2PermissionGrants caller-chosen resourceId), no new proving-dead/proving-live classes.
+#### ENDPOINT_LEAK (internal URLs, not exploitable secrets)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/go-containerregistry/cloudbuild-golang-build.yml | 102 | `artifact-registry.git.corp.google.com` | Internal corp source mirror URL |
+| google/go-containerregistry/cloudbuild-docker-build.yml | 15 | `bcid.corp.google.com` | Internal corp build attestation URL |
+| google/jsonnet/case_studies/micromanage/service_google.py | 198 | `169.254.169.254/computeMetadata` | Standard GCE metadata endpoint (public knowledge) |
+| google/go-containerregistry/pkg/v1/remote/fetcher.go | 85 | Comment about metadata SSRF | Security documentation comment |
+| google/go-containerregistry/pkg/v1/remote/transport/bearer.go | 91,151 | Comments about metadata SSRF | Security documentation comments |
+| google/go-containerregistry/pkg/v1/google/list.go | 206 | Comment about metadata endpoints | Security documentation comment |
+
+#### INTERESTING (security-relevant patterns, proper secret handling)
+| File | Line | Pattern | Reason |
+|------|------|---------|--------|
+| google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | Config fallback logic from env vars |
+| google/artemis/artemis/config/constants.py | 51-61 | `ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` | Environment variable NAME constants (not values) |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Shell param expansion with empty default (reads from env) |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` | GitHub Actions secret injection (correct pattern) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | GitHub Actions secret injection (correct pattern) |
+| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s ConfigMap declarations (not secrets) |
+
+#### REAL_SECRET (reportable candidates)
+| File | Line | SHA256 | REPORT_CANDIDATE |
+|------|------|--------|------------------|
+| *(none found)* | | | **no** |
+
+---
+
+### Verdict
+**REPORT_CANDIDATE: no** — Zero reportable findings in this delta.
+
+All hits are:
+- **TEST_OR_EXAMPLE**: Placeholders, mock configs, sample structures, UI localization strings
+- **ENDPOINT_LEAK**: Internal corp build URLs + standard GCE metadata endpoint (public knowledge)
+- **INTERESTING**: Proper secret handling patterns (env var references, GitHub Actions secrets, shell param expansions)
+
+The Algolia DocSearch key in xrblocks is explicitly **REJECTED** in the knowledge base (public-by-design search-only key). No hardcoded credentials, API keys, or tokens with signs of life were found.
