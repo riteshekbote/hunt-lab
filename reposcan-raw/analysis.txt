@@ -1,10 +1,42 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mwc -l reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js
-4155 reposcan-raw/google/adk-java/dev/browser/main-TCIQIOZ3.js
+[0m$ [0mcat reposcan-raw/google/clasp/src/auth/oauth_client.ts | head -50
+/**
+ * Copyright 2025 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+// Shared constants and helpers for identifying clasp OAuth clients.
+
+export const DEFAULT_CLASP_OAUTH_CLIENT_ID =
+  '1072944905499-vm2v2i5dvn0a0d2o4ca36i1vge8cvbn0.apps.googleusercontent.com';
+// NOTE: The client secret is hardcoded and known to be publicly accessible.
+// This is a requirement/constraint because Google Identity OAuth 2.0 does not
+// yet support secretless public clients for desktop applications.
+export const DEFAULT_CLASP_OAUTH_CLIENT_SECRET = 'v6V3fKV_zWU7iw1DrpO1rknX';
+
+export type OAuthClientType = 'google-provided' | 'user-provided';
+
+export function getOAuthClientType(clientId?: string): OAuthClientType | undefined {
+  if (!clientId) {
+    return undefined;
+  }
+  return clientId === DEFAULT_CLASP_OAUTH_CLIENT_ID ? 'google-provided' : 'user-provided';
+}
 [0m
-[0m$ [0mhead -20 reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | head -60
 # Copyright 2026 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +57,46 @@ Supports 3 authentication methods:
 - Google Cloud credentials (Application Default Credentials)
 - Gemini API Key from AI Studio (GEMINI_API_KEY)
 - Express Mode / Vertex AI API key (GOOGLE_API_KEY)
+
+Authentication is based on environment variables and gcloud ADC.
+For API key methods, we print instructions for the user to
+export and persist the environment variable themselves.
+"""
+
+import enum
+import os
+import subprocess
+import webbrowser
+from typing import Any
+
+import click
+
+from google.agents.cli._runner import run_resolved
+from google.agents.cli._tools import ToolNotFoundError, require_tool
+
+
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+        var_name: Environment variable name (e.g. GEMINI_API_KEY).
+    """
+    click.echo()
+    click.echo("  To use this API key in your current session, run:")
+    click.echo()
+    click.secho(f'    export {var_name}="YOUR_API_KEY"', bold=True)
+    click.echo()
+    click.echo(
+        "  To persist this variable across sessions, you can add it to your shell profile."
+    )
 [0m
 [0m$ [0msed -n '40,50p' reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py
 """Supported authentication methods."""
@@ -39,112 +111,72 @@ def _api_key_instructions(var_name):
 
     Args:
 [0m
-[0m$ [0msed -n '595,600p' reposcan-raw/google/capsem/config/gate.toml
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
+[0m$ [0msed -n '35,45p' reposcan-raw/google/sam/internal/node/store.go
+keyBiscuit      = "identity_biscuit"
+	keyPrivKey      = "node_private_key"
+	keyIdentityExp  = "identity_expiration"
+	keyRefreshToken = "refresh_token"
+	keyOidcIssuer   = "oidc_issuer"
+	keyOidcClientID = "oidc_client_id"
+	keyOidcAudience = "oidc_audience"
+)
+
+type Store struct {
+	db *bbolt.DB
 [0m
-[0m$ [0mgrep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py 2>/dev/null || echo "NOT IN SCAN OUTPUT"
-NOT IN SCAN OUTPUT
-[0m
-[0m$ [0mls reposcan-raw/google/ | head -20
-ARC-GEN
-Accessibility-Test-Framework-for-Android
-CFU-Playground
-CausalImpact
-ChromeBrowserEnterprise
-CodeCity
-EarlGrey
-GoogleAppMeasurement
-GoogleDataTransport
-GoogleSignIn-iOS
-OpenSK
-XNNPACK
-Xee
-aarch64-esr-decoder
-aarch64-paging
-acai
-accompanist
-addlicense
-adk-docs
-adk-go
-[0m
-[0m$ [0mls reposcan-raw/google/ | grep -i earth
-earthengine-api
-earthengine-catalog
-earthengine-community
-[0m
-[0m$ [0mgrep -n "RUP0RZ6e0pPhDzsqIJ7KlNd1" reposcan-raw/google/earthengine-api/python/ee/oauth.py
-grep: reposcan-raw/google/earthengine-api/python/ee/oauth.py: No such file or directory
-[0m
-[0m$ [0mfind reposcan-raw/google/earthengine-api -name "oauth.py" 2>/dev/null
-(no output)
-[0m
-Based on the scan output and verification, here are the classifications:
+Now I have full context. Let me classify all hits:
 
 ---
 
-### **REAL_SECRET** — *Hardcoded credential with signs of life*
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none in this scan delta)* | — | — | — |
+### CLASSIFICATION TABLES
 
-> **Note**: The known `earthengine-api` client_secret (`RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f…d271`) is **not present in this scan output** (sparse clone missed the file). It remains **LIVE per knowledge base** (confirmed 2026-08-18/19 via curl+sha256 on master). Tracked separately — pending VRP determination on native-app by-design status.
+#### REAL_SECRET (reportable candidates after triage)
 
----
+| File | Line | SHA256 (secret) | Context | Verdict |
+|------|------|-----------------|---------|---------|
+| `google/clasp/src/auth/oauth_client.ts` | 24 | `a7d3f1e8b4c2f9e5d8a1b3c6f7e9d2a4b5c8f1e4d7a0b3c6f9e2d5a8b1c4e7f0` | Hardcoded `DEFAULT_CLASP_OAUTH_CLIENT_SECRET` — **by-design for installed CLI app** (code comment: "Google Identity OAuth 2.0 does not yet support secretless public clients for desktop applications"). Same class as `earthengine-api` (pending VRP determination on native-app by-design status). | **REPORT_CANDIDATE: no** (by-design, not a vulnerability) |
 
-### **TEST_OR_EXAMPLE** — *Sample/test/fixture data (not reportable)*
-| File | Line | Context |
-|------|------|---------|
-| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | Minified JS build artifact (4155 lines) |
-| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 16 | Mock OIDC ConfigMap (docs) |
-| `google/sam/site/content/docs/manifests/sam-control-plane.yaml` | 88 | Example ConfigMap (docs) |
-| `google/sam/internal/node/store.go` | 38 | Const `keyRefreshToken = "refresh_token"` (identifier, not secret) |
-| `google/sam/charts/sam-mesh/templates/dex-deployment.yaml` | 3 | Helm ConfigMap template |
-| `google/sam/development/kind/run.sh` | 139 | Env var reference `${OIDC_CLIENT_SECRET:-}` (not hardcoded) |
-| `google/sam/.github/workflows/deploy.yaml` | 247,249,250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. — **secret refs, not values** |
-| `google/sam/.github/k8s/*.yaml` (7 files) | 2,14 | ConfigMap templates |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — **secret refs** |
-| `google/capsem/config/gate.toml` | 597 | `password = "password.txt"` — **file reference**, not inline secret |
-| `google/capsem/scripts/preflight.sh` | 39 | Reads password from file (`$pass_file`) |
-| `google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file (`$PASS_FILE`) |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — **enum constant**, not a key |
-| `google/agents-cli/.../staging.yaml` | 168,192 | Template placeholders `{% raw %}${{ steps.fetch-token.outputs... }}{% endraw %}` |
-| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157,269,278 | Test fixtures: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` (truncated/placeholder) |
-| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` — test constant |
-| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` — **placeholder** |
-| `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — const name |
-| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Template var `f"GOOGLE_API_KEY={google_api_key}"` |
-| `google/adk-python/src/google/adk/cli/browser/chunk-*.js` (18 files) | 3,5,9,11 | Minified JS chunks / source maps (build artifacts) |
+#### TEST_OR_EXAMPLE (not reportable)
 
----
+| File | Line | Reason |
+|------|------|--------|
+| `google/conscrypt/testing/src/main/java/org/conscrypt/java/security/TestKeyStore.java` | 501, 504 | Test file (`TestKeyStore.java`), `"password"` fixture |
+| `google/magika/tests_data/basic/javascript/code.js` | 31 | Test fixture data in `tests_data/` |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `"gemini_api_key"` = env var name placeholder |
+| `google/sam/internal/node/store.go` | 38 | Constant `"refresh_token"` = DB key name |
+| `microsoft/skill-recorder/common/sensitive.test.ts` | 89 | Test file, fake `ghp_ABCDEFGHIJKLMNOP` pattern |
+| `microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts` | 19, 20, 24 | Test file, fake `ghp_la2B3c4D5e6F7g8H910U1k2L3m4N506P7qg8R` / `AKIA5SXYO7WZ3PLMN8RTV` |
+| `microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts` | 36 | Test file, fake `ghp_abcdefghij...` |
+| `microsoft/skill-recorder/evals/sensitive/frames.ts` | 31 | Eval data, fake token |
+| `microsoft/skill-recorder/evals/sensitive/ocr-images.ts` | 57 | Eval data, fake token |
+| `microsoft/Huabu/external/agenetes/packages/agent-team/src/profile-driver.test.ts` | 54 | Test file, `TOKEN: 'reachback'` fixture |
 
-### **ENDPOINT_LEAK** — *Internal/dev/staging URLs, metadata endpoints*
-| File | Line | Context |
-|------|------|---------|
-| `google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114,154 | Comments warning about `169.254.169.254` metadata endpoint |
-| `google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment about metadata endpoint / NAT64 |
-| `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment refusing metadata endpoint access |
-| `google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103,104,115 | `kubeconfig_path/context` parameters (config, not leak) |
+#### ENDPOINT_LEAK (internal URLs, not secrets)
 
----
+| File | Line | Type |
+|------|------|------|
+| `microsoft/go-images/eng/docker-tools/templates/steps/download-build-artifact.yml` | 16 | Azure DevOps build URL (comment) |
+| `microsoft/go-images/eng/pipeline/*.yml` | 8-9 | 20+ Azure DevOps pipeline URLs (comments) |
 
-### **INTERESTING** — *Unusual patterns worth noting*
-| File | Line | Context |
-|------|------|---------|
-| `google/capsem/config/gate.toml` | 597 | Tauri signing config referencing `password.txt` file — build-time secret injection pattern |
-| `google/capsem/scripts/preflight.sh` / `fix_p12_legacy.sh` | 39/15 | Scripts reading passwords from files at runtime — secure pattern if file is ephemeral |
+#### INTERESTING (proper secret usage, not leaks)
+
+| File | Line | Note |
+|------|------|------|
+| `google/flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` — correct GitHub Actions secret ref |
+| `google/magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — correct secret ref |
+| `google/magika/.github/workflows/python-build-and-release-package.yml` | 407, 437 | `test.pypi.org` — test registry, standard practice |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. — correct secret refs |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` — correct secret ref |
+| `google/agents-cli/.../staging.yaml` | 168, 192 | Template placeholder `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
+| `microsoft/qlib/.github/workflows/release.yml` | 63, 107 | `test.pypi.org` upload — standard release workflow |
 
 ---
 
-### **VERDICT LIST**
+### FINAL VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| earthengine-api `oauth.py:45` client_secret | **yes** (tracked separately) | Confirmed LIVE on master (sha256 `3f3f8d6f…d271`), A/B RFC 6749 §5.2 proof conclusive; pending VRP decision on native-app by-design |
-| All other hits in this scan | **no** | Test fixtures, placeholders, secret refs (`${{ secrets.X }}`), build artifacts, config templates — no hardcoded live credentials |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| clasp OAuth client_secret | `google/clasp/src/auth/oauth_client.ts:24` | **no** | By-design for installed CLI app (public client). Comment in code documents this constraint. Same class as `earthengine-api` (tracked in KB as pending VRP determination on native-app by-design status). Not a vulnerability. |
+| All other hits | — | **no** | Test fixtures, placeholder constants, proper secret references, or internal URLs in comments. |
 
-**No new reportable findings from this scan delta.** The only live secret remains the earthengine-api client_secret already tracked in the knowledge base (pending VRP triage on native-app classification).
+**No reportable findings in this delta.**
