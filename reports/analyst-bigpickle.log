@@ -45034,3 +45034,174 @@ STEP 6 — LEARNING:
 STEP 7 — RISK SCORE:
 [RISK] google: 55 — proven-valid credential with cloud-platform scope (A/B proof, conf 96) but installed-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; report ready, pending human submission.
 [RISK] microsoft: 72 — two independent high-confidence precondition packages (IDOR+CORS 97; consent-forge 79) with browser-exploitable preflights and zero schema restrictions, both blocked solely on authorized two-principal verification; MSRC request drafted and ready.
+===== ANALYST bigpickle 2026-08-20 22:42:24 UTC =====
+[0m
+> build · big-pickle
+[0m
+[0m$ [0mls reports/ 2>/dev/null; sha256sum reports/msrc-two-principal-request.md reports/google-vrp-earthengine-secret.md 2>/dev/null
+analyst-bigpickle.log
+analyst-laguna.log
+analyst-ling3.log
+analyst-longcat.log
+analyst-nemotron3.log
+google-vrp-earthengine-secret.md
+hypotheses-bigpickle.txt
+hypotheses-laguna.txt
+hypotheses-ling3.txt
+hypotheses-longcat.txt
+hypotheses-nemotron3.txt
+hypotheses.md
+msrc-two-principal-request.md
+sammo-prt-rce.md
+valid-bugs.md
+ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17  reports/msrc-two-principal-request.md
+aaacac7208506722b6ca5b35b14962a7555640d1b50d348729664439ae8d3a51  reports/google-vrp-earthengine-secret.md
+[0m
+[0m$ [0mcurl -sS --max-time 25 -o /dev/null -w "GET /token -> %{http_code}\n" "https://oauth2.googleapis.com/token"
+GET /token -> 404
+[0m
+[0m$ [0mmkdir -p /tmp/opencode && curl -sS --max-time 40 -o /tmp/opencode/ee_oauth.py "https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py"; echo "SIZE:$(wc -c </tmp/opencode/ee_oauth.py 2>/dev/null)"; python3 - <<'EOF'
+import hashlib,re
+try:
+    data=open('/tmp/opencode/ee_oauth.py','rb').read()
+except Exception as e:
+    print('READ_FAIL',e); raise SystemExit
+if b'client_secret' not in data:
+    print('FETCH_FAILED_OR_429'); raise SystemExit
+print('bytes',len(data))
+for i,line in enumerate(data.split(b'\n'),1):
+    if b'client_secret' in line:
+        for lit in re.findall(rb'"([^"]*)"',line):
+            print(i,'len',len(lit),'sha256',hashlib.sha256(lit).hexdigest())
+EOF
+SIZE:23110
+bytes 23110
+[0m
+[0m$ [0mcurl -sS --max-time 25 -I -o - "https://graph.microsoft.com/v1.0/" | head -12; echo ---; curl -sS --max-time 25 -D - -o /dev/null "https://graph.microsoft.com/v1.0/me" | grep -iE "HTTP/|www-authenticate|content-length"
+HTTP/1.1 405 Method Not Allowed
+Content-Length: 0
+Strict-Transport-Security: max-age=31536000
+request-id: b70e3940-1cfa-4a44-ada4-bad4520e97a3
+client-request-id: b70e3940-1cfa-4a44-ada4-bad4520e97a3
+x-ms-ags-diagnostic: {"ServerInfo":{"DataCenter":"West US 3","Slice":"E","Ring":"2","ScaleUnit":"002","RoleInstance":"PH3PEPF0005849F"}}
+Date: Thu, 20 Aug 2026 22:41:10 GMT
+
+---
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Bearer realm="", authorization_uri="https://login.microsoftonline.com/common/oauth2/authorize", client_id="00000003-0000-0000-c000-000000000000"
+[0m
+[0m$ [0mcurl -sS --max-time 25 -X OPTIONS -D - -o /dev/null -H "Origin: https://attacker.example" -H "Access-Control-Request-Method: PATCH" "https://graph.microsoft.com/v1.0/oauth2PermissionGrants/00000000-0000-0000-0000-000000000000" | grep -iE "HTTP/|access-control"
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Expose-Headers: ETag, Location, Preference-Applied, Content-Range, request-id, client-request-id, ReadWriteConsistencyToken, Retry-After, SdkVersion, WWW-Authenticate, x-ms-client-gcc-tenant, X-Planner-Operationid, x-ms-permissions-recommendations
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+[0m
+[0m$ [0mpython3 - <<'EOF'
+import hashlib,re
+data=open('/tmp/opencode/ee_oauth.py','rb').read()
+for i,line in enumerate(data.split(b'\n'),1):
+    if b'client_secret' in line:
+        for lit in re.findall(rb'["\']([^"\']+)["\']',line):
+            print(i,'len',len(lit),'sha256',hashlib.sha256(lit).hexdigest())
+EOF
+99 len 13 sha256 83d151a98eac0d0cd336a12859ee555ca1c07ecbc7e5a79fe1fba23098d38ea7
+99 len 13 sha256 83d151a98eac0d0cd336a12859ee555ca1c07ecbc7e5a79fe1fba23098d38ea7
+193 len 13 sha256 83d151a98eac0d0cd336a12859ee555ca1c07ecbc7e5a79fe1fba23098d38ea7
+290 len 9 sha256 65904271c7f48ee638a684f55f76a92a1c7ecc7a0c56e5c0a1b83e2510efcb4d
+290 len 13 sha256 83d151a98eac0d0cd336a12859ee555ca1c07ecbc7e5a79fe1fba23098d38ea7
+445 len 9 sha256 65904271c7f48ee638a684f55f76a92a1c7ecc7a0c56e5c0a1b83e2510efcb4d
+445 len 13 sha256 83d151a98eac0d0cd336a12859ee555ca1c07ecbc7e5a79fe1fba23098d38ea7
+445 len 13 sha256 6c8a7d4aa21708a432174e4cb5c6cfaf0218f5f3e52f9a76a7d95d2aaade2c83
+[0m
+[0m$ [0mpython3 - <<'EOF'
+import hashlib,re
+TARGET='3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271'
+data=open('/tmp/opencode/ee_oauth.py','rb').read()
+lines=data.split(b'\n')
+hit=False
+for i,line in enumerate(lines,1):
+    for lit in re.findall(rb'["\']([^"\']{16,})["\']',line):
+        h=hashlib.sha256(lit).hexdigest()
+        if h==TARGET:
+            print('SECRET_AT_LINE',i,'len',len(lit),'sha256',h); hit=True
+if not hit:
+    print('NO_LITERAL_MATCHES_TARGET')
+print('--- lines 43-47 (literals redacted) ---')
+for i in range(42,47):
+    l=lines[i]
+    red=re.sub(rb'(["\'])([^"\']{4,})\1',rb'\1<REDACTED:\2>\1',l)
+    try: print(i+1,red.decode()[:160])
+    except: print(i+1,repr(red)[:160])
+EOF
+SECRET_AT_LINE 45 len 24 sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271
+--- lines 43-47 (literals redacted) ---
+43 CLIENT_ID = ('<REDACTED:517222506229-vsmmajv00ul0bs7p89v5m89qs8eb9359.>'
+44              '<REDACTED:apps.googleusercontent.com>')
+45 CLIENT_SECRET = '<REDACTED:RUP0RZ6e0pPhDzsqIJ7KlNd1>'
+46 SCOPES = [
+47     '<REDACTED:https://www.googleapis.com/auth/earthengine>',
+[0m
+[0m$ [0mcurl -sS --max-time 25 -X OPTIONS -D - -o /dev/null -H "Origin: https://attacker.example" -H "Access-Control-Request-Method: PATCH" "https://graph.microsoft.com/beta/copilot/agentRegistrations" | grep -iE "HTTP/|access-control-allow-origin|access-control-allow-methods|access-control-max-age"; date -u +"%Y-%m-%d %H:%M:%S UTC"
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: DELETE, GET, OPTIONS, POST, PUT, PATCH
+2026-08-20 22:41:40 UTC
+[0m
+### STEP 1 — DELTA
+NO_DELTA — robot probe output empty for 6 cycles (17:42–22:04 UTC, monitoring gap); own passive probes at 22:41 UTC re-verified all preconditions unchanged: agentRegistrations OPTIONS→200+ACAO:*+PATCH, oauth2PermissionGrants/{id} item-level OPTIONS→200+ACAO:*+PATCH, HEAD /v1.0→405/CL:0/no-Bearer vs GET /me→401+Bearer, token GET→404, earthengine oauth.py:45 literal sha256 `3f3f8d6f…d271` exact match (23110 B).
+
+### STEP 2 — PRIORITIZE
+[PRIO] graph.microsoft.com/beta/copilot/{6 families}: 8.3 | attack=9 business=9 tech=9 gate=5 cloud=8 fresh=9
+[PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: 7.7 | attack=8 business=8 tech=9 gate=5 cloud=7 fresh=9
+[PRIO] oauth2.googleapis.com/token (source github.com/google/earthengine-api/python/ee/oauth.py): 7.2 | attack=6 business=9 tech=7 gate=4 cloud=9 fresh=9
+
+### STEP 3 — HYPOTHESES
+[HYP] Copilot Admin 6-family cross-principal IDOR via CORS+PATCH
+class: IDOR
+asset: graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}
+confidence: 97
+reasoning: True CORS preflight (OPTIONS→200, ACAO:*, Allow-Methods incl PATCH) re-verified by own probe 22:41 UTC at collection level; $metadata shows 5 EntityTypes with zero OperationRestrictions and client-supplied ownership fields (createdBy/ownerIds/managedByAppId); systemic HEAD→405/no-Bearer vs GET→401+Bearer asymmetry; item-level 401 shows no ownership binding.
+evidence_needed: Principal B reads/mutates principal A's object (200/204 vs 403) on any of the 6 families.
+verify_steps: AUTH_HELPED: (1) A POST /beta/copilot/agentRegistrations → capture id; (2) B GET /beta/copilot/agentRegistrations/{id} → 200 vs 403; (3) B PATCH same id → 200/204 vs 403; (4) repeat across remaining 5 families.
+impact: Cross-principal tamper with agent registrations/packages/policy settings → impersonation, instruction injection, catalog supply-chain; CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] Consent-grant forge via caller-chosen resourceId + item-level PATCH
+class: AUTH
+asset: graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}
+confidence: 79
+reasoning: oauth2PermissionGrants EntityType exposes caller-chosen resourceId/principalId with zero OperationRestrictions; item-level CORS preflight ACAO:* + full Allow-Methods incl PATCH re-verified by own probe 22:41 UTC; HEAD→405/no-Bearer vs GET→401+Bearer confirms asymmetric enforcement.
+evidence_needed: POST grant {clientId, consentType:"Principal", principalId:<B-oid>, resourceId:<app-id>, scope:"user_impersonation"} → 201 and grant visible/redeemable by B.
+verify_steps: AUTH_HELPED: (1) A POST /v1.0/oauth2PermissionGrants with B's OID + attacker-chosen resourceId → 201 vs 400/403; (2) B GET /v1.0/me/oauth2PermissionGrants → forged grant present?; (3) B redeems token with new scope → escalation confirmed.
+impact: Cross-principal consent forgery → token redemption against victim-consented resources (SharePoint, Storage, Graph apps); CVSS 7.5–9.0.
+testability: AUTH_HELPED
+[HYP] earthengine-api hardcoded client_secret redeemable for cloud-platform tokens
+class: MISCONFIG
+asset: oauth2.googleapis.com/token (source github.com/google/earthengine-api/python/ee/oauth.py:45)
+confidence: 96
+reasoning: Secret live on master re-verified by own probe 22:41 UTC — line-45 literal len 24, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exact match, file 23110 B; prior A/B proof real→invalid_grant vs fake→invalid_client conclusive per RFC 6749 §5.2; scopes cloud-platform+earthengine+drive+devstorage.full_control; installed-app OOB public-client posture caps VRP-worthiness per ADK #2128 precedent.
+evidence_needed: Authorized grant_type=refresh_token redemption → 200 + signed access_token.
+verify_steps: HUMAN_ONLY: submit reports/google-vrp-earthengine-secret.md via bughunters.google.com with sha256-hashed A/B proof; request authorized redemption test only.
+impact: Full GCP project access via cloud-platform scope; CVSS 9.0+, reward capped by installed-app by-design posture.
+testability: HUMAN_ONLY
+
+### STEP 4 — SELF-CRITIQUE
+[FINAL]
+1. [97] Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (AUTH_HELPED)
+2. [96] earthengine-api hardcoded client_secret redeemable for cloud-platform tokens (HUMAN_ONLY)
+3. [79] Consent-grant forge via caller-chosen resourceId + item-level PATCH (AUTH_HELPED)
+No hypotheses parked — all ≥40 confidence, none on REJECTED list, all have concrete verify_steps.
+
+### STEP 5 — NEXT ACTION
+[NEXT] HUMAN: Submit reports/msrc-two-principal-request.md (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17 — verified present locally this cycle) via the MSRC portal to unblock AUTH_HELPED two-principal testing for hypotheses #1+#3; in parallel submit reports/google-vrp-earthengine-secret.md (present locally, sha256 aaacac7208506722b6ca5b35b14962a7555640d1b50d348729664439ae8d3a51) via bughunters.google.com with the hashed A/B proof.
+
+### STEP 6 — LEARNING
+[LEARN] ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 22:41 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH (stable).
+[LEARN] ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:41 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+[LEARN] ACCEPTED Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+[LEARN] ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 33rd consecutive cycle).
+[LEARN] ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exact match, file 23110 B (own probe).
+[LEARN] MONITOR: robot probe pipeline returned empty output for 6 consecutive cycles (17:42–22:04 UTC); coverage restored by manual probes this cycle — investigate pipeline before next cycle.
+
+### STEP 7 — RISK SCORE
+[RISK] google: 55 — proven-valid credential with cloud-platform scope (A/B proof, conf 96) but installed-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; report ready, pending human submission.
+[RISK] microsoft: 72 — two independent high-confidence precondition packages (IDOR+CORS 97; consent-forge 79) with browser-exploitable preflights and zero schema restrictions, both blocked solely on authorized two-principal verification; MSRC request drafted, hash-verified locally, ready to submit.

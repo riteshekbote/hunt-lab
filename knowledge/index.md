@@ -580,3 +580,9 @@
 - 2026-08-20 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:03 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
 - 2026-08-20 ACCEPTED earthengine-api oauth.py:45 secret still live on master: sha256 `3f3f8d6f…d271` exact match, file 23110 B (own probe 22:03 UTC).
 - 2026-08-20 NO_DELTA — no class newly proven dead or alive this cycle; all preconditions stable across 32+ consecutive probe cycles.
+- 2026-08-20 ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 22:41 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH (stable).
+- 2026-08-20 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:41 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-20 ACCEPTED Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+- 2026-08-20 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 33rd consecutive cycle).
+- 2026-08-20 ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exact match, file 23110 B (own probe).
+- 2026-08-20 MONITOR: robot probe pipeline returned empty output for 6 consecutive cycles (17:42–22:04 UTC); coverage restored by manual probes this cycle — investigate pipeline before next cycle.
