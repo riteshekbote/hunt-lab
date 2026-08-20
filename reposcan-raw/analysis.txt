@@ -1,45 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml[90m [offset=10, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=20, offset=590][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=20, offset=10][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [limit=15, offset=34][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=55, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=20, offset=130][0m
+[0m→ [0mRead reposcan-raw/google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py[90m [limit=30, offset=15][0m
 ### Classification Tables
 
-| Category | File:Line | Evidence | Verdict |
-|---|---|---|---|
-| **REAL_SECRET** | — | None | — |
-| **TEST_OR_EXAMPLE** | adk-go/.../chunk-RNTHHQWK.js:3 | Minified parser error message (build artifact) | Not reportable |
-| | adk-js/auth_credential.ts:214,226 | Comment examples `password: "password"`, `token: "your_access_token"` | Not reportable |
-| | adk-js/auth_schemes.ts:41 | `PASSWORD = 'password'` constant literal | Not reportable |
-| | oss-fuzz/projects/* | Test fixtures (mysql, flask, h2database) | Not reportable |
-| | agents-cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` placeholder | Not reportable |
-| | tunix/.../base_*.yaml:63 | `# hf_access_token: "your_token"` commented placeholder | Not reportable |
-| | adk-go/.../chunk-*.js | All minified webpack chunks (parser tables) | Not reportable |
-| **ENDPOINT_LEAK** | capsem/.github/workflows/release-channel-staging.yaml:17 | `https://staging.release-eq7.pages.dev` (staging URL) | Staging endpoint ref |
-| | meridian/.github/workflows/proto-publish.yml:126,138 | `test.pypi.org` (test PyPI) | Test endpoint ref |
-| | meridian/.github/workflows/publish.yml:127,139 | `test.pypi.org` (test PyPI) | Test endpoint ref |
-| | adk-js/load_web_page.ts:36 | `169.254.169.254` (GCP metadata IP) | Internal endpoint ref |
-| | closure-compiler/externs/... | `dev.w3.org`, `developers.devsite.corp.google.com` | Dev/doc endpoint refs |
-| **INTERESTING** | capsem/config/gate.toml:597 | `password = "password.txt"` — references password file path (not secret) | Secret handling config |
-| | capsem/scripts/fix_p12_legacy.sh:15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads p12 password from file | Secret handling pattern |
-| | capsem/scripts/preflight.sh:39 | `password="$(tr -d '\n' < "$pass_file")"` — same pattern | Secret handling pattern |
-| | agents-cli/.../staging.yaml:168,192 | GitHub Actions `_ID_TOKEN`, `_AUTH_TOKEN` handling in workflow | Workflow token pattern |
-| | adk-go/cloudrun.go:246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret ref | Secret injection pattern |
+#### REAL_SECRET (reportable)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none* | — | — | No live hardcoded secrets found in delta |
+
+#### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Context |
+|------|------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` — docstring example placeholder |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` — docstring example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` — docstring example JWT placeholder |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — OAuth grant type enum value |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — docstring example placeholder |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` — test fixture |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
+| google/capsem/config/gate.toml | 597 | `password = "password.txt"` — path to password file |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` — placeholder constant |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified build artifacts (parser error messages) |
+
+#### ENDPOINT_LEAK (internal endpoints, not secrets)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/orbax/checkpoint/.../tiering_service/environment.py | 22 | `http://metadata.google.internal/computeMetadata/v1` — standard GCP metadata server |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` host check |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` — link-local range (includes GCP metadata 169.254.169.254) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Comments documenting 169.254.169.254 metadata endpoint |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment about NAT64 routing to 169.254.169.254 |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment refusing to check 169.254.169.254 in Chrome |
+
+#### INTERESTING (proper secret handling / config)
+| File | Line | Note |
+|------|------|------|
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Uses `${{ secrets.GHUB_CLIENT_SECRET }}` etc. — **correct** GitHub Actions secret injection |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — expects env var, defaults empty |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` — key name constant, not secret |
+| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` — standard k8s config (not Secret) |
 
 ---
 
-### Verdict List
+### SHORT VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
-|---|---|---|
-| capsem gate.toml password file reference | **no** | References `password.txt` file path; actual secret not in repo (CI provides via `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`) |
-| capsem fix_p12_legacy.sh / preflight.sh | **no** | Standard p12 password file read pattern; secret sourced from file not hardcoded |
-| agents-cli staging workflow token handling | **no** | Uses GitHub Actions `steps.fetch-token.outputs` — standard OIDC token flow, no hardcoded secret |
-| adk-go Cloud Run `--set-secrets` | **no** | References secret manager key `GOOGLE_API_KEY:latest`; secret value not in source |
-| All staging/test URLs (staging.release-eq7.pages.dev, test.pypi.org) | **no** | Public staging/test endpoints, not sensitive |
-| GCP metadata IP (169.254.169.254) | **no** | Well-known link-local metadata endpoint, documented |
-| All minified JS chunks / test fixtures / placeholders | **no** | Build artifacts or documented examples |
+|-----------|------------------|--------|
+| adk-python auth_credential.py private_key | **no** | Docstring example placeholder (`...` truncation) |
+| adk-python auth_credential.py password/token | **no** | Docstring examples |
+| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth grant type enum value |
+| adk-python openapi_tool client_secret | **no** | Docstring example placeholder |
+| sam deploy.yaml secrets | **no** | Proper `${{ secrets.* }}` reference — not hardcoded |
+| sam run.sh OIDC_CLIENT_SECRET | **no** | Shell var with empty default — expects env injection |
+| orbax metadata.google.internal | **no** | Standard GCP metadata endpoint (internal-only) |
+| adk-js metadata.google.internal / 169.254.x.x | **no** | Standard GCP metadata checks — documented behavior |
+| adk-python 169.254.169.254 comments | **no** | Documentation/comments only |
+| capsem/oss-fuzz/agents-cli fixtures | **no** | Test fixtures and placeholders |
 
-**No reportable findings in this delta.** All hits are test fixtures, staging endpoints, secret-handling patterns (not secrets themselves), or build artifacts.
+**OVERALL: No reportable findings in this delta.** All hits are test fixtures, docstring examples, proper secret references (GitHub Actions), or documented internal endpoints (GCP metadata server accessible only from within GCP).
