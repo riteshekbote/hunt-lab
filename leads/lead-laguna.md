@@ -15919,3 +15919,4 @@ testability: AUTH_HELPED
 [RISK] microsoft: 97 | Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, item-level CORS confirmed browser-exploitable re-verified 23:51 UTC, 5 EntityTypes ZERO OperationRestrictions) + oauth2PermissionGrants consent-forge (confidence 80, item-level CORS now exploitable) + systemic Graph API RFC 6750 §3 deviation at both collection AND item levels.
 ## 2026-08-20 06:28:25 UTC [google] (model laguna)
 ## 2026-08-20 07:24:37 UTC [google] (model laguna)
+## 2026-08-20 08:04:52 UTC [google] (model laguna)
