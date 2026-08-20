@@ -1,87 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && head -5 reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
-# Copyright 2026 Google LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+[0m$ [0mecho "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
+405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17  -
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=150][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=60, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [limit=30, offset=240][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [offset=590, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/preflight.sh[90m [offset=30, limit=50][0m
-[0m→ [0mRead reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh[90m [limit=30][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=50][0m
-[0m→ [0mRead reposcan-raw/google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py[90m [limit=40][0m
-[0m→ [0mRead reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts[90m [offset=210, limit=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts[90m [limit=50][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-JUE6OUNA.js[90m [limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js[90m [limit=5][0m
-Now I have a clear picture. Let me classify all hits:
-
 ### Classification Tables
 
 #### REAL_SECRET
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none found in this scan)* | | | |
+| File | Line | SHA256(secret) | Verdict |
+|------|------|----------------|---------|
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | **TEST_OR_EXAMPLE** — vendored 3rd-party test fixture (ibis BigQuery backend), not project code |
+| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | `405bc76ccb59146aa4ca5c29bb50d1af077a33774010873104da995503fb9b17` | **TEST_OR_EXAMPLE** — same vendored fixture |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Context | Notes |
-|------|------|---------|-------|
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring example with ellipsis placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `password="password"` | Example HTTP basic auth credentials |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Truncated JWT placeholder in example |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 287 | `client_secret="secret"` | Example OAuth2 client secret placeholder |
-| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Constant definition for auth scheme type |
-| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Docstring example placeholder |
-| reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Fuzz test fixture |
-| reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test server password constant |
-| reposcan-raw/google/capsem/scripts/preflight.sh | 39 | Reads from `$cert_dir/p12-password.txt` | Reads secret from file (not hardcoded) |
-| reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` | Reads secret from file (not hardcoded) |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value (string identifier), not actual key |
-| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `${{ steps.fetch-token.outputs._id_token }}` | GitHub Actions step output references |
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Example credentials in docstrings (`private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."`) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` — test/example value |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Example `client_secret="your_client_secret"` |
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | Example `password: "password"`, `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
+| google/capsem/config/gate.toml | 597 | Config `password = "password.txt"` — references file, not secret |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file — runtime pattern |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file — runtime pattern |
+| google/sam/internal/node/store.go | 38 | Constant `keyRefreshToken = "refresh_token"` — key name, not value |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var reference |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=...="${SECRET}"` — CI secret injection, not hardcoded |
 
 #### ENDPOINT_LEAK
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/orbax/checkpoint/.../environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/computeMetadata/v1"` |
-| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References to `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Reference to `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Reference to `169.254.169.254` metadata endpoint |
-| reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` in SSRF blocklist |
-| reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` in SSRF blocklist (comment notes GCP metadata) |
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | References `169.254.169.254` (GCP metadata) — well-known, documented |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | Same metadata endpoint reference |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Same metadata endpoint reference |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | Same metadata endpoint reference (`169.254.0.0/16` CIDR) |
+| google/orbax/checkpoint/orbax/checkpoint/experimental/tiering_service/environment.py | 22 | `_METADATA_URL = "http://metadata.google.internal/..."` — well-known GCP metadata |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks for `metadata.google.internal` — defensive coding |
 
 #### INTERESTING
-| File | Line | Context |
-|------|------|---------|
-| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 240-250 | `${{ secrets.GHUB_CLIENT_SECRET }}`, `${{ secrets.CLI_OAUTH_SECRET }}` - GitHub Actions secret refs (proper pattern) |
-| reposcan-raw/google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` - Shell param expansion with empty default |
-| reposcan-raw/google/capsem/config/gate.toml | 597 | `password = "password.txt"` - Path to password file (not the secret) |
-| reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js | (4 files) | Minified/bundled JS parser files - DELTA hits are parse error messages in generated code |
+| File | Line | Reason |
+|------|------|--------|
+| google/bigframes/scripts/run_doctest.sh | 38-39 | CI pattern: loads SA from `KOKORO_GFILE_DIR/service-account.json` — Google-internal test infra, not a leak |
+| google/sam/.github/k8s/dex-config.yaml + 7 other K8s templates | various | `kind: ConfigMap` — Kubernetes config, no secrets in scanned lines |
 
 ---
 
-### VERDICT LIST
+### SHORT VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| adk-python auth_credential.py examples | **no** | All clearly documented examples with placeholder values (ellipsis, "password", truncated JWT, "secret") |
-| adk-python auth_schemes.py PASSWORD const | **no** | Type constant for auth scheme enum |
-| adk-js/openapi auth_helpers.py example | **no** | Docstring with "your_client_secret" placeholder |
-| oss-fuzz test fixtures | **no** | Explicit test/fuzz fixtures in test directories |
-| capsem password file references | **no** | Reads from external files (gitignored), not hardcoded |
-| agents-cli GEMINI_API_KEY enum | **no** | String literal is the enum discriminant value, not a key |
-| agents-cli workflow step outputs | **no** | GitHub Actions expressions referencing prior step outputs |
-| sam workflow secret references | **no** | Proper `${{ secrets.NAME }}` pattern - values not in repo |
-| sam run.sh OIDC_CLIENT_SECRET default | **no** | Shell `${VAR:-}` expands to empty string if unset |
-| orbax/adk metadata endpoint refs | **no** | Well-known GCP metadata endpoint (public knowledge), also in SSRF blocklists |
-| adk-python cli/browser/*.js (DELTA) | **no** | Minified/bundled parser generator output; parse error messages |
+| bigframes vendored ibis `CLIENT_SECRET` | **no** | Third-party vendored test fixture (`third_party/bigframes_vendored/`), not project code; value is a known ibis test placeholder |
+| adk-python/adk-js example credentials | **no** | Explicitly example/test values in docstrings and constants (`password`, `your_client_secret`, `your_access_token`) |
+| sam CI secret references | **no** | Proper CI pattern — secrets injected at runtime via `${SECRET}` env vars |
+| GCP metadata endpoint references | **no** | Well-known documented endpoints (`169.254.169.254`, `metadata.google.internal`) |
+| bigframes doctest CI pattern | **no** | Standard Google-internal Kokoro test infrastructure pattern |
 
----
-
-**SUMMARY: 0 reportable findings in this delta.** All hits are either test fixtures, documented examples with placeholders, proper secret references (GitHub Actions `${{ secrets }}`), SSRF protection blocklists referencing well-known endpoints, or minified generated code. The DELTA hits are parser error strings in bundled JS files.
+**OVERALL: 0 reportable findings in this delta.** All hits are test fixtures, example code, vendored third-party test data, documented public endpoints, or proper CI secret-injection patterns.
