@@ -531,3 +531,9 @@
 - 2026-08-20 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 03:58 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-20 NO_DELTA — all fresh passive probes confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
 - 2026-08-20 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass
+- 2026-08-20 ACCEPTED: All 3 hypothesis preconditions confirmed stable at 2026-08-20 23:51 UTC — agentRegistration 6-family CORS+PATCH (OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families, 5 EntityTypes ZERO OperationRestrictions), earthengine-api oauth.py:45 hardcoded client_secret (sha256 3f3f8d6f…d271, RFC 6749 §5.2 A/B proof), oauth2PermissionGrants item-level CORS browser-exploitable (OPTIONS→200 + ACAO:* + PATCH + Max-Age 86400 at /v1.0/oauth2PermissionGrants/{id})
+- 2026-08-20 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (confirmed unchanged — query-param introspection without Authorization header not eligible)
+- 2026-08-20 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface (stable across all probe cycles)
+- 2026-08-20 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-20 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-20 NO_DELTA — all fresh passive probes (robot + knowledge base + inventory, 05:17 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-dead or proving-live classes this cycle.
