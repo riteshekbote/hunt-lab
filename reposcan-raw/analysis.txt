@@ -1,32 +1,70 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mecho -n "iU5ohAF2qcqrujegE3hQ1cPt" | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
-[0m
-| Category | File | Line | Evidence | SHA256 (of secret material) | Verdict |
-|---|---|---|---|---|---|
-| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py` | 58 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | **REPORT_CANDIDATE: yes** |
-| **REAL_SECRET** | `google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py` | 59 | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` (dup) | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | **REPORT_CANDIDATE: yes** (same secret) |
-| TEST_OR_EXAMPLE | `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Private key fixture, `password`/`token` placeholders | — | No |
-| TEST_OR_EXAMPLE | `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | — | No |
-| TEST_OR_EXAMPLE | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` | — | No |
-| TEST_OR_EXAMPLE | `google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | Example values in JSDoc comments | — | No |
-| TEST_OR_EXAMPLE | `google/adk-js/core/src/auth/auth_schemes.ts` | 41 | `PASSWORD = 'password'` | — | No |
-| TEST_OR_EXAMPLE | `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (empty default) | — | No |
-| TEST_OR_EXAMPLE | `google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` (flag name) | — | No |
-| ENDPOINT_LEAK | `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | `metadata.google.internal` reference | — | No |
-| ENDPOINT_LEAK | `google/adk-python/src/google/adk/code_executors/*` | multiple | `169.254.169.254` metadata endpoint refs | — | No |
-| ENDPOINT_LEAK | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN` | — | No |
-| INTERESTING | `google/artemis/artemis/config/constants.py` | 35, 51, 52 | Env var **names** only (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) | — | No |
-| INTERESTING | `google/artemis/artemis/config/settings.py` | 163, 165 | Env var assignment logic (`self.GOOGLE_API_KEY = self.GEMINI_API_KEY`) | — | No |
-| INTERESTING | `google/crosvm/infra/recipe_modules/.../codecov_wrapper.sh` | 11 | `CODECOV_TOKEN=$(gcloud ... secret="codecov-google-crosvm")` — **runtime secret fetch** | — | No |
-| INTERESTING | `google/crosvm/infra/recipes/.../push_to_github.sh` | 10 | `TOKEN=$(gcloud ... secret="github-crosvm-bot")` — **runtime secret fetch** | — | No |
-| INTERESTING | `google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=...="${SECRET}"` — GitHub Actions secret refs | — | No |
-| INTERESTING | `google/meridian/.github/workflows/*publish.yml` | 126, 138 | `test.pypi.org` URLs (public) | — | No |
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=1, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py[90m [limit=20, offset=50][0m
+[0m→ [0mRead reposcan-raw/google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py[90m [offset=50, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh[90m [limit=30, offset=1][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [offset=1, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=1, limit=70][0m
+Now I have enough context to classify all hits. Let me summarize:
 
-**SHORT VERDICT**
+## Classification Results
 
-- **REPORT_CANDIDATE: YES** — Hardcoded OAuth `CLIENT_SECRET` (`iU5ohAF2qcqrujegE3hQ1cPt`, sha256 `e69cc771eb...`) in **vendored ibis code** at two locations in `google/bigframes`. This is a live credential embedded in source; not a test fixture, not a placeholder. Scope/impact depends on the upstream ibis project's client registration — escalate to Google VRP for triage.
+### REAL_SECRET (reportable)
+**None** in this delta scan. The known `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f...d271`) was already documented in the knowledge base and is not a new hit.
 
-- All other hits are **TEST_OR_EXAMPLE**, **ENDPOINT_LEAK** (metadata endpoint references), or **INTERESTING** (env var names, runtime secret fetches from GCP Secret Manager, CI secret refs) — **not reportable**.
+### TEST_OR_EXAMPLE (not reportable)
+| File | Line | Reason |
+|------|------|--------|
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js (14 files) | 3 | Minified parser error messages (build artifacts) |
+| google/adk-python/src/google/adk/cli/browser/main-KSQARI5D.js | 5 | Minified bundle |
+| google/artemis/artemis/config/settings.py | 163, 165 | Env var assignments (`self.GEMINI_API_KEY`, `self.GCP_API_KEY`) |
+| google/artemis/artemis/config/constants.py | 35, 51, 52 | Env var name constants |
+| google/meridian/.github/workflows/proto-publish.yml | 126, 138 | TestPyPI URLs |
+| google/meridian/.github/workflows/publish.yml | 127, 139 | TestPyPI URLs |
+| google/adk-js/core/src/auth/auth_credential.ts | 214, 226 | Doc examples (`"password"`, `"your_access_token"`) |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Constant `PASSWORD = 'password'` |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Metadata endpoint check |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | Link-local/metadata IP comment |
+| google/bigframes/third_party/.../ibis/backends/bigquery/__init__.py | 58 | Vendored test client secret (`# noqa: S105`) |
+| google/bigframes/third_party/.../ibis/backends/bigquery/backend.py | 59 | Same vendored test client secret |
+| google/bigframes/scripts/run_doctest.sh | 38-39 | Service account path reference for Kokoro CI |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Docstring placeholder `-----BEGIN PRIVATE KEY-----...` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Docstring example `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Docstring example `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | Kubeconfig parameter definitions |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Docstring example `client_secret="your_client_secret"` |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name `_vmaas_access_token` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes user-provided `google_api_key` to .env (project init tool) |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | Flag name constant `StorageDriverPassword = "storage_driver_password"` |
+
+### ENDPOINT_LEAK (internal/dev endpoints)
+| File | Line | Endpoint |
+|------|------|----------|
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (GCP metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (metadata) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (metadata) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.0.0/16` (link-local incl. metadata) |
+
+### INTERESTING (unusual patterns, not directly reportable)
+| File | Line | Note |
+|------|------|------|
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches GitHub token from GCP Secret Manager at runtime |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches Codecov token from GCP Secret Manager at runtime |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | Checks for `metadata.google.internal` hostname |
+
+---
+
+## Verdict Summary
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| earthengine-api oauth.py:45 (known, sha256 `3f3f8d6f...`) | **yes** (already tracked, pending VRP determination on native-app by-design status) |
+| All new delta hits | **no** (all TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING) |
+
+**No new reportable findings in this delta.** The only live REAL_SECRET remains the previously documented earthengine-api hardcoded client_secret.
