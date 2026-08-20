@@ -1824,3 +1824,5 @@
 - CHANGED oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
 
 ## 2026-08-20 06:29:35 UTC
+
+## 2026-08-20 07:25:45 UTC
