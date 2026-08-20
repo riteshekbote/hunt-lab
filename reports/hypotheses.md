@@ -8068,3 +8068,10 @@
 - LEARN: ACCEPTED: agentRegistration 6-family CORS+PATCH IDOR preconditions confirmed stable — OPTIONS→200 + ACAO:* + PATCH at collection+item+all 6 families, 5 EntityTy
 - LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH browser-exploitable confirmed stable — OPTIONS→200 + ACAO:* + PATCH + full Allow-Methods at collection+it
 - LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (32nd consecutive 2-hourly probe since 2026-08-17, RFC 6749 §3.2.1 compliant).
+
+## RANKED HYPOTHESES 2026-08-20 18:04:50 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [96] oauth2.googleapis.com/token: Earth Engine OAuth client_secret redeemable for full GCP access (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- LEARN: NO_DELTA — all fresh passive probes (2026-08-20 17:42 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged; all 3 active hypotheses stable; no new proving-
+- LEARN: NO_DELTA — all passive probes confirmed prior findings unchanged; 3 active hypotheses stable; no new proving-dead/proving-live classes.
