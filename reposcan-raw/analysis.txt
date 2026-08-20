@@ -1,115 +1,73 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat << 'EOF'
-=== CLASSIFICATION TABLES ===
+[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [limit=70, offset=230][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
+Now I have enough context. Let me classify all hits and produce the output.
 
-REAL_SECRET:
-(none — no hardcoded live credentials found in delta)
+## Classification Tables
 
-TEST_OR_EXAMPLE:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | TEST_OR_EXAMPLE | Minified JS source map artifact |
-| google/gopacket/layers/radiotap.go | 552,554,556 | TEST_OR_EXAMPLE | Radiotap protocol constants ("80(20LL)" etc) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | TEST_OR_EXAMPLE | `secret_key = "fuzz test key"` — explicit test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | TEST_OR_EXAMPLE | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | TEST_OR_EXAMPLE | Test connection helper |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | TEST_OR_EXAMPLE | Documentation URL in comment |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | TEST_OR_EXAMPLE | Project homepage URL |
-| google/sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE | Constant key name `"refresh_token"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | TEST_OR_EXAMPLE | Truncated test private key (`-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | TEST_OR_EXAMPLE | Test credentials `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | TEST_OR_EXAMPLE | Truncated test token `eyAkaknabna....` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | TEST_OR_EXAMPLE | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | Constant key name `_STATE_KEY_ACCESS_TOKEN` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | TEST_OR_EXAMPLE | Template variable `GOOGLE_API_KEY={google_api_key}` |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | Minified JS chunks (source maps) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | No hardcoded live secrets found |
 
-ENDPOINT_LEAK:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | ENDPOINT_LEAK | Dev.mysql.com doc URL |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | ENDPOINT_LEAK | Project homepage |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | ENDPOINT_LEAK | Cloud metadata endpoint `169.254.169.254` in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | ENDPOINT_LEAK | Metadata endpoint reference in comments |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | ENDPOINT_LEAK | Metadata endpoint reference in comments |
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context | Reason |
+|------|------|---------|--------|
+| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS sourcemap | Build artifact, not a secret |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Documentation/example manifest |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Documentation/example manifest |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not a token value |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Empty default, expects env var |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | Proper GitHub Actions secret ref |
+| google/sam/.github/k8s/*.yaml (7 files) | 2,14 | `kind: ConfigMap` | K8s templates |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | Built-in GitHub token |
+| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit test key |
+| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test constant |
+| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Uses test password | Test code |
+| google/gopacket/layers/radiotap.go | 552-556 | `token = "80(20LL)"` | 802.11 protocol constants |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Config key name, not a key |
+| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `{% raw %}${{ steps... }}{% endraw %}` | Template placeholders |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Example credentials |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder token |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Scheme identifier constant |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template placeholder |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS chunks | Build artifacts |
 
-INTERESTING:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | INTERESTING | Secret fetched at runtime via `gcloud secrets versions access` — **good pattern**, not a leak |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | INTERESTING | GitHub token fetched at runtime via `gcloud secrets versions access` — **good pattern** |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | INTERESTING | K8s secrets populated from GitHub Actions secrets (`${{ secrets.GOOGLE_CLIENT_SECRET }}`) — correct pattern |
-| google/sam/development/kind/run.sh | 139 | INTERESTING | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default, not hardcoded |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | INTERESTING | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — standard GITHUB_TOKEN usage |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | INTERESTING | Workflow outputs `_ID_TOKEN`, `_AUTH_TOKEN` from prior steps — normal CI pattern |
+### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
+| File | Line | Context |
+|------|------|---------|
+| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` (public URL) |
+| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL (public) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (GCP metadata IP, well-known) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (GCP metadata IP) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (GCP metadata IP) |
 
-=== VERDICT ===
-REPORT_CANDIDATE: no (0 real secrets in delta)
+### INTERESTING (debug flags, keys, cloud configs, secret patterns)
+| File | Line | Context | Note |
+|------|------|---------|------|
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | Proper Secret Manager usage |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | Proper Secret Manager usage |
+| google/ax/manifests/install-ax.sh | 239,241,286 | Generates/reads Postgres password at deploy time | **Delta hits** — runtime-generated, not hardcoded |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path params | Config parameters |
 
-NOTES:
-- Crosvm uses Secret Manager correctly (runtime fetch, nothing in repo)
-- SAM uses GitHub Actions secrets correctly (no hardcoded values in workflows)
-- ADK-Python test fixtures are explicitly truncated/placeholder values
-- OSS-Fuzz projects contain only test constants and documentation URLs
-- All "token"/"secret"/"password" hits are either constants, test fixtures, or secret references
-EOF
-=== CLASSIFICATION TABLES ===
+---
 
-REAL_SECRET:
-(none — no hardcoded live credentials found in delta)
+## SHORT VERDICT LIST
 
-TEST_OR_EXAMPLE:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | TEST_OR_EXAMPLE | Minified JS source map artifact |
-| google/gopacket/layers/radiotap.go | 552,554,556 | TEST_OR_EXAMPLE | Radiotap protocol constants ("80(20LL)" etc) |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | TEST_OR_EXAMPLE | `secret_key = "fuzz test key"` — explicit test fixture |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | TEST_OR_EXAMPLE | `g_shutdownPassword = "ServerShutdownPassword"` — test constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | TEST_OR_EXAMPLE | Test connection helper |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | TEST_OR_EXAMPLE | Documentation URL in comment |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | TEST_OR_EXAMPLE | Project homepage URL |
-| google/sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE | Constant key name `"refresh_token"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | TEST_OR_EXAMPLE | Truncated test private key (`-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | TEST_OR_EXAMPLE | Test credentials `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | TEST_OR_EXAMPLE | Truncated test token `eyAkaknabna....` |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | Constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | TEST_OR_EXAMPLE | Placeholder `client_secret="your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | TEST_OR_EXAMPLE | Constant key name `_STATE_KEY_ACCESS_TOKEN` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | TEST_OR_EXAMPLE | Template variable `GOOGLE_API_KEY={google_api_key}` |
-| google/adk-python/src/google/adk/cli/browser/*.js | multiple | TEST_OR_EXAMPLE | Minified JS chunks (source maps) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | TEST_OR_EXAMPLE | Placeholder `GEMINI_API_KEY = "gemini_api_key"` |
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Delta: ax install script pg_password | google/ax/manifests/install-ax.sh:239,241,286 | **no** | Runtime-generated Postgres password for test deployment; reads from K8s secret or env var or `openssl rand` |
+| crosvm GitHub token from Secret Manager | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | **no** | Fetches at runtime from Google Secret Manager; correct pattern |
+| crosvm Codecov token from Secret Manager | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | **no** | Fetches at runtime from Google Secret Manager; correct pattern |
+| sam deploy workflow secret refs | google/sam/.github/workflows/deploy.yaml:247-250 | **no** | Proper `${{ secrets.* }}` references; no hardcoded values |
+| sam kind run.sh OIDC_CLIENT_SECRET | google/sam/development/kind/run.sh:139 | **no** | Empty default `${OIDC_CLIENT_SECRET:-}`; expects env injection |
+| adk-python metadata endpoint refs | google/adk-python/src/google/adk/**/*.py (3 files) | **no** | References to well-known `169.254.169.254` (GCP metadata IP); not a leak |
+| All other hits | various | **no** | Test fixtures, placeholders, templates, build artifacts, public URLs |
 
-ENDPOINT_LEAK:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | ENDPOINT_LEAK | Dev.mysql.com doc URL |
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | ENDPOINT_LEAK | Project homepage |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | ENDPOINT_LEAK | Cloud metadata endpoint `169.254.169.254` in comments |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | ENDPOINT_LEAK | Metadata endpoint reference in comments |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | ENDPOINT_LEAK | Metadata endpoint reference in comments |
-
-INTERESTING:
-| File | Line | Classification | Notes |
-|------|------|----------------|-------|
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | INTERESTING | Secret fetched at runtime via `gcloud secrets versions access` — **good pattern**, not a leak |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | INTERESTING | GitHub token fetched at runtime via `gcloud secrets versions access` — **good pattern** |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | INTERESTING | K8s secrets populated from GitHub Actions secrets (`${{ secrets.GOOGLE_CLIENT_SECRET }}`) — correct pattern |
-| google/sam/development/kind/run.sh | 139 | INTERESTING | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default, not hardcoded |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | INTERESTING | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — standard GITHUB_TOKEN usage |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | INTERESTING | Workflow outputs `_ID_TOKEN`, `_AUTH_TOKEN` from prior steps — normal CI pattern |
-
-=== VERDICT ===
-REPORT_CANDIDATE: no (0 real secrets in delta)
-
-NOTES:
-- Crosvm uses Secret Manager correctly (runtime fetch, nothing in repo)
-- SAM uses GitHub Actions secrets correctly (no hardcoded values in workflows)
-- ADK-Python test fixtures are explicitly truncated/placeholder values
-- OSS-Fuzz projects contain only test constants and documentation URLs
-- All "token"/"secret"/"password" hits are either constants, test fixtures, or secret references
-[0m
-**Summary:** 0 `REAL_SECRET` findings in this delta. All 348 hits classify as `TEST_OR_EXAMPLE` (test fixtures, placeholders, constants), `ENDPOINT_LEAK` (public doc URLs, metadata endpoint references in comments), or `INTERESTING` (correct secret-management patterns — crosvm fetches from Secret Manager at runtime, SAM uses GitHub Actions secrets properly).
+**Bottom line:** No reportable secrets in this delta. The 3 new hits in `google/ax/manifests/install-ax.sh` are a deployment script that **generates a random Postgres password at deploy time** (or reads from an existing K8s secret / env var) — not a hardcoded credential. All other hits are test data, templates, placeholders, or proper secret-management patterns.
