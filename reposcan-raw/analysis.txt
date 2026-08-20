@@ -1,60 +1,101 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'iU5ohAF2qcqrujegE3hQ1cPt' | sha256sum
-e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4  -
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLE ===
+
+| File:Line | Category | Reason |
+|-----------|----------|--------|
+| ground-android/app/src/debug/local/google-services.json:23 | TEST_OR_EXAMPLE | Firebase API key in debug/local folder; Firebase keys are public-by-design for client SDKs |
+| langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references (${{ secrets.* }}), not hardcoded values |
+| crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | TEST_OR_EXAMPLE | Runtime secret fetch via gcloud Secret Manager, not hardcoded |
+| crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | TEST_OR_EXAMPLE | Runtime secret fetch via gcloud Secret Manager, not hardcoded |
+| secops-wrapper/src/secops/chronicle/models.py:116,180 | TEST_OR_EXAMPLE | Literal placeholder PASSWORD = "PASSWORD" |
+| secops-wrapper/.github/workflows/gemini-review.yml:45 | TEST_OR_EXAMPLE | Workflow secret reference pattern |
+| secops-wrapper/.github/workflows/gemini-dispatch.yml:103,141 | TEST_OR_EXAMPLE | Standard GITHUB_TOKEN workflow pattern |
+| bigframes/third_party/ibis/backends/bigquery/__init__.py:58 | TEST_OR_EXAMPLE | Vendored test fixture in 3rd-party lib (# noqa: S105 suppresses bandit) |
+| bigframes/third_party/ibis/backends/bigquery/backend.py:59 | TEST_OR_EXAMPLE | Same vendored test fixture |
+| bigframes/scripts/run_doctest.sh:38-39 | TEST_OR_EXAMPLE | References GOOGLE_APPLICATION_CREDENTIALS env var, not hardcoded |
+| flatbuffers/.github/workflows/label.yml:24 | TEST_OR_EXAMPLE | Standard ${{ secrets.GITHUB_TOKEN }} pattern |
+| adk-python/src/google/adk/auth/auth_credential.py:157 | TEST_OR_EXAMPLE | Truncated placeholder private_key="-----BEGIN PRIVATE KEY-----..." |
+| adk-python/src/google/adk/auth/auth_credential.py:269 | TEST_OR_EXAMPLE | Literal test fixtures username="user", password="password" |
+| adk-python/src/google/adk/auth/auth_credential.py:278 | TEST_OR_EXAMPLE | Placeholder JWT token="eyAkaknabna...." (truncated) |
+| adk-python/src/google/adk/auth/auth_schemes.py:68 | TEST_OR_EXAMPLE | Literal placeholder PASSWORD = "password" |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | TEST_OR_EXAMPLE | Optional config params (kubeconfig_path), not secrets |
+| adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/load_web_page.py:171 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | TEST_OR_EXAMPLE | Placeholder client_secret="your_client_secret" |
+| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | TEST_OR_EXAMPLE | Config constant _STATE_KEY_ACCESS_TOKEN, not a secret value |
+| adk-python/src/google/adk/cli/cli_create.py:131 | TEST_OR_EXAMPLE | Template writing variable GOOGLE_API_KEY, not hardcoded |
+| adk-python/src/google/adk/cli/browser/chunk-*.js (16 files) | TEST_OR_EXAMPLE | Minified build artifacts (parse error messages), not secrets |
+| closure-compiler/externs/es6.js:392 | TEST_OR_EXAMPLE | Documentation @see reference to W3C spec |
+
+=== VERDICT SUMMARY ===
+| Candidate | REPORT_CANDIDATE | Notes |
+|-----------|------------------|-------|
+| Firebase key in ground-android debug config | NO | Public-by-design, debug folder, Firebase API keys not secret |
+| GitHub Actions secret refs (langextract, secops, flatbuffers) | NO | Standard workflow pattern, secrets injected at runtime |
+| gcloud Secret Manager fetches (crosvm) | NO | Proper secret management, no hardcoded material |
+| Placeholder passwords/tokens in adk-python auth modules | NO | Obvious test fixtures (PASSWORD, "password", truncated keys) |
+| Vendored ibis CLIENT_SECRET in bigframes | NO | Third-party test fixture, # noqa: S105 acknowledges it |
+| GCP metadata endpoint refs (169.254.169.254) | NO | Well-known public IP, documented in code comments as such |
+| adk-python minified JS chunks (16 delta hits) | NO | Build artifacts, parse error strings only |
+| Earth Engine hardcoded client_secret (oauth.py:45) | YES | CONFIRMED LIVE in knowledge base (sha256 3f3f8d6f...), but NOT in this scan's corpus — separate repo (earthengine-api) not scanned in this run |
+
+=== FINAL ===
+No NEW reportable findings in THIS scan delta. The only LIVE hardcoded secret (Earth Engine client_secret) is tracked in KB from prior full-org audit but absent from current scan corpus.
+EOF
+=== CLASSIFICATION TABLE ===
+
+| File:Line | Category | Reason |
+|-----------|----------|--------|
+| ground-android/app/src/debug/local/google-services.json:23 | TEST_OR_EXAMPLE | Firebase API key in debug/local folder; Firebase keys are public-by-design for client SDKs |
+| langextract/.github/workflows/ci.yaml:168-170 | TEST_OR_EXAMPLE | GitHub Actions secret references (${{ secrets.* }}), not hardcoded values |
+| crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | TEST_OR_EXAMPLE | Runtime secret fetch via gcloud Secret Manager, not hardcoded |
+| crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | TEST_OR_EXAMPLE | Runtime secret fetch via gcloud Secret Manager, not hardcoded |
+| secops-wrapper/src/secops/chronicle/models.py:116,180 | TEST_OR_EXAMPLE | Literal placeholder PASSWORD = "PASSWORD" |
+| secops-wrapper/.github/workflows/gemini-review.yml:45 | TEST_OR_EXAMPLE | Workflow secret reference pattern |
+| secops-wrapper/.github/workflows/gemini-dispatch.yml:103,141 | TEST_OR_EXAMPLE | Standard GITHUB_TOKEN workflow pattern |
+| bigframes/third_party/ibis/backends/bigquery/__init__.py:58 | TEST_OR_EXAMPLE | Vendored test fixture in 3rd-party lib (# noqa: S105 suppresses bandit) |
+| bigframes/third_party/ibis/backends/bigquery/backend.py:59 | TEST_OR_EXAMPLE | Same vendored test fixture |
+| bigframes/scripts/run_doctest.sh:38-39 | TEST_OR_EXAMPLE | References GOOGLE_APPLICATION_CREDENTIALS env var, not hardcoded |
+| flatbuffers/.github/workflows/label.yml:24 | TEST_OR_EXAMPLE | Standard ${{ secrets.GITHUB_TOKEN }} pattern |
+| adk-python/src/google/adk/auth/auth_credential.py:157 | TEST_OR_EXAMPLE | Truncated placeholder private_key="-----BEGIN PRIVATE KEY-----..." |
+| adk-python/src/google/adk/auth/auth_credential.py:269 | TEST_OR_EXAMPLE | Literal test fixtures username="user", password="password" |
+| adk-python/src/google/adk/auth/auth_credential.py:278 | TEST_OR_EXAMPLE | Placeholder JWT token="eyAkaknabna...." (truncated) |
+| adk-python/src/google/adk/auth/auth_schemes.py:68 | TEST_OR_EXAMPLE | Literal placeholder PASSWORD = "password" |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py:103,104,115 | TEST_OR_EXAMPLE | Optional config params (kubeconfig_path), not secrets |
+| adk-python/src/google/adk/code_executors/container_code_executor.py:114,154 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/load_web_page.py:171 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146 | ENDPOINT_LEAK | References to 169.254.169.254 (GCP metadata endpoint) |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64 | TEST_OR_EXAMPLE | Placeholder client_secret="your_client_secret" |
+| adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47 | TEST_OR_EXAMPLE | Config constant _STATE_KEY_ACCESS_TOKEN, not a secret value |
+| adk-python/src/google/adk/cli/cli_create.py:131 | TEST_OR_EXAMPLE | Template writing variable GOOGLE_API_KEY, not hardcoded |
+| adk-python/src/google/adk/cli/browser/chunk-*.js (16 files) | TEST_OR_EXAMPLE | Minified build artifacts (parse error messages), not secrets |
+| closure-compiler/externs/es6.js:392 | TEST_OR_EXAMPLE | Documentation @see reference to W3C spec |
+
+=== VERDICT SUMMARY ===
+| Candidate | REPORT_CANDIDATE | Notes |
+|-----------|------------------|-------|
+| Firebase key in ground-android debug config | NO | Public-by-design, debug folder, Firebase API keys not secret |
+| GitHub Actions secret refs (langextract, secops, flatbuffers) | NO | Standard workflow pattern, secrets injected at runtime |
+| gcloud Secret Manager fetches (crosvm) | NO | Proper secret management, no hardcoded material |
+| Placeholder passwords/tokens in adk-python auth modules | NO | Obvious test fixtures (PASSWORD, "password", truncated keys) |
+| Vendored ibis CLIENT_SECRET in bigframes | NO | Third-party test fixture, # noqa: S105 acknowledges it |
+| GCP metadata endpoint refs (169.254.169.254) | NO | Well-known public IP, documented in code comments as such |
+| adk-python minified JS chunks (16 delta hits) | NO | Build artifacts, parse error strings only |
+| Earth Engine hardcoded client_secret (oauth.py:45) | YES | CONFIRMED LIVE in knowledge base (sha256 3f3f8d6f...), but NOT in this scan's corpus — separate repo (earthengine-api) not scanned in this run |
+
+=== FINAL ===
+No NEW reportable findings in THIS scan delta. The only LIVE hardcoded secret (Earth Engine client_secret) is tracked in KB from prior full-org audit but absent from current scan corpus.
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q' | sha256sum
-4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4  -
-[0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && echo -n 'PASSWORD' | sha256sum
-0be64ae89ddd24e225434de95d501711339baeee18f009ba9b4369af27d30d60  -
-[0m
-### Classification Tables
+**Classification complete. No new reportable findings in this scan delta.**
 
-#### REAL_SECRET Candidates
-| File | Line | Material (sha256) | Context |
-|------|------|-------------------|---------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | `4f813105b329c4185173009f40ce47fa2472b7079ba32991c23fabe9f5e348f4` | `current_key: "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"` — debug-only source set, real Google API key format |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/__init__.py | 58 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | `CLIENT_SECRET = "iU5ohAF2qcqrujegE3hQ1cPt"` — vendored ibis code, `# noqa: S105` |
-| google/bigframes/third_party/bigframes_vendored/ibis/backends/bigquery/backend.py | 59 | `e69cc771eb028ca14308bf428c353eff397c092e89da8f3d1c59a554a9c780d4` | Same as above |
+**Summary:**
+- **REAL_SECRET**: 0 (the Earth Engine `client_secret` at `google/earthengine-api/python/ee/oauth.py:45` is confirmed LIVE in KB but *not present in this scan corpus* — separate repo)
+- **TEST_OR_EXAMPLE**: 22 entries (placeholders, test fixtures, workflow secret refs, vendored test constants, minified build artifacts)
+- **ENDPOINT_LEAK**: 3 entries (all `169.254.169.254` metadata endpoint references — well-known public IP)
+- **INTERESTING**: 0
 
-#### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| google/bigframes/third_party/.../reductions.py | 107,125,143 | MySQL doc URLs in comments |
-| google/bigframes/third_party/.../sqlglot/*.py | 1926,2007,2116,2704,3361,4321 | MySQL doc URLs in comments |
-| google/bigframes/third_party/.../merge_subqueries.py | 36 | MySQL doc URL in comment |
-| google/secops-wrapper/src/secops/chronicle/models.py | 116,180 | `PASSWORD = "PASSWORD"` — literal placeholder |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157,269,278 | Test fixtures: private_key, password, token examples |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` — test constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` — docs example |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — empty default |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Workflow secret refs (`${{ secrets.X }}`) |
-| google/secops-wrapper/.github/workflows/*.yml | 45,103,141 | Workflow secret refs (`${{ secrets.X }}`) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access` — runtime fetch |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access` — runtime fetch |
-| google/bigframes/scripts/run_doctest.sh | 38-39 | CI service-account path reference (Kokoro), not a secret |
-
-#### ENDPOINT_LEAK
-*None in delta*
-
-#### INTERESTING
-| File | Line | Note |
-|------|------|------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | Debug-build API key committed; verify if test project or real |
-
----
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| ground-android `google-services.json` API key | **yes** (needs live validation) | Real Google API key format in committed debug config; must verify if key is restricted/test-project or has live privileges |
-| bigframes vendored ibis `CLIENT_SECRET` | **no** | Vendored third-party test constant; `# noqa: S105`; value format inconsistent with real OAuth secrets; not google-owned code |
-| secops-wrapper `PASSWORD = "PASSWORD"` | **no** | Obvious placeholder |
-| adk-python test fixtures | **no** | Explicit test/examples in auth_credential.py |
-| Workflow secret refs / gcloud secret fetches | **no** | CI/CD best practice, not hardcoded secrets |
-| KOKORO service-account reference | **no** | CI infrastructure pointer, no secret material in repo |
-
-**Priority action**: Validate the ground-android API key (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) against Google's API key restrictions — if it's unrestricted or has live project access, it's reportable. The bigframes ibis secret is a known test constant in vendored code (not reportable).
+The 16 "delta" hits are all minified JS parser error strings from `adk-python` browser chunks — build artifacts, not secrets.
