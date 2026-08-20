@@ -1,73 +1,69 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [limit=70, offset=230][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
-Now I have enough context. Let me classify all hits and produce the output.
-
-## Classification Tables
-
-### REAL_SECRET (hardcoded credential with signs of life)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live secrets found |
-
-### TEST_OR_EXAMPLE (sample/test/fixture data)
-| File | Line | Context | Reason |
-|------|------|---------|--------|
-| google/adk-java/dev/browser/main-TCIQIOZ3.js | 5 | Minified JS sourcemap | Build artifact, not a secret |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | Documentation/example manifest |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | Documentation/example manifest |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not a token value |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | `kind: ConfigMap` | Helm template |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Empty default, expects env var |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${{ secrets.GOOGLE_CLIENT_SECRET }}` | Proper GitHub Actions secret ref |
-| google/sam/.github/k8s/*.yaml (7 files) | 2,14 | `kind: ConfigMap` | K8s templates |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | `${{ secrets.GITHUB_TOKEN }}` | Built-in GitHub token |
-| google/oss-fuzz/projects/flask/fuzz_json.py | 27 | `secret_key = "fuzz test key"` | Explicit test key |
-| google/oss-fuzz/projects/h2database/TestServer.java | 13 | `g_shutdownPassword = "ServerShutdownPassword"` | Test constant |
-| google/oss-fuzz/projects/h2database/TestServer.java | 55 | Uses test password | Test code |
-| google/gopacket/layers/radiotap.go | 552-556 | `token = "80(20LL)"` | 802.11 protocol constants |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Config key name, not a key |
-| google/agents-cli/src/google/agents/cli/scaffold/.../staging.yaml | 168,192 | `{% raw %}${{ steps... }}{% endraw %}` | Template placeholders |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Placeholder in example |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `username="user", password="password"` | Example credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `token="eyAkaknabna...."` | Placeholder token |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Scheme identifier constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template placeholder |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | various | Minified JS chunks | Build artifacts |
-
-### ENDPOINT_LEAK (internal/dev/staging URLs, API endpoints)
-| File | Line | Context |
-|------|------|---------|
-| google/oss-fuzz/projects/mysql-connector-j/project.yaml | 1 | `homepage: "https://dev.mysql.com/..."` (public URL) |
-| google/oss-fuzz/projects/mysql-connector-j/TestServer.java | 33 | MySQL docs URL (public) |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | `169.254.169.254` (GCP metadata IP, well-known) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` (GCP metadata IP) |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` (GCP metadata IP) |
-
-### INTERESTING (debug flags, keys, cloud configs, secret patterns)
-| File | Line | Context | Note |
-|------|------|---------|------|
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | Proper Secret Manager usage |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | Proper Secret Manager usage |
-| google/ax/manifests/install-ax.sh | 239,241,286 | Generates/reads Postgres password at deploy time | **Delta hits** — runtime-generated, not hardcoded |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103-115 | kubeconfig path params | Config parameters |
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=50][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=30, offset=55][0m
+[0m→ [0mRead reposcan-raw/google/sam/.github/workflows/deploy.yaml[90m [offset=240, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [offset=60, limit=30][0m
+[0m✗ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh failed[90m [limit=30, offset=130][0m
+[91m[1mError: [0mOffset 130 is out of range for this file (11 lines)
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh[90m [limit=30, offset=5][0m
+[0m→ [0mRead reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh[90m [limit=30][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [limit=30, offset=130][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py[90m [offset=20, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java[90m [offset=45, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/gopacket/layers/radiotap.go[90m [limit=30, offset=545][0m
+[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [offset=230, limit=60][0m
+[0m→ [0mRead reposcan-raw/google/sam/site/content/docs/manifests/mock-oidc.yaml[90m [limit=40, offset=10][0m
+[0m→ [0mRead reposcan-raw/google/sam/site/content/docs/manifests/sam-control-plane.yaml[90m [limit=50, offset=80][0m
+Based on my analysis of all 266 hits across 40,134 files, here's the classification:
 
 ---
 
-## SHORT VERDICT LIST
+### CLASSIFICATION TABLE
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Delta: ax install script pg_password | google/ax/manifests/install-ax.sh:239,241,286 | **no** | Runtime-generated Postgres password for test deployment; reads from K8s secret or env var or `openssl rand` |
-| crosvm GitHub token from Secret Manager | google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10 | **no** | Fetches at runtime from Google Secret Manager; correct pattern |
-| crosvm Codecov token from Secret Manager | google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11 | **no** | Fetches at runtime from Google Secret Manager; correct pattern |
-| sam deploy workflow secret refs | google/sam/.github/workflows/deploy.yaml:247-250 | **no** | Proper `${{ secrets.* }}` references; no hardcoded values |
-| sam kind run.sh OIDC_CLIENT_SECRET | google/sam/development/kind/run.sh:139 | **no** | Empty default `${OIDC_CLIENT_SECRET:-}`; expects env injection |
-| adk-python metadata endpoint refs | google/adk-python/src/google/adk/**/*.py (3 files) | **no** | References to well-known `169.254.169.254` (GCP metadata IP); not a leak |
-| All other hits | various | **no** | Test fixtures, placeholders, templates, build artifacts, public URLs |
+| Category | Count | Details |
+|----------|-------|---------|
+| **REAL_SECRET** | 0 | No new hardcoded credentials with signs of life in this delta |
+| **TEST_OR_EXAMPLE** | ~250+ | All hits are test fixtures, docstring examples, enum constants, proper secret references, or generated passwords |
+| **ENDPOINT_LEAK** | 0 | No internal/dev/staging URLs leaked |
+| **INTERESTING** | ~16 | Proper secret-handling patterns (Secret Manager, env vars, K8s secrets) — good hygiene, not reportable |
 
-**Bottom line:** No reportable secrets in this delta. The 3 new hits in `google/ax/manifests/install-ax.sh` are a deployment script that **generates a random Postgres password at deploy time** (or reads from an existing K8s secret / env var) — not a hardcoded credential. All other hits are test data, templates, placeholders, or proper secret-management patterns.
+---
+
+### KEY FINDINGS (All TEST_OR_EXAMPLE)
+
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| `google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Docstring examples: `-----BEGIN PRIVATE KEY-----...`, `password="password"`, `token="eyAkaknabna...."` | **TEST_OR_EXAMPLE** — placeholders in documentation |
+| `google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | **TEST_OR_EXAMPLE** — OAuth grant type enum constant |
+| `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` | **TEST_OR_EXAMPLE** — docstring placeholder |
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | `${{ secrets.GHUB_CLIENT_SECRET }}`, etc. | **TEST_OR_EXAMPLE** — proper GitHub Actions secret refs |
+| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | **TEST_OR_EXAMPLE** — enum value, not a key |
+| `google/adk-python/src/google/adk/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | **TEST_OR_EXAMPLE** — CLI scaffolds user-provided key to local `.env` |
+| `google/crosvm/infra/recipes/push_to_github.sh` | 10 | `gcloud secrets versions access` | **TEST_OR_EXAMPLE** — fetches from Secret Manager at runtime |
+| `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | `gcloud secrets versions access` | **TEST_OR_EXAMPLE** — fetches from Secret Manager at runtime |
+| `google/sam/development/kind/run.sh` | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | **TEST_OR_EXAMPLE** — reads from env, empty default |
+| `google/ax/manifests/install-ax.sh` | 239, 241, 286 | `openssl rand -hex 16` / env / K8s secret | **TEST_OR_EXAMPLE** — generates or reads from secure sources |
+| `google/oss-fuzz/projects/flask/fuzz_json.py` | 27 | `secret_key = "fuzz test key"` | **TEST_OR_EXAMPLE** — fuzzing test fixture |
+| `google/oss-fuzz/projects/h2database/TestServer.java` | 13, 55 | Test DB passwords | **TEST_OR_EXAMPLE** — test infrastructure |
+| `google/gopacket/layers/radiotap.go` | 552-556 | `"80(20LL)"` etc. | **TEST_OR_EXAMPLE** — 802.11 radiotap protocol constants |
+| `google/sam/site/content/docs/manifests/mock-oidc.yaml` | 26 | Test RSA private key | **TEST_OR_EXAMPLE** — mock OIDC server for docs/testing |
+| `google/sam/.github/k8s/*.yaml` + `sam-control-plane.yaml` | various | `kind: ConfigMap` | **TEST_OR_EXAMPLE** — K8s resource type declarations |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| **earthengine-api `oauth.py:45`** (from knowledge base) | **yes** (pending VRP determination) | Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), used as default fallback, scopes include `cloud-platform` — **already tracked as ACCEPTED/LIVE in KB** |
+| All hits in this scan | **no** | 100% test fixtures, examples, enum constants, or proper secret-handling patterns (Secret Manager, env vars, K8s secrets, GitHub Actions secrets) |
+
+---
+
+### SUMMARY
+**No new reportable findings in this delta scan.** The only live REAL_SECRET remains the previously identified `google/earthengine-api` hardcoded client_secret (KB: ACCEPTED 2026-08-07/08/18/19, pending VRP determination on native-app by-design status). All 266 hits in this scan are benign.
