@@ -1,30 +1,63 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js[90m [limit=10][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=135, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [limit=15, offset=60][0m
-[0m→ [0mRead reposcan-raw/google/pebble/devsite/source/assets/js/404.js[90m [offset=20, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
-All hits are **TEST_OR_EXAMPLE** or **ENDPOINT_LEAK** (template vars). No REAL_SECRET in this delta.
+[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/constants.py
+[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/settings.py
+[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
+Now I have enough context to classify all hits. Here's the classification:
 
 ---
 
-### Classification Tables
+### CLASSIFICATION TABLE
 
-| Category | Count | Files |
-|----------|-------|-------|
-| **REAL_SECRET** | 0 | — |
-| **TEST_OR_EXAMPLE** | 218 | Minified JS parser chunks (4), auth_credential.py examples (private_key, password, token placeholders), auth_schemes.py constants, openapi auth_helpers.py "your_client_secret", cli_create.py var interpolation, agents-cli auth.py enum value, pebble Algolia template vars, sam run.sh empty default, sam deploy.yaml secret refs, sam k8s ConfigMap kinds, sam mock-oidc.yaml, dotprompt TestPyPI URLs, langextract CI secret refs, flatbuffers GITHUB_TOKEN ref, adk-js auth examples, adk-java minified JS |
-| **ENDPOINT_LEAK** | 8 | adk-js metadata.google.internal check, adk-python 169.254.169.254 metadata refs (4 files), computer_use_toolset.py 169.254.169.254 comment, oauth2_discovery.ts metadata host |
-| **INTERESTING** | 0 | — |
+| Category | Files/Lines | Verdict |
+|----------|-------------|---------|
+| **REAL_SECRET** | *(none)* | — |
+| **TEST_OR_EXAMPLE** | `google/adk-js/core/src/auth/auth_credential.ts:214,226` (docstring examples: `password: "password"`, `token: "your_access_token"`) | Example placeholder values in JSDoc |
+| | `google/adk-js/core/src/auth/auth_schemes.ts:41` (`PASSWORD = 'password'` constant name) | Constant name, not a secret |
+| | `google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (docstring examples: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."`) | Example placeholder values in docstrings |
+| | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` constant name) | Constant name, not a secret |
+| | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`client_secret="your_client_secret"`) | Example placeholder in docstring |
+| | `google/agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"` enum value) | Enum member name, not a secret |
+| | `google/sam/internal/node/store.go:38` (`keyRefreshToken = "refresh_token"` DB key name) | Database column key constant |
+| **ENDPOINT_LEAK** | `google/adk-js/core/src/tools/load_web_page.ts:36` (`169.254.169.254` GCP metadata IP) | Well-known metadata endpoint (public knowledge) |
+| | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (same metadata IP) | Well-known metadata endpoint |
+| | `google/adk-python/src/google/adk/tools/load_web_page.py:171` (same metadata IP) | Well-known metadata endpoint |
+| | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (same metadata IP) | Well-known metadata endpoint |
+| | `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` (`metadata.google.internal`) | Well-known metadata hostname |
+| | `google/pebble/devsite/source/assets/js/404.js:24` & `quicksearch.js:33` (`{{ site.algolia_api_key }}` template) | Algolia DocSearch public search key template (REJECTED in KB) |
+| | `google/sam/.github/k8s/*.yaml` (multiple `kind: ConfigMap`) | K8s ConfigMap definitions, not secrets |
+| | `google/sam/site/content/docs/manifests/*.yaml` (`kind: ConfigMap`) | Documentation manifests |
+| **INTERESTING / CONFIG** | `google/artemis/artemis/config/constants.py:35,51,52` (ENV_*_TOKEN/KEY = "ENV_VAR_NAME") | Env var **name** constants, not secret values |
+| | `google/artemis/artemis/config/settings.py:163,165` (fallback logic: `GOOGLE_API_KEY = GEMINI_API_KEY`) | Config fallback logic, no secrets |
+| | `google/sam/development/kind/run.sh:139` (`OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"`) | Shell var reference with empty default |
+| | `google/sam/.github/workflows/deploy.yaml:247-250` (`${{ secrets.GOOGLE_CLIENT_SECRET }}` etc.) | **Proper** GitHub Actions secret references (not hardcoded) |
+| | `google/langextract/.github/workflows/ci.yaml:168-170` (`${{ secrets.GEMINI_API_KEY }}` etc.) | **Proper** GitHub Actions secret references |
+| | `google/dotprompt/.github/workflows/*.yml:33-34` (`https://test.pypi.org/legacy/`) | TestPyPI publish URL (public) |
+| | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` (`_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`) | Session state key constant |
+| | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` (kubeconfig path params) | Config params, not secrets |
+| | `google/flatbuffers/.github/workflows/label.yml:24` (`repo-token: "${{ secrets.GITHUB_TOKEN }}"`) | Standard GITHUB_TOKEN usage |
 
 ---
 
-### Verdict
+### VERDICT LIST
 
 | Candidate | REPORT_CANDIDATE | Reason |
 |-----------|------------------|--------|
-| (none) | **no** | No hardcoded live credentials found in delta. All hits are test fixtures, documentation examples, template variables (`{{ site.algolia_api_key }}`), secret references (`${{ secrets.X }}`), or minified parser artifacts. The known `earthengine-api` client_secret (KB ACCEPTED) is **not in this scan delta** — different repo.
+| google/artemis env var name constants | **no** | Define env var *names* only; values loaded from `.env`/environment at runtime |
+| google/sam GitHub Actions secret refs | **no** | Correct pattern: `${{ secrets.NAME }}` — secrets not in repo |
+| google/sam kind/run.sh OIDC_CLIENT_SECRET | **no** | Shell expansion with empty default (`${VAR:-}`), not a hardcoded value |
+| google/adk-js/python example credentials | **no** | All in docstrings/comments with obvious placeholders (`"password"`, `"your_*"`, `"..."`) |
+| google/pebble Algolia template | **no** | Public search-only key by design (per KB REJECTED) |
+| GCP metadata IP (169.254.169.254) refs | **no** | Well-known public endpoint; code *blocks* access to it |
+| K8s ConfigMap / test manifests | **no** | Config structure definitions, no secret data |
+
+**SUMMARY**: **0 reportable findings** in this delta. All hits are either:
+- Environment variable **name** constants (not values)
+- Proper GitHub Actions secret references (`${{ secrets.X }}`)
+- Documentation/example placeholders
+- Well-known public endpoints (metadata IP, Algolia search key)
+- Config/infrastructure definitions (ConfigMap, kubeconfig params)
