@@ -1,87 +1,37 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<< "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
-a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25  -
-[0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=58, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/ground-android/app/src/debug/local/google-services.json[90m [offset=18, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/llvm-propeller/propeller/binary_content.h[90m [limit=10, offset=75][0m
-[0m→ [0mRead reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml[90m [limit=10, offset=18][0m
-[0m→ [0mRead reposcan-raw/google/capsem/config/gate.toml[90m [limit=10, offset=592][0m
-Now I have enough context to classify all hits. Let me produce the output tables.
+## Classification Table
 
----
+| File | Line | Category | Reason |
+|------|------|----------|--------|
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | INTERESTING | Cloud Run `--set-secrets` pattern (runtime secret injection, not hardcoded) |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) | 3-11 | TEST_OR_EXAMPLE | Minified JS build artifacts / source maps (parse error messages) |
+| google/garf/.../currencyapi/report_fetcher.py | 64 | TEST_OR_EXAMPLE | Placeholder `api_key='YOUR_KEY'` |
+| google/garf/.../openweather/report_fetcher.py | 57 | TEST_OR_EXAMPLE | Placeholder `api_key='YOUR_KEY'` |
+| google/magika/.github/workflows/github-issue-labeler.yml | 20 | INTERESTING | Proper `${{secrets.GITHUB_TOKEN}}` usage |
+| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | ENDPOINT_LEAK | Test PyPI URLs (`test.pypi.org`) |
+| google/magika/tests_data/basic/javascript/code.js | 31 | TEST_OR_EXAMPLE | Test data file |
+| google/sam/.github/k8s/*.yaml (8 files) | 2, 14 | INTERESTING | K8s `kind: ConfigMap` definitions (config structure) |
+| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | INTERESTING | Proper `${{SECRET_VAR}}` references (Google/GitHub/CLI OAuth secrets) |
+| google/sam/site/content/docs/manifests/*.yaml | 16, 88 | TEST_OR_EXAMPLE | Mock OIDC / control-plane docs (documentation examples) |
+| google/sam/internal/node/store.go | 38 | INTERESTING | Constant `keyRefreshToken = "refresh_token"` (key name, not value) |
+| google/sam/development/kind/run.sh | 139 | INTERESTING | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (no default) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | INTERESTING | `gcloud secrets versions access` (Secret Manager pattern) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | INTERESTING | `gcloud secrets versions access` (Secret Manager pattern) |
+| google/artemis/artemis/config/settings.py | 163, 165 | INTERESTING | Env var aliases (`GEMINI_API_KEY`, `GCP_API_KEY` → `GOOGLE_API_KEY`) |
+| google/artemis/artemis/config/constants.py | 35, 51, 52 | INTERESTING | Env var name constants |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | ENDPOINT_LEAK | Hardcoded allowlist URL `http://dev.mysql.com` |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | ENDPOINT_LEAK | Internal `pantheon.corp.google.com` URL in comment |
+| google/osv.dev/deployment/clouddeploy/**/skaffold.yaml (6 files) | 2 | INTERESTING | `kind: Config` (Skaffold config files) |
+| google/osv.dev/deployment/clouddeploy/gke-workers/.../generate-sitemap.yaml | 16 | ENDPOINT_LEAK | Test endpoint `https://test.osv.dev` |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | ENDPOINT_LEAK | Staging API `https://api.test.osv.dev` |
 
-## CLASSIFICATION TABLES
+## Verdict List
 
-### REAL_SECRET
-| File | Line | Secret SHA256 | Context | REPORT_CANDIDATE |
-|------|------|---------------|---------|------------------|
-| `reposcan-raw/google/ground-android/app/src/debug/local/google-services.json` | 23 | `a87484f165e890f4c87b9153864977a7caeee488fd97208c8a2b236627e51f25` | Firebase API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in debug config | **no** (Firebase API keys are public by design; restricted via GCP console) |
+| Candidate | REPORT_CANDIDATE | Notes |
+|-----------|------------------|-------|
+| Hardcoded OAuth client_secret @ google/earthengine-api/python/ee/oauth.py:45 | **yes** (pre-existing) | Already ACCEPTED in KB (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), live on master, A/B proof conclusive — pending VRP determination on native-app by-design status |
+| All delta hits above | **no** | Zero REAL_SECRET findings in this delta; all are TEST_OR_EXAMPLE, ENDPOINT_LEAK (test/staging/internal URLs), or INTERESTING (proper secret management patterns) |
 
-### TEST_OR_EXAMPLE
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157 | Doc example: `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 269 | Doc example: `username="user", password="password"` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 278 | Doc example: `token="eyAkaknabna...."` (fake truncated JWT) |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant: `PASSWORD = "password"` |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Doc example: `client_secret="your_client_secret"` |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value: `GEMINI_API_KEY = "gemini_api_key"` |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions workflow template expressions (`${{ steps.fetch-token.outputs._id_token }}`) |
-| `reposcan-raw/google/flatbuffers/.github/workflows/label.yml` | 24 | Standard secret ref: `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` | (20 files) | Minified JS build artifacts / source maps (parse error messages) |
-| `reposcan-raw/google/osv.dev/deployment/clouddeploy/*/skaffold.yaml` | (multiple) | Config headers: `kind: Config` |
-| `reposcan-raw/google/capsem/scripts/preflight.sh` | 39 | Reads password from file: `password="$(tr -d '\n' < "$pass_file")"` |
-| `reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh` | 15 | Reads password from file: `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Internal state key name: `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 261, 286, 287 | Doc examples: `api_key="1234"`, `client_id="1234"`, `client_secret="secret"` |
-
-### ENDPOINT_LEAK
-| File | Line | Leak Type |
-|------|------|-----------|
-| `reposcan-raw/google/llvm-propeller/propeller/binary_content.h` | 80 | Internal Google corp source URL: `source.corp.google.com/h/prodkernel/...` |
-| `reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml` | 23 | Internal corp URL in comment: `pantheon.corp.google.com/auth/clients` |
-| `reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js` | 129, 351 | Test API endpoints: `api.test.osv.dev` |
-
-### INTERESTING
-| File | Line | Finding |
-|------|------|---------|
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Documents GCP metadata endpoint `169.254.169.254` access in containers |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103, 104, 115 | Kubeconfig path/context params for GKE executor |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment blocking `169.254.169.254` metadata access in Chrome |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Documents NAT64 routing to `169.254.169.254` metadata endpoint |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes `GOOGLE_API_KEY=` to generated config file (variable, not hardcoded) |
-| `reposcan-raw/google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh` | 10 | **Good practice**: Fetches GitHub token from GCP Secret Manager (`gcloud secrets versions access`) |
-| `reposcan-raw/google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh` | 11 | **Good practice**: Fetches Codecov token from GCP Secret Manager |
-| `reposcan-raw/google/capsem/config/gate.toml` | 597 | Signing key password stored in file (`password = "password.txt"`), env var referenced |
-| `reposcan-raw/google/artemis/artemis/config/settings.py` | 163, 165 | API key env var fallbacks: `GOOGLE_API_KEY = GEMINI_API_KEY = GCP_API_KEY` |
-| `reposcan-raw/google/artemis/artemis/config/constants.py` | 35, 51, 52 | Env var constant definitions for tokens |
-
----
-
-## VERDICT SUMMARY
-
-| Candidate | Classification | REPORT_CANDIDATE | Rationale |
-|-----------|----------------|------------------|-----------|
-| Firebase API key in `ground-android` debug config | REAL_SECRET | **no** | Firebase API keys are public by design (embedded in client apps); security via GCP API/referrer restrictions |
-| All adk-python auth_credential / auth_schemes / openapi_tool entries | TEST_OR_EXAMPLE | no | Documentation examples with obvious placeholders (`...`, `user/password`, `your_client_secret`, `1234`) |
-| agents-cli `GEMINI_API_KEY` enum | TEST_OR_EXAMPLE | no | Enum constant name, not a secret value |
-| GitHub Actions workflow token refs | TEST_OR_EXAMPLE | no | Standard `${{ secrets.GITHUB_TOKEN }}` and step output patterns |
-| adk-python browser JS chunks | TEST_OR_EXAMPLE | no | Minified build artifacts / source maps |
-| osv.dev skaffold configs | TEST_OR_EXAMPLE | no | Boilerplate `kind: Config` headers |
-| capsem password file refs | TEST_OR_EXAMPLE | no | Reads from external file/env var (not hardcoded) |
-| llvm-propeller internal corp URL | ENDPOINT_LEAK | no | Internal source link in comment (source.corp.google.com) |
-| osv.dev staging corp URL + OAuth client ID | ENDPOINT_LEAK | no | Internal URL in comment; client ID is public (secret uses `valueFrom` secret manager) |
-| osv.dev test API URLs | ENDPOINT_LEAK | no | Test environment endpoints (`api.test.osv.dev`) |
-| adk-python metadata endpoint refs | INTERESTING | no | Documents IMDS `169.254.169.254` access patterns (defensive coding) |
-| crosvm secret manager usage | INTERESTING | no | **Positive pattern** - fetches secrets at runtime from GCP Secret Manager |
-| artemis API key env var fallbacks | INTERESTING | no | Config pattern showing env var precedence |
-
----
-
-**No reportable findings in this delta.** The only REAL_SECRET (Firebase API key) is in a debug config and is public-by-design per Firebase/Google architecture. All other hits are test fixtures, documentation examples, build artifacts, internal URL references, or positive security patterns (secret manager usage).
+**Summary**: This scan delta produces **no new reportable findings**. The only live REAL_SECRET remains the previously-accepted earthengine-api client_secret (tracked in KB). All new hits are either test fixtures, placeholder values, staging endpoints, or correct secret-handling patterns (GitHub Actions secrets, GCP Secret Manager, env var references).
