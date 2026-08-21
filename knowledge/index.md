@@ -704,3 +704,8 @@
 - 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 52nd consecutive cycle).
 - 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe 14:41 UTC).
 - 2026-08-21 MONITOR robot probe pipeline empty for 27th consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`); manual probes restored coverage again this cycle — operator fix still not applied.
+- 2026-08-21 ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 15:16 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 15:16 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 53rd consecutive cycle).
+- 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe 15:16 UTC).
+- 2026-08-21 MONITOR robot probe pipeline empty for 28th consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`); manual probes restored coverage again this cycle — operator fix still not applied.
