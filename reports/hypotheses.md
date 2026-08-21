@@ -8238,3 +8238,26 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
 - LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
 - LEARN: MONITOR: robot probe pipeline empty for 10 consecutive cycles (17:42–23:38 UTC); manual probes restored coverage again this cycle — fix pipeline before next cyc
+
+## RANKED HYPOTHESES 2026-08-21 01:48:20 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via the MSRC portal (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17 — file present 
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat
+- LEARN: REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface (stable across all
+- LEARN: REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- LEARN: ACCEPTED: agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 23:37 UTC OPTIONS→200 + ACAO:* + Allow-Met
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 23:37 UTC OPTIONS→200 + ACAO:* + full A
+- LEARN: ACCEPTED: Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe)
+- LEARN: ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 35th consecutive cycle)
+- LEARN: ACCEPTED: earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe)
+- LEARN: ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe)
+- LEARN: ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 01:47 UTC OPTIONS→200 + ACAO:* + Allow-Meth
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 01:47 UTC OPTIONS→200 + ACAO:* + full Al
+- LEARN: ACCEPTED Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 37th consecutive cycle).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
+- LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own pr
+- LEARN: MONITOR: robot probe pipeline empty for 11 consecutive cycles (2026-08-20 17:42 → 2026-08-21 01:47 UTC); manual probes restored coverage again this cycle — fix 

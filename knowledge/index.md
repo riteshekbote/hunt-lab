@@ -606,3 +606,20 @@
 - 2026-08-20 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe this cycle OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
 - 2026-08-20 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 36th consecutive cycle).
 - 2026-08-20 MONITOR: robot probe pipeline empty for 10 consecutive cycles (17:42–23:38 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
+- 2026-08-21 REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorization header not eligible)
+- 2026-08-21 REJECTED: Dual-JWKS rotation desync @ login.microsoftonline.com — v1⊂v2 strict subset (6⊂9), all kty=RSA, no cross-endpoint confusion surface (stable across all probe cycles)
+- 2026-08-21 REJECTED: graph.microsoft.com root HTTP 301 redirect — cosmetic redirect to developer.microsoft.com/graph, no auth-bypass surface
+- 2026-08-21 REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project param + auth; HTTP 400/401, no bypass
+- 2026-08-21 ACCEPTED: agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 23:37 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable)
+- 2026-08-21 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 23:37 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable)
+- 2026-08-21 ACCEPTED: Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe)
+- 2026-08-21 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 35th consecutive cycle)
+- 2026-08-21 ACCEPTED: earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe)
+- 2026-08-21 ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[] (own probe)
+- 2026-08-21 ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 01:47 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 01:47 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-21 ACCEPTED Graph API RFC 6750 §3 deviation stable @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (own probe).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 37th consecutive cycle).
+- 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
+- 2026-08-21 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
+- 2026-08-21 MONITOR: robot probe pipeline empty for 11 consecutive cycles (2026-08-20 17:42 → 2026-08-21 01:47 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
