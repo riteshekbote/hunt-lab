@@ -1,40 +1,37 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## SCAN CLASSIFICATION (2026-08-21)
+## DELTA Classification
 
-### DELTA HITS (2 new vs prior scan)
+### DELTA: 5 new hit lines vs previous scan
 
-| # | File | Line | Content | Class |
-|---|------|------|---------|-------|
-| 1 | google/quiche/.../spdy_protocol.h | 7 | `// http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3` | TEST_OR_EXAMPLE — dead Chromium spec URL in comment |
-| 2 | google/quiche/.../certificate_view.h | 126 | `// supports legacy OpenSSL RSA key format ("BEGIN RSA PRIVATE KEY").` | TEST_OR_EXAMPLE — code comment referencing PEM header string |
+| Hit | File:Line | SHA256 | Class |
+|-----|-----------|--------|-------|
+| 1 | `google/adk-python/.../chunk-DS3WV6GO.js:3` | N/A | TEST_OR_EXAMPLE — minified parser error string ("Parse error on line"), not a secret |
+| 2 | `google/magika/.../github-issue-labeler.yml:20` | `e4d0cb7b8cbf46fe` | TEST_OR_EXAMPLE — `${{secrets.GITHUB_TOKEN}}` is GitHub Actions template syntax, not a leaked token |
+| 3 | `google/magika/.../python-build-and-release-package.yml:407` | `9d22642d36b1e7d5` | ENDPOINT_LEAK — public test PyPI URL (`https://test.pypi.org/p/magika`), staging/test infra |
+| 4 | `google/magika/.../python-build-and-release-package.yml:437` | `9d22642d36b1e7d5` | ENDPOINT_LEAK — same public test PyPI URL (legacy endpoint) |
+| 5 | `google/magika/tests_data/basic/javascript/code.js:31` | N/A | TEST_OR_EXAMPLE — minified test fixture JavaScript, no real secret |
 
-### FULL GREP HITS — Category Summary
+### FULL SCAN Summary
 
-| Category | Count | Notes |
-|----------|-------|-------|
-| TEST_OR_EXAMPLE | ~270 | Placeholder strings (`"password"`, `"your_client_secret"`, `"eyAkaknabna...."`, `"-----BEGIN PRIVATE KEY-----..."`), environment variable *names* (not values), K8s ConfigMap `kind:` declarations, minified JS parser error messages, doc comments |
-| ENDPOINT_LEAK | ~15 | `169.254.169.254` metadata endpoint references (ADK docs), Chromium spec URLs, release staging URLs (`https://staging.release-eq7.pages.dev`), `gcloud secrets versions access` *calls* (runtime secret fetchers, not leaked values) |
-| INTERESTING | ~5 | sam workflow env-var refs to `GOOGLE_CLIENT_SECRET`/`GITHUB_CLIENT_SECRET`/`CLI_OAUTH_SECRET` (GitHub Actions secret *names*, not values — by-design), crosvm `gcloud secrets` calls (infrastructure, no leak) |
-| REAL_SECRET | 0 new | See below |
+| Class | Count | Reportable? |
+|-------|-------|-------------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | ~310 | No |
+| ENDPOINT_LEAK | ~8 | No (all public/known) |
+| INTERESTING | 0 | — |
 
-### REAL_SECRET Candidates
-
-| # | File:Line | sha256 | Status |
-|---|-----------|--------|--------|
-| 1 | google/earthengine-api/python/ee/oauth.py:45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **ALREADY TRACKED** in KB — pending VRP native-app by-design determination |
-
-### VERDICT
+### Verdict
 
 | Finding | REPORT_CANDIDATE |
 |---------|-----------------|
-| quiche spdy_protocol.h spec URL | no |
-| quiche certificate_view.h PEM comment | no |
-| All ADK-python placeholder/test strings | no |
-| sam workflow secret *names* (not values) | no |
-| crosvm gcloud secrets *calls* | no |
-| earthengine-api oauth.py:45 | already tracked |
-| **Total new reportable** | **0** |
+| DELTA #1 (adk-python chunk parse error) | no |
+| DELTA #2 (magika GITHUB_TOKEN template) | no |
+| DELTA #3–4 (magika test PyPI URLs) | no |
+| DELTA #5 (magika test JS fixture) | no |
+| **Any reportable delta** | **no** |
 
-**Summary:** Delta = 2 hits, both documentation comments. Full corpus = 290 hits, all classified as TEST_OR_EXAMPLE/ENDPOINT_LEAK/INTERESTING. No new REAL_SECRET candidates. The only confirmed real secret (earthengine-api oauth.py:45) is already tracked in the knowledge base.
+**MONITOR**: robot probe pipeline still empty (32nd+ consecutive cycle). Root cause known (`hunt.yml` line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`). Manual probes restored coverage.
+
+**All 3 active hypotheses remain stable.** No new proving-dead or proving-live classes this cycle.
