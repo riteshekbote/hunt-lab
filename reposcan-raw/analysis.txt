@@ -1,18 +1,54 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m← [0mWrite triage_classification.md
-Wrote file successfully.
-[0m
-**Classification complete.** See `triage_classification.md` for full tables.
+[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=50, limit=15][0m
+[0m→ [0mRead reposcan-raw/google/trillian/testonly/keys.go[90m [limit=20, offset=20][0m
+[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml[90m [offset=120, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=40, limit=10][0m
+### Classification Tables
 
-**Bottom line:** This reposcan delta (10 new hits, 210 total) contains **zero new REAL_SECRET findings**.
+#### REAL_SECRET — **0 candidates**
+*(no hardcoded credentials with signs of life in delta or full grep)*
 
-| Category | Count |
-|----------|-------|
-| TEST_OR_EXAMPLE | ~180 (placeholders, test fixtures, minified JS artifacts, GH Actions `${{ secrets.* }}` refs) |
-| ENDPOINT_LEAK | ~15 (internal metadata `169.254.169.254`, `metadata.google.internal`) |
-| INTERESTING | ~15 (env var name constants, config params) |
-| **REAL_SECRET** | **0** (in this scan) |
+#### TEST_OR_EXAMPLE — **4 hits**
+| File | Line | Evidence |
+|------|------|----------|
+| `reposcan-raw/google/trillian/testonly/keys.go` | 24 | `DemoPrivateKey` in `testonly` pkg, encrypted with pass "towel", explicitly "must only be used for testing" |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example `private_key`, `password`, `token` in auth credential examples |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` scheme constant |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` placeholder |
 
-**Previously ACCEPTED finding** (not in this scan): `google/earthengine-api/python/ee/oauth.py:45` hardcoded OAuth client_secret (sha256 `3f3f8d6f...d271`) — still live per KB, **REPORT_CANDIDATE: yes** (pending VRP determination on native-app by-design status).
+#### ENDPOINT_LEAK — **6 hits**
+| File | Line | Evidence |
+|------|------|----------|
+| `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` URLs with `${{ env.PYPI_PACKAGE_NAME }}` (trusted publishing, test env) |
+| `reposcan-raw/google/meridian/.github/workflows/publish.yml` | 127, 139 | Same test.pypi.org config |
+| `reposcan-raw/google/trillian/deployment/deploy-config.yaml` | 2 | `kind: ConfigMap` (K8s resource type, not secret) |
+| `reposcan-raw/google/trillian/deployment/tf-patch.template.yaml` | 2 | `kind: ConfigMap` |
+| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` (proper secret refs) |
+
+#### INTERESTING — **5 hits**
+| File | Line | Evidence |
+|------|------|----------|
+| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` — flag *name* constant, not a value |
+| `reposcan-raw/google/trillian/quota/mysqlqm/mysql_quota.go` | 140 | MySQL docs URL comment |
+| `reposcan-raw/google/trillian/util/election2/k8s/provider.go` | 19, 41 | kubeconfig flag + `BuildConfigFromFlags` (standard k8s client pattern) |
+| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — constant name/placeholder |
+| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref syntax) |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| trillian testonly EC key | **no** | Explicit test fixture in `testonly` package, encrypted, documented as demo-only |
+| cadvisor StorageDriverPassword flag | **no** | Constant defines the *flag name*, not a secret value |
+| meridian test.pypi.org workflow URLs | **no** | Public test endpoint, trusted publishing (OIDC), no secrets in YAML |
+| langextract CI secret refs | **no** | Proper `${{ secrets.X }}` references, not hardcoded |
+| adk-python example creds | **no** | All in example/test/auth helper code, placeholder values |
+| adk-go Cloud Run secret ref | **no** | References secret manager, doesn't embed secret |
+| agents-cli GEMINI_API_KEY const | **no** | Placeholder string constant for config key name |
+| trillian kubeconfig handling | **no** | Standard k8s client-go pattern, no embedded creds |
+
+**Overall: 0 reportable findings in this delta.** All hits are test fixtures, placeholder constants, test endpoints, or proper secret references.
