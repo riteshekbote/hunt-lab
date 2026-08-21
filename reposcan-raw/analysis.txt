@@ -1,31 +1,54 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+## Classification Tables
 
-| File:Line | Category | Reason |
-|-----------|----------|--------|
-| magika/.github/workflows/github-issue-labeler.yml:20 | TEST_OR_EXAMPLE | Standard `${{secrets.GITHUB_TOKEN}}` reference — not hardcoded |
-| magika/.github/workflows/python-build-and-release-package.yml:407 | ENDPOINT_LEAK | Public TestPyPI URL (https://test.pypi.org) |
-| magika/.github/workflows/python-build-and-release-package.yml:437 | ENDPOINT_LEAK | Public TestPyPI legacy API URL |
-| magika/tests_data/basic/javascript/code.js:31 | TEST_OR_EXAMPLE | Minified JS test fixture (obfuscated sample code) |
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(none in current scan)* | | | |
 
-## Full-scan Context Classification (summary)
+### TEST_OR_EXAMPLE
+| File | Line | Type |
+|------|------|------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test private key fixture (`-----BEGIN PRIVATE KEY-----...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test password fixture (`"password"`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token fixture (`"eyAkaknabna...."`) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parser error messages (16 files) |
 
-| Category | Count | Notes |
-|----------|-------|-------|
-| REAL_SECRET | 0 | No new hardcoded credentials in delta |
-| TEST_OR_EXAMPLE | ~200+ | Test fixtures, placeholders (`your_client_secret`, `password`, `eyAkaknabna...`), minified samples |
-| ENDPOINT_LEAK | ~20 | Public/sandbox URLs (test.pypi.org, sandbox.googleapis.com, staging.release-eq7.pages.dev), ConfigMap kinds |
-| INTERESTING | 0 | No debug flags, cloud configs, or unusual keys |
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `http://metadata.google.internal/computeMetadata/v1/instance/...` |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (cloud metadata) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` |
+| microsoft/azure-pipelines-extensions/package-lock.json | 42,52,62 | `pkgs.dev.azure.com/mseng/PipelineTools/...` (npm registry) |
+| microsoft/azure-pipelines-extensions/Extensions/Ansible/.../package-lock.json | 25 | `pkgs.dev.azure.com/mseng/PipelineTools/...` |
+
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` (secure runtime fetch) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={value}` to file at runtime |
+| google/capsem/config/gate.toml | 597 | `password = "password.txt"` (file reference, not hardcoded) |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GitHub Actions secret refs) |
+
+---
 
 ## Verdict
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| magika github-issue-labeler.yml GITHUB_TOKEN ref | **no** (secret reference, not hardcoded) |
-| magika TestPyPI URLs | **no** (public endpoints) |
-| magika test fixture JS | **no** (test data) |
-| **Any new finding in this delta** | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/adk-python browser chunk parser errors | **no** | Minified JS build artifacts, not secrets |
+| google/langextract workflow secret refs | **no** | `${{ secrets.X }}` — GitHub Actions injection, not hardcoded |
+| microsoft/azure-pipelines-extensions package URLs | **no** | Public Azure DevOps npm registry URLs |
+| google/adk-python test fixtures | **no** | Explicit test/example data |
+| google/crosvm gcloud secret access | **no** | Secure runtime secret fetch pattern |
+| **google/earthengine-api/python/ee/oauth.py:45** (from KB) | **yes** | **PRE-EXISTING FINDING** — Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), confirmed LIVE on master, used as default fallback at oauth.py:99, scopes include `cloud-platform` (full GCP). **Already in knowledge base as ACCEPTED 2026-08-07+, pending VRP determination on native-app by-design status.** |
 
-**Summary**: This delta scan adds **zero reportable findings**. The 4 new hits are all benign (secret references, public endpoints, test fixtures). The only live hardcoded secret in the google/ org remains the previously-tracked `earthengine-api` OAuth client_secret (sha256 `3f3f8d6f…d271`), already pending VRP determination on native-app by-design status.
+**This scan adds 0 new reportable findings.** The only REAL_SECRET in scope is the pre-existing earthengine-api client_secret (already tracked in KB).
