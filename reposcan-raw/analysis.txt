@@ -1,3 +1,16 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
+The user wants me to triage the new scan hits from the Google and Microsoft orgs. Let me analyze the delta hits and the full grep hits to classify each one.
+
+First, let me look at the DELTA hits (10 new lines since last scan):
+
+1. `reposcan-raw/google/oss-fuzz/projects/flask/fuzz_json.py:27: secret_key = "fuzz test key"` - This is clearly a test/fuzz key, not real
+2. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:13: private static String g_shutdownPassword = "ServerShutdownPassword";` - Test password in TestServer
+3. `reposcan-raw/google/oss-fuzz/projects/h2database/TestServer.java:55: return getConnection("PASSWORD=" + getDatabasePassword() + ";");` - Test code
+4. `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/TestServer.java:33: * https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-usagenotes-connect-drivermanager.html` - Documentation URL
+5. `reposcan-raw/google/oss-fuzz/projects/mysql-connector-j/project.yaml:1: homepage: "https://dev.mysql.com/doc/connector-j/8.0/en/"` - Project homepage
+6. `reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder
+7. `reposcan-raw/google/tunix/tunix/cli/base_config.yaml:63: #   hf_access_token: "your_token"` - Commented out placeholder
+8. `reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py:862: os.environ["KUBECONFIG"] = k8s_cfg.get("kubeconfig", "~/.kube/config"` - Config path, not a secret
+9. `reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193: eot_token="
