@@ -1,25 +1,52 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File | Line | Classification |
-|----------|------|------|----------------|
-| ENDPOINT_LEAK | `closure-compiler/externs/browser/w3c_device_sensor_event.js` | 22 | URL ref to dev.w3.org spec |
-| ENDPOINT_LEAK | `closure-compiler/externs/es6.js` | 392 | URL ref to dev.w3.org postmsg spec |
-| ENDPOINT_LEAK | `crosvm/infra/.../codecov_wrapper.sh` | 11 | Runtime `gcloud secrets versions access` — not hardcoded |
-| ENDPOINT_LEAK | `crosvm/infra/.../push_to_github.sh` | 10 | Runtime `gcloud secrets versions access` — not hardcoded |
-| TEST_OR_EXAMPLE | `dagger/util/latest-dagger-version.sh` | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` — env var fallback |
-| TEST_OR_EXAMPLE | `flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` — safe Actions pattern |
-| TEST_OR_EXAMPLE | `langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `OPENAI_API_KEY` — safe Actions pattern |
-| TEST_OR_EXAMPLE | `magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — safe Actions pattern |
-| ENDPOINT_LEAK | `magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | `test.pypi.org` URLs — known public test infra |
-| TEST_OR_EXAMPLE | `magika/tests_data/basic/javascript/code.js` | 31 | Test fixture minified JS, not a secret |
-| ALREADY_KNOWN | `xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch apiKey — KB REJECTED (search-only, public by design) |
-| TEST_OR_EXAMPLE | `xrblocks/src/ai/AI.ts` | 303-304 | `YOUR_GEMINI_API_KEY_HERE` / `YOUR_OPENAI_API_KEY_HERE` — placeholder strings |
+[0m• [0mAnalyze scan hits[90m General Agent[0m
+Let me analyze the scan output. I need to classify each hit and check for reportable findings.
+[0m✓ [0mAnalyze scan hits[90m General Agent[0m
+## Classification Table
 
-**Verdict:**
+### REAL_SECRET
+| file:line | type | sha256 | reportable |
+|---|---|---|---|
+| (none) | — | — | — |
 
-| Finding | REPORT_CANDIDATE |
-|---------|-----------------|
-| All 16 delta hits | **no** |
+### ENDPOINT_LEAK (delta NEW)
+| file:line | URL | reportable |
+|---|---|---|
+| closure-compiler/contrib/externs/maps/google_maps_api_v3.js:4638 | `developers.devsite.corp.google.com/maps/deprecations` | no* |
+| closure-compiler/contrib/externs/maps/google_maps_api_v3_65.js:4639 | same | no* |
+| closure-compiler/contrib/externs/maps/google_maps_api_v3_exp.js:4639 | same | no* |
+| closure-compiler/src/.../ErrorManager.java:95 | `source.corp.google.com/piper///depot/google3/...` | no* |
 
-Zero REAL_SECRET hits in this delta. All GITHUB_TOKEN/secrets refs are safe Actions patterns; crosvm uses runtime `gcloud secrets versions access` (not hardcoded); xrblocks is already REJECTED in KB; placeholders and test fixtures are false positives.
+\* Internal corp URLs in JSDoc/source comments — informational class, Google VRP does not reward internal URL leaks in public source comments (info-only, no auth bypass).
+
+### TEST_OR_EXAMPLE (delta NEW)
+| file:line | type | reason | reportable |
+|---|---|---|---|
+| google/sam/.github/k8s/sam-*-template.yaml (×8) | `kind: ConfigMap` | K8s resource type definition | no |
+| google/sam/.github/workflows/deploy.yaml:247-250 | `${GOOGLE_CLIENT_SECRET}` etc. | CI secret variable references (not hardcoded) | no |
+| google/sam/development/kind/run.sh:139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Empty-default env var for local dev | no |
+| google/sam/internal/node/store.go:38 | `keyRefreshToken = "refresh_token"` | Constant name definition | no |
+| google/sam/charts/.../dex-deployment.yaml:3 | `kind: ConfigMap` | Helm chart template | no |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml:16 | `kind: ConfigMap` | Doc manifest | no |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml:88 | `kind: ConfigMap` | Doc manifest | no |
+| closure-compiler/contrib/externs/ms-office-1.3.js:27,166,205 | `dev.office.com` URLs | Public MS documentation links | no |
+| closure-compiler/externs/browser/w3c_*.js, html5.js (×10) | `dev.w3.org` URLs | Public W3C spec links | no |
+
+### SAFE (no change from prior)
+All prior hits (Algolia apiKey xrblocks, crosvm secrets fetch, langextract CI secrets, xrblocks placeholder keys, capsem config, adk-python doc examples, etc.) — 0 reportable.
+
+---
+
+## Verdict
+
+| Class | REPORT_CANDIDATE |
+|---|---|
+| Internal corp URL leaks (closure-compiler) | **no** — informational, Google VRP info-only |
+| CI secret variable refs (google/sam) | **no** — proper `${{ secrets.* }}` / `${VAR}` pattern |
+| ConfigMap definitions (google/sam) | **no** — K8s resource type keyword |
+| All other delta hits | **no** |
+| **OVERALL** | **0 reportable candidates** |
+
+Delta = 33 new lines, all ENDPOINT_LEAK (info-only) or SAFE/TEST_OR_EXAMPLE. No new REAL_SECRET, no new reportable surface. All prior ACCEPTED/REJECTED findings unchanged.
