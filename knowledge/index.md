@@ -753,3 +753,9 @@
 - 2026-08-21 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[], subset=True (own probe).
 - 2026-08-21 MONITOR robot probe pipeline empty for 33rd consecutive cycle (2026-08-20 17:42 → 2026-08-21 20:58 UTC); hunt.yml root cause unchanged (regex requires https://, glob misses art/analyst-*.out); manual probes restored coverage — operator fix still not applied.
 - 2026-08-21 No new proving-dead or proving-live classes this cycle — all fresh manual probes (20:58 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
+- 2026-08-21 No new proving-dead or proving-live classes this cycle — all fresh manual probes (21:56 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
+- 2026-08-21 ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 21:56 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants: own probe 21:56 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-21 ACCEPTED Graph API RFC 6750 §3 deviation @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-WWW-Authenticate vs GET /me→401+WWW-Authenticate Bearer (stable).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 59th+ consecutive cycle since 2026-08-17).
+- 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', file 23110 B (own raw-fetch probe 21:56 UTC).
