@@ -1,52 +1,24 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Classification Table
+| Category | File | Line | Verdict |
+|----------|------|------|---------|
+| ENDPOINT_LEAK | `jsonnet/case_studies/micromanage/service_google.py` | 198 | TEST_OR_EXAMPLE — GCP metadata URL `http://169.254.169.254/...` in a case study example, not production config |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/config/*.js` (7 files) | various | Localized strings containing "Token" (`NotMathMLToken`), variable names `ambigAMtoken`, etc. Third-party vendored library — zero security signal |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/extensions/a11y/wgxpath.install.js` | 68,71 | `throw Error(...)` — standard JS error handling, not a secret |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/*/TeX.js` (~25 files) | 47 | `NotMathMLToken` localization strings — vendored third-party i18n |
+| TEST_OR_EXAMPLE | `langextract/.github/workflows/ci.yaml` | 168-170 | `secrets.GEMINI_API_KEY`, `secrets.OPENAI_API_KEY` — proper GitHub Actions secret references, not hardcoded |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/jax/input/AsciiMath/jax.js` | 1178-1180 | Variable names `ambigAMtoken`, `englishAMtoken` — MathJax parser internals |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/jax/input/TeX/jax.js` | 1015 | `mmlToken` property name — MathJax internals |
+| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/qqq/TeX.js` | 47 | Developer-facing docs string, vendored |
+| TEST_OR_EXAMPLE | All `artemis/artemis/config/*.py` | various | Environment variable name definitions (`ENV_GOOGLE_API_KEY`), not values |
 
-### REAL_SECRET
-| File | Line | Notes | sha256 |
-|------|------|-------|--------|
-| (none) | — | — | — |
+**Verdict:**
 
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Notes |
-|------|------|---------|-------|
-| google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | Env var reference, not a key value |
-| google/artemis/artemis/config/constants.py | 35,51,52 | `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | Env var name constants |
-| google/adk-python/.../auth_credential.py | 157,269,278 | `"-----BEGIN PRIVATE KEY-----..."`, `"user"`, `"password"`, `"eyAkaknabna...."` | Docstring placeholders |
-| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value / example |
-| google/adk-python/.../openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder in docstring |
-| google/adk-python/.../cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template string, not a key |
-| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | File path, not a password |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr ... < "$pass_file")"` | Reads from file at runtime |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr ... < "$PASS_FILE")"` | Reads from file at runtime |
-| google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path: str \| None = None` | Parameter declarations |
-| google/adk-python/.../container_code_executor.py | 114,154 | Comment mentioning `169.254.169.254` | Documentation about cloud metadata |
-| google/adk-python/.../load_web_page.py | 171 | Comment mentioning `169.254.169.254` | Documentation |
-| google/adk-python/.../computer_use_toolset.py | 146 | Comment mentioning `169.254.169.254` | Chrome security docstring |
-| google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name, not a token |
-| google/adk-python/.../browser/chunk-*.js (×16) | various | `"Parse error on line"` | Minified parser error strings |
-| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/p/...` | Test PyPI URL, expected |
-| google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/legacy/` | Test PyPI URL, expected |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging domain in workflow config |
-| google/closure-compiler/externs/*, contrib/* | various | W3C spec URLs (`http://dev.w3.org/...`) | Standard spec reference URLs in externs |
-| google/closure-compiler/.../ErrorManager.java | 95 | `https://source.corp.google.com/...` | Internal code review URL in comment |
+| # | Category | REPORT_CANDIDATE | Reason |
+|---|----------|-----------------|--------|
+| 1 | ENDPOINT_LEAK | no | GCP metadata URL in vendored case study, not a secret |
+| 2 | MathJax vendored third-party | no | Zero security signal, localization strings |
+| 3 | langextract CI secrets refs | no | Proper `${{ secrets.* }}` references, not hardcoded |
 
-### ENDPOINT_LEAK
-| File | Line | URL | Notes |
-|------|------|-----|-------|
-| google/closure-compiler/.../ErrorManager.java | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Piper code review link; informational only, no auth surface |
-
-### INTERESTING
-| (none) | — | — | — |
-
-## Verdict
-
-| Category | Report Candidate? | Rationale |
-|----------|------------------|-----------|
-| REAL_SECRET | **No** | No hardcoded secrets found in this delta |
-| TEST_OR_EXAMPLE | No | All are docstrings, placeholders, env var names, or standard references |
-| ENDPOINT_LEAK | No | source.corp.google.com link in a comment; informational only, no actionable surface |
-| INTERESTING | No | No unusual findings |
-
-**REPORT_CANDIDATE: no** — Delta contains only W3C spec reference URLs (closure-compiler externs), internal code review URL (source.corp.google.com comment), environment variable name constants, and placeholder strings. No real secrets, no reportable findings.
+**REPORT_CANDIDATE: no** — 0 reportable findings in delta. All 342 hits are TEST_OR_EXAMPLE or ENDPOINT_LEAK (vendored MathJax localization, CI secret references, case study example code). No real secrets, no new attack surface.
