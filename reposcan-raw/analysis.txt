@@ -1,12 +1,18 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| File | Line | Type | Verdict |
-|---|---|---|---|
-| `google/adk-python/.../chunk-*.js` (×5) | 3/9 | Parser error msg strings in minified JS | TEST_OR_EXAMPLE |
-| `google/closure-compiler/externs/browser/*.js` (×8) | various | W3C spec `@see http://dev.w3.org/...` comments | TEST_OR_EXAMPLE |
-| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com/...` internal registry URL | ENDPOINT_LEAK |
-| `google/copybara/.../AuthTest.java` | 75,102,129 | `"testpassword"`, `"test-token-123"` test fixtures | TEST_OR_EXAMPLE |
-| `google/copybara/.../HttpEndpointTest.java` | 136,159,189 | `"testpassword"` test fixtures | TEST_OR_EXAMPLE |
+[0m• [0mAnalyze artemis config hits[90m Explore Agent[0m
+[0m✓ [0mAnalyze artemis config hits[90m Explore Agent[0m
+## Delta Triage Results
 
-**REPORT_CANDIDATE: no** — 0 real secrets in delta. All 22 new hits are parser error strings, W3C spec refs, test fixtures, or internal registry URL (non-exploitable endpoint leak). No actionable finding.
+All 5 new delta hits are **false positives**:
+
+| File | Line | Content | Classification |
+|---|---|---|---|
+| `google/artemis/config/constants.py` | 35 | `ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN"` | TEST_OR_EXAMPLE — env var name constant |
+| `google/artemis/config/constants.py` | 51 | `ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` | TEST_OR_EXAMPLE — env var name constant |
+| `google/artemis/config/constants.py` | 52 | `ENV_GEMINI_API_KEY = "GEMINI_API_KEY"` | TEST_OR_EXAMPLE — env var name constant |
+| `google/artemis/config/settings.py` | 163 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | TEST_OR_EXAMPLE — internal attribute aliasing |
+| `google/artemis/config/settings.py` | 165 | `self.GOOGLE_API_KEY = self.GCP_API_KEY` | TEST_OR_EXAMPLE — internal attribute aliasing |
+
+**Verdict: REPORT_CANDIDATE: no** — zero new reportable findings. All delta hits are env-var-name constants and fallback aliasing logic, not actual secrets. The repo properly gitignores `.env` files and uses `SecretStr` for key fields.
