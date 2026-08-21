@@ -1,3 +1,51 @@
 [0m
 > build · mimo-v2.5-free
 [0m
+## Scan Triage — 2026-08-21 Delta
+
+### TEST_OR_EXAMPLE (40 hits — NOT reportable)
+
+| File | Line | Material |
+|------|------|----------|
+| adk-python/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` docstring placeholder |
+| adk-python/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` docstring |
+| adk-python/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` docstring placeholder |
+| adk-python/auth_schemes.py | 68 | `PASSWORD = "password"` enum string constant |
+| adk-python/cli/browser/*.js | 3+ | Minified parse-error strings (JIT grammars), not secrets |
+| adk-python/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` env-var template |
+| adk-python/openapi_tool/auth_helpers.py | 64 | `client_secret="your_client_secret"` docstring placeholder |
+| adk-python/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` constant name |
+| adk-python/tools/load_web_page.py | 171 | Docstring: `169.254.169.254` metadata reference |
+| adk-python/tools/computer_use_toolset.py | 146 | Comment: refuse `169.254.169.254` in Chrome |
+| adk-python/code_executors/container_code_executor.py | 114,154 | Docstring: metadata endpoint warning |
+| adk-python/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` param docs |
+| adk-js/auth/oauth2_discovery.ts | 215 | `metadata.google.internal` SSRF-gate code |
+| adk-js/tools/load_web_page.ts | 36 | `169.254.0.0/16` CIDR deny-list |
+| artemis/config/constants.py | 35,51,52 | `ENV_GOOGLE_API_KEY`/`ENV_GEMINI_API_KEY` constant names |
+| artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` config wiring |
+| langextract/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` refs |
+| flatbuffers/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` — standard |
+| meridian/proto-publish.yml | 126,138 | `test.pypi.org` URLs |
+| meridian/publish.yml | 127,139 | `test.pypi.org` URLs |
+| sam/* | various | `kind: ConfigMap` templates, `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` workflow secret refs, `keyRefreshToken = "refresh_token"` constant |
+
+### ENDPOINT_LEAK (0 new)
+
+No new internal URLs or staging endpoints beyond prior known-rejected set.
+
+### INTERESTING (0)
+
+### REAL_SECRET (0 new)
+
+Delta contains 0 new hardcoded credential/API-key/token values. All 403 hits in full scan are `TEST_OR_EXAMPLE` or config wiring.
+
+---
+
+### Verdict
+
+| Candidate | REPORT_CANDIDATE |
+|-----------|-----------------|
+| earthengine-api oauth.py:45 client_secret | YES (KNOWN — pending VRP determination) |
+| delta (this cycle) | **no** |
+
+**No new reportable findings.** All delta hits are test fixtures, docstring examples, minified JS error strings, env-var constants, or config wiring. Same baseline as prior cycle.
