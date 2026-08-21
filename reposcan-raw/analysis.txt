@@ -1,51 +1,45 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Scan Triage — 2026-08-21 Delta
+## Classification Table
 
-### TEST_OR_EXAMPLE (40 hits — NOT reportable)
+| Category | Count | Details |
+|----------|-------|---------|
+| **TEST_OR_EXAMPLE** | 396 | All hits — no exceptions |
 
-| File | Line | Material |
-|------|------|----------|
-| adk-python/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` docstring placeholder |
-| adk-python/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` docstring |
-| adk-python/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` docstring placeholder |
-| adk-python/auth_schemes.py | 68 | `PASSWORD = "password"` enum string constant |
-| adk-python/cli/browser/*.js | 3+ | Minified parse-error strings (JIT grammars), not secrets |
-| adk-python/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` env-var template |
-| adk-python/openapi_tool/auth_helpers.py | 64 | `client_secret="your_client_secret"` docstring placeholder |
-| adk-python/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` constant name |
-| adk-python/tools/load_web_page.py | 171 | Docstring: `169.254.169.254` metadata reference |
-| adk-python/tools/computer_use_toolset.py | 146 | Comment: refuse `169.254.169.254` in Chrome |
-| adk-python/code_executors/container_code_executor.py | 114,154 | Docstring: metadata endpoint warning |
-| adk-python/code_executors/gke_code_executor.py | 103,104,115 | `kubeconfig_path`/`kubeconfig_context` param docs |
-| adk-js/auth/oauth2_discovery.ts | 215 | `metadata.google.internal` SSRF-gate code |
-| adk-js/tools/load_web_page.ts | 36 | `169.254.0.0/16` CIDR deny-list |
-| artemis/config/constants.py | 35,51,52 | `ENV_GOOGLE_API_KEY`/`ENV_GEMINI_API_KEY` constant names |
-| artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` config wiring |
-| langextract/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` refs |
-| flatbuffers/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` — standard |
-| meridian/proto-publish.yml | 126,138 | `test.pypi.org` URLs |
-| meridian/publish.yml | 127,139 | `test.pypi.org` URLs |
-| sam/* | various | `kind: ConfigMap` templates, `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` workflow secret refs, `keyRefreshToken = "refresh_token"` constant |
+### Evidence
 
-### ENDPOINT_LEAK (0 new)
+| File | Line | Classification | Reason |
+|------|------|---------------|--------|
+| artemis/config/settings.py | 163-165 | TEST_OR_EXAMPLE | Env var reads (`self.GEMINI_API_KEY`, `self.GCP_API_KEY`), no hardcoded value |
+| artemis/config/constants.py | 35,51,52 | TEST_OR_EXAMPLE | String constants for env var names, no actual secrets |
+| meridian workflows | 126,127,138,139 | TEST_OR_EXAMPLE | `test.pypi.org` URLs — public test infra |
+| sam manifests | 16,88,3 | TEST_OR_EXAMPLE | `kind: ConfigMap` lines — K8s resource type keywords |
+| sam store.go | 38 | TEST_OR_EXAMPLE | String literal `"refresh_token"` — key name, not a value |
+| sam run.sh | 139 | TEST_OR_EXAMPLE | `${OIDC_CLIENT_SECRET:-}` — empty default, env var pattern |
+| sam deploy.yaml | 247,249,250 | TEST_OR_EXAMPLE | `kubectl create secret --from-literal=...=${{ secrets.X }}` — GitHub secrets refs |
+| sam k8s templates | 2,14 | TEST_OR_EXAMPLE | `kind: ConfigMap` lines |
+| nearby_sharing_service.h | 71 | TEST_OR_EXAMPLE | Internal source.corp URL comment |
+| adk-js auth files | 214,226,41,215,36 | TEST_OR_EXAMPLE | JSDoc examples, enum values, metadata IP checks |
+| langextract ci.yaml | 168-170 | TEST_OR_EXAMPLE | `${{ secrets.GEMINI_API_KEY }}` — GitHub secrets refs, not hardcoded |
+| flatbuffers label.yml | 24 | TEST_OR_EXAMPLE | `${{ secrets.GITHUB_TOKEN }}` — standard GitHub token |
+| adk-python auth_credential.py | 157,269,278 | TEST_OR_EXAMPLE | Docstring examples (`"-----BEGIN PRIVATE KEY-----..."`, `"eyAkaknabna...."`) |
+| adk-python auth_schemes.py | 68 | TEST_OR_EXAMPLE | Enum value `PASSWORD = "password"` |
+| adk-python code_executors | 103-154 | TEST_OR_EXAMPLE | `kubeconfig_path` optional params + metadata endpoint references |
+| adk-python tools | 171,146,47 | TEST_OR_EXAMPLE | Metadata IP blocking (`169.254.169.254`), state key |
+| adk-python auth_helpers.py | 64 | TEST_OR_EXAMPLE | `"your_client_secret"` placeholder in docstring |
+| adk-python cli_create.py | 131 | TEST_OR_EXAMPLE | `GOOGLE_API_KEY={google_api_key}` — template write, not hardcoded |
+| adk-python browser/*.js | 3 | TEST_OR_EXAMPLE | Bundled parser error messages |
 
-No new internal URLs or staging endpoints beyond prior known-rejected set.
+## Verdict
 
-### INTERESTING (0)
+| Category | REPORT_CANDIDATE |
+|----------|-----------------|
+| REAL_SECRET | 0 — none found |
+| TEST_OR_EXAMPLE | 396 — all hits |
+| ENDPOINT_LEAK | 0 |
+| INTERESTING | 0 |
 
-### REAL_SECRET (0 new)
+**REPORT_CANDIDATE: no**
 
-Delta contains 0 new hardcoded credential/API-key/token values. All 403 hits in full scan are `TEST_OR_EXAMPLE` or config wiring.
-
----
-
-### Verdict
-
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| earthengine-api oauth.py:45 client_secret | YES (KNOWN — pending VRP determination) |
-| delta (this cycle) | **no** |
-
-**No new reportable findings.** All delta hits are test fixtures, docstring examples, minified JS error strings, env-var constants, or config wiring. Same baseline as prior cycle.
+All 396 hits are documentation examples, environment variable references, Kubernetes resource type keywords, GitHub secrets expressions, or placeholder strings. No hardcoded credentials, API keys, or tokens with signs of life were found. The robot probe pipeline remains empty for 33rd+ consecutive cycle (known root cause in hunt.yml regex).
