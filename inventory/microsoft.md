@@ -2033,3 +2033,5 @@
 - NEW Robot probe pipeline empty for 27+ consecutive cycles (2026-08-20 17:42 → now); hunt.yml root cause confirmed: regex requires `https://` + glob misses `art/analyst-*.out`
 
 ## 2026-08-21 16:25:11 UTC
+
+## 2026-08-21 17:00:30 UTC
