@@ -1,50 +1,32 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat << 'EOF' > /tmp/triage.md
-# Reposcan Triage — 2026-08-21
+### Delta Hit Classification
 
-## REAL_SECRET
-| File | Line | SHA256 (secret) | Notes |
-|------|------|-----------------|-------|
-| *(none found in this delta)* | | | |
+| File | Line | Classification | Reason |
+|------|------|----------------|--------|
+| `google/android-cuttlefish/.github/workflows/gemini-invoke.yml` | 64 | TEST_OR_EXAMPLE | Proper `${{ secrets.GOOGLE_API_KEY }}` reference |
+| `google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp` | 42 | ENDPOINT_LEAK | GCP metadata endpoint `metadata.google.internal` |
+| `google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp` | 187 | INTERESTING | OAuth client_secret handling in code (not hardcoded) |
+| `google/langextract/.github/workflows/ci.yaml` | 168-170 | TEST_OR_EXAMPLE | Proper `${{ secrets.X }}` references (Gemini, OpenAI) |
+| `google/seesaw/healthcheck/radius.go` | 135 | TEST_OR_EXAMPLE | RADIUS attribute name `"User-Password"`, not a secret |
 
-## TEST_OR_EXAMPLE
-| File | Line | Classification |
-|------|------|----------------|
-| google/artemis/artemis/config/settings.py | 163 | Variable assignment (GOOGLE_API_KEY = GEMINI_API_KEY) |
-| google/artemis/artemis/config/settings.py | 165 | Variable assignment (GOOGLE_API_KEY = GCP_API_KEY) |
-| google/artemis/artemis/config/constants.py | 35 | Env var name constant: "ARTEMIS_TENANT_TOKEN" |
-| google/artemis/artemis/config/constants.py | 51 | Env var name constant: "GOOGLE_API_KEY" |
-| google/artemis/artemis/config/constants.py | 52 | Env var name constant: "GEMINI_API_KEY" |
-| google/sam/internal/node/store.go | 38 | Const string "refresh_token" (not a secret value) |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Placeholder constant: "gemini_api_key" |
-| google/sam/site/content/docs/manifests/*.yaml | multiple | K8s ConfigMap examples in docs |
-| google/sam/.github/k8s/*.yaml | multiple | K8s ConfigMap templates |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | K8s template |
-| google/sam/development/kind/run.sh | 139 | Shell param expansion with default empty |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | GitHub Actions secret refs (proper pattern) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Secret Manager fetch (proper pattern) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Secret Manager fetch (proper pattern) |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | GH Actions expressions |
-| google/android-cuttlefish/.github/workflows/*.yml | multiple | GitHub Actions secret refs (proper pattern) |
+### Full Grep Context Check
 
-## ENDPOINT_LEAK
-| File | Line | Classification |
-|------|------|----------------|
-| *(none — no internal/dev/staging URLs found)* | | |
+All other hits in the full scan are:
+- **ConfigMap/k8s manifests** (sam, dex) — infrastructure-as-code, not secrets
+- **Workflow secret references** (`${{ secrets.X }}`) — proper CI pattern
+- **Test fixtures / dev scripts** (`OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"`) — empty defaults
+- **Minified JS source maps** (adk-go) — build artifacts
+- **Artifact registry creds in workflows** — `${{ secrets.artifact-registry-uploader-json-creds }}` proper reference
 
-## INTERESTING
-| File | Line | Classification |
-|------|------|----------------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret reference pattern (--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest) |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse error messages (noise, not secrets) |
+### Verdict
 
-## VERDICT
-- **REPORT_CANDIDATE: no** — No hardcoded credentials/API keys/tokens with signs of life found in this delta.
-- All secret-like references use proper patterns: GitHub Actions `${{ secrets.* }}`, GCP Secret Manager `gcloud secrets versions access`, or are placeholder/constants.
-- The google/earthengine-api oauth.py:45 hardcoded client_secret (sha256 `3f3f8d6f...d271`) is **already tracked in KB as ACCEPTED** (2026-08-07→21), not a new finding.
-EOF
-cat /tmp/triage.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| android-cuttlefish GCP metadata endpoint | **no** (ENDPOINT_LEAK — known GCP internal endpoint, not exploitable externally) |
+| android-cuttlefish oauth2_consent.cpp client_secret handling | **no** (INTERESTING — code logic, no hardcoded secret) |
+| langextract/seesaw workflow secret refs | **no** (TEST_OR_EXAMPLE — proper secret usage) |
+| All other full-scan hits | **no** (TEST_OR_EXAMPLE / ENDPOINT_LEAK / known patterns) |
+
+**No reportable findings in this delta.** All secret references use GitHub Actions `${{ secrets.X }}` pattern correctly. The GCP metadata endpoint is internal-only. The OAuth client_secret handling is runtime code, not a static credential.
