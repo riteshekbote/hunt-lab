@@ -57,3 +57,6 @@
   - | Q6 Rejected list | ⚠️ "Information disclosure" unless token is live/valid |
   - | Q7 Reasonable triager | ⚠️ Only if token is currently valid |
   - **Verdict: HOLD** — Severity depends entirely on whether the `ya29.*` token is still valid. Git history secrets are a real finding but bounty-eligible only if they lead to actual compromise. Google ma
+
+- 1 lead(s) marked VALID at 2026-08-21 20:46:08 UTC
+  - **Verdict:** HOLD — Depends on whether this is Google's own deployment vs. open-source self-hosted. If on `googleapis.com` or `cloud.google.com` → VALID.
