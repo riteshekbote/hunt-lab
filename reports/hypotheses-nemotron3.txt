@@ -1,4 +1,9 @@
-## 2026-08-21 10:06:19 UTC [google] (model nemotron3)
+## 2026-08-21 10:43:56 UTC [google] (model nemotron3)
+[NEW] oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (systemic at collection+item)
+[NEW] agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
+[CHANGED] oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+[CHANGED] www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
+[CHANGED] tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
 [PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 9.3 | attack:10 business:10 tech:9 gate:8 cloud:8 fresh:9
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — 8.6 | attack:9 business:9 tech:9 gate:7 cloud:8 fresh:9
 [PRIO] oauth2.googleapis.com/token — 8.5 | attack:8 business:10 tech:8 gate:6 cloud:10 fresh:9
@@ -29,6 +34,7 @@ evidence_needed: App B cross-origin PATCHs grant with caller-chosen resourceId �
 verify_steps: AUTH_HELPED: (1) App A POST /v1.0/oauth2PermissionGrants {resourceId:"<victim_app>"} → 201; (2) App B cross-origin OPTIONS → ACAO:*+PATCH; (3) App B cross-origin PATCH {resourceId:"<victim>"} → 200; (4) App B POST /oauth2/v2.0/token → token minted for victim resource
 impact: Attacker app silently obtains tokens for victim Graph API data + Azure Storage without consent prompt; CVSS 8.0
 testability: AUTH_HELPED
+[PARKED] none — all 3 hypotheses ≥40 confidence, no REJECTED-list classes, concrete verify_steps present.
 [FINAL] 1) Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families — confidence 97, AUTH_HELPED
 [FINAL] 2) Earth Engine OAuth client_secret redeemable for full GCP access — confidence 96, HUMAN_ONLY
 [FINAL] 3) Consent-grant forge via caller-chosen resourceId with CORS+PATCH — confidence 80, AUTH_HELPED
