@@ -51,3 +51,9 @@
 
 - 1 lead(s) marked VALID at 2026-08-12 03:34:04 UTC
   - | **VALID** | 0 | — |
+
+- 4 lead(s) marked VALID at 2026-08-21 19:18:46 UTC
+  - | Q3 Impact | ⚠️ If token is still valid → full account compromise. If expired → no impact |
+  - | Q6 Rejected list | ⚠️ "Information disclosure" unless token is live/valid |
+  - | Q7 Reasonable triager | ⚠️ Only if token is currently valid |
+  - **Verdict: HOLD** — Severity depends entirely on whether the `ya29.*` token is still valid. Git history secrets are a real finding but bounty-eligible only if they lead to actual compromise. Google ma
