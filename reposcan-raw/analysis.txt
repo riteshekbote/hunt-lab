@@ -1,61 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m✗ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py failed[90m [offset=40, limit=20][0m
-[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py
-[0m✱ [0mGlob "**/reposcan-raw/google/earthengine-api/**"[90m 0 matches[0m
+[0m→ [0mRead reposcan-raw/google/sandboxed-api/.github/workflows/generator-tool.yml[90m [limit=15, offset=115][0m
+[0m→ [0mRead reposcan-raw/microsoft/promptflow/src/promptflow-evals/pyproject.toml[90m [offset=70, limit=15][0m
 ### Classification Tables
 
-#### REAL_SECRET
-| File | Line | Secret SHA256 | Classification |
-|------|------|---------------|----------------|
-| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN ACCEPTED** — hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes `cloud-platform+earthengine+drive+devstorage.full_control`, used as default fallback at oauth.py:99; confirmed live on master (2026-08-21 probe), RFC 6749 §5.2 A/B proof conclusive (real→`invalid_grant`, fake→`invalid_client`); **already tracked in KB as ACCEPTED, REPORT_CANDIDATE=yes** |
+#### REAL_SECRET (reportable hardcoded credentials)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none)* | — | — | No hardcoded live secrets found |
 
-#### TEST_OR_EXAMPLE
-| File | Line | Content | Reason |
-|------|------|---------|--------|
-| google/garf/libs/community/common_apis/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | Placeholder literal |
-| google/garf/libs/community/common_apis/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | Placeholder literal |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not secret |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var placeholder |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` | GitHub Actions secret refs (proper pattern) |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | — | Minified JS chunks | Build artifacts, not secrets |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Comment referencing corp Google Client ID | Documentation only |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | Secret Manager runtime fetch (proper pattern) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | Secret Manager runtime fetch (proper pattern) |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret injection (proper pattern) |
+#### TEST_OR_EXAMPLE (fixtures, test data, placeholders)
+| File | Line | Context |
+|------|------|---------|
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` — constant key name |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — dev script, empty default |
+| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` — allowlist entry |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Comment: "Get this Client ID from https://pantheon.corp.google.com/..." |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` — test environment URLs |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `return "https://test.osv.dev/"` — test URL |
+| google/osv.dev/docs/_config.yml | 78 | `url: https://test.osv.dev/linter/` — test URL |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings (not secrets) |
 
-#### ENDPOINT_LEAK
-| File | Line | Endpoint | Type |
-|------|------|----------|------|
-| google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` | Staging frontend |
-| google/osv.dev/external/pypi/pypi.go | 80 | `http://dev.mysql.com` | Test domain allowlist |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | `https://api.test.osv.dev/v1experimental/...`, `https://api.test.osv.dev/v1/vulns/...` | Staging API |
-| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Staging API |
-| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` | Staging base URL |
-| google/osv.dev/deployment/clouddeploy/oss-vdb-test/generate-sitemap.yaml | 16 | `https://test.osv.dev` | Staging base URL |
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | K8s template |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | K8s template |
-| google/sam/.github/k8s/*.yaml | — | Various `kind: ConfigMap` | K8s templates |
-| google/artemis/artemis/config/settings.py | 163, 165 | `GOOGLE_API_KEY = GEMINI_API_KEY`, `GCP_API_KEY` | Config references |
-| google/artemis/artemis/config/constants.py | 35, 51, 52 | `ENV_ARTEMIS_TENANT_TOKEN`, `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | Env var names |
+#### ENDPOINT_LEAK (internal/dev/staging URLs, config endpoints)
+| File | Line | Context |
+|------|------|---------|
+| google/sam/site/content/docs/manifests/*.yaml | multiple | `kind: ConfigMap` — K8s docs/examples |
+| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` — K8s deployment templates |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` — Secret Manager ref |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` — Secret Manager ref |
+| microsoft/promptflow/src/promptflow-evals/pyproject.toml | 77 | `https://pkgs.dev.azure.com/azure-sdk/public/...` — public package index |
 
-#### INTERESTING
-| File | Line | Observation |
-|------|------|-------------|
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secret injection via `--from-literal` |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Proper Cloud Run `--set-secrets` pattern |
-| google/crosvm/infra/.../push_to_github.sh / codecov_wrapper.sh | 10, 11 | Proper Secret Manager runtime access via `gcloud` |
+#### INTERESTING (unusual patterns, debug flags, cloud configs)
+| File | Line | Context |
+|------|------|---------|
+| google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY / self.GCP_API_KEY` — key aliasing pattern |
+| google/artemis/artemis/config/constants.py | 35,51,52 | Env var names: `ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY` |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` — deploys via GitHub secrets |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret injection |
+| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `repo_token: "${{secrets.GITHUB_TOKEN}}"` — standard GITHUB_TOKEN usage |
 
 ---
 
-### Verdict List
+### SHORT VERDICT LIST
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/earthengine-api/python/ee/oauth.py:45 (client_secret) | **no** | Already ACCEPTED in KB (2026-08-07 through 2026-08-21), confirmed live, REPORT_CANDIDATE=yes previously determined; **not a new finding** — do not re-report |
-| All TEST_OR_EXAMPLE entries | **no** | Placeholders, env var refs, build artifacts, proper secret-handling patterns |
-| All ENDPOINT_LEAK entries | **no** | Staging/test URLs (test.osv.dev, api.test.osv.dev), K8s templates, config references — no sensitive exposure |
-| All INTERESTING entries | **no** | Demonstrate proper secret management patterns (GitHub Actions, Cloud Run, Secret Manager) |
+| Candidate | File | REPORT_CANDIDATE |
+|-----------|------|------------------|
+| Delta #1 | google/sandboxed-api/.github/workflows/generator-tool.yml:121 | **no** — standard `${{secrets.GITHUB_TOKEN}}` (GitHub-provided, rotating) |
+| Delta #2 | microsoft/promptflow/src/promptflow-evals/pyproject.toml:77 | **no** — public Azure DevOps package index URL |
+| Full-scan hits | all 165 grep matches | **no** — all are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING patterns; zero REAL_SECRET |
 
-**Summary:** No new reportable findings in this delta. The single REAL_SECRET is a previously accepted, known-live finding (earthengine-api OAuth client_secret). All other hits are test fixtures, staging endpoints, or proper secret-handling code.
+**Summary:** No reportable findings in this delta. The two new hits are benign (standard GITHUB_TOKEN reference + public package index). The full scan surfaces only test fixtures, documentation examples, Secret Manager references (not secrets themselves), and standard CI/CD patterns.
