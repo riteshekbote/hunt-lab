@@ -1,45 +1,36 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=38, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml[90m [limit=40, offset=160][0m
-[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/constants.py[90m [offset=30, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/settings.py[90m [offset=155, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/fleetspeak/sandboxes/cleartext-header-mode/docker-compose.yaml
-[0m→ [0mRead reposcan-raw/google/fleetspeak/terraform/main.tf[90m [limit=20, offset=315][0m
-[0m→ [0mRead reposcan-raw/google/go-github/github/github.go[90m [limit=20, offset=1985][0m
-[0m→ [0mRead reposcan-raw/google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml[90m [offset=18, limit=15][0m
-Based on my analysis of all delta hits and context reads, here are the classifications:
+[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml
+[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/publish.yml
+[0m→ [0mRead reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js[90m [limit=30, offset=340][0m
+### Classification Table
+
+| Category | File:Line | Evidence | Verdict |
+|----------|-----------|----------|---------|
+| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/proto-publish.yml:126` | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | TestPyPI staging URL (public) |
+| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/proto-publish.yml:138` | `repository-url: https://test.pypi.org/legacy/` | TestPyPI legacy API endpoint |
+| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/publish.yml:127` | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | TestPyPI staging URL (public) |
+| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/publish.yml:139` | `repository-url: https://test.pypi.org/legacy/` | TestPyPI legacy API endpoint |
+| **ENDPOINT_LEAK** | `google/osv.dev/gcp/website/frontend3/src/linter.js:351` | `https://api.test.osv.dev/v1/vulns/${issue.bug_id}` | Test/staging OSV API endpoint |
+| **ENDPOINT_LEAK** | `google/osv.dev/gcp/website/frontend3/src/linter.js:486` | `fetch(\`https://api.test.osv.dev/v1/vulns/${bugId}\`)` | Test/staging OSV API endpoint |
 
 ---
 
-### Classification Tables
+### Other Full-Scan Hits (Context)
 
-#### REAL_SECRET — **0 findings**
-
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | | | |
+| Category | File | Notes |
+|----------|------|-------|
+| **TEST_OR_EXAMPLE** | `google/artemis/artemis/config/*.py` | Env var *names* (`GOOGLE_API_KEY`, `GEMINI_API_KEY`), not values |
+| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh:139` | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` empty default |
+| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml:247-250` | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. — GitHub Actions secret refs |
+| **TEST_OR_EXAMPLE** | `google/fleetspeak/*/docker-compose.yaml` | Hardcoded `'fleetspeak-password'`, `'password'` — dev/test defaults |
+| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/*` | `"fuzz test key"`, `"ServerShutdownPassword"` — test fixtures |
+| **TEST_OR_EXAMPLE** | `google/agents-cli/src/google/agents/cli/auth.py:43` | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
+| **TEST_OR_EXAMPLE** | `google/go-github/github/github.go:1992` | `ClientSecret: "your app's client secret"` — placeholder |
 
 ---
 
-#### TEST_OR_EXAMPLE — **28 findings**
+### Verdict
 
-| File | Line | Context | Why |
-|------|------|---------|-----|
-| `google/adk-java/dev/browser/main-TCIQIOZ3.js` | 5 | Minified build artifact | Source map / compiled output |
-| `google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` | Enum value literal (placeholder string) |
-| `google/agents-cli/.../staging.yaml` | 168 | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` | Cookiecutter/Jinja2 template placeholder |
-| `google/agents-cli/.../staging.yaml` | 192 | `{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}` | Cookiecutter/Jinja2 template placeholder |
-| `google/artemis/artemis/config/constants.py` | 35 | `ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN"` | Env var **name** constant |
-| `google/artemis/artemis/config/constants.py` | 51 | `ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` | Env var **name** constant |
-| `google/artemis/artemis/config/constants.py` | 52 | `ENV_GEMINI_API_KEY = "GEMINI_API_KEY"` | Env var **name** constant |
-| `google/artemis/artemis/config/settings.py` | 163 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | Runtime assignment from env var |
-| `google/artemis/artemis/config/settings.py` | 165 | `self.GOOGLE_API_KEY = self.GCP_API_KEY` | Runtime assignment from env var |
-| `google/fleetspeak/sandboxes/*/docker-compose.yaml` (12 files) | 10-11 | `MYSQL_PASSWORD: 'fleetspeak-password'` / `MYSQL_ROOT_PASSWORD: 'password'` | Local dev/test fixtures |
-| `google/fleetspeak/spanner-setup/docker-compose.yaml` | 9-10 | Same test passwords | Local dev/test fixture |
-| `google/fleetspeak/terraform/main.tf` | 323 | `password = "fsuserPass1!"` | Terraform test resource (ephemeral test DB) |
-| `google/go-github/github/github.go` | 1992 | `"your app's client secret"` | Documentation/example literal in comment |
-| `google/tunix/tunix/cli/base_agentic_config.yaml` | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| `google/tunix/tunix/cli/base_config.yaml` | 63 | `# hf_access_token: "your_token"` | Commented placeholder |
-| `google/tunix/.../chat_template_parser.py` | 193-195 | Token delimiter strings (`"
+**REPORT_CANDIDATE: no** — All 6 delta hits are **ENDPOINT_LEAK** (public test/staging URLs: `test.pypi.org`, `api.test.osv.dev`). No hardcoded credentials, API keys, or tokens with signs of life. The meridian workflows use GitHub Environments + OIDC trusted publishing (`id-token: write`), which is the recommended secretless pattern.
