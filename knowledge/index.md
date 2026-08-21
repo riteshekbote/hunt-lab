@@ -665,3 +665,6 @@
 - 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe).
 - 2026-08-21 REJECTED bare-OPTIONS-without-preflight-headers as a delta signal @ graph.microsoft.com: OPTIONS without Origin/Access-Control-Request-Method returns 405 (not 200); preflight headers required — probe-methodology artifact, not a surface change.
 - 2026-08-21 MONITOR robot probe pipeline empty for 18th consecutive cycle (2026-08-20 17:42 → now); root cause known (hunt.yml regex requires https:// + glob misses art/analyst-*.out); manual probes restored coverage again this cycle — operator fix still not applied.
+- 2026-08-21 ACCEPTED Copilot 6-family CORS+PATCH precondition @ graph.microsoft.com/beta/copilot: own probe this cycle true preflight OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 44th consecutive cycle).
+- 2026-08-21 MONITOR robot probe pipeline empty for 19th consecutive cycle (2026-08-20 17:42 → now); root cause known (hunt.yml regex requires https:// + glob misses art/analyst-*.out); manual probes restored coverage again this cycle — operator fix still not applied.
