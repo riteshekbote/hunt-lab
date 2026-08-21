@@ -1,177 +1,38 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat > /tmp/classify.py << 'EOF'
-import json
+### Classification Table
 
-hits = [
-    # DELTA hits
-    ("google/ax/manifests/install-ax.sh", 239, 'pg_password="${existing_pw}"', "variable assignment from existing_pw"),
-    ("google/ax/manifests/install-ax.sh", 241, 'pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"', "env var or generated random password"),
-    ("google/ax/manifests/install-ax.sh", 286, 'secret_args+=(--from-literal=password="${pg_password}")', "uses variable from above"),
-    ("google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh", 39, 'SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" -s -m 1)', "GCP metadata server call"),
-    ("google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh", 44, 'curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/scopes" -s -m 1', "GCP metadata server call"),
-    ("google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java", 49, 'private static final String ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN";', "action name constant"),
-    ("google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java", 50, 'private static final String ACTION_RESET_PASSWORD = "RESET_PASSWORD";', "action name constant"),
-    ("google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java", 44, 'String PARAM_PASSWORD = "password";', "parameter name constant"),
-    ("google/meridian/.github/workflows/proto-publish.yml", 126, 'url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}', "test.pypi.org URL"),
-    ("google/meridian/.github/workflows/proto-publish.yml", 138, 'repository-url: https://test.pypi.org/legacy/', "test.pypi.org URL"),
-    ("google/meridian/.github/workflows/publish.yml", 127, 'url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}', "test.pypi.org URL"),
-    ("google/meridian/.github/workflows/publish.yml", 139, 'repository-url: https://test.pypi.org/legacy/', "test.pypi.org URL"),
-    ("microsoft/qlib/.github/workflows/release.yml", 107, 'twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl --verbose', "test.pypi.org URL"),
-    ("microsoft/qlib/.github/workflows/release.yml", 63, 'twine upload --repository-url https://test.pypi.org/legacy/ dist/pyqlib-*-manylinux*.whl --verbose', "test.pypi.org URL"),
-    ("microsoft/semantic-kernel/.github/workflows/label-pr.yml", 21, 'repo-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"', "GitHub secret reference"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Core/AzureClientCoreTests.cs", 35, 'var apiKey = "test-api-key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 21, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 44, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 84, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs", 22, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs", 45, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs", 85, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 21, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 44, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs", 84, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs", 20, 'string apiKey = "test-api-key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs", 53, 'using var googleClient = new Client(apiKey: "test-api-key");', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs", 70, 'string apiKey = "test-api-key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs", 20, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs", 42, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs", 79, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs", 21, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs", 43, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs", 80, 'string apiKey = "test_api_key";', "test fixture"),
-    ("microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py", 103, 'api_key="your-api-key",', "test fixture placeholder"),
-    ("microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py", 180, 'api_key="your-api-key",', "test fixture placeholder"),
-    ("microsoft/semantic-kernel/python/semantic_kernel/connectors/memory_stores/azure_cognitive_search/utils.py", 39, 'ENV_VAR_API_KEY = "AZURE_COGNITIVE_SEARCH_ADMIN_KEY"', "env var name constant"),
-]
+| Category | File:Line | Description |
+|----------|-----------|-------------|
+| **TEST_OR_EXAMPLE** | `google/tunix/tunix/cli/base_agentic_config.yaml:63` | Commented placeholder `# hf_access_token: "your_token"` |
+|  | `google/tunix/tunix/cli/base_config.yaml:63` | Commented placeholder `# hf_access_token: "your_token"` |
+|  | `google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py:193-195` | Template token literals (`eot_token`, `system_token`, `user_token`) |
+| **ENDPOINT_LEAK** | `google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp:42` | Internal GCE metadata endpoint `http://metadata.google.internal/computeMetadata/v1/%s` |
+|  | `google/capsem/.github/workflows/release-channel-staging.yaml:17` | Staging URL `https://staging.release-eq7.pages.dev` |
+|  | `google/tunix/tunix/cli/base_rl_pipeline.py:862` | KUBECONFIG path reference `~/.kube/config` |
+| **INTERESTING** | `google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp:187` | OAuth `client_secret` parameter handling in consent flow (code pattern, not hardcoded) |
+|  | `google/artemis/artemis/config/constants.py:35,51,52` | Env var name constants (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) |
+|  | `google/artemis/artemis/config/settings.py:163,165` | Config assignments `self.GOOGLE_API_KEY = self.GEMINI_API_KEY/GCP_API_KEY` |
+|  | `google/capsem/config/gate.toml:597` | Password file reference `password = "password.txt"` |
+|  | `google/capsem/scripts/fix_p12_legacy.sh:15` | Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+|  | `google/capsem/scripts/preflight.sh:39` | Reads password from file `password="$(tr -d '\n' < "$pass_file")"` |
+| **PROPER_SECRET_REF** (not a finding) | All `.github/workflows/*.yml` in android-cuttlefish | Use `${{ secrets.X }}` pattern (GEMINI_API_KEY, GOOGLE_API_KEY, GITHUB_TOKEN, artifact-registry-uploader-json-creds) |
+|  | `google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh:11` | `gcloud secrets versions access` for CODECOV_TOKEN |
+|  | `google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh:10` | `gcloud secrets versions access` for github-crosvm-bot token |
 
-# Classify each
-real_secrets = []
-test_examples = []
-endpoint_leaks = []
-interesting = []
+---
 
-for file, line, content, context in hits:
-    # Check for real secrets
-    if any(kw in content.lower() for kw in ['test-api-key', 'test_api_key', 'your-api-key', 'test.pypi.org']):
-        test_examples.append((file, line, content[:80], context))
-    elif '${{ secrets.' in content:
-        test_examples.append((file, line, content[:80], "GitHub secret reference"))
-    elif 'metadata.google.internal' in content:
-        endpoint_leaks.append((file, line, content[:80], "GCP metadata endpoint (well-known)"))
-    elif 'ACTION_' in content or 'PARAM_' in content or 'ENV_VAR_' in content:
-        test_examples.append((file, line, content[:80], "constant name"))
-    elif 'POSTGRES_PASSWORD' in content or 'openssl rand' in content or 'existing_pw' in content:
-        interesting.append((file, line, content[:80], "password generation pattern"))
-    else:
-        interesting.append((file, line, content[:80], context))
+### Verdict
 
-print("=== REAL_SECRET ===")
-for r in real_secrets:
-    print(f"  {r[0]}:{r[1]}  {r[2]}  [{r[3]}]")
-print()
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| android-cuttlefish workflow secrets | **no** | Proper `${{ secrets.X }}` references; no hardcoded values |
+| crosvm gcloud secret access | **no** | Proper secret manager pattern |
+| capsem password.txt references | **no** | References external file; actual secret not in repo |
+| artemis config constants | **no** | Env var names & assignments only; no secret material |
+| tunix commented placeholders | **no** | Explicitly commented test fixtures |
+| android-cuttlefish metadata endpoint | **no** | Internal endpoint reference; no auth bypass |
+| android-cuttlefish OAuth consent code | **no** | Code pattern for handling client_secret param; not a leaked secret |
 
-print("=== TEST_OR_EXAMPLE ===")
-for r in test_examples:
-    print(f"  {r[0]}:{r[1]}  {r[2]}  [{r[3]}]")
-print()
-
-print("=== ENDPOINT_LEAK ===")
-for r in endpoint_leaks:
-    print(f"  {r[0]}:{r[1]}  {r[2]}  [{r[3]}]")
-print()
-
-print("=== INTERESTING ===")
-for r in interesting:
-    print(f"  {r[0]}:{r[1]}  {r[2]}  [{r[3]}]")
-print()
-
-print("=== VERDICT ===")
-if real_secrets:
-    for r in real_secrets:
-        import hashlib
-        # extract secret-ish part
-        secret_part = r[2].split('=')[-1].strip().strip('"').strip("'")
-        h = hashlib.sha256(secret_part.encode()).hexdigest()[:16]
-        print(f"REPORT_CANDIDATE: YES  {r[0]}:{r[1]}  sha256={h}...")
-else:
-    print("REPORT_CANDIDATE: NO  (no REAL_SECRET hits in this delta)")
-
-EOF
-python3 /tmp/classify.py
-=== REAL_SECRET ===
-
-=== TEST_OR_EXAMPLE ===
-  google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:49  private static final String ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"  [constant name]
-  google/device-infra/src/java/com/google/devtools/mobileharness/platform/android/deviceadmin/DeviceAdminUtil.java:50  private static final String ACTION_RESET_PASSWORD = "RESET_PASSWORD";  [constant name]
-  google/device-infra/src/java/com/google/wireless/qa/mobileharness/shared/api/spec/GoogleAccountDecoratorSpec.java:44  String PARAM_PASSWORD = "password";  [constant name]
-  google/meridian/.github/workflows/proto-publish.yml:126  url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}  [test.pypi.org URL]
-  google/meridian/.github/workflows/proto-publish.yml:138  repository-url: https://test.pypi.org/legacy/  [test.pypi.org URL]
-  google/meridian/.github/workflows/publish.yml:127  url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}  [test.pypi.org URL]
-  google/meridian/.github/workflows/publish.yml:139  repository-url: https://test.pypi.org/legacy/  [test.pypi.org URL]
-  microsoft/qlib/.github/workflows/release.yml:107  twine upload --repository-url https://test.pypi.org/legacy/ dist/*.whl --verbose  [test.pypi.org URL]
-  microsoft/qlib/.github/workflows/release.yml:63  twine upload --repository-url https://test.pypi.org/legacy/ dist/pyqlib-*-manyli  [test.pypi.org URL]
-  microsoft/semantic-kernel/.github/workflows/label-pr.yml:21  repo-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"  [GitHub secret reference]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Core/AzureClientCoreTests.cs:35  var apiKey = "test-api-key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:21  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:44  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:84  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs:22  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs:45  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIServiceCollectionExtensionsChatClientTests.cs:85  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:21  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:44  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.AzureOpenAI.UnitTests/Extensions/AzureOpenAIKernelBuilderExtensionsChatClientTests.cs:84  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs:20  string apiKey = "test-api-key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs:53  using var googleClient = new Client(apiKey: "test-api-key");  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.Google.UnitTests/Services/GoogleGeminiChatClientTests.cs:70  string apiKey = "test-api-key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs:20  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs:42  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIKernelBuilderExtensionsChatClientTests.cs:79  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs:21  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs:43  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/dotnet/src/Connectors/Connectors.OpenAI.UnitTests/Extensions/OpenAIServiceCollectionExtensionsChatClientTests.cs:80  string apiKey = "test_api_key";  [test fixture]
-  microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py:103  api_key="your-api-key",  [test fixture placeholder]
-  microsoft/semantic-kernel/python/semantic_kernel/connectors/ai/open_ai/services/open_ai_text_to_image_base.py:180  api_key="your-api-key",  [test fixture placeholder]
-  microsoft/semantic-kernel/python/semantic_kernel/connectors/memory_stores/azure_cognitive_search/utils.py:39  ENV_VAR_API_KEY = "AZURE_COGNITIVE_SEARCH_ADMIN_KEY"  [constant name]
-
-=== ENDPOINT_LEAK ===
-  google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:39  SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/co  [GCP metadata endpoint (well-known)]
-  google/device-infra/src/devtools/rbe/casdownloader/adc_credentials.sh:44  curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetada  [GCP metadata endpoint (well-known)]
-
-=== INTERESTING ===
-  google/ax/manifests/install-ax.sh:239  pg_password="${existing_pw}"  [password generation pattern]
-  google/ax/manifests/install-ax.sh:241  pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"  [password generation pattern]
-  google/ax/manifests/install-ax.sh:286  secret_args+=(--from-literal=password="${pg_password}")  [uses variable from above]
-
-=== VERDICT ===
-REPORT_CANDIDATE: NO  (no REAL_SECRET hits in this delta)
-[0m
-=== CLASSIFICATION RESULTS ===
-
-| Category | File | Line | Match | Notes |
-|----------|------|------|-------|-------|
-| **TEST_OR_EXAMPLE** | google/device-infra/.../DeviceAdminUtil.java | 49 | `ACTION_SETUP_PASSWORD_TOKEN = "SETUP_PASSWORD_TOKEN"` | Action name constant |
-| | google/device-infra/.../DeviceAdminUtil.java | 50 | `ACTION_RESET_PASSWORD = "RESET_PASSWORD"` | Action name constant |
-| | google/device-infra/.../GoogleAccountDecoratorSpec.java | 44 | `PARAM_PASSWORD = "password"` | Parameter name constant |
-| | google/meridian/.github/workflows/proto-publish.yml | 126 | `url: https://test.pypi.org/p/...` | Test PyPI registry |
-| | google/meridian/.github/workflows/proto-publish.yml | 138 | `repository-url: https://test.pypi.org/legacy/` | Test PyPI registry |
-| | google/meridian/.github/workflows/publish.yml | 127 | `url: https://test.pypi.org/p/...` | Test PyPI registry |
-| | google/meridian/.github/workflows/publish.yml | 139 | `repository-url: https://test.pypi.org/legacy/` | Test PyPI registry |
-| | microsoft/qlib/.github/workflows/release.yml | 107 | `twine upload --repository-url https://test.pypi.org/legacy/...` | Test PyPI registry |
-| | microsoft/qlib/.github/workflows/release.yml | 63 | `twine upload --repository-url https://test.pypi.org/legacy/...` | Test PyPI registry |
-| | microsoft/semantic-kernel/.github/workflows/label-pr.yml | 21 | `repo-token: "${{ secrets.GH_ACTIONS_PR_WRITE }}"` | GitHub secret reference |
-| | microsoft/semantic-kernel/.../AzureClientCoreTests.cs | 35 | `apiKey = "test-api-key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 21 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 44 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 84 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIServiceCollectionExtensionsChatClientTests.cs | 22 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIServiceCollectionExtensionsChatClientTests.cs | 45 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIServiceCollectionExtensionsChatClientTests.cs | 85 | `apiKey = "test_api_key"` | Test fixture |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 21 | `apiKey = "test_api_key"` | Test fixture (dup) |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 44 | `apiKey = "test_api_key"` | Test fixture (dup) |
-| | microsoft/semantic-kernel/.../AzureOpenAIKernelBuilderExtensionsChatClientTests.cs | 84 | `apiKey = "test_api_key"` | Test fixture (dup) |
-| | microsoft/semantic-kernel/.../GoogleGeminiChatClientTests.cs | 20 | `apiKey = "test-api-key"` | Test fixture |
-| | microsoft/semantic-kernel/.../GoogleGeminiChatClientTests.cs | 53 | `new Client(apiKey: "test-api-key")` | Test fixture |
-| | microsoft/semantic-kernel/.../GoogleGeminiChatClientTests.cs | 70 | `apiKey = "test-api-key"` | Test fixture |
-| | microsoft/semantic-kernel/.../OpenAIKernelBuilderExtensionsChatClientTests.cs | 20
+**Summary: 0 reportable findings in this delta.** All credential references use proper secret management (GitHub Actions secrets, gcloud secret manager, or external password files). No hardcoded live secrets detected.
