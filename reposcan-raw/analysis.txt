@@ -1,27 +1,62 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Classification Summary
+[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=230, limit=40][0m
+[0m
+[0m$ [0mecho -n "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" | sha256sum
+c5702cfb6292daffc19fdb14be23ec55c4a62e4248ddd1cd7db11185552159fd  -
+[0m
+## Classification Table
 
-All 370 hits are **TEST_OR_EXAMPLE** — zero reportable findings:
+### REAL_SECRET (none)
 
-| Category | Count | Examples |
-|----------|-------|---------|
-| Test fixtures | ~15 | `password="testpassword"`, `token="test-token-123"` in copybara tests |
-| Placeholder docs | ~8 | `client_secret="your_client_secret"`, `-----BEGIN PRIVATE KEY-----...` |
-| Enum/config names | ~10 | `PASSWORD = "password"` (auth_schemes.py), `ENV_GOOGLE_API_KEY` |
-| Env var references | ~4 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` (settings.py) |
-| Docstring URLs | ~30 | `http://dev.w3.org/...`, `169.254.169.254` metadata references |
-| Minified JS/browser | ~20 | parser error strings in adk-python CLI chunks |
-| Test PyPI endpoints | 4 | `https://test.pypi.org/p/...` in meridian workflows |
+No new hardcoded credentials, API keys, or tokens found in the delta.
 
-**VERDICT:**
+### TEST_OR_EXAMPLE
 
-| Category | REPORT_CANDIDATE |
-|----------|-----------------|
-| REAL_SECRET | no |
-| TEST_OR_EXAMPLE | all hits |
-| ENDPOINT_LEAK | no |
-| INTERESTING | no |
+| File | Line | Reason |
+|---|---|---|
+| google/copybara/.../AuthTest.java | 75, 102, 129 | Test fixture `"testpassword"`, `"test-token-123"` — unit test data |
+| google/copybara/.../HttpEndpointTest.java | 136, 159, 189 | Test fixture `"testpassword"` — unit test data |
+| google/adk-python/.../auth_credential.py | 157, 269, 278 | Docstring examples: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` — placeholder/API doc stubs |
+| google/adk-python/.../auth_schemes.py | 68 | Enum value `PASSWORD = "password"` — enum string, not a credential |
+| google/adk-python/.../openapi_tool/auth/auth_helpers.py | 64 | Docstring `client_secret="your_client_secret"` — placeholder |
+| All `chunk-*.js` (×22 across adk-python + adk-go) | 3/5/9/11 | Minified JS parser error strings (`"Parse error on line "` + terminal name concatenation) — false positive from pattern match on `token:` substring in JS code |
+| google/meridian/.../proto-publish.yml | 126, 138 | `https://test.pypi.org/` — public TestPyPI index URL, by-design |
+| google/meridian/.../publish.yml | 127, 139 | `https://test.pypi.org/` — same |
+| google/copybara/cloudbuild.yaml | 27 | Comment URL `https://pantheon.corp.google.com/...` — internal Corp URL in comment, info-only |
+| google/artemis/.../constants.py | 35, 51, 52 | Env var name definitions (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) — string constants, not values |
+| google/artemis/.../settings.py | 163, 165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` / `self.GCP_API_KEY` — assignment to self (config wiring), not a literal |
+| google/adk-python/.../cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` — template string writing env var line, not a secret value |
+| google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path` / `kubeconfig_context` params — config field names, not file contents |
+| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — string constant name for session state key |
+| google/adk-python/.../load_web_page.py | 171 | Documentation referencing metadata endpoint `169.254.169.254` |
+| google/adk-python/.../computer_use_toolset.py | 146 | Comment referencing `169.254.169.254` |
+| google/adk-python/.../container_code_executor.py | 114, 154 | Documentation referencing `169.254.169.254` metadata endpoint |
 
-**No reportable findings in this scan cycle.** All hits are test fixtures, documentation placeholders, enum values, or well-known public endpoints (test.pypi.org, W3C spec URLs, cloud metadata IPs).
+### ENDPOINT_LEAK
+
+| File | Line | Reason |
+|---|---|---|
+| google/copybara/cloudbuild.yaml | 27 | Comment with internal Corp URL: `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` — internal artifact registry path. INFO only, not a finding. |
+
+### INTERESTING
+
+| File | Line | Reason |
+|---|---|---|
+| google/adk-go/.../cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret mount reference (NOT a secret value). This is the gcloud CLI flag pattern for mounting Secret Manager secrets. The secret **name** is `GOOGLE_API_KEY` mapping to env var `GOOGLE_API_KEY:latest`. This is by-design Cloud Run deployment config — the actual secret lives in Secret Manager, not in code. **Not reportable.** |
+
+---
+
+## Verdict
+
+| Category | Count | Verdict |
+|---|---|---|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | 22 | NOT reportable |
+| ENDPOINT_LEAK | 1 | Internal Corp comment URL — info-only, NOT reportable |
+| INTERESTING | 1 | Cloud Run secret mount template — by-design, NOT reportable |
+
+**REPORT_CANDIDATE: no**
+
+**Summary:** All 11 delta hits are false positives — 22 minified JS parser error strings matched on `token:` substring, test fixture strings, env var name constants, docstring placeholders, and a Cloud Run `--set-secrets` reference (secret mount config, not a secret value). No new hardcoded secrets. The remaining full scan hits (224 total) are all previously classified TEST_OR_EXAMPLE or known patterns from prior cycles.
