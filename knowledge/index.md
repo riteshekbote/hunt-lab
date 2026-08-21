@@ -763,3 +763,4 @@
 - 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:27 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
 - 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', file 23110 B (own raw-fetch probe 22:27 UTC).
 - 2026-08-21 MONITOR robot probe pipeline empty for 33rd consecutive cycle (2026-08-20 17:42 → now); hunt.yml root cause unchanged (regex requires `https://`, glob lists `analyst-*.out` without `art/analyst-*.out`); manual probes restored coverage — operator fix still not applied.
+- 2026-08-21 NO_DELTA — all fresh manual probes (22:27 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
