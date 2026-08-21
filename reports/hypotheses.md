@@ -8532,3 +8532,14 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe).
 - LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], all kt
 - LEARN: MONITOR robot probe pipeline empty for 24th consecutive cycle (2026-08-20 17:42 → now); root cause unchanged in hunt.yml (regex requires `https://`, glob lists 
+
+## RANKED HYPOTHESES 2026-08-21 13:08:30 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via the MSRC portal (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17 — file presence
+- LEARN: ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 13:07 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 13:07 UTC OPTIONS→200 + ACAO:* + full Al
+- LEARN: ACCEPTED Graph API RFC 6750 §3 deviation @ graph.microsoft.com/v1.0: own probe HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (stable).
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 50th consecutive cycle).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe).
+- LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own pr
+- LEARN: MONITOR robot probe pipeline empty for 25th consecutive cycle (2026-08-20 17:42 → now); root cause unchanged in hunt.yml (regex requires `https://`, glob lists 
