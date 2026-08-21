@@ -1,19 +1,70 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Classification Table
+## Classification Table
 
-| Category | Hits |
-|----------|------|
-| **REAL_SECRET** | *(none)* |
-| **TEST_OR_EXAMPLE** | `artemis/constants.py:35,51,52` (env var name constants), `artemis/settings.py:163,165` (env var assignments), `capsem/config/gate.toml:597` (`password = "password.txt"` — filename, not secret), `capsem/scripts/fix_p12_legacy.sh:15`, `capsem/scripts/preflight.sh:39` (read from file), `flatbuffers/label.yml:24`, `skywater-pdk/labeler.yml:11` (`${{ secrets.GITHUB_TOKEN }}` proper usage) |
-| **ENDPOINT_LEAK** | `capsem/release-channel-staging.yaml:17` (`https://staging.release-eq7.pages.dev` — staging URL) |
-| **INTERESTING** | *(none)* |
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | (truncated fixture) | TEST_OR_EXAMPLE — test fixture private key (`...` truncated) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | N/A | TEST_OR_EXAMPLE — literal `"user"/"password"` test creds |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | N/A | TEST_OR_EXAMPLE — truncated test token `eyAkaknabna....` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | N/A | TEST_OR_EXAMPLE — constant `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | N/A | TEST_OR_EXAMPLE — placeholder `"your_client_secret"` |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | N/A | TEST_OR_EXAMPLE — template `GOOGLE_API_KEY={google_api_key}` |
+| google/sam/development/kind/run.sh | 139 | N/A | TEST_OR_EXAMPLE — env var with empty default `${OIDC_CLIENT_SECRET:-}` |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | N/A | PROPER PATTERN — `${{ secrets.* }}` injection, not hardcoded |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | N/A | PROPER PATTERN — `gcloud secrets versions access` |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | N/A | PROPER PATTERN — `gcloud secrets versions access` |
+| google/capsem/config/gate.toml | 597 | N/A | TEST_OR_EXAMPLE — path reference `password = "password.txt"` |
+| google/capsem/scripts/preflight.sh | 39 | N/A | PROPER PATTERN — reads from file `$pass_file` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | N/A | PROPER PATTERN — reads from file `$PASS_FILE` |
 
-### Verdict
+### ENDPOINT_LEAK
+| File | Line | Type |
+|------|------|------|
+| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | GCP metadata endpoint (IMDS) |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 110 | Sandbox autopush endpoint |
+| google/go-tpm-tools/launcher/spec/launch_spec.go | 111 | Sandbox staging endpoint |
+| google/go-tpm-tools/run_cloudbuild.sh | 16 | Internal pantheon.corp.google.com (comment) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Staging pages.dev URL |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 cloud metadata ref |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 cloud metadata ref |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 cloud metadata ref |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| (no real secrets in delta) | **no** |
+### TEST_OR_EXAMPLE (config/constants)
+| File | Line |
+|------|------|
+| google/artemis/artemis/config/settings.py | 163,165 |
+| google/artemis/artemis/config/constants.py | 35,51,52 |
+| google/sam/site/content/docs/manifests/*.yaml | 16,88 |
+| google/sam/internal/node/store.go | 38 |
+| google/sam/.github/k8s/*.yaml | multiple |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 |
+| google/flatbuffers/.github/workflows/label.yml | 24 |
 
-**Summary**: All 11 new delta hits are benign — environment variable name constants, references to secret files (not hardcoded values), proper GitHub Actions secret references, or a staging endpoint URL. No reportable hardcoded credentials.
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig params (config, not secret) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` constant name |
+| google/sam/.github/k8s/dex-config.yaml | 2 | Dex OIDC ConfigMap template |
+
+---
+
+## Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| go-tpm-tools metadata/sandbox URLs | **no** | Internal endpoint references, no credentials |
+| adk-python test fixtures (private_key, passwords, tokens) | **no** | All test/example/placeholder material |
+| adk-python cli_create.py template | **no** | Template string, not a real key |
+| sam OIDC_CLIENT_SECRET env default | **no** | Empty default, reads from env |
+| sam deploy.yaml GitHub secrets | **no** | Correct secret injection pattern |
+| crosvm gcloud secrets access | **no** | Proper secret management at runtime |
+| capsem password file reads | **no** | Reads from external file, not hardcoded |
+| artemis/sam config constants | **no** | Env var names / K8s ConfigMap kinds |
+| **earthengine-api oauth.py:45 (from KB)** | **yes (existing)** | Already ACCEPTED in KB — hardcoded `client_secret` sha256 `3f3f8d6f…d271`, REAL_SECRET, pending VRP determination on native-app by-design status |
+
+**No new REAL_SECRET findings in this delta.** The only reportable secret remains the previously accepted `google/earthengine-api` client_secret (tracked in KB). All new hits are test fixtures, placeholder values, proper secret patterns, or internal endpoint references.
