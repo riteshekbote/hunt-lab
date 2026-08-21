@@ -752,3 +752,4 @@
 - 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', file 23110 B (own raw-fetch probe 20:58 UTC).
 - 2026-08-21 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[], subset=True (own probe).
 - 2026-08-21 MONITOR robot probe pipeline empty for 33rd consecutive cycle (2026-08-20 17:42 → 2026-08-21 20:58 UTC); hunt.yml root cause unchanged (regex requires https://, glob misses art/analyst-*.out); manual probes restored coverage — operator fix still not applied.
+- 2026-08-21 No new proving-dead or proving-live classes this cycle — all fresh manual probes (20:58 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.

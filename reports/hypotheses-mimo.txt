@@ -1,5 +1,5 @@
-## 2026-08-21 21:00:14 UTC [google] (model mimo)
-[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations — 89.5 | attack:9 business:10 tech:9 gate:8 cloud:8 fresh:10
+## 2026-08-21 21:32:51 UTC [google] (model mimo)
+[PRIO] graph.microsoft.com/beta/copilot/agentRegistrations/{id} — 89.5 | attack:9 business:10 tech:9 gate:8 cloud:8 fresh:10
 [PRIO] graph.microsoft.com/v1.0/oauth2PermissionGrants/{id} — 81.0 | attack:8 business:8 tech:9 gate:7 cloud:7 fresh:10
 [PRIO] github.com/google/earthengine-api/oauth.py:45 — 72.5 | attack:7 business:7 tech:8 gate:5 cloud:9 fresh:10
 [HYP] Copilot agentRegistrations cross-principal ownership takeover via CORS+PATCH
@@ -20,25 +20,17 @@ evidence_needed: Auth Helped: two distinct principals; Principal A grants consen
 verify_steps: HUMAN_ONLY: unblocked by MSRC submission; then: A creates oauth2PermissionGrant, B modifies it via browser fetch(cors mode) and curl with B's bearer
 impact: Cross-tenant delegation modification — attacker can escalate/revoke any user's consent grants. Severity Critical.
 testability: HUMAN_ONLY
-[HYP] earthengine-api oauth.py:45 secret →
 [HYP] earthengine-api oauth.py:45 secret → token exchange confirmation
 class: AUTH
 asset: oauth2.googleapis.com/token (POST)
 confidence: 82
-reasoning: Hardcoded secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1' at line 45 confirmed live on master (file 23110 B, sha256 3f3f8d6f…d271). A/B proof conclusive per RFC 6749 §5.2 (real→invalid_grant, fake→invalid_client). POST-only gate stable (GET→404 for 58+ consecutive cycles). Unauthenticated extraction trivial (raw GitHub fetch).
+reasoning: Hardcoded secret 'RUP0RZ6e0pPhDzsqIJ7KlNd1' at line 45 confirmed live on master (file 23110 B). A/B proof conclusive per RFC 6749 §5.2 (real→invalid_grant, fake→invalid_client). POST-only gate stable (GET→404 for 59+ consecutive cycles). Unauthenticated extraction trivial (raw GitHub fetch).
 evidence_needed: Auth Helped: submit extracted secret to token endpoint to confirm valid_grant + access_token issuance
 verify_steps: PASSIVE: re-fetch oauth.py:45 raw blob, sha256sum verify. AUTH_HELPED: POST to https://oauth2.googleapis.com/token with grant_type=client_credentials&client_id=<project-number>&client_secret=RUP0RZ6e0pPhDzsqIJ7KlNd1&scope=cloud-platform
 impact: If token exchange succeeds: full GCP access via Earth Engine scopes (cloud-platform, drive, devstorage.full_control) — Critical severity.
 testability: AUTH_HELPED
 [FINAL]
-[NEXT] PROBE: Re-verify earthengine-api oauth.py:45 raw blob is still unmodified on master by confirming line 45 literal = 'CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'' and file size = 23110 B. Then re-verify oauth2PermissionGrants item-level CORS preflight: OPTIONS with Origin + PATCH → 200 + ACAO:* + full Allow-Methods. Finally re-verify agentRegistrations collection-level: OPTIONS → 200 + ACAO:* + PATCH + Max-Age 86400.
-[LEARN] No new proving-dead or proving-live classes this cycle — all fresh manual probes (20:58 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged.
-[LEARN] ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 20:58 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
-[LEARN] ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 20:58 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
-[LEARN] ACCEPTED Graph API RFC 6750 §3 deviation @ graph.microsoft.com/v1.0: own probe HEAD→405/CL:0/no-Bearer vs GET /me→401+WWW-Authenticate Bearer (stable).
-[LEARN] ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 58th+ consecutive cycle since 2026-08-17).
-[LEARN] ACCEPTED earthengine-api oauth.py:45 secret live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', file 23110 B (own raw-fetch probe 20:58 UTC).
-[LEARN] ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com — v1=6 kids ⊂ v2=9, v1_only=[], subset=True (own probe).
-[LEARN] MONITOR robot probe pipeline empty for 33rd consecutive cycle (2026-08-20 17:42 → 2026-08-21 20:58 UTC); hunt.yml root cause unchanged (regex requires https://, glob misses art/analyst-*.out); manual probes restored coverage — operator fix still not applied.
+[NEXT] PROBE: Re-verify earthengine-api oauth.py:45 raw blob is still unmodified on master by re-fetching https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.py and confirming line 45 literal = 'CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'' and file size = 23110 B. Then re-verify oauth2PermissionGrants item-level CORS preflight: OPTIONS with Origin + PATCH → 200 + ACAO:* + full Allow-Methods. Finally re-verify agentRegistrations collection-level: OPTIONS → 200 + ACAO:* + PATCH + Max-Age 86400.
+[LEARN] No new proving-dead or proving-live classes this cycle — all fresh manual probes (20:58 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
 [RISK] google: 35 reason — earthengine-api hardcoded secret confirmed live with conclusive A/B proof (sha256 3f3f8d6f…d271, scopes cloud-platform+drive+devstorage.full_control), but token exchange AUTH_HELPED test not yet executed; remaining GCP surface is discovery-API-only (403/401 gated)
 [RISK] microsoft: 72 reason — 6-family Copilot IDOR preconditions schema-confirmed stable (OPTIONS 200 + ACAO:* + PATCH, 5 EntityTypes zero OperationRestrictions), oauth2PermissionGrants item-level CORS browser-exploitable (Allow-Methods includes PATCH), systemic RFC 6750 §3 deviation across all endpoint families; both require two-principal AUTH_HELPED test blocked by MSRC submission
