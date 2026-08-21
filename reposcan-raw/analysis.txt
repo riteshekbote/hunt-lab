@@ -1,117 +1,53 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | sed -n '590,610p'
-# Local signing material. Absent on a developer machine, which is why the rail
-# treats it as optional -- the release lanes sign in CI from secrets. Declared
-# here so "where is the key" has one answer rather than a path spelled inside
-# a function.
-[package.signing]
-directory = "private/tauri"
-key = "capsem.key"
-password = "password.txt"
-key_variable = "TAURI_SIGNING_PRIVATE_KEY"
-password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
-[package.proof]
-container = "capsem-qualified-deb-proof"
-systemd_ready_attempts = 60
-verify_script = "scripts/verify-installed-release.py"
-shell_proof_script = "scripts/prove-installed-shell.py"
-shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
-session_name = "qualification-exact-deb-shell"
-shell_timeout_seconds = 300
+Looking at the scan results, I'll classify each hit:
 
-# Every binary the package must install. Each reports the package version
-# except capsem-app, which is the Tauri bundle and has no --version.
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | sed -n '10,25p'
-B64="$CERT_DIR/capsem-b64.txt"
-PASS_FILE="$CERT_DIR/p12-password.txt"
-TMPDIR_WORK="$(mktemp -d)"
-trap 'rm -rf "$TMPDIR_WORK"' EXIT
+## Classification Tables
 
-PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
+### REAL_SECRET
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *none confirmed* | | | The `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in `ground-android/app/src/debug/local/google-services.json:23` is in a **debug/local** build config — likely a test key (path indicates non-production). Requires live probe to confirm validity before reporting. |
 
-echo "==> Checking current format..."
-FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
-    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| google/CodeCity/third_party/CodeMirror/mode/*.js | multiple | Syntax highlighter token definitions (`"matchingbracket"`, `"variable"`, `"string-2"`, `"operator"`, etc.) — library code, not secrets |
+| google/adk-js/core/src/auth/auth_credential.ts:214 | `password: "password"` | JSDoc example/comment block |
+| google/adk-js/core/src/auth/auth_credential.ts:226 | `token: "your_access_token"` | JSDoc example/comment block |
+| google/adk-js/core/src/auth/auth_schemes.ts:41 | `PASSWORD = 'password'` | Constant naming an auth scheme type, not a credential |
+| google/agents-cli/src/google/agents/cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value `"gemini_api_key"` — clearly not real |
+| google/sam/...deploy.yaml | 247-250 | Secrets injected from GitHub Actions secrets (`${{ secrets.* }}`) — correct pattern |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Secrets from GitHub Actions secrets — correct pattern |
+| google/capsem/config/gate.toml:597 | `password = "password.txt"` | Reads from file, not hardcoded |
+| google/capsem/scripts/*.sh | 15, 39 | Reads password from file at runtime |
 
-if [[ "$FMT" != "PBES2" ]]; then
-    echo "    Already legacy format ($FMT). Nothing to do."
-    exit 0
-fi
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | sed -n '34,45p'
-return
-    fi
-    pass "capsem.p12 exists"
+### ENDPOINT_LEAK
+| File | Line | Endpoint |
+|------|------|----------|
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215 | `host === 'metadata.google.internal'` | GCP metadata endpoint check |
+| google/adk-js/core/src/tools/load_web_page.ts:36 | `'169.254.0.0/16'` | Link-local/GCP metadata IP range (169.254.169.254) |
+| google/sam/...dex-config.yaml | ConfigMap | OIDC/Dex config references |
 
-    local password
-    password="$(tr -d '\n' < "$pass_file")"
+### INTERESTING
+| File | Line | Note |
+|------|------|------|
+| google/seesaw/healthcheck/radius.go:135 | `ratUserPassword: "User-Password"` | RADIUS attribute name (not a secret), unusual naming |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified JS parse error messages — noise |
+| google/agents-cli scaffold templates | 168, 192 | GitHub Actions token expressions in template files — correct usage |
 
-    # Check encryption format
-    local fmt
-    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
-        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
-[0m
-[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '38,50p'
-class AuthType(enum.Enum):
-    """Supported authentication methods."""
+---
 
-    GOOGLE_CLOUD = "google_cloud"
-    GEMINI_API_KEY = "gemini_api_key"
-    EXPRESS_MODE = "express_mode"
+## Verdict List
 
+| Candidate | File | REPORT_CANDIDATE | Reason |
+|-----------|------|------------------|--------|
+| Firebase API key (debug) | `google/ground-android/app/src/debug/local/google-services.json:23` | **no** | Debug/local build artifact; `AIzaSy...` format but path indicates test config. Live probe needed first. |
+| GCP metadata endpoint refs | `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215`<br>`google/adk-js/core/src/tools/load_web_page.ts:36` | **no** | Internal endpoint references in client-side SDK code; expected for cloud detection logic. |
+| CodeMirror token defs | `google/CodeCity/third_party/CodeMirror/**` | **no** | Third-party syntax highlighter library code. |
+| ADK-JS auth examples | `google/adk-js/core/src/auth/auth_credential.ts`<br>`google/adk-js/core/src/auth/auth_schemes.ts` | **no** | Documentation/examples in comments. |
+| SAM/CI secret handling | `google/sam/.github/workflows/deploy.yaml`<br>`google/langextract/.github/workflows/ci.yaml` | **no** | Proper GitHub Actions secret injection pattern. |
+| CAPSEM password file reads | `google/capsem/scripts/*.sh` | **no** | Reads from external file at runtime — correct pattern. |
 
-def _api_key_instructions(var_name):
-    """Print instructions for the user to export the API_KEY env var.
-
-    Args:
-[0m
-[0m$ [0mcat reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | sed -n '12,25p'
-required: true
-        default: staging
-      release_site_url:
-        description: Cloudflare Pages preview URL for the deploy branch.
-        required: true
-        default: https://staging.release-eq7.pages.dev
-      manifest_version:
-        description: Staged manifest contract version.
-        required: true
-        default: 1.0.2
-
-permissions:
-  contents: read
-  deployments: write
-[0m
-[0m$ [0msha256sum <<< "password.txt"
-62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c  -
-[0m
-### Classification Table
-
-| Category | File:Line | Evidence | Classification |
-|----------|-----------|----------|----------------|
-| **ENDPOINT_LEAK** | `capsem/.github/workflows/release-channel-staging.yaml:17` | `default: https://staging.release-eq7.pages.dev` | Staging Cloudflare Pages preview URL |
-| **TEST_OR_EXAMPLE** | `capsem/config/gate.toml:597` | `password = "password.txt"` | Config points to gitignored file (`private/tauri/password.txt`); comment says "Absent on a developer machine... release lanes sign in CI from secrets" |
-| **TEST_OR_EXAMPLE** | `capsem/scripts/fix_p12_legacy.sh:15` | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from `$CERT_DIR/p12-password.txt` (external file, not in repo) |
-| **TEST_OR_EXAMPLE** | `capsem/scripts/preflight.sh:39` | `password="$(tr -d '\n' < "$pass_file")"` | Same pattern — reads from external file variable |
-| **TEST_OR_EXAMPLE** | `agents-cli/src/google/agents/cli/auth.py:43` | `GEMINI_API_KEY = "gemini_api_key"` | Enum member value (string constant), not an actual key |
-| **TEST_OR_EXAMPLE** | `sam/**/*.yaml` | `kind: ConfigMap`, `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | K8s ConfigMaps, empty default env vars |
-| **TEST_OR_EXAMPLE** | `langextract/.github/workflows/ci.yaml:168-170` | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Proper GitHub Actions secret references |
-| **TEST_OR_EXAMPLE** | `android-cuttlefish/.github/workflows/*.yml` | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` | Proper GitHub Actions secret references |
-| **ENDPOINT_LEAK** | `adk-go/cmd/launcher/web/webui/distr/*.js` | Minified JS chunks / source maps | Build artifacts, not secrets |
-| **INTERESTING** | `seesaw/healthcheck/radius.go:135` | `ratUserPassword: "User-Password"` | RADIUS attribute constant (RFC 2865), not a secret |
-
-### Verdict List
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| capsem staging URL | **no** | Internal staging endpoint, no auth material |
-| capsem gate.toml password config | **no** | References gitignored file; CI uses secrets |
-| capsem p12 shell scripts | **no** | Reads from external files; no hardcoded secret |
-| agents-cli auth.py enum | **no** | String constant `"gemini_api_key"`, not a key |
-| sam/langextract/android-cuttlefish workflows | **no** | All use `${{ secrets.* }}` properly |
-| adk-go minified JS | **no** | Build artifacts |
-| seesaw RADIUS constant | **no** | Standard protocol attribute name |
-
-**No REAL_SECRET findings in this delta.** All hits are test fixtures, config patterns referencing external secret files, proper CI secret references, or build artifacts.
+**Summary**: **0 reportable findings** in this delta. The only potential secret (Firebase key in `ground-android`) is in a `debug/local/` path strongly indicating a test fixture. All other hits are library code, examples, proper secret patterns, or internal endpoint references expected in cloud SDKs.
