@@ -1,54 +1,207 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go[90m [offset=50, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/trillian/testonly/keys.go[90m [limit=20, offset=20][0m
-[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml[90m [offset=120, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=40, limit=10][0m
+[0m$ [0mcat reposcan-raw/google/trillian/testonly/keys.go | head -40
+// Copyright 2016 Google LLC. All Rights Reserved.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+package testonly
+
+// KEYS IN THIS FILE ARE ONLY FOR TESTING. They must not be used by production code.
+
+// DemoPrivateKeyPass is the password for DemoPrivateKey
+const DemoPrivateKeyPass string = "towel"
+
+// DemoPrivateKey is the private key itself; must only be used for testing purposes
+const DemoPrivateKey string = `
+-----BEGIN EC PRIVATE KEY-----
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-CBC,B71ECAB011EB4E8F
+
++6cz455aVRHFX5UsxplyGvFXMcmuMH0My/nOWNmYCL+bX2PnHdsv3dRgpgPRHTWt
+IPI6kVHv0g2uV5zW8nRqacmikBFA40CIKp0SjRmi1CtfchzuqXQ3q40rFwCjeuiz
+t48+aoeFsfU6NnL5sP8mbFlPze+o7lovgAWEqHEcebU=
+-----END EC PRIVATE KEY-----`
+
+// DemoPublicKey is the public key that corresponds to DemoPrivateKey.
+const DemoPublicKey string = `
+-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEsAVg3YB0tOFf3DdC2YHPL2WiuCNR
+1iywqGjjtu2dAdWktWqgRO4NTqPJXUggSQL3nvOupHB4WZFZ4j3QhtmWRg==
+-----END PUBLIC KEY-----`
+[0m
+[0m$ [0msed -n '150,165p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+Example:
+
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+[0m
+[0m$ [0msed -n '265,285p' reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
+
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
+
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0msed -n '60,70p' reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py
+config = OpenIdConfig(
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          client_secret="your_client_secret",
+          redirect
+      )
+  """
+
+  client_id: str
+  auth_uri: str
+[0m
+[0m$ [0msed -n '165,175p' reposcan-raw/google/langextract/.github/workflows/ci.yaml
+echo "::notice::Live API tests skipped - API keys not configured"
+            exit 0
+          fi
+          GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          LANGEXTRACT_API_KEY="${{ secrets.GEMINI_API_KEY }}" \
+          OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
+          tox -e live-api
+
+  plugin-integration-test:
+    needs: test
+    runs-on: ubuntu-latest
+[0m
+[0m$ [0msed -n '165,195p' reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml
+- name: Run load test
+        run: |
+{%- if cookiecutter.deployment_target == 'cloud_run' %}
+          export _ID_TOKEN="{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}"
+          export _STAGING_URL="{% raw %}${{ steps.fetch-url.outputs._staging_url }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H ${_STAGING_URL} \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+{%- elif cookiecutter.deployment_target == 'gke' %}
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+          -H http://127.0.0.1:8080 \
+          -t 30s -u 10 -r 0.5 \
+          --csv=tests/load_test/.results/results \
+          --html=tests/load_test/.results/report.html
+          LOCUST_EXIT_CODE=$?
+          kill {% raw %}${{ steps.port-forward.outputs.pf_pid }}{% endraw %} || true
+          if [ $LOCUST_EXIT_CODE -ne 0 ]; then
+            echo "Load test failed with exit code $LOCUST_EXIT_CODE"
+            exit $LOCUST_EXIT_CODE
+          fi
+{%- elif cookiecutter.deployment_target == 'agent_runtime' %}
+          export _AUTH_TOKEN="{% raw %}${{ steps.fetch-token.outputs._auth_token }}{% endraw %}"
+          uvx locust==2.31.1 \
+          -f tests/load_test/load_test.py \
+          --headless \
+[0m
 ### Classification Tables
 
-#### REAL_SECRET — **0 candidates**
-*(no hardcoded credentials with signs of life in delta or full grep)*
+#### REAL_SECRET (0 findings)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none* | | | |
 
-#### TEST_OR_EXAMPLE — **4 hits**
-| File | Line | Evidence |
-|------|------|----------|
-| `reposcan-raw/google/trillian/testonly/keys.go` | 24 | `DemoPrivateKey` in `testonly` pkg, encrypted with pass "towel", explicitly "must only be used for testing" |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example `private_key`, `password`, `token` in auth credential examples |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` scheme constant |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` placeholder |
+#### TEST_OR_EXAMPLE (176 findings)
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/trillian/testonly/keys.go | 24 | EC PRIVATE KEY | Explicit `testonly` package, comment: "KEYS IN THIS FILE ARE ONLY FOR TESTING" |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key placeholder | Example code: `"your_private_key_id"`, `"-----BEGIN PRIVATE KEY-----..."` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | HttpCredentials password | Example: `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | HttpCredentials token | Example: `token="eyAkaknabna...."` |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | PASSWORD constant | Constant name `PASSWORD = "password"` (scheme identifier) |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | client_secret placeholder | Example: `client_secret="your_client_secret"` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.* }}` | Proper GitHub Actions secret references |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | GEMINI_API_KEY constant | Config key name, not a secret value |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Cookiecutter template | Template syntax `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Secret reference | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Secret Manager ref) |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS | Parse error messages in bundled compiler output |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified JS | Same as above |
 
-#### ENDPOINT_LEAK — **6 hits**
-| File | Line | Evidence |
-|------|------|----------|
-| `reposcan-raw/google/meridian/.github/workflows/proto-publish.yml` | 126, 138 | `test.pypi.org` URLs with `${{ env.PYPI_PACKAGE_NAME }}` (trusted publishing, test env) |
-| `reposcan-raw/google/meridian/.github/workflows/publish.yml` | 127, 139 | Same test.pypi.org config |
-| `reposcan-raw/google/trillian/deployment/deploy-config.yaml` | 2 | `kind: ConfigMap` (K8s resource type, not secret) |
-| `reposcan-raw/google/trillian/deployment/tf-patch.template.yaml` | 2 | `kind: ConfigMap` |
-| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` (proper secret refs) |
+#### ENDPOINT_LEAK (12 findings)
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | test.pypi.org | Staging PyPI (publish workflows) |
+| google/meridian/.github/workflows/publish.yml | 127,139 | test.pypi.org | Staging PyPI (publish workflows) |
+| google/trillian/quota/mysqlqm/mysql_quota.go | 140 | dev.mysql.com/doc | Documentation URL |
+| google/trillian/util/election2/k8s/provider.go | 19,41 | kubeconfig flags | Kubernetes config flags (standard) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | 169.254.169.254 | GCP metadata endpoint (security comments) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | 169.254.169.254 | GCP metadata endpoint (security comment) |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | 169.254.169.254 | GCP metadata endpoint (security comment) |
 
-#### INTERESTING — **5 hits**
-| File | Line | Evidence |
-|------|------|----------|
-| `reposcan-raw/google/cadvisor/lib/cadvisorflags/flags.go` | 54 | `StorageDriverPassword = "storage_driver_password"` — flag *name* constant, not a value |
-| `reposcan-raw/google/trillian/quota/mysqlqm/mysql_quota.go` | 140 | MySQL docs URL comment |
-| `reposcan-raw/google/trillian/util/election2/k8s/provider.go` | 19, 41 | kubeconfig flag + `BuildConfigFromFlags` (standard k8s client pattern) |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | `GEMINI_API_KEY = "gemini_api_key"` — constant name/placeholder |
-| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` (Cloud Run secret ref syntax) |
+#### INTERESTING (14 findings)
+| File | Line | Finding | Significance |
+|------|------|---------|--------------|
+| google/trillian/deployment/deploy-config.yaml | 2 | ConfigMap | K8s deployment config |
+| google/trillian/deployment/tf-patch.template.yaml | 2 | ConfigMap | Terraform/K8s template |
+| google/trillian/util/election2/k8s/provider.go | 19,41 | kubeconfig build | In-cluster/out-of-cluster config logic |
+| google/cadvisor/lib/cadvisorflags/flags.go | 54 | StorageDriverPassword flag | Config flag name (not value) |
+| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | kubeconfig_path/context | GKE executor config params |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | _STATE_KEY_ACCESS_TOKEN | Internal state key constant |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | GOOGLE_API_KEY output | CLI prints key name during setup |
 
 ---
 
 ### Verdict List
 
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| trillian testonly EC key | **no** | Explicit test fixture in `testonly` package, encrypted, documented as demo-only |
-| cadvisor StorageDriverPassword flag | **no** | Constant defines the *flag name*, not a secret value |
-| meridian test.pypi.org workflow URLs | **no** | Public test endpoint, trusted publishing (OIDC), no secrets in YAML |
-| langextract CI secret refs | **no** | Proper `${{ secrets.X }}` references, not hardcoded |
-| adk-python example creds | **no** | All in example/test/auth helper code, placeholder values |
-| adk-go Cloud Run secret ref | **no** | References secret manager, doesn't embed secret |
-| agents-cli GEMINI_API_KEY const | **no** | Placeholder string constant for config key name |
-| trillian kubeconfig handling | **no** | Standard k8s client-go pattern, no embedded creds |
+| Candidate | Category | REPORT_CANDIDATE | Reason |
+|-----------|----------|------------------|--------|
+| trillian/testonly/keys.go EC key | TEST_OR_EXAMPLE | **no** | Explicit test-only package with warning comments |
+| adk-python auth_credential.py examples | TEST_OR_EXAMPLE | **no** | Placeholder values (`your_*`, `password`, `eyAkaknabna....`) |
+| langextract workflow secrets | TEST_OR_EXAMPLE | **no** | Proper `${{ secrets.* }}` usage |
+| agents-cli scaffold templates | TEST_OR_EXAMPLE | **no** | Cookiecutter template syntax, not real values |
+| adk-go Cloud Run secret ref | TEST_OR_EXAMPLE | **no** | References Secret Manager, no secret in code |
+| Minified JS chunks (adk-python, adk-go) | TEST_OR_EXAMPLE | **no** | Compiler output, parse error messages |
+| test.pypi.org URLs | ENDPOINT_LEAK | **no** | Public staging endpoint, intended for publish workflows |
+| GCP metadata endpoint refs | ENDPOINT_LEAK | **no** | Security comments warning about SSRF, not leaks |
+| K8s configs (trillian, adk-python) | INTERESTING | **no** | Standard infrastructure-as-code patterns |
+| cadvisor StorageDriverPassword flag | INTERESTING | **no** | Flag definition, no default secret value |
+| vmaas _STATE_KEY_ACCESS_TOKEN | INTERESTING | **no** | Internal constant name, not a credential |
+| cli_create GOOGLE_API_KEY output | INTERESTING | **no** | Prints variable name during interactive setup |
 
-**Overall: 0 reportable findings in this delta.** All hits are test fixtures, placeholder constants, test endpoints, or proper secret references.
+**Overall: 0 reportable findings in this scan delta.** All hits are test fixtures, example code with placeholders, proper secret references, staging endpoints, or infrastructure config patterns.
