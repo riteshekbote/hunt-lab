@@ -1,65 +1,43 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat > /tmp/classification.md << 'EOF'
-# Classification Results
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [limit=30, offset=150][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=260, limit=30][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py[90m [limit=20, offset=60][0m
+[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py[90m [offset=58, limit=20][0m
+[0m→ [0mRead reposcan-raw/google/ax/manifests/install-ax.sh[90m [limit=60, offset=235][0m
+### Classification Table
 
-## REAL_SECRET (reportable)
-| File | Line | Secret SHA256 | Context |
-|------|------|---------------|---------|
-| *none* | - | - | No hardcoded live credentials found |
+| File | Line | Category | Reason |
+|------|------|----------|--------|
+| adk-python/src/google/adk/auth/auth_credential.py | 157 | TEST_OR_EXAMPLE | Docstring example: `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated placeholder) |
+| adk-python/src/google/adk/auth/auth_credential.py | 269 | TEST_OR_EXAMPLE | Docstring example: `username="user", password="password"` |
+| adk-python/src/google/adk/auth/auth_credential.py | 278 | TEST_OR_EXAMPLE | Docstring example: `token="eyAkaknabna...."` (fake JWT placeholder) |
+| adk-python/src/google/adk/auth/auth_schemes.py | 68 | TEST_OR_EXAMPLE | Enum value `PASSWORD = "password"` for OAuth grant type, not a secret |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | ENDPOINT_LEAK | Comments referencing GCP metadata endpoint `169.254.169.254` |
+| adk-python/src/google/adk/code_executors/gke_code_executor.py | 103, 104, 115 | TEST_OR_EXAMPLE | Config parameters `kubeconfig_path`, `kubeconfig_context` (type hints, no values) |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | ENDPOINT_LEAK | Comment referencing metadata endpoint `169.254.169.254` |
+| adk-python/src/google/adk/tools/load_web_page.py | 171 | ENDPOINT_LEAK | Comment referencing metadata endpoint `169.254.169.254` |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | TEST_OR_EXAMPLE | Docstring example: `client_secret="your_client_secret"` (placeholder) |
+| ax/manifests/install-ax.sh | 239, 241, 286 | INTERESTING | Proper secret handling: reads from k8s secret or generates random via `openssl rand`, stores in k8s secret |
+| dagger/util/latest-dagger-version.sh | 9 | INTERESTING | Proper pattern: reads `GITHUB_TOKEN` from `GH_TOKEN` env var |
+| magika/.github/workflows/github-issue-labeler.yml | 20 | INTERESTING | Proper GitHub Actions pattern: `${{secrets.GITHUB_TOKEN}}` |
+| magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | ENDPOINT_LEAK | Public test.pypi.org URLs (no secrets) |
+| magika/tests_data/basic/javascript/code.js | 31 | TEST_OR_EXAMPLE | Test fixture file |
 
-## TEST_OR_EXAMPLE (not reportable)
-| File | Line | Reason |
-|------|------|--------|
-| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | K8s ConfigMap in docs/manifests (test fixture) |
-| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | K8s ConfigMap in docs/manifests (test fixture) |
-| google/sam/internal/node/store.go | 38 | Constant `keyRefreshToken = "refresh_token"` — key name, not value |
-| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Helm chart template (ConfigMap kind) |
-| google/sam/development/kind/run.sh | 139 | Dev script: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — empty default |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | GH Actions: `--from-literal=...="${SECRET}"` — correct secret ref pattern |
-| google/sam/.github/k8s/*.yaml | various | K8s templates (ConfigMap kind) |
-| google/seesaw/healthcheck/radius.go | 135 | RADIUS attribute constant `ratUserPassword: "User-Password"` — attr name |
-| google/ground-android/app/src/debug/local/google-services.json | 23 | **Firebase API key** (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) — debug/local, public-by-design (Firebase keys are client-visible) |
-| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
-| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Auth scheme constant `PASSWORD = 'password'` — type discriminant |
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | GCP metadata host check `metadata.google.internal` |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | Comment referencing GCP metadata IP `169.254.169.254` |
-| google/CodeCity/third_party/CodeMirror/mode/* | various | **Third-party library code** (CodeMirror modes) — not project source |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | GH Actions: `${{ secrets.X }}` — correct secret ref pattern |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Public staging URL `https://staging.release-eq7.pages.dev` |
-| google/capsem/config/gate.toml | 597 | References password file `password = "password.txt"` — not the secret |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file `password="$(tr -d '\n' < "$pass_file")"` |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
-| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — placeholder name |
-| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Template with GH Actions expressions `{% raw %}${{ steps... }}{% endraw %}` |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | various | Minified/bundled JS parse-error strings — not source |
+### Verdict List
 
-## ENDPOINT_LEAK (internal/dev/staging URLs)
-| File | Line | Endpoint |
-|------|------|----------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata — well-known) |
-| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.169.254` (GCP metadata IP — well-known) |
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (public staging) |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| adk-python auth_credential.py examples | **no** | All are docstring examples with obvious placeholders (`...`, `....`, `"user"/"password"`) |
+| adk-python auth_schemes.py PASSWORD enum | **no** | OAuth2 grant type enum value, not a credential |
+| adk-python metadata endpoint refs (169.254.169.254) | **no** | Comments/documentation only; well-known GCP metadata IP |
+| adk-python gke_code_executor kubeconfig params | **no** | Type hints only, no actual config values |
+| adk-python openapi_tool auth_helpers example | **no** | Docstring placeholder `"your_client_secret"` |
+| ax/install-ax.sh postgres password handling | **no** | **Proper pattern**: reads from k8s secret or generates cryptographically random, stores in k8s secret |
+| dagger/latest-dagger-version.sh GH_TOKEN | **no** | **Proper pattern**: reads from environment variable |
+| magika github-issue-labeler.yml GITHUB_TOKEN | **no** | **Proper pattern**: GitHub Actions secret reference |
+| magika test.pypi.org URLs | **no** | Public package registry endpoints |
+| magika tests_data JS file | **no** | Test fixture |
 
-## INTERESTING (debug flags, configs, cloud configs)
-| File | Line | Note |
-|------|------|------|
-| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key in debug build — public by design, but confirms Firebase project wiring |
-| google/capsem/scripts/preflight.sh + fix_p12_legacy.sh | 39,15 | Password file reads — verify file perms in CI (hygiene) |
-
----
-
-# VERDICT
-
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|------------------|-----------|
-| Firebase API key in google-services.json | **NO** | Firebase API keys are public-by-design (client-visible); debug/local path; same class as REJECTED Algolia key |
-| All other hits | **NO** | Test fixtures, templates, secret references (not values), third-party code, well-known endpoints |
-
-**OVERALL: 0 reportable findings in this delta.**
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+**Summary**: 0 REAL_SECRET findings in this delta. All hits are TEST_OR_EXAMPLE (11), ENDPOINT_LEAK (6), or INTERESTING/proper-patterns (4). The previously known `earthengine-api` hardcoded client_secret (sha256 `3f3f8d6f...`) remains the only LIVE real secret in the corpus — already tracked in knowledge base as ACCEPTED.
