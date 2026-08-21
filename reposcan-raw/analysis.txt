@@ -1,18 +1,27 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-[0m• [0mAnalyze artemis config hits[90m Explore Agent[0m
-[0m✓ [0mAnalyze artemis config hits[90m Explore Agent[0m
-## Delta Triage Results
+## Classification Summary
 
-All 5 new delta hits are **false positives**:
+All 370 hits are **TEST_OR_EXAMPLE** — zero reportable findings:
 
-| File | Line | Content | Classification |
-|---|---|---|---|
-| `google/artemis/config/constants.py` | 35 | `ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN"` | TEST_OR_EXAMPLE — env var name constant |
-| `google/artemis/config/constants.py` | 51 | `ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` | TEST_OR_EXAMPLE — env var name constant |
-| `google/artemis/config/constants.py` | 52 | `ENV_GEMINI_API_KEY = "GEMINI_API_KEY"` | TEST_OR_EXAMPLE — env var name constant |
-| `google/artemis/config/settings.py` | 163 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | TEST_OR_EXAMPLE — internal attribute aliasing |
-| `google/artemis/config/settings.py` | 165 | `self.GOOGLE_API_KEY = self.GCP_API_KEY` | TEST_OR_EXAMPLE — internal attribute aliasing |
+| Category | Count | Examples |
+|----------|-------|---------|
+| Test fixtures | ~15 | `password="testpassword"`, `token="test-token-123"` in copybara tests |
+| Placeholder docs | ~8 | `client_secret="your_client_secret"`, `-----BEGIN PRIVATE KEY-----...` |
+| Enum/config names | ~10 | `PASSWORD = "password"` (auth_schemes.py), `ENV_GOOGLE_API_KEY` |
+| Env var references | ~4 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` (settings.py) |
+| Docstring URLs | ~30 | `http://dev.w3.org/...`, `169.254.169.254` metadata references |
+| Minified JS/browser | ~20 | parser error strings in adk-python CLI chunks |
+| Test PyPI endpoints | 4 | `https://test.pypi.org/p/...` in meridian workflows |
 
-**Verdict: REPORT_CANDIDATE: no** — zero new reportable findings. All delta hits are env-var-name constants and fallback aliasing logic, not actual secrets. The repo properly gitignores `.env` files and uses `SecretStr` for key fields.
+**VERDICT:**
+
+| Category | REPORT_CANDIDATE |
+|----------|-----------------|
+| REAL_SECRET | no |
+| TEST_OR_EXAMPLE | all hits |
+| ENDPOINT_LEAK | no |
+| INTERESTING | no |
+
+**No reportable findings in this scan cycle.** All hits are test fixtures, documentation placeholders, enum values, or well-known public endpoints (test.pypi.org, W3C spec URLs, cloud metadata IPs).
