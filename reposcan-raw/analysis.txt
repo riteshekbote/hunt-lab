@@ -1,71 +1,220 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && ls reposcan-raw/google/ground-android/app/src/debug/local/google-services.json
-reposcan-raw/google/ground-android/app/src/debug/local/google-services.json
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/ground-android/app/src/debug/local/google-services.json 2>/dev/null | head -30
+{
+  "project_info": {
+    "project_number": "334087903719",
+    "project_id": "local",
+    "storage_bucket": "local.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:334087903719:android:277f0bf3c1887739f40542",
+        "android_client_info": {
+          "package_name": "org.groundplatform.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "local.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
 [0m
-[0m→ [0mRead reposcan-raw/google/ground-android/app/src/debug/local/google-services.json
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py[90m [limit=20, offset=125][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py[90m [limit=15, offset=40][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [limit=20, offset=38][0m
-Now I have enough context to classify all hits. Let me compile the results.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '150,165p'
+Example:
 
-## Classification Results
+      config = ServiceAccountCredential(
+          type_="service_account",
+          project_id="your_project_id",
+          private_key_id="your_private_key_id",
+          private_key="-----BEGIN PRIVATE KEY-----...",
+          client_email="...@....iam.gserviceaccount.com",
+          client_id="your_client_id",
+          auth_uri="https://accounts.google.com/o/oauth2/auth",
+          token_uri="https://oauth2.googleapis.com/token",
+          auth_provider_x509_cert_url="https://www.googleapis.com/oauth2/v1/certs",
+          client_x509_cert_url="https://www.googleapis.com/robot/v1/metadata/x509/...",
+          universe_domain="googleapis.com"
+      )
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | sed -n '265,285p'
+AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="basic",
+          credentials=HttpCredentials(username="user", password="password"),
+      ),
+  )
 
-### REAL_SECRET (Reportable Candidates)
+  Example: OAuth2 Bearer Token in HTTP Header
+  AuthCredential(
+      auth_type=AuthCredentialTypes.HTTP,
+      http=HttpAuth(
+          scheme="bearer",
+          credentials=HttpCredentials(token="eyAkaknabna...."),
+      ),
+  )
 
-| File | Line | SHA256 (truncated) | Context |
-|------|------|-------------------|---------|
-| `reposcan-raw/google/ground-android/app/src/debug/local/google-services.json` | 23 | `a1f5c3e8...` (of `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) | **Google API key** in debug/local build config. Project ID="local", client_id="local.apps.googleusercontent.com" — appears to be a real key committed to a debug variant directory. |
+  Example: OAuth2 Auth with Authorization Code Flow
+  AuthCredential(
+      auth_type=AuthCredentialTypes.OAUTH2,
+      oauth2=OAuth2Auth(
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '40,50p'
+"""Supported authentication methods."""
 
-### TEST_OR_EXAMPLE (Not Reportable)
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
 
-| File | Line | Reason |
-|------|------|--------|
-| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/chunk-*.js` (14 files) | 3, 11 | Minified parser generator output (error message templates) |
-| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | Writes user-provided `google_api_key` variable to `.env` — not hardcoded |
-| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Constant `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — session state key name |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py` | 43 | Enum value `GEMINI_API_KEY = "gemini_api_key"` — auth type identifier |
-| `reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml` | 168, 192 | GitHub Actions expressions `${{ steps.fetch-token.outputs._id_token }}` — step output references |
-| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Secrets references `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` |
-| `reposcan-raw/google/sam/internal/node/store.go` | 38 | Constant `keyRefreshToken = "refresh_token"` — key name |
-| `reposcan-raw/google/sam/development/kind/run.sh` | 139 | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — no default |
-| `reposcan-raw/google/sam/.github/workflows/deploy.yaml` | 247-250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` — env var references |
-| `reposcan-raw/google/dagger/util/latest-dagger-version.sh` | 9 | Shell param expansion `GITHUB_TOKEN="${GH_TOKEN:-}"` — no default |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example values: truncated private key `-----BEGIN PRIVATE KEY-----...`, literal `"password"`, fake JWT `eyAkaknabna....` |
-| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` — scheme identifier |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Placeholder `client_secret="your_client_secret"` |
-| `reposcan-raw/google/ax/manifests/install-ax.sh` | 239, 241, 286 | Generated password via `openssl rand -hex 16` — not hardcoded |
 
-### ENDPOINT_LEAK (Internal/Dev URLs)
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
 
-| File | Line | Context |
-|------|------|---------|
-| `reposcan-raw/google/sam/site/content/docs/manifests/*.yaml` | — | Kubernetes ConfigMap manifests (documentation) |
-| `reposcan-raw/google/sam/.github/k8s/*.yaml` | — | K8s templates (ConfigMap kind) |
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Comments referencing `169.254.169.254` metadata endpoint |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | Comment referencing `169.254.169.254` metadata endpoint |
-| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Comment referencing `169.254.169.254` metadata endpoint |
+    Args:
+[0m
+Now I have enough context. Let me classify all hits and produce the output.
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/ax/manifests/install-ax.sh | sed -n '235,290p'
+# else generate one.
+    local existing_pw
+    existing_pw="$(run_kubectl -n ax get secret ax-eventlog-postgres -o go-template='{{.data.password | base64decode}}' 2>/dev/null || true)"
+    if [[ -n "${existing_pw}" ]]; then
+      pg_password="${existing_pw}"
+    else
+      pg_password="${POSTGRES_PASSWORD:-$(openssl rand -hex 16)}"
+    fi
+    pg_dsn="postgres://axuser:${pg_password}@ax-eventlog-postgres.ax.svc:5432/axeventlog?sslmode=disable"
+  else
+    pg_dsn="${AX_EVENTLOG_DSN}"
+    echo "Using existing Postgres via AX_EVENTLOG_DSN." >&2
+  fi
 
-### INTERESTING (Unusual, Not Secrets)
+  # Base64 of the single-source config file (manifests/ax.yaml), injected into
+  # each ActorTemplate's AX_CONFIG_CONTENT env so substrate actors read their config
+  # without a mounted ConfigMap.
+  local ax_config_content
+  ax_config_content="$(base64 < manifests/ax.yaml | tr -d '\n')"
 
-| File | Line | Context |
-|------|------|---------|
-| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | Kubeconfig path/context parameters (config, not secrets) |
+  # Common substitutions applied to every rendered manifest.
+  local render_sed=(
+    -e "s|\${GEMINI_API_KEY}|${GEMINI_API_KEY}|g"
+    -e "s|\${AX_SNAPSHOTS_BUCKET}|${AX_SNAPSHOTS_BUCKET}|g"
+    -e "s|\${AX_IMAGE}|${ax_image}|g"
+    -e "s|\${AX_ANTIGRAVITY_IMAGE}|${ax_antigravity_image}|g"
+    -e "s|\${ATEOM_IMAGE}|${ateom_image}|g"
+    -e "s|\${GOOGLE_CLOUD_PROJECT}|${GOOGLE_CLOUD_PROJECT:-}|g"
+    -e "s|\${AX_CONFIG_CONTENT}|${ax_config_content}|g"
+  )
 
----
+  # Render and apply the core manifest (namespace, harnesses, ax-server).
+  if ! sed "${render_sed[@]}" manifests/ax-deployment.yaml | run_kubectl apply -f -; then
+    echo >&2
+    echo "Error: cluster rejected the manifest. An \"unknown field\" error usually means the" >&2
+    echo "cluster's substrate is incompatible with AX's go.mod pin — see" >&2
+    echo "manifests/README.md (\"Substrate compatibility\")." >&2
+    exit 1
+  fi
+
+  # Create/update the controller ConfigMap from the single-source config file
+  # (manifests/ax.yaml) -- the same file that seeds the actors' AX_CONFIG_CONTENT.
+  # ax-server mounts it at /etc/ax/ax.yaml.
+  run_kubectl -n ax create configmap ax-server-config \
+    --from-file=ax.yaml=manifests/ax.yaml \
+    --dry-run=client -o yaml | run_kubectl apply -f -
+
+  # Create/update the event-log Secret with the DSN (and, for the bundled Postgres,
+  # its password). ax-server reads AX_EVENTLOG_DSN from this Secret's dsn key.
+  local secret_args=(--from-literal=dsn="${pg_dsn}")
+  if [[ "${DEPLOY_POSTGRES}" == "true" ]]; then
+    secret_args+=(--from-literal=password="${pg_password}")
+  fi
+  run_kubectl -n ax create secret generic ax-eventlog-postgres "${secret_args[@]}" \
+    --dry-run=client -o yaml | run_kubectl apply -f -
+[0m
+Now I have full context. Let me produce the classification tables.
+
+## Classification Tables
+
+### REAL_SECRET
+| File | Line | SHA256(secret) | Context | REPORT_CANDIDATE |
+|------|------|----------------|---------|------------------|
+| *(none)* | | | | |
+
+### TEST_OR_EXAMPLE
+| File | Line | Type | Notes |
+|------|------|------|-------|
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 157 | private_key fixture | `-----BEGIN PRIVATE KEY-----...` with placeholder `...` in example block |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 269 | basic auth fixture | `username="user", password="password"` in "Example:" block |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py | 278 | bearer token fixture | `token="eyAkaknabna...."` truncated in "Example:" block |
+| reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | constant | `PASSWORD = "password"` — literal string constant |
+| reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | placeholder | `client_secret="your_client_secret",` — placeholder value |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | 43 | constant | `GEMINI_API_KEY = "gemini_api_key"` — string constant for env var name |
+| reposcan-raw/google/sam/internal/node/store.go | 38 | constant | `keyRefreshToken = "refresh_token"` — literal string constant |
+| reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | constant | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — literal string constant |
+| reposcan-raw/google/ground-android/app/src/debug/local/google-services.json | 23 | debug config | `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` — project_id="local", client_id="local.apps.googleusercontent.com" |
+
+### ENDPOINT_LEAK
+| File | Line | Type | Notes |
+|------|------|------|-------|
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | metadata endpoint | Comment referencing `169.254.169.254` |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | metadata endpoint | Comment referencing `169.254.169.254` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py | 171 | metadata endpoint | Comment referencing `169.254.169.254` |
+| reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | metadata endpoint | Comment referencing `169.254.169.254` |
+
+### INTERESTING
+| File | Line | Type | Notes |
+|------|------|------|-------|
+| reposcan-raw/google/artemis/artemis/config/constants.py | 35 | env var name | `ENV_ARTEMIS_TENANT_TOKEN = "ARTEMIS_TENANT_TOKEN"` |
+| reposcan-raw/google/artemis/artemis/config/constants.py | 51 | env var name | `ENV_GOOGLE_API_KEY = "GOOGLE_API_KEY"` |
+| reposcan-raw/google/artemis/artemis/config/constants.py | 52 | env var name | `ENV_GEMINI_API_KEY = "GEMINI_API_KEY"` |
+| reposcan-raw/google/artemis/artemis/config/settings.py | 163 | env var alias | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` |
+| reposcan-raw/google/artemis/artemis/config/settings.py | 165 | env var alias | `self.GOOGLE_API_KEY = self.GCP_API_KEY` |
+| reposcan-raw/google/sam/development/kind/run.sh | 139 | shell param expansion | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — default empty |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 247 | GH Actions secret ref | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 249 | GH Actions secret ref | `--from-literal=github-client-secret="${GITHUB_CLIENT_SECRET}"` |
+| reposcan-raw/google/sam/.github/workflows/deploy.yaml | 250 | GH Actions secret ref | `--from-literal=cli-oauth-secret="${CLI_OAUTH_SECRET}"` |
+| reposcan-raw/google/langextract/.github/workflows/ci.yaml | 168-170 | GH Actions secret refs | `GEMINI_API_KEY`, `LANGEXTRACT_API_KEY`, `OPENAI_API_KEY` from secrets |
+| reposcan-raw/google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | GH Actions expressions | `_ID_TOKEN`, `_AUTH_TOKEN` from step outputs |
+| reposcan-raw/google/ax/manifests/install-ax.sh | 239-241,286 | secret handling | Reads/generates PG password, creates K8s secret properly |
+| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | GH Actions secret ref | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` |
+| reposcan-raw/google/sam/site/content/docs/manifests/*.yaml | multiple | K8s ConfigMap | `kind: ConfigMap` — config, not secrets |
+| reposcan-raw/google/sam/.github/k8s/*.yaml | multiple | K8s ConfigMap | `kind: ConfigMap` — config templates |
+| reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py | 131 | env var write | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — writes user input to file |
+| reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103,104,115 | type hints | `kubeconfig_path: str \| None = None` — type annotations |
 
 ## Verdict List
 
-| Candidate | REPORT_CANDIDATE | Rationale |
-|-----------|-----------------|-----------|
-| `ground-android/app/src/debug/local/google-services.json:23` (API key `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) | **YES** | Real Google API key format committed to repo in debug/local build variant. Project ID="local" but key appears live. Requires validation: check if key is restricted (referer/package) or revoked. |
-| All other hits | **NO** | Test fixtures, placeholder constants, GitHub Actions secret references, minified parser output, documentation/examples. No live credentials. |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/ground-android debug google-services.json API key | **no** | Project_id="local", client_id="local.apps.googleusercontent.com" — local development config, not production |
+| google/adk-python auth_credential.py fixtures | **no** | Explicit "Example:" blocks with placeholder values (`...`, "your_*", "password") |
+| google/adk-python auth_schemes.py PASSWORD constant | **no** | Literal string constant "password", not a credential |
+| google/adk-python auth_helpers.py placeholder | **no** | Placeholder value "your_client_secret" |
+| google/agents-cli auth.py GEMINI_API_KEY constant | **no** | String constant "gemini_api_key" used as env var name key |
+| google/sam store.go keyRefreshToken constant | **no** | Literal string constant "refresh_token" |
+| google/adk-python sandbox_computer.py constant | **no** | Literal string constant "_vmaas_access_token" |
+| google/artemis constants/settings | **no** | Env var name constants and aliases, no secret material |
+| google/sam workflows/deploy.yaml secret refs | **no** | Proper GitHub Actions `${{ secrets.* }}` references |
+| google/langextract workflow secret refs | **no** | Proper GitHub Actions `${{ secrets.* }}` references |
+| google/agents-cli scaffold workflow expressions | **no** | Step output references, not secrets |
+| google/ax install-ax.sh secret handling | **no** | Reads/generates password at deploy time, creates K8s secret properly |
+| google/flatbuffers workflow GITHUB_TOKEN | **no** | Standard `${{ secrets.GITHUB_TOKEN }}` usage |
+| google/sam ConfigMap manifests | **no** | Kubernetes ConfigMap resources, not secrets |
+| google/adk-python cli_create.py env write | **no** | Writes user-provided value to local file, not hardcoded |
+| google/adk-python gke_code_executor type hints | **no** | Type annotations only |
+| Metadata endpoint comments (169.254.169.254) | **no** | Documentation/comments about GCP metadata service |
 
----
-
-## Recommended Action
-
-1. **Validate the ground-android API key**: Probe `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` against Google APIs to determine if it's restricted (referer/android-package bound) or revoked. If unrestricted and live → report to Google VRP.
-
-2. **No other reportable findings** in this delta. The 23 new hit lines are all parser generator artifacts, template code, or proper secret references.
+**SUMMARY: 0 reportable findings in this delta.** All hits are test fixtures, placeholder constants, proper secret references, or local development configs.
