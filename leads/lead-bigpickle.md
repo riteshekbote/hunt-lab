@@ -15488,3 +15488,4 @@ testability: AUTH_HELPED
 [LEARN] ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
 [LEARN] MONITOR: robot probe pipeline empty for 15 consecutive sections (2026-08-20 17:42 → 2026-08-21 02:53 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
 [RISK] google: 55 — proven-valid credential with cloud-platform scope (A/B proof, conf 96) but installed-app OOB public-client pattern caps VRP-worthiness per ADK #2128 precedent; report ready, pending human submission | microsoft: 72 — two independent high-confidence precondition packages (IDOR+CORS 97; consent-forge 79) with browser-exploitable preflights and zero schema restrictions, both blocked solely on authorized two-principal verification; MSRC request drafted and sha256-verified ready to submit.
+## 2026-08-21 04:25:27 UTC [google] (model bigpickle)
