@@ -4,92 +4,56 @@
 ### Classification Tables
 
 #### REAL_SECRET
-*None found in this scan delta.*
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *none in this delta* | — | — | — |
 
 #### TEST_OR_EXAMPLE
-| File | Line | Match | Reason |
-|------|------|-------|--------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----...",` | Placeholder (trailing `...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `credentials=HttpCredentials(username="user", password="password"),` | Literal test credentials |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `credentials=HttpCredentials(token="eyAkaknabna...."),` | Placeholder JWT |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` | Test constant |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 103 | `kubeconfig_path: str \| None = None` | Parameter definition |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 104 | `kubeconfig_context: str \| None = None` | Parameter definition |
-| google/adk-python/src/google/adk/code_executors/gke_code_executor.py | 115 | `kubeconfig_path: str \| None = None,` | Parameter definition |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key name constant |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret",` | Placeholder value |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` | Nonprod test code |
-| google/nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | `DB_PASSWORD = "domain-registry"` | Nonprod test code |
-| google/nomulus/core/src/main/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | `DB_PASSWORD = "password"` | Test code |
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37 | `X_CSRF_TOKEN = "X-CSRF-Token"` | Header name constant |
-| google/nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 40 | `P_CSRF_TOKEN = "xsrfToken"` | Param name constant |
-| google/nomulus/core/src/main/java/google/registry/bsa/api/BsaCredential.java | 61 | `ID_TOKEN = "id_token"` | Constant string |
-| google/nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | `password = "abcde12345"` | Load test code |
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Key name constant |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 75 | `password = "testpassword"` | Test code |
-| google/copybara/javatests/com/google/copybara/http/auth/AuthTest.java | 102 | `token = "test-token-123"` | Test code |
-| google/copybara/javatests/com/google/copybara/http/endpoint/HttpEndpointTest.java | 136,159,189 | `password = "testpassword"` | Test code |
-| google/fruit/extras/scripts/filter_gcc_error.sh | 7,36 | `OPENING_TOKEN="${TOKENS[$CurPos]}"` | Shell variable ref |
+| File | Line | Context |
+|------|------|---------|
+| nomulus/core/src/nonprod/java/.../PostgresqlCommand.java | 28 | `DB_PASSWORD = "domain-registry"` (nonprod test) |
+| nomulus/core/src/nonprod/java/.../GenerateSqlSchemaCommand.java | 40 | `DB_PASSWORD = "domain-registry"` (nonprod test) |
+| nomulus/core/src/nonprod/java/.../GenerateSqlErDiagramCommand.java | 61 | `DB_PASSWORD = "password"` (nonprod test) |
+| nomulus/load-testing/.../EppClient.java | 156 | `password = "abcde12345"` (load test) |
+| copybara/javatests/.../AuthTest.java | 75, 102, 129 | `testpassword`, `test-token-123` (unit tests) |
+| copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | `testpassword` (unit tests) |
+| adk-python/src/google/adk/auth/auth_credential.py | 157, 269, 278 | Example private_key, HttpCredentials (tr
+| adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` (scheme constant) |
+| adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` (placeholder) |
+| flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` (CI secret ref) |
+| artemis/artemis/config/constants.py | 35, 51, 52 | Env var *names* (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) |
 
 #### ENDPOINT_LEAK
-| File | Line | Match | Type |
-|------|------|-------|------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114 | `cloud metadata endpoint at 169.254.169.254` | GCP metadata IP |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 154 | `cloud metadata endpoint at 169.254.169.254` | GCP metadata IP |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254 in Chrome` | GCP metadata IP |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `routes to the internal 169.254.169.254 metadata` | GCP metadata IP |
-| google/nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | `rootUrl: https://staging-www.sandbox.googleapis.com` | Staging endpoint |
-| google/nomulus/util/src/main/java/google/registry/util/MetricParameters.java | 61 | `GCE_METADATA_URL_BASE = "http://metadata.google.internal/"` | GCP metadata DNS |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | `--from-literal=*-secret="${*_SECRET}"` | K8s secret refs (CI) |
-| google/CFU-Playground/.github/workflows/fmax-trials.yml | 10 | `wget https://static.dev.sifive.com/...` | External artifact URL |
-| google/copybara/cloudbuild.yaml | 27 | `pantheon.corp.google.com/artifacts/...` | Internal Corp URL |
+| File | Line | Context |
+|------|------|---------|
+| nomulus/core/src/main/java/.../default-config.yaml | 260 | `rootUrl: https://staging-www.sandbox.googleapis.com` |
+| nomulus/util/src/main/java/.../MetricParameters.java | 61 | `GCE_METADATA_URL_BASE = "http://metadata.google.internal/"` |
+| adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | Comments referencing `169.254.169.254` metadata endpoint |
+| adk-python/src/google/adk/tools/load_web_page.py | 171 | Comment referencing `169.254.169.254` |
+| adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Comment referencing `169.254.169.254` |
+| copybara/cloudbuild.yaml | 27 | Commented internal Pantheon URL |
 
 #### INTERESTING
-| File | Line | Match | Note |
-|------|------|-------|------|
-| google/adk-python/src/google/adk/cli/browser/chunk-KDOJMYWA.js | 3 | Minified JS parse error | Build artifact |
-| google/adk-python/src/google/adk/cli/browser/chunk-PVEI6UQ6.js | 3 | Minified JS parse error | Build artifact |
-| google/adk-python/src/google/adk/cli/browser/chunk-R7A5HXMQ.js | 3 | Minified JS parse error | Build artifact |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | Code interpolates var |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Empty default shell var |
-| google/sam/.github/workflows/deploy.yaml | 247-250 | Secret refs from `${GOOGLE_CLIENT_SECRET}` etc | CI secret injection pattern |
-| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | Reads from file |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file |
-| google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | GitHub Actions token ref |
-| google/nomulus/docs/console-endpoints/swagger-ui-bundle.js | 2 | Minified Swagger UI | Build artifact |
-| google/nomulus/docs/console-endpoints/swagger-ui.js | 1 | Minified Swagger UI | Build artifact |
-| google/sam/.github/k8s/*.yaml | various | `kind: ConfigMap` | K8s config markers |
+| File | Line | Context |
+|------|------|---------|
+| adk-python/src/google/adk/cli/cli_create.py | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` — CLI writes provided key to config file (not hardcoded) |
+| crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="github-crosvm-bot")` — fetches from Secret Manager at runtime |
+| crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `CODECOV_TOKEN=$(gcloud --project=crosvm-infra secrets versions access latest --secret="codecov-google-crosvm")` — fetches from Secret Manager at runtime |
+| artemis/artemis/config/settings.py | 163, 165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY / self.GCP_API_KEY` — reads from env/config |
 
 ---
 
 ### Verdict List
 
-| Candidate | File | Classification | REPORT_CANDIDATE |
-|-----------|------|----------------|------------------|
-| adk-python auth_credential.py:157 | Private key placeholder | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_credential.py:269 | Test credentials | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_credential.py:278 | Placeholder JWT | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_schemes.py:68 | Test constant | TEST_OR_EXAMPLE | **no** |
-| adk-python gke_code_executor.py:103-115 | Kubeconfig params | TEST_OR_EXAMPLE | **no** |
-| adk-python sandbox_computer.py:47 | State key constant | TEST_OR_EXAMPLE | **no** |
-| adk-python auth_helpers.py:64 | Placeholder client_secret | TEST_OR_EXAMPLE | **no** |
-| adk-python container_code_executor.py:114,154 | GCP metadata IP in comments | ENDPOINT_LEAK | **no** (well-known) |
-| adk-python computer_use_toolset.py:146 | GCP metadata IP in comment | ENDPOINT_LEAK | **no** |
-| adk-python load_web_page.py:171 | GCP metadata IP in comment | ENDPOINT_LEAK | **no** |
-| adk-python cli_create.py:131 | API key interpolation | INTERESTING | **no** (code pattern) |
-| adk-python cli/browser/*.js | Minified JS artifacts | INTERESTING | **no** |
-| nomulus *Test*.java | Test passwords/tokens | TEST_OR_EXAMPLE | **no** |
-| nomulus default-config.yaml:260 | Staging endpoint | ENDPOINT_LEAK | **no** |
-| nomulus MetricParameters.java:61 | Metadata DNS name | ENDPOINT_LEAK | **no** (well-known) |
-| sam deploy.yaml:247-250 | CI secret injection | INTERESTING | **no** (standard pattern) |
-| sam run.sh:139 | Empty shell var default | INTERESTING | **no** |
-| capsem gate.toml/preflight.sh/fix_p12_legacy.sh | File-based password reads | INTERESTING | **no** (config pattern) |
-| CFU-Playground fmax-trials.yml:10 | External wget | ENDPOINT_LEAK | **no** (public artifact) |
-| copybara cloudbuild.yaml:27 | Internal Corp URL in comment | ENDPOINT_LEAK | **no** (internal only) |
-| copybara AuthTest.java / HttpEndpointTest.java | Test constants | TEST_OR_EXAMPLE | **no** |
-| flatbuffers label.yml:24 | GitHub Actions token ref | INTERESTING | **no** (standard CI) |
-| sam store.go:38 | Key name constant | TEST_OR_EXAMPLE | **no** |
-| sam k8s templates | ConfigMap markers | INTERESTING | **no** |
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| **Earth Engine client_secret** (known from KB: `google/earthengine-api/python/ee/oauth.py:45`) | **yes** (pending VRP determination on native-app by-design status) | Live on master, sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`, A/B proof conclusive (`invalid_grant` vs `invalid_client`), scopes include `cloud-platform` + `drive` + `devstorage.full_control` |
+| **All 22 delta hits** (adk-python browser chunks) | **no** | Minified JS parser error strings — build artifacts |
+| **3 hashed Secret Manager refs** (artemis constants, crosvm scripts) | **no** | Runtime `gcloud secrets` fetches — no hardcoded secret material |
+| **All TEST_OR_EXAMPLE hits** | **no** | Test fixtures, placeholders, nonprod code, env var names |
+| **All ENDPOINT_LEAK hits** | **no** | Internal/staging/metadata URLs — no auth bypass, known surfaces |
+| **adk-python cli_create.py key write** | **no** | CLI tool writes *user-provided* key to local config — not a hardcoded leak |
 
-**SUMMARY**: **0 REPORT_CANDIDATE=yes** in this delta. All hits are test fixtures, placeholders, well-known endpoints (169.254.169.254, metadata.google.internal), minified build artifacts, or standard CI/CD secret-injection patterns. No live credentials or novel attack surface.
+---
+
+**Bottom line:** Only the previously-known Earth Engine hardcoded `client_secret` remains a live report candidate. Everything in this delta scan is noise (test code, build artifacts, Secret Manager references, internal URLs). No new hardcoded secrets discovered.
