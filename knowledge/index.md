@@ -623,3 +623,11 @@
 - 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
 - 2026-08-21 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own probe).
 - 2026-08-21 MONITOR: robot probe pipeline empty for 11 consecutive cycles (2026-08-20 17:42 → 2026-08-21 01:47 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
+- 2026-08-21 ACCEPTED: agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe 01:47 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable)
+- 2026-08-21 ACCEPTED: oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 01:47 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable)
+- 2026-08-21 ACCEPTED: oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 37th consecutive cycle)
+- 2026-08-21 ACCEPTED: JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[] (own probe)
+- 2026-08-21 ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe ~02:55 UTC OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe ~02:55 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 38th consecutive cycle).
+- 2026-08-21 MONITOR: robot probe pipeline empty for 12 consecutive cycles (2026-08-20 17:42 → 2026-08-21 02:55 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
