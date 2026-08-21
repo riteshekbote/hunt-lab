@@ -1699,3 +1699,6 @@ https://raw.githubusercontent.com/google/earthengine-api/master/python/ee/oauth.
 
 ## 2026-08-21 21:56:50 UTC
 https://oauth2.googleapis.com/token -> HTTP 404
+
+## 2026-08-21 22:27:56 UTC
+https://oauth2.googleapis.com/token -> HTTP 404
