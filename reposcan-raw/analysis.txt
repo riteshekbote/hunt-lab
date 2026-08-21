@@ -1,53 +1,52 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## TRIAGE TABLE: NEW HITS (google/microsoft org scan)
+## Classification Table
 
-### REAL_SECRET — none
+### REAL_SECRET
+| File | Line | Notes | sha256 |
+|------|------|-------|--------|
+| (none) | — | — | — |
 
 ### TEST_OR_EXAMPLE
-
-| File | Line | Content | Verdict |
-|------|------|---------|---------|
-| `adk-go/.../chunk-6HSYUS5O.js` | 3 | Minified parser error strings | TEST |
-| `adk-go/.../chunk-RNTHHQWK.js` | 3 | Minified parser error strings | TEST |
-| `adk-go/.../chunk-WEKWG7SS.js` | 3 | Minified parser error strings | TEST |
-| `capsem/config/gate.toml` | 597 | `password = "password.txt"` | TEST — filename ref, not credential |
-| `capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | TEST — reads from file |
-| `capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | TEST — reads from file |
-| `adk-python/.../auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | TEST — placeholder `...` |
-| `adk-python/.../auth_credential.py` | 269 | `credentials=HttpCredentials(username="user", password="password")` | TEST — literal `"password"` |
-| `adk-python/.../auth_credential.py` | 278 | `credentials=HttpCredentials(token="eyAkaknabna....")` | TEST — placeholder |
-| `adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` | TEST — enum value, not credential |
-| `adk-python/.../gke_code_executor.py` | 103-104,115 | `kubeconfig_path: str \| None = None` | TEST — type annotation |
-| `adk-python/.../container_code_executor.py` | 114,154 | `cloud metadata endpoint at 169.254.169.254` | TEST — documentation |
-| `adk-python/.../load_web_page.py` | 171 | `metadata endpoint 169.254.169.254` | TEST — documentation |
-| `adk-python/.../computer_use_toolset.py` | 146 | `169.254.169.254 in Chrome, so refuse` | TEST — documentation |
-| `adk-python/.../auth_helpers.py` | 64 | `client_secret="your_client_secret"` | TEST — placeholder `"your_client_secret"` |
-| `adk-python/.../vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | TEST — variable name |
-| `adk-python/.../cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | TEST — code template |
-| `artemis/config/settings.py` | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | TEST — config wiring |
-| `artemis/config/constants.py` | 35,51-52 | `ENV_ARTEMIS_TENANT_TOKEN`, `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | TEST — env var name constants |
-| `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | 3 | ~20× minified parser error strings | TEST — minified bundles |
-| `adk-python/cli/browser/chunk-*.js` | 3 | ~20× minified parser error strings | TEST — minified bundles |
+| File | Line | Pattern | Notes |
+|------|------|---------|-------|
+| google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | Env var reference, not a key value |
+| google/artemis/artemis/config/constants.py | 35,51,52 | `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | Env var name constants |
+| google/adk-python/.../auth_credential.py | 157,269,278 | `"-----BEGIN PRIVATE KEY-----..."`, `"user"`, `"password"`, `"eyAkaknabna...."` | Docstring placeholders |
+| google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` | Enum value / example |
+| google/adk-python/.../openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Placeholder in docstring |
+| google/adk-python/.../cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` | Template string, not a key |
+| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | File path, not a password |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr ... < "$pass_file")"` | Reads from file at runtime |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr ... < "$PASS_FILE")"` | Reads from file at runtime |
+| google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path: str \| None = None` | Parameter declarations |
+| google/adk-python/.../container_code_executor.py | 114,154 | Comment mentioning `169.254.169.254` | Documentation about cloud metadata |
+| google/adk-python/.../load_web_page.py | 171 | Comment mentioning `169.254.169.254` | Documentation |
+| google/adk-python/.../computer_use_toolset.py | 146 | Comment mentioning `169.254.169.254` | Chrome security docstring |
+| google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | Internal state key name, not a token |
+| google/adk-python/.../browser/chunk-*.js (×16) | various | `"Parse error on line"` | Minified parser error strings |
+| google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/p/...` | Test PyPI URL, expected |
+| google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/legacy/` | Test PyPI URL, expected |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Staging domain in workflow config |
+| google/closure-compiler/externs/*, contrib/* | various | W3C spec URLs (`http://dev.w3.org/...`) | Standard spec reference URLs in externs |
+| google/closure-compiler/.../ErrorManager.java | 95 | `https://source.corp.google.com/...` | Internal code review URL in comment |
 
 ### ENDPOINT_LEAK
+| File | Line | URL | Notes |
+|------|------|-----|-------|
+| google/closure-compiler/.../ErrorManager.java | 95 | `https://source.corp.google.com/piper///depot/google3/...` | Internal Piper code review link; informational only, no auth surface |
 
-| File | Line | Content | Verdict |
-|------|------|---------|---------|
-| `capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | INFO — Cloudflare Pages staging URL, project-specific, not internal |
-| `meridian/.github/workflows/proto-publish.yml` | 126,138 | `https://test.pypi.org/...` | INFO — PyPI test index, standard for pre-release publishing |
-| `meridian/.github/workflows/publish.yml` | 127,139 | `https://test.pypi.org/...` | INFO — PyPI test index, standard for pre-release publishing |
-| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | INFO — Cloud Run secret ref, by-design |
+### INTERESTING
+| (none) | — | — | — |
 
----
+## Verdict
 
-## VERDICT LIST
+| Category | Report Candidate? | Rationale |
+|----------|------------------|-----------|
+| REAL_SECRET | **No** | No hardcoded secrets found in this delta |
+| TEST_OR_EXAMPLE | No | All are docstrings, placeholders, env var names, or standard references |
+| ENDPOINT_LEAK | No | source.corp.google.com link in a comment; informational only, no actionable surface |
+| INTERESTING | No | No unusual findings |
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|-----------------|
-| All TEST_OR_EXAMPLE hits (30+) | no — placeholder strings, doc examples, env var names, minified bundles |
-| ENDPOINT_LEAK hits (4) | no — PyPI test index, Cloudflare Pages staging, Cloud Run secret ref — all standard/expected |
-| REAL_SECRET | none found |
-
-**VERDICT: 0 reportable candidates.** All 215 hits are TEST_OR_EXAMPLE (doc examples, placeholder strings, minified JS bundles, env var names) or ENDPOINT_LEAK (standard staging/test URLs). No real secrets, no real credentials, no misconfigs.
+**REPORT_CANDIDATE: no** — Delta contains only W3C spec reference URLs (closure-compiler externs), internal code review URL (source.corp.google.com comment), environment variable name constants, and placeholder strings. No real secrets, no reportable findings.
