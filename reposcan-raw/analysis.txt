@@ -1,24 +1,19 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File | Line | Verdict |
-|----------|------|------|---------|
-| ENDPOINT_LEAK | `jsonnet/case_studies/micromanage/service_google.py` | 198 | TEST_OR_EXAMPLE — GCP metadata URL `http://169.254.169.254/...` in a case study example, not production config |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/config/*.js` (7 files) | various | Localized strings containing "Token" (`NotMathMLToken`), variable names `ambigAMtoken`, etc. Third-party vendored library — zero security signal |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/extensions/a11y/wgxpath.install.js` | 68,71 | `throw Error(...)` — standard JS error handling, not a secret |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/*/TeX.js` (~25 files) | 47 | `NotMathMLToken` localization strings — vendored third-party i18n |
-| TEST_OR_EXAMPLE | `langextract/.github/workflows/ci.yaml` | 168-170 | `secrets.GEMINI_API_KEY`, `secrets.OPENAI_API_KEY` — proper GitHub Actions secret references, not hardcoded |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/jax/input/AsciiMath/jax.js` | 1178-1180 | Variable names `ambigAMtoken`, `englishAMtoken` — MathJax parser internals |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/jax/input/TeX/jax.js` | 1015 | `mmlToken` property name — MathJax internals |
-| TEST_OR_EXAMPLE | `jsonnet/doc/third_party/MathJax-2.7.2/unpacked/localization/qqq/TeX.js` | 47 | Developer-facing docs string, vendored |
-| TEST_OR_EXAMPLE | All `artemis/artemis/config/*.py` | various | Environment variable name definitions (`ENV_GOOGLE_API_KEY`), not values |
+| # | File | Line | Category | Notes |
+|---|------|------|----------|-------|
+| 1 | `google/go-containerregistry/pkg/v1/google/list.go` | 206 | ENDPOINT_LEAK (info) | Code comment: `// ...cloud metadata endpoints at 169.254.169.254` — SSRF reference in open-source library code, not a secret |
+| 2 | `google/go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | ENDPOINT_LEAK (info) | Code comment: `// ...302 to a cloud instance metadata service (e.g. 169.254.169.254)` — SSRF defense documentation |
+| 3 | `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91 | ENDPOINT_LEAK (info) | Code comment: `// ...metadata endpoint (e.g. 169.254.169.254), causing SSRF` — SSRF documentation |
+| 4 | `google/go-containerregistry/pkg/v1/remote/transport/bearer.go` | 151 | ENDPOINT_LEAK (info) | Code comment: `// (169.254.169.254 / fd00:ec2::254). DNS-based SSRF is out of scope` — library scope doc |
+| 5 | `google/artemis/artemis/config/settings.py` | 163,165 | TEST_OR_EXAMPLE | Env-var references `self.GEMINI_API_KEY`/`self.GCP_API_KEY` → no hardcoded value, settings loader |
+| 6 | `google/artemis/artemis/config/constants.py` | 35,51,52 | TEST_OR_EXAMPLE | Env-var name definitions, no actual values |
+| 7 | `google/langextract/.github/workflows/ci.yaml` | 168-170 | TEST_OR_EXAMPLE | `${{ secrets.GEMINI_API_KEY }}` — GitHub Actions secret refs (safe, never leaked to fork) |
+| 8 | `google/jsonnet/case_studies/micromanage/service_google.py` | 198 | ENDPOINT_LEAK (info) | Hardcoded `http://169.254.169.254/computeMetadata/v1/...` — public GCP metadata endpoint, not secret |
+| 9 | `google/jsonnet/doc/third_party/MathJax-2.7.2/` | various | TEST_OR_EXAMPLE | Localization strings containing "token" — MathJax i18n, not security-relevant |
 
 **Verdict:**
-
-| # | Category | REPORT_CANDIDATE | Reason |
-|---|----------|-----------------|--------|
-| 1 | ENDPOINT_LEAK | no | GCP metadata URL in vendored case study, not a secret |
-| 2 | MathJax vendored third-party | no | Zero security signal, localization strings |
-| 3 | langextract CI secrets refs | no | Proper `${{ secrets.* }}` references, not hardcoded |
-
-**REPORT_CANDIDATE: no** — 0 reportable findings in delta. All 342 hits are TEST_OR_EXAMPLE or ENDPOINT_LEAK (vendored MathJax localization, CI secret references, case study example code). No real secrets, no new attack surface.
+- **REPORT_CANDIDATE: no** — all 4 delta hits are code comments documenting SSRF defense patterns in `google/go-containerregistry` (open-source library, well-known SSRF-resistant container registry client). No secrets, no endpoints, no exploitable patterns.
+- Full scan 352 hits remain TEST_OR_EXAMPLE or ENDPOINT_LEAK (no REAL_SECRET in delta).
+- Prior accepted findings (earthengine secret, graph CORS+PATCH, token gate, JWKS overlap, etc.) all stable per KB.
