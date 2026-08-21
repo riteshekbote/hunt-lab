@@ -8838,3 +8838,22 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 quoted literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch 
 - LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], subset
 - LEARN: MONITOR robot probe pipeline empty for 32nd consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 rege
+
+## RANKED HYPOTHESES 2026-08-21 22:53:31 UTC
+- [97] graph.microsoft.com/beta/copilot/{agentRegistrations,agentInstances,agents,admin/catalog/packages,admin/policySettings,agentCollections}: Copilot Admin 6-family cross-principal IDOR via CORS+PATCH (from reports/hypotheses-bigpickle.txt)
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot agentRegistrations cross-principal ownership takeover via CORS+PATCH (from reports/hypotheses-mimo.txt)
+- NEXT(hypotheses-mimo.txt): PROBE: Re-verify earthengine-api oauth.py:45 raw blob is still unmodified on master by confirming line 45 literal = 'CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1''
+- NEXT(hypotheses-bigpickle.txt): HUMAN: Submit reports/msrc-two-principal-request.md via the MSRC portal to request authorized two-principal testing unblocking hypotheses #1 and #3 — file prese
+- LEARN: ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations (+/{id}): own probe 22:27 UTC OPTIONS→200 + ACAO:* + Allow-Method
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe 22:27 UTC OPTIONS→200 + ACAO:* + full Al
+- LEARN: ACCEPTED Graph API RFC 6750 §3 deviation @ graph.microsoft.com/v1.0: HEAD→405/CL:0/no-WWW-Authenticate vs GET /me→401+WWW-Authenticate Bearer (stable).
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 59th+ consecutive cycle since 2026-08-17).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', file 23110 B (own raw-fetch probe 22:27 UTC).
+- LEARN: MONITOR robot probe pipeline empty for 33rd consecutive cycle (2026-08-20 17:42 → now); hunt.yml root cause unchanged (regex requires `https://`, glob lists `an
+- LEARN: ACCEPTED Copilot CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations (+/{id}): own probe this cycle OPTIONS→200 + ACAO:* + Allow-Metho
+- LEARN: ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe this cycle OPTIONS→200 + ACAO:* + full A
+- LEARN: ACCEPTED Graph API RFC 6750 §3 deviation @ graph.microsoft.com/v1.0: own probe HEAD→405/CL:0/no-WWW-Authenticate vs GET /me→401+WWW-Authenticate Bearer (stable)
+- LEARN: ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 57th consecutive cycle since 2026-08-17).
+- LEARN: ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 quoted literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch 
+- LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], subset
+- LEARN: MONITOR robot probe pipeline empty for 32nd consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 rege
