@@ -66,3 +66,6 @@
   - | Q5 Novel | NO — this is a *fixed* commit. Reporting a bug that's already been patched is not a valid bounty submission. |
   - | Q2 Reachable | NO — these are GCP API discovery documents and authenticated API endpoints. Without valid GCP credentials and IAM permissions, you cannot call these APIs. The `$discovery/rest` endpoi
   - | 11 | GCP OAuth redirect_uri IPv6 | **HOLD** | Potentially valid but likely already reported by Benchikh (Apr 2025). Verify novelty. |
+
+- 1 lead(s) marked VALID at 2026-08-21 23:45:00 UTC
+  - | **VALID** | 0 | — |
