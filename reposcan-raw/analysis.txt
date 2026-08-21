@@ -1,66 +1,67 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
-[0m✗ [0mcat << 'EOF' > /tmp/classification.md
-# Classification Results
+## Classification Tables
 
-## REAL_SECRET (Reportable)
-*None found in this scan*
+### REAL_SECRET
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| *(none new this scan)* | | | |
 
-## TEST_OR_EXAMPLE (Not Reportable)
-| File | Line | Reason |
-|------|------|--------|
-| google/artemis/artemis/config/settings.py | 163,165 | Assigns from env vars (GEMINI_API_KEY, GCP_API_KEY) |
-| google/artemis/artemis/config/constants.py | 35,51,52 | Env var name constants, not secrets |
-| google/skywater-pdk/.github/workflows/labeler.yml | 11 | Standard `${{ secrets.GITHUB_TOKEN }}` usage |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secrets injection for CI |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches from Secret Manager (gcloud) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches from Secret Manager (gcloud) |
-| google/capsem/config/gate.toml | 597 | References password file, not hardcoded |
-| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
-| google/flatbuffers/.github/workflows/label.yml | 24 | Standard `${{ secrets.GITHUB_TOKEN }}` usage |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token (truncated `eyAkaknabna....`) |
-| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
-| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `"your_client_secret"` |
-| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name, not a secret |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3-11 | Minified/bundled JS parse errors (build artifacts) |
-| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51 | Template variables referencing env vars (`{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`) |
+> The only live hardcoded secret remains `google/earthengine-api/python/ee/oauth.py:45` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`) — already in KB as ACCEPTED, pending VRP determination on native-app by-design status.
 
-## ENDPOINT_LEAK (Internal/Dev URLs)
+### TEST_OR_EXAMPLE
+| File | Line | Pattern |
+|------|------|---------|
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 98 | `ClientSecret: "not-a-valid-client-secret"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` (truncated fixture) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | `HttpCredentials(username="user", password="password")` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | `HttpCredentials(token="eyAkaknabna....")` (fake JWT) |
+| google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | `PASSWORD = "password"` |
+| google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | `client_secret="your_client_secret"` |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` (proper secret refs) |
+| google/capsem/config/gate.toml | 597 | `password = "password.txt"` (file ref, not secret) |
+| google/capsem/scripts/preflight.sh | 39 | Reads from `$pass_file` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads from `$PASS_FILE` |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51,70 | `{{ default .Env.POSTGRES_PWD "" }}`, `{{ $visibility_pwd }}`, `{{ default .Env.ES_PWD "" }}` (template vars) |
+
+### ENDPOINT_LEAK
 | File | Line | Endpoint |
 |------|------|----------|
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go | 76 | `skia-status-internal@skia-corp.google.com.iam.gserviceaccount.com` (service account identity) |
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts | 75 | `https://pantheon.corp.google.com/logs/query...` |
 | google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `https://source.corp.google.com/h/chrome-internal/` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` |
 | google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | `https://b.corp.google.com/issues/492077374` |
 | google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema/schema.go | 5 | `https://b.corp.google.com/issues/492077374` |
-| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` |
 | google/skia-buildbot/perf/go/anomalygroup/sqlanomalygroupstore/schema/schema.go | 7,14,46 | `https://b.corp.google.com/issues/492077374` |
 | google/skia-buildbot/perf/go/culprit/sqlculpritstore/schema/schema.go | 7 | `https://b.corp.google.com/issues/492077374` |
 | google/skia-buildbot/perf/go/favorites/sqlfavoritestore/schema/schema.go | 6 | `https://b.corp.google.com/issues/492077374` |
 
-## INTERESTING (Unusual Patterns)
+### INTERESTING
 | File | Line | Note |
 |------|------|------|
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References GCP metadata endpoint `169.254.169.254` (documented warning) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References metadata endpoint `169.254.169.254` with NAT64 routing |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Explicitly refuses metadata endpoint `169.254.169.254` in Chrome |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={value}` to file (could leak if logs captured) |
+| google/skia-buildbot/get_service_account/go/get_service_account/main.go | 2,16 | Fetches JWT service account metadata → writes `service-account.json` (runtime behavior, no secret at rest) |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Uses `gcloud secrets versions access` (proper secret manager pattern) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Uses `gcloud secrets versions access` (proper secret manager pattern) |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Emits `GOOGLE_API_KEY=<var>` at runtime (not hardcoded) |
 
-## DELTA SUMMARY (12 new hits vs previous scan)
-All 12 delta hits are **ENDPOINT_LEAK** (internal corp.google.com URLs in comments) or **TEST_OR_EXAMPLE** (template configs, standard workflow secrets). No new REAL_SECRET.
+---
 
-## VERDICT
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| Hardcoded secrets in scanned corpus | **NO** — 0 REAL_SECRET hits |
-| google/adk-python CLI writes API key to file | **NO** — writes from variable, not hardcoded; by-design CLI behavior |
-| Internal corp.google.com URLs in comments | **NO** — ENDPOINT_LEAK class, not reportable for GVRP |
-| GCP metadata endpoint references | **NO** — Documented defensive coding (explicit refuse/block) |
-| Standard GitHub Actions secrets usage | **NO** — Correct pattern |
-| Secret Manager integration (gcloud) | **NO** — Correct pattern |
-EOF
-cat /tmp/classification.md failed
-[91m[1mError: [0mThe user rejected permission to use this specific tool call.
+## Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go:98 | **no** | Placeholder `"not-a-valid-client-secret"` |
+| google/skia-buildbot/autoroll/go/autoroll-fe/main.go:76 | **no** | Service account email (identity, not credential) |
+| google/skia-buildbot/autoroll/modules/arb-status-sk/arb-status-sk.ts:75 | **no** | Internal logging URL (pantheon.corp) — no auth bypass |
+| google/skia-buildbot/get_service_account/.../main.go:2,16 | **no** | Documents runtime metadata fetch; no secret at rest |
+| google/skia-buildbot/temporal/docker/config_template.yaml:70 | **no** | Template variable referencing `.Env.ES_PWD` |
+| google/adk-python (all auth_credential/auth_schemes/openapi hits) | **no** | Test fixtures / placeholder literals |
+| google/langextract/.github/workflows/ci.yaml secrets refs | **no** | Proper `${{ secrets.* }}` usage |
+| google/capsem password file refs | **no** | Reads from external file at runtime |
+| google/crosvm gcloud secret manager calls | **no** | Proper secret manager pattern |
+| google/skia-buildbot internal corp URLs (source.corp, android-build.corp, b.corp issues) | **no** | Internal tooling links — no credential leak |
+| google/earthengine-api oauth.py:45 (known) | **pending** | Already in KB as ACCEPTED; VRP determination needed on native-app by-design status |
+
+**No new reportable findings in this delta.** All 6 new hits are TEST_OR_EXAMPLE or ENDPOINT_LEAK (internal URLs). The only live secret remains the previously-known earthengine-api client_secret.
