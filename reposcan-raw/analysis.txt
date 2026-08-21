@@ -1,32 +1,117 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-### Delta Hit Classification
+[0m$ [0mcat reposcan-raw/google/capsem/config/gate.toml | sed -n '590,610p'
+# Local signing material. Absent on a developer machine, which is why the rail
+# treats it as optional -- the release lanes sign in CI from secrets. Declared
+# here so "where is the key" has one answer rather than a path spelled inside
+# a function.
+[package.signing]
+directory = "private/tauri"
+key = "capsem.key"
+password = "password.txt"
+key_variable = "TAURI_SIGNING_PRIVATE_KEY"
+password_variable = "TAURI_SIGNING_PRIVATE_KEY_PASSWORD"
+[package.proof]
+container = "capsem-qualified-deb-proof"
+systemd_ready_attempts = 60
+verify_script = "scripts/verify-installed-release.py"
+shell_proof_script = "scripts/prove-installed-shell.py"
+shell_marker = "CAPSEM_QUALIFIED_DEB_SHELL_OK"
+session_name = "qualification-exact-deb-shell"
+shell_timeout_seconds = 300
 
-| File | Line | Classification | Reason |
-|------|------|----------------|--------|
-| `google/android-cuttlefish/.github/workflows/gemini-invoke.yml` | 64 | TEST_OR_EXAMPLE | Proper `${{ secrets.GOOGLE_API_KEY }}` reference |
-| `google/android-cuttlefish/base/cvd/cuttlefish/host/commands/defaults/defaults.cpp` | 42 | ENDPOINT_LEAK | GCP metadata endpoint `metadata.google.internal` |
-| `google/android-cuttlefish/base/cvd/cuttlefish/host/libs/web/oauth2_consent.cpp` | 187 | INTERESTING | OAuth client_secret handling in code (not hardcoded) |
-| `google/langextract/.github/workflows/ci.yaml` | 168-170 | TEST_OR_EXAMPLE | Proper `${{ secrets.X }}` references (Gemini, OpenAI) |
-| `google/seesaw/healthcheck/radius.go` | 135 | TEST_OR_EXAMPLE | RADIUS attribute name `"User-Password"`, not a secret |
+# Every binary the package must install. Each reports the package version
+# except capsem-app, which is the Tauri bundle and has no --version.
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/scripts/fix_p12_legacy.sh | sed -n '10,25p'
+B64="$CERT_DIR/capsem-b64.txt"
+PASS_FILE="$CERT_DIR/p12-password.txt"
+TMPDIR_WORK="$(mktemp -d)"
+trap 'rm -rf "$TMPDIR_WORK"' EXIT
 
-### Full Grep Context Check
+PASSWORD="$(tr -d '\n' < "$PASS_FILE")"
 
-All other hits in the full scan are:
-- **ConfigMap/k8s manifests** (sam, dex) — infrastructure-as-code, not secrets
-- **Workflow secret references** (`${{ secrets.X }}`) — proper CI pattern
-- **Test fixtures / dev scripts** (`OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"`) — empty defaults
-- **Minified JS source maps** (adk-go) — build artifacts
-- **Artifact registry creds in workflows** — `${{ secrets.artifact-registry-uploader-json-creds }}` proper reference
+echo "==> Checking current format..."
+FMT=$(openssl pkcs12 -in "$P12" -info -nokeys -nocerts -passin "pass:$PASSWORD" 2>&1 \
+    | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
 
-### Verdict
+if [[ "$FMT" != "PBES2" ]]; then
+    echo "    Already legacy format ($FMT). Nothing to do."
+    exit 0
+fi
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/scripts/preflight.sh | sed -n '34,45p'
+return
+    fi
+    pass "capsem.p12 exists"
 
-| Candidate | REPORT_CANDIDATE |
-|-----------|------------------|
-| android-cuttlefish GCP metadata endpoint | **no** (ENDPOINT_LEAK — known GCP internal endpoint, not exploitable externally) |
-| android-cuttlefish oauth2_consent.cpp client_secret handling | **no** (INTERESTING — code logic, no hardcoded secret) |
-| langextract/seesaw workflow secret refs | **no** (TEST_OR_EXAMPLE — proper secret usage) |
-| All other full-scan hits | **no** (TEST_OR_EXAMPLE / ENDPOINT_LEAK / known patterns) |
+    local password
+    password="$(tr -d '\n' < "$pass_file")"
 
-**No reportable findings in this delta.** All secret references use GitHub Actions `${{ secrets.X }}` pattern correctly. The GCP metadata endpoint is internal-only. The OAuth client_secret handling is runtime code, not a static credential.
+    # Check encryption format
+    local fmt
+    fmt=$(openssl pkcs12 -in "$p12" -info -nokeys -nocerts -passin "pass:$password" 2>&1 \
+        | grep -o 'PBES2\|pbeWithSHA1And3-KeyTripleDES-CBC' | head -1)
+[0m
+[0m$ [0mcat reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py | sed -n '38,50p'
+class AuthType(enum.Enum):
+    """Supported authentication methods."""
+
+    GOOGLE_CLOUD = "google_cloud"
+    GEMINI_API_KEY = "gemini_api_key"
+    EXPRESS_MODE = "express_mode"
+
+
+def _api_key_instructions(var_name):
+    """Print instructions for the user to export the API_KEY env var.
+
+    Args:
+[0m
+[0m$ [0mcat reposcan-raw/google/capsem/.github/workflows/release-channel-staging.yaml | sed -n '12,25p'
+required: true
+        default: staging
+      release_site_url:
+        description: Cloudflare Pages preview URL for the deploy branch.
+        required: true
+        default: https://staging.release-eq7.pages.dev
+      manifest_version:
+        description: Staged manifest contract version.
+        required: true
+        default: 1.0.2
+
+permissions:
+  contents: read
+  deployments: write
+[0m
+[0m$ [0msha256sum <<< "password.txt"
+62b2e3d445cf476af4077a2bbfb15867b347e40d7d7be7bd804bfbb08c8c8c8c  -
+[0m
+### Classification Table
+
+| Category | File:Line | Evidence | Classification |
+|----------|-----------|----------|----------------|
+| **ENDPOINT_LEAK** | `capsem/.github/workflows/release-channel-staging.yaml:17` | `default: https://staging.release-eq7.pages.dev` | Staging Cloudflare Pages preview URL |
+| **TEST_OR_EXAMPLE** | `capsem/config/gate.toml:597` | `password = "password.txt"` | Config points to gitignored file (`private/tauri/password.txt`); comment says "Absent on a developer machine... release lanes sign in CI from secrets" |
+| **TEST_OR_EXAMPLE** | `capsem/scripts/fix_p12_legacy.sh:15` | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from `$CERT_DIR/p12-password.txt` (external file, not in repo) |
+| **TEST_OR_EXAMPLE** | `capsem/scripts/preflight.sh:39` | `password="$(tr -d '\n' < "$pass_file")"` | Same pattern — reads from external file variable |
+| **TEST_OR_EXAMPLE** | `agents-cli/src/google/agents/cli/auth.py:43` | `GEMINI_API_KEY = "gemini_api_key"` | Enum member value (string constant), not an actual key |
+| **TEST_OR_EXAMPLE** | `sam/**/*.yaml` | `kind: ConfigMap`, `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | K8s ConfigMaps, empty default env vars |
+| **TEST_OR_EXAMPLE** | `langextract/.github/workflows/ci.yaml:168-170` | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` | Proper GitHub Actions secret references |
+| **TEST_OR_EXAMPLE** | `android-cuttlefish/.github/workflows/*.yml` | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}` | Proper GitHub Actions secret references |
+| **ENDPOINT_LEAK** | `adk-go/cmd/launcher/web/webui/distr/*.js` | Minified JS chunks / source maps | Build artifacts, not secrets |
+| **INTERESTING** | `seesaw/healthcheck/radius.go:135` | `ratUserPassword: "User-Password"` | RADIUS attribute constant (RFC 2865), not a secret |
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| capsem staging URL | **no** | Internal staging endpoint, no auth material |
+| capsem gate.toml password config | **no** | References gitignored file; CI uses secrets |
+| capsem p12 shell scripts | **no** | Reads from external files; no hardcoded secret |
+| agents-cli auth.py enum | **no** | String constant `"gemini_api_key"`, not a key |
+| sam/langextract/android-cuttlefish workflows | **no** | All use `${{ secrets.* }}` properly |
+| adk-go minified JS | **no** | Build artifacts |
+| seesaw RADIUS constant | **no** | Standard protocol attribute name |
+
+**No REAL_SECRET findings in this delta.** All hits are test fixtures, config patterns referencing external secret files, proper CI secret references, or build artifacts.
