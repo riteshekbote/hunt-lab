@@ -1,38 +1,34 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| Category | File | Line | Classification | Notes |
-|----------|------|------|---------------|-------|
-| TEST_OR_EXAMPLE | artemis/config/settings.py | 163 | ENV_VAR_ALIAS | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — reads from env, no hardcoded value |
-| TEST_OR_EXAMPLE | artemis/config/settings.py | 165 | ENV_VAR_ALIAS | `self.GOOGLE_API_KEY = self.GCP_API_KEY` — reads from env, no hardcoded value |
-| TEST_OR_EXAMPLE | artemis/config/constants.py | 35 | ENV_VAR_NAME | `"ARTEMIS_TENANT_TOKEN"` — defines env var name, not a token value |
-| TEST_OR_EXAMPLE | artemis/config/constants.py | 51 | ENV_VAR_NAME | `"GOOGLE_API_KEY"` — defines env var name |
-| TEST_OR_EXAMPLE | artemis/config/constants.py | 52 | ENV_VAR_NAME | `"GEMINI_API_KEY"` — defines env var name |
-| TEST_OR_EXAMPLE | langextract/.github/workflows/ci.yaml | 168 | GH_SECRET_REF | `${{ secrets.GEMINI_API_KEY }}` — workflow secret reference, not leaked value |
-| TEST_OR_EXAMPLE | langextract/.github/workflows/ci.yaml | 169 | GH_SECRET_REF | `${{ secrets.GEMINI_API_KEY }}` — workflow secret reference |
-| TEST_OR_EXAMPLE | langextract/.github/workflows/ci.yaml | 170 | GH_SECRET_REF | `${{ secrets.OPENAI_API_KEY }}` — workflow secret reference |
-| ENDPOINT_LEAK | go-containerregistry/.../fetcher.go | 85 | DOC_COMMENT | `169.254.169.254` in code comment — metadata endpoint reference |
-| ENDPOINT_LEAK | go-containerregistry/.../bearer.go | 91 | DOC_COMMENT | `169.254.169.254` in code comment — SSRF mitigation docs |
-| ENDPOINT_LEAK | go-containerregistry/.../bearer.go | 151 | DOC_COMMENT | `169.254.169.254 / fd00:ec2::254` — metadata endpoint in comment |
-| ENDPOINT_LEAK | go-containerregistry/.../list.go | 206 | DOC_COMMENT | `169.254.169.254` — cloud metadata endpoint reference |
-| ENDPOINT_LEAK | jsonnet/.../service_google.py | 198 | EXAMPLE_CODE | `http://169.254.169.254/computeMetadata/v1/...` — case study example URL |
-| TEST_OR_EXAMPLE | jsonnet/.../wgxpath.install.js | 68 | MATHJAX_LIB | Minified library code — not a finding |
-| TEST_OR_EXAMPLE | jsonnet/.../wgxpath.install.js | 71 | MATHJAX_LIB | Minified library code — not a finding |
-| TEST_OR_EXAMPLE | jsonnet/.../AsciiMath/jax.js | 1178 | MATHJAX_LIB | MathJax token pattern regex — not a finding |
-| TEST_OR_EXAMPLE | jsonnet/.../AsciiMath/jax.js | 1179 | MATHJAX_LIB | MathJax token pattern regex |
-| TEST_OR_EXAMPLE | jsonnet/.../AsciiMath/jax.js | 1180 | MATHJAX_LIB | MathJax token pattern regex |
-| TEST_OR_EXAMPLE | jsonnet/.../AsciiMath/jax.js | 1015 | MATHJAX_LIB | `MmlToken` string — MathJax internal |
-| TEST_OR_EXAMPLE | jsonnet/.../localization/*/TeX.js | 47 | MATHJAX_LIB | `NotMathMLToken` — MathJax i18n (26 locale files) |
-| TEST_OR_EXAMPLE | jsonnet/.../config/Accessible-full.js | 73 | MATHJAX_LIB | Minified MathJax config |
-| TEST_OR_EXAMPLE | jsonnet/.../config/TeX-AMS-*.js | varies | MATHJAX_LIB | Minified MathJax config (5 files) |
+## Classification Table
 
-**Verdict:**
+### TEST_OR_EXAMPLE
+| File | Line | Content | Notes |
+|------|------|---------|-------|
+| `google/jsonnet/doc/third_party/MathJax-2.7.2/config/TeX-MML-AM_HTMLorMML-full.js` | 70 | MathJax localization `NotMathMLToken` / `mmlToken` strings | False positive: vendored third-party MathJax 2.7.2 i18n; word "token" is MathML markup term, not auth credential |
 
-| Category | Count |
-|----------|-------|
-| REAL_SECRET | 0 |
-| TEST_OR_EXAMPLE | 31 |
-| ENDPOINT_LEAK | 5 |
-| INTERESTING | 0 |
+### ENDPOINT_LEAK (benign)
+| File | Line | Content | Notes |
+|------|------|---------|-------|
+| `google/meridian/.github/workflows/proto-publish.yml` | 126 | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | **test.pypi.org** (public test registry), env-var reference via `${{ env.PYPI_PACKAGE_NAME }}` — no credential |
+| `google/meridian/.github/workflows/proto-publish.yml` | 138 | `repository-url: https://test.pypi.org/legacy/` | Same workflow, test.pypi.org target |
+| `google/meridian/.github/workflows/publish.yml` | 127 | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | Duplicate publish workflow, same test.pypi.org |
+| `google/meridian/.github/workflows/publish.yml` | 139 | `repository-url: https://test.pypi.org/legacy/` | Same |
 
-**REPORT_CANDIDATE: no** — all 352 hits (this delta included) are environment variable names/references, GitHub Actions secret placeholders, MathJax library internals, or cloud metadata endpoint documentation comments. No hardcoded credentials, API keys, or tokens found.
+### REAL_SECRET
+(none)
+
+### INTERESTING
+(none)
+
+---
+
+## Verdict
+
+| Class | REPORT_CANDIDATE |
+|-------|-----------------|
+| MathJax `token` strings | **no** — vendored third-party lib, false positive |
+| test.pypi.org endpoints | **no** — public test registry, no credentials, env-var-only refs |
+
+**Summary:** 0 reportable findings in this delta. All 5 hits are test.pypi.org workflow targets (standard CI for package publishing to Google's own test registry) and vendored MathJax i18n false positives. No new secrets, no new surface.
