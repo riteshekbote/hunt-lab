@@ -1,36 +1,107 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/proto-publish.yml
-[0m→ [0mRead reposcan-raw/google/meridian/.github/workflows/publish.yml
-[0m→ [0mRead reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js[90m [limit=30, offset=340][0m
-### Classification Table
+[0m$ [0mcat << 'EOF'
+=== CLASSIFICATION TABLES ===
 
-| Category | File:Line | Evidence | Verdict |
-|----------|-----------|----------|---------|
-| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/proto-publish.yml:126` | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | TestPyPI staging URL (public) |
-| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/proto-publish.yml:138` | `repository-url: https://test.pypi.org/legacy/` | TestPyPI legacy API endpoint |
-| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/publish.yml:127` | `url: https://test.pypi.org/p/${{ env.PYPI_PACKAGE_NAME }}` | TestPyPI staging URL (public) |
-| **ENDPOINT_LEAK** | `google/meridian/.github/workflows/publish.yml:139` | `repository-url: https://test.pypi.org/legacy/` | TestPyPI legacy API endpoint |
-| **ENDPOINT_LEAK** | `google/osv.dev/gcp/website/frontend3/src/linter.js:351` | `https://api.test.osv.dev/v1/vulns/${issue.bug_id}` | Test/staging OSV API endpoint |
-| **ENDPOINT_LEAK** | `google/osv.dev/gcp/website/frontend3/src/linter.js:486` | `fetch(\`https://api.test.osv.dev/v1/vulns/${bugId}\`)` | Test/staging OSV API endpoint |
+### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none in delta) | - | - | No new REAL_SECRET in this scan delta |
 
----
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` — Jekyll/Liquid template var, not a key | TEST_OR_EXAMPLE |
+| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` — same template var | TEST_OR_EXAMPLE |
+| reposcan-raw/google/go-github/github/github.go | 1992 | `ClientSecret: "your app's client secret"` — placeholder literal | TEST_OR_EXAMPLE |
+| reposcan-raw/google/fleetspeak/terraform/main.tf | 323 | `password = "fsuserPass1!"` — sandbox TF default | TEST_OR_EXAMPLE |
+| reposcan-raw/google/fleetspeak/sandboxes/*/docker-compose.yaml | 10-11 | `MYSQL_PASSWORD: 'fleetspeak-password'` / `MYSQL_ROOT_PASSWORD: 'password'` — local sandbox defaults | TEST_OR_EXAMPLE |
+| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` — workflow template syntax | TEST_OR_EXAMPLE |
 
-### Other Full-Scan Hits (Context)
+### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/osv.dev/external/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` — allowlist entry, not a secret | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | Same as above (dup) | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `urlTemplate: "https://api.test.osv.dev/v1/vulns/{id}"` — test env endpoint | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` — test env endpoints | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/deployment/clouddeploy/... | various | `https://test.osv.dev`, `https://test.pypi.org` — staging deploy targets | ENDPOINT_LEAK |
+| reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/...` — test PyPI | ENDPOINT_LEAK |
+| reposcan-raw/google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/...` — test PyPI | ENDPOINT_LEAK |
 
-| Category | File | Notes |
-|----------|------|-------|
-| **TEST_OR_EXAMPLE** | `google/artemis/artemis/config/*.py` | Env var *names* (`GOOGLE_API_KEY`, `GEMINI_API_KEY`), not values |
-| **TEST_OR_EXAMPLE** | `google/sam/development/kind/run.sh:139` | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` empty default |
-| **TEST_OR_EXAMPLE** | `google/sam/.github/workflows/deploy.yaml:247-250` | `${{ secrets.GOOGLE_CLIENT_SECRET }}` etc. — GitHub Actions secret refs |
-| **TEST_OR_EXAMPLE** | `google/fleetspeak/*/docker-compose.yaml` | Hardcoded `'fleetspeak-password'`, `'password'` — dev/test defaults |
-| **TEST_OR_EXAMPLE** | `google/oss-fuzz/projects/*` | `"fuzz test key"`, `"ServerShutdownPassword"` — test fixtures |
-| **TEST_OR_EXAMPLE** | `google/agents-cli/src/google/agents/cli/auth.py:43` | `GEMINI_API_KEY = "gemini_api_key"` — placeholder |
-| **TEST_OR_EXAMPLE** | `google/go-github/github/github.go:1992` | `ClientSecret: "your app's client secret"` — placeholder |
+### INTERESTING (debug flags, keys, cloud configs — not secrets)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — env-var wiring pattern | INTERESTING |
+| reposcan-raw/google/artemis/artemis/config/constants.py | 35,51,52 | Env var constant names (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) | INTERESTING |
+| reposcan-raw/google/sam/.../*.yaml | various | ConfigMap kinds, workflow secret refs (`${{ secrets.* }}`) — proper secret hygiene | INTERESTING |
+| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper GHA secret ref | INTERESTING |
+| reposcan-raw/google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | Spec URL comment — noise | INTERESTING |
 
----
+=== VERDICT LIST ===
+- reposcan-raw/google/pebble/devsite/source/assets/js/404.js:24 → REPORT_CANDIDATE: no (template var, Algolia DocSearch search-only key pattern, REJECTED class per KB)
+- reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js:33 → REPORT_CANDIDATE: no (same)
+- reposcan-raw/google/go-github/github/github.go:1992 → REPORT_CANDIDATE: no (placeholder literal)
+- reposcan-raw/google/fleetspeak/* → REPORT_CANDIDATE: no (sandbox/test defaults)
+- reposcan-raw/google/osv.dev/* → REPORT_CANDIDATE: no (test/staging endpoints, allowlist entries)
+- reposcan-raw/google/meridian/* → REPORT_CANDIDATE: no (test PyPI endpoints)
+- reposcan-raw/google/artemis/* → REPORT_CANDIDATE: no (config patterns only)
+- reposcan-raw/google/sam/* → REPORT_CANDIDATE: no (proper secret refs via `${{ secrets.* }}`)
+- reposcan-raw/google/flatbuffers/* → REPORT_CANDIDATE: no (proper GHA secret ref)
 
-### Verdict
+=== SUMMARY ===
+No new REAL_SECRET findings in this delta. The only live hardcoded secret in the corpus remains the known earthengine-api oauth.py:45 client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271), already tracked as ACCEPTED in KB. All new hits are templates, test fixtures, staging endpoints, or sandbox defaults.
+EOF
+=== CLASSIFICATION TABLES ===
 
-**REPORT_CANDIDATE: no** — All 6 delta hits are **ENDPOINT_LEAK** (public test/staging URLs: `test.pypi.org`, `api.test.osv.dev`). No hardcoded credentials, API keys, or tokens with signs of life. The meridian workflows use GitHub Environments + OIDC trusted publishing (`id-token: write`), which is the recommended secretless pattern.
+### REAL_SECRET (hardcoded credential with signs of life)
+| File | Line | SHA256 | Verdict |
+|------|------|--------|---------|
+| (none in delta) | - | - | No new REAL_SECRET in this scan delta |
+
+### TEST_OR_EXAMPLE (sample/test/fixture data)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/pebble/devsite/source/assets/js/404.js | 24 | `apiKey: '{{ site.algolia_api_key }}'` — Jekyll/Liquid template var, not a key | TEST_OR_EXAMPLE |
+| reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js | 33 | `apiKey: '{{ site.algolia_api_key }}'` — same template var | TEST_OR_EXAMPLE |
+| reposcan-raw/google/go-github/github/github.go | 1992 | `ClientSecret: "your app's client secret"` — placeholder literal | TEST_OR_EXAMPLE |
+| reposcan-raw/google/fleetspeak/terraform/main.tf | 323 | `password = "fsuserPass1!"` — sandbox TF default | TEST_OR_EXAMPLE |
+| reposcan-raw/google/fleetspeak/sandboxes/*/docker-compose.yaml | 10-11 | `MYSQL_PASSWORD: 'fleetspeak-password'` / `MYSQL_ROOT_PASSWORD: 'password'` — local sandbox defaults | TEST_OR_EXAMPLE |
+| reposcan-raw/google/agents-cli/.../staging.yaml | 168,192 | `{% raw %}${{ steps.fetch-token.outputs._id_token }}{% endraw %}` — workflow template syntax | TEST_OR_EXAMPLE |
+
+### ENDPOINT_LEAK (internal/dev/staging URLs)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/osv.dev/external/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` — allowlist entry, not a secret | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | Same as above (dup) | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `urlTemplate: "https://api.test.osv.dev/v1/vulns/{id}"` — test env endpoint | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` — test env endpoints | ENDPOINT_LEAK |
+| reposcan-raw/google/osv.dev/deployment/clouddeploy/... | various | `https://test.osv.dev`, `https://test.pypi.org` — staging deploy targets | ENDPOINT_LEAK |
+| reposcan-raw/google/meridian/.github/workflows/proto-publish.yml | 126,138 | `https://test.pypi.org/...` — test PyPI | ENDPOINT_LEAK |
+| reposcan-raw/google/meridian/.github/workflows/publish.yml | 127,139 | `https://test.pypi.org/...` — test PyPI | ENDPOINT_LEAK |
+
+### INTERESTING (debug flags, keys, cloud configs — not secrets)
+| File | Line | Context | Verdict |
+|------|------|---------|---------|
+| reposcan-raw/google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — env-var wiring pattern | INTERESTING |
+| reposcan-raw/google/artemis/artemis/config/constants.py | 35,51,52 | Env var constant names (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) | INTERESTING |
+| reposcan-raw/google/sam/.../*.yaml | various | ConfigMap kinds, workflow secret refs (`${{ secrets.* }}`) — proper secret hygiene | INTERESTING |
+| reposcan-raw/google/flatbuffers/.github/workflows/label.yml | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — proper GHA secret ref | INTERESTING |
+| reposcan-raw/google/pebble/third_party/jquery/jquery-1.11.2.js | 6170 | Spec URL comment — noise | INTERESTING |
+
+=== VERDICT LIST ===
+- reposcan-raw/google/pebble/devsite/source/assets/js/404.js:24 → REPORT_CANDIDATE: no (template var, Algolia DocSearch search-only key pattern, REJECTED class per KB)
+- reposcan-raw/google/pebble/devsite/source/assets/js/quicksearch.js:33 → REPORT_CANDIDATE: no (same)
+- reposcan-raw/google/go-github/github/github.go:1992 → REPORT_CANDIDATE: no (placeholder literal)
+- reposcan-raw/google/fleetspeak/* → REPORT_CANDIDATE: no (sandbox/test defaults)
+- reposcan-raw/google/osv.dev/* → REPORT_CANDIDATE: no (test/staging endpoints, allowlist entries)
+- reposcan-raw/google/meridian/* → REPORT_CANDIDATE: no (test PyPI endpoints)
+- reposcan-raw/google/artemis/* → REPORT_CANDIDATE: no (config patterns only)
+- reposcan-raw/google/sam/* → REPORT_CANDIDATE: no (proper secret refs via `${{ secrets.* }}`)
+- reposcan-raw/google/flatbuffers/* → REPORT_CANDIDATE: no (proper GHA secret ref)
+
+=== SUMMARY ===
+No new REAL_SECRET findings in this delta. The only live hardcoded secret in the corpus remains the known earthengine-api oauth.py:45 client_secret (sha256 3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271), already tracked as ACCEPTED in KB. All new hits are templates, test fixtures, staging endpoints, or sandbox defaults.
+[0m
+No new reportable findings in this delta. All hits classify as templates, test fixtures, staging endpoints, or sandbox defaults. The only live hardcoded secret in the corpus remains the known `earthengine-api` OAuth client_secret (already tracked as ACCEPTED in KB).
