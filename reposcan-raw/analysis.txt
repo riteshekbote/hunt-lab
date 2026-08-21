@@ -1,9 +1,25 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_agentic_config.yaml[90m [offset=58, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_config.yaml[90m [offset=58, limit=10][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/rl/agentic/parser/chat_template_parser/parser.py[90m [offset=188, limit=15][0m
-[0m→ [0mRead reposcan-raw/google/tunix/tunix/cli/base_rl_pipeline.py[90m [offset=857, limit=10][0m
-[0m→ [0mRead reposcan-raw/microsoft/discovery/utilities/supercomputer-cli/discovery/src/discovery/poll/vscode_layer.py[90m [offset=365, limit=15][0m
-[0m→ [0mRead reposcan-raw/microsoft/discovery/utilities/supercomputer-cli/utils/connect_aks.sh
+| Category | File | Line | Classification |
+|----------|------|------|----------------|
+| ENDPOINT_LEAK | `closure-compiler/externs/browser/w3c_device_sensor_event.js` | 22 | URL ref to dev.w3.org spec |
+| ENDPOINT_LEAK | `closure-compiler/externs/es6.js` | 392 | URL ref to dev.w3.org postmsg spec |
+| ENDPOINT_LEAK | `crosvm/infra/.../codecov_wrapper.sh` | 11 | Runtime `gcloud secrets versions access` — not hardcoded |
+| ENDPOINT_LEAK | `crosvm/infra/.../push_to_github.sh` | 10 | Runtime `gcloud secrets versions access` — not hardcoded |
+| TEST_OR_EXAMPLE | `dagger/util/latest-dagger-version.sh` | 9 | `GITHUB_TOKEN="${GH_TOKEN:-}"` — env var fallback |
+| TEST_OR_EXAMPLE | `flatbuffers/.github/workflows/label.yml` | 24 | `${{ secrets.GITHUB_TOKEN }}` — safe Actions pattern |
+| TEST_OR_EXAMPLE | `langextract/.github/workflows/ci.yaml` | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `OPENAI_API_KEY` — safe Actions pattern |
+| TEST_OR_EXAMPLE | `magika/.github/workflows/github-issue-labeler.yml` | 20 | `${{ secrets.GITHUB_TOKEN }}` — safe Actions pattern |
+| ENDPOINT_LEAK | `magika/.github/workflows/python-build-and-release-package.yml` | 407,437 | `test.pypi.org` URLs — known public test infra |
+| TEST_OR_EXAMPLE | `magika/tests_data/basic/javascript/code.js` | 31 | Test fixture minified JS, not a secret |
+| ALREADY_KNOWN | `xrblocks/docs/docusaurus.config.ts` | 175 | Algolia DocSearch apiKey — KB REJECTED (search-only, public by design) |
+| TEST_OR_EXAMPLE | `xrblocks/src/ai/AI.ts` | 303-304 | `YOUR_GEMINI_API_KEY_HERE` / `YOUR_OPENAI_API_KEY_HERE` — placeholder strings |
+
+**Verdict:**
+
+| Finding | REPORT_CANDIDATE |
+|---------|-----------------|
+| All 16 delta hits | **no** |
+
+Zero REAL_SECRET hits in this delta. All GITHUB_TOKEN/secrets refs are safe Actions patterns; crosvm uses runtime `gcloud secrets versions access` (not hardcoded); xrblocks is already REJECTED in KB; placeholders and test fixtures are false positives.
