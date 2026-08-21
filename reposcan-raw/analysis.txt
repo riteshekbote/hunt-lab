@@ -1,63 +1,58 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/constants.py
-[0m→ [0mRead reposcan-raw/google/artemis/artemis/config/settings.py
-[0m→ [0mRead reposcan-raw/google/sam/internal/node/store.go[90m [offset=30, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/sam/development/kind/run.sh[90m [offset=130, limit=20][0m
-[0m→ [0mRead reposcan-raw/google/agents-cli/src/google/agents/cli/auth.py[90m [offset=35, limit=30][0m
-[0m→ [0mRead reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py[90m [offset=150, limit=50][0m
-Now I have enough context to classify all hits. Here's the classification:
+Looking at the scan results, I'll classify each hit:
+
+## Classification Table
+
+### REAL_SECRET
+*None found in this delta*
+
+### TEST_OR_EXAMPLE
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/adk-python/src/google/adk/cli/browser/*.js` (23 files) | 3, 5, 9, 11 | Minified parser generator output (PEG.js-style), build artifacts |
+| `reposcan-raw/google/adk-go/cmd/launcher/web/webui/distr/*.js` (3 files) | 3 | Same - minified parser generator output |
+| `reposcan-raw/google/artemis/artemis/config/constants.py` | 35, 51, 52 | Env var name constants (`"ARTEMIS_TENANT_TOKEN"`, `"GOOGLE_API_KEY"`, `"GEMINI_API_KEY"`) |
+| `reposcan-raw/google/dotprompt/packages/monaco/src/index.ts` | 181-183 | Monaco editor token color definitions |
+| `reposcan-raw/google/dotprompt/packages/monaco/src/language.ts` | 67-69 | Handlebars delimiter token definitions |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_credential.ts` | 214, 226 | Example creds in JSDoc comments (`"password"`, `"your_access_token"`) |
+| `reposcan-raw/google/adk-js/core/src/auth/auth_schemes.ts` | 41 | Auth scheme constant `PASSWORD = 'password'` |
+| `reposcan-raw/google/langextract/.github/workflows/ci.yaml` | 168-170 | GitHub Actions secret references (`${{ secrets.GEMINI_API_KEY }}`) |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_credential.py` | 157, 269, 278 | Example private key (truncated), username/password, token in test fixtures |
+| `reposcan-raw/google/adk-python/src/google/adk/auth/auth_schemes.py` | 68 | Constant `PASSWORD = "password"` |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py` | 64 | Example `client_secret="your_client_secret"` in docstring |
+
+### ENDPOINT_LEAK
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/dotprompt/.github/workflows/publish_python_handlebarrz_package.yml` | 33-34 | Public TestPyPI URL `https://test.pypi.org/legacy/` |
+| `reposcan-raw/google/dotprompt/.github/workflows/publish_python_dotpromptz_package.yml` | 33-34 | Public TestPyPI URL |
+
+### INTERESTING
+| File | Line | Reason |
+|------|------|--------|
+| `reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | Cloud Run `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — references Secret Manager (not hardcoded) |
+| `reposcan-raw/google/artemis/artemis/config/settings.py` | 163, 165 | Config indirection: `GOOGLE_API_KEY = GEMINI_API_KEY = GCP_API_KEY` |
+| `reposcan-raw/google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts` | 215 | GCP metadata host check `metadata.google.internal` |
+| `reposcan-raw/google/adk-js/core/src/tools/load_web_page.ts` | 36 | Blocks `169.254.0.0/16` (link-local + metadata) |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/gke_code_executor.py` | 103-115 | Kubeconfig path/context params for GKE exec |
+| `reposcan-raw/google/adk-python/src/google/adk/code_executors/container_code_executor.py` | 114, 154 | Metadata endpoint `169.254.169.254` referenced in docs/comments |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/load_web_page.py` | 171 | NAT64 route to metadata endpoint noted in comments |
+| `reposcan-raw/google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py` | 146 | Refuses metadata endpoint `169.254.169.254` in Chrome |
+| `reposcan-raw/google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py` | 47 | Access token state key `_vmaas_access_token` |
+| `reposcan-raw/google/adk-python/src/google/adk/cli/cli_create.py` | 131 | CLI writes user-provided `GOOGLE_API_KEY` to config file (not hardcoded) |
 
 ---
 
-### CLASSIFICATION TABLE
+## Verdict
 
-| Category | Files/Lines | Verdict |
-|----------|-------------|---------|
-| **REAL_SECRET** | *(none)* | — |
-| **TEST_OR_EXAMPLE** | `google/adk-js/core/src/auth/auth_credential.ts:214,226` (docstring examples: `password: "password"`, `token: "your_access_token"`) | Example placeholder values in JSDoc |
-| | `google/adk-js/core/src/auth/auth_schemes.ts:41` (`PASSWORD = 'password'` constant name) | Constant name, not a secret |
-| | `google/adk-python/src/google/adk/auth/auth_credential.py:157,269,278` (docstring examples: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."`) | Example placeholder values in docstrings |
-| | `google/adk-python/src/google/adk/auth/auth_schemes.py:68` (`PASSWORD = "password"` constant name) | Constant name, not a secret |
-| | `google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py:64` (`client_secret="your_client_secret"`) | Example placeholder in docstring |
-| | `google/agents-cli/src/google/agents/cli/auth.py:43` (`GEMINI_API_KEY = "gemini_api_key"` enum value) | Enum member name, not a secret |
-| | `google/sam/internal/node/store.go:38` (`keyRefreshToken = "refresh_token"` DB key name) | Database column key constant |
-| **ENDPOINT_LEAK** | `google/adk-js/core/src/tools/load_web_page.ts:36` (`169.254.169.254` GCP metadata IP) | Well-known metadata endpoint (public knowledge) |
-| | `google/adk-python/src/google/adk/code_executors/container_code_executor.py:114,154` (same metadata IP) | Well-known metadata endpoint |
-| | `google/adk-python/src/google/adk/tools/load_web_page.py:171` (same metadata IP) | Well-known metadata endpoint |
-| | `google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py:146` (same metadata IP) | Well-known metadata endpoint |
-| | `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215` (`metadata.google.internal`) | Well-known metadata hostname |
-| | `google/pebble/devsite/source/assets/js/404.js:24` & `quicksearch.js:33` (`{{ site.algolia_api_key }}` template) | Algolia DocSearch public search key template (REJECTED in KB) |
-| | `google/sam/.github/k8s/*.yaml` (multiple `kind: ConfigMap`) | K8s ConfigMap definitions, not secrets |
-| | `google/sam/site/content/docs/manifests/*.yaml` (`kind: ConfigMap`) | Documentation manifests |
-| **INTERESTING / CONFIG** | `google/artemis/artemis/config/constants.py:35,51,52` (ENV_*_TOKEN/KEY = "ENV_VAR_NAME") | Env var **name** constants, not secret values |
-| | `google/artemis/artemis/config/settings.py:163,165` (fallback logic: `GOOGLE_API_KEY = GEMINI_API_KEY`) | Config fallback logic, no secrets |
-| | `google/sam/development/kind/run.sh:139` (`OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"`) | Shell var reference with empty default |
-| | `google/sam/.github/workflows/deploy.yaml:247-250` (`${{ secrets.GOOGLE_CLIENT_SECRET }}` etc.) | **Proper** GitHub Actions secret references (not hardcoded) |
-| | `google/langextract/.github/workflows/ci.yaml:168-170` (`${{ secrets.GEMINI_API_KEY }}` etc.) | **Proper** GitHub Actions secret references |
-| | `google/dotprompt/.github/workflows/*.yml:33-34` (`https://test.pypi.org/legacy/`) | TestPyPI publish URL (public) |
-| | `google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py:47` (`_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"`) | Session state key constant |
-| | `google/adk-python/src/google/adk/code_executors/gke_code_executor.py:103-115` (kubeconfig path params) | Config params, not secrets |
-| | `google/flatbuffers/.github/workflows/label.yml:24` (`repo-token: "${{ secrets.GITHUB_TOKEN }}"`) | Standard GITHUB_TOKEN usage |
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| Cloud Run secret reference (cloudrun.go:246) | **no** — references Secret Manager, not hardcoded |
+| All JS chunk files (parser generator output) | **no** — build artifacts |
+| Config constants / example creds / workflow secret refs | **no** — test/fixture/documentation patterns |
+| GCP metadata endpoint references | **no** — defensive coding / documented behavior |
+| CLI that writes user-supplied API key | **no** — expected behavior for setup CLI |
 
----
-
-### VERDICT LIST
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/artemis env var name constants | **no** | Define env var *names* only; values loaded from `.env`/environment at runtime |
-| google/sam GitHub Actions secret refs | **no** | Correct pattern: `${{ secrets.NAME }}` — secrets not in repo |
-| google/sam kind/run.sh OIDC_CLIENT_SECRET | **no** | Shell expansion with empty default (`${VAR:-}`), not a hardcoded value |
-| google/adk-js/python example credentials | **no** | All in docstrings/comments with obvious placeholders (`"password"`, `"your_*"`, `"..."`) |
-| google/pebble Algolia template | **no** | Public search-only key by design (per KB REJECTED) |
-| GCP metadata IP (169.254.169.254) refs | **no** | Well-known public endpoint; code *blocks* access to it |
-| K8s ConfigMap / test manifests | **no** | Config structure definitions, no secret data |
-
-**SUMMARY**: **0 reportable findings** in this delta. All hits are either:
-- Environment variable **name** constants (not values)
-- Proper GitHub Actions secret references (`${{ secrets.X }}`)
-- Documentation/example placeholders
-- Well-known public endpoints (metadata IP, Algolia search key)
-- Config/infrastructure definitions (ConfigMap, kubeconfig params)
+**No reportable findings in this delta.** All 24 new hits are either build artifacts, test fixtures, documentation examples, or legitimate cloud-config patterns (Secret Manager references, metadata endpoint blocking). The earthengine-api hardcoded client_secret from KB is **not in this scan's corpus** (different repo).
