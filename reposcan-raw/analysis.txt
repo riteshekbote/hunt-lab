@@ -1,3 +1,57 @@
 [0m
 > build · mimo-v2.5-free
 [0m
+## Classification Table
+
+### REAL_SECRET
+| File | Line | Hash | Notes |
+|------|------|------|-------|
+| (none) | — | — | — |
+
+### TEST_OR_EXAMPLE
+| File | Line | Classification |
+|------|------|---------------|
+| artemis/config/settings.py | 163,165 | Env var assignment (`GOOGLE_API_KEY = self.GEMINI_API_KEY`) — no hardcoded value |
+| artemis/config/constants.py | 35,51,52 | Env var name constants (`ENV_*_KEY = "..."`) — strings are variable names, not secrets |
+| adk-js/auth_credential.ts | 214,226 | Docstring examples (`password: "password"`, `token: "your_access_token"`) |
+| adk-js/auth_schemes.ts | 41 | Enum value `PASSWORD = 'password'` |
+| adk-python/auth_credential.py | 157,269,278 | Docstring examples (`private_key="-----BEGIN..."`, `password="password"`, `token="eyAkaknabna...."`) |
+| adk-python/auth_schemes.py | 68 | Enum value `PASSWORD = "password"` |
+| adk-python/openapi_tool/auth_helpers.py | 64 | Example `client_secret="your_client_secret"` |
+| adk-python/cli/cli_create.py | 131 | Env var write `GOOGLE_API_KEY={google_api_key}` — variable reference, not hardcoded |
+| adk-python/integrations/vmaas/sandbox_computer.py | 47 | State key constant `_vmaas_access_token` |
+| adk-python/load_web_page.py | 171 | Code comment referencing `169.254.169.254` metadata endpoint |
+| adk-python/container_code_executor.py | 114,154 | Security docstring warnings about `169.254.169.254` |
+| adk-python/gke_code_executor.py | 103,104,115 | Kubeconfig parameter defaults (`None`) |
+| adk-js/oauth2_discovery.ts | 215 | IP comparison `=== 'metadata.google.internal'` |
+| adk-js/load_web_page.ts | 36 | SSRF blocklist comment `169.254.0.0/16` |
+| adk-python/computer_use_toolset.py | 146 | Code comment referencing `169.254.169.254` |
+| langextract/ci.yaml | 168-170 | Secrets refs `${{ secrets.GEMINI_API_KEY }}` — GitHub Actions pattern, not hardcoded |
+| flatbuffers/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` — standard workflow token |
+| tunix/cli/base_agentic_config.yaml | 63 | Comment `#   hf_access_token: "your_token"` — commented-out example |
+| tunix/cli/base_config.yaml | 63 | Comment `#   hf_access_token: "your_token"` — commented-out example |
+| tunix/base_rl_pipeline.py | 862 | `KUBECONFIG` env var write with default `~/.kube/config` |
+| tunix/parser.py | 193-195 | Chat template tokens (`im_start`, `im_end`) — parser constants |
+| google/adk-js `chunk-*.js` (×17) | various | Minified parser error messages — all false-positive regex matches on `"password"` or similar in minified JS |
+
+### ENDPOINT_LEAK
+| File | Line | URL/Endpoint | Verdict |
+|------|------|-------------|---------|
+| google/meridian/workflows/proto-publish.yml | 126 | `https://test.pypi.org/p/...` | Test PyPI — dev-only, not real secrets |
+| google/meridian/workflows/publish.yml | 127 | `https://test.pypi.org/legacy/` | Test PyPI — dev-only, not real secrets |
+| google/nearby/sharing/nearby_sharing_service.h | 71 | `source.corp.google.com/piper/...` | Internal source link in comment — informational only |
+| android-cuttlefish/workflows/update-cache-and-deployment.yaml | 207 | `password: '${{ secrets.artifact-registry-uploader-json-creds }}'` | GitHub Actions secret ref — not hardcoded |
+| google/fleetbench/workflows/update.yml | 29 | `repo_token: "${{ secrets.FLEETBENCH_PAT }}"` | GitHub Actions secret ref — not hardcoded |
+
+### INTERESTING
+(none)
+
+---
+
+## Verdict
+
+```
+REPORT_CANDIDATE: no
+```
+
+All 182 hits are TEST_OR_EXAMPLE (docstring examples, env var constants, minified JS false positives) or ENDPOINT_LEAK (test PyPI URLs, GitHub Actions `${{ secrets.* }}` refs, internal source links). No hardcoded real secrets, no reportable findings. 0 new hits vs previous scan (DELTA=0).
