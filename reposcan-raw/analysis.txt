@@ -1,37 +1,12 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## DELTA Classification
+| File | Line | Type | Verdict |
+|---|---|---|---|
+| `google/adk-python/.../chunk-*.js` (×5) | 3/9 | Parser error msg strings in minified JS | TEST_OR_EXAMPLE |
+| `google/closure-compiler/externs/browser/*.js` (×8) | various | W3C spec `@see http://dev.w3.org/...` comments | TEST_OR_EXAMPLE |
+| `google/copybara/cloudbuild.yaml` | 27 | `pantheon.corp.google.com/...` internal registry URL | ENDPOINT_LEAK |
+| `google/copybara/.../AuthTest.java` | 75,102,129 | `"testpassword"`, `"test-token-123"` test fixtures | TEST_OR_EXAMPLE |
+| `google/copybara/.../HttpEndpointTest.java` | 136,159,189 | `"testpassword"` test fixtures | TEST_OR_EXAMPLE |
 
-### DELTA: 5 new hit lines vs previous scan
-
-| Hit | File:Line | SHA256 | Class |
-|-----|-----------|--------|-------|
-| 1 | `google/adk-python/.../chunk-DS3WV6GO.js:3` | N/A | TEST_OR_EXAMPLE — minified parser error string ("Parse error on line"), not a secret |
-| 2 | `google/magika/.../github-issue-labeler.yml:20` | `e4d0cb7b8cbf46fe` | TEST_OR_EXAMPLE — `${{secrets.GITHUB_TOKEN}}` is GitHub Actions template syntax, not a leaked token |
-| 3 | `google/magika/.../python-build-and-release-package.yml:407` | `9d22642d36b1e7d5` | ENDPOINT_LEAK — public test PyPI URL (`https://test.pypi.org/p/magika`), staging/test infra |
-| 4 | `google/magika/.../python-build-and-release-package.yml:437` | `9d22642d36b1e7d5` | ENDPOINT_LEAK — same public test PyPI URL (legacy endpoint) |
-| 5 | `google/magika/tests_data/basic/javascript/code.js:31` | N/A | TEST_OR_EXAMPLE — minified test fixture JavaScript, no real secret |
-
-### FULL SCAN Summary
-
-| Class | Count | Reportable? |
-|-------|-------|-------------|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | ~310 | No |
-| ENDPOINT_LEAK | ~8 | No (all public/known) |
-| INTERESTING | 0 | — |
-
-### Verdict
-
-| Finding | REPORT_CANDIDATE |
-|---------|-----------------|
-| DELTA #1 (adk-python chunk parse error) | no |
-| DELTA #2 (magika GITHUB_TOKEN template) | no |
-| DELTA #3–4 (magika test PyPI URLs) | no |
-| DELTA #5 (magika test JS fixture) | no |
-| **Any reportable delta** | **no** |
-
-**MONITOR**: robot probe pipeline still empty (32nd+ consecutive cycle). Root cause known (`hunt.yml` line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`). Manual probes restored coverage.
-
-**All 3 active hypotheses remain stable.** No new proving-dead or proving-live classes this cycle.
+**REPORT_CANDIDATE: no** — 0 real secrets in delta. All 22 new hits are parser error strings, W3C spec refs, test fixtures, or internal registry URL (non-exploitable endpoint leak). No actionable finding.
