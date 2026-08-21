@@ -8331,3 +8331,12 @@
 - LEARN: ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe).
 - LEARN: ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], all kt
 - LEARN: MONITOR: robot probe pipeline empty for 16 consecutive cycles (2026-08-20 17:42 → 2026-08-21 04:25 UTC); manual probes restored coverage again this cycle — fix 
+
+## RANKED HYPOTHESES 2026-08-21 05:47:27 UTC
+- [97] graph.microsoft.com/beta/copilot/agentRegistrations/{id}: Copilot Admin cross-principal ownership takeover via CORS+PATCH across 6 families (from reports/hypotheses-nemotron3.txt)
+- NEXT(hypotheses-nemotron3.txt): HUMAN: Submit `reports/msrc-two-principal-request.md` (sha256 ec993b9f5dfc48b02c7a7ab6fb142bc0d98b6715c8102b95d376d3aabd9d2b17) via the MSRC bounty portal — thi
+- LEARN: ACCEPTED: oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (systemic at collection+item)
+- LEARN: ACCEPTED: agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods:
+- LEARN: ACCEPTED: oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+- LEARN: REJECTED: www.googleapis.com/storage/v1/b anonymous enumeration — requires project+auth, no bypass
+- LEARN: REJECTED: tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — no-reward per Google VRP rules (query-param introspection without Authorizat

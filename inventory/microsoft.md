@@ -1974,3 +1974,5 @@
 - CHANGED oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
 - CHANGED www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth)
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
+
+## 2026-08-21 05:47:27 UTC
