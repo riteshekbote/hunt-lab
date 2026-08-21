@@ -1,53 +1,25 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[0m→ [0mRead reposcan-raw/google/sandboxed-api/.github/workflows/generator-tool.yml[90m [limit=15, offset=115][0m
-[0m→ [0mRead reposcan-raw/microsoft/promptflow/src/promptflow-evals/pyproject.toml[90m [offset=70, limit=15][0m
-### Classification Tables
+**Classification Table**
 
-#### REAL_SECRET (reportable hardcoded credentials)
-| File | Line | SHA256 | Verdict |
-|------|------|--------|---------|
-| *(none)* | — | — | No hardcoded live secrets found |
+| Category | Hits |
+|----------|------|
+| **REAL_SECRET** | 0 |
+| **TEST_OR_EXAMPLE** | 18 (placeholder values like `"gemini_api_key"`, templating syntax `{% raw %}${{...}}{% endraw %}`) |
+| **ENDPOINT_LEAK** | 0 |
+| **INTERESTING** | 3 (proper secret-injection patterns: `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}`, `${{ secrets.artifact-registry-uploader-json-creds }}` in workflows; `gcloud secrets versions access` in crosvm) |
 
-#### TEST_OR_EXAMPLE (fixtures, test data, placeholders)
-| File | Line | Context |
-|------|------|---------|
-| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` — constant key name |
-| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — dev script, empty default |
-| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | `"http://dev.mysql.com": true` — allowlist entry |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Comment: "Get this Client ID from https://pantheon.corp.google.com/..." |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129,351,486 | `https://api.test.osv.dev/...` — test environment URLs |
-| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `return "https://test.osv.dev/"` — test URL |
-| google/osv.dev/docs/_config.yml | 78 | `url: https://test.osv.dev/linter/` — test URL |
-| google/adk-go/cmd/launcher/web/webui/distr/*.js | multiple | Minified JS parse-error strings (not secrets) |
+**Verdict List**
 
-#### ENDPOINT_LEAK (internal/dev/staging URLs, config endpoints)
-| File | Line | Context |
-|------|------|---------|
-| google/sam/site/content/docs/manifests/*.yaml | multiple | `kind: ConfigMap` — K8s docs/examples |
-| google/sam/.github/k8s/*.yaml | multiple | `kind: ConfigMap` — K8s deployment templates |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` — Secret Manager ref |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` — Secret Manager ref |
-| microsoft/promptflow/src/promptflow-evals/pyproject.toml | 77 | `https://pkgs.dev.azure.com/azure-sdk/public/...` — public package index |
+| File:Line | Classification | REPORT_CANDIDATE |
+|-----------|----------------|------------------|
+| agents-cli/src/google/agents/cli/auth.py:43 | TEST_OR_EXAMPLE (placeholder `"gemini_api_key"`) | no |
+| agents-cli/scaffold/.../staging.yaml:168,192 | TEST_OR_EXAMPLE (template placeholders) | no |
+| android-cuttlefish/.github/workflows/*.yml (17 lines) | INTERESTING (proper `${{ secrets.X }}` references) | no |
+| artemis/config/*.py | TEST_OR_EXAMPLE (env var names, code assignments) | no |
+| sam/... (ConfigMaps, secret refs) | INTERESTING (K8s secret references, not hardcoded) | no |
+| crosvm/infra/recipes/push_to_github.sh:10 | INTERESTING (Secret Manager access pattern) | no |
+| adk-go/cmd/launcher/web/webui/distr/*.js | TEST_OR_EXAMPLE (minified source map parse errors) | no |
 
-#### INTERESTING (unusual patterns, debug flags, cloud configs)
-| File | Line | Context |
-|------|------|---------|
-| google/artemis/artemis/config/settings.py | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY / self.GCP_API_KEY` — key aliasing pattern |
-| google/artemis/artemis/config/constants.py | 35,51,52 | Env var names: `ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY` |
-| google/sam/.github/workflows/deploy.yaml | 247,249,250 | `--from-literal=google-client-secret="${GOOGLE_CLIENT_SECRET}"` — deploys via GitHub secrets |
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret injection |
-| google/sandboxed-api/.github/workflows/generator-tool.yml | 121 | `repo_token: "${{secrets.GITHUB_TOKEN}}"` — standard GITHUB_TOKEN usage |
-
----
-
-### SHORT VERDICT LIST
-
-| Candidate | File | REPORT_CANDIDATE |
-|-----------|------|------------------|
-| Delta #1 | google/sandboxed-api/.github/workflows/generator-tool.yml:121 | **no** — standard `${{secrets.GITHUB_TOKEN}}` (GitHub-provided, rotating) |
-| Delta #2 | microsoft/promptflow/src/promptflow-evals/pyproject.toml:77 | **no** — public Azure DevOps package index URL |
-| Full-scan hits | all 165 grep matches | **no** — all are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING patterns; zero REAL_SECRET |
-
-**Summary:** No reportable findings in this delta. The two new hits are benign (standard GITHUB_TOKEN reference + public package index). The full scan surfaces only test fixtures, documentation examples, Secret Manager references (not secrets themselves), and standard CI/CD patterns.
+**Summary**: No new reportable secrets in this delta. All findings are either test placeholders, template syntax, or correct secret-injection patterns. The only live hardcoded secret in the corpus remains the known `earthengine-api` OAuth client_secret (already tracked as ACCEPTED 2026-08-07, pending VRP determination on native-app by-design status).
