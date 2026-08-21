@@ -2002,3 +2002,5 @@
 - CHANGED tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP)
 
 ## 2026-08-21 11:10:00 UTC
+
+## 2026-08-21 11:43:11 UTC
