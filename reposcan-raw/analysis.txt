@@ -1,53 +1,65 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-Looking at the scan results, I'll classify each hit:
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat > /tmp/classification.md << 'EOF'
+# Classification Results
 
-## Classification Tables
+## REAL_SECRET (reportable)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *none* | - | - | No hardcoded live credentials found |
 
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *none confirmed* | | | The `AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q` in `ground-android/app/src/debug/local/google-services.json:23` is in a **debug/local** build config — likely a test key (path indicates non-production). Requires live probe to confirm validity before reporting. |
-
-### TEST_OR_EXAMPLE
+## TEST_OR_EXAMPLE (not reportable)
 | File | Line | Reason |
 |------|------|--------|
-| google/CodeCity/third_party/CodeMirror/mode/*.js | multiple | Syntax highlighter token definitions (`"matchingbracket"`, `"variable"`, `"string-2"`, `"operator"`, etc.) — library code, not secrets |
-| google/adk-js/core/src/auth/auth_credential.ts:214 | `password: "password"` | JSDoc example/comment block |
-| google/adk-js/core/src/auth/auth_credential.ts:226 | `token: "your_access_token"` | JSDoc example/comment block |
-| google/adk-js/core/src/auth/auth_schemes.ts:41 | `PASSWORD = 'password'` | Constant naming an auth scheme type, not a credential |
-| google/agents-cli/src/google/agents/cli/auth.py:43 | `GEMINI_API_KEY = "gemini_api_key"` | Placeholder value `"gemini_api_key"` — clearly not real |
-| google/sam/...deploy.yaml | 247-250 | Secrets injected from GitHub Actions secrets (`${{ secrets.* }}`) — correct pattern |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | Secrets from GitHub Actions secrets — correct pattern |
-| google/capsem/config/gate.toml:597 | `password = "password.txt"` | Reads from file, not hardcoded |
-| google/capsem/scripts/*.sh | 15, 39 | Reads password from file at runtime |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | K8s ConfigMap in docs/manifests (test fixture) |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | K8s ConfigMap in docs/manifests (test fixture) |
+| google/sam/internal/node/store.go | 38 | Constant `keyRefreshToken = "refresh_token"` — key name, not value |
+| google/sam/charts/sam-mesh/templates/dex-deployment.yaml | 3 | Helm chart template (ConfigMap kind) |
+| google/sam/development/kind/run.sh | 139 | Dev script: `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — empty default |
+| google/sam/.github/workflows/deploy.yaml | 247,249,250 | GH Actions: `--from-literal=...="${SECRET}"` — correct secret ref pattern |
+| google/sam/.github/k8s/*.yaml | various | K8s templates (ConfigMap kind) |
+| google/seesaw/healthcheck/radius.go | 135 | RADIUS attribute constant `ratUserPassword: "User-Password"` — attr name |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | **Firebase API key** (`AIzaSyBKXBjsrQzgpbhgP9RwuOG6xWww83eKi_Q`) — debug/local, public-by-design (Firebase keys are client-visible) |
+| google/adk-js/core/src/auth/auth_credential.ts | 214,226 | JSDoc examples: `password: "password"`, `token: "your_access_token"` |
+| google/adk-js/core/src/auth/auth_schemes.ts | 41 | Auth scheme constant `PASSWORD = 'password'` — type discriminant |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | GCP metadata host check `metadata.google.internal` |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | Comment referencing GCP metadata IP `169.254.169.254` |
+| google/CodeCity/third_party/CodeMirror/mode/* | various | **Third-party library code** (CodeMirror modes) — not project source |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | GH Actions: `${{ secrets.X }}` — correct secret ref pattern |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | Public staging URL `https://staging.release-eq7.pages.dev` |
+| google/capsem/config/gate.toml | 597 | References password file `password = "password.txt"` — not the secret |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file `password="$(tr -d '\n' < "$pass_file")"` |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` |
+| google/agents-cli/src/google/agents/cli/auth.py | 43 | Constant `GEMINI_API_KEY = "gemini_api_key"` — placeholder name |
+| google/agents-cli/src/google/agents/cli/scaffold/base_templates/python/.github/workflows/staging.yaml | 168,192 | Template with GH Actions expressions `{% raw %}${{ steps... }}{% endraw %}` |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Cloud Run secret ref `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` |
+| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | various | Minified/bundled JS parse-error strings — not source |
 
-### ENDPOINT_LEAK
+## ENDPOINT_LEAK (internal/dev/staging URLs)
 | File | Line | Endpoint |
 |------|------|----------|
-| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215 | `host === 'metadata.google.internal'` | GCP metadata endpoint check |
-| google/adk-js/core/src/tools/load_web_page.ts:36 | `'169.254.0.0/16'` | Link-local/GCP metadata IP range (169.254.169.254) |
-| google/sam/...dex-config.yaml | ConfigMap | OIDC/Dex config references |
+| google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts | 215 | `metadata.google.internal` (GCP metadata — well-known) |
+| google/adk-js/core/src/tools/load_web_page.ts | 36 | `169.254.169.254` (GCP metadata IP — well-known) |
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` (public staging) |
 
-### INTERESTING
+## INTERESTING (debug flags, configs, cloud configs)
 | File | Line | Note |
 |------|------|------|
-| google/seesaw/healthcheck/radius.go:135 | `ratUserPassword: "User-Password"` | RADIUS attribute name (not a secret), unusual naming |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js | multiple | Minified JS parse error messages — noise |
-| google/agents-cli scaffold templates | 168, 192 | GitHub Actions token expressions in template files — correct usage |
+| google/ground-android/app/src/debug/local/google-services.json | 23 | Firebase API key in debug build — public by design, but confirms Firebase project wiring |
+| google/capsem/scripts/preflight.sh + fix_p12_legacy.sh | 39,15 | Password file reads — verify file perms in CI (hygiene) |
 
 ---
 
-## Verdict List
+# VERDICT
 
-| Candidate | File | REPORT_CANDIDATE | Reason |
-|-----------|------|------------------|--------|
-| Firebase API key (debug) | `google/ground-android/app/src/debug/local/google-services.json:23` | **no** | Debug/local build artifact; `AIzaSy...` format but path indicates test config. Live probe needed first. |
-| GCP metadata endpoint refs | `google/adk-js/core/src/auth/oauth2/oauth2_discovery.ts:215`<br>`google/adk-js/core/src/tools/load_web_page.ts:36` | **no** | Internal endpoint references in client-side SDK code; expected for cloud detection logic. |
-| CodeMirror token defs | `google/CodeCity/third_party/CodeMirror/**` | **no** | Third-party syntax highlighter library code. |
-| ADK-JS auth examples | `google/adk-js/core/src/auth/auth_credential.ts`<br>`google/adk-js/core/src/auth/auth_schemes.ts` | **no** | Documentation/examples in comments. |
-| SAM/CI secret handling | `google/sam/.github/workflows/deploy.yaml`<br>`google/langextract/.github/workflows/ci.yaml` | **no** | Proper GitHub Actions secret injection pattern. |
-| CAPSEM password file reads | `google/capsem/scripts/*.sh` | **no** | Reads from external file at runtime — correct pattern. |
+| Candidate | REPORT_CANDIDATE | Rationale |
+|-----------|------------------|-----------|
+| Firebase API key in google-services.json | **NO** | Firebase API keys are public-by-design (client-visible); debug/local path; same class as REJECTED Algolia key |
+| All other hits | **NO** | Test fixtures, templates, secret references (not values), third-party code, well-known endpoints |
 
-**Summary**: **0 reportable findings** in this delta. The only potential secret (Firebase key in `ground-android`) is in a `debug/local/` path strongly indicating a test fixture. All other hits are library code, examples, proper secret patterns, or internal endpoint references expected in cloud SDKs.
+**OVERALL: 0 reportable findings in this delta.**
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
