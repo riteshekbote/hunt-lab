@@ -737,3 +737,4 @@
 - 2026-08-21 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], subset=True (own probe).
 - 2026-08-21 MONITOR robot probe pipeline empty for 32nd consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`); manual probes restored coverage again this cycle — operator fix still not applied.
 - 2026-08-21 No new proving-dead or proving-live classes this cycle — all passive probes (robot + manual, 18:07 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
+- 2026-08-21 No new proving-dead or proving-live classes this cycle — all passive probes (robot + manual, 18:46 UTC) confirmed prior ACCEPTED/REJECTED findings unchanged. All 3 active hypotheses stable.
