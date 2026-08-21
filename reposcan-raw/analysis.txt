@@ -1,54 +1,66 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Tables
+[93m[1m! [0mpermission requested: external_directory (/tmp/*); auto-rejecting
+[0m✗ [0mcat << 'EOF' > /tmp/classification.md
+# Classification Results
 
-### REAL_SECRET
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(none in current scan)* | | | |
+## REAL_SECRET (Reportable)
+*None found in this scan*
 
-### TEST_OR_EXAMPLE
-| File | Line | Type |
-|------|------|------|
-| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test private key fixture (`-----BEGIN PRIVATE KEY-----...`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test password fixture (`"password"`) |
-| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token fixture (`"eyAkaknabna...."`) |
+## TEST_OR_EXAMPLE (Not Reportable)
+| File | Line | Reason |
+|------|------|--------|
+| google/artemis/artemis/config/settings.py | 163,165 | Assigns from env vars (GEMINI_API_KEY, GCP_API_KEY) |
+| google/artemis/artemis/config/constants.py | 35,51,52 | Env var name constants, not secrets |
+| google/skywater-pdk/.github/workflows/labeler.yml | 11 | Standard `${{ secrets.GITHUB_TOKEN }}` usage |
+| google/langextract/.github/workflows/ci.yaml | 168-170 | Proper secrets injection for CI |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | Fetches from Secret Manager (gcloud) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | Fetches from Secret Manager (gcloud) |
+| google/capsem/config/gate.toml | 597 | References password file, not hardcoded |
+| google/capsem/scripts/preflight.sh | 39 | Reads password from file |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | Reads password from file |
+| google/flatbuffers/.github/workflows/label.yml | 24 | Standard `${{ secrets.GITHUB_TOKEN }}` usage |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 157 | Test fixture private key (truncated `...`) |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 269 | Test credentials `username="user", password="password"` |
+| google/adk-python/src/google/adk/auth/auth_credential.py | 278 | Test token (truncated `eyAkaknabna....`) |
 | google/adk-python/src/google/adk/auth/auth_schemes.py | 68 | Test constant `PASSWORD = "password"` |
 | google/adk-python/src/google/adk/tools/openapi_tool/auth/auth_helpers.py | 64 | Placeholder `"your_client_secret"` |
-| google/adk-python/src/google/adk/cli/browser/chunk-*.js | multiple | Minified JS parser error messages (16 files) |
+| google/adk-python/src/google/adk/integrations/vmaas/sandbox_computer.py | 47 | State key name, not a secret |
+| google/adk-python/src/google/adk/cli/browser/chunk-*.js | 3-11 | Minified/bundled JS parse errors (build artifacts) |
+| google/skia-buildbot/temporal/docker/config_template.yaml | 25,51 | Template variables referencing env vars (`{{ .Env.POSTGRES_PWD }}`, `{{ $visibility_pwd }}`) |
 
-### ENDPOINT_LEAK
+## ENDPOINT_LEAK (Internal/Dev URLs)
 | File | Line | Endpoint |
 |------|------|----------|
-| google/go-tpm-tools/launcher/image/bc-guest/bc_pin_pci_numa_nodes.sh | 70 | `http://metadata.google.internal/computeMetadata/v1/instance/...` |
-| google/go-tpm-tools/launcher/spec/launch_spec.go | 110-111 | `autopush-confidentialcomputing.sandbox.googleapis.com`, `staging-confidentialcomputing.sandbox.googleapis.com` |
-| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114, 154 | `169.254.169.254` (cloud metadata) |
-| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | `169.254.169.254` |
-| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | `169.254.169.254` |
-| microsoft/azure-pipelines-extensions/package-lock.json | 42,52,62 | `pkgs.dev.azure.com/mseng/PipelineTools/...` (npm registry) |
-| microsoft/azure-pipelines-extensions/Extensions/Ansible/.../package-lock.json | 25 | `pkgs.dev.azure.com/mseng/PipelineTools/...` |
+| google/skia-buildbot/perf/modules/subscription-table-sk/subscription-table-sk.ts | 207 | `https://source.corp.google.com/h/chrome-internal/` |
+| google/skia-buildbot/perf/go/regression/sqlregression2store/schema/schema.go | 12 | `https://b.corp.google.com/issues/492077374` |
+| google/skia-buildbot/perf/go/regrshortcut/regrshortcutstore/schema/schema.go | 5 | `https://b.corp.google.com/issues/492077374` |
+| google/skia-buildbot/perf/go/notify/android_notification_provider.go | 223 | `https://android-build.corp.google.com/range_search/...` |
+| google/skia-buildbot/perf/go/anomalygroup/sqlanomalygroupstore/schema/schema.go | 7,14,46 | `https://b.corp.google.com/issues/492077374` |
+| google/skia-buildbot/perf/go/culprit/sqlculpritstore/schema/schema.go | 7 | `https://b.corp.google.com/issues/492077374` |
+| google/skia-buildbot/perf/go/favorites/sqlfavoritestore/schema/schema.go | 6 | `https://b.corp.google.com/issues/492077374` |
 
-### INTERESTING
+## INTERESTING (Unusual Patterns)
 | File | Line | Note |
 |------|------|------|
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` (secure runtime fetch) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` |
-| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={value}` to file at runtime |
-| google/capsem/config/gate.toml | 597 | `password = "password.txt"` (file reference, not hardcoded) |
-| google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` (GitHub Actions secret refs) |
+| google/adk-python/src/google/adk/code_executors/container_code_executor.py | 114,154 | References GCP metadata endpoint `169.254.169.254` (documented warning) |
+| google/adk-python/src/google/adk/tools/load_web_page.py | 171 | References metadata endpoint `169.254.169.254` with NAT64 routing |
+| google/adk-python/src/google/adk/tools/computer_use/computer_use_toolset.py | 146 | Explicitly refuses metadata endpoint `169.254.169.254` in Chrome |
+| google/adk-python/src/google/adk/cli/cli_create.py | 131 | Writes `GOOGLE_API_KEY={value}` to file (could leak if logs captured) |
 
----
+## DELTA SUMMARY (12 new hits vs previous scan)
+All 12 delta hits are **ENDPOINT_LEAK** (internal corp.google.com URLs in comments) or **TEST_OR_EXAMPLE** (template configs, standard workflow secrets). No new REAL_SECRET.
 
-## Verdict
-
-| Candidate | REPORT_CANDIDATE | Reason |
-|-----------|------------------|--------|
-| google/adk-python browser chunk parser errors | **no** | Minified JS build artifacts, not secrets |
-| google/langextract workflow secret refs | **no** | `${{ secrets.X }}` — GitHub Actions injection, not hardcoded |
-| microsoft/azure-pipelines-extensions package URLs | **no** | Public Azure DevOps npm registry URLs |
-| google/adk-python test fixtures | **no** | Explicit test/example data |
-| google/crosvm gcloud secret access | **no** | Secure runtime secret fetch pattern |
-| **google/earthengine-api/python/ee/oauth.py:45** (from KB) | **yes** | **PRE-EXISTING FINDING** — Hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1` (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), confirmed LIVE on master, used as default fallback at oauth.py:99, scopes include `cloud-platform` (full GCP). **Already in knowledge base as ACCEPTED 2026-08-07+, pending VRP determination on native-app by-design status.** |
-
-**This scan adds 0 new reportable findings.** The only REAL_SECRET in scope is the pre-existing earthengine-api client_secret (already tracked in KB).
+## VERDICT
+| Candidate | REPORT_CANDIDATE |
+|-----------|------------------|
+| Hardcoded secrets in scanned corpus | **NO** — 0 REAL_SECRET hits |
+| google/adk-python CLI writes API key to file | **NO** — writes from variable, not hardcoded; by-design CLI behavior |
+| Internal corp.google.com URLs in comments | **NO** — ENDPOINT_LEAK class, not reportable for GVRP |
+| GCP metadata endpoint references | **NO** — Documented defensive coding (explicit refuse/block) |
+| Standard GitHub Actions secrets usage | **NO** — Correct pattern |
+| Secret Manager integration (gcloud) | **NO** — Correct pattern |
+EOF
+cat /tmp/classification.md failed
+[91m[1mError: [0mThe user rejected permission to use this specific tool call.
