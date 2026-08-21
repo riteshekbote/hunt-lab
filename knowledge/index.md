@@ -631,3 +631,11 @@
 - 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe ~02:55 UTC OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
 - 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 38th consecutive cycle).
 - 2026-08-21 MONITOR: robot probe pipeline empty for 12 consecutive cycles (2026-08-20 17:42 → 2026-08-21 02:55 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
+- 2026-08-21 ACCEPTED: oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (systemic at collection+item)
+- 2026-08-21 ACCEPTED: agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
+- 2026-08-21 ACCEPTED: oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+- 2026-08-21 ACCEPTED agentRegistrations CORS+PATCH precondition @ graph.microsoft.com/beta/copilot/agentRegistrations: own probe this cycle OPTIONS→200 + ACAO:* + Allow-Methods DELETE,GET,OPTIONS,POST,PUT,PATCH at collection+item (stable).
+- 2026-08-21 ACCEPTED oauth2PermissionGrants item-level CORS+PATCH @ graph.microsoft.com/v1.0/oauth2PermissionGrants/{id}: own probe this cycle OPTIONS→200 + ACAO:* + full Allow-Methods (stable).
+- 2026-08-21 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (own probe, 39th consecutive cycle).
+- 2026-08-21 ACCEPTED earthengine-api oauth.py:45 secret still live on master — line-45 literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own probe; initial mismatch was a hashing-pipeline newline artifact, corrected with newline-free printf).
+- 2026-08-21 MONITOR: robot probe pipeline empty for 15 consecutive sections (2026-08-20 17:42 → 2026-08-21 02:53 UTC); manual probes restored coverage again this cycle — fix pipeline before next cycle.
