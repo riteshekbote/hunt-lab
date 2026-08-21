@@ -1,48 +1,59 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-**DELTA (7 new hits since last scan):**
+## Delta Triage: 34 new hits (2026-08-21 reposcan)
 
-All 7 are **documentation comments** referencing W3C specs and cloud metadata endpoints — zero secrets.
+### REAL_SECRET
+None new this cycle.
 
-| File | Line | Content | Class |
+| File | Line | SHA256 | Notes |
+|------|------|--------|-------|
+| *(earthengine-api oauth.py:45 is prior, unchanged)* | | `3f3f8d6f…d271` | Already tracked ACCEPTED |
+
+### TEST_OR_EXAMPLE
+| File | Line | Pattern | Verdict |
+|------|------|---------|---------|
+| google/closure-compiler/externs/\*.js | 4638–4639 | `href="https://developers.devsite.corp.google.com/…"` | Dead link in JSDoc comment, not a credential |
+| google/closure-compiler/externs/ms-office-1.3.js | 27,166,205 | `https://dev.office.com/reference/…` | Doc link in comment |
+| google/closure-compiler/externs/browser/\*.js | various | `http://dev.w3.org/…` | W3C spec links in comments |
+| google/closure-compiler/src/…/ErrorManager.java | 95 | `https://source.corp.google.com/piper/…` | Internal source link in comment |
+| google/fleetbench/.github/workflows/update.yml | 29 | `${{ secrets.FLEETBENCH_PAT }}` | Secret *reference* — no actual value leaked |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | Explicit placeholder in test file |
+| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string>"` | Explicit placeholder in test file |
+| microsoft/vscode-java-pack/.github/workflows/issueLens-run.yml | 96 | `GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_MCP_TOKEN}"` | Env var reference, no hardcoded value |
+| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | Path reference, not a password value |
+| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
+| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+
+### ENDPOINT_LEAK
+| File | Line | URL | Notes |
+|------|------|-----|-------|
+| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Cloudflare Pages staging URL (public) |
+| microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `https://dev.azure.com/msctoproj` | Azure DevOps org URL (standard build infra) |
+| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `https://pkgs.dev.azure.com/microsoft/Dart/_packaging/…` | Azure Artifacts feed (standard) |
+| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70,76 | `https://pkgs.dev.azure.com/microsoft/…` | Azure Artifacts feed (standard) |
+| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal ESRP timestamp server (corporate network only) |
+| microsoft/vscode-java-pack/.azure-pipelines/npm-cfs-variables.yml | 26 | `https://pkgs.dev.azure.com/mseng/VSJava/…` | Azure Artifacts npm feed (standard) |
+| microsoft/vscode-java-pack/.azure-pipelines/npm-cfs.yml | 58 | `https://pkgs.dev.azure.com/…` | Same feed, referenced in validation script |
+
+### INTERESTING
+| File | Line | Finding | Notes |
 |------|------|---------|-------|
-| `closure-compiler/externs/browser/html5.js` | 22 | `@see http://dev.w3.org/html5/spec/Overview.html` | DOC_REF |
-| `closure-compiler/externs/browser/w3c_device_sensor_event.js` | 22 | `Created from http://dev.w3.org/geo/api/spec-source-orientation` | DOC_REF |
-| `closure-compiler/externs/es6.js` | 392 | `@see http://dev.w3.org/html5/postmsg/` | DOC_REF |
-| `go-containerregistry/pkg/v1/google/list.go` | 206 | `cloud metadata endpoints at 169.254.169.254` | DOC_REF |
-| `go-containerregistry/pkg/v1/remote/fetcher.go` | 85 | `cloud instance metadata service (e.g. 169.254.169.254)` | DOC_REF |
-| `go-containerregistry/pkg/v1/remote/transport/bearer.go` | 151 | `169.254.169.254 / fd00:ec2::254` | DOC_REF |
-| `go-containerregistry/pkg/v1/remote/transport/bearer.go` | 91 | `metadata endpoint (e.g. 169.254.169.254)` | DOC_REF |
+| microsoft/coreutils/.pipelines/…/steps-esrp-sign-files-authenticode.yml | 33 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | HTTP (not HTTPS) internal timestamp server — ESRP signing infra, corp-network-only, not remotely accessible |
 
----
+### Verdict
 
-**FULL SCAN CLASSIFICATION (182 hits):**
+| Finding | REPORT_CANDIDATE |
+|---------|-----------------|
+| REAL_SECRET (new) | **no** |
+| capsem staging URL | no — public pages.dev, info-only |
+| closure-compiler corp links | no — dead doc links in comments |
+| TypeAgent test placeholders | no — explicit `<placeholder>` strings |
+| vscode-java-pack env refs | no — `${GITHUB_MCP_TOKEN}` variable reference, no value |
+| fleetbench `${{ secrets.FLEETBENCH_PAT }}` | no — secret reference, no value leaked |
+| capsem password file refs | no — reads from file path at runtime |
+| Azure Artifacts feeds | no — standard public/organization feeds |
+| ESRP HTTP timestamp server | no — internal corp infra, not remotely reachable |
+| earthengine-api (prior) | Already ACCEPTED in KB, unchanged |
 
-**TEST_OR_EXAMPLE (all 182 hits):**
-
-| File | Line(s) | Pattern | Verdict |
-|------|---------|---------|---------|
-| `adk-python/auth/auth_credential.py` | 157,269,278 | `"-----BEGIN PRIVATE KEY-----..."`, `"password"`, `"eyAkaknabna...."` | Test fixtures (string literals in docstrings) |
-| `adk-python/auth/auth_schemes.py` | 68 | `PASSWORD = "password"` | Enum value, not a real secret |
-| `adk-python/tools/openapi_tool/auth/auth_helpers.py` | 64 | `client_secret="your_client_secret"` | Placeholder string |
-| `adk-python/code_executors/gke_code_executor.py` | 103-115 | `kubeconfig_path: str | None = None` | Config param (env var) |
-| `adk-python/code_executors/container_code_executor.py` | 114,154 | `169.254.169.254` | Documentation comment |
-| `adk-python/tools/load_web_page.py` | 171 | `169.254.169.254` | Documentation comment |
-| `adk-python/tools/computer_use/computer_use_toolset.py` | 146 | `169.254.169.254` | Documentation comment |
-| `adk-python/integrations/vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | State key, not credential |
-| `adk-python/cli/cli_create.py` | 131 | `GOOGLE_API_KEY={google_api_key}` | Env var templating |
-| `adk-python/cli/browser/chunk-*.js` | multiple | `Parse error on line` | Minified error messages |
-| `artemis/config/settings.py` | 163,165 | `GOOGLE_API_KEY = self.GEMINI_API_KEY` | Config alias (env var) |
-| `artemis/config/constants.py` | 35,51,52 | `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | Constant defs (env var names) |
-| `meridian/.github/workflows/proto-publish.yml` | 126,138 | `test.pypi.org` | Test PyPI URL (CI) |
-| `meridian/.github/workflows/publish.yml` | 127,139 | `test.pypi.org` | Test PyPI URL (CI) |
-| `nearby/sharing/nearby_sharing_service.h` | 71 | `source.corp.google.com/piper` | Internal code link (comment) |
-| `langextract/.github/workflows/ci.yaml` | 168-170 | `GEMINI_API_KEY="${{ secrets.GEMINI_API_KEY }}"` | GitHub Actions secret refs |
-| `go-containerregistry/.../*.go` | 85,91,151,206 | `169.254.169.254` | Documentation comments |
-| `flatbuffers/.github/workflows/label.yml` | 24 | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` | Standard CI token |
-| `closure-compiler/externs/*` | 22,22,392 | `http://dev.w3.org/...` | W3C spec URLs |
-| `tunix/cli/base_config.yaml` | 63 | `hf_access_token: "your_token"` | Placeholder (commented out) |
-| `tunix/cli/base_agentic_config.yaml` | 63 | `hf_access_token: "your_token"` | Placeholder (commented out) |
-| `tunix/cli/base_rl_pipeline.py` | 862 | `os.environ["KUBECONFIG"] = k8s_cfg.get(...)` | Env var templating |
-| `tunix/rl/agentic/parser/*` | 193-195 | `eot_token="
+**Delta verdict: 0 new reportable findings.** All 34 hits are TEST_OR_EXAMPLE (11), ENDPOINT_LEAK (7), or dead doc links (16). The only prior ACCEPTED finding (earthengine-api secret) is unchanged.
