@@ -20464,3 +20464,9 @@ testability: AUTH_HELPED
 [RISK] google: 90 | reason: Hardcoded OAuth client_secret in google/earthengine-api (sha256 3f3f8d6f…d271, scopes cloud-platform+earthengine+drive+devstorage.full_control, conclusive RFC 6749 §5.2 A/B proof) + v2.0 authorize HTTP 200 error rendering at login.microsoftonline.com (RFC 6749 §3 violation). No ungated cross-project read surface (identitytoolkit 403-gated "unregistered callers", discovery APIs auth-gated).
 [RISK] microsoft: 95 | reason: Copilot Admin 6-family cross-principal ownership bypass via CORS+PATCH (confidence 97, true CORS preflight ACAO:*+PATCH at collection+item+all 6 families, 5 EntityTypes ZERO OperationRestrictions, item-level HTTP 401 no ownership binding) + oauth2PermissionGrants consent-forge (confidence 80, true CORS preflight now browser-exploitable, caller-chosen resourceId, 458-char EntityType 0 restrictions) + systemic Graph API RFC 6750 §3 deviation (HEAD→405/0 no Bearer) confirmed across expanded endpoint surface.
 ## 2026-08-21 17:41:11 UTC [google] (model nemotron3)
+## 2026-08-21 18:04:03 UTC [google] (model nemotron3)
+[NEW] oauth2PermissionGrants item-level HEAD→405/0/no-Bearer confirmed — RFC 6750 §3 deviation extends to item-level (systemic at collection+item)
+[NEW] agentRegistrations item-level OPTIONS CORS fresh @ graph.microsoft.com/beta/copilot/agentRegistrations/{id}: 200 + ACAO:* + PATCH (full Allow-Methods: DELETE,GET,OPTIONS,POST,PUT,PATCH)
+[CHANGED] oauth2PermissionGrants collection-level CORS: API-callable-only → browser-exploitable (PATCH now in Allow-Methods)
+[CHANGED] www.googleapis.com/storage/v1/b anonymous enumeration — REJECTED (requires project+auth, no bypass)
+[CHANGED] tokeninfo public introspection oracle @ oauth2.googleapis.com/tokeninfo — REJECTED (no-reward per Google VRP rules, query-param introspection without Authorization header not eligible)
