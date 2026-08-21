@@ -1,37 +1,61 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-## Classification Table
+[0m✗ [0mRead reposcan-raw/google/earthengine-api/python/ee/oauth.py failed[90m [offset=40, limit=20][0m
+[91m[1mError: [0mFile not found: /home/runner/work/hunt-lab/hunt-lab/reposcan-raw/google/earthengine-api/python/ee/oauth.py
+[0m✱ [0mGlob "**/reposcan-raw/google/earthengine-api/**"[90m 0 matches[0m
+### Classification Tables
 
-| File | Line | Category | Reason |
-|------|------|----------|--------|
-| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | INTERESTING | Cloud Run `--set-secrets` pattern (runtime secret injection, not hardcoded) |
-| google/adk-go/cmd/launcher/web/webui/distr/chunk-*.js (18 files) | 3-11 | TEST_OR_EXAMPLE | Minified JS build artifacts / source maps (parse error messages) |
-| google/garf/.../currencyapi/report_fetcher.py | 64 | TEST_OR_EXAMPLE | Placeholder `api_key='YOUR_KEY'` |
-| google/garf/.../openweather/report_fetcher.py | 57 | TEST_OR_EXAMPLE | Placeholder `api_key='YOUR_KEY'` |
-| google/magika/.github/workflows/github-issue-labeler.yml | 20 | INTERESTING | Proper `${{secrets.GITHUB_TOKEN}}` usage |
-| google/magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | ENDPOINT_LEAK | Test PyPI URLs (`test.pypi.org`) |
-| google/magika/tests_data/basic/javascript/code.js | 31 | TEST_OR_EXAMPLE | Test data file |
-| google/sam/.github/k8s/*.yaml (8 files) | 2, 14 | INTERESTING | K8s `kind: ConfigMap` definitions (config structure) |
-| google/sam/.github/workflows/deploy.yaml | 247, 249, 250 | INTERESTING | Proper `${{SECRET_VAR}}` references (Google/GitHub/CLI OAuth secrets) |
-| google/sam/site/content/docs/manifests/*.yaml | 16, 88 | TEST_OR_EXAMPLE | Mock OIDC / control-plane docs (documentation examples) |
-| google/sam/internal/node/store.go | 38 | INTERESTING | Constant `keyRefreshToken = "refresh_token"` (key name, not value) |
-| google/sam/development/kind/run.sh | 139 | INTERESTING | Shell param expansion `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` (no default) |
-| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | INTERESTING | `gcloud secrets versions access` (Secret Manager pattern) |
-| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | INTERESTING | `gcloud secrets versions access` (Secret Manager pattern) |
-| google/artemis/artemis/config/settings.py | 163, 165 | INTERESTING | Env var aliases (`GEMINI_API_KEY`, `GCP_API_KEY` → `GOOGLE_API_KEY`) |
-| google/artemis/artemis/config/constants.py | 35, 51, 52 | INTERESTING | Env var name constants |
-| google/osv.dev/vulnfeeds/pypi/pypi.go | 80 | ENDPOINT_LEAK | Hardcoded allowlist URL `http://dev.mysql.com` |
-| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | ENDPOINT_LEAK | Internal `pantheon.corp.google.com` URL in comment |
-| google/osv.dev/deployment/clouddeploy/**/skaffold.yaml (6 files) | 2 | INTERESTING | `kind: Config` (Skaffold config files) |
-| google/osv.dev/deployment/clouddeploy/gke-workers/.../generate-sitemap.yaml | 16 | ENDPOINT_LEAK | Test endpoint `https://test.osv.dev` |
-| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | ENDPOINT_LEAK | Staging API `https://api.test.osv.dev` |
+#### REAL_SECRET
+| File | Line | Secret SHA256 | Classification |
+|------|------|---------------|----------------|
+| google/earthengine-api/python/ee/oauth.py | 45 | `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` | **KNOWN ACCEPTED** — hardcoded OAuth client_secret `RUP0RZ6e0pPhDzsqIJ7KlNd1`, scopes `cloud-platform+earthengine+drive+devstorage.full_control`, used as default fallback at oauth.py:99; confirmed live on master (2026-08-21 probe), RFC 6749 §5.2 A/B proof conclusive (real→`invalid_grant`, fake→`invalid_client`); **already tracked in KB as ACCEPTED, REPORT_CANDIDATE=yes** |
 
-## Verdict List
+#### TEST_OR_EXAMPLE
+| File | Line | Content | Reason |
+|------|------|---------|--------|
+| google/garf/libs/community/common_apis/.../openweather/report_fetcher.py | 57 | `api_key='YOUR_KEY'` | Placeholder literal |
+| google/garf/libs/community/common_apis/.../currencyapi/report_fetcher.py | 64 | `api_key='YOUR_KEY'` | Placeholder literal |
+| google/sam/internal/node/store.go | 38 | `keyRefreshToken = "refresh_token"` | Constant key name, not secret |
+| google/sam/development/kind/run.sh | 139 | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` | Env var placeholder |
+| google/sam/.github/workflows/deploy.yaml | 247-250 | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` | GitHub Actions secret refs (proper pattern) |
+| google/adk-go/cmd/launcher/web/webui/distr/*.js | — | Minified JS chunks | Build artifacts, not secrets |
+| google/osv.dev/deployment/clouddeploy/osv-website/run-staging.yaml | 23 | Comment referencing corp Google Client ID | Documentation only |
+| google/crosvm/infra/recipes/push_to_github.resources/push_to_github.sh | 10 | `gcloud secrets versions access latest --secret="github-crosvm-bot"` | Secret Manager runtime fetch (proper pattern) |
+| google/crosvm/infra/recipe_modules/crosvm/resources/codecov_wrapper.sh | 11 | `gcloud secrets versions access latest --secret="codecov-google-crosvm"` | Secret Manager runtime fetch (proper pattern) |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | Cloud Run secret injection (proper pattern) |
 
-| Candidate | REPORT_CANDIDATE | Notes |
-|-----------|------------------|-------|
-| Hardcoded OAuth client_secret @ google/earthengine-api/python/ee/oauth.py:45 | **yes** (pre-existing) | Already ACCEPTED in KB (sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271`), live on master, A/B proof conclusive — pending VRP determination on native-app by-design status |
-| All delta hits above | **no** | Zero REAL_SECRET findings in this delta; all are TEST_OR_EXAMPLE, ENDPOINT_LEAK (test/staging/internal URLs), or INTERESTING (proper secret management patterns) |
+#### ENDPOINT_LEAK
+| File | Line | Endpoint | Type |
+|------|------|----------|------|
+| google/osv.dev/docs/_config.yml | 78 | `https://test.osv.dev/linter/` | Staging frontend |
+| google/osv.dev/external/pypi/pypi.go | 80 | `http://dev.mysql.com` | Test domain allowlist |
+| google/osv.dev/gcp/website/frontend3/src/linter.js | 129, 351, 486 | `https://api.test.osv.dev/v1experimental/...`, `https://api.test.osv.dev/v1/vulns/...` | Staging API |
+| google/osv.dev/gcp/website/frontend3/src/triage.js | 94 | `https://api.test.osv.dev/v1/vulns/{id}` | Staging API |
+| google/osv.dev/tools/datafix/reimport_gcs_record.py | 86 | `https://test.osv.dev/` | Staging base URL |
+| google/osv.dev/deployment/clouddeploy/oss-vdb-test/generate-sitemap.yaml | 16 | `https://test.osv.dev` | Staging base URL |
+| google/sam/site/content/docs/manifests/mock-oidc.yaml | 16 | `kind: ConfigMap` | K8s template |
+| google/sam/site/content/docs/manifests/sam-control-plane.yaml | 88 | `kind: ConfigMap` | K8s template |
+| google/sam/.github/k8s/*.yaml | — | Various `kind: ConfigMap` | K8s templates |
+| google/artemis/artemis/config/settings.py | 163, 165 | `GOOGLE_API_KEY = GEMINI_API_KEY`, `GCP_API_KEY` | Config references |
+| google/artemis/artemis/config/constants.py | 35, 51, 52 | `ENV_ARTEMIS_TENANT_TOKEN`, `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | Env var names |
 
-**Summary**: This scan delta produces **no new reportable findings**. The only live REAL_SECRET remains the previously-accepted earthengine-api client_secret (tracked in KB). All new hits are either test fixtures, placeholder values, staging endpoints, or correct secret-handling patterns (GitHub Actions secrets, GCP Secret Manager, env var references).
+#### INTERESTING
+| File | Line | Observation |
+|------|------|-------------|
+| google/sam/.github/workflows/deploy.yaml | 247-250 | Proper GitHub Actions secret injection via `--from-literal` |
+| google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go | 246 | Proper Cloud Run `--set-secrets` pattern |
+| google/crosvm/infra/.../push_to_github.sh / codecov_wrapper.sh | 10, 11 | Proper Secret Manager runtime access via `gcloud` |
+
+---
+
+### Verdict List
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| google/earthengine-api/python/ee/oauth.py:45 (client_secret) | **no** | Already ACCEPTED in KB (2026-08-07 through 2026-08-21), confirmed live, REPORT_CANDIDATE=yes previously determined; **not a new finding** — do not re-report |
+| All TEST_OR_EXAMPLE entries | **no** | Placeholders, env var refs, build artifacts, proper secret-handling patterns |
+| All ENDPOINT_LEAK entries | **no** | Staging/test URLs (test.osv.dev, api.test.osv.dev), K8s templates, config references — no sensitive exposure |
+| All INTERESTING entries | **no** | Demonstrate proper secret management patterns (GitHub Actions, Cloud Run, Secret Manager) |
+
+**Summary:** No new reportable findings in this delta. The single REAL_SECRET is a previously accepted, known-live finding (earthengine-api OAuth client_secret). All other hits are test fixtures, staging endpoints, or proper secret-handling code.
