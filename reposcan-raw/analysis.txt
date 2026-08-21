@@ -1,62 +1,53 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-[0m→ [0mRead reposcan-raw/google/adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go[90m [offset=230, limit=40][0m
-[0m
-[0m$ [0mecho -n "GOOGLE_API_KEY=GOOGLE_API_KEY:latest" | sha256sum
-c5702cfb6292daffc19fdb14be23ec55c4a62e4248ddd1cd7db11185552159fd  -
-[0m
-## Classification Table
+## TRIAGE TABLE: NEW HITS (google/microsoft org scan)
 
-### REAL_SECRET (none)
-
-No new hardcoded credentials, API keys, or tokens found in the delta.
+### REAL_SECRET — none
 
 ### TEST_OR_EXAMPLE
 
-| File | Line | Reason |
-|---|---|---|
-| google/copybara/.../AuthTest.java | 75, 102, 129 | Test fixture `"testpassword"`, `"test-token-123"` — unit test data |
-| google/copybara/.../HttpEndpointTest.java | 136, 159, 189 | Test fixture `"testpassword"` — unit test data |
-| google/adk-python/.../auth_credential.py | 157, 269, 278 | Docstring examples: `private_key="-----BEGIN PRIVATE KEY-----..."`, `password="password"`, `token="eyAkaknabna...."` — placeholder/API doc stubs |
-| google/adk-python/.../auth_schemes.py | 68 | Enum value `PASSWORD = "password"` — enum string, not a credential |
-| google/adk-python/.../openapi_tool/auth/auth_helpers.py | 64 | Docstring `client_secret="your_client_secret"` — placeholder |
-| All `chunk-*.js` (×22 across adk-python + adk-go) | 3/5/9/11 | Minified JS parser error strings (`"Parse error on line "` + terminal name concatenation) — false positive from pattern match on `token:` substring in JS code |
-| google/meridian/.../proto-publish.yml | 126, 138 | `https://test.pypi.org/` — public TestPyPI index URL, by-design |
-| google/meridian/.../publish.yml | 127, 139 | `https://test.pypi.org/` — same |
-| google/copybara/cloudbuild.yaml | 27 | Comment URL `https://pantheon.corp.google.com/...` — internal Corp URL in comment, info-only |
-| google/artemis/.../constants.py | 35, 51, 52 | Env var name definitions (`ARTEMIS_TENANT_TOKEN`, `GOOGLE_API_KEY`, `GEMINI_API_KEY`) — string constants, not values |
-| google/artemis/.../settings.py | 163, 165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` / `self.GCP_API_KEY` — assignment to self (config wiring), not a literal |
-| google/adk-python/.../cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` — template string writing env var line, not a secret value |
-| google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path` / `kubeconfig_context` params — config field names, not file contents |
-| google/adk-python/.../sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — string constant name for session state key |
-| google/adk-python/.../load_web_page.py | 171 | Documentation referencing metadata endpoint `169.254.169.254` |
-| google/adk-python/.../computer_use_toolset.py | 146 | Comment referencing `169.254.169.254` |
-| google/adk-python/.../container_code_executor.py | 114, 154 | Documentation referencing `169.254.169.254` metadata endpoint |
+| File | Line | Content | Verdict |
+|------|------|---------|---------|
+| `adk-go/.../chunk-6HSYUS5O.js` | 3 | Minified parser error strings | TEST |
+| `adk-go/.../chunk-RNTHHQWK.js` | 3 | Minified parser error strings | TEST |
+| `adk-go/.../chunk-WEKWG7SS.js` | 3 | Minified parser error strings | TEST |
+| `capsem/config/gate.toml` | 597 | `password = "password.txt"` | TEST — filename ref, not credential |
+| `capsem/scripts/fix_p12_legacy.sh` | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | TEST — reads from file |
+| `capsem/scripts/preflight.sh` | 39 | `password="$(tr -d '\n' < "$pass_file")"` | TEST — reads from file |
+| `adk-python/.../auth_credential.py` | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | TEST — placeholder `...` |
+| `adk-python/.../auth_credential.py` | 269 | `credentials=HttpCredentials(username="user", password="password")` | TEST — literal `"password"` |
+| `adk-python/.../auth_credential.py` | 278 | `credentials=HttpCredentials(token="eyAkaknabna....")` | TEST — placeholder |
+| `adk-python/.../auth_schemes.py` | 68 | `PASSWORD = "password"` | TEST — enum value, not credential |
+| `adk-python/.../gke_code_executor.py` | 103-104,115 | `kubeconfig_path: str \| None = None` | TEST — type annotation |
+| `adk-python/.../container_code_executor.py` | 114,154 | `cloud metadata endpoint at 169.254.169.254` | TEST — documentation |
+| `adk-python/.../load_web_page.py` | 171 | `metadata endpoint 169.254.169.254` | TEST — documentation |
+| `adk-python/.../computer_use_toolset.py` | 146 | `169.254.169.254 in Chrome, so refuse` | TEST — documentation |
+| `adk-python/.../auth_helpers.py` | 64 | `client_secret="your_client_secret"` | TEST — placeholder `"your_client_secret"` |
+| `adk-python/.../vmaas/sandbox_computer.py` | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` | TEST — variable name |
+| `adk-python/.../cli_create.py` | 131 | `lines.append(f"GOOGLE_API_KEY={google_api_key}")` | TEST — code template |
+| `artemis/config/settings.py` | 163,165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` | TEST — config wiring |
+| `artemis/config/constants.py` | 35,51-52 | `ENV_ARTEMIS_TENANT_TOKEN`, `ENV_GOOGLE_API_KEY`, `ENV_GEMINI_API_KEY` | TEST — env var name constants |
+| `adk-go/cmd/launcher/web/webui/distr/chunk-*.js` | 3 | ~20× minified parser error strings | TEST — minified bundles |
+| `adk-python/cli/browser/chunk-*.js` | 3 | ~20× minified parser error strings | TEST — minified bundles |
 
 ### ENDPOINT_LEAK
 
-| File | Line | Reason |
-|---|---|---|
-| google/copybara/cloudbuild.yaml | 27 | Comment with internal Corp URL: `https://pantheon.corp.google.com/artifacts/docker/bazel-public/us/gcr.io/bazel` — internal artifact registry path. INFO only, not a finding. |
-
-### INTERESTING
-
-| File | Line | Reason |
-|---|---|---|
-| google/adk-go/.../cloudrun/cloudrun.go | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` — Cloud Run secret mount reference (NOT a secret value). This is the gcloud CLI flag pattern for mounting Secret Manager secrets. The secret **name** is `GOOGLE_API_KEY` mapping to env var `GOOGLE_API_KEY:latest`. This is by-design Cloud Run deployment config — the actual secret lives in Secret Manager, not in code. **Not reportable.** |
+| File | Line | Content | Verdict |
+|------|------|---------|---------|
+| `capsem/.github/workflows/release-channel-staging.yaml` | 17 | `https://staging.release-eq7.pages.dev` | INFO — Cloudflare Pages staging URL, project-specific, not internal |
+| `meridian/.github/workflows/proto-publish.yml` | 126,138 | `https://test.pypi.org/...` | INFO — PyPI test index, standard for pre-release publishing |
+| `meridian/.github/workflows/publish.yml` | 127,139 | `https://test.pypi.org/...` | INFO — PyPI test index, standard for pre-release publishing |
+| `adk-go/cmd/adkgo/internal/deploy/cloudrun/cloudrun.go` | 246 | `--set-secrets=GOOGLE_API_KEY=GOOGLE_API_KEY:latest` | INFO — Cloud Run secret ref, by-design |
 
 ---
 
-## Verdict
+## VERDICT LIST
 
-| Category | Count | Verdict |
-|---|---|---|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | 22 | NOT reportable |
-| ENDPOINT_LEAK | 1 | Internal Corp comment URL — info-only, NOT reportable |
-| INTERESTING | 1 | Cloud Run secret mount template — by-design, NOT reportable |
+| Candidate | REPORT_CANDIDATE |
+|-----------|-----------------|
+| All TEST_OR_EXAMPLE hits (30+) | no — placeholder strings, doc examples, env var names, minified bundles |
+| ENDPOINT_LEAK hits (4) | no — PyPI test index, Cloudflare Pages staging, Cloud Run secret ref — all standard/expected |
+| REAL_SECRET | none found |
 
-**REPORT_CANDIDATE: no**
-
-**Summary:** All 11 delta hits are false positives — 22 minified JS parser error strings matched on `token:` substring, test fixture strings, env var name constants, docstring placeholders, and a Cloud Run `--set-secrets` reference (secret mount config, not a secret value). No new hardcoded secrets. The remaining full scan hits (224 total) are all previously classified TEST_OR_EXAMPLE or known patterns from prior cycles.
+**VERDICT: 0 reportable candidates.** All 215 hits are TEST_OR_EXAMPLE (doc examples, placeholder strings, minified JS bundles, env var names) or ENDPOINT_LEAK (standard staging/test URLs). No real secrets, no real credentials, no misconfigs.
