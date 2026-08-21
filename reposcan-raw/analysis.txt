@@ -1,4 +1,124 @@
 [0m
 > build · nemotron-3-ultra-free
 [0m
-[91m[1mError: [0mError from provider (Console): Upstream request failed: [404] Provider returned error
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && cat reposcan-raw/google/CFU-Playground/.github/workflows/fmax-trials.yml
+name: oxide_fmax_conda
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 12 * * *"
+jobs:
+  oxide-build-and-runs-conda:
+    runs-on: ubuntu-latest
+    steps:
+      - run: wget --progress=dot:giga -O- https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2020.04.1-x86_64-linux-ubuntu14.tar.gz | tar -xzC /opt
+      - run: echo "/opt/riscv64-unknown-elf-gcc-8.3.0-2020.04.1-x86_64-linux-ubuntu14/bin" >> $GITHUB_PATH
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
+        with:
+          python-version: '3.7'
+      - run: bash scripts/setup -ci
+      - run: which pip3 && which python3 && which pip
+      - run: riscv64-unknown-elf-gcc --version
+      - run: make env
+      - run: pwd && source env/conda/bin/activate cfu-common && which yosys && yosys --version && which nextpnr-nexus && nextpnr-nexus --version
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=full     --nextpnr-seed=1"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=full     --nextpnr-seed=22"  clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=full     --nextpnr-seed=333" clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=1"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=22"  clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/proj_template_v && ulimit -S -t 900  && ulimit -H -t 900  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=333" clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=1"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=22"  clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slim+cfu --nextpnr-seed=333" clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slimopt+cfu --nextpnr-seed=1"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slimopt+cfu --nextpnr-seed=22"  clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--cpu-variant=slimopt+cfu --nextpnr-seed=333" clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--separate-arena --cfu-mport --cpu-variant=slimopt+cfu --nextpnr-seed=1"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--separate-arena --cfu-mport --cpu-variant=slimopt+cfu --nextpnr-seed=22"  clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 1200  && ulimit -H -t 1200  && make PLATFORM=hps EXTRA_LITEX_ARGS="--separate-arena --cfu-mport --cpu-variant=slimopt+cfu --nextpnr-seed=333" clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 240  && ulimit -H -t 240  && make PLATFORM=hps EXTRA_NEXTPNR_ARGS="--placer-heap-timingweight 52" EXTRA_LITEX_ARGS="--separate-arena --cfu-mport --cpu-variant=slimopt+cfu --extra-nextpnr-params"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+      - run: pwd && source env/conda/bin/activate cfu-common && source environment && cd proj/hps_accel       && ulimit -S -t 240  && ulimit -H -t 240  && make PLATFORM=hps EXTRA_NEXTPNR_ARGS="--placer-heap-timingweight 52" EXTRA_LITEX_ARGS="--separate-arena --cfu-mport --cpu-variant=slimopt+cfu --extra-nextpnr-params --no-compile-software"   clean bitstream |& egrep '(Max frequency|Info:.*%)' || true
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'https://static.dev.sifive.com/dev-tools/riscv64-unknown-elf-gcc-8.3.0-2020.04.1-x86_64-linux-ubuntu14.tar.gz'
+b230b46d054a867ca5ed19a89ee8c0ed69cc5fb1fda320b6dd6c80dd0f0ad7cc  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'domain-registry'
+a11cf225be1d4acff574be9aecec39b646ce8e66e523c2c8a471f6f416a8b5ec  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'password'
+6b3a55e0261b0304143f805a24924d0c1c44524821305f31d9277843b8a10f4e  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'abcde12345'
+222f7a818a33921b2d4e7c526a1e06bc2f58de36a31fcf9281d5316dd18c35d0  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'testpassword'
+e0d7d338cb1259086d775c964fba50b2a84244ba4cd2815e9f6f4a8d9daaa656  -
+[0m
+[0m$ [0mcd /home/runner/work/hunt-lab/hunt-lab && sha256sum <<<'test-token-123'
+989b9145f5974d10368f44a8e2787e293ae4d2ab965823027d41b021595f94ad  -
+[0m
+### CLASSIFICATION TABLES
+
+#### REAL_SECRET (reportable credentials)
+| File | Line | Secret SHA256 | Context |
+|------|------|---------------|---------|
+| *none found* | | | All candidate secrets are test fixtures or placeholder values |
+
+#### TEST_OR_EXAMPLE (sample/test/fixture data — NOT reportable)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| nomulus/core/src/nonprod/java/google/registry/tools/PostgresqlCommand.java | 28 | TEST_OR_EXAMPLE | `DB_PASSWORD = "domain-registry"` — nonprod tool, literal placeholder |
+| nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlSchemaCommand.java | 40 | TEST_OR_EXAMPLE | `DB_PASSWORD = "domain-registry"` — nonprod tool |
+| nomulus/core/src/nonprod/java/google/registry/tools/GenerateSqlErDiagramCommand.java | 61 | TEST_OR_EXAMPLE | `DB_PASSWORD = "password"` — nonprod tool, obvious placeholder |
+| nomulus/load-testing/src/main/java/google/registry/client/EppClient.java | 156 | TEST_OR_EXAMPLE | `password = "abcde12345"` — load testing client, weak literal |
+| copybara/javatests/.../AuthTest.java | 75, 102, 129 | TEST_OR_EXAMPLE | `testpassword`, `test-token-123` — unit test fixtures |
+| copybara/javatests/.../HttpEndpointTest.java | 136, 159, 189 | TEST_OR_EXAMPLE | `testpassword` — unit test fixtures |
+| capsem/config/gate.toml | 597 | TEST_OR_EXAMPLE | `password = "password.txt"` — references external file, not inline secret |
+| sam/internal/node/store.go | 38 | TEST_OR_EXAMPLE | `keyRefreshToken = "refresh_token"` — literal string constant name, not a token |
+| adk-web/src/app/components/.../*.spec.ts | 413, 459, 221, 240, 461 | TEST_OR_EXAMPLE | `'initial-token'`, `'updated-token-123'`, `'nextPage'` — Angular test mocks |
+| fruit/extras/scripts/filter_gcc_error.sh | 7, 36 | TEST_OR_EXAMPLE | Shell script token parsing logic, not secrets |
+
+#### ENDPOINT_LEAK (internal/dev/staging URLs — NOT reportable)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| nomulus/core/src/main/java/google/registry/config/files/default-config.yaml | 260 | ENDPOINT_LEAK | `rootUrl: https://staging-www.sandbox.googleapis.com` — documented staging env |
+| go-containerregistry/pkg/v1/remote/transport/bearer.go | 91, 151 | ENDPOINT_LEAK | Comments referencing `169.254.169.254` metadata SSRF — documentation of defensive check |
+| go-containerregistry/pkg/v1/google/list.go | 206 | ENDPOINT_LEAK | Comment referencing cloud metadata endpoints — documentation |
+| go-containerregistry/cloudbuild-golang-build.yml | 102 | ENDPOINT_LEAK | Internal corp Artifact Registry URL (`artifact-registry.git.corp.google.com`) |
+| go-containerregistry/cloudbuild-docker-build.yml | 15 | ENDPOINT_LEAK | Internal corp BCID attestation URL (`bcid.corp.google.com`) |
+| copybara/cloudbuild.yaml | 27 | ENDPOINT_LEAK | Commented internal Pantheon/Artifacts URL |
+| magika/.github/workflows/python-build-and-release-package.yml | 407, 437 | ENDPOINT_LEAK | `test.pypi.org` — public test PyPI, not secret |
+| capsem/.github/workflows/release-channel-staging.yaml | 17 | ENDPOINT_LEAK | `staging.release-eq7.pages.dev` — staging deployment target |
+| CFU-Playground/.github/workflows/fmax-trials.yml | 10 | ENDPOINT_LEAK | **DELTA HIT** — public SiFive RISC-V toolchain download URL |
+
+#### INTERESTING (unusual configs, debug flags — NOT reportable)
+| File | Line | Classification | Notes |
+|------|------|----------------|-------|
+| sam/.github/workflows/deploy.yaml | 247-250 | INTERESTING | K8s secret refs (`GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET`) — proper secret injection, not hardcoded |
+| sam/development/kind/run.sh | 139 | INTERESTING | `OIDC_CLIENT_SECRET="${OIDC_CLIENT_SECRET:-}"` — env var with empty default, dev script |
+| magika/.github/workflows/github-issue-labeler.yml | 20 | INTERESTING | `repo-token: "${{secrets.GITHUB_TOKEN}}"` — standard GitHub Actions pattern |
+| flatbuffers/.github/workflows/label.yml | 24 | INTERESTING | `repo-token: "${{ secrets.GITHUB_TOKEN }}"` — standard pattern |
+| nomulus/core/src/main/java/google/registry/security/XsrfTokenManager.java | 37, 40 | INTERESTING | CSRF token header/param constants — security mechanism, not secret |
+| capsem/scripts/preflight.sh | 39 | INTERESTING | `password="$(tr -d '\n' < "$pass_file")"` — reads from file, not hardcoded |
+| capsem/scripts/fix_p12_legacy.sh | 15 | INTERESTING | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads from file |
+| magika/tests_data/basic/javascript/code.js | 31 | INTERESTING | Minified JS test fixture, not secret |
+
+---
+
+### VERDICT LIST
+
+| Candidate | REPORT_CANDIDATE | Reason |
+|-----------|------------------|--------|
+| CFU-Playground wget SiFive URL (DELTA) | **no** | Public toolchain download, no secret, legitimate build dependency |
+| nomulus DB_PASSWORD constants | **no** | Nonprod test tools, obvious placeholders (`domain-registry`, `password`) |
+| nomulus EppClient load-test password | **no** | Load testing fixture (`abcde12345`) |
+| copybara test fixtures | **no** | Unit test literals (`testpassword`, `test-token-123`) |
+| capsam gate.toml password.txt ref | **no** | References external file, not inline secret |
+| sam/internal/store.go refresh_token const | **no** | String constant name, not a token value |
+| adk-web test token mocks | **no** | Angular spec test fixtures |
+| All ENDPOINT_LEAK entries | **no** | Staging/internal URLs in comments/config, no credentials |
+| sam deploy.yaml secret refs | **no** | Proper secret injection via GitHub Actions secrets |
+| All INTERESTING entries | **no** | Standard patterns, defensive code, or dev-tool configs |
+
+**SUMMARY: 0 REPORT_CANDIDATE findings in this delta.** All 188 hits are TEST_OR_EXAMPLE, ENDPOINT_LEAK, or INTERESTING — no hardcoded live credentials or exploitable secrets detected.
