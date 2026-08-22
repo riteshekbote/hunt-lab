@@ -1,22 +1,27 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| # | File | Line | Material | Classification | Verdict |
-|---|------|------|----------|---------------|---------|
-| 1 | `google/android-cuttlefish/.github/workflows/gemini-*.yml` | 48-124 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}`, `${{ secrets.GITHUB_TOKEN }}`, `${{ github.token }}` | **TEST_OR_EXAMPLE** — GitHub Actions secret references, not hardcoded values | NOT reportable |
-| 2 | `google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml` | 207/236/261 | `${{ secrets.artifact-registry-uploader-json-creds }}` | **TEST_OR_EXAMPLE** — GitHub Actions secret reference, not hardcoded | NOT reportable |
-| 3 | `google/android-cuttlefish/base/cvd/.../defaults.cpp` | 42 | `http://metadata.google.internal/computeMetadata/v1/%s` | **ENDPOINT_LEAK** — standard GCP metadata endpoint, public-by-design | NOT reportable |
-| 4 | `google/android-cuttlefish/base/cvd/.../oauth2_consent.cpp` | 187 | `exchange << "client_secret=" << request.client_secret` | **TEST_OR_EXAMPLE** — OAuth2 token exchange POST body construction (client_secret is a *field name* in the request, not a hardcoded value) | NOT reportable |
-| 5 | All other hits (`artemis`, `sam`, `capsem`, `adk-js`, `agents-cli`, `tunix`, `apm`) | various | env vars, comment URLs, ConfigMap kinds, config templates | **TEST_OR_EXAMPLE** — config files, env-var references, documentation URLs, no real secrets | NOT reportable |
+## DELTA Triage (9 new hit lines)
 
----
+| # | File | Line | Pattern | Verdict | Rationale |
+|---|------|------|---------|---------|-----------|
+| 1 | google/eclipsa-audio-plugin/scripts/package_ci.sh | 51 | `APPLE_APP_SPECIFIC_PASSWORD` | TEST_OR_EXAMPLE | Env var read with `:?` require syntax, not hardcoded value |
+| 2 | google/eclipsa-audio-plugin/scripts/package_ci.sh | 53 | `KEYCHAIN_PASSWORD` | TEST_OR_EXAMPLE | Env passthrough `"${KEYCHAIN_PASSWORD}"`, not hardcoded |
+| 3 | microsoft/skill-recorder/common/sensitive.test.ts | 89 | `ghp_ABCDEFGHIJKLMNOP` | TEST_OR_EXAMPLE | Test fixture, file is `.test.ts`, value is clearly synthetic |
+| 4 | microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 19 | `ghp_la2B3c4D5...` | TEST_OR_EXAMPLE | Test file, input to `caught()` assertion |
+| 5 | microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 20 | `ghp_la2B3c4D5...` | TEST_OR_EXAMPLE | Test assertion string, same synthetic token |
+| 6 | microsoft/skill-recorder/electron/sensitive/frame-heuristics.test.ts | 24 | `AKIA5SXYO7WZ3PLMN8RTV` | TEST_OR_EXAMPLE | AWS key in test assertion, synthetic (no real prefix region) |
+| 7 | microsoft/skill-recorder/electron/sensitive/frame-redact.test.ts | 36 | `ghp_abcdefghij0123...` | TEST_OR_EXAMPLE | Redaction test fixture, file is `.test.ts` |
+| 8 | microsoft/skill-recorder/evals/sensitive/frames.ts | 31 | `ghp_A1b2C3d4E5...` | TEST_OR_EXAMPLE | Evals/sensitive test data with `sensitive: true` label |
+| 9 | microsoft/skill-recorder/evals/sensitive/ocr-images.ts | 57 | `ghp_abcdefghij0123...` | TEST_OR_EXAMPLE | OCR sensitivity test fixture |
 
-**REPOSCAN VERDICT — 2026-08-22**
+## Verdict
 
-| Category | Count | Verdict |
-|----------|-------|---------|
-| REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | 17 (all delta) | NOT reportable |
-| ENDPOINT_LEAK | 1 (GCP metadata URL) | NOT reportable |
+| Category | Count |
+|----------|-------|
+| REAL_SECRET | 0 |
+| TEST_OR_EXAMPLE | 9 |
+| ENDPOINT_LEAK | 0 |
+| INTERESTING | 0 |
 
-**REPORT_CANDIDATE: NO** — all 17 new delta hits are GitHub Actions `${{ secrets.* }}` references or standard OAuth2 protocol code; no hardcoded credentials. No new surface vs. prior cycles.
+**REPORT_CANDIDATE: no** — All 9 delta hits are env var passthroughs or synthetic test fixtures in test/eval files. The `skill-recorder` repo is specifically a tool for detecting secrets in screenshots/OCR, so these are expected test data. No reportable findings this cycle.
