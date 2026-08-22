@@ -1,38 +1,50 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## DELTA Triage (9 new hits)
+| # | File | Line | Classification | Rationale |
+|---|------|------|----------------|-----------|
+| 1 | `google/agents-cli/.../auth.py` | 43 | TEST_OR_EXAMPLE | Literal string `"gemini_api_key"` — placeholder, not a real key |
+| 2 | `google/agents-cli/.../staging.yaml` | 168 | TEST_OR_EXAMPLE | Template scaffold variable `${{ steps.fetch-token.outputs._id_token }}` — not a secret |
+| 3 | `google/agents-cli/.../staging.yaml` | 192 | TEST_OR_EXAMPLE | Same — scaffold template variable `_AUTH_TOKEN` |
+| 4 | `microsoft/apm/.../marketplace/__init__.py` | 495 | ENDPOINT_LEAK | `https://dev.azure.com/org/proj/_git/repo` — example URL in docstring, generic |
+| 5 | `microsoft/apm/.../auth.py` | 898 | ENDPOINT_LEAK | `https://dev.azure.com/{org_part}/_usersSettings/tokens` — token management URL (by-design for CLI) |
+| 6 | `microsoft/apm/.../auth.py` | 904 | ENDPOINT_LEAK | Same URL in docstring |
+| 7 | `microsoft/apm/.../host_providers.py` | 54 | ENDPOINT_LEAK | `return "https://dev.azure.com"` — base URL constant, by-design |
+| 8 | `microsoft/apm/.../script_executors.py` | 208 | TEST_OR_EXAMPLE | Comment about kubeconfig embedding bearer tokens — code explanation |
+| 9 | `microsoft/apm/.../script_executors.py` | 711 | ENDPOINT_LEAK | `"metadata.google.internal"` — well-known GCP metadata hostname |
+| 10 | `microsoft/apm/.../script_executors.py` | 841 | TEST_OR_EXAMPLE | Comment about `169.254.169.254` metadata resolution — informational |
+| 11 | `microsoft/apm/.../download_strategies.py` | 230 | ENDPOINT_LEAK | Example ADO URL in docstring — generic |
+| 12 | `microsoft/apm/.../registry.py` | 200 | TEST_OR_EXAMPLE | Comment about link-local/cloud metadata — informational |
+| 13 | `microsoft/apm/.../reference.py` | 1481 | ENDPOINT_LEAK | Example ADO URL in docstring — generic |
+| 14 | `microsoft/apm/.../reference.py` | 1522 | ENDPOINT_LEAK | Comment with example ADO URL |
+| 15 | `microsoft/apm/.../discovery.py` | 1010 | ENDPOINT_LEAK | Example ADO URL in comment — generic |
+| 16 | `microsoft/apm/.../github_host.py` | 531 | ENDPOINT_LEAK | ADO URL format docstring — by-design for CLI |
+| 17 | `microsoft/apm/.../github_host.py` | 817 | ENDPOINT_LEAK | ADO API URL format in docstring |
+| 18 | `microsoft/apm/.../github_host.py` | 851 | ENDPOINT_LEAK | Same — example URL in docstring |
 
-| # | File | Line | Content | Verdict |
-|---|------|------|---------|---------|
-| 1 | microsoft/coreutils/.cargo/release-windows-ms.toml:11 | index = "sparse+https://pkgs.dev.azure.com/microsoft/..." | Azure DevOps public package feed URL | ENDPOINT_LEAK |
-| 2 | microsoft/coreutils/.pipelines/.../job-build-project.yml:70 | cratesIoFeedOverride: https://pkgs.dev.azure.com/microsoft/Dart/... | Same public feed ref | ENDPOINT_LEAK |
-| 3 | microsoft/coreutils/.pipelines/.../job-build-project.yml:76 | toolchainFeed: https://pkgs.dev.azure.com/microsoft/_packaging/RustTools/... | Public NuGet feed | ENDPOINT_LEAK |
-| 4 | microsoft/coreutils/.pipelines/.../steps-esrp-sign-files-authenticode.yml:33 | TimeStamp server URL http://rfc3161.gtm.corp.microsoft.com/... | Internal ESRP timestamping infra URL | ENDPOINT_LEAK |
-| 5-7 | microsoft/winget-cli/.../TestIndex.cs:143,150,157 | HashToken = "&lt;EXEHASH&gt;", "&lt;MSIHASH&gt;", "&lt;MSIHASHV2&gt;" | Test placeholder | TEST_OR_EXAMPLE |
-| 8 | microsoft/winget-cli/.../RestInterface_1_7.cpp:451 | expectedToken = "TestToken" | Unit test fixture | TEST_OR_EXAMPLE |
-| 9 | microsoft/winget-cli/.../CommonRestConstants.h:22 | ContinuationToken string_view | SDK constant definition, not a secret | TEST_OR_EXAMPLE |
+**Full scan remaining hits (selected non-trivial):**
 
-## Full Scan Classification Summary
+| File | Line | Classification | Rationale |
+|------|------|----------------|-----------|
+| `google/sam/.github/workflows/deploy.yaml` | 247-250 | TEST_OR_EXAMPLE | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` — env var refs, not hardcoded |
+| `google/sam/development/kind/run.sh` | 139 | TEST_OR_EXAMPLE | `${OIDC_CLIENT_SECRET:-}` — env var with empty default |
+| `google/sam/.../settings.py` | 163-165 | TEST_OR_EXAMPLE | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — code logic, not hardcoded |
+| `google/langextract/.../ci.yaml` | 168-170 | TEST_OR_EXAMPLE | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — GitHub Secrets refs, by-design |
+| `google/capsem/config/gate.toml` | 597 | TEST_OR_EXAMPLE | `password = "password.txt"` — file ref, not actual password |
+| `google/capsem/scripts/preflight.sh` | 39 | TEST_OR_EXAMPLE | `password="$(tr -d '\n' < "$pass_file")"` — reads from file, not hardcoded |
+| `google/tunix/.../base_config.yaml` | 63 | TEST_OR_EXAMPLE | `#   hf_access_token: "your_token"` — commented-out placeholder |
+| `google/quiche/.../certificate_view.h` | 126 | TEST_OR_EXAMPLE | Comment about legacy RSA key format support |
+| `google/flatbuffers/.../label.yml` | 24 | TEST_OR_EXAMPLE | `"${{ secrets.GITHUB_TOKEN }}"` — standard GitHub token ref |
+| `google/capsem/.../release-channel-staging.yaml` | 17 | ENDPOINT_LEAK | `https://staging.release-eq7.pages.dev` — staging endpoint (Cloudflare Pages) |
 
-| Category | Count | Notes |
-|----------|-------|-------|
-| **TEST_OR_EXAMPLE** | ~110 | Test fixtures ("testpassword", "test-token-123"), env var names (GOOGLE_API_KEY, OIDC_CLIENT_SECRET, ARTEMIS_TENANT_TOKEN), ConfigMap kind declarations, token placeholders, password file refs in scripts, unit test string constants |
-| **ENDPOINT_LEAK** | ~10 | Azure DevOps package feeds (public-by-design), internal corp URLs (pantheon.corp, rfc3161.gtm.corp — ESRP infra, metadata.google.internal link-local), GCP metadata 169.254 reference (SSRF guard comment) |
-| **INTERESTING** | 0 | — |
-| **REAL_SECRET** | 0 | No hardcoded credentials with signs of life in delta |
+---
 
-**Key observations:**
-- `google/sam/.github/workflows/deploy.yaml:247-250` references `GOOGLE_CLIENT_SECRET`, `GITHUB_CLIENT_SECRET`, `CLI_OAUTH_SECRET` — all sourced from `${{ secrets.* }}` (GitHub Actions secret store), not hardcoded. **Safe.**
-- `google/copybara/javatests/.../AuthTest.java` has `"testpassword"` and `"test-token-123"` — Java unit test fixtures. **Safe.**
-- `google/adk-js/core/src/auth/auth_credential.ts:214,226` shows `password: "password"` and `token: "your_access_token"` — JSDoc code examples, not live. **Safe.**
-- `google/quiche/.../certificate_view.h:126` — comment mentioning "BEGIN RSA PRIVATE KEY" format support. Documentation only. **Safe.**
+**VERDICT:**
 
-## Verdict
+| Category | Count | Reportable |
+|----------|-------|------------|
+| REAL_SECRET | 0 | — |
+| TEST_OR_EXAMPLE | ~15 | No |
+| ENDPOINT_LEAK | ~13 | No (all generic/placeholder ADO URLs or well-known metadata endpoints) |
 
-| Finding | REPORT_CANDIDATE |
-|---------|-----------------|
-| All 9 DELTA hits | **no** |
-| All 145 full-scan hits | **no** |
-
-**0 reportable candidates this cycle.** All hits are test fixtures, env var names, public package feed URLs, or config schema definitions. No real secrets, no by-design GOCSPX/AIza keys, no auth tokens with signs of life.
+**REPORT_CANDIDATE: no** — zero new real secrets or reportable findings in this delta. All 18 new hits are placeholder strings (`"gemini_api_key"`), env var refs (`${{ secrets.* }}`), comments explaining code behavior, or generic ADO URL examples in docstrings. No hardcoded credentials with signs of life.
