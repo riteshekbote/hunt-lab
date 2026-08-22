@@ -1,50 +1,22 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-| # | File | Line | Classification | Rationale |
-|---|------|------|----------------|-----------|
-| 1 | `google/agents-cli/.../auth.py` | 43 | TEST_OR_EXAMPLE | Literal string `"gemini_api_key"` — placeholder, not a real key |
-| 2 | `google/agents-cli/.../staging.yaml` | 168 | TEST_OR_EXAMPLE | Template scaffold variable `${{ steps.fetch-token.outputs._id_token }}` — not a secret |
-| 3 | `google/agents-cli/.../staging.yaml` | 192 | TEST_OR_EXAMPLE | Same — scaffold template variable `_AUTH_TOKEN` |
-| 4 | `microsoft/apm/.../marketplace/__init__.py` | 495 | ENDPOINT_LEAK | `https://dev.azure.com/org/proj/_git/repo` — example URL in docstring, generic |
-| 5 | `microsoft/apm/.../auth.py` | 898 | ENDPOINT_LEAK | `https://dev.azure.com/{org_part}/_usersSettings/tokens` — token management URL (by-design for CLI) |
-| 6 | `microsoft/apm/.../auth.py` | 904 | ENDPOINT_LEAK | Same URL in docstring |
-| 7 | `microsoft/apm/.../host_providers.py` | 54 | ENDPOINT_LEAK | `return "https://dev.azure.com"` — base URL constant, by-design |
-| 8 | `microsoft/apm/.../script_executors.py` | 208 | TEST_OR_EXAMPLE | Comment about kubeconfig embedding bearer tokens — code explanation |
-| 9 | `microsoft/apm/.../script_executors.py` | 711 | ENDPOINT_LEAK | `"metadata.google.internal"` — well-known GCP metadata hostname |
-| 10 | `microsoft/apm/.../script_executors.py` | 841 | TEST_OR_EXAMPLE | Comment about `169.254.169.254` metadata resolution — informational |
-| 11 | `microsoft/apm/.../download_strategies.py` | 230 | ENDPOINT_LEAK | Example ADO URL in docstring — generic |
-| 12 | `microsoft/apm/.../registry.py` | 200 | TEST_OR_EXAMPLE | Comment about link-local/cloud metadata — informational |
-| 13 | `microsoft/apm/.../reference.py` | 1481 | ENDPOINT_LEAK | Example ADO URL in docstring — generic |
-| 14 | `microsoft/apm/.../reference.py` | 1522 | ENDPOINT_LEAK | Comment with example ADO URL |
-| 15 | `microsoft/apm/.../discovery.py` | 1010 | ENDPOINT_LEAK | Example ADO URL in comment — generic |
-| 16 | `microsoft/apm/.../github_host.py` | 531 | ENDPOINT_LEAK | ADO URL format docstring — by-design for CLI |
-| 17 | `microsoft/apm/.../github_host.py` | 817 | ENDPOINT_LEAK | ADO API URL format in docstring |
-| 18 | `microsoft/apm/.../github_host.py` | 851 | ENDPOINT_LEAK | Same — example URL in docstring |
-
-**Full scan remaining hits (selected non-trivial):**
-
-| File | Line | Classification | Rationale |
-|------|------|----------------|-----------|
-| `google/sam/.github/workflows/deploy.yaml` | 247-250 | TEST_OR_EXAMPLE | `${GOOGLE_CLIENT_SECRET}`, `${GITHUB_CLIENT_SECRET}`, `${CLI_OAUTH_SECRET}` — env var refs, not hardcoded |
-| `google/sam/development/kind/run.sh` | 139 | TEST_OR_EXAMPLE | `${OIDC_CLIENT_SECRET:-}` — env var with empty default |
-| `google/sam/.../settings.py` | 163-165 | TEST_OR_EXAMPLE | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — code logic, not hardcoded |
-| `google/langextract/.../ci.yaml` | 168-170 | TEST_OR_EXAMPLE | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.OPENAI_API_KEY }}` — GitHub Secrets refs, by-design |
-| `google/capsem/config/gate.toml` | 597 | TEST_OR_EXAMPLE | `password = "password.txt"` — file ref, not actual password |
-| `google/capsem/scripts/preflight.sh` | 39 | TEST_OR_EXAMPLE | `password="$(tr -d '\n' < "$pass_file")"` — reads from file, not hardcoded |
-| `google/tunix/.../base_config.yaml` | 63 | TEST_OR_EXAMPLE | `#   hf_access_token: "your_token"` — commented-out placeholder |
-| `google/quiche/.../certificate_view.h` | 126 | TEST_OR_EXAMPLE | Comment about legacy RSA key format support |
-| `google/flatbuffers/.../label.yml` | 24 | TEST_OR_EXAMPLE | `"${{ secrets.GITHUB_TOKEN }}"` — standard GitHub token ref |
-| `google/capsem/.../release-channel-staging.yaml` | 17 | ENDPOINT_LEAK | `https://staging.release-eq7.pages.dev` — staging endpoint (Cloudflare Pages) |
+| # | File | Line | Material | Classification | Verdict |
+|---|------|------|----------|---------------|---------|
+| 1 | `google/android-cuttlefish/.github/workflows/gemini-*.yml` | 48-124 | `${{ secrets.GEMINI_API_KEY }}`, `${{ secrets.GOOGLE_API_KEY }}`, `${{ secrets.GITHUB_TOKEN }}`, `${{ github.token }}` | **TEST_OR_EXAMPLE** — GitHub Actions secret references, not hardcoded values | NOT reportable |
+| 2 | `google/android-cuttlefish/.github/workflows/update-cache-and-deployment.yaml` | 207/236/261 | `${{ secrets.artifact-registry-uploader-json-creds }}` | **TEST_OR_EXAMPLE** — GitHub Actions secret reference, not hardcoded | NOT reportable |
+| 3 | `google/android-cuttlefish/base/cvd/.../defaults.cpp` | 42 | `http://metadata.google.internal/computeMetadata/v1/%s` | **ENDPOINT_LEAK** — standard GCP metadata endpoint, public-by-design | NOT reportable |
+| 4 | `google/android-cuttlefish/base/cvd/.../oauth2_consent.cpp` | 187 | `exchange << "client_secret=" << request.client_secret` | **TEST_OR_EXAMPLE** — OAuth2 token exchange POST body construction (client_secret is a *field name* in the request, not a hardcoded value) | NOT reportable |
+| 5 | All other hits (`artemis`, `sam`, `capsem`, `adk-js`, `agents-cli`, `tunix`, `apm`) | various | env vars, comment URLs, ConfigMap kinds, config templates | **TEST_OR_EXAMPLE** — config files, env-var references, documentation URLs, no real secrets | NOT reportable |
 
 ---
 
-**VERDICT:**
+**REPOSCAN VERDICT — 2026-08-22**
 
-| Category | Count | Reportable |
-|----------|-------|------------|
+| Category | Count | Verdict |
+|----------|-------|---------|
 | REAL_SECRET | 0 | — |
-| TEST_OR_EXAMPLE | ~15 | No |
-| ENDPOINT_LEAK | ~13 | No (all generic/placeholder ADO URLs or well-known metadata endpoints) |
+| TEST_OR_EXAMPLE | 17 (all delta) | NOT reportable |
+| ENDPOINT_LEAK | 1 (GCP metadata URL) | NOT reportable |
 
-**REPORT_CANDIDATE: no** — zero new real secrets or reportable findings in this delta. All 18 new hits are placeholder strings (`"gemini_api_key"`), env var refs (`${{ secrets.* }}`), comments explaining code behavior, or generic ADO URL examples in docstrings. No hardcoded credentials with signs of life.
+**REPORT_CANDIDATE: NO** — all 17 new delta hits are GitHub Actions `${{ secrets.* }}` references or standard OAuth2 protocol code; no hardcoded credentials. No new surface vs. prior cycles.
