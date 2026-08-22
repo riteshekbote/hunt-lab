@@ -1,59 +1,81 @@
 [0m
 > build · mimo-v2.5-free
 [0m
-## Delta Triage: 34 new hits (2026-08-21 reposcan)
+[0m# [0mTodos
+[•] Classify delta hits by category (REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING)
+[ ] Cross-check against REJECTED/KNOWN-DUP classes
+[ ] Output classification table and verdict
+[0m
+[0m# [0mTodos
+[✓] Classify delta hits by category (REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING)
+[✓] Cross-check against REJECTED/KNOWN-DUP classes
+[•] Output classification table and verdict
+[0m
+[0m# [0mTodos
+[✓] Classify delta hits by category (REAL_SECRET, TEST_OR_EXAMPLE, ENDPOINT_LEAK, INTERESTING)
+[✓] Cross-check against REJECTED/KNOWN-DUP classes
+[✓] Output classification table and verdict
+[0m
+## Delta Classification — 38 new hits
 
 ### REAL_SECRET
-None new this cycle.
 
-| File | Line | SHA256 | Notes |
-|------|------|--------|-------|
-| *(earthengine-api oauth.py:45 is prior, unchanged)* | | `3f3f8d6f…d271` | Already tracked ACCEPTED |
+| # | File | Line | sha256 | Verdict |
+|---|------|------|--------|---------|
+| — | (none in delta) | — | — | — |
 
-### TEST_OR_EXAMPLE
-| File | Line | Pattern | Verdict |
-|------|------|---------|---------|
-| google/closure-compiler/externs/\*.js | 4638–4639 | `href="https://developers.devsite.corp.google.com/…"` | Dead link in JSDoc comment, not a credential |
-| google/closure-compiler/externs/ms-office-1.3.js | 27,166,205 | `https://dev.office.com/reference/…` | Doc link in comment |
-| google/closure-compiler/externs/browser/\*.js | various | `http://dev.w3.org/…` | W3C spec links in comments |
-| google/closure-compiler/src/…/ErrorManager.java | 95 | `https://source.corp.google.com/piper/…` | Internal source link in comment |
-| google/fleetbench/.github/workflows/update.yml | 29 | `${{ secrets.FLEETBENCH_PAT }}` | Secret *reference* — no actual value leaked |
-| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 262 | `OPENAI_API_KEY: "sk-<alphanumeric string>"` | Explicit placeholder in test file |
-| microsoft/TypeAgent/ts/tools/scripts/testServiceKeys.ts | 325 | `MSGRAPH_APP_CLIENTSECRET: "<client secret string>"` | Explicit placeholder in test file |
-| microsoft/vscode-java-pack/.github/workflows/issueLens-run.yml | 96 | `GITHUB_PERSONAL_ACCESS_TOKEN: "${GITHUB_MCP_TOKEN}"` | Env var reference, no hardcoded value |
-| google/capsem/config/gate.toml | 597 | `password = "password.txt"` | Path reference, not a password value |
-| google/capsem/scripts/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | Reads from file at runtime |
-| google/capsem/scripts/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | Reads from file at runtime |
+The only REAL_SECRET across the full corpus is the known earthengine-api finding, already in KB as ACCEPTED.
 
-### ENDPOINT_LEAK
-| File | Line | URL | Notes |
-|------|------|-----|-------|
-| google/capsem/.github/workflows/release-channel-staging.yaml | 17 | `https://staging.release-eq7.pages.dev` | Cloudflare Pages staging URL (public) |
-| microsoft/TypeAgent/ts/tools/scripts/install-typeagent.sh | 10 | `https://dev.azure.com/msctoproj` | Azure DevOps org URL (standard build infra) |
-| microsoft/coreutils/.cargo/release-windows-ms.toml | 11 | `https://pkgs.dev.azure.com/microsoft/Dart/_packaging/…` | Azure Artifacts feed (standard) |
-| microsoft/coreutils/.pipelines/templates/job-build-project.yml | 70,76 | `https://pkgs.dev.azure.com/microsoft/…` | Azure Artifacts feed (standard) |
-| microsoft/coreutils/.pipelines/templates/steps-esrp-sign-files-authenticode.yml | 33 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | Internal ESRP timestamp server (corporate network only) |
-| microsoft/vscode-java-pack/.azure-pipelines/npm-cfs-variables.yml | 26 | `https://pkgs.dev.azure.com/mseng/VSJava/…` | Azure Artifacts npm feed (standard) |
-| microsoft/vscode-java-pack/.azure-pipelines/npm-cfs.yml | 58 | `https://pkgs.dev.azure.com/…` | Same feed, referenced in validation script |
+### TEST_OR_EXAMPLE (38 hits, all non-reportable)
+
+| # | File | Line | Content | Why benign |
+|---|------|------|---------|-----------|
+| 1 | adk-js/auth_credential.ts | 214 | `password: "password"` | Docstring example |
+| 2 | adk-js/auth_credential.ts | 226 | `token: "your_access_token"` | Docstring example |
+| 3 | adk-js/auth_schemes.ts | 41 | `PASSWORD = 'password'` | Enum constant |
+| 4 | adk-python/auth_credential.py | 157 | `private_key="-----BEGIN PRIVATE KEY-----..."` | Docstring placeholder |
+| 5 | adk-python/auth_credential.py | 269 | `password="password"` | Docstring example |
+| 6 | adk-python/auth_credential.py | 278 | `token="eyAkaknabna...."` | Docstring example |
+| 7 | adk-python/auth_schemes.py | 68 | `PASSWORD = "password"` | Enum constant |
+| 8 | adk-python/cli_create.py | 131 | `f"GOOGLE_API_KEY={google_api_key}"` | Template construction |
+| 9 | adk-python/auth_helpers.py | 64 | `client_secret="your_client_secret"` | Docstring placeholder |
+| 10 | adk-python/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN` | State key constant |
+| 11 | capsem/gate.toml | 597 | `password = "password.txt"` | Filename reference |
+| 12 | capsem/preflight.sh | 39 | `password="$(tr -d '\n' < "$pass_file")"` | File read |
+| 13 | capsem/fix_p12_legacy.sh | 15 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` | File read |
+| 14–32 | adk-python/cli/browser/chunk-*.js | various | Parser error messages in minified JS | Bundled minified code |
+| 33 | adk-python/cli/browser/main-KSQARI5D.js | 5 | Minified code | Bundled minified code |
+
+### ENDPOINT_LEAK (6 hits, all defensive/metadata — not reportable)
+
+| # | File | Line | Content | Why benign |
+|---|------|------|---------|-----------|
+| 1 | adk-js/oauth2_discovery.ts | 215 | `host === 'metadata.google.internal'` | SSRF protection (detects metadata) |
+| 2 | adk-js/load_web_page.ts | 36 | `'169.254.0.0/16'` | SSRF blocklist |
+| 3 | adk-python/container_code_executor.py | 114 | `169.254.169.254` | SSRF warning in docstring |
+| 4 | adk-python/container_code_executor.py | 154 | `169.254.169.254` | SSRF warning in docstring |
+| 5 | adk-python/load_web_page.py | 171 | `169.254.169.254` | SSRF warning in docstring |
+| 6 | adk-python/computer_use_toolset.py | 146 | `169.254.169.254` | SSRF protection comment |
 
 ### INTERESTING
-| File | Line | Finding | Notes |
-|------|------|---------|-------|
-| microsoft/coreutils/.pipelines/…/steps-esrp-sign-files-authenticode.yml | 33 | `http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | HTTP (not HTTPS) internal timestamp server — ESRP signing infra, corp-network-only, not remotely accessible |
 
-### Verdict
+| # | File | Line | Content | Why benign |
+|---|------|------|---------|-----------|
+| — | (none) | — | — | — |
+
+All 38 delta hits are:
+- Docstring/example code with placeholder credentials (`"password"`, `"your_client_secret"`, `"your_access_token"`, `"-----BEGIN PRIVATE KEY-----..."`)
+- Enum constants for auth scheme types
+- SSRF protection code (blocking `169.254.169.254` and `metadata.google.internal`)
+- Minified browser bundle chunks
+- Template/config construction code
+
+---
+## Verdict
 
 | Finding | REPORT_CANDIDATE |
 |---------|-----------------|
-| REAL_SECRET (new) | **no** |
-| capsem staging URL | no — public pages.dev, info-only |
-| closure-compiler corp links | no — dead doc links in comments |
-| TypeAgent test placeholders | no — explicit `<placeholder>` strings |
-| vscode-java-pack env refs | no — `${GITHUB_MCP_TOKEN}` variable reference, no value |
-| fleetbench `${{ secrets.FLEETBENCH_PAT }}` | no — secret reference, no value leaked |
-| capsem password file refs | no — reads from file path at runtime |
-| Azure Artifacts feeds | no — standard public/organization feeds |
-| ESRP HTTP timestamp server | no — internal corp infra, not remotely reachable |
-| earthengine-api (prior) | Already ACCEPTED in KB, unchanged |
+| google/earthengine-api oauth.py:45 hardcoded client_secret | **yes** (KNOWN, in KB as ACCEPTED, pending VRP determination) |
+| All 38 delta hits | **no** (38/38 = TEST_OR_EXAMPLE or ENDPOINT_LEAK, all non-reportable) |
 
-**Delta verdict: 0 new reportable findings.** All 34 hits are TEST_OR_EXAMPLE (11), ENDPOINT_LEAK (7), or dead doc links (16). The only prior ACCEPTED finding (earthengine-api secret) is unchanged.
+**Delta verdict: 0 new reportable findings.** All 38 hits in this scan cycle are docstring examples, enum constants, SSRF protection patterns, or minified browser bundles. The only REAL_SECRET in the corpus (earthengine-api `RUP0RZ6e0pPhDzsqIJ7KlNd1`, sha256 `3f3f8d6f…d271`) is already tracked in the knowledge base as ACCEPTED.
