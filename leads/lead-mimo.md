@@ -643,3 +643,4 @@ testability: AUTH_HELPED
 [RISK] microsoft: 72 reason — 6-family Copilot IDOR preconditions schema-confirmed stable (OPTIONS 200 + ACAO:* + PATCH, 5 EntityTypes zero OperationRestrictions), oauth2PermissionGrants item-level CORS browser-exploitable (Allow-Methods includes PATCH), systemic RFC 6750 §3 deviation across all endpoint families; all three require two-principal AUTH_HELPED test blocked by MSRC submission
 ## 2026-08-22 05:14:14 UTC [google] (model mimo)
 ## 2026-08-22 05:46:00 UTC [google] (model mimo)
+## 2026-08-22 06:14:24 UTC [google] (model mimo)
