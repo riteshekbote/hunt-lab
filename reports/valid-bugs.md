@@ -72,3 +72,7 @@
 
 - 1 lead(s) marked VALID at 2026-08-22 03:12:37 UTC
   - | **VALID** | 0 (Leads 4 & 5 need scope/token verification before promotion) |
+
+- 2 lead(s) marked VALID at 2026-08-22 04:05:36 UTC
+  - **Verdict: VALID**
+  - | 4. ADK #2128 credential leak | **VALID** ✅ | OAuth secrets leaked via `/run_sse` |
