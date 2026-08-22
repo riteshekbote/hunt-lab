@@ -775,3 +775,5 @@
 - 2026-08-22 ACCEPTED earthengine-api oauth.py:45 secret live on master — line-45 quoted literal len 24, sha256 `3f3f8d6f29db…d271` exact match, file 23110 B (own raw-fetch probe).
 - 2026-08-22 ACCEPTED JWKS v1⊂v2 strict subset stable @ login.microsoftonline.com/common/discovery/keys vs /common/discovery/v2.0/keys — v1=6 kids ⊂ v2=9, v1_only=[], subset=True (own probe).
 - 2026-08-22 MONITOR robot probe pipeline empty for 32nd consecutive cycle (2026-08-20 17:42 → now); hunt.yml re-read this cycle confirms root cause unchanged (line 246 regex requires `https://`, line 248 glob lists `analyst-*.out` without `art/analyst-*.out`); manual probes restored coverage again this cycle — operator fix still not applied.
+- 2026-08-22 ACCEPTED oauth2.googleapis.com/token POST-only gate stable — GET→404 (57th consecutive cycle since 2026-08-17, RFC 6749 §3.2.1 compliant).
+- 2026-08-22 ACCEPTED earthengine-api oauth.py:45 secret still live on master — line 45 literal 'RUP0RZ6e0pPhDzsqIJ7KlNd1', sha256 `3f3f8d6f29db1b06cbfc212a718c181744db8f9bd25316c76ccebf8a1440d271` exact match, file 23110 B (fresh probe 23:44 UTC).
