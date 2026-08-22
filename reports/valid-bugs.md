@@ -69,3 +69,6 @@
 
 - 1 lead(s) marked VALID at 2026-08-21 23:45:00 UTC
   - | **VALID** | 0 | — |
+
+- 1 lead(s) marked VALID at 2026-08-22 03:12:37 UTC
+  - | **VALID** | 0 (Leads 4 & 5 need scope/token verification before promotion) |
