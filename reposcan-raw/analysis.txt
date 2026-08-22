@@ -1,37 +1,7 @@
-[0m
-> build · mimo-v2.5-free
-[0m
-[0m→ [0mRead reposcan-raw/microsoft/WSL/.github/actions/triage/action.yml
-[0m→ [0mRead reposcan-raw/microsoft/WSL/.pipelines/build-job.yml[90m [offset=155, limit=30][0m
-[0m→ [0mRead reposcan-raw/microsoft/data-formulator/py-src/data_formulator/agents/web_utils.py
-[0m→ [0mRead reposcan-raw/microsoft/data-formulator/py-src/data_formulator/security/log_sanitizer.py
-[0m→ [0mRead reposcan-raw/microsoft/qlib/.github/workflows/release.yml
-Let me read the delta hits in detail to classify them.
-[0m→ [0mRead reposcan-raw/microsoft/WSL/.pipelines/build-job.yml[90m [limit=20, offset=268][0m
-Here is the classification table for the 7 delta hits:
-
-## Delta Hit Classification
-
-| # | File | Line | Category | Verdict |
-|---|------|------|----------|---------|
-| 1 | `microsoft/WSL/.github/actions/triage/action.yml` | 26 | `INPUT_TOKEN: "${{ inputs.token }}"` | **TEST_OR_EXAMPLE** — composite action token input passthrough to env var; standard pattern, no hardcoded value |
-| 2 | `microsoft/WSL/.pipelines/build-job.yml` | 164 | `rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | **ENDPOINT_LEAK** — internal RFC 3161 timestamp server URL in code-signing config; Microsoft corporate infra, not cred material |
-| 3 | `microsoft/WSL/.pipelines/build-job.yml` | 277 | `rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer` | **ENDPOINT_LEAK** — duplicate of #2, same file, same internal timestamp server |
-| 4 | `microsoft/data-formulator/.../web_utils.py` | 42 | `if ip_str == "169.254.169.254":` | **TEST_OR_EXAMPLE** — SSRF protection blocking cloud metadata endpoint; defensive code, no finding |
-| 5 | `microsoft/data-formulator/.../log_sanitizer.py` | 54 | `_REDACTED_TOKEN = "[REDACTED]"` | **TEST_OR_EXAMPLE** — log sanitizer constant string; no real credential |
-| 6 | `microsoft/qlib/.github/workflows/release.yml` | 107 | `twine upload --repository-url https://test.pypi.org/legacy/` | **TEST_OR_EXAMPLE** — standard TestPyPI upload target; credentials come from `${{ secrets.TESTPYPI }}`, no leak |
-| 7 | `microsoft/qlib/.github/workflows/release.yml` | 63 | `twine upload --repository-url https://test.pypi.org/legacy/` | **TEST_OR_EXAMPLE** — same TestPyPI upload in a different job (manylinux build) |
-
-## Verdict
-
-| Finding | REPORT_CANDIDATE |
-|---------|-----------------|
-| WSL triage action token passthrough | no |
-| WSL build-job internal timestamp server URL | no |
-| WSL build-job internal timestamp server URL (dup) | no |
-| data-formulator metadata IP blocklist | no |
-| data-formulator log sanitizer constant | no |
-| qlib TestPyPI upload (manylinux) | no |
-| qlib TestPyPI upload (bdist) | no |
-
-**Delta verdict: 0 reportable candidates.** All 7 hits are either standard workflow patterns, defensive SSRF code, log sanitization constants, or internal endpoint URLs (not credentials). No secrets, no reportable findings this cycle.
+[91m[1mError: [0m{
+  "name": "UnknownError",
+  "data": {
+    "message": "Unexpected server error. Check server logs for details.",
+    "ref": "err_478ad905"
+  }
+}
