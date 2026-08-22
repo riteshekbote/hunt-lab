@@ -1,3 +1,44 @@
 [0m
 > build · mimo-v2.5-free
 [0m
+## Classification Table
+
+| Category | File | Line | Material |
+|----------|------|------|----------|
+| **TEST_OR_EXAMPLE** | google/langextract/.github/workflows/ci.yaml | 168-170 | `${{ secrets.GEMINI_API_KEY }}` / `${{ secrets.OPENAI_API_KEY }}` — GitHub Actions secret refs, not hardcoded |
+| **TEST_OR_EXAMPLE** | google/crosvm/infra/.../codecov_wrapper.sh | 11 | `gcloud ... secrets versions access` — runtime Secret Manager fetch, not hardcoded |
+| **TEST_OR_EXAMPLE** | google/crosvm/infra/.../push_to_github.sh | 10 | `gcloud ... secrets versions access` — runtime Secret Manager fetch, not hardcoded |
+| **TEST_OR_EXAMPLE** | google/artemis/artemis/config/settings.py | 163-165 | `self.GOOGLE_API_KEY = self.GEMINI_API_KEY` — env var aliasing |
+| **TEST_OR_EXAMPLE** | google/artemis/artemis/config/constants.py | 35-52 | `ENV_ARTEMIS_TENANT_TOKEN`, `ENV_GOOGLE_API_KEY` — constant definitions |
+| **TEST_OR_EXAMPLE** | google/meridian/.github/workflows/*.yml | 126-139 | `test.pypi.org` — test PyPI URLs |
+| **TEST_OR_EXAMPLE** | google/xrblocks/src/ai/AI.ts | 303-304 | `YOUR_GEMINI_API_KEY_HERE` / `YOUR_OPENAI_API_KEY_HERE` — placeholder |
+| **TEST_OR_EXAMPLE** | google/capsem/config/gate.toml | 597 | `password = "password.txt"` — file reference, not credential |
+| **TEST_OR_EXAMPLE** | google/capsem/scripts/*.sh | 15,39 | `PASSWORD="$(tr -d '\n' < "$PASS_FILE")"` — reads from file, not hardcoded |
+| **TEST_OR_EXAMPLE** | google/flatbuffers/.github/workflows/label.yml | 24 | `${{ secrets.GITHUB_TOKEN }}` — standard GITHUB_TOKEN |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../auth_credential.py | 157,269,278 | `private_key="-----BEGIN PRIVATE KEY-----..."` / `password="password"` / `token="eyAkaknabna...."` — docstring examples |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../auth_schemes.py | 68 | `PASSWORD = "password"` — enum value |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../cli_create.py | 131 | `GOOGLE_API_KEY={google_api_key}` — env var template |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../auth_helpers.py | 64 | `client_secret="your_client_secret"` — docstring example |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../gke_code_executor.py | 103-115 | `kubeconfig_path`, `kubeconfig_context` — parameter names |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../container_code_executor.py | 114,154 | `169.254.169.254` — metadata endpoint in docs |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../load_web_page.py | 171 | `169.254.169.254` — metadata endpoint in docs |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../computer_use_toolset.py | 146 | `169.254.169.254` — metadata endpoint in code comment |
+| **TEST_OR_EXAMPLE** | google/adk-js/.../load_web_page.ts | 36 | `169.254.0.0/16` — CIDR block in code |
+| **TEST_OR_EXAMPLE** | google/adk-js/.../oauth2_discovery.ts | 215 | `metadata.google.internal` — hostname check |
+| **TEST_OR_EXAMPLE** | google/adk-js/.../auth_schemes.ts | 41 | `PASSWORD = 'password'` — enum value |
+| **TEST_OR_EXAMPLE** | google/adk-js/.../auth_credential.ts | 214,226 | `password: "password"` / `token: "your_access_token"` — docstring examples |
+| **TEST_OR_EXAMPLE** | google/adk-python/.../vmaas/sandbox_computer.py | 47 | `_STATE_KEY_ACCESS_TOKEN = "_vmaas_access_token"` — state key name |
+| **KNOWN (already tracked)** | google/earthengine-api/python/ee/oauth.py | 45 | `CLIENT_SECRET = 'RUP0RZ6e0pPhDzsqIJ7KlNd1'` — sha256 `3f3f8d6f…d271`, ACCEPTED in KB |
+| **ENDPOINT_LEAK (rejected class)** | google/xrblocks/docs/docusaurus.config.ts | 175 | `apiKey: '40150cc2c638b09de8ebbfefd50b80a4'` — Algolia DocSearch search-only key |
+| **NOISE** | google/adk-python/.../browser/chunk-*.js | various | Parse error strings in bundled JS — regex false positive |
+
+## Verdict
+
+| Finding | Verdict | Notes |
+|---------|---------|-------|
+| crosvm gcloud Secret Manager fetches (×2) | **REPORT_CANDIDATE: no** | Runtime secret fetch, not hardcoded |
+| langextract CI secrets.* refs (×3) | **REPORT_CANDIDATE: no** | GitHub Actions secret references |
+| earthengine-api oauth.py:45 | **REPORT_CANDIDATE: yes (already tracked)** | Known ACCEPTED finding in KB |
+| All other hits | **REPORT_CANDIDATE: no** | TEST_OR_EXAMPLE, ENDPOINT_LEAK (rejected Algolia class), or noise |
+
+**No new reportable findings in this delta.** All 5 new delta lines are either runtime secret fetches (crosvm) or GitHub Actions secret references (langextract). The earthengine-api secret remains the only live REAL_SECRET, already tracked and pending VRP determination.
