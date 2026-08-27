@@ -13,3 +13,8 @@
 - (no NEW hypotheses this cycle — all deduped)
 - NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): crt.sh / CT logs for google.com, *.goog
 - LEARN: NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+
+## RANKED HYPOTHESES 2026-08-27 23:59:12 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): crt.sh / CT logs for google.com, *.goog
+- LEARN: NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
