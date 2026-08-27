@@ -1,41 +1,26 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-=== STEP 1 — DELTA ===
-NO_DELTA
-- REAL SUBDOMAIN INVENTORY: empty (0 hosts)
-- LIVE HIGH-VALUE HOSTS: none
-- KNOWLEDGE BASE: 2026-08-27 NONE — no ACCEPTED/REJECTED (0 probes executed)
-- Diagnosis: No surface change vs last cycle; inventory build still pending. No new/changed assets to score.
+STEP 1 — DELTA:
+NO_DELTA — inventory empty (0 hosts), LIVE HIGH-VALUE HOSTS: none, 0 probes executed — identical to 2026-08-27 14:38:56 and 15:17:36 cycles, matches KNOWLEDGE BASE 2026-08-27
+[CHANGED google] scope active: google.com, *.google.com (bounty:true via bughunters.google.com) vs stale prompt context (duocircle/emsisoft/docker/posit/coxautomotive) — probe_allow: google|microsoft|azure|live|office|bing|msn
+[CHANGED microsoft] scope active: microsoft.com, *.microsoft.com, *.azure.com (bounty:true via microsoft.com/msrc/bounty) vs stale prompt context — probe_allow match
 
-=== STEP 2 — PRIORITIZE ===
-[PRIO NONE] — No assets in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to score.
-- Cannot compute priority = 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh (requires inventory)
-- Breadth anomaly scan skipped: 0 hosts, 0 endpoints.
+STEP 2 — PRIORITIZE:
+[PRIO NONE] no assets to score — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — priority = 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh cannot be computed; breadth pass blocked
 
-=== STEP 3 — HYPOTHESES ===
-[HYP NONE]
-reason: Zero hosts in inventory per context (0 probes executed). Inventing asset violates HARD RULE. No GraphQL/OAuth/JWT/upload/admin/SSRF surface to hypothesize on. Must build inventory first via passive CT + light probe within probe_allow: google|microsoft|azure|live|office|bing|msn
+STEP 3 — HYPOTHESES:
+[HYP NONE] — asset MUST be host from REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS per HARD RULE; inventory empty (0 hosts) so any hypothesis would invent hostname and auto-fail; no anomaly (status/param/tech) to evaluate
 
-=== STEP 4 — SELF-CRITIQUE ===
-[PARKED] NONE — no hypotheses generated to critique (confidence <70 / REJECTED list / missing verify_steps filters not applicable)
-[FINAL] NONE — 0 surviving hypotheses (insufficient evidence, inventory empty)
+STEP 4 — SELF-CRITIQUE:
+[PARKED NONE] no hypotheses generated — fails confidence >=70 and verify_steps requires live host; no concrete METHOD path + params to test
+[FINAL NONE] — 0 surviving hypotheses re-ranked
 
-=== STEP 5 — NEXT ACTION ===
-[NEXT] SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn):
-1. crt.sh CT: GET https://crt.sh/?q=%.google.com&output=json ; GET https://crt.sh/?q=%.microsoft.com&output=json ; GET https://crt.sh/?q=%.azure.com&output=json ; filter to probe_allow
-2. Light probe top 20 CT hosts: GET https://<host>/ with headers User-Agent: Mozilla/5.0, Accept: */*; record status, server, x-powered-by, location, interesting params, /api/*, /swagger*, /.well-known/openid-configuration, /graphql
-3. Secondary candidates: *.live.com, *.office.com, *.bing.com if surfaced in CT
-Purpose: Populate REAL SUBDOMAIN INVENTORY before any depth hypotheses; no intrusive/authenticated requests.
+STEP 5 — NEXT ACTION:
+[NEXT] SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): crt.sh / CT logs for google.com, *.google.com, microsoft.com, *.microsoft.com, *.azure.com -> dedupe -> light GET / HEAD / OPTIONS with status/headers/TLS/tech fingerprint (GraphQL /api/graphql, OAuth /authorize /token, JWT, upload, swagger/openapi.json, /api/v1|v2|beta|internal) — no brute force, no auth bypass attempts
 
-=== STEP 6 — LEARNING ===
+STEP 6 — LEARNING:
 [LEARN] NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
 
-=== STEP 7 — RISK SCORE ===
-[RISK] 5 reason: Overall exposure indeterminate — 0 hosts probed, 0 evidence of auth/GraphQL/SSRF/IDOR surface. Risk cannot be assessed until CT inventory + status/header anomaly pass completed for google.com / microsoft.com / azure.com scope. No high-value live hosts confirmed.
-
-=== STEP 8 — RULES COMPLIANCE ===
-- No hosts invented (HARD RULE respected — [HYP NONE])
-- No claims outside provided context / read-only probes
-- Scope boundary enforced: probe_allow google|microsoft|azure|live|office|bing|msn only
-- No secrets disclosed
+STEP 7 — RISK SCORE:
+[RISK] 10 — overall exposure unknown/indeterminate: 0 live hosts enumerated, 0 probes, no tech stack / auth / cloud surface mapped; high-value classes (AUTH/IDOR/SSRF/JWT/OAuth/BUSLOGIC) untestable until inventory built
