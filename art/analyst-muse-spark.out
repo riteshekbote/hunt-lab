@@ -2,24 +2,38 @@
 > build · muse-spark-1.2-contributor-free
 [0m
 STEP 1 — DELTA
-NO_DELTA — inventory empty (0 hosts in REAL SUBDOMAIN INVENTORY), 0 LIVE HIGH-VALUE HOSTS; no change vs 2026-08-27 KNOWLEDGE BASE (inventory empty, 0 probes executed). No [NEW]/[CHANGED] surface to list.
+NO_DELTA — REAL SUBDOMAIN INVENTORY = empty (0 hosts), LIVE HIGH-VALUE HOSTS = none. No change vs 2026-08-27 14:38:56 through 2026-08-28 11:19:43 cycles (all reported inventory empty, 0 probes executed). SCOPE now 2 targets [google,microsoft] vs directive text referencing 5 legacy targets — no NEW hosts to diff.
 
 STEP 2 — PRIORITIZE
-[PRIO NONE] — no assets scorable (google, microsoft inventory = 0). Cannot compute priority = 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh. Top existing = none. Breadth pass deferred to NEXT SCAN.
+[PRIO google] NONE — no inventory to score: attack_surface=0 business_value=0 tech_exposure=0 gate_ease=0 cloud_surface=0 freshness=0 => priority 0.0
+[PRIO microsoft] NONE — no inventory to score: attack_surface=0 business_value=0 tech_exposure=0 gate_ease=0 cloud_surface=0 freshness=0 => priority 0.0
+No assets to rank; breadth pass impossible until CT inventory built.
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — inventory empty, asset MUST be from REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS per HARD RULE; inventing host is FAILURE. No hypothesis merits >70 confidence passively.
+[HYP NONE]
+class: NONE
+asset: NONE — REAL SUBDOMAIN INVENTORY empty, HARD RULE prohibits inventing hosts
+confidence: 0
+reasoning: Inventory empty, 0 probes executed for 6 consecutive cycles. No host from REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS available to anchor hypothesis per hard rule.
+evidence_needed: CT-derived subdomain list + light probe (status/code/headers) to identify anomalies
+verify_steps: PASSIVE SCAN only until inventory exists — no targetable endpoint
+impact: NONE — cannot assess without surface
+testability: PASSIVE
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] ALL — no hypotheses generated to critique; any synthetic google.com/microsoft.com hypothesis without inventory host would be confidence <70 and auto-dropped.
-[FINAL] NONE — 0 surviving hypotheses (re-ranked list empty).
+[PARKED] ALL — no hypotheses generated; empty inventory fails confidence >=70 and concrete verify_steps requirement
+[FINAL] NONE — 0 survivors; re-rank not applicable. Previous tail hypotheses correctly deduped to SCAN.
 
 STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s "https://crt.sh/?q=%25.google.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200 ; curl -s "https://crt.sh/?q=%25.microsoft.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200 ; curl -s "https://crt.sh/?q=%25.azure.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200  2) Light probe top 20 unique hosts: for h in $(cat ct_hosts.txt); do curl -I -s --max-time 5 "https://$h/" -H "User-Agent: Mozilla/5.0" | head -n 15; echo "---$h"; done  3) Check for tech exposure: curl -s "https://$h/.well-known/openapi.json" , "/swagger.json" , "/graphql" (POST {"query":"{__schema{types{name}}}"}), "/.well-known/oauth-authorization-server"
+[NEXT] SCAN: Passive CT + light probe to build inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn):
+1) curl -s "https://crt.sh/?q=%25.google.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200
+2) curl -s "https://crt.sh/?q=%25.microsoft.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200
+3) curl -s "https://crt.sh/?q=%25.azure.com&output=json" | jq -r '.[].name_value' | sort -u | head -n 200
+4) For top 20 unique hosts: curl -sI -m 10 "https://<host>" ; curl -s -m 10 "https://<host>/.well-known/openid-configuration" ; curl -s -m 10 "https://<host>/swagger.json" — record status/Server/X-Powered-By/WWW-Authenticate
 
 STEP 6 — LEARNING
-[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
-[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
 
 STEP 7 — RISK SCORE
-[RISK] 55 — large attack surface expected for google.com/*.google.com + microsoft.com/*.microsoft.com/*.azure.com (cloud_surface high, business_value high) but exposure unmeasured due to 0 probes/0 inventory; risk is inferred, not proven.
+[RISK] 10 — inventory empty, 0 probes executed => exposure unmeasurable; no evidence of high-value classes, but also no coverage. Risk is unknown-low until CT recon + anomaly breadth pass completes.
