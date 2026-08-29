@@ -59,3 +59,16 @@ https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
 https://<host>/.well-known/openid-configuration -> ERR <urlopen error [Errno -2] Name or service not know
 https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
 https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
+
+## 2026-08-29 23:34:13 UTC
+https://aistudio.google.com/.well-known/openid-configuration -> 200 len=? type=text/html; charset=utf-8
+https://aistudio.google.com/api/openapi.json -> 200 len=? type=text/html; charset=utf-8
+https://aistudio.google.com/v1beta/models -> 200 len=? type=text/html; charset=utf-8
+https://aistudio.google.com/apiv1/projects/test-123/keys -> 200 len=? type=text/html; charset=utf-8
+https://config.teams.microsoft.com/.well-known/openid-configuration -> HTTP 503
+https://config.teams.microsoft.com/api/openapi.json -> HTTP 503
+https://config.teams.microsoft.com/v1/config -> HTTP 503
+https://config.teams.microsoft.com/v1/config?tenantId=00000000-0000-0000-0000-000000000000 -> HTTP 503
+https://sfdataservice.microsoft.com/.well-known/openid-configuration -> HTTP 503
+https://sfdataservice.microsoft.com/swagger.json -> HTTP 503
+https://sfdataservice.microsoft.com/api/v1/entitlements -> HTTP 503

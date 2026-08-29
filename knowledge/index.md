@@ -11,3 +11,5 @@
 - 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
 - 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.google.com/accounts.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
 - 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.microsoft.com/login.microsoftonline.com/portal.azure.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com, 0 deep authz probes executed)
+- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsoftonline.com/portal.azure.com, 0 deep authz probes executed)

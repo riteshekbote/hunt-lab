@@ -105,3 +105,9 @@
 - NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotte
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.googl
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi
+
+## RANKED HYPOTHESES 2026-08-29 23:34:10 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): PROBE: Passive read-only breadth anomaly scan (probe_allow: google|microsoft|azure|live|office|bing|msn): curl -s -m 15 -i "https://aistudio.google.com/.well-kn
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com,
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsof
