@@ -99,3 +99,9 @@
 - NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotte
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.googl
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi
+
+## RANKED HYPOTHESES 2026-08-29 21:42:36 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotte
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.googl
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi

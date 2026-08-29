@@ -177,3 +177,27 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.google.com/accounts.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.microsoft.com/login.microsoftonline.com/portal.azure.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
 [RISK] 15 reason: Overall exposure not assessable — large external attack surface expected for google.com/*.google.com/microsoft.com/*.azure.com but zero inventoried hosts to evaluate, no tech_exposure/cloud_surface signals collected, no auth gates tested. Low risk = unknown, not safe.
+## 2026-08-29 21:32:42 UTC (model muse-spark)
+class: NONE
+asset: none — REAL SUBDOMAIN INVENTORY empty
+confidence: 0
+reasoning: Inventory empty, 0 probes executed historically. Cannot assert IDOR/SSRF/AUTH without host from inventory. Previous probes (this cycle) confirm liveness of www.google.com, accounts.google.com but CT inventory not yet built to satisfy HARD RULE.
+evidence_needed: CT-derived subdomain list + light probe status to select assets
+verify_steps: Passive CT first, then read-only GET https://<host>/.well-known/openid-configuration, /swagger/v1/swagger.json, /api/v1/ with probe_allow check
+impact: none until inventory built
+testability: PASSIVE
+class: NONE
+asset: none — LIVE HIGH-VALUE HOSTS empty
+confidence: 0
+reasoning: Same as google — no inventoried hosts. login.microsoftonline.com and portal.azure.com probed 200/403 but not in provided inventory so hypothesis creation blocked by HARD RULE.
+evidence_needed: CT inventory for microsoft.com/*.azure.com/*.live.com/*.office.com + header/body anomaly triage
+verify_steps: curl -s https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names | jq, then GET https://<host>/ with Accept probing
+impact: none until inventory built
+testability: PASSIVE
+[PARKED] google — any synthetic hypothesis: why dropped — asset not in REAL SUBDOMAIN INVENTORY, confidence would be <70, violates HARD RULE (auto-dropped)
+[PARKED] microsoft — any synthetic hypothesis: why dropped — same, no concrete verify_steps on inventoried host, confidence <70
+[FINAL] NONE — no surviving hypotheses; inventory build is prerequisite. Re-rank empty.
+[NEXT] SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names" | head -c 5000; curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names" | head -c 5000; curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=azure.com&include_subdomains=true&expand=dns_names" | head -c 5000; 2) for h in www.google.com accounts.google.com www.microsoft.com login.microsoftonline.com portal.azure.com; do echo "== $h =="; curl -s -I -m 10 "https://$h/" | head -15; curl -s -m 10 "https://$h/.well-known/openid-configuration" | head -c 800; done; crt.sh returned 502 this cycle so use certspotter fallback
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.google.com/accounts.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.microsoft.com/login.microsoftonline.com/portal.azure.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
+[RISK] 15 reason: Overall exposure not assessable — large external attack surface expected for google.com/*.google.com/microsoft.com/*.azure.com but zero inventoried hosts to evaluate, no tech_exposure/cloud_surface signals collected, no auth gates tested. Low risk = unknown, not safe.
