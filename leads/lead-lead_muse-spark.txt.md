@@ -234,3 +234,36 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com, 0 deep authz probes executed)
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsoftonline.com/portal.azure.com, 0 deep authz probes executed)
 [RISK] 58 — CT passively mapped large cloud surface (219 google.com incl. aistudio/aiplatform/composer/backupdr, 127 microsoft.com/azure/live incl. Teams config + Store FD + Partner Center) with OAuth/JWT/cloud API tech exposure, but zero depth probes for IDOR/BOLA/SSRF/JWT yet; exposure is breadth-only, not confirmed exploit
+## 2026-08-29 23:33:59 UTC (model muse-spark)
+class: IDOR
+asset: aistudio.google.com
+confidence: 78
+reasoning: CT shows *.aistudio.google.com active cert 2026-06-08; AI Studio serves /v1beta/models, /v1/projects/{projectId}/apikeys historically tenant-isolated; param names projectId/apiKeyId observed in GCP patterns; high business value (API keys = GCP billing)
+evidence_needed: unauth vs auth GET on /api/v1beta/projects/<other-id>/keys returns 200 vs 403/404 disparity; or UUID enumeration yields cross-project keys
+verify_steps: GET https://aistudio.google.com/.well-known/openid-configuration; GET https://aistudio.google.com/api/openapi.json; GET https://aistudio.google.com/v1beta/models (no auth vs Bearer); GET https://aistudio.google.com/apiv1/projects/test-123/keys with id fuzz (read-only)
+impact: cross-tenant API key/model exfil, billable GenAI abuse, PII in prompts — High
+testability: PASSIVE
+class: IDOR
+asset: config.teams.microsoft.com
+confidence: 75
+reasoning: CT 127 hosts includes config.teams.microsoft.com + 01-az.audience.gcc.teams.microsoft.com fleet; config endpoints typically serve JSON per tenantId/teamId; GCC/Teams is cross-tenant isolation boundary; liveness 403 on portal hints WAF but config may expose /v1/config?tenantId=
+evidence_needed: 200 with foreign tenantId vs 403/404; response contains tenant-specific urls/keys; param pollution tenantId vs audience
+verify_steps: GET https://config.teams.microsoft.com/.well-known/openid-configuration; GET https://config.teams.microsoft.com/api/openapi.json; GET https://config.teams.microsoft.com/v1/config; GET https://config.teams.microsoft.com/v1/config?tenantId=00000000-0000-0000-0000-000000000000 (read-only, no write)
+impact: cross-tenant config/PII dump, Teams presence/routing leak — High, chain to ATO via SSO config
+testability: PASSIVE
+class: BOLA
+asset: sfdataservice.microsoft.com
+confidence: 72
+reasoning: CT shows sfdataservice.microsoft.com + storeedgefd.dsx.mp.microsoft.com + pti.store.microsoft.com cluster; Store dataservice is money-flow API (purchases, entitlements); versioned APIs /api/v1 typical; storeId/purchaseId are guessable ULIDs; business logic on money/auth flows high value
+evidence_needed: GET /api/v1/purchases/<other-storeId> or /entitlements?userId= returns 200 vs 403; swagger exposes authz gap
+verify_steps: GET https://sfdataservice.microsoft.com/.well-known/openid-configuration; GET https://sfdataservice.microsoft.com/swagger.json; GET https://sfdataservice.microsoft.com/api/v1/entitlements (probe_allow store domain)
+impact: cross-user entitlement dump, order history/PII, license theft — High
+testability: PASSIVE
+[PARKED] NONE — all 3 hypotheses confidence >=70, asset in REAL CT inventory (219 google / 127 ms), concrete read-only verify_steps, class not on REJECTED list (KNOWLEDGE BASE shows no REJECTED classes)
+[FINAL] 1. [HYP google] AIStudio GenAI API BOLA/IDOR via project enumeration — 78
+[FINAL] 2. [HYP microsoft] Teams Config cross-tenant IDOR via tenantId/audience — 75
+[FINAL] 3. [HYP microsoft] Store SFDataservice BOLA on storeId/purchaseId — 72
+[NEXT] PROBE: Passive read-only breadth anomaly scan (probe_allow: google|microsoft|azure|live|office|bing|msn): curl -s -m 15 -i "https://aistudio.google.com/.well-known/openid-configuration" -H "User-Agent: Mozilla/5.0"; curl -s -m 15 -i "https://aistudio.google.com/api/openapi.json" -H "User-Agent: Mozilla/5.0"; curl -s -m 15 -i "https://config.teams.microsoft.com/.well-known/openid-configuration" -H "User-Agent: Mozilla/5.0"; curl -s -m 15 -i "https://config.teams.microsoft.com/swagger.json" -H "User-Agent: Mozilla/5.0"; curl -s -m 15 -i "https://sfdataservice.microsoft.com/.well-known/openid-configuration" -H "User-Agent: Mozilla/5.0"
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com, 0 deep authz probes executed)
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsoftonline.com/portal.azure.com, 0 deep authz probes executed)
+[RISK] 58 — CT passively mapped large cloud surface (219 google.com incl. aistudio/aiplatform/composer/backupdr, 127 microsoft.com/azure/live incl. Teams config + Store FD + Partner Center) with OAuth/JWT/cloud API tech exposure, but zero depth probes for IDOR/BOLA/SSRF/JWT yet; exposure is breadth-only, not confirmed exploit
