@@ -17,3 +17,34 @@
 - 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 503 on config.teams/sfdataservice, 0 deep authz/IDOR/SSRF probes) — matches KNOWLEDGE BASE 2026-08-27/28/29
 - 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liveness on aistudio.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
 - 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on config.teams.microsoft.com/sfdataservice.microsoft.com) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed)
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.google.com/accounts.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.microsoft.com/login.microsoftonline.com/portal.azure.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
+- 2026-08-30 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liveness on aistudio.google.com 200 text/html vs expected JSON) — matches KNOWLEDGE BASE 2026-08-27/28/29/30

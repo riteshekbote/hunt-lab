@@ -103,3 +103,8 @@ https://sfdataservice.microsoft.com/api/v1/entitlements -> HTTP 503
 
 ## 2026-08-30 13:17:17 UTC
 
+
+## 2026-08-30 17:41:59 UTC
+https://<host>/.well-known/openid-configuration -> ERR <urlopen error [Errno -2] Name or service not know
+https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
+https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
