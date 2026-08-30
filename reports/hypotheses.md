@@ -117,3 +117,6 @@
 - NEXT(hypotheses-lead_muse-spark.txt.txt): PROBE: Passive read-only breadth anomaly scan (probe_allow: google|microsoft|azure|live|office|bing|msn): curl -s -m 15 -i "https://aistudio.google.com/.well-kn
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com,
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsof
+
+## RANKED HYPOTHESES 2026-08-30 01:35:30 UTC
+- (no NEW hypotheses this cycle — all deduped)
