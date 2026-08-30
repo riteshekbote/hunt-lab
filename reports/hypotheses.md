@@ -215,3 +215,9 @@
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liv
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on
+
+## RANKED HYPOTHESES 2026-08-30 20:41:27 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light liveness to rebuild inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): 1) GET https://crt.sh/?q=%.google.
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
