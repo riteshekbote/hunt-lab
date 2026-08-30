@@ -1,256 +1,27 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-Inventory empty again — rebuilding verifiable hosts before any hypothesis.
-[0m→ [0mRead .
-[0m→ [0mRead inventory
-[0m→ [0mRead probe-results.md
-[0m→ [0mRead scope.yml
-[0m→ [0mRead ctx.txt
-[0m→ [0mRead inventory/real-subdomains.txt
-[0m→ [0mRead state_muse-spark.json
-[0m→ [0mRead inventory/google.md
-[0m→ [0mRead inventory/microsoft.md
-[0m
-[0m$ [0mcat analyst-prompt.txt 2>/dev/null | head -n 200; echo "---"; cat analyst-out.txt 2>/dev/null | head -n 300
-=== SCOPE ===
-targets:
-  - name: google
-    platform: bounty
-    disclosure: https://bughunters.google.com/about/rules
-    bounty: true
-    program_url: https://bughunters.google.com/about/rules
-    domains: [google.com, "*.google.com"]
-    github_orgs: [google]
-  - name: microsoft
-    platform: bounty
-    disclosure: https://www.microsoft.com/en-us/msrc/bounty
-    bounty: true
-    program_url: https://www.microsoft.com/en-us/msrc/bounty
-    domains: [microsoft.com, "*.microsoft.com", "*.azure.com"]
-    github_orgs: [microsoft]
-probe_allow: "google|microsoft|azure|live|office|bing|msn"
-=== TARGETS ===
-## TARGET: google
-- disclosure email: https://bughunters.google.com/about/rules
-- bounty: True
-- program url: https://bughunters.google.com/about/rules
-- domains: google.com, *.google.com
-- github orgs: google
-- excluded: 
+STEP 1 — DELTA
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none this cycle; matches KNOWLEDGE BASE 2026-08-27/28/29/30 (inventory empty, only liveness probes historically: aistudio.google.com 200 html vs json, config.teams.microsoft.com/sfdataservice.microsoft.com 503, no deep authz/IDOR/SSRF probes). No NEW/CHANGED hosts provided to evaluate vs prior CT inventories (219 google /127 microsoft built 2026-08-29 now not present).
 
-## TARGET: microsoft
-- disclosure email: https://www.microsoft.com/en-us/msrc/bounty
-- bounty: True
-- program url: https://www.microsoft.com/en-us/msrc/bounty
-- domains: microsoft.com, *.microsoft.com, *.azure.com
-- github orgs: microsoft
-- excluded: 
+STEP 2 — PRIORITIZE
+[PRIO google] google.com — priority 7.4 (attack:8 business:9 tech:7 gate:6 cloud:7 fresh:5) =0.25*8+0.25*9+0.15*7+0.15*6+0.10*7+0.10*5 — scope *.google.com high business value, OAuth/JWT/GraphQL surface expected but unmeasured this cycle
+[PRIO microsoft] microsoft.com — priority 7.5 (attack:8 business:9 tech:7 gate:6 cloud:8 fresh:5) =0.25*8+0.25*9+0.15*7+0.15*6+0.10*8+0.10*5 — scope *.microsoft.com + *.azure.com, AAD/OAuth/cloud metadata SSRF surface expected
+[PRIO microsoft] azure.com — priority 7.85 (attack:9 business:9 tech:8 gate:5 cloud:9 fresh:5) =0.25*9+0.25*9+0.15*8+0.15*5+0.10*9+0.10*5 — Azure portal/config/sfdataservice tenants highest cloud_surface, prior 503 indicates gate but mass tenant exposure
 
-=== KNOWLEDGE BASE ===
-# Knowledge Base (restored)
-- 2026-08-27 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed)
-- 2026-08-27 NONE — no class ACCEPTED/REJECTED @ any asset: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
-- 2026-08-28 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
-- 2026-08-28 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27
-- 2026-08-28 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
-- 2026-08-28 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.google.com/accounts.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.microsoft.com/login.microsoftonline.com/portal.azure.com) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com, 0 deep authz probes executed)
-- 2026-08-29 NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsoftonline.com/portal.azure.com, 0 deep authz probes executed)
-=== REAL SUBDOMAIN INVENTORY (from passive CT recon — PROBE/ANALYZE THESE, DO NOT INVENT HOSTS) ===
-=== LIVE HIGH-VALUE HOSTS (probed, with status) ===
-none
-=== MY STATE ===
-{"phase": "POC"}=== MY LAST LEADS (tail) ===
-none
-=== AGGREGATED HYPOTHESES (tail) ===
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn):
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+STEP 3 — HYPOTHESES
+[HYP NONE] — no hypothesis emitted: REAL SUBDOMAIN INVENTORY and LIVE HIGH-VALUE HOSTS empty this cycle, inventing host would violate HARD RULE. No asset from inventory merits IDOR/SSRF/AUTH/OATH testing until breadth inventory rebuilt.
 
-## RANKED HYPOTHESES 2026-08-29 18:51:30 UTC
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn):
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29
+STEP 4 — SELF-CRITIQUE
+[PARKED] NONE — no hypotheses to park (confidence threshold 70 not met due to empty inventory)
+[FINAL] NONE — 0 surviving hypotheses; requires SCAN to rebuild inventory before depth
 
-## RANKED HYPOTHESES 2026-08-29 21:32:52 UTC
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotte
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.googl
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi
+STEP 5 — NEXT ACTION
+[NEXT SCAN] Passive CT + light read-only liveness to rebuild inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names" | python3 -c "import sys,json;data=json.load(sys.stdin);hosts=set();[hosts.update(i['dns_names']) for i in data if 'dns_names' in i];print('\n'.join(sorted([h for h in hosts if 'google' in h])[:40]))" ; 2) curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names" | python3 -c "import sys,json;data=json.load(sys.stdin);hosts=set();[hosts.update(i['dns_names']) for i in data if 'dns_names' in i];print('\n'.join(sorted([h for h in hosts if 'microsoft' in h or 'azure' in h])[:40]))" ; 3) curl -s -m 20 "https://crt.sh/?q=%.google.com&output=json" | head -c 5000 ; 4) curl -s -m 20 "https://crt.sh/?q=%.azure.com&output=json" | head -c 5000 ; 5) for h in top20_hosts; do curl -s -m 10 -i "https://$h/.well-known/openid-configuration" | head -n 20; curl -s -m 10 -i "https://$h/api/openapi.json" | head -n 20; done — breadth anomaly scan for odd status/JSON/swagger/versioned /api/v1|v2|beta /id= param exposure before depth IDOR/SSRF
 
-## RANKED HYPOTHESES 2026-08-29 21:42:36 UTC
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light read-only probe to build inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotte
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.googl
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed historically; this cycle only liveness checks on www.mi
+STEP 6 — LEARNING
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liveness on aistudio.google.com) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on config.teams.microsoft.com/sfdataservice.microsoft.com) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
 
-## RANKED HYPOTHESES 2026-08-29 23:34:10 UTC
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): PROBE: Passive read-only breadth anomaly scan (probe_allow: google|microsoft|azure|live|office|bing|msn): curl -s -m 15 -i "https://aistudio.google.com/.well-kn
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com,
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsof
-
-## RANKED HYPOTHESES 2026-08-29 23:36:04 UTC
-- (no NEW hypotheses this cycle — all deduped)
-- NEXT(hypotheses-lead_muse-spark.txt.txt): PROBE: Passive read-only breadth anomaly scan (probe_allow: google|microsoft|azure|live|office|bing|msn): curl -s -m 15 -i "https://aistudio.google.com/.well-kn
-- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (CT inventory 219 hosts built this cycle, only liveness on www.google.com/accounts.google.com,
-- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (CT inventory 127 hosts built this cycle, only liveness on www.microsoft.com/login.microsof
-
-## RANKED HYPOTHESES 2026-08-30 01:35:30 UTC
-- (no NEW hypotheses this cycle — all deduped)
-
-## RANKED HYPOTHESES 2026-08-30 01:38:43 UTC
-- (no NEW hypotheses this cycle — all deduped)
-=== LATEST ROBOT PROBE RESULTS ===
-
-## 2026-08-29 10:23:54 UTC
-
-
-## 2026-08-29 10:25:22 UTC
-
-
-## 2026-08-29 15:11:53 UTC
-
-
-## 2026-08-29 15:19:22 UTC
-
-
-## 2026-08-29 18:46:36 UTC
-
-
-## 2026-08-29 18:51:30 UTC
-
-
-## 2026-08-29 21:32:53 UTC
-https://<host>/.well-known/openid-configuration -> ERR <urlopen error [Errno -2] Name or service not know
-https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
-https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
-
-## 2026-08-29 21:42:36 UTC
-https://<host>/.well-known/openid-configuration -> ERR <urlopen error [Errno -2] Name or service not know
-https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
-https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
-
-## 2026-08-29 23:34:13 UTC
-https://aistudio.google.com/.well-known/openid-configuration -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/api/openapi.json -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/v1beta/models -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/apiv1/projects/test-123/keys -> 200 len=? type=text/html; charset=utf-8
-https://config.teams.microsoft.com/.well-known/openid-configuration -> HTTP 503
-https://config.teams.microsoft.com/api/openapi.json -> HTTP 503
-https://config.teams.microsoft.com/v1/config -> HTTP 503
-https://config.teams.microsoft.com/v1/config?tenantId=00000000-0000-0000-0000-000000000000 -> HTTP 503
-https://sfdataservice.microsoft.com/.well-known/openid-configuration -> HTTP 503
-https://sfdataservice.microsoft.com/swagger.json -> HTTP 503
-https://sfdataservice.microsoft.com/api/v1/entitlements -> HTTP 503
-
-## 2026-08-29 23:36:06 UTC
-https://aistudio.google.com/.well-known/openid-configuration -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/api/openapi.json -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/v1beta/models -> 200 len=? type=text/html; charset=utf-8
-https://aistudio.google.com/apiv1/projects/test-123/keys -> 200 len=? type=text/html; charset=utf-8
-https://config.teams.microsoft.com/.well-known/openid-configuration -> HTTP 503
-https://config.teams.microsoft.com/api/openapi.json -> HTTP 503
-https://config.teams.microsoft.com/v1/config -> HTTP 503
-https://config.teams.microsoft.com/v1/config?tenantId=00000000-0000-0000-0000-000000000000 -> HTTP 503
-https://sfdataservice.microsoft.com/.well-known/openid-configuration -> HTTP 503
-https://sfdataservice.microsoft.com/swagger.json -> HTTP 503
-https://sfdataservice.microsoft.com/api/v1/entitlements -> HTTP 503
-
-## 2026-08-30 01:35:30 UTC
-
-
-## 2026-08-30 01:38:43 UTC
-
-You are a senior bug bounty hunter ANALYST for the programs described in
-MAX MODE (ox-alpha-free 1M ctx): dig DEEPER + FASTER. Directives:
-- Hunt HIGH-VALUE classes first: broken auth/session handling, IDOR/BOLA, SSRF-to-cloud-metadata (169.254.169.254), mass assignment, JWT alg/key confusion, OAuth redirect_uri/state flaws, business logic on money/auth flows, file upload, GraphQL introspection+mutations.
-- CHAIN primitives aggressively: open redirect -> OAuth code theft -> ATO; XSS -> session theft -> ATO; IDOR -> cross-tenant PII dump; SSRF -> metadata -> keys. One chained lead beats ten weak ones.
-- Request-level reasoning only: exact METHOD path + params + headers + body, expected vs actual status codes. No prose filler, no restating context.
-- Breadth pass over the FULL inventory for anomalies (odd status codes, interesting param names like id/uid/email/user_id, versioned APIs /api/v1|v2|beta|internal, debug/test flags, swagger/openapi/json exposure), then depth on top-3 anomalies this cycle.
-- If a hypothesis needs live confirmation you cannot do passively, emit [NEXT] PROBE with the EXACT read-only request so the next cycle executes it immediately.
-SCOPE (5 targets: duocircle, emsisoft, docker, posit, coxautomotive — all
-email-only disclosure, no platform). Your job is NOT to invent
-vulnerabilities. Run these 8 steps and output ONLY the structured blocks.
-Tag every [HYP]/[PRIO]/[NEW] line with the target name, e.g. [HYP docker]
-or [PRIO posit]. Stay within the union scope of the 5 targets (probe_allow).
-
-STEP 1 — DELTA: Compare the inventory + knowledge + your last leads against the current known surface. List only NEW or CHANGED surface items as [NEW]/[CHANGED] (one line each). If nothing is new, state "NO_DELTA".
-
-STEP 2 — PRIORITIZE: Score the top new assets (or top existing if no delta) on 6 axes 0-10: attack_surface, business_value, tech_exposure (GraphQL/OAuth/JWT/upload/admin/uncommon stacks), gate_ease (10 = no auth needed), cloud_surface (cloud APIs/storage/metadata), freshness. priority = 0.25*attack + 0.25*business + 0.15*tech + 0.15*gate + 0.10*cloud + 0.10*fresh. Emit [PRIO] lines: asset, score, axis breakdown.
-
-STEP 3 — HYPOTHESES: For the top 3 prioritized assets emit max 1 hypothesis each, strictly this schema:
-[HYP] <title>
-class: <IDOR|SSRF|AUTH|XSS|BUSLOGIC|MISCONFIG|OATH|OTHER>
-asset: <host/endpoint>
-confidence: <0-100>
-reasoning: <facts only, 2-3 lines>
-evidence_needed: <what proves it>
-verify_steps: <passive-first concrete HTTP requests>
-impact: <what attacker gets + severity>
-testability: <PASSIVE|AUTH_HELPED|HUMAN_ONLY>
-
-HARD RULE: asset MUST be a host from the REAL SUBDOMAIN INVENTORY or
-LIVE HIGH-VALUE HOSTS sections above. Inventing a hostname that is not
-in the inventory is a FAILURE — such hypotheses are auto-dropped and
-count against you. If nothing in the inventory merits a hypothesis,
-emit [HYP NONE] instead of inventing surface.
-
-HARD FORMAT RULE: one field per line. NEVER put confidence/class/asset inline
-inside the [HYP] title line. Every field MUST be on its own line as 'key: value'
-directly under the [HYP] line.
-
-STEP 4 — SELF-CRITIQUE: Re-read your own hypotheses. Drop any that: confidence < 70, or class on the knowledge REJECTED list, or no concrete verify_steps. For dropped ones emit [PARKED] <title>: <why dropped>. Emit [FINAL] with the surviving hypotheses re-ranked (top first).
-
-STEP 5 — NEXT ACTION: Choose exactly one and emit [NEXT] <PROBE|SCAN|RAG|HUMAN>: <one concrete action, with the exact endpoint/request if PROBE>.
-
----
-[0m
-> build · muse-spark-1.2-contributor-free
-[0m
-Inventory empty again — rebuilding verifiable hosts before any hypothesis.
-[0m→ [0mRead .
-[0m→ [0mRead inventory
-[0m→ [0mRead probe-results.md
-[0m→ [0mRead scope.yml
-[0m→ [0mRead ctx.txt
-[0m→ [0mRead inventory/real-subdomains.txt
-[0m→ [0mRead state_muse-spark.json
-[0m→ [0mRead inventory/google.md
-[0m→ [0mRead inventory/microsoft.md
-[0m
-STEP 1 — DELTA:
-NO_DELTA — inventory/real-subdomains.txt empty (0 lines), inventory/google.md:26 lines header-only, inventory/microsoft.md:26 lines header-only, LIVE HIGH-VALUE HOSTS=none. Matches KNOWLEDGE BASE pattern 2026-08-27/28/29 (inventory empty, 0 deep probes). CHANGED vs 2026-08-29 23:34 where CT inventory 219 google +127 microsoft was transiently built then lost — now cleared again. Probe-results show only liveness on aistudio.google.com / config.teams.microsoft.com / sfdataservice.microsoft.com but those hosts not persisted to inventory file. No new persisted surface.
-
-STEP 2 — PRIORITIZE:
-[PRIO google] aistudio.google.com — score 8.25 (attack:8 business:9 tech:9 gate:9 cloud:7 fresh:6) — calc: 0.25*8=2.0 +0.25*9=2.25 +0.15*9=1.35 +0.15*9=1.35 +0.10*7=0.7 +0.10*6=0.6 =8.25 — anomaly: /.well-known/openid-configuration, /api/openapi.json, /v1beta/models, /apiv1/projects/test-123/keys all 200 text/html (expected 401/json or 404)
-[PRIO microsoft] config.teams.microsoft.com — score 6.00 (attack:6 business:8 tech:7 gate:3 cloud:5 fresh:5) — calc: 1.5+2.0+1.05+0.45+0.5+0.5=6.0 — 503 on /.well-known/openid-configuration /api/openapi.json /v1/config — gated, low gate_ease
-[PRIO microsoft] sfdataservice.microsoft.com — score 5.85 (attack:6 business:7 tech:7 gate:3 cloud:5 fresh:5) — calc: 1.5+1.75+1.05+0.45+0.5+0.5=5.75 — 503 on /.well-known/openid-configuration /swagger.json /api/v1/entitlements — similar gated
-Note: scored from LATEST ROBOT PROBE RESULTS 2026-08-29 23:34/23:36 as inventory file empty; no persisted REAL SUBDOMAIN INVENTORY to score. All hosts within probe_allow google|microsoft.
-
-STEP 3 — HYPOTHESES:
-[HYP NONE] — REAL SUBDOMAIN INVENTORY and LIVE HIGH-VALUE HOSTS both empty/none; hard rule prohibits inventing hostnames. Transient CT inventory 219+127 from 2026-08-29 not persisted, and current probes show only 200 vs 503 without authz evidence. No asset in inventory merits >=70 confidence hypothesis without first rebuilding inventory and performing read-only anomaly differentiation.
-
-STEP 4 — SELF-CRITIQUE:
-[PARKED] aistudio.google.com 200 HTML anomaly — would be MISCONFIG/AUTH candidate but asset not in persisted REAL SUBDOMAIN INVENTORY per hard rule, and 200 text/html alone without content-length/body differentiation insufficient for confidence >=70; needs header/body probe to distinguish HTML login page vs JSON exposure.
-[PARKED] config.teams.microsoft.com / sfdataservice.microsoft.com 503 — no anomaly; gate_ease 3 indicates WAF/edge block, no evidence of IDOR/BOLA/SSRF.
-[FINAL] NONE — no surviving hypotheses >=70 after hard-rule filter; rebuilding inventory is prerequisite.
-
-STEP 5 — NEXT ACTION:
-[NEXT SCAN] Passive CT + light read-only probe to rebuild verifiable inventory (probe_allow: google|microsoft|azure|live|office|bing|msn): 1) curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names" | head -c 5000; 2) curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names" | head -c 5000; 3) curl -s -m 15 -i "https://www.google.com/.well-known/openid-configuration" ; 4) curl -s -m 15 -i "https://login.microsoftonline.com/.well-known/openid-configuration" — persist unique dns_names to inventory/real-subdomains.txt before any deep verify_steps.
-
-STEP 6 — LEARNING:
-[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, only 4 liveness probes on aistudio.google.com 200 vs expected JSON, 0 deep authz probes) — matches KNOWLEDGE BASE 2026-08-27/28/29
-[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 503 on config.teams/sfdataservice, 0 deep authz/IDOR/SSRF probes) — matches KNOWLEDGE BASE 2026-08-27/28/29
-
-STEP 7 — RISK SCORE:
-[RISK] 22 — inventory empty (0 persisted hosts) = low demonstrable exposure; transient anomaly on aistudio.google.com (200 HTML on 4 api/openid paths) suggests potential MISCONFIG but unconfirmed without inventory breadth/depth; overall program surface not probed (0 of 219+127 CT hosts re-validated this cycle).
+STEP 7 — RISK SCORE
+[RISK 15] reason: overall exposure unmeasured this cycle — inventory empty, 0 probes executed, no proven IDOR/SSRF/AUTH exposure; theoretical surface huge (google.com/*.google.com + microsoft.com/*.azure.com + OAuth/JWT/GraphQL/cloud metadata) but no evidence of misconfig, so low current confirmed risk, high prior for breadth scan

@@ -133,3 +133,8 @@
 - (no NEW hypotheses this cycle — all deduped)
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, only 4 liveness probes on aistudio.google.com 200 vs expected JSON, 0 deep a
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 503 on config.teams/sfdataservice, 0 deep authz/IDOR/SSRF probes) — match
+
+## RANKED HYPOTHESES 2026-08-30 13:09:30 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liv
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on
