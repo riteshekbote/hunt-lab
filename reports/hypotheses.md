@@ -279,3 +279,9 @@
 - NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.g
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle) — matches KNOWLEDGE
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on
+
+## RANKED HYPOTHESES 2026-08-31 21:05:23 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.g
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle) — matches KNOWLEDGE
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on
