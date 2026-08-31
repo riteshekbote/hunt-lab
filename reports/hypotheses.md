@@ -251,3 +251,8 @@
 - NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light liveness to rebuild inventory (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn): 1) GET https://crt.sh/?q=%25.googl
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30
+
+## RANKED HYPOTHESES 2026-08-31 07:22:34 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle; only historical liv
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed this cycle; only historical 503 on
