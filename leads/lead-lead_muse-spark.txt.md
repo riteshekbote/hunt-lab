@@ -877,3 +877,10 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 [RISK] 15 — inventory empty, 0 probes executed this cycle, no breadth anomaly data; historical liveness only 200/503 on 3-4 hosts, no GraphQL/OAuth/JWT/upload/admin exposure visible; exposure score low due to lack of evidence, not due to confirmed hardening
+## 2026-09-01 15:06:10 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses to evaluate (inventory empty, confidence threshold 70 not applicable, no REJECTED class to filter).
+[FINAL] NONE — 0 surviving hypotheses re-ranked.
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json 4) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names 5) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names 6) Liveness GET https://www.google.com/ 7) GET https://www.microsoft.com/ 8) GET https://portal.azure.com/ — build inventory before any depth probes.
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
+[RISK] 15 — overall exposure unknown but not proven: program scope large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but inventory empty, 0 deep probes executed, no anomalies/params/APIs observed to estimate real exposure.
