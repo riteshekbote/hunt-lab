@@ -303,3 +303,9 @@
 
 ## RANKED HYPOTHESES 2026-09-01 05:39:47 UTC
 - (no NEW hypotheses this cycle — all deduped)
+
+## RANKED HYPOTHESES 2026-09-01 10:21:18 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Passive CT + light liveness rebuild (read-only, probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.go
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes) — matches KNOWLEDGE BASE 2026-08-27/28/
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes) — matches KNOWLEDGE BASE 2026-08-27/28/29/
