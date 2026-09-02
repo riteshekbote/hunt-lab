@@ -1021,3 +1021,10 @@ reasoning: REAL SUBDOMAIN INVENTORY and LIVE HIGH-VALUE HOSTS empty (ctx.txt:107
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 [RISK] 10 — overall exposure unmeasured: inventory empty, 0 deep probes executed historically; inherent program size large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but observed evidence = 0 signals, so cannot elevate — matches repeated NONE 2026-08-27 to 2026-09-02
+## 2026-09-02 17:02:26 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses emitted to critique
+[FINAL] NONE — 0 surviving hypotheses (inventory empty)
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — dedupe, filter to probe_allow, then liveness GET https://{host}/ with 5s timeout + header capture — rebuild REAL SUBDOMAIN INVENTORY before any deep authz/IDOR/SSRF/OAuth probes. Verify with: cat inventory.txt | wc -l && head -20 inventory.txt
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
+[RISK] 10 — overall exposure unmeasured: inventory empty, 0 deep probes executed historically; inherent program size large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but observed evidence = 0 signals, so cannot elevate — matches repeated NONE 2026-08-27 to 2026-09-02
