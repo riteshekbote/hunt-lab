@@ -1,28 +1,40 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY = none, LIVE HIGH-VALUE HOSTS = none this cycle. Matches KNOWLEDGE BASE 2026-08-27/28/29/30/31 pattern: inventory empty, 0 deep probes. No new/changed surface vs 2026-09-02. Historical CT inventory (219 google / 127 microsoft per 2026-08-29) not repopulated this cycle.
+Inventory empty across both programs — rebuilding passive surface before hypothesising.
+[0m→ [0mRead .
+[0m→ [0mRead inventory
+[0m→ [0mRead scope.yml
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead ctx-targets.md
+[0m→ [0mRead probe-results.md
+[0m→ [0mRead inventory/real-subdomains.txt
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead inventory/google.md
+STEP 1 — DELTA:
+NO_DELTA — inventory empty for 30+ cycles (inventory/real-subdomains.txt:0 lines, inventory/google.md:1 empty, inventory/microsoft.md:1 empty, ctx.txt:107-109). No NEW or CHANGED hosts vs KNOWLEDGE BASE 2026-08-27..2026-09-02. Historical CT inventory (2026-08-29: 219 google + 127 microsoft hosts, ctx.txt:49-50) not persisted; live hosts = none. Last real probes 2026-08-29/30: aistudio.google.com 200 text/html (probe-results.md:64-67) and config.teams.microsoft.com/sfdataservice.microsoft.com 503 (probe-results.md:68-74) — now stale, no deep authz/IDOR/SSRF/OAuth probes since. Scope mismatch: prompt template lists 5 email-only targets (duocircle|emsisoft|docker|posit|coxautomotive) but authoritative scope.yml:1-16 is google|microsoft (probe_allow: google|microsoft|azure|live|office|bing|msn) — using authoritative scope.
 
-STEP 2 — PRIORITIZE
-[PRIO google] google.com — priority 6.65 — attack:8 business:10 tech:7 gate:3 cloud:7 fresh:1 = 0.25*8+0.25*10+0.15*7+0.15*3+0.10*7+0.10*1
-[PRIO microsoft] microsoft.com — priority 6.80 — attack:8 business:10 tech:7 gate:3 cloud:8 fresh:2 = 0.25*8+0.25*10+0.15*7+0.15*3+0.10*8+0.10*2
-[PRIO microsoft] *.azure.com / portal.azure.com — priority 7.00 — attack:9 business:10 tech:8 gate:2 cloud:9 fresh:2 = 0.25*9+0.25*10+0.15*8+0.15*2+0.10*9+0.10*2
-Note: No live hosts to score deeper this cycle; scores are apex/lineage baseline only — inventory rebuild required per probe_allow google|microsoft|azure|live|office|bing|msn.
+STEP 2 — PRIORITIZE:
+No scorable assets — REAL SUBDOMAIN INVENTORY empty and LIVE HIGH-VALUE HOSTS = none (ctx.txt:107-109).
+[PRIO google] SKIPPED: inventory empty — cannot compute priority = 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh (inventory/real-subdomains.txt:0)
+[PRIO microsoft] SKIPPED: inventory empty — cannot compute priority (inventory/microsoft.md:60 lines all empty headers)
+If inventory restored, historical high-value candidates would be aistudio.google.com (attack_surface high, tech_exposure GraphQL/API) and login.microsoftonline.com/portal.azure.com/config.teams.microsoft.com (business_value high, cloud_surface high) but unverified this cycle.
 
-STEP 3 — HYPOTHESES
-[HYP NONE] — no valid asset in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis per HARD RULE. Inventing hostname prohibited. 0 hypotheses emitted.
+STEP 3 — HYPOTHESES:
+[HYP NONE]
+reasoning: REAL SUBDOMAIN INVENTORY and LIVE HIGH-VALUE HOSTS empty (ctx.txt:107-109, inventory/real-subdomains.txt:0). Hard rule forbids inventing hostname not in inventory. No asset from google.com / *.google.com / microsoft.com / *.microsoft.com / *.azure.com qualifies for high-value IDOR/SSRF/OAuth/BOLA hypothesis this cycle. 0 deep probes executed 2026-08-27..2026-09-02 per KNOWLEDGE BASE.
 
-STEP 4 — SELF-CRITIQUE
-[PARKED] none — no hypotheses to drop (HYP NONE).
-[FINAL] none — 0 surviving hypotheses. All prior cycles similarly NONE due to insufficient evidence / 0 deep authz/IDOR/SSRF/OAuth probes.
+STEP 4 — SELF-CRITIQUE:
+[PARKED] All hypothetical IDOR/SSRF/OAuth on aistudio.google.com or config.teams.microsoft.com: dropped — confidence <70, would invent asset not in current inventory (ctx.txt:107-109 empty), violates HARD RULE, and no verify_steps without concrete host.
+[FINAL] NONE — no surviving hypotheses this cycle after strict inventory check; re-rank empty.
 
-STEP 5 — NEXT ACTION
-[NEXT SCAN] Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json 4) GET https://crt.sh/?q=%25.live.com&output=json — dedupe, filter to probe_allow, then HEAD/GET liveness on top-20 by freshness (no intrusive scans). Re-populate REAL SUBDOMAIN INVENTORY for next cycle depth.
+STEP 5 — NEXT ACTION:
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json -> dedupe dns_names, write to inventory/real-subdomains.txt 4) Light liveness only (GET https://www.google.com/ , GET https://accounts.google.com/.well-known/openid-configuration , GET https://www.microsoft.com/ , GET https://login.microsoftonline.com/.well-known/openid-configuration , GET https://portal.azure.com/) — no intrusive scans, no brute force, no authz bypass attempts. Purpose: rebuild inventory that yielded 219+127 hosts on 2026-08-29 (ctx.txt:49-50) before any deep authz probes.
 
-STEP 6 — LEARNING
-[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
-[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
+STEP 6 — LEARNING:
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31 (ctx.txt:105)
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31 (ctx.txt:106)
 
-STEP 7 — RISK SCORE
-[RISK] 10 — inventory empty, 0 deep probes, only historical liveness (www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com). No exposure signal; risk reflects unknown surface, not confirmed exploitability.
+STEP 7 — RISK SCORE:
+[RISK] 5 — overall exposure minimal this cycle: inventory empty, 0 probes, 0 anomalies detected; historical surface (Google/Microsoft bounty) is large but unmeasured without CT rebuild; no evidence of exploitable exposure.
