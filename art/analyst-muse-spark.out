@@ -2,27 +2,25 @@
 > build · muse-spark-1.2-contributor-free
 [0m
 STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none, KNOWLEDGE BASE unchanged (NONE @ google/microsoft insufficient evidence 0 deep probes since 2026-08-27 matches 2026-08-27/28/29/30/31), LAST LEADS none. No NEW/CHANGED hosts vs prior cycle.
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS = none (0 hosts) — unchanged vs KNOWLEDGE BASE 2026-08-27..2026-09-02 (inventory empty, 0 probes executed). Last leads tail = none. No new/changed surface to diff.
 
 STEP 2 — PRIORITIZE
-No inventory hosts to score — inventory empty, 0 probes executed historically; deferred until SCAN rebuilds. Theoretical root-scope fallback only (not inventory-derived, not for HYP):
-[PRIO google] google.com score 7.1 — attack_surface:8 business_value:10 tech_exposure:6 gate_ease:7 cloud_surface:6 freshness:0 — calc 0.25*8+0.25*10+0.15*6+0.15*7+0.10*6+0.10*0=7.05
-[PRIO microsoft] microsoft.com score 7.4 — attack_surface:8 business_value:10 tech_exposure:7 gate_ease:7 cloud_surface:8 freshness:0 — calc 0.25*8+0.25*10+0.15*7+0.15*7+0.10*8+0.10*0=7.40
-Note: freshness 0 due to empty CT inventory; prioritization blocked until passive CT rebuild.
+[PRIO google] NO_ASSETS — inventory empty, 0 hosts to score — cannot compute attack/business/tech/gate/cloud/fresh — matches KB 2026-08-27/28/29/30/31 + 2026-09-02
+[PRIO microsoft] NO_ASSETS — inventory empty, 0 hosts to score — cannot compute — same KB lineage
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — inventory empty, LIVE HIGH-VALUE HOSTS none, no host in REAL SUBDOMAIN INVENTORY merits hypothesis per hard rule; inventing host would be auto-dropped. 0 IDOR/SSRF/OAuth probes executed this cycle to support any class.
+[HYP NONE] — asset MUST be from REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS per HARD RULE; both sections empty/none; inventing host would be auto-dropped. 0 deep authz/IDOR/SSRF/OAuth probes executed to date.
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] none to park — [HYP NONE] correctly emitted, no confidence <70, no REJECTED class violation, no concrete verify_steps possible without inventory host.
-[FINAL] none — no surviving hypotheses; re-rank deferred pending SCAN inventory rebuild.
+[PARKED] NONE — no hypotheses emitted to critique
+[FINAL] NONE — 0 surviving hypotheses (inventory empty)
 
 STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow google|microsoft|azure|live|office|bing|msn per scope): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json 4) liveness only on top-20 CT hosts: GET https://<host> / HEAD with probe_allow filter, record status/content-type only, no deep authz probes this cycle.
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — dedupe, filter to probe_allow, then liveness GET https://{host}/ with 5s timeout + header capture — rebuild REAL SUBDOMAIN INVENTORY before any deep authz/IDOR/SSRF/OAuth probes. Verify with: cat inventory.txt | wc -l && head -20 inventory.txt
 
 STEP 6 — LEARNING
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27/28/29/30/31
 
 STEP 7 — RISK SCORE
-[RISK] 5 reason: overall program exposure high-value (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but effective tested surface 0 — empty inventory, 0 deep probes, no verified auth/IDOR/SSRF primitives; risk reflects untested attack surface, not confirmed exploitability. Scope boundary probe_allow google|microsoft|azure|live|office|bing|msn enforced.
+[RISK] 10 — overall exposure unmeasured: inventory empty, 0 deep probes executed historically; inherent program size large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but observed evidence = 0 signals, so cannot elevate — matches repeated NONE 2026-08-27 to 2026-09-02
