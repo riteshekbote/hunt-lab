@@ -1077,3 +1077,10 @@ reasoning: REAL SUBDOMAIN INVENTORY and LIVE HIGH-VALUE HOSTS empty (ctx.txt:107
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-03
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-03
 [RISK] 5 — overall exposure unverified: inventory empty, 0 high-value hosts probed, 0 deep authz/SSRF/JWT/OAuth tests executed across all cycles; no anomaly signals to raise risk.
+## 2026-09-03 04:53:34 UTC (model muse-spark)
+[PARKED] all potential hypotheses: no concrete asset in inventory, confidence <70 implied, no verify_steps possible without inventing hostname — dropped per hard rule.
+[FINAL] none surviving — re-rank empty.
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, probe_allow: google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json -> dedupe -> filter probe_allow -> light liveness: GET https://www.google.com/ (expect 200/301), GET https://accounts.google.com/ (expect 302/200), GET https://www.microsoft.com/ (expect 200), GET https://login.microsoftonline.com/ (expect 200/302), GET https://portal.azure.com/ (expect 302/200) — record status/headers/body-size only, no intrusive probes.
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-03
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-03
+[RISK] 5 — overall exposure unverified: inventory empty, 0 high-value hosts probed, 0 deep authz/SSRF/JWT/OAuth tests executed across all cycles; no anomaly signals to raise risk.
