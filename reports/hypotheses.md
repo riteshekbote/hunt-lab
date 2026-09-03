@@ -480,3 +480,8 @@
 - (no NEW hypotheses this cycle — all deduped)
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-
+
+## RANKED HYPOTHESES 2026-09-03 17:14:57 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-
