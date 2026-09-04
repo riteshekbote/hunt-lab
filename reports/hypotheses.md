@@ -537,3 +537,9 @@
 - LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-
 - LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-
 - LEARN: SCOPE_MISMATCH — directive template references 5 targets duocircle/emsisoft/docker/posit/coxautomotive vs actual SCOPE header google/microsoft bounty (probe_all
+
+## RANKED HYPOTHESES 2026-09-04 09:36:08 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-
+- LEARN: NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-
+- LEARN: SCOPE_MISMATCH — directive template references 5 targets duocircle/emsisoft/docker/posit/coxautomotive vs actual SCOPE header google/microsoft bounty (probe_all
