@@ -1264,3 +1264,11 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
 [LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn
 [RISK] 10 — inventory empty, 0 deep probes executed, no tech exposure validated; overall exposure unmeasured but no evidence of high-risk surface yet — low confidence due to lack of inventory
+## 2026-09-04 18:10:21 UTC (model muse-spark)
+[PARKED] ALL — no hypotheses generated: inventory empty, cannot meet confidence >=70 or concrete verify_steps without inventing host
+[FINAL] NONE — 0 surviving hypotheses re-ranked
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — dedupe hosts, filter probe_allow, then liveness only: GET https://www.google.com/ , GET https://accounts.google.com/.well-known/openid-configuration , GET https://www.microsoft.com/ , GET https://login.microsoftonline.com/.well-known/openid-configuration — record status/headers/content-type only, no deep authz until inventory built
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
+[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn
+[RISK] 10 — inventory empty, 0 deep probes executed, no tech exposure validated; overall exposure unmeasured but no evidence of high-risk surface yet — low confidence due to lack of inventory
