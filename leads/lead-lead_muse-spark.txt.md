@@ -1288,3 +1288,10 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
 [LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn
 [RISK] 15 — inventory empty, 0 deep probes executed, no tech_exposure/cloud_surface visible; exposure unassessable not low-risk. Historical 200/503 liveness only, no authz/SSRF/JWT/OAuth testing. Risk reflects lack of visibility, not confirmed security posture.
+## 2026-09-04 22:49:11 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses to evaluate (HYP NONE)
+[FINAL] NONE — 0 surviving hypotheses — insufficient evidence per KB 2026-08-27 through 2026-09-04 — 0 deep authz/IDOR/SSRF/OAuth probes executed.
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
+[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn
+[RISK] 10 — inventory empty, 0 deep probes, no verified attack surface — overall exposure unmeasurable, defaults low until passive CT inventory + liveness rebuild completes.
