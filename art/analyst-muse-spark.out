@@ -2,24 +2,30 @@
 > build · muse-spark-1.2-contributor-free
 [0m
 STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none; matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04 (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes). No NEW/CHANGED surface vs 2026-09-04 snapshot.
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none this cycle. No NEW/CHANGED vs KNOWLEDGE BASE 2026-08-27 through 2026-09-04. Historical liveness only: www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com/aistudio.google.com/config.teams.microsoft.com/sfdataservice.microsoft.com (200/503 per KB 2026-08-29/30) — not current inventory, pending rebuild.
 
 STEP 2 — PRIORITIZE
-No live inventory to score — cannot compute priority. Historical liveness only: www.google.com/accounts.google.com, www.microsoft.com/login.microsoftonline.com/portal.azure.com (all previous cycles 200/503, no deep probes). No [PRIO google]/[PRIO microsoft] asset qualifies per inventory; breadth pass over full current inventory yields 0 anomalies (no params, no /api/v1|v2|beta|internal, no GraphQL/swagger exposure observed). Inventory rebuild required before scoring.
+No current inventory to score. Pending CT rebuild, historical liveness candidates scored for queuing (not in REAL INVENTORY, not hypothesis-eligible):
+[PRIO google] asset: www.google.com — score: 6.25 [attack:5 business:9 tech:3 gate:10 cloud:2 fresh:1] calc:0.25*5+0.25*9+0.15*3+0.15*10+0.10*2+0.10*1=6.25
+[PRIO google] asset: accounts.google.com — score: 7.05 [attack:6 business:10 tech:5 gate:8 cloud:2 fresh:1] calc:0.25*6+0.25*10+0.15*5+0.15*8+0.10*2+0.10*1=7.05
+[PRIO microsoft] asset: login.microsoftonline.com — score: 7.05 [attack:6 business:10 tech:5 gate:8 cloud:3 fresh:1] calc:7.15? 0.25*6+0.25*10+0.15*5+0.15*8+0.10*3+0.10*1=7.15
+[PRIO microsoft] asset: portal.azure.com — score: 6.60 [attack:6 business:9 tech:4 gate:7 cloud:5 fresh:1] calc:6.60
+Note: scores provisional; no asset qualifies for HYP until CT inventory confirms — breadth pass required.
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis; inventing hostname would violate HARD RULE (asset MUST be from inventory). 0/3 hypotheses emitted this cycle.
+[HYP NONE] — no hypothesis eligible: REAL SUBDOMAIN INVENTORY empty and LIVE HIGH-VALUE HOSTS none. Inventing hostname violates HARD RULE (asset must be from inventory). No deep authz/IDOR/SSRF/OAuth probes executed per KB 2026-08-27 through 2026-09-04, insufficient evidence for any class.
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses generated to critique; confidence threshold 70 not applicable; no class on REJECTED list (KNOWLEDGE BASE only NONE).
-[FINAL] NONE — 0 surviving hypotheses re-ranked.
+[PARKED] NONE — no hypotheses generated to critique; confidence threshold 70 not met for any synthetic target (inventory empty).
+[FINAL] NONE — 0 surviving hypotheses. Re-rank: empty. Reason: HARD RULE blocks invention; pending inventory rebuild.
 
 STEP 5 — NEXT ACTION
-[NEXT SCAN] Passive CT + light liveness rebuild (read-only, probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json -> dedupe -> HEAD/GET liveness (no auth) on top 20 by freshness: GET https://<host>/ with Accept probing for swagger/openapi/.well-known/openid-configuration, headers only; exact requests to be executed next cycle.
+[NEXT SCAN]: Passive CT + light liveness rebuild (read-only, probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16): 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json 4) dedup hosts, filter probe_allow regex 5) HEAD https://<host> + GET https://<host>/.well-known/openid-configuration + GET https://<host>/swagger.json + GET https://<host>/api/v1/health — top 20 by freshness, record status/content-type/server headers for anomaly detection (versioned APIs /api/v1|v2|beta|internal, param names id/uid/email, JWT/OAuth exposure).
 
 STEP 6 — LEARNING
 [LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
+[LEARN] SCOPE_MISMATCH — directive template references 5 targets duocircle/emsisoft/docker/posit/coxautomotive vs actual SCOPE header google/microsoft bounty (probe_allow google|microsoft|azure|live|office|bing|msn) — treat header as authoritative, stay within google|microsoft|azure|live|office|bing|msn.
 
 STEP 7 — RISK SCORE
-[RISK 15] low verifiable exposure this cycle due to empty inventory and 0 deep probes; theoretical surface huge (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) but no evidence of misconfig/authz/SSRF until CT rebuild+probes executed.
+[RISK] 15 — inventory empty + 0 deep probes = low verified exposure this cycle, but underlying program surface huge (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com + github orgs google/microsoft) => latent high-value classes (AUTH/IDOR/SSRF/OAuth) untested; risk is uncertainty, not confirmed vuln.
