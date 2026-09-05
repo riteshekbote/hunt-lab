@@ -98,3 +98,4 @@
 - 2026-09-05 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:127
 - 2026-09-05 SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced
 - 2026-09-05 SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced
+- 2026-09-05 SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:128

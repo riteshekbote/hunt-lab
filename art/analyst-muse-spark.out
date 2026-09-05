@@ -1,28 +1,38 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA:
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none — no change vs KNOWLEDGE BASE 2026-08-27 through 2026-09-05; last liveness only historical www.google.com/accounts.google.com / www.microsoft.com/login.microsoftonline.com/portal.azure.com, 0 deep probes this cycle
+Inventory zeroed and scope split detected — building the no-delta assessment and next passive scan.
+[0m→ [0mRead .
+[0m→ [0mRead inventory
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead scope.yml
+[0m→ [0mRead ctx-targets.md
+[0m→ [0mRead inventory/real-subdomains.txt
+[0m→ [0mRead inventory/google.md
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead analyst-prompt.txt
+[0m→ [0mRead analyst-out.txt
+STEP 1 — DELTA
+NO_DELTA — inventory/real-subdomains.txt:0 lines empty, inventory/google.md:104 empty, inventory/microsoft.md:104 empty, LIVE HIGH-VALUE HOSTS none per ctx.txt:136-138. No NEW/CHANGED surface vs ctx.txt:126-135. SCOPE_MISMATCH persists (directive template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft per scope.yml:16 probe_allow google|microsoft|azure|live|office|bing|msn) — not new, already logged ctx.txt:123-135.
 
-STEP 2 — PRIORITIZE:
-[PRIO google] NO_ASSET — priority 0.0 — attack_surface:0 business_value:0 tech_exposure:0 gate_ease:0 cloud_surface:0 freshness:0 — priority=0.25*0+0.25*0+0.15*0+0.15*0+0.10*0+0.10*0 — inventory empty, cannot score
-[PRIO microsoft] NO_ASSET — priority 0.0 — attack_surface:0 business_value:0 tech_exposure:0 gate_ease:0 cloud_surface:0 freshness:0 — priority=0.25*0+0.25*0+0.15*0+0.15*0+0.10*0+0.10*0 — inventory empty, cannot score
+STEP 2 — PRIORITIZE
+[PRIO google] NO_ASSETS score 0.0 — attack_surface 0 business_value 0 tech_exposure 0 gate_ease 0 cloud_surface 0 freshness 0 | reason: REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — cannot compute priority — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:126-132
+[PRIO microsoft] NO_ASSETS score 0.0 — attack_surface 0 business_value 0 tech_exposure 0 gate_ease 0 cloud_surface 0 freshness 0 | reason: REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — cannot compute priority — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:126-132
 
-STEP 3 — HYPOTHESES:
-[HYP google] NONE
-[HYP microsoft] NONE
+STEP 3 — HYPOTHESES
+[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to hypothesize on per ctx.txt:136-138; inventing hostname violates HARD RULE; historical CT inventory 219 google /127 microsoft per ctx.txt:49-50 not present in current inventory, 0 deep authz/IDOR/SSRF/OAuth probes executed.
 
-STEP 4 — SELF-CRITIQUE:
-[PARKED] NONE — no hypotheses generated to critique (inventory empty, no concrete verify_steps possible, confidence <70 threshold not met)
-[FINAL] NONE — 0 survivors — inventory empty, cannot construct asset-bound hypothesis without inventing host (prohibited)
+STEP 4 — SELF-CRITIQUE
+[PARKED] none — no hypotheses generated to park; HYP NONE not parkable
+[FINAL] none — 0 surviving hypotheses (inventory empty, confidence n/a, verify_steps n/a)
 
-STEP 5 — NEXT ACTION:
-[NEXT SCAN]: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope) — 1) GET https://crt.sh/?q=google.com&output=json 2) GET https://crt.sh/?q=microsoft.com&output=json 3) GET https://crt.sh/?q=%.google.com&output=json 4) GET https://crt.sh/?q=%.microsoft.com&output=json 5) HEAD/GET liveness on top-20 unique hosts only, no params/body, observe status/content-type for anomalies (/api/v1|v2|beta|internal, swagger/openapi, id/uid/email params)
+STEP 5 — NEXT ACTION
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — dedupe, filter probe_allow, then HEAD liveness top 20 by freshness (no auth) — expected 200/301 vs actual — next PROBE will enumerate api/beta/internal/swagger/GraphQL/OAuth params.
 
-STEP 6 — LEARNING:
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05
-[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced
+STEP 6 — LEARNING
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:126
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:127
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:128
 
-STEP 7 — RISK SCORE:
-[RISK] 5 — overall exposure unmeasurable: inventory empty, 0 deep probes executed, no GraphQL/OAuth/JWT/upload/admin surface observed; risk low until CT inventory rebuilt
+STEP 7 — RISK SCORE
+[RISK] 12 — overall exposure low despite high-value bounty programs (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) because REAL SUBDOMAIN INVENTORY empty and 0 deep probes; historical liveness only (www.google.com/accounts.google.com, www.microsoft.com/login.microsoftonline.com/portal.azure.com) 200/503 per ctx.txt:47-54; no evidence of exploitable surface, risk = unknown due to lack of inventory, not low due to hardening.
