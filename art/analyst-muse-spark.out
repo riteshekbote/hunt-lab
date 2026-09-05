@@ -1,28 +1,36 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
+Empty inventory and scope mismatch detected — rebuilding hypotheses against authoritative Google/Microsoft scope.
+[0m→ [0mRead .
+[0m→ [0mRead inventory
+[0m→ [0mRead scope.yml
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead analyst-prompt.txt
+[0m→ [0mRead inventory/real-subdomains.txt
+[0m→ [0mRead state_muse-spark.json
+[0m→ [0mRead inventory/google.md
+[0m→ [0mRead inventory/microsoft.md
 STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04. No NEW hosts vs last leads (tail: none). SCOPE_MISMATCH persists (directive template duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft) — not NEW, header authoritative per KB 2026-09-04, probe_allow=google|microsoft|azure|live|office|bing|msn.
+NO_DELTA — ctx.txt:129 REAL SUBDOMAIN INVENTORY empty, ctx.txt:130-131 LIVE HIGH-VALUE HOSTS none, inventory/real-subdomains.txt 0 lines, inventory/google.md 98 empty headings, inventory/microsoft.md 98 empty headings, no NEW/CHANGED vs last leads none and knowledge 2026-08-27 through 2026-09-05. SCOPE_MISMATCH persists: directive template 5-target mention duocircle/emsisoft/docker/posit/coxautomotive vs header authoritative google/microsoft per scope.yml:16 probe_allow google|microsoft|azure|live|office|bing|msn — no new surface to add under probe_allow.
 
 STEP 2 — PRIORITIZE
-[PRIO google] NO_ASSET — inventory empty, LIVE hosts none — cannot score — priority 0 =0.25*0+0.25*0+0.15*0+0.15*0+0.10*0+0.10*0 (attack:0/business:0/tech:0/gate:0/cloud:0/fresh:0)
-[PRIO microsoft] NO_ASSET — inventory empty, LIVE hosts none — cannot score — priority 0 =0.25*0+0.25*0+0.15*0+0.15*0+0.10*0+0.10*0
-Note: full breadth pass deferred until CT inventory rebuilt — filtered strictly by probe_allow google|microsoft|azure|live|office|bing|msn.
+[PRIO google] NONE — inventory empty, no asset to score — attack:0 business:0 tech:0 gate:0 cloud:0 fresh:0 priority=0.00 — real-subdomains.txt empty, LIVE none, cannot compute (scope.yml:7 *.google.com)
+[PRIO microsoft] NONE — inventory empty, no asset to score — attack:0 business:0 tech:0 gate:0 cloud:0 fresh:0 priority=0.00 — real-subdomains.txt empty, LIVE none, cannot compute (scope.yml:14 *.microsoft.com/*.azure.com)
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — asset MUST be from REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS — both empty — inventing hostname is FAILURE — no hypothesis emitted.
+[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY (ctx.txt:129 empty) or LIVE HIGH-VALUE HOSTS (ctx.txt:131 none) meets HARD RULE; inventing hostname is FAILURE; 0 deep authz/IDOR/SSRF/OAuth probes historically per knowledge 2026-08-27 through 2026-09-05
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses to evaluate (HYP NONE)
-[FINAL] NONE — 0 surviving hypotheses — insufficient evidence per KB 2026-08-27 through 2026-09-04 — 0 deep authz/IDOR/SSRF/OAuth probes executed.
+[FINAL] NONE — no surviving hypotheses (inventory empty, [HYP NONE] only)
 
 STEP 5 — NEXT ACTION
-[NEXT SCAN] Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — dedup+filter by probe_allow regex, then liveness only: HEAD https://<host>/ + GET https://<host>/.well-known/openid-configuration + GET https://<host>/swagger.json — top 20 hosts only, no intrusive params.
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%.google.com&output=json 2) GET https://crt.sh/?q=%.microsoft.com&output=json 3) GET https://crt.sh/?q=%.azure.com&output=json 4) Light liveness only on discovered hosts: GET https://<host> with HEAD fallback, record status/server/tech, no authz/IDOR/SSRF injection this cycle
 
 STEP 6 — LEARNING
-[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
-[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04
-[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn
+[LEARN] NONE — no class ACCEPTED/REJECTED @ google: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04 ctx.txt:126
+[LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04 ctx.txt:127
+[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn ctx.txt:128
 
 STEP 7 — RISK SCORE
-[RISK] 10 — inventory empty, 0 deep probes, no verified attack surface — overall exposure unmeasurable, defaults low until passive CT inventory + liveness rebuild completes.
+[RISK] 15 — inventory empty (0 hosts) and 0 deep probes executed 2026-08-27 through 2026-09-05 so verifiable exposure is minimal; program scope itself is massive (google.com/*.google.com + microsoft.com/*.microsoft.com/*.azure.com) but unprobed — no evidence of HIGH-VALUE classes (AUTH/IDOR/SSRF/OAuth) to raise score above low until CT rebuild succeeds
