@@ -1316,3 +1316,26 @@ testability: PASSIVE
 [LEARN] NONE — no class ACCEPTED/REJECTED @ microsoft: insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-04 ctx.txt:127
 [LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow enforced google|microsoft|azure|live|office|bing|msn ctx.txt:128
 [RISK] 15 — inventory empty (0 hosts) and 0 deep probes executed 2026-08-27 through 2026-09-05 so verifiable exposure is minimal; program scope itself is massive (google.com/*.google.com + microsoft.com/*.microsoft.com/*.azure.com) but unprobed — no evidence of HIGH-VALUE classes (AUTH/IDOR/SSRF/OAuth) to raise score above low until CT rebuild succeeds
+## 2026-09-05 05:19:24 UTC (model muse-spark)
+class: NONE
+asset: none — REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS empty, inventing hostname violates HARD RULE
+confidence: 0
+reasoning: inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed 2026-08-27 through 2026-09-05; no odd status codes/param names/versioned APIs to rank
+evidence_needed: passive CT inventory rebuild + light liveness required first
+verify_steps: none — no asset to probe passively
+impact: none
+testability: PASSIVE
+class: NONE
+asset: none — same reason, no host in inventory
+confidence: 0
+reasoning: same as google — insufficient evidence, 0 deep probes, LIVE HIGH-VALUE HOSTS = none
+evidence_needed: passive CT inventory rebuild + light liveness
+verify_steps: none — no asset to probe
+impact: none
+testability: PASSIVE
+[FINAL] no surviving hypotheses — 0/2 pass threshold, re-ranked list empty. All prior cycles correctly returned NONE per KB.
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn) — 1) GET https://crt.sh/?q=google.com&output=json 2) GET https://crt.sh/?q=microsoft.com&output=json 3) GET https://crt.sh/?q=azure.com&output=json 4) GET https://crt.sh/?q=live.com&output=json — then HEAD/GET liveness only on discovered hosts matching probe_allow, check for anomalies (GraphQL /graphql, OAuth /authorize?redirect_uri=, /api/v1|v2|beta|internal, swagger/openapi.json, interesting params id/uid/email/user_id) then emit top-3 PROBE in next cycle
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:126
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-05 ctx.txt:127
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced
+[RISK] 10 — inventory empty, 0 deep probes, surface unmeasured since 2026-08-27, no live high-value hosts to assess; inherent exposure of bounty programs google/microsoft high but verified evidence = none, risk is uncertainty not confirmed vuln
