@@ -1570,3 +1570,11 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 [RISK] 5 — overall exposure indeterminable: inventory empty 0 hosts, 0 deep probes across all cycles; no tech stack / auth flow / cloud surface visible to score — breadth pass blocked until CT rebuild
+## 2026-09-06 15:39:36 UTC (model muse-spark)
+[PARKED] n/a — no hypotheses generated (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed — cannot meet confidence >=70 or concrete verify_steps without host)
+[FINAL] NONE
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%.google.com&output=json 2) GET https://crt.sh/?q=%.microsoft.com&output=json 3) GET https://crt.sh/?q=%.azure.com&output=json 4) HEAD https://www.google.com/ + HEAD https://accounts.google.com/ 5) HEAD https://www.microsoft.com/ + HEAD https://login.microsoftonline.com/ + HEAD https://portal.azure.com/ — dedupe, liveness only, no intrusive probes
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
+[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[RISK] 5 — inventory empty, LIVE HIGH-VALUE HOSTS none, 0 deep probes executed; exposure unmeasured not low-risk — requires passive CT rebuild before risk can be scored higher
