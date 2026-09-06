@@ -1586,3 +1586,9 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
 [LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 [RISK] 5 — inventory empty, LIVE HIGH-VALUE HOSTS none, 0 deep probes executed; exposure unmeasured not low-risk — requires passive CT rebuild before risk can be scored higher
+## 2026-09-06 18:05:22 UTC (model muse-spark)
+[PARKED] NONE: no hypotheses generated to park — confidence threshold 70 not applicable, no REJECTED class evaluation needed, no verify_steps to validate.
+[FINAL] NONE — no surviving hypotheses re-ranked; inventory rebuild required before hypothesis generation.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:132
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:133
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:136

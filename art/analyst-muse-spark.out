@@ -1,19 +1,27 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-NO_DELTA
-[PRIO google] no-live-hosts — inventory empty, no scoring possible — awaiting passive CT rebuild | attack_surface:0 business_value:0 tech_exposure:0 gate_ease:0 cloud_surface:0 freshness:0 => priority:0.0
-[PRIO microsoft] no-live-hosts — inventory empty, no scoring possible — awaiting passive CT rebuild | attack_surface:0 business_value:0 tech_exposure:0 gate_ease:0 cloud_surface:0 freshness:0 => priority:0.0
+STEP 1 — DELTA
+NO_DELTA @ google, microsoft: REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none — no NEW/CHANGED vs 2026-09-06 17:20:56 UTC — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06. SCOPE_MISMATCH persists: directive template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative per scope.yml:16 probe_allow google|microsoft|azure|live|office|bing|msn enforced.
 
+STEP 2 — PRIORITIZE
+NO_PRIOS: inventory empty → 0 assets to score. No attack_surface/business_value/tech_exposure/gate_ease/cloud_surface/freshness calculable. Cannot emit [PRIO google]/[PRIO microsoft] without inventing host — HARD RULE prohibits. Top SCOPE roots (google.com, microsoft.com) exist in scope.yml but not in REAL INVENTORY/LIVE HOSTS, therefore not scorable this cycle. Requires SCAN to rebuild inventory first.
+
+STEP 3 — HYPOTHESES
 [HYP NONE]
+reason: inventory empty, 0 hosts in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS — no asset meets HARD RULE (must be from inventory). 0 deep authz/IDOR/SSRF/OAuth probes executed historically; only historical liveness on www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com — insufficient evidence for any class per ctx.txt:132-133. Inventing hostname would be auto-dropped.
 
-[PARKED] n/a — no hypotheses generated (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed — cannot meet confidence >=70 or concrete verify_steps without host)
-[FINAL] NONE
+STEP 4 — SELF-CRITIQUE
+[PARKED] NONE: no hypotheses generated to park — confidence threshold 70 not applicable, no REJECTED class evaluation needed, no verify_steps to validate.
+[FINAL] NONE — no surviving hypotheses re-ranked; inventory rebuild required before hypothesis generation.
 
-[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%.google.com&output=json 2) GET https://crt.sh/?q=%.microsoft.com&output=json 3) GET https://crt.sh/?q=%.azure.com&output=json 4) HEAD https://www.google.com/ + HEAD https://accounts.google.com/ 5) HEAD https://www.microsoft.com/ + HEAD https://login.microsoftonline.com/ + HEAD https://portal.azure.com/ — dedupe, liveness only, no intrusive probes
+STEP 5 — NEXT ACTION
+[NEXT SCAN]: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn per scope.yml:16) — 1) GET https://crt.sh/?q=%.google.com&output=json 2) GET https://crt.sh/?q=%.microsoft.com&output=json 3) GET https://crt.sh/?q=%.azure.com&output=json 4) HEAD https://www.google.com/ 5) HEAD https://accounts.google.com/ 6) HEAD https://www.microsoft.com/ 7) HEAD https://login.microsoftonline.com/ 8) HEAD https://portal.azure.com/ — deduplicate, filter to probe_allow, then liveness only (no intrusive params). Next cycle: breadth pass for anomalies (id/uid/email/user_id, /api/v1|v2|beta|internal, swagger/openapi, admin/upload) then depth on top-3.
 
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
-[LEARN] SCOPE_MISMATCH @ directive-template: template references duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+STEP 6 — LEARNING
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:132
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:133
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:136
 
-[RISK] 5 — inventory empty, LIVE HIGH-VALUE HOSTS none, 0 deep probes executed; exposure unmeasured not low-risk — requires passive CT rebuild before risk can be scored higher
+STEP 7 — RISK SCORE
+[RISK 10] overall exposure unmeasurable — inventory empty, 0 deep probes, only historical liveness (200 text/html vs expected JSON on aistudio.google.com, 503 on config.teams.microsoft.com/sfdataservice.microsoft.com). No evidence of auth/GraphQL/JWT/upload/cloud metadata surface; cannot assess business logic/IDOR/SSRF risk without inventory rebuild.
