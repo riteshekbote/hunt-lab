@@ -1,5 +1,16 @@
-## 2026-09-06 22:14:12 UTC (model muse-spark)
+## 2026-09-07 00:12:21 UTC (model muse-spark)
+class: NONE
+asset: none
+confidence: 0
+reasoning: REAL SUBDOMAIN INVENTORY none + LIVE HIGH-VALUE HOSTS none — 0 deep authz/IDOR/SSRF/OAuth probes historically per ctx.txt:132-133 — inventing host violates HARD RULE
+evidence_needed: passive CT inventory rebuild + light liveness to identify candidate hosts before hypothesis
+verify_steps: SCAN first — GET https://crt.sh/?q=%25.google.com&output=json ; GET https://crt.sh/?q=%25.microsoft.com&output=json ; then HEAD liveness on www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com
+impact: none — insufficient evidence to claim severity
+testability: PASSIVE
+[PARKED] NONE — no hypotheses generated due empty inventory; confidence 0 <70 threshold, no verify_steps on real asset — dropped per rule
+[FINAL] NONE — 0 surviving hypotheses re-ranked; matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
+[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn) — 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — parse unique name_value -> dedup -> HEAD https://www.google.com/ + GET https://www.google.com/robots.txt + HEAD https://accounts.google.com/ + HEAD https://www.microsoft.com/ + HEAD https://login.microsoftonline.com/ + HEAD https://portal.azure.com/ — record status, server, content-type, interesting params/versioned APIs/swagger
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:132
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:133
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:136
-[RISK] 10 — overall exposure unmeasurable: inventory empty, 0 deep probes, only historical 200/503 liveness; no authz/SSRF/JWT/OAuth surface validated this cycle.
+[RISK] 10 — overall exposure unknown due inventory empty, 0 probes executed; no evidence of high-value exposure, but inability to assess attack_surface/tech_exposure/cloud_surface without CT rebuild — low verifiable risk, high uncertainty

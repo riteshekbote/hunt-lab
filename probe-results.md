@@ -410,3 +410,7 @@ https://<host>/ -> ERR <urlopen error [Errno -2] Name or service not know
 
 ## 2026-09-06 23:10:42 UTC
 
+
+## 2026-09-07 00:12:31 UTC
+https://crt.sh/?q=%25.google.com&output=json -> HTTP 502
+https://crt.sh/?q=%25.microsoft.com&output=json -> HTTP 502
