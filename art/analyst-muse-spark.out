@@ -1,30 +1,43 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none. vs KNOWLEDGE BASE 2026-08-27 through 2026-09-07: matches historical NONE (0 probes, inventory empty). CHANGED probe infra: crt.sh 502 on %25.google.com and %25.microsoft.com at 2026-09-07 00:12/00:59 (transient CT failure, no new hosts ingested). SCOPE_MISMATCH: directive template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced.
+STEP 1 — DELTA:
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle. Matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07 (crt.sh 502 on 2026-09-07 00:12/00:59). SCOPE_MISMATCH persists: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header authoritative google/microsoft, probe_allow google|microsoft|azure|live|office|bing|msn.
 
-STEP 2 — PRIORITIZE
-No assets to score — inventory empty. No [PRIO] emittable. Historical liveness only: www.google.com/accounts.google.com, www.microsoft.com/login.microsoftonline.com/portal.azure.com (all 200/302 liveness, 0 deep probes). Rebuild required before scoring.
-[PRIO NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to score per hard rule
+STEP 2 — PRIORITIZE:
+NO PRIO — no assets in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to score. Canonical seeds (www.google.com, accounts.google.com, www.microsoft.com, login.microsoftonline.com, portal.azure.com) historically liveness-checked only, not in current inventory, not scored this cycle. Awaiting CT rebuild to generate rankable inventory.
 
-STEP 3 — HYPOTHESES
-[HYP NONE] — inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed; inventing host violates hard rule (asset MUST be from inventory). Matches KB 2026-08-27 through 2026-09-07
+STEP 3 — HYPOTHESES:
+[HYP NONE] google
+class: NONE
+asset: none (inventory empty)
+confidence: 0
+reasoning: Inventory empty, no hosts in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis without inventing hostnames.
+evidence_needed: Valid CT inventory rebuild first
+verify_steps: Passive CT fetch then liveness only
+impact: none
+testability: PASSIVE
+[HYP NONE] microsoft
+class: NONE
+asset: none (inventory empty)
+confidence: 0
+reasoning: Inventory empty, no hosts in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis without inventing hostnames.
+evidence_needed: Valid CT inventory rebuild first
+verify_steps: Passive CT fetch then liveness only
+impact: none
+testability: PASSIVE
 
-STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses generated; any invented host would be auto-dropped (confidence <70/fails inventory rule/no verify_steps)
-[FINAL] NONE — 0 surviving hypotheses
+STEP 4 — SELF-CRITIQUE:
+[PARKED] NONE — no hypotheses to park, inventory empty prevents any confidence >=70 hypothesis without violating hard rule (asset must be from inventory).
+[FINAL] NONE — 0 surviving hypotheses, all would have required invented hostnames.
 
-STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn) — 1) GET https://crt.sh/?q=%25.google.com&output=json (retry 502) 2) GET https://crt.sh/?q=%25.microsoft.com&output=json (retry 502) 3) GET https://otx.alienvault.com/api/v1/indicators/domain/google.com/url_list?limit=50&page=1 4) GET https://otx.alienvault.com/api/v1/indicators/domain/microsoft.com/url_list?limit=50&page=1 5) light liveness GET https://www.google.com/ , GET https://accounts.google.com/ , GET https://www.microsoft.com/ , GET https://login.microsoftonline.com/ , GET https://portal.azure.com/ (status+headers only, no intrusive params)
+STEP 5 — NEXT ACTION:
+[NEXT SCAN] Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn): 1) GET https://crt.sh/?q=%25.google.com&output=json (retry with backoff, handle 502) 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) On persistent 502 fallback to GET https://api.hackertarget.com/hostsearch/?q=google.com and GET https://api.hackertarget.com/hostsearch/?q=microsoft.com 4) Dedup hosts matching probe_allow, then liveness only: GET https://www.google.com/, GET https://accounts.google.com/.well-known/openid-configuration, GET https://www.microsoft.com/, GET https://login.microsoftonline.com/common/.well-known/openid-configuration, GET https://portal.azure.com/ — record status/headers/content-type only.
 
-STEP 6 — LEARNING
+STEP 6 — LEARNING:
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 
-STEP 7 — RISK SCORE
-[RISK] 5 — inventory empty, 0 probes executed this and all prior cycles, no evidence of exposure; risk is unmeasured not low-exposure — rebuild inventory before any risk claim
-
-STEP 8 — TRACE
-All claims trace to SCOPE header + probe_allow google|microsoft|azure|live|office|bing|msn + KNOWLEDGE BASE 2026-08-27 through 2026-09-07 + ROBOT PROBE 2026-09-07 00:12/00:59 502s; zero invented hosts
+STEP 7 — RISK SCORE:
+[RISK] 15 — inventory empty, 0 hosts verified, 0 deep probes executed this cycle (crt.sh 502), exposure unassessed; underlying canonical scope (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com) is inherently high-value but currently has no evidence-backed finding.
