@@ -1656,3 +1656,9 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:133
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:136
 [RISK] 10 — overall exposure unknown due inventory empty, 0 probes executed; no evidence of high-value exposure, but inability to assess attack_surface/tech_exposure/cloud_surface without CT rebuild — low verifiable risk, high uncertainty
+## 2026-09-07 05:04:44 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses generated to critique; any synthetic host (e.g., api.google.com/admin) would be auto-dropped: not in inventory, confidence <70 unverified.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[RISK] 10 — overall exposure LOW/unknown: inventory empty, 0 validated attack surface, no tech_exposure (GraphQL/JWT/upload/OAuth) observed, no liveness beyond historical 502, insufficient evidence to score business_value/cloud_surface; risk is unmeasured not proven safe.

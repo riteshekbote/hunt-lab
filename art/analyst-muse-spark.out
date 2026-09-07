@@ -1,36 +1,27 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none (0 hosts) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06; no NEW/CHANGED surface vs ctx.txt:132-133
-SCOPE_MISMATCH persists: directive template references 5 targets duocircle/emsisoft/docker/posit/coxautomotive vs authoritative header google/microsoft — probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+STEP 1 — DELTA:
+NO_DELTA — REAL SUBDOMAIN INVENTORY = empty (none), LIVE HIGH-VALUE HOSTS = none, matches KB 2026-08-27 through 2026-09-07. Last probe 2026-09-07 00:59:54 UTC crt.sh 502 for both %25.google.com and %25.microsoft.com = no new hosts. SCOPE_MISMATCH persists: directive template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft authoritative, probe_allow=google|microsoft|azure|live|office|bing|msn per scope.yml:16.
 
-STEP 2 — PRIORITIZE
-[PRIO google] NONE — inventory empty, 0 assets to score — no attack_surface/business_value/tech_exposure/gate_ease/cloud_surface/freshness calculable — requires passive CT rebuild
-[PRIO microsoft] NONE — inventory empty, 0 assets to score — no attack_surface/business_value/tech_exposure/gate_ease/cloud_surface/freshness calculable — requires passive CT rebuild
+STEP 2 — PRIORITIZE:
+[PRIO NONE] google — no inventory to score; top existing fallback google.com/microsoft.com cannot be scored 0-10 without CT-derived subdomains — priority=0 (0.25*0+0.25*0+0.15*0+0.15*0+0.10*0+0.10*0) — reason: inventory empty, 0 deep probes, crt.sh 502 blocks freshness.
+[PRIO NONE] microsoft — same: inventory empty, priority=0 — no asset passes gate.
 
-STEP 3 — HYPOTHESES
-[HYP NONE]
-class: NONE
-asset: none
-confidence: 0
-reasoning: REAL SUBDOMAIN INVENTORY none + LIVE HIGH-VALUE HOSTS none — 0 deep authz/IDOR/SSRF/OAuth probes historically per ctx.txt:132-133 — inventing host violates HARD RULE
-evidence_needed: passive CT inventory rebuild + light liveness to identify candidate hosts before hypothesis
-verify_steps: SCAN first — GET https://crt.sh/?q=%25.google.com&output=json ; GET https://crt.sh/?q=%25.microsoft.com&output=json ; then HEAD liveness on www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com
-impact: none — insufficient evidence to claim severity
-testability: PASSIVE
+STEP 3 — HYPOTHESES:
+[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis; inventing host violates HARD RULE. Matches KB: 0 IDOR/SSRF/OAuth/authz probes executed, insufficient evidence.
 
-STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses generated due empty inventory; confidence 0 <70 threshold, no verify_steps on real asset — dropped per rule
-[FINAL] NONE — 0 surviving hypotheses re-ranked; matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06
+STEP 4 — SELF-CRITIQUE:
+[PARKED] NONE — no hypotheses generated to critique; any synthetic host (e.g., api.google.com/admin) would be auto-dropped: not in inventory, confidence <70 unverified.
+[FINAL NONE] — 0 surviving hypotheses re-ranked.
 
-STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn) — 1) GET https://crt.sh/?q=%25.google.com&output=json 2) GET https://crt.sh/?q=%25.microsoft.com&output=json 3) GET https://crt.sh/?q=%25.azure.com&output=json — parse unique name_value -> dedup -> HEAD https://www.google.com/ + GET https://www.google.com/robots.txt + HEAD https://accounts.google.com/ + HEAD https://www.microsoft.com/ + HEAD https://login.microsoftonline.com/ + HEAD https://portal.azure.com/ — record status, server, content-type, interesting params/versioned APIs/swagger
+STEP 5 — NEXT ACTION:
+[NEXT SCAN] Passive CT rebuild + light liveness (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn): 1) GET https://crt.sh/?q=%.google.com&output=json retry after 502, 2) GET https://crt.sh/?q=%.microsoft.com&output=json, 3) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names (alt CT), 4) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names, 5) HEAD https://www.google.com/ , HEAD https://accounts.google.com/.well-known/openid-configuration , HEAD https://www.microsoft.com/ , HEAD https://login.microsoftonline.com/.well-known/openid-configuration — exact read-only requests for next cycle.
 
-STEP 6 — LEARNING
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:132
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-06 ctx.txt:133
-[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:136
+STEP 6 — LEARNING:
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-07
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 
-STEP 7 — RISK SCORE
-[RISK] 10 — overall exposure unknown due inventory empty, 0 probes executed; no evidence of high-value exposure, but inability to assess attack_surface/tech_exposure/cloud_surface without CT rebuild — low verifiable risk, high uncertainty
+STEP 7 — RISK SCORE:
+[RISK] 10 — overall exposure LOW/unknown: inventory empty, 0 validated attack surface, no tech_exposure (GraphQL/JWT/upload/OAuth) observed, no liveness beyond historical 502, insufficient evidence to score business_value/cloud_surface; risk is unmeasured not proven safe.
