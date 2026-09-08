@@ -929,3 +929,9 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE 
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness 
 - LEARN: SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header
+
+## RANKED HYPOTHESES 2026-09-08 09:05:36 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE 
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness 
+- LEARN: SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header
