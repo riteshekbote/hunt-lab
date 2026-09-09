@@ -1,27 +1,26 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none, vs KNOWLEDGE BASE 2026-08-27 through 2026-09-09 inventory empty 0 probes — no NEW/CHANGED surface this cycle. crt.sh 502 persists, no certspotter-mapped inventory.
+STEP 1 — DELTA:
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — no NEW/CHANGED surface vs KB 2026-08-27 through 2026-09-09. Last cycle probes 0 executed, crt.sh 502 persistent, certspotter/liveness not mapped this cycle.
 
-STEP 2 — PRIORITIZE
-[PRIO google] NO_ASSET score=0.0 (attack:0 business:0 tech:0 gate:0 cloud:0 fresh:0) — inventory empty, 0 scorable hosts; cannot compute priority — matches KB 2026-08-27 through 2026-09-09
-[PRIO microsoft] NO_ASSET score=0.0 (attack:0 business:0 tech:0 gate:0 cloud:0 fresh:0) — inventory empty, 0 scorable hosts; cannot compute priority — matches KB 2026-08-27 through 2026-09-09
+STEP 2 — PRIORITIZE:
+[PRIO NONE] — no assets in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to score. SCOPE header authoritative: google/microsoft (probe_allow google|microsoft|azure|live|office|bing|msn) vs directive-template 5-target duocircle/emsisoft/docker/posit/coxautomotive — header wins per KB SCOPE_MISMATCH.
 
-STEP 3 — HYPOTHESES
-[HYP NONE] — inventory empty, 0 hosts in REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS, inventing hostname violates HARD RULE; no top-3 anomalies to hypothesize without verified surface.
+STEP 3 — HYPOTHESES:
+[HYP NONE] — inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, no host in REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS meets asset rule. Inventing hostname would violate HARD RULE — auto-dropped.
 
-STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses generated to critique (confidence <70 / REJECTED class / no verify_steps not applicable)
-[FINAL] NONE — 0 surviving hypotheses re-ranked (insufficient evidence, inventory empty)
+STEP 4 — SELF-CRITIQUE:
+[PARKED] ALL — no candidates generated, confidence threshold 70 not met, insufficient evidence across google/microsoft per KB 2026-08-27 through 2026-09-09 (inventory empty, only historical liveness 200/302/403/503, crt.sh 502).
+[FINAL] NONE — no surviving hypotheses to rank.
 
-STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names 3) GET https://api.certspotter.com/v1/issuances?domain=azure.com&include_subdomains=true&expand=dns_names 4) LIGHT LIVENESS: GET https://www.google.com/ , GET https://accounts.google.com/ , GET https://www.microsoft.com/ , GET https://login.microsoftonline.com/ , GET https://portal.azure.com/ — record status/headers/content-type only, no auth, no intrusive probes; filter to probe_allow before any depth.
+STEP 5 — NEXT ACTION:
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names 3) GET https://crt.sh/?q=%.google.com&output=json 4) GET https://crt.sh/?q=%.microsoft.com&output=json 5) HEAD https://www.google.com/ + GET https://accounts.google.com/.well-known/openid-configuration + HEAD https://www.microsoft.com/ + GET https://login.microsoftonline.com/.well-known/openid-configuration + HEAD https://portal.azure.com/ — map top-10 certspotter hosts then liveness only, no intrusive probes.
 
-STEP 6 — LEARNING
+STEP 6 — LEARNING:
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
-[LEARN] SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 
-STEP 7 — RISK SCORE
-[RISK] 5 — overall exposure unmeasurable: inventory empty, 0 scorable assets, 0 deep probes executed, only historical liveness 200/302/403; no evidence of HIGH-VALUE classes (IDOR/SSRF/OAuth/JWT) on in-scope google.com/*.google.com / microsoft.com/*.microsoft.com/*.azure.com surface until CT rebuild completes — matches KB 2026-08-27 through 2026-09-09
+STEP 7 — RISK SCORE:
+[RISK] 10 — overall exposure unknown due to empty inventory and 0 deep probes; no anomalies, no tech_exposure signaled, chain primitives untested; risk reflects lack of visibility not confirmed hardening.
