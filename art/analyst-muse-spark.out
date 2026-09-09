@@ -2,26 +2,27 @@
 > build · muse-spark-1.2-contributor-free
 [0m
 STEP 1 — DELTA
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-08 (0 deep authz/IDOR/SSRF/OAuth probes, crt.sh 502 last cycle)
+NO_DELTA — inventory empty, LIVE HIGH-VALUE HOSTS none — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09. No [NEW]/[CHANGED] hosts vs REAL SUBDOMAIN INVENTORY (0 hosts). SCOPE_MISMATCH persists: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced.
 
 STEP 2 — PRIORITIZE
-[PRIO google] asset: NONE score: 0 breakdown: attack=0 business=0 tech=0 gate=0 cloud=0 fresh=0 — inventory empty 0 hosts to rank, only historical liveness www.google.com/accounts.google.com
-[PRIO microsoft] asset: NONE score: 0 breakdown: attack=0 business=0 tech=0 gate=0 cloud=0 fresh=0 — inventory empty 0 hosts to rank, only historical liveness www.microsoft.com/login.microsoftonline.com/portal.azure.com
+[PRIO google] NONE — inventory empty, 0 hosts to score — cannot compute 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh
+[PRIO microsoft] NONE — inventory empty, 0 hosts to score — cannot compute priority
+Fallback liveness candidates (not in inventory, for NEXT SCAN prioritization only): www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com.
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — no inventory host qualifies: REAL SUBDOMAIN INVENTORY=none, LIVE HIGH-VALUE HOSTS=none, cannot fabricate host per HARD RULE
+[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to anchor hypothesis; inventing hostname is FAILURE per HARD RULE. No IDOR/SSRF/AUTH/OAUTH hypothesis can be grounded this cycle.
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] NONE — no hypotheses generated to critique (confidence <70/fake-host guard not triggered)
-[FINAL] NONE — 0 surviving hypotheses — re-attempt after SCAN rebuild
+[PARKED] NONE — no hypotheses generated to critique (inventory empty, confidence <70 threshold not met by absence)
+[FINAL] NONE — zero surviving hypotheses re-ranked; matches KNOWLEDGE BASE NONE @ google/microsoft 2026-09-09.
 
 STEP 5 — NEXT ACTION
-[NEXT] SCAN: Passive CT + light liveness rebuild (read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn) — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names 3) GET https://api.certspotter.com/v1/issuances?domain=azure.com&include_subdomains=true&expand=dns_names 4) liveness GET https://www.google.com/ , GET https://accounts.google.com/.well-known/openid-configuration , GET https://www.microsoft.com/ , GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration , GET https://portal.azure.com/ — record status/headers only, no intrusive params
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names 3) GET https://crt.sh/?q=%.google.com&output=json (fallback, 502 observed 2026-09-07/08/09) 4) GET https://crt.sh/?q=%.microsoft.com&output=json 5) Light liveness: HEAD https://www.google.com/, GET https://accounts.google.com/.well-known/openid-configuration, HEAD https://www.microsoft.com/, GET https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration, HEAD https://portal.azure.com/ — map only, no deep authz/IDOR/SSRF until inventory >0.
 
 STEP 6 — LEARNING
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-08
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-08
-[LEARN] SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes, crt.sh 502) matches KB 2026-08-27 through 2026-09-09
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, crt.sh 502) matches KB 2026-08-27 through 2026-09-09
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
 
 STEP 7 — RISK SCORE
-[RISK] 15 — inventory empty 0 probes = no visibility; underlying program surface (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com + github orgs google/microsoft) is high-value but unmapped this cycle, no exploit evidence
+[RISK] 15 — overall exposure unmeasurable: inventory empty, LIVE HOSTS none, 0 deep probes historically, only historical liveness 200/302/403 and 502 on CT sources; high-value classes (BOLA/SSRF/OAuth/JWT) cannot be assessed without rebuild.
