@@ -2128,3 +2128,19 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-10
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced — no probe outside allow
 [RISK] 10 — overall exposure low: empty inventory, 0 deep probes, only historical 200/302/403 liveness; high-value classes (IDOR/SSRF/OAuth/JWT) untested until CT rebuild completes
+## 2026-09-10 21:46:35 UTC (model muse-spark)
+class: NONE
+asset: none — inventory empty per context:122-125, hard rule prohibits inventing hostname not in inventory
+confidence: 0
+reasoning: Inventory empty, only liveness on 5 hosts verified (200/302/403). 0 deep authz/IDOR/SSRF/OAuth probes executed historically per KB 2026-08-27 through 2026-09-10. CT returned only wildcards/internal *.google.com and protection.outlook.com but 0 inventory-mapped hosts to hypothesize on without violation.
+evidence_needed: Populated inventory via passive CT + liveness mapping, then depth probes
+verify_steps: Passive-first CT rebuild before hypothesizing (see NEXT)
+impact: none to claim
+testability: PASSIVE
+[PARKED] ALL — no HYP generated this cycle due to empty inventory; any invented hostname would violate hard rule asset MUST be from REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS and confidence <70. Dropped 0 hypotheses, parked 0.
+[FINAL] NONE — no surviving hypotheses to rank; insufficient evidence to accept/reject any class.
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow google|microsoft|azure|live|office|bing|msn — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names 3) GET https://api.certspotter.com/v1/issuances?domain=azure.com&include_subdomains=true&expand=dns_names 4) GET https://crt.sh/?q=%25.google.com&output=json 5) HEAD https://www.google.com 6) HEAD https://accounts.google.com 7) HEAD https://www.microsoft.com 8) HEAD https://login.microsoftonline.com 9) HEAD https://portal.azure.com — map unique dns_names to inventory, normalize to probe_allow, report status/headers only.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, liveness 200/302 only) matches KB 2026-08-27 through 2026-09-10
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200/403 only, crt.sh 502 historically now 200 but not mapped) matches KB 2026-08-27 through 2026-09-10
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[RISK] 15 — overall exposure low: empty mapped inventory, only 3 liveness 200s + 1x302 +1x403 observed, no versioned APIs (/api/v1|v2|beta|internal), no GraphQL/OAuth param anomalies, no open redirect/JWT/SSRF primitives observed, CT reachable but not yet mapped to attack surface; risk reflects untested surface not active exploit.
