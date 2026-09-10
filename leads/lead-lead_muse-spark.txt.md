@@ -2040,3 +2040,13 @@ testability: PASSIVE
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+## 2026-09-10 03:29:22 UTC (model muse-spark)
+reasoning: Inventory empty — no host from REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS meets schema requirement (asset must be from inventory). Inventing hostname would violate HARD RULE. 0 deep authz/IDOR/SSRF/OAuth probes executed.
+evidence_needed: Passive CT rebuild required before any hypothesis valid
+verify_steps: None — no asset to test
+[PARKED] ALL — no candidates generated — confidence <70 threshold not met due empty inventory, no concrete verify_steps possible, no REJECTED class to filter
+[FINAL] NONE — 0 hypotheses survive; need inventory rebuild before depth
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, crt.sh 502, certspotter/liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-09
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16
+[RISK] 5 — inventory empty, 0 deep probes executed, exposure unknown; only historical liveness (www.google.com 200/accounts.google.com/www.microsoft.com 200/login.microsoftonline.com 302/portal.azure.com 403) and crt.sh 502; no verifiable auth/IDOR/SSRF/OAuth/GraphQL surface mapped this cycle
