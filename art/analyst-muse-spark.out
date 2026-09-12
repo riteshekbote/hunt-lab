@@ -1,37 +1,30 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
-STEP 1 — DELTA
-[NEW google] certspotter passive CT now 200 application/json for google.com (2026-09-12 08:06:25 and 08:49:42) vs historical 502 — new inventory source available, not yet parsed into REAL SUBDOMAIN INVENTORY
-[NEW microsoft] certspotter passive CT now 200 application/json for microsoft.com (2026-09-12 08:06:25 and 08:49:42) vs historical 502 — new inventory source available, not yet mapped
-[CHANGED google] crt.sh %.google.com 200 len=? at 08:06:25 -> 404 at 08:49:42 — transient/error, reduces inventory freshness
-[CHANGED microsoft] crt.sh %.microsoft.com 200 len=? at 08:06:25 -> 404 at 08:49:42 — transient/error
-[NEW google] liveness confirmed: https://www.google.com/ 200 text/html; charset=UTF-8, https://accounts.google.com/ 200 text/html; charset=utf-8 (re-probed 08:49:42)
-[NEW microsoft] liveness confirmed: https://www.microsoft.com/ 200 261404, https://login.microsoftonline.com/ 200 57925, https://portal.azure.com/ 200 76187 (08:49:42) — stable 200s vs prior 302/403 mix, indicates stack reachable for auth probes
-SCOPE_MISMATCH: directive template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty probe_allow `google|microsoft|azure|live|office|bing|msn` — header authoritative, no probe outside allow
+STEP 1 — DELTA:
+NO_DELTA — REAL SUBDOMAIN INVENTORY empty (none) and LIVE HIGH-VALUE HOSTS none unchanged vs KNOWLEDGE BASE 2026-08-27 through 2026-09-12. CHANGED transport only: certspotter 200 (not yet parsed into inventory) and crt.sh flapping 200 -> 404 (2026-09-12 08:06:25 200 vs 08:49:42 404) and liveness 200 on 5 allow-list hosts unchanged (www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com) — no new inventory-mapped hosts to promote to [NEW].
 
-STEP 2 — PRIORITIZE
-[PRIO microsoft] asset: login.microsoftonline.com | score: 8.10 (attack:8 business:10 tech:9 gate:5 cloud:7 fresh:8) calc: 0.25*8+0.25*10+0.15*9+0.15*5+0.10*7+0.10*8=8.10 — OAuth2/OIDC, JWT, session, highest business_value (Entra ID ATO)
-[PRIO google] asset: accounts.google.com | score: 7.40 (attack:7 business:9 tech:8 gate:6 cloud:5 fresh:8) calc: 0.25*7+0.25*9+0.15*8+0.15*6+0.10*5+0.10*8=7.40 — OAuth, JWT alg/key, redirect_uri/state
-[PRIO microsoft] asset: portal.azure.com | score: 7.25 (attack:7 business:9 tech:7 gate:4 cloud:9 fresh:7) calc: 0.25*7+0.25*9+0.15*7+0.15*4+0.10*9+0.10*7=7.25 — cloud_surface 9 (Azure RBAC, storage APIs, SSRF to 169.254.169.254 vector via backend)
-[PRIO google] asset: www.google.com | score: 4.85 (attack:5 business:6 tech:3 gate:8 cloud:2 fresh:7) — low tech_exposure, gate_ease 8 but minimal attack_surface for high-value class
+STEP 2 — PRIORITIZE:
+[PRIO google] asset: accounts.google.com score: 6.8 breakdown: attack_surface=7 business_value=9 tech_exposure=8 gate_ease=5 cloud_surface=3 freshness=5 calc: 0.25*7+0.25*9+0.15*8+0.15*5+0.10*3+0.10*5=6.75
+[PRIO microsoft] asset: login.microsoftonline.com score: 7.9 breakdown: attack_surface=8 business_value=10 tech_exposure=9 gate_ease=5 cloud_surface=8 freshness=5 calc: 0.25*8+0.25*10+0.15*9+0.15*5+0.10*8+0.10*5=7.90
+[PRIO microsoft] asset: portal.azure.com score: 6.9 breakdown: attack_surface=7 business_value=9 tech_exposure=7 gate_ease=3 cloud_surface=9 freshness=5 calc: 0.25*7+0.25*9+0.15*7+0.15*3+0.10*9+0.10*5=6.90
+[PRIO google] asset: www.google.com score: 4.1 breakdown: attack_surface=3 business_value=5 tech_exposure=2 gate_ease=10 cloud_surface=1 freshness=2
+[PRIO microsoft] asset: www.microsoft.com score: 4.1 breakdown: attack_surface=3 business_value=5 tech_exposure=2 gate_ease=10 cloud_surface=1 freshness=2
 
-STEP 3 — HYPOTHESES
-[HYP NONE] — no hypothesis emitted this cycle: REAL SUBDOMAIN INVENTORY = none, LIVE HIGH-VALUE HOSTS = none per context; hard rule requires asset ∈ inventory/high-value hosts. Inventing hostname violates auto-drop rule. Liveness hosts (accounts.google.com/login.microsoftonline.com/portal.azure.com) exist in LATEST ROBOT PROBE RESULTS but not mapped to inventory section, so no [HYP] can be formally filed until certspotter dns_names parsed into inventory. If inventory populated, top-3 would be OAuth redirect_uri/state on accounts.google.com/login.microsoftonline.com and SSRF/cloud-metadata chaining via portal.azure.com.
+STEP 3 — HYPOTHESES:
+[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS (both `none`) merits class-specific hypothesis; inventing host violates HARD RULE. All prior cycles insufficient evidence (0 deep authz/IDOR/SSRF/OAuth probes) per ctx.txt:194-195.
 
-STEP 4 — SELF-CRITIQUE
-[PARKED] OAuth redirect_uri bypass @ accounts.google.com: would require inventory-mapped asset, confidence cannot exceed 70 without parsed dns_names + open-redirect or tolerant redirect_uri evidence — parked until inventory rebuild
-[PARKED] OAuth/SSRF chain @ login.microsoftonline.com/portal.azure.com: high-value but 0 deep authz/IDOR/SSRF probes, no param evidence (id/uid/email) or api version exposure — parked, needs passive param/tech_exposure census first
-[PARKED] JWT alg confusion @ accounts.google.com/login.microsoftonline.com: no token sample, no alg header observed — parked, needs passive JWT collection
-[FINAL] 0 surviving hypotheses — re-rank empty; all parked per confidence <70 / inventory hard rule / no verify_steps without concrete endpoint inventory
+STEP 4 — SELF-CRITIQUE:
+[PARKED] NONE — no candidate hypotheses to score; any hypothesis on invented host (e.g. aistudio.google.com/config.teams.microsoft.com/sfdataservice.microsoft.com historical only) would be dropped: confidence <70, no inventory backing, no concrete verify_steps on current inventory.
+[FINAL] NONE — 0 surviving hypotheses ranked.
 
-STEP 5 — NEXT ACTION
-[NEXT SCAN]: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names and GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> parse dns_names array, dedup, filter probe_allow, build inventory/hosts.txt 2) HEAD liveness on top-20 fresh hosts (filter *.google.com/*.microsoft.com/*.azure.com) + GET https://accounts.google.com/.well-known/openid-configuration and GET https://login.microsoftonline.com/.well-known/openid-configuration for OAuth tech_exposure — no intrusive POST/mutation
+STEP 5 — NEXT ACTION:
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names (200 not yet parsed — parse dns_names -> dedup -> inventory) 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names 3) Retry GET https://crt.sh/?q=%.google.com&output=json (flapped 404 on 2026-09-12 08:49:42 vs 200 on 08:06:25) 4) Retry GET https://crt.sh/?q=%.microsoft.com&output=json 5) Light GET https://www.google.com/ https://accounts.google.com/ https://www.microsoft.com/ https://login.microsoftonline.com/ https://portal.azure.com/ with status/type/len only — no deep probes this cycle.
 
-STEP 6 — LEARNING
+STEP 6 — LEARNING:
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200 not yet parsed, crt.sh 404 transient) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12 ctx.txt:194
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12 ctx.txt:195
-[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced — no probe outside allow
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 
-STEP 7 — RISK SCORE
-[RISK] 38 — google/microsoft bounty surface is globally huge (high inherent business_value/cloud_surface), but measured exposure this cycle is minimal: inventory empty, only 5 liveness 200s, certspotter not yet mapped, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh unstable (200->404); no anomaly (odd param, versioned API, swagger, upload, GraphQL) observed yet — risk reflects unmapped surface, not confirmed vuln
+STEP 7 — RISK SCORE:
+[RISK] 12 reason: program surface exposure low — inventory empty (0 hosts mapped), only liveness 200/302 on 5 allow-list roots, no GraphQL/OAuth/JWT/upload/admin/cloud-metadata surface enumerated, no IDOR/SSRF/OATH primitives testable; risk is unmeasured not low-exposure, requires CT parse to rebuild inventory before any high-value class can be assessed.
