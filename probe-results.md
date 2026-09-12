@@ -630,3 +630,14 @@ https://accounts.google.com/ -> 200 len=? type=text/html; charset=utf-8
 https://www.microsoft.com/ -> 200 len=261405 type=text/html; charset=utf-8
 https://login.microsoftonline.com/ -> 200 len=57961 type=text/html; charset=utf-8
 https://portal.azure.com/ -> 200 len=76187 type=text/html; charset=utf-8
+
+## 2026-09-12 08:49:42 UTC
+https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names -> 200 len=? type=application/json
+https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
+https://crt.sh/?q=%.google.com&output=json -> HTTP 404
+https://crt.sh/?q=%.microsoft.com&output=json -> HTTP 404
+https://www.google.com/ -> 200 len=? type=text/html; charset=UTF-8
+https://accounts.google.com/ -> 200 len=? type=text/html; charset=utf-8
+https://www.microsoft.com/ -> 200 len=261404 type=text/html; charset=utf-8
+https://login.microsoftonline.com/ -> 200 len=57925 type=text/html; charset=utf-8
+https://portal.azure.com/ -> 200 len=76187 type=text/html; charset=utf-8
