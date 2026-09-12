@@ -2321,3 +2321,10 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200/302/403 only historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-11 ctx.txt:195
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 5 — inventory empty, 0 deep probes, no attack surface mapped; liveness only historically; overall program exposure unassessed until passive CT rebuild completes — not exploit status.
+## 2026-09-11 23:55:37 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses generated to critique; any invented-host hypothesis would be dropped for violating inventory-must-match rule and confidence <70.
+[FINAL] NONE — 0 surviving hypotheses re-ranked.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502 historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-11 ctx.txt:194
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200/302/403 only historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-11 ctx.txt:195
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 5 — inventory empty, 0 deep probes, no attack surface mapped; liveness only historically; overall program exposure unassessed until passive CT rebuild completes — not exploit status.
