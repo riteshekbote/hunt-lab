@@ -1,7 +1,8 @@
-## 2026-09-11 23:55:37 UTC (model muse-spark)
-[PARKED] NONE — no hypotheses generated to critique; any invented-host hypothesis would be dropped for violating inventory-must-match rule and confidence <70.
-[FINAL] NONE — 0 surviving hypotheses re-ranked.
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502 historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-11 ctx.txt:194
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200/302/403 only historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-11 ctx.txt:195
+## 2026-09-12 03:32:20 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses generated this cycle, nothing to drop (no confidence <70, no REJECTED class, no missing verify_steps).
+[FINAL] NONE — 0 surviving hypotheses re-ranked. Consistent with 100+ prior NONE entries: insufficient evidence, inventory empty.
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names 3) GET https://crt.sh/?q=%.google.com&output=json 4) GET https://crt.sh/?q=%.microsoft.com&output=json 5) For each unique dns_name matching probe_allow, liveness only: GET https://<host>/ with HEAD fallback, record status/content-type/server, no authz/IDOR/SSRF probes until inventory mapped.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh 502 historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12 ctx.txt:194
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, liveness 200/302/403 only historically) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12 ctx.txt:195
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
-[RISK] 5 — inventory empty, 0 deep probes, no attack surface mapped; liveness only historically; overall program exposure unassessed until passive CT rebuild completes — not exploit status.
+[RISK] 15 — overall exposure unknown/unevaluated due to empty inventory, 0 deep probes; high-value classes (IDOR/BOLA, SSRF->169.254.169.254, OAuth redirect_uri/state, JWT alg confusion, GraphQL) untested but not proven dead; liveness only 200/302/403 historically; no evidence of exploitable surface, but no coverage.
