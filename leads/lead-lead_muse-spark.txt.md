@@ -2514,3 +2514,16 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 404 transient now 200, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
 [LEARN] SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 12 low exposure — large potential attack_surface (google.com/*.google.com/microsoft.com/*.microsoft.com/*.azure.com) but inventory empty, 0 deep probes, only liveness 200s observed, no tech_exposure (GraphQL/JWT/upload) mapped yet — cannot score higher without parsed CT inventory
+## 2026-09-13 11:15:35 UTC (model muse-spark)
+reasoning: inventory empty per REAL SUBDOMAIN INVENTORY=none and LIVE HIGH-VALUE HOSTS=none; no host from inventory to anchor asset field per HARD RULE; 0 deep authz/IDOR/SSRF/OAuth probes executed; only liveness 200/302/403 and CT 200 not yet mapped
+evidence_needed: parsed host list from certspotter/crt.sh filtered to probe_allow google|microsoft|azure|live|office|bing|msn
+verify_steps: none possible until inventory build
+impact: none yet
+testability: PASSIVE
+[PARKED] any IDOR/SSRF/OAuth on accounts.google.com/login.microsoftonline.com/portal.azure.com: dropped - asset not in REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS per HARD RULE (inventory=none), confidence <70 without parsed dns_names/param discovery, no concrete versioned API /api/v1|v2|beta|internal or param id/uid/email observed
+[PARKED] any GraphQL/JWT/mass-assign on www.google.com/www.microsoft.com: dropped - low tech_exposure (1), static 200 text/html only, no swagger/openapi/json, confidence <70
+[FINAL] NONE - no surviving hypotheses this cycle - need inventory build before hypothesis ranking
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200 not yet parsed, crt.sh 404/timeout now 200 but not mapped, liveness 200 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 404/timeout now 200 but not mapped, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 12 reason: program surface exposure low this cycle - inventory empty, only 5 liveness 200 hosts proven, CT sources now 200 but not yet turned into inventory, 0 deep authz/IDOR/SSRF/OAuth probes, no GraphQL/OAuth/JWT/upload anomalies observed
