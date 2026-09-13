@@ -2592,3 +2592,19 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 200 not yet mapped, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 10 — inventory empty, 0 deep probes, exposure unknown but unproven; crt.sh/certspotter 200 now available but unparsed, so program risk cannot be scored above low until inventory mapped
+## 2026-09-13 17:57:17 UTC (model muse-spark)
+class: OTHER
+asset: none — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none
+confidence: 0
+reasoning: Inventory empty 2026-09-13 16:38 UTC; 0 deep authz/IDOR/SSRF/OAuth probes executable; inventing host violates HARD RULE
+evidence_needed: CT inventory parsed and mapped
+verify_steps: passive CT parse first; no host to probe
+impact: none yet
+testability: PASSIVE
+[PARKED] NONE — no hypotheses generated to critique; any invented host would be dropped per confidence<70 + no verify_steps + not in inventory
+[FINAL] NONE — 0 surviving hypotheses — insufficient evidence, awaiting inventory rebuild
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) Parse already-fetched 200 certspotter/crt.sh JSON to extract dns_names for google.com/microsoft.com, dedupe, build inventory 2) GET https://crt.sh/?q=%.google.com&output=json and GET https://crt.sh/?q=%.microsoft.com&output=json (retry if timed out) 3) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names and GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names 4) Light liveness only on discovered hosts matching probe_allow: GET https://<discovered-host>/ with Host header, record status/content-type/len
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200 not yet parsed, crt.sh 200 not yet mapped, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 200 not yet mapped, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 10 — inventory empty, 0 deep probes, exposure unknown but unproven; crt.sh/certspotter 200 now available but unparsed, so program risk cannot be scored above low until inventory mapped
