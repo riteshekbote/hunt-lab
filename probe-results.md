@@ -671,3 +671,8 @@ https://portal.azure.com/ -> 200 len=76187 type=text/html; charset=utf-8
 
 ## 2026-09-12 23:21:29 UTC
 
+
+## 2026-09-13 00:40:04 UTC
+https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names -> 200 len=? type=application/json
+https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
+https://<discovered-host>/ -> ERR <urlopen error [Errno -2] Name or service not know
