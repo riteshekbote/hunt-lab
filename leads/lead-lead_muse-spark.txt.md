@@ -2540,3 +2540,21 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 404/timeout now 200 but not mapped, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 12 reason: program surface exposure low this cycle - inventory empty, only 5 liveness 200 hosts proven, CT sources now 200 but not yet turned into inventory, 0 deep authz/IDOR/SSRF/OAuth probes, no GraphQL/OAuth/JWT/upload anomalies observed
+## 2026-09-13 15:00:01 UTC (model muse-spark)
+class: NONE
+asset: none — REAL SUBDOMAIN INVENTORY empty
+confidence: 0
+reasoning: no host in inventory to anchor hypothesis; cannot invent hostname per HARD RULE
+evidence_needed: parsed CT inventory required
+verify_steps: none — blocked on inventory rebuild
+impact: none
+testability: PASSIVE
+class: NONE
+asset: none — REAL SUBDOMAIN INVENTORY empty
+confidence: 0
+reasoning: same — 0 hosts mapped despite certspotter/crt.sh 200; 0 deep authz/IDOR/SSRF/OAuth probes executed
+evidence_needed: parsed CT inventory required
+verify_steps: none — blocked on inventory rebuild
+impact: none
+testability: PASSIVE
+[FINAL] NONE — 0 surviving hypotheses — blocked on passive CT parse + liveness rebuild
