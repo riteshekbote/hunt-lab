@@ -2498,3 +2498,19 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 404 transient now 200, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
 [LEARN] SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 12 low exposure — large potential attack_surface (google.com/*.google.com/microsoft.com/*.microsoft.com/*.azure.com) but inventory empty, 0 deep probes, only liveness 200s observed, no tech_exposure (GraphQL/JWT/upload) mapped yet — cannot score higher without parsed CT inventory
+## 2026-09-13 05:43:22 UTC (model muse-spark)
+class: NONE
+asset: none
+confidence: 0
+reasoning: REAL SUBDOMAIN INVENTORY empty + LIVE HIGH-VALUE HOSTS none — 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200 not yet parsed to host list, liveness only proves 200 text/html. No concrete endpoint+param to test per HARD RULE.
+evidence_needed: parsed CT inventory (dns_names from certspotter + crt.sh name_value) mapped to hosts filtered by probe_allow google|microsoft|azure|live|office|bing|msn
+verify_steps: passive-first GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names ; GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names ; GET https://crt.sh/?q=%.google.com&output=json ; GET https://crt.sh/?q=%.microsoft.com&output=json then light liveness GET https://<discovered-host>/ with Host header
+impact: none yet
+testability: PASSIVE
+[PARKED] NONE — no inventory-derived asset to hypothesize, confidence 0 <70, no verify_steps on real endpoint — auto-dropped per HARD RULE
+[FINAL] NONE — 0 surviving hypotheses, matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names -> parse dns_names 2) GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names 3) GET https://crt.sh/?q=%.google.com&output=json 4) GET https://crt.sh/?q=%.microsoft.com&output=json 5) dedupe, filter regex `google|microsoft|azure|live|office|bing|msn`, map to inventory 6) liveness GET https://<each-host>/ (follow 30x, capture status/content-type/len) — no intrusive POST/PUT/IDOR/SSRF this cycle
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200 not yet parsed, crt.sh 404 transient now 200, liveness 200 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter 200 not yet parsed, crt.sh 404 transient now 200, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
+[LEARN] SCOPE_MISMATCH @ directive-template: template references 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 12 low exposure — large potential attack_surface (google.com/*.google.com/microsoft.com/*.microsoft.com/*.azure.com) but inventory empty, 0 deep probes, only liveness 200s observed, no tech_exposure (GraphQL/JWT/upload) mapped yet — cannot score higher without parsed CT inventory
