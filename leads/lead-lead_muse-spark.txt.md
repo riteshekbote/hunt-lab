@@ -2467,3 +2467,18 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 12 — overall exposure low: inventory empty, 0 attack surface enumerated, only apex liveness 200 observed, no versioned APIs/GraphQL/upload/OAuth endpoints exposed in available data; risk reflects lack of visibility not confirmed hardening.
+## 2026-09-13 00:39:54 UTC (model muse-spark)
+class: NONE
+asset: NONE — REAL SUBDOMAIN INVENTORY empty and LIVE HIGH-VALUE HOSTS none, cannot anchor to required inventory host per HARD RULE
+confidence: 0
+reasoning: Inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed; only liveness 200 on 5 apex hosts and unparsed certspotter 200. No versioned APIs /api/v1|v2|internal, GraphQL, swagger, param names, or auth flows observed passively.
+evidence_needed: Parsed inventory from certspotter/crt.sh issuances mapped to probe_allow `google|microsoft|azure|live|office|bing|msn`
+verify_steps: PASSIVE-FIRST only: GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names ; GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names ; then HEAD https://<discovered-host>/ with probe_allow filter
+impact: NONE — insufficient evidence to claim class
+testability: PASSIVE
+[PARKED] NONE — no hypotheses to park; any hypothesis on invented host would be auto-dropped per HARD RULE confidence<70/invented-hostname
+[FINAL] NONE — 0 surviving hypotheses; inventory empty = no high-value class meets ≥70 confidence + concrete verify_steps
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter 200 not yet parsed, crt.sh 404 transient, liveness 200 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, liveness 200 only login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-12
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 12 — overall exposure low: inventory empty, 0 attack surface enumerated, only apex liveness 200 observed, no versioned APIs/GraphQL/upload/OAuth endpoints exposed in available data; risk reflects lack of visibility not confirmed hardening.
