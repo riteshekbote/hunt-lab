@@ -1,16 +1,24 @@
-## 2026-09-14 16:48:57 UTC (model muse-spark)
+## 2026-09-14 20:46:32 UTC (model muse-spark)
 class: NONE
-asset: none (inventory empty — no host from REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS to target)
+asset: none (inventory empty)
 confidence: 0
-reasoning: inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed; certspotter 200 and crt.sh 200 (prev timeout/502 now 200) not yet parsed/mapped; liveness not mapped this cycle. No asset meets hard rule.
-evidence_needed: parsed inventory required
-verify_steps: none — pending SCAN
+reasoning: inventory/real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200 not yet parsed — no asset meets threshold for high-value class.
+evidence_needed: populated subdomain inventory + liveness/status + tech fingerprint
+verify_steps: none this cycle — block on inventory rebuild
 impact: none
 testability: PASSIVE
-[PARKED] NONE — no inventory host to hypothesize, confidence 0 <70, would be invented host violation
-[FINAL] NONE — 0 surviving hypotheses; matches KNOWLEDGE BASE 2026-08-27 through 2026-09-14 pattern: insufficient evidence
-[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) Parse already-fetched certspotter JSON (google.com/microsoft.com expand=dns_names 200) + crt.sh JSON (%.google.com / %.microsoft.com 200 after timeouts) into real-subdomains.txt, dedup + filter probe_allow, 2) Light liveness GET https://<host>/ + HEAD with Host header, record status/server/content-type/len, no auth, 3) Re-rank 6-axis priority — no probe outside allow
+class: NONE
+asset: none (inventory empty)
+confidence: 0
+reasoning: same as google — inventory empty, historical liveness only 200/302/403, 0 deep probes per ctx.txt:232-233.
+evidence_needed: parsed CT names -> filtered probe_allow hosts -> light liveness + headers/tech
+verify_steps: none this cycle
+impact: none
+testability: PASSIVE
+[PARKED] none to park — no hypotheses generated met confidence>=70; all potential hypotheses on invented hosts (e.g., aistudio.google.com/config.teams.microsoft.com historical 200/503) excluded for invented-asset rule and confidence <70 without current inventory.
+[FINAL] 0 surviving hypotheses — ranked list empty. All cycles 2026-08-27 through 2026-09-14 correctly deduped as NONE.
+[NEXT] SCAN: Passive CT + light liveness rebuild — read-only, strict probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — 1) Parse already-fetched 2026-09-13 06:47:04Z certspotter `api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names` + `domain=microsoft.com` and crt.sh `?q=%.google.com&output=json` + `?q=%.microsoft.com` (both 200 application/json) — extract dns_names, dedup, filter to probe_allow regex, write inventory/real-subdomains.txt + inventory/google.md + inventory/microsoft.md. 2) Light liveness: GET https://<top-20 hosts>/  with UA Mozilla + GET https://<top-20 hosts>/.well-known/openid-configuration + GET https://<top-20 hosts>/.well-known/openapi.json — record status/ctype/len. No intrusive authz/IDOR/SSRF probes this cycle.
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200 not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-14 ctx.txt:232
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200 not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-14 ctx.txt:233
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
-[RISK] 5 — inventory empty, 0 deep probes executed, exposure unknown; certspotter/crt.sh now returning 200 but unparsed so no confirmed attack surface; overall program risk not assessable until passive inventory rebuilt
+[RISK] 15 — large bounty scope (google.com/*.google.com + microsoft.com/*.microsoft.com/*.azure.com) implies high theoretical exposure, but effective risk low this cycle: inventory empty, 0 deep probes, 0 anomalies mapped, only base-domain liveness 200s — cannot assess auth/IDOR/SSRF/OAuth surface until CT parse completes.
