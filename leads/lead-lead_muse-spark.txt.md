@@ -2672,3 +2672,10 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200 not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-13 ctx.txt:228
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 5 — overall exposure unknown due to empty inventory; no deep authz/IDOR/SSRF/OAuth probes executed to assess, only passive CT fetch without parsing; no high-value asset liveness anomaly this cycle
+## 2026-09-14 05:18:34 UTC (model muse-spark)
+[PARKED] none to park — no hypotheses generated due to inventory empty, avoids confidence <70 / invented-host failure
+[FINAL] — 0 surviving hypotheses re-ranked — none meets asset-in-inventory requirement
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200 not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-14 ctx.txt:229
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200 not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-14 ctx.txt:230
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 10 — overall exposure low: inventory empty 0 lines, 0 deep probes executed historically, only liveness 200 on apex hosts, passive CT data fetched (certspotter 200/crt.sh 200) not yet mapped to attack surface; no evidence of high-value exposure until CT parsing rebuilds inventory
