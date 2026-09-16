@@ -791,3 +791,10 @@ https://<discovered-host>/ -> ERR <urlopen error [Errno -2] Name or service not 
 
 ## 2026-09-15 22:13:30 UTC
 
+
+## 2026-09-16 00:01:13 UTC
+https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names -> 200 len=? type=application/json
+https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names -> 200 len=? type=application/json
+https://crt.sh/?q=%.google.com&output=json -> ERR The read operation timed out
+https://crt.sh/?q=%.microsoft.com&output=json -> ERR The read operation timed out
+https://<parsed-host>/ -> ERR <urlopen error [Errno -2] Name or service not know
