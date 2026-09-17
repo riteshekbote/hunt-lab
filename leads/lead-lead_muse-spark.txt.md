@@ -3207,3 +3207,18 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-17 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 ctx.txt:249 — no probe outside allow
 [RISK] 5 reason: program surface is large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com bounty) but effective exposure unmeasurable — inventory 0, LIVE HIGH-VALUE HOSTS none, 0 deep probes, only certspotter 200 pending parse + crt.sh timeouts — no verified auth/IDOR/SSRF/OAuth signal, risk is visibility gap not exploit status
+## 2026-09-17 14:23:46 UTC (model muse-spark)
+class: NONE
+asset: none
+confidence: 0
+reasoning: REAL SUBDOMAIN INVENTORY empty + LIVE HIGH-VALUE HOSTS none. Hard rule: asset MUST be from inventory. Inventing google/microsoft subhost violates auto-drop rule. 0 deep authz/IDOR/SSRF/OAuth probes executed to date per ctx.txt:245-246.
+evidence_needed: populated inventory from CT (certspotter/crt.sh dns_names) filtered to probe_allow `google|microsoft|azure|live|office|bing|msn` + light liveness 200/302/403 mapping
+verify_steps: none possible until inventory exists — next SCAN must parse existing certspotter 200 JSON first
+impact: none assessable
+testability: PASSIVE
+[PARKED] NONE: no hypothesis emitted — confidence 0 <70 threshold, no concrete asset/verify_steps possible with empty inventory
+[FINAL] none — 0 hypotheses surviving — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-17: no class ACCEPTED/REJECTED
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt missing/0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-17 ctx.txt:245
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-17 ctx.txt:246
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 ctx.txt:249 — no probe outside allow
+[RISK] 5 reason: program surface is large (google.com/*.google.com, microsoft.com/*.microsoft.com/*.azure.com bounty) but effective exposure unmeasurable — inventory 0, LIVE HIGH-VALUE HOSTS none, 0 deep probes, only certspotter 200 pending parse + crt.sh timeouts — no verified auth/IDOR/SSRF/OAuth signal, risk is visibility gap not exploit status
