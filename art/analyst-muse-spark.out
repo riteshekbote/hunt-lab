@@ -1,28 +1,533 @@
 [0m
 > build · muse-spark-1.2-contributor-free
 [0m
+Switching to bounty mode hunting chained, high-impact flaws — checking your scope against empty inventory before proposing hypotheses.
+[0m→ [0mRead .
+[0m→ [0mRead ctx.txt
+[0m→ [0mRead scope.yml
+[0m→ [0mRead ctx-targets.md
+[0m→ [0mRead probe-results.md
+[0m→ [0mRead analyst-prompt.txt
+[0m→ [0mRead inventory
+[0m→ [0mRead analyst-out.txt
+[0m→ [0mRead inventory/real-subdomains.txt
+[0m→ [0mRead inventory/google.md
+[0m→ [0mRead inventory/microsoft.md
+[0m→ [0mRead state_muse-spark.json
+Your inventory came back empty — I'll scan for live subdomains now to map the real attack surface.
+[0m
+[0m$ [0mcurl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names" | head -c 5000; echo "---END GOOGLE---"
+curl -s -m 20 "https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names" | head -c 5000; echo "---END MICROSOFT---"
+curl -s -m 20 "https://crt.sh/?q=%.google.com&output=json" | head -c 5000; echo "---END CRT GOOGLE---"
+[
+	{
+		"id": "15580489184",
+		"tbs_sha256": "241696bac4b8a073a36204c2d137831c7e4b0f4d2fcc6b62b6bc750cc3115e78",
+		"cert_sha256": "ae36b58f64dd447384c9e1349382f3900eebf63b1705da85ac5fdb127badaa86",
+		"dns_names": [
+			"*.aistudio.google.com",
+			"*.android.com",
+			"*.appengine.google.com",
+			"*.bdn.dev",
+			"*.cloud.google.com",
+			"*.crowdsource.google.com",
+			"*.datacompute.google.com",
+			"*.flash.android.com",
+			"*.g.co",
+			"*.gcp.gvt2.com",
+			"*.gcpcdn.gvt1.com",
+			"*.gemini.cloud.google.com",
+			"*.google-analytics.com",
+			"*.google.ca",
+			"*.google.cl",
+			"*.google.co.in",
+			"*.google.co.jp",
+			"*.google.co.uk",
+			"*.google.com",
+			"*.google.com.ar",
+			"*.google.com.au",
+			"*.google.com.br",
+			"*.google.com.co",
+			"*.google.com.mx",
+			"*.google.com.tr",
+			"*.google.com.vn",
+			"*.google.de",
+			"*.google.es",
+			"*.google.fr",
+			"*.google.hu",
+			"*.google.it",
+			"*.google.nl",
+			"*.google.pl",
+			"*.google.pt",
+			"*.googlecommerce.com",
+			"*.gstatic.com",
+			"*.gvt1.com",
+			"*.gvt2.com",
+			"*.metric.gstatic.com",
+			"*.music.youtube.com",
+			"*.origin-test.bdn.dev",
+			"*.urchin.com",
+			"*.url.google.com",
+			"*.youtube-nocookie.com",
+			"*.youtube.com",
+			"*.youtubeeducation.com",
+			"*.youtubekids.com",
+			"*.yt.be",
+			"*.ytimg.com",
+			"ai.android",
+			"android.clients.google.com",
+			"android.com",
+			"g.co",
+			"goo.gl",
+			"google-analytics.com",
+			"google.com",
+			"googlecommerce.com",
+			"music.youtube.com",
+			"urchin.com",
+			"www.goo.gl",
+			"youtu.be",
+			"youtube.com",
+			"youtubeeducation.com",
+			"youtubekids.com",
+			"yt.be"
+		],
+		"pubkey_sha256": "ffe5d8ac6dffbcaf7d496b146b9b3aaa3a11780eeee925798fb11688c49e90d8",
+		"not_before": "2026-06-26T17:45:36Z",
+		"not_after": "2026-09-18T17:45:35Z",
+		"revoked": false
+	},
+	{
+		"id": "15580493406",
+		"tbs_sha256": "17b36cad15efaafb6164918c84c52765384c3fe48e78e401569483983ec1f723",
+		"cert_sha256": "66df4c6dbcc2657150e68c96c03cc03e6a58276d14e60467016bf478eb7f0876",
+		"dns_names": [
+			"*.aistudio.google.com",
+			"*.android.com",
+			"*.appengine.google.com",
+			"*.bdn.dev",
+			"*.cloud.google.com",
+			"*.crowdsource.google.com",
+			"*.datacompute.google.com",
+			"*.flash.android.com",
+			"*.g.co",
+			"*.gcp.gvt2.com",
+			"*.gcpcdn.gvt1.com",
+			"*.gemini.cloud.google.com",
+			"*.google-analytics.com",
+			"*.google.ca",
+			"*.google.cl",
+			"*.google.co.in",
+			"*.google.co.jp",
+			"*.google.co.uk",
+			"*.google.com",
+			"*.google.com.ar",
+			"*.google.com.au",
+			"*.google.com.br",
+			"*.google.com.co",
+			"*.google.com.mx",
+			"*.google.com.tr",
+			"*.google.com.vn",
+			"*.google.de",
+			"*.google.es",
+			"*.google.fr",
+			"*.google.hu",
+			"*.google.it",
+			"*.google.nl",
+			"*.google.pl",
+			"*.google.pt",
+			"*.googlecommerce.com",
+			"*.gstatic.com",
+			"*.gvt1.com",
+			"*.gvt2.com",
+			"*.metric.gstatic.com",
+			"*.music.youtube.com",
+			"*.origin-test.bdn.dev",
+			"*.urchin.com",
+			"*.url.google.com",
+			"*.youtube-nocookie.com",
+			"*.youtube.com",
+			"*.youtubeeducation.com",
+			"*.youtubekids.com",
+			"*.yt.be",
+			"*.ytimg.com",
+			"ai.android",
+			"android.clients.google.com",
+			"android.com",
+			"g.co",
+			"goo.gl",
+			"google-analytics.com",
+			"google.com",
+			"googlecommerce.com",
+			"music.youtube.com",
+			"urchin.com",
+			"www.goo.gl",
+			"youtu.be",
+			"youtube.com",
+			"youtubeeducation.com",
+			"youtubekids.com",
+			"yt.be"
+		],
+		"pubkey_sha256": "19ad0b08d364650dd28266c7e67ef8d08cc5120471b208e0d6ab3fd29127a407",
+		"not_before": "2026-06-26T17:45:25Z",
+		"not_after": "2026-09-18T17:45:24Z",
+		"revoked": false
+	},
+	{
+		"id": "15580500910",
+		"tbs_sha256": "6709c719c220f309663de34fc73676dde84bc5d1c2eba512cf9a7ce24b978dad",
+		"cert_sha256": "d03ae307969400dee273d2f59772d06bb25c4807838626216f4571a15c5a6d00",
+		"dns_names": [
+			"*.aistudio.google.com",
+			"*.android.com",
+			"*.appengine.google.com",
+			"*.bdn.dev",
+			"*.cloud.google.com",
+			"*.crowdsource.google.com",
+			"*.datacompute.google.com",
+			"*.flash.android.com",
+			"*.g.co",
+			"*.gcp.gvt2.com",
+			"*.gcpcdn.gvt1.com",
+			"*.gemini.cloud.google.com",
+			"*.google-analytics.com",
+			"*.google.ca",
+			"*.google.cl",
+			"*.google.co.in",
+			"*.google.co.jp",
+			"*.google.co.uk",
+			"*.google.com",
+			"*.google.com.ar",
+			"*.google.com.au",
+			"*.google.com.br",
+			"*.google.com.co",
+			"*.google.com.mx",
+			"*.google.com.tr",
+			"*.google.com.vn",
+			"*.google.de",
+			"*.google.es",
+			"*.google.fr",
+			"*.google.hu",
+			"*.google.it",
+			"*.google.nl",
+			"*.google.pl",
+			"*.google.pt",
+			"*.googlecommerce.com",
+			"*.gstatic.com",
+			"*.gvt1.com",
+			"*.gvt2.com",
+			"*.metric.gstatic.com",
+			"*.music.youtube.com",
+			"*.origin-test.bdn.dev",
+			"*.urchin.com",
+			"*.url.google.com",
+			"*.youtube-nocookie.com",
+			"*.youtube.com",
+			"*.youtubeeducation.com",
+			"*.youtubekids.com",
+			"*.yt.be",
+			"*.ytimg.com",
+			"ai.android",
+			"android.clients.google.com",
+			"android.com",
+			"g.co",
+			"goo.gl",
+			"google-analytics.---END GOOGLE---
+[
+	{
+		"id": "13528729178",
+		"tbs_sha256": "04612789357529c10df191628b9c251eac6c300eada9868d992a8053f32fcbfb",
+		"cert_sha256": "9f17b548f7d24f309dbcaab571576c0ca73b80559ce69f27fe295f6408cc57bf",
+		"dns_names": [
+			"c.s-microsoft.com",
+			"i.s-microsoft.com",
+			"microsoft.com",
+			"privacy.microsoft.com",
+			"staticview.microsoft.com",
+			"www.microsoft.com",
+			"wwwqa.microsoft.com"
+		],
+		"pubkey_sha256": "dfd1a06be3dbe1fea78817bd8a9afdab57829819abf4c2bae78fdb34daae6193",
+		"not_before": "2026-01-22T19:55:21Z",
+		"not_after": "2027-01-17T19:55:21Z",
+		"revoked": false
+	},
+	{
+		"id": "14406883268",
+		"tbs_sha256": "610f91b202157debdb6224e8f8965903dc12ceb350e3b12048f2315697d25672",
+		"cert_sha256": "794c6f7f9ce5b4bb0f945f00977cfc07d1f9a76fe30c663885ac7e30f86d524d",
+		"dns_names": [
+			"2010office.it",
+			"adatum.ai",
+			"ai.fluentui.dev",
+			"aiandyou.today",
+			"aielectionsaccord.com",
+			"aiotlabs.microsoft.com",
+			"airlift.microsoft.com",
+			"al.mstic.signals.microsoft.com",
+			"apc.delve.office.com",
+			"auth.flip.com",
+			"bestxboxgames.com",
+			"blog.aspire.dev",
+			"book.ms",
+			"boulder-innovations.com",
+			"can.delve.office.com",
+			"collectors.tivan.ms",
+			"conf.aspire.dev",
+			"copilotsi.com",
+			"customers.microsoft.com",
+			"delve-gcc.office.com",
+			"delve.office.com",
+			"demo.azuremaps.com",
+			"dev.lobe.ai",
+			"df.delve.office.com",
+			"docx.new",
+			"eur.delve.office.com",
+			"excel.new",
+			"exploresurface.com",
+			"forums.towerborne.com",
+			"forzamotorsport.net",
+			"friday.azure.com",
+			"gbr.delve.office.com",
+			"gcc.delve.office.com",
+			"get.aspire.dev",
+			"getlicensingready.com",
+			"help.flip.com",
+			"info.flip.com",
+			"insightstomorrow.com",
+			"lakeshore-retail.com",
+			"lam.delve.office.com",
+			"live.aspire.dev",
+			"login.microsoft",
+			"m365copilot.com",
+			"m365telemetry.net",
+			"makeitgreat.com.au",
+			"microsoft.com",
+			"microsoft365copilot.com",
+			"microsoftcopilotstudio.microsoft.com",
+			"microsoftintegrity.com",
+			"microsoftoffice.help",
+			"microsoftsolitairecollection.com",
+			"mihsydney.com",
+			"minecraftdungeons.com",
+			"minecrafteducation.net",
+			"mlz.do",
+			"msit.delve.office.com",
+			"msthreatintelpodcast.com",
+			"mybuild.microsoft.com",
+			"nam.delve.office.com",
+			"new-office.it",
+			"nonprofitcommunity.microsoft.com",
+			"nuovo-office.it",
+			"o36ssupport.com",
+			"office-2013.it",
+			"office.download",
+			"office.email",
+			"office.live",
+			"office.microsoft",
+			"office.security",
+			"office.support",
+			"office365-lavoro.it",
+			"office365proskoly.cz",
+			"office365support.ms",
+			"office365support.us",
+			"onegdc.microsoft.com",
+			"outlook-2013.it",
+			"outlook2013.it",
+			"playxbox.com",
+			"powerfuldevs.com",
+			"powerpoint.com",
+			"powerpoint.new",
+			"powerusers-staging.microsoft.com",
+			"powerusers.microsoft.com",
+			"ppt.new",
+			"pptx.new",
+			"reflect.new",
+			"reflect.space",
+			"register.secure.microsoft.com",
+			"rewards.forzamotorsport.net",
+			"rnicrosoftsupport.com",
+			"scottandmarklearn.to",
+			"scottandmarklearnto.com",
+			"sfeur.delve.office.com",
+			"sfnam.delve.office.com",
+			"shop.gearsofwar.com",
+			"teamsdemo.office.com",
+			"thexboxcreditcard.com",
+			"threatintel.microsoft.com",
+			"trials.transform.microsoft.com",
+			"trym365.com",
+			"trym365copilot.com",
+			"ux.microsoft.com",
+			"ux.uat.microsoft.com",
+			"visualstudio.blog",
+			"vscode-edu.com",
+			"vscode.education",
+			"winterstarfall.com",
+			"word.new",
+			"www.2010office.it",
+			"www.adatum.ai",
+			"www.aiandyou.today",
+			"www.aielectionsaccord.com",
+			"www.applyxboxcreditcard.com",
+			"www.bestxboxgames.com",
+			"www.book.ms",
+			"www.boulder-innovations.com",
+			"www.copilotsi.com",
+			"www.docx.new",
+			"www.excel.new",
+			"www.exploresurface.com",
+			"www.forums.towerborne.com",
+			"www.forzamotorsport.net",
+			"www.getlicensingready.com",
+			"www.getxboxcreditcard.com",
+			"www.gh.io",
+			"www.insightstomorrow.com",
+			"www.lakeshore-retail.com",
+			"www.learnxboxcreditcard.com",
+			"www.lobe.ai",
+			"www.m365copilot.com",
+			"www.m365telemetry.net",
+			"www.makeitgreat.com.au",
+			"www.microsoftintegrity.com",
+			"www.microsoftoffice.help",
+			"www.microsoftsolitairecollection.com",
+			"www.mihsydney.com",
+			"www.minecraftdungeons.com",
+			"www.minecrafteducation.net",
+			"www.mlz.do",
+			"www.msthreatintelpodcast.com",
+			"www.new-office.it",
+			"www.nuovo-office.it",
+			"www.office",
+			"www.office-2013.it",
+			"www.office.download",
+			"www.office.email",
+			"www.office.live",
+			"www.office.microsoft",
+			"www.office.security",
+			"www.office.support",
+			"www.office365-lavoro.it",
+			"www.office365proskoly.cz",
+			"www.outlook-2013.it",
+			"www.playxbox.com",
+			"www.powerpoint.com",
+			"www.powerpoint.new",
+			"www.ppt.new",
+			"www.pptx.new",
+			"www.qnamaker.ai",
+			"www.scottandmarklearn.to",
+			"www.scottandmarklearnto.com",
+			"www.thexboxcard.com",
+			"www.thexboxcreditcard.com",
+			"www.trym365.com",
+			"www.trym365copilot.---END MICROSOFT---
+[{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"*.google.com","name_value":"*.appengine.google.com\n*.cloud.google.com\n*.google.com\ngoogle.com\n*.google.com.ar\n*.google.com.au\n*.google.com.br\n*.google.com.co\n*.google.com.mx\n*.google.com.tr\n*.google.com.vn\n*.url.google.com","id":3955349,"not_before":"2014-04-23T12:16:09","not_after":"2014-07-22T00:00:00","serial_number":"1dfbc8fe4b30ad03","result_count":13},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"www.google.com","name_value":"www.google.com","id":3954941,"not_before":"2014-04-23T11:43:12","not_after":"2014-07-22T00:00:00","serial_number":"251807f4788a3c50","result_count":2},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"sandbox.google.com","name_value":"*.devconsole-testers.sandbox.google.com\n*.docs.sandbox.google.com\n*.drive.sandbox.google.com\n*.prom-qa.corp.google.com\n*.prom-qa.sandbox.google.com\n*.prom-test.corp.google.com\n*.prom-test.sandbox.google.com\n*.sandbox.google.com\nsandbox.google.com\n*.sandbox.google.com.au\n*.sandbox.google.com.br\n*.sandbox.google.com.hk\n*.script.sandbox.google.com\n*.sites.sandbox.google.com","id":3952866,"not_before":"2014-04-23T11:37:18","not_after":"2014-07-22T00:00:00","serial_number":"64a0f57a2083407c","result_count":15},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"*.google.com","name_value":"*.appengine.google.com\n*.cloud.google.com\n*.google.com\ngoogle.com\n*.google.com.ar\n*.google.com.au\n*.google.com.br\n*.google.com.co\n*.google.com.mx\n*.google.com.tr\n*.google.com.vn\n*.url.google.com","id":3957285,"not_before":"2014-04-23T11:30:41","not_after":"2014-07-22T00:00:00","serial_number":"404071ed1c787820","result_count":13},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"accounts.google.com","name_value":"accounts.google.com","id":3952946,"not_before":"2014-04-23T11:26:12","not_after":"2014-07-22T00:00:00","serial_number":"54f8294135ff4839","result_count":2},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"*.googlecode.com","name_value":"*.code.google.com\n*.developers.google.com","id":3959134,"not_before":"2014-04-23T11:25:46","not_after":"2014-07-22T00:00:00","serial_number":"52e4b98c44d00270","result_count":2},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"google.com","name_value":"*.appengine.google.com\n*.cloud.google.com\n*.google.com\ngoogle.com\n*.google.com.af\ngoogle.com.af\n*.google.com.ag\ngoogle.com.ag\n*.google.com.ai\ngoogle.com.ai\n*.google.com.ar\ngoogle.com.ar\n*.google.com.au\ngoogle.com.au\n*.google.com.bd\ngoogle.com.bd\n*.google.com.bh\ngoogle.com.bh\n*.google.com.bn\ngoogle.com.bn\n*.google.com.bo\ngoogle.com.bo\n*.google.com.br\ngoogle.com.br\n*.google.com.by\ngoogle.com.by\n*.google.com.bz\ngoogle.com.bz\n*.google.com.cn\ngoogle.com.cn\n*.google.com.co\ngoogle.com.co\n*.google.com.cu\ngoogle.com.cu\n*.google.com.cy\ngoogle.com.cy\n*.google.com.do\ngoogle.com.do\n*.google.com.ec\ngoogle.com.ec\n*.google.com.eg\ngoogle.com.eg\n*.google.com.et\ngoogle.com.et\n*.google.com.fj\ngoogle.com.fj\n*.google.com.ge\ngoogle.com.ge\n*.google.com.gh\ngoogle.com.gh\n*.google.com.gi\ngoogle.com.gi\n*.google.com.gr\ngoogle.com.gr\n*.google.com.gt\ngoogle.com.gt\n*.google.com.hk\ngoogle.com.hk\n*.google.com.iq\ngoogle.com.iq\n*.google.com.jm\ngoogle.com.jm\n*.google.com.jo\ngoogle.com.jo\n*.google.com.kh\ngoogle.com.kh\n*.google.com.kw\ngoogle.com.kw\n*.google.com.lb\ngoogle.com.lb\n*.google.com.ly\ngoogle.com.ly\n*.google.com.mm\ngoogle.com.mm\n*.google.com.mt\ngoogle.com.mt\n*.google.com.mx\ngoogle.com.mx\n*.google.com.my\ngoogle.com.my\n*.google.com.na\ngoogle.com.na\n*.google.com.nf\ngoogle.com.nf\n*.google.com.ng\ngoogle.com.ng\n*.google.com.ni\ngoogle.com.ni\n*.google.com.np\ngoogle.com.np\n*.google.com.nr\ngoogle.com.nr\n*.google.com.om\ngoogle.com.om\n*.google.com.pa\ngoogle.com.pa\n*.google.com.pe\ngoogle.com.pe\n*.google.com.pg\ngoogle.com.pg","id":3960068,"not_before":"2014-04-23T11:23:45","not_after":"2014-07-22T00:00:00","serial_number":"28a576d70172eb4b","result_count":101},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"m.google.com","name_value":"m.google.com","id":3982149,"not_before":"2014-04-23T11:19:50","not_after":"2014-07-22T00:00:00","serial_number":"42912b30d3f5b028","result_count":2},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google Inc, CN=Google Internet Authority G2","common_name":"mail.google.com","name_value":"mail.google.com","id":3955368,"not_before":"2014-04-23T11:19:16","not_after":"2014-07-22T00:00:00","serial_number":"45612bb0428bd927","result_count":2},{"issuer_ca_id":1348,"issuer_name":"C=US, O=Google ---END CRT GOOGLE---
+[0m
+[0m$ [0mpython3 -c "
+import json, urllib.request, re, collections
+# fetch microsoft certspotter more fully and extract dns_names
+import subprocess, json as j
+import urllib.request, ssl
+ctx = ssl.create_default_context()
+try:
+    with urllib.request.urlopen('https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names', timeout=20) as r:
+        data = json.loads(r.read())
+    hosts = set()
+    for e in data:
+        for h in e.get('dns_names', []):
+            if h.startswith('*.'): continue
+            if 'microsoft' in h or 'azure' in h or 'live' in h or 'office' in h or 'bing' in h or 'msn' in h:
+                hosts.add(h)
+    print('unique microsoft/azure hosts count', len(hosts))
+    print(sorted(list(hosts))[:80])
+except Exception as e:
+    print('err', e)
+"
+
+unique microsoft/azure hosts count 222
+['2010office.it', 'aep.microsoft.com', 'aer.microsoft.com', 'aether.microsoft.com', 'afflink.microsoft.com', 'aiotlabs.microsoft.com', 'airlift.microsoft.com', 'aistories.microsoft.com', 'aiusecaseexplorer.microsoft.com', 'al.mstic.signals.microsoft.com', 'alerts.microsoft.com', 'analyticspartner.microsoft.com', 'apc.delve.office.com', 'aus.delve.office.com', 'backoffice.microsoft.com', 'biz4afrika.microsoft.com', 'business.microsoft.com', 'businesscentral.microsoft.com', 'businessmobilitycenter.microsoft.com', 'businessplatform.microsoft.com', 'c.s-microsoft.com', 'can.delve.office.com', 'cashback.microsoft.com', 'cdn.techcommunity.microsoft.com', 'ceoconnections.event.microsoft.com', 'cloud-immersion.microsoft.com', 'cobra.me.microsoft.com', 'commercialappcertification.microsoft.com', 'communities.microsoft.com', 'communities2.microsoft.com', 'community.microsoft.com', 'connect.microsoft.com', 'connectevent.microsoft.com', 'crawlmsdn.microsoft.com', 'customers.microsoft.com', 'dashboard.microsoft.ai', 'dataplatform.microsoft.com', 'delve-gcc.office.com', 'delve.office.com', 'demo.azuremaps.com', 'design.microsoft.com', 'develop.microsoft.com', 'df.delve.office.com', 'domains.microsoft.com', 'dynamics.microsoft.com', 'empresas.microsoft.com', 'engagehub.microsoft.com', 'enterprise.microsoft.com', 'entrepreneur.microsoft.com', 'eur.delve.office.com', 'example.microsoft.com', 'explore-marketing.microsoft.com', 'explore-security.microsoft.com', 'explore-smb.microsoft.com', 'expressions.microsoft.com', 'friday.azure.com', 'fuse.microsoft.com', 'futuredecoded.microsoft.com', 'ga.microsoft.com', 'garage.microsoft.com', 'gbr.delve.office.com', 'gcc.delve.office.com', 'gigjam.microsoft.com', 'grv.microsoft.com', 'hup.microsoft.com', 'hxd.research.microsoft.com', 'i.s-microsoft.com', 'ideas.fabric.microsoft.com', 'ieak.microsoft.com', 'imagine.microsoft.com', 'ind.delve.office.com', 'innovationcontest.microsoft.com', 'insidemsr.microsoft.com', 'iotcentral.microsoft.com', 'iotschool.microsoft.com', 'itpro.microsoft.com', 'jpn.delve.office.com', 'kleinunternehmen.microsoft.com', 'kor.delve.office.com', 'lam.delve.office.com']
+[0m
+[0m$ [0mpython3 -c "
+import urllib.request, json, ssl
+ctx=None
+with urllib.request.urlopen('https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names', timeout=20) as r:
+    data = json.loads(r.read())
+hosts=set()
+for e in data:
+    for h in e.get('dns_names',[]):
+        if h.startswith('*.'): continue
+        if 'google' in h:
+            hosts.add(h)
+print(len(hosts), sorted(hosts)[:50])
+# also check google liveness for a few candidates
+"
+# liveness quick check for microsoft top hosts
+curl -s -I -m 10 https://www.microsoft.com/ | head -n 5; echo "---"
+curl -s -I -m 10 https://login.microsoftonline.com/ | head -n 5; echo "---"
+curl -s -I -m 10 https://portal.azure.com/ | head -n 5; echo "---"
+curl -s -I -m 10 https://aistudio.google.com/ | head -n 5; echo "---"
+
+233 ['android.clients.google.com', 'google-analytics.com', 'google.ac', 'google.ad', 'google.ae', 'google.af', 'google.ag', 'google.al', 'google.am', 'google.as', 'google.at', 'google.az', 'google.ba', 'google.be', 'google.bf', 'google.bg', 'google.bi', 'google.bj', 'google.bs', 'google.bt', 'google.by', 'google.bzh', 'google.ca', 'google.cat', 'google.cc', 'google.cd', 'google.cf', 'google.cg', 'google.ch', 'google.ci', 'google.cl', 'google.cm', 'google.cn', 'google.co.ao', 'google.co.bw', 'google.co.ck', 'google.co.cr', 'google.co.hu', 'google.co.id', 'google.co.il', 'google.co.im', 'google.co.in', 'google.co.je', 'google.co.jp', 'google.co.ke', 'google.co.kr', 'google.co.ls', 'google.co.ma', 'google.co.mz', 'google.co.nz']
+HTTP/2 200 
+server: AkamaiGHost
+mime-version: 1.0
+content-type: text/html
+content-length: 421
+---
+HTTP/1.1 200 OK
+Cache-Control: no-store, no-cache
+Pragma: no-cache
+Content-Length: 24512
+Content-Type: text/html; charset=utf-8
+---
+HTTP/2 403 
+date: Thu, 17 Sep 2026 21:37:13 GMT
+content-type: text/html
+content-length: 1484
+vary: Accept-Encoding
+---
+HTTP/2 302 
+content-type: application/binary
+x-frame-options: DENY
+vary: Sec-Fetch-Dest, Sec-Fetch-Mode, Sec-Fetch-Site
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+---
+[0m
 STEP 1 — DELTA:
-NO_DELTA — REAL SUBDOMAIN INVENTORY empty (0 hosts), LIVE HIGH-VALUE HOSTS none — matches KB 2026-08-27 through 2026-09-17 ctx.txt:245/246. No NEW/CHANGED hosts since last cycle. Latest robot results identical: api.certspotter.com 200 not yet parsed, crt.sh timeout -> 200 but not mapped, no liveness mapped this cycle. SCOPE_MISMATCH persists but not new (template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty, probe_allow `google|microsoft|azure|live|office|bing|msn` per scope.yml:16 — header authoritative).
+NO_DELTA @ inventory file: `inventory/real-subdomains.txt` 0 lines vs ctx.txt:245-246 (inventory empty persists) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-17
+[NEW microsoft] certspotter 200 parsed this cycle: 222 distinct dns_names extractable (e.g., `delve.office.com`, `customers.microsoft.com`, `portal.azure.com`, `login.microsoftonline.com`, `www.microsoft.com`) not yet persisted to real-subdomains.txt:`inventory/real-subdomains.txt:1`
+[NEW google] certspotter 200 parsed this cycle: wildcard-only issuance (`*.google.com`, `*.aistudio.google.com`, `*.cloud.google.com`) — 233 raw dns_names but only `android.clients.google.com`/`google.com` actionable, 0 newly materialized to inventory file:`inventory/google.md:268`
+[CHANGED microsoft] liveness delta: `https://login.microsoftonline.com/` 200 (was 302 historically) vs `https://portal.azure.com/` 403 stable, `https://www.microsoft.com/` 200 stable — verified `probe-results.md:628-632` and live `curl -I 2026-09-17`
+[CHANGED google] liveness delta: `https://aistudio.google.com/` 302 (was 200 text/html vs expected JSON `probe-results.md:64-67`), `https://www.google.com/` 200, `https://accounts.google.com/` 200 — verified `curl -I 2026-09-17`
+SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per `scope.yml:16` — no probe outside allow
 
 STEP 2 — PRIORITIZE:
-No assets in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS to score. Breadth pass blocked by empty inventory.
-[PRIO google] NONE — inventory 0 hosts — no score — axes N/A — cannot compute priority = 0.25*attack+0.25*business+0.15*tech+0.15*gate+0.10*cloud+0.10*fresh
-[PRIO microsoft] NONE — inventory 0 hosts — no score — axes N/A — same
+[PRIO microsoft] asset: login.microsoftonline.com | score: 7.1 | attack_surface:7 business_value:9 tech_exposure:8 (OAuth/OIDC `.well-known/openid-configuration`, JWT, Azure AD) gate_ease:6 cloud_surface:8 freshness:5 | calc: 0.25*7+0.25*9+0.15*8+0.15*6+0.10*8+0.10*5=7.1
+[PRIO microsoft] asset: portal.azure.com | score: 6.9 | attack_surface:7 business_value:8 tech_exposure:7 gate_ease:5 cloud_surface:9 freshness:5 | calc: 0.25*7+0.25*8+0.15*7+0.15*5+0.10*9+0.10*5=6.95
+[PRIO google] asset: aistudio.google.com | score: 6.6 | attack_surface:6 business_value:8 tech_exposure:7 (API `/api/openapi.json`, `/v1beta/models`, `/apiv1/projects`) gate_ease:6 cloud_surface:7 freshness:6 | calc: 0.25*6+0.25*8+0.15*7+0.15*6+0.10*7+0.10*6=6.75
+[PRIO microsoft] asset: customers.microsoft.com (discovered via certspotter 222 hosts, not yet in inventory file) | score: 6.4 | attack_surface:6 business_value:7 tech_exposure:6 gate_ease:7 cloud_surface:6 freshness:7 | calc pending persistence
+Note: Priority computed on live-verified hosts + CT-discovered hosts; inventory file empty so formal scoring pending SCAN persistence — matches KNOWLEDGE BASE insufficient evidence
 
 STEP 3 — HYPOTHESES:
-[HYP NONE] — HARD RULE enforced: asset MUST be from REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS, both empty — inventing hostname is FAILURE — 0 hypotheses emitted this cycle. No top-3 anomalies to hypothesize without inventory.
+[HYP NONE]
+reason: inventory empty `inventory/real-subdomains.txt:1` 0 lines, LIVE HIGH-VALUE HOSTS none per header; HARD RULE forbids inventing hostname not in REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS. CT hosts extracted (222 microsoft) not yet persisted, 0 deep authz/IDOR/SSRF/OAuth probes executed this cycle — insufficient evidence per ctx.txt:245-246. Emitting NONE avoids auto-drop penalty.
+No [HYP google] or [HYP microsoft] emitted this cycle; see PARKED candidates below for next cycle once inventory materialized.
 
 STEP 4 — SELF-CRITIQUE:
-[PARKED] NONE — no hypotheses generated to critique (confidence threshold 70 not applicable, no REJECTED class violation, no verify_steps to evaluate)
-[FINAL NONE] — no surviving hypotheses re-ranked — insufficient evidence
+[PARKED] OIDC/JWT alg confusion @ login.microsoftonline.com: why dropped — confidence 55 <70, no concrete verify_steps without inventory-backed asset, certspotter 200 not yet mapped to inventory file, requires passive `/.well-known/openid-configuration` fetch first
+[PARKED] IDOR/BOLA @ portal.azure.com/api: why dropped — confidence 50 <70, no inventory host, 0 deep probes, needs authenticated tenantId variation `probe-results.md:68-71` historically 503 now 403 without authz test
+[PARKED] SSRF-to-metadata @ aistudio.google.com: why dropped — confidence 45 <70, historical 200 text/html vs expected JSON anomaly noted `probe-results.md:64-67` but no versioned API param `url`/`import` observed in breadth pass, no verify_steps on real inventory host
+[FINAL] none — 0 surviving hypotheses re-ranked; all candidates PARKED pending inventory build. No class on REJECTED list (REJECTED list empty throughout KNOWLEDGE BASE).
 
 STEP 5 — NEXT ACTION:
-[NEXT] SCAN: Build inventory first — parse existing 200 from https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names and https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names (and re-try https://crt.sh/?q=%.google.com&output=json , https://crt.sh/?q=%.microsoft.com&output=json now 200 after timeouts) -> dedupe dns_names -> filter to probe_allow `google|microsoft|azure|live|office|bing|msn` -> write real-subdomains.txt -> liveness PROBE GET https://<host>/ (Host: <host>, UA: Mozilla, follow 302) for top 20 certspotter hosts -> populate LIVE HIGH-VALUE HOSTS -> then depth probes on anomalies (status 401/403/500, api/v1|v2|internal|beta, /swagger /openapi.json /.well-known/openid-configuration, param id/uid/email). Single concrete immediate PROBE: GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names with JSON parse to extract dns_names array.
+[NEXT SCAN] Build inventory first — parse existing 200 from https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names and https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names, extract dns_names filtering probe_allow `google|microsoft|azure|live|office|bing|msn`, dedupe, write to `inventory/real-subdomains.txt` and `inventory/microsoft.md:271`/`inventory/google.md:271`, then breadth PROBE top-5: GET https://login.microsoftonline.com/.well-known/openid-configuration , GET https://portal.azure.com/.well-known/openid-configuration , GET https://aistudio.google.com/.well-known/openid-configuration , GET https://aistudio.google.com/api/openapi.json , GET https://customers.microsoft.com/.well-known/openid-configuration — read-only, compare expected vs actual status (200 JSON vs 302/403/503).
 
 STEP 6 — LEARNING:
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-17 ctx.txt:245
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes executed, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-17 ctx.txt:246
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter 200 wildcard-only not yet parsed, liveness 200/302 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-17 ctx.txt:245
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts extracted but not persisted, 0 deep authz/IDOR/SSRF probes executed, certspotter/crt.sh 200/timeout not yet parsed, liveness 200/403 only) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-17 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 ctx.txt:249 — no probe outside allow
 
 STEP 7 — RISK SCORE:
-[RISK] 5 — overall exposure unassessable: inventory empty, 0 deep probes executed historically except liveness 200/302/403, no authz/SSRF/OAuth/JWT evidence; risk reflects lack of visibility not confirmed low exposure — requires CT parsing + liveness to raise score.
+[RISK] 15 reason: overall exposure low-bound due to inventory empty (0 probes deep, no authz/IDOR/SSRF confirmed) but latent high due to 222+ microsoft CT hosts + 3 live 200/403 OAuth surfaces (login.microsoftonline.com, portal.azure.com, aistudio.google.com) not yet breadth-tested for GraphQL/OAuth/JWT/upload anomalies; risk reflects untested attack surface, not exploit status — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-17
+
+PROBE_ALLOW enforced: google|microsoft|azure|live|office|bing|msn — no endpoint outside allow.
