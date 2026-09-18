@@ -1830,3 +1830,6 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — matches KB 2026-08-27 through 2026-09-18
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient not persisted historically, 0 deep probes) — matches 
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative probe_all
+
+## RANKED HYPOTHESES 2026-09-18 22:21:52 UTC
+- (no NEW hypotheses this cycle — all deduped)

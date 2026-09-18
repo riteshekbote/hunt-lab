@@ -3360,3 +3360,4 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient not persisted historically, 0 deep probes) — matches KB 2026-08-27 through 2026-09-18
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
 [RISK] 15 — inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed, only historical liveness 200/302/403 on www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com; no tech exposure (GraphQL/OAuth/JWT/upload) mapped, no anomaly to score. Overall program exposure unmeasured, exploit status unknown — not low risk by design, low by visibility.
+## 2026-09-18 22:21:43 UTC (model muse-spark)
