@@ -3310,3 +3310,4 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts extracted transient but not persisted historically, 0 deep authz/IDOR/SSRF probes executed, liveness 200 only historically login.microsoftonline.com/portal.azure.com) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-18 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 ctx.txt:249 — no probe outside allow
 [RISK] 10 — inventory empty, 0 deep probes, no verified exposure; underlying google/microsoft surface inherently high-value (OAuth/JWT/GraphQL/cloud metadata) but unmapped this cycle so current measurable risk is incomplete/low-confidence.
+## 2026-09-18 13:28:09 UTC (model muse-spark)
