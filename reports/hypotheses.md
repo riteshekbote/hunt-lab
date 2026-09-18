@@ -1784,3 +1784,9 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, ce
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts extracted transient but not persisted, 0 deep authz/IDOR/SSRF p
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritat
+
+## RANKED HYPOTHESES 2026-09-18 08:51:33 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, ce
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts extracted transient but not persisted historically, 0 deep auth
+- LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritat
