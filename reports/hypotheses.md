@@ -1890,3 +1890,10 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (222 transient not persisted historically, 0 deep probes, liveness not mapped) matches KB 2
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
+
+## RANKED HYPOTHESES 2026-09-19 16:41:13 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Rebuild inventory first — then depth on anomalies. Execute read-only:
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient historically not persisted, 0 deep authz/IDOR/SSRF pr
+- LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritat
