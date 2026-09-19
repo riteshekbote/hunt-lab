@@ -1884,3 +1884,9 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (222 transient not persisted historically, 0 deep probes, liveness not mapped) matches KB 2
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
+
+## RANKED HYPOTHESES 2026-09-19 14:48:45 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (222 transient not persisted historically, 0 deep probes, liveness not mapped) matches KB 2
+- LEARN: SCOPE_MISMATCH @ directive-template: template 5-target vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
