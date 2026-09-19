@@ -261,3 +261,5 @@
 - 2026-09-19 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh not yet parsed) — matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
 - 2026-09-19 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (222 hosts transient not persisted, 0 deep probes, liveness not mapped) — matches KB 2026-08-27 through 2026-09-19 ctx.txt:246
 - 2026-09-19 SCOPE_MISMATCH @ directive-template: template 5-target vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow ctx.txt:249
+- 2026-09-19 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
+- 2026-09-19 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (222 transient not persisted historically, 0 deep probes, liveness not mapped) matches KB 2026-08-27 through 2026-09-19 ctx.txt:246
