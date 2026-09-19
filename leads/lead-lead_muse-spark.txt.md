@@ -3448,3 +3448,11 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient historically not persisted, 0 deep authz/IDOR/SSRF probes, liveness not mapped) matches KB 2026-08-27 through 2026-09-19 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 5 — inventory empty, 0 deep probes, no authz/IDOR/SSRF/OAuth evidence; exposure unknown not low-risk, but measured risk is minimal until CT inventory parsed and anomaly breadth pass completed; historical liveness 200/302/403 only proves edge reachability, not application attack surface.
+## 2026-09-19 16:41:02 UTC (model muse-spark)
+[PARKED] none — no hypotheses generated to critique
+[FINAL] none — 0 surviving hypotheses (insufficient evidence, inventory empty)
+[NEXT] SCAN: Rebuild inventory first — then depth on anomalies. Execute read-only:
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KB 2026-08-27 through 2026-09-19 ctx.txt:245
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient historically not persisted, 0 deep authz/IDOR/SSRF probes, liveness not mapped) matches KB 2026-08-27 through 2026-09-19 ctx.txt:246
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+[RISK] 5 — inventory empty, 0 deep probes, no authz/IDOR/SSRF/OAuth evidence; exposure unknown not low-risk, but measured risk is minimal until CT inventory parsed and anomaly breadth pass completed; historical liveness 200/302/403 only proves edge reachability, not application attack surface.
