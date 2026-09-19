@@ -253,3 +253,6 @@
 - 2026-09-18 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — matches KB 2026-08-27 through 2026-09-18
 - 2026-09-18 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 hosts transient not persisted historically, 0 deep probes) — matches KB 2026-08-27 through 2026-09-18
 - 2026-09-18 SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
+- 2026-09-19 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200 not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-18 ctx.txt:245
+- 2026-09-19 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-18 ctx.txt:246
+- 2026-09-19 SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
