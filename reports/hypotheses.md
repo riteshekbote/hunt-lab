@@ -1857,3 +1857,10 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted historically, 0 deep probes, liveness not mapp
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative — no prob
+
+## RANKED HYPOTHESES 2026-09-19 06:39:19 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Build inventory first — parse existing 200 responses from https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names, https://api.certspo
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted historically, 0 deep probes, liveness not mapp
+- LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative — no prob
