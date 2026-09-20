@@ -1,24 +1,7 @@
-## 2026-09-20 19:39:48 UTC (model muse-spark)
-class: NONE
-asset: NONE — no host in REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS
-confidence: 0
-reasoning: inventory empty real-subdomains.txt 0 lines; 0 deep authz/IDOR/SSRF/OAuth probes executed; certspotter/crt.sh 200 not yet parsed/persisted; liveness not mapped this cycle — insufficient evidence per KNOWLEDGE BASE 2026-08-27 through 2026-09-20
-evidence_needed: persisted CT inventory filtered to probe_allow google|microsoft|azure|live|office|bing|msn
-verify_steps: passive CT recon only — no target probe outside probe_allow
-impact: none proven
-testability: PASSIVE
-class: NONE
-asset: NONE — no host in REAL SUBDOMAIN INVENTORY / LIVE HIGH-VALUE HOSTS
-confidence: 0
-reasoning: inventory empty; 222 hosts extracted transient historically not persisted; 0 deep probes; liveness not mapped this cycle; crt.sh/certspotter not parsed
-evidence_needed: persisted CT inventory + liveness mapping
-verify_steps: passive CT recon only
-impact: none proven
-testability: PASSIVE
-[PARKED] ALL — no hypothesis meets confidence >=70 or concrete verify_steps to in-scope host; inventory empty violates HARD RULE (asset must be from REAL SUBDOMAIN INVENTORY/LIVE HOSTS)
-[FINAL] NONE — zero surviving hypotheses re-ranked; matches LEARN NONE @ google/microsoft 2026-09-20
-[NEXT] SCAN: Rebuild and PERSIST CT inventory (read-only, no target probe outside probe_allow) — GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names ; GET https://crt.sh/?q=%25.google.com&output=json ; GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names ; GET https://crt.sh/?q=%25.microsoft.com&output=json ; GET https://crt.sh/?q=%25.azure.com&output=json ; parse dns_names/SANs, dedupe, filter to probe_allow `google|microsoft|azure|live|office|bing|msn`, write real-subdomains.txt, then liveness HEAD/GET on persisted hosts only
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh not yet parsed) — matches KB 2026-08-27 through 2026-09-20
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted historically, 0 deep probes, liveness not mapped) — matches KB 2026-08-27 through 2026-09-20
-[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
-[RISK] 12 — overall exposure unmeasurable: inventory empty, 0 deep probes executed historically; surface not enumerated so no exploitable evidence, but underlying google.com/*.google.com + microsoft.com/*.microsoft.com/*.azure.com attack surface remains large once CT inventory rebuilt; risk reflects knowledge gap not low inherent exposure
+## 2026-09-20 22:14:37 UTC (model muse-spark)
+[PARKED] all potential IDOR/SSRF/OAuth hypotheses on historical liveness hosts: why dropped — inventory empty (0 lines), 0 deep authz/IDOR/SSRF/OAuth probes executed, no concrete evidence_needed/verify_steps traceable to REAL INVENTORY per ctx.txt:245-246
+[FINAL] NONE — no surviving hypotheses re-ranked this cycle; matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20 ctx.txt:245
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep probes, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20 ctx.txt:246
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 ctx.txt:249 — no probe outside allow
+[RISK] 10 reason: overall exposure indeterminate due to empty persisted inventory (0 hosts) and 0 deep probes; historical liveness 200/302/403 only on www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com indicates surface exists but no anomaly/status/param/tech_exposure sampled this cycle; no evidence of exploitable class, no data to raise risk.
