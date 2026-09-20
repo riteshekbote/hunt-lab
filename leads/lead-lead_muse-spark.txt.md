@@ -3564,3 +3564,10 @@ reasoning: inventory empty, LIVE hosts none; hard rule prohibits inventing hostn
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes executed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 5 — overall exposure unmeasurable due to empty inventory (0 persisted hosts, 0 deep probes, only historical liveness 200/302/403); no evidence of high-value attack surface exposure this cycle, risk is data absence not proven secure
+## 2026-09-20 17:19:34 UTC (model muse-spark)
+[PARKED] NONE — no hypotheses generated to critique; any invented host outside probe_allow google|microsoft|azure|live|office|bing|msn would be dropped
+[FINAL] NONE — 0 surviving hypotheses — insufficient evidence, need inventory rebuild first
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 0 deep authz/IDOR/SSRF probes, 222 transient not persisted) — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow google|microsoft|azure|live|office|bing|msn enforced per scope.yml:16 — no probe outside allow
+[RISK] 10 — inventory empty = 0 visibility, 0 probes executed, no tech_exposure signal (GraphQL/OAuth/JWT/upload), no cloud_surface tested; risk reflects unknown exposure not proven low; historical liveness only www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com.
