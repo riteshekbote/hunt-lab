@@ -2,25 +2,27 @@
 > build · muse-spark-1.2-contributor-free
 [0m
 STEP 1 — DELTA
-NO_DELTA — inventory empty real-subdomains.txt 0 lines, LIVE HIGH-VALUE HOSTS none — no NEW/CHANGED vs 2026-09-20/21 ctx.txt:245-246 — matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20
-SCOPE_MISMATCH: directive-template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
+NO_DELTA — REAL SUBDOMAIN INVENTORY 0 lines, LIVE HIGH-VALUE HOSTS none, probe results empty this cycle. No NEW/CHANGED vs KNOWLEDGE BASE 2026-08-27 through 2026-09-21. SCOPE_MISMATCH unchanged: directive-template 5-target (duocircle/emsisoft/docker/posit/coxautomotive) vs SCOPE header google/microsoft (probe_allow `google|microsoft|azure|live|office|bing|msn`) — header authoritative per scope.yml:16.
 
 STEP 2 — PRIORITIZE
-NO_PRIO — no assets to score: REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — cannot compute attack_surface/business_value/tech_exposure/gate_ease/cloud_surface/freshness — breadth pass skipped pending CT rebuild
+NO_PRIO — inventory empty, no asset to score on 6 axes. Historical liveness (www.google.com/accounts.google.com/www.microsoft.com/login.microsoftonline.com/portal.azure.com) not in current LIVE HIGH-VALUE HOSTS and not persisted, cannot score this cycle. Next SCAN must rebuild + PERSIST CT before scoring.
+[PRIO google] NONE — no inventory host to prioritize
+[PRIO microsoft] NONE — no inventory host to prioritize
 
 STEP 3 — HYPOTHESES
-[HYP NONE] — no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS merits hypothesis — inventing hostname prohibited — 0 deep authz/IDOR/SSRF/OAuth probes executed historically
+[HYP NONE] — inventory empty, asset MUST be from REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS per HARD RULE; inventing hostname = FAILURE. 0 deep authz/IDOR/SSRF/OAuth probes executed historically matches KNOWLEDGE BASE 2026-08-27 through 2026-09-21 ctx.txt:245-246.
 
 STEP 4 — SELF-CRITIQUE
-[PARKED] none — no hypotheses generated to critique (inventory empty)
-[FINAL] none — 0 surviving hypotheses — insufficient evidence to rank
+[PARKED] NONE — no hypotheses generated to park; prior cycles insufficient evidence, no confidence >=70 possible without inventory.
+[FINAL] NONE — 0 surviving hypotheses; no concrete verify_steps possible without persisted inventory.
 
 STEP 5 — NEXT ACTION
-[NEXT] SCAN: Rebuild and PERSIST CT inventory (passive read-only, no target probe outside probe_allow) — GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names&expand=issuer → parse dns_names; GET https://crt.sh/?q=%.google.com&output=json → parse name_value/common_name; repeat for microsoft.com / azure.com / live.com / office.com / bing.com / msn.com; dedup + filter probe_allow, write to real-subdomains.txt + inventory; then breadth liveness only on persisted hosts: GET https://<host>/ with Host header, record status/content-type for anomaly triage (odd codes, param names, /api/v1|v2|beta|internal, /swagger|/openapi.json, debug flags)
+[NEXT] SCAN: Rebuild and PERSIST CT inventory (passive read-only, no target probe outside probe_allow `google|microsoft|azure|live|office|bing|msn`) — GET https://api.certspotter.com/v1/issuances?domain=google.com&expand=dns_names&include_subdomains=true and GET https://api.certspotter.com/v1/issuances?domain=microsoft.com&expand=dns_names&include_subdomains=true + GET https://crt.sh/?q=%.google.com&output=json + GET https://crt.sh/?q=%.microsoft.com&output=json; parse dns_names, dedup, normalize, write real-subdomains.txt (google + microsoft/azure) and enforce probe_allow, then re-run prioritization.
 
 STEP 6 — LEARNING
-[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20 ctx.txt:245
-[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep probes, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-20 ctx.txt:246
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-21
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep probes, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-21
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced — no probe outside allow
 
 STEP 7 — RISK SCORE
-[RISK] 5 — overall exposure unknown due to inventory empty (0 hosts, 0 deep probes) — no evidence of high-value classes, no liveness anomaly, no cloud/metadata surface mapped this cycle
+[RISK] 15 — inventory empty, 0 verified attack surface, 0 deep probes executed; historical exposure only liveness 200/302/403 and transient 219 google / 127-222 microsoft CT hosts never persisted; overall program exposure unproven, requires CT rebuild before risk can be assessed.
