@@ -3756,3 +3756,19 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep probes, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-21 ctx.txt:246
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 10 reason: overall program exposure unknown due inventory empty — no attack_surface/tech_exposure/cloud_surface measurable; historical liveness only 200/302/403 on 3 hosts, 0 GraphQL/OAuth/JWT/upload/admin exposure mapped, 0 authz probes; risk is visibility gap not exploit status — requires CT persist + breadth pass before scoring.
+## 2026-09-22 03:44:34 UTC (model muse-spark)
+class: NONE
+asset: NONE — REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — inventing hostname violates HARD RULE
+confidence: 0
+reasoning: inventory empty since 2026-09-13, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh responses not parsed/persisted, liveness not mapped this cycle
+evidence_needed: persisted CT inventory first
+verify_steps: passive CT rebuild only (no probe outside probe_allow)
+impact: none proven
+testability: PASSIVE
+[PARKED] ALL — no hypotheses generated: inventory empty, no asset from REAL SUBDOMAIN INVENTORY/LIVE HIGH-VALUE HOSTS to anchor hypothesis; confidence <70 threshold would drop any invented asset anyway
+[FINAL] NONE — 0 surviving hypotheses re-ranked
+[NEXT] SCAN: Rebuild and PERSIST CT inventory passive read-only — no target probe outside probe_allow `google|microsoft|azure|live|office|bing|msn` — GET https://api.certspotter.io/v1/issuances?domain=google.com&include_subdomains=true&expand=dns_names ; GET https://api.certspotter.io/v1/issuances?domain=microsoft.com&include_subdomains=true&expand=dns_names ; GET https://api.certspotter.io/v1/issuances?domain=azure.com&include_subdomains=true&expand=dns_names ; GET https://crt.sh/?q=%.google.com&output=json ; GET https://crt.sh/?q=%.microsoft.com&output=json ; GET https://crt.sh/?q=%.azure.com&output=json — parse dns_names, dedupe, filter to *google.com/*microsoft.com/*azure.com/*live.com/*office.com/*bing.com/*msn.com, write to real-subdomains.txt and persist (do not drop 222-host transient), then liveness HEAD/GET only on persisted list
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh not yet parsed) matches KB 2026-08-27 through 2026-09-22
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted historically, 0 deep probes, liveness not mapped) matches KB 2026-08-27 through 2026-09-22
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
+[RISK] 10 — inventory empty, 0 deep probes executed, no attack surface enumerated; exposure unknown not high — historical liveness only 200/302/403 on www.google.com/accounts.google.com/login.microsoftonline.com/portal.azure.com, crt.sh 502/404 transient historically, no deep authz/IDOR/SSRF/OAuth signal this cycle
