@@ -3939,3 +3939,24 @@ testability: PASSIVE
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
+## 2026-09-23 14:19:58 UTC (model muse-spark)
+class: NONE
+asset: none - inventory empty
+confidence: 0
+reasoning: no host in REAL SUBDOMAIN INVENTORY or LIVE HIGH-VALUE HOSTS meets threshold; inventing hostname violates HARD RULE; 0 deep authz/IDOR/SSRF/OAuth probes executed per KB 2026-08-27 through 2026-09-23
+evidence_needed: rebuilt passive CT inventory within probe_allow
+verify_steps: none until inventory exists
+impact: none
+testability: PASSIVE
+class: NONE
+asset: none - inventory empty
+confidence: 0
+reasoning: same as google - inventory empty, no live host to anchor hypothesis; 0 deep probes; crt.sh/certspotter 200/timeout not yet parsed per ctx.txt:245-246
+evidence_needed: rebuilt passive CT inventory within probe_allow
+verify_steps: none until inventory exists
+impact: none
+testability: PASSIVE
+[FINAL] NONE — 0 surviving hypotheses — insufficient evidence to rank
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft — header authoritative probe_allow enforced — no probe outside allow
