@@ -4030,3 +4030,7 @@ testability: PASSIVE
 [FINAL] 0 surviving hypotheses — re-rank N/A
 [LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23 ctx.txt:245
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23 ctx.txt:246
+## 2026-09-24 05:11:47 UTC (model muse-spark)
+[FINAL] 0 surviving hypotheses — re-rank N/A
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23 ctx.txt:245
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23 ctx.txt:246

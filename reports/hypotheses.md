@@ -2266,3 +2266,8 @@
 - (no NEW hypotheses this cycle — all deduped)
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout 
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes, c
+
+## RANKED HYPOTHESES 2026-09-24 09:34:01 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes, certspotter/crt.sh 200/timeout 
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes, c
