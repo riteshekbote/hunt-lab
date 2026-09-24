@@ -1122,3 +1122,8 @@ https://<parsed-host>/ -> ERR <urlopen error [Errno -2] Name or service not know
 
 ## 2026-09-24 14:26:38 UTC
 
+
+## 2026-09-24 15:24:42 UTC
+https://crt.sh/?q=%.google.com&output=json -> HTTP 502
+https://crt.sh/?q=%.microsoft.com&output=json -> HTTP 502
+https://api.certspotter.com/v1/issuances?domain=google.com -> 200 len=? type=application/json

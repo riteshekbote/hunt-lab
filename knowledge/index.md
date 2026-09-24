@@ -331,3 +331,4 @@
 - 2026-09-24 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — no new proof
 - 2026-09-24 NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty, 222 transient not persisted, 0 deep probes) — no new proof
 - 2026-09-24 SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced — no probe outside allow
+- 2026-09-24 NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, certspotter/crt.sh 200/timeout not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-23 ctx.txt:245
