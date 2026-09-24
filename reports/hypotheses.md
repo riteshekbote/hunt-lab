@@ -2290,3 +2290,10 @@
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, ce
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes ex
 - LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritat
+
+## RANKED HYPOTHESES 2026-09-24 18:40:06 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- NEXT(hypotheses-lead_muse-spark.txt.txt): SCAN: Rebuild and PERSIST CT inventory passive read-only within probe_allow `google|microsoft|azure|live|office|bing|msn` — exact: GET https://crt.sh/?q=%.googl
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty real-subdomains.txt 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, ce
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes ex
+- LEARN: SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritat

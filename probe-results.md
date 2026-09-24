@@ -1127,3 +1127,8 @@ https://<parsed-host>/ -> ERR <urlopen error [Errno -2] Name or service not know
 https://crt.sh/?q=%.google.com&output=json -> HTTP 502
 https://crt.sh/?q=%.microsoft.com&output=json -> HTTP 502
 https://api.certspotter.com/v1/issuances?domain=google.com -> 200 len=? type=application/json
+
+## 2026-09-24 18:40:26 UTC
+https://crt.sh/?q=%.google.com&output=json -> 200 len=? type=application/json
+https://crt.sh/?q=%.microsoft.com&output=json -> ERR The read operation timed out
+https://api.certspotter.com/v1/issuances?domain=google.com -> 200 len=? type=application/json
