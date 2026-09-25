@@ -4158,3 +4158,9 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes executed, crt.sh 200/timeout + certspotter 200 not yet parsed/persisted, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-25
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative probe_allow `google|microsoft|azure|live|office|bing|msn` enforced — no probe outside allow
 [RISK] 5 — inventory empty, 0 verified attack surface, 0 deep probes; exposure unmeasured not low-risk per se but no evidence of exploitable surface this cycle; high-value bounty targets (google/microsoft) require persisted CT inventory before any high-value class (IDOR/SSRF/OAuth/JWT) can be assessed.
+## 2026-09-25 06:26:23 UTC (model muse-spark)
+[PARKED] none — no hypotheses generated to park (confidence <70 / REJECTED list / no verify_steps not applicable)
+[FINAL] NONE — 0 surviving hypotheses re-ranked — insufficient evidence inventory empty, 0 deep authz/IDOR/SSRF/OAuth probes executed matches KB 2026-08-27 through 2026-09-25
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — no new proof this cycle
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes) — no new proof this cycle
+[RISK] 10 — overall program exposure unproven due to inventory empty, 0 deep probes, only historical liveness 200/302/403 and transient crt.sh 200/502; no attack surface validated to score higher; risk is unknown-not-low until CT persisted and breadth tech_exposure mapped.
