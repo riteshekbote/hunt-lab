@@ -1148,3 +1148,8 @@ https://api.certspotter.com/v1/issuances?domain=google.com -> 200 len=? type=app
 
 ## 2026-09-25 00:32:31 UTC
 
+
+## 2026-09-25 01:12:18 UTC
+https://crt.sh/?q=%.google.com&output=json -> ERR The read operation timed out
+https://crt.sh/?q=%.microsoft.com&output=json -> HTTP 502
+https://api.certspotter.com/v1/issuances?domain=google.com -> 200 len=? type=application/json

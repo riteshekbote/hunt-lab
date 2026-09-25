@@ -4126,3 +4126,19 @@ testability: PASSIVE
 [LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep probes executed, crt.sh 200 not yet parsed, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-24
 [LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative, probe_allow `google|microsoft|azure|live|office|bing|msn` enforced per scope.yml:16 — no probe outside allow
 [RISK] 5 — inventory empty, 0 persisted hosts, 0 deep probes executed, LIVE HIGH-VALUE HOSTS none, only passive CT availability now 200 but unmapped; overall exposure unmeasured, not proven low-risk, but no validated attack surface to chain AUTH/IDOR/SSRF/OAuth this cycle.
+## 2026-09-25 01:11:52 UTC (model muse-spark)
+class: NONE
+asset: none (REAL SUBDOMAIN INVENTORY empty, LIVE HIGH-VALUE HOSTS none — cannot invent host per HARD RULE)
+confidence: 0
+reasoning: Inventory 0 lines google + 0 persisted microsoft; 0 deep authz/IDOR/SSRF/OAuth probes executed; no concrete host/endpoint to hypothesize without fabrication.
+evidence_needed: Persisted CT inventory within probe_allow to derive real hosts
+verify_steps: Passive SCAN first: GET https://crt.sh/?q=%.google.com&output=json ; GET https://crt.sh/?q=%.microsoft.com&output=json ; GET https://api.certspotter.com/v1/issuances?domain=google.com ; then map to real-subdomains.txt
+impact: none — no asset
+testability: PASSIVE
+[PARKED] NONE — no inventory-derived host to hypothesize; confidence 0 <70 threshold; any invented google.com/microsoft.com hostname would violate HARD RULE asset MUST be from inventory.
+[FINAL] none — 0 surviving hypotheses; ranking empty. Historical NONE entries 2026-08-27 through 2026-09-25 remain valid: insufficient evidence.
+[NEXT] SCAN: Rebuild and PERSIST CT inventory passive read-only within probe_allow `google|microsoft|azure|live|office|bing|msn` — exact: GET https://crt.sh/?q=%.google.com&output=json -> parse unique dns_names -> filter `google\.com$`|`azure\.com$`|`microsoft\.com$`|`live\.com$`|`office\.com$`|`bing\.com$`|`msn\.com$` -> write real-subdomains.txt; GET https://crt.sh/?q=%.microsoft.com&output=json same; GET https://api.certspotter.com/v1/issuances?domain=google.com and domain=microsoft.com -> merge, dedupe, persist. No intrusive probes until inventory persisted.
+[LEARN] NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep authz/IDOR/SSRF/OAuth probes executed, crt.sh/certspotter 200 not yet parsed/persisted, liveness not mapped this cycle) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-25
+[LEARN] NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient historically not persisted, 0 deep authz/IDOR/SSRF probes executed, crt.sh 200/timeout + certspotter 200 not yet parsed/persisted, liveness not mapped) matches KNOWLEDGE BASE 2026-08-27 through 2026-09-25
+[LEARN] SCOPE_MISMATCH @ directive-template: template 5-target duocircle/emsisoft/docker/posit/coxautomotive vs SCOPE header google/microsoft bounty — header authoritative probe_allow `google|microsoft|azure|live|office|bing|msn` enforced — no probe outside allow
+[RISK] 5 — inventory empty, 0 verified attack surface, 0 deep probes; exposure unmeasured not low-risk per se but no evidence of exploitable surface this cycle; high-value bounty targets (google/microsoft) require persisted CT inventory before any high-value class (IDOR/SSRF/OAuth/JWT) can be assessed.
