@@ -2342,3 +2342,8 @@
 - (no NEW hypotheses this cycle — all deduped)
 - LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — no new proof this cycle
 - LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes) — no new proof this cycle
+
+## RANKED HYPOTHESES 2026-09-25 10:33:27 UTC
+- (no NEW hypotheses this cycle — all deduped)
+- LEARN: NONE @ google: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 0 lines, 0 deep probes) — no new proof this cycle
+- LEARN: NONE @ microsoft: no class ACCEPTED/REJECTED — insufficient evidence (inventory empty 222 transient not persisted, 0 deep probes) — no new proof this cycle
